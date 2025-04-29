@@ -27,7 +27,7 @@
     "@turf/distance": "6.5.0",
     "@turf/helpers": "6.5.0",
     "@turf/length": "6.5.0",
-    "@turf/nearest-point-on-line": "6.5.0",
+    "@turf/nearest-point-on-line": "7.2.0",
     "@turf/union": "6.5.0",
     "@types/leaflet": "1.9.5",
     "@types/node": "22.13.0",
