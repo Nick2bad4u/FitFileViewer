@@ -15,9 +15,14 @@ jobs:
   upload-linux:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Download Linux release assets (linux-)
         id: download_linux
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-linux-*"
@@ -26,7 +31,7 @@ jobs:
 
       - name: Download Linux release assets (appimage-)
         id: download_appimage
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-appimage-*"
@@ -35,7 +40,7 @@ jobs:
 
       - name: Download Linux release assets (deb-)
         id: download_deb
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-deb-*"
@@ -44,7 +49,7 @@ jobs:
 
       - name: Download Linux release assets (pacman-)
         id: download_pacman
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-pacman-*"
@@ -53,7 +58,7 @@ jobs:
 
       - name: Download Linux release assets (rpm-)
         id: download_rpm
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-rpm-*"
@@ -62,7 +67,7 @@ jobs:
 
       - name: Download Linux release assets (snap-)
         id: download_snap
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-snap-*"
@@ -71,7 +76,7 @@ jobs:
 
       - name: Download Linux release assets (freebsd-)
         id: download_freebsd
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-freebsd-*"
@@ -80,7 +85,7 @@ jobs:
 
       - name: Download Linux release assets (apk-)
         id: download_apk
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-apk-*"
@@ -89,7 +94,7 @@ jobs:
 
       - name: Download Linux release assets (latest-linux.yml)
         id: download_latest
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "latest-linux.yml"
@@ -97,7 +102,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Linux distributables to archive.org
-        uses: palewire/internet-archive-upload@v1
+        uses: palewire/internet-archive-upload@3c70ed44716967d22ebdd2213a7684a485e3cabf # v1
         with:
           access-key: ${{ secrets.IA_ACCESS_KEY }}
           secret-key: ${{ secrets.IA_SECRET_KEY }}

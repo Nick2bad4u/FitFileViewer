@@ -2,8 +2,14 @@ name: Automatic Rebase
 on:
   issue_comment:
     types: [created]
+permissions:
+  contents: read
+
 jobs:
   rebase:
+    permissions:
+      contents: write  # for cirrus-actions/rebase to push code to rebase
+      pull-requests: read  # for cirrus-actions/rebase to get info about PR
     name: Rebase
     runs-on: ubuntu-latest
     if: >-
@@ -16,13 +22,18 @@ jobs:
       group: rebase-${{ github.ref }}
       cancel-in-progress: false
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Checkout the latest code
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
       - name: Automatic Rebase
-        uses: cirrus-actions/rebase@1.8
+        uses: cirrus-actions/rebase@b87d48154a87a85666003575337e27b8cd65f691 # 1.8
         with:
           autosquash: ${{ contains(github.event.comment.body, '/autosquash') || contains(github.event.comment.body, '/rebase-autosquash') }}
         env:

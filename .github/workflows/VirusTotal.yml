@@ -21,15 +21,20 @@ jobs:
   virustotal:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Download latest release assets
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "*"
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@v4.2.0
+        uses: crazy-max/ghaction-virustotal@d34968c958ae283fe976efed637081b9f9dcf74f # v4.2.0
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
           files: |

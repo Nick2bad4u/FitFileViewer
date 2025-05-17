@@ -17,6 +17,9 @@ concurrency:
   group: devskim-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: DevSkim

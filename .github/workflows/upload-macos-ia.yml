@@ -15,9 +15,14 @@ jobs:
   upload-macos:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Download macOS release assets (darwin-)
         id: download_darwin
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-darwin-*"
@@ -26,7 +31,7 @@ jobs:
 
       - name: Download macOS release assets (dmg-)
         id: download_dmg
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-dmg-*"
@@ -35,7 +40,7 @@ jobs:
 
       - name: Download macOS release assets (pkg-)
         id: download_pkg
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "Fit-File-Viewer-pkg-*"
@@ -44,7 +49,7 @@ jobs:
 
       - name: Download macOS release assets (latest-mac.yml)
         id: download_latest
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
           fileName: "latest-mac.yml"
@@ -52,7 +57,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload macOS distributables to archive.org
-        uses: palewire/internet-archive-upload@v1
+        uses: palewire/internet-archive-upload@3c70ed44716967d22ebdd2213a7684a485e3cabf # v1
         with:
           access-key: ${{ secrets.IA_ACCESS_KEY }}
           secret-key: ${{ secrets.IA_SECRET_KEY }}
