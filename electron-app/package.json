@@ -244,7 +244,7 @@
   "license": "Unlicense",
   "description": "Fit File Viewer is a cross-platform application for parsing, visualizing, and analyzing .fit files using charts, maps, tables, and other data visualization tools for Garmin and fitness activities.",
   "devDependencies": {
-    "@actions/artifact": "^1.1.2",
+    "@actions/artifact": "^2.3.2",
     "@actions/attest": "^1.6.0",
     "@actions/cache": "^4.0.3",
     "@actions/core": "^1.11.1",
@@ -263,7 +263,7 @@
     "@types/jest": "^29.5.14",
     "@types/mocha": "10.0.10",
     "cross-env": "^7.0.3",
-    "electron": "36.3.2",
+    "electron": "36.4.0",
     "electron-builder": "26.0.16",
     "electron-builder-squirrel-windows": "26.0.16",
     "eslint": "^9.28.0",
