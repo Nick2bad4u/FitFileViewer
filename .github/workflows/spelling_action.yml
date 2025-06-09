@@ -8,6 +8,9 @@ on:
 concurrency:
   group: spellcheck-${{ github.ref }}
   cancel-in-progress: false
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Spellcheck
