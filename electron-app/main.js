@@ -267,35 +267,33 @@ app.whenReady().then(() => {
 
 	// Optionally, allow renderer to trigger update install
 	ipcMain.on('install-update', () => {
-		if (process.platform === 'linux') {
-			const { dialog } = require('electron');
-			dialog.showMessageBox({
-				type: 'info',
-				title: 'Manual Update Required',
-				message: 'On Linux, please download and install the latest version manually from the website.'
-			});
-			return;
-		}
 		try {
 			autoUpdater.quitAndInstall();
 		} catch (err) {
 			console.error('Error during quitAndInstall:', err);
+			if (process.platform === 'linux') {
+				const { dialog } = require('electron');
+				dialog.showMessageBox({
+					type: 'info',
+					title: 'Manual Update Required',
+					message: 'Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.'
+				});
+			}
 		}
 	});
 	ipcMain.on('menu-restart-update', () => {
-		if (process.platform === 'linux') {
-			const { dialog } = require('electron');
-			dialog.showMessageBox({
-				type: 'info',
-				title: 'Manual Update Required',
-				message: 'On Linux, please download and install the latest version manually from the website.'
-			});
-			return;
-		}
 		try {
 			autoUpdater.quitAndInstall();
 		} catch (err) {
 			console.error('Error during quitAndInstall:', err);
+			if (process.platform === 'linux') {
+				const { dialog } = require('electron');
+				dialog.showMessageBox({
+					type: 'info',
+					title: 'Manual Update Required',
+					message: 'Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.'
+				});
+			}
 		}
 	});
 
