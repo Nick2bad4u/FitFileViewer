@@ -1,7 +1,7 @@
 {
   "name": "fitfileviewer",
   "packageManager": "npm@11.4.1",
-  "version": "19.5.0",
+  "version": "19.6.0",
   "main": "main.js",
   "appid": "com.example.fitfileviewer",
   "displayName": "Fit File Viewer",
