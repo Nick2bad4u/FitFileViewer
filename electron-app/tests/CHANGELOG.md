@@ -3,7 +3,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [19.5.0] - 2025-06-09
+## [unreleased]
 
 ### 💼 Other
 
@@ -15,6 +15,15 @@ marking the Zwift tab as work in progress. Adds a simple test
 to verify chart rendering utility presence. Ensures the menu
 bar stays visible in the application window for improved
 usability.
+
+- Streamlines workflows, settings, and updates versioning
+
+Refactors repository workflows for improved metrics and Flatpak
+builds, replaces settings storage to reduce dependencies, and
+enhances UI consistency across platforms. Updates auto-update
+handling and Linux messaging, clarifies documentation, and bumps
+version to 19.7.0. Improves security by updating GitHub Actions
+dependencies.
 
 
 ## [19.0.0] - 2025-06-07

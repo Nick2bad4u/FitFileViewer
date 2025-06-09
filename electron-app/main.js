@@ -69,7 +69,6 @@ function setupAutoUpdater(mainWindow) {
 
 // Register IPC handlers and create the main window when the app is ready
 app.whenReady().then(() => {
-	// Register file open dialog handler
 	const mainWindow = createWindow();
 
 	// Set the custom menu immediately after window creation to avoid menu flash/disappearance
@@ -79,18 +78,7 @@ app.whenReady().then(() => {
 	setupAutoUpdater(mainWindow);
 	autoUpdater.checkForUpdatesAndNotify();
 
-	// Helper to update menu with current theme from renderer
-	async function updateMenuWithCurrentTheme(win) {
-		let theme = 'dark';
-		try {
-			theme = (await win.webContents.executeJavaScript('localStorage.getItem("ffv-theme")')) || 'dark';
-		} catch (err) {
-			console.error('Failed to get theme from renderer:', err);
-		}
-		buildAppMenu(win, theme, loadedFitFilePath);
-	}
-
-	// Get theme from localStorage in renderer
+	// Only update the menu after did-finish-load to sync with renderer theme
 	mainWindow.webContents.on('did-finish-load', () => {
 		mainWindow.webContents
 			.executeJavaScript('localStorage.getItem("ffv-theme")')
@@ -100,21 +88,6 @@ app.whenReady().then(() => {
 			})
 			.catch(() => {
 				buildAppMenu(mainWindow, 'dark', loadedFitFilePath);
-				mainWindow.webContents.send('set-theme', 'dark');
-			});
-	});
-
-	// Always use the current theme for initial menu
-	updateMenuWithCurrentTheme(mainWindow);
-
-	// Theme persistence: set theme on window creation
-	mainWindow.webContents.on('did-finish-load', () => {
-		mainWindow.webContents
-			.executeJavaScript('localStorage.getItem("ffv-theme")')
-			.then((theme) => {
-				mainWindow.webContents.send('set-theme', theme || 'dark');
-			})
-			.catch(() => {
 				mainWindow.webContents.send('set-theme', 'dark');
 			});
 	});
@@ -351,10 +324,11 @@ app.whenReady().then(() => {
 	app.on('activate', function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			const win = createWindow();
-			updateMenuWithCurrentTheme(win);
+			// Set menu for new window
+			buildAppMenu(win, 'dark', loadedFitFilePath);
 		} else {
 			const win = BrowserWindow.getFocusedWindow() || mainWindow;
-			if (win) updateMenuWithCurrentTheme(win);
+			if (win) buildAppMenu(win, 'dark', loadedFitFilePath);
 		}
 	});
 });

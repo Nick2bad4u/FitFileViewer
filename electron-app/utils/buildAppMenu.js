@@ -96,7 +96,7 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
 							mainWindow.webContents.send('open-recent-file', file);
 						}
 					},
-				}))
+			  }))
 			: [{ label: 'No Recent Files', enabled: false }];
 
 	const decoderOptions = getDecoderOptions();
@@ -471,7 +471,17 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
 			],
 		},
 	];
-	Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
+	console.log('DEBUG: Setting application menu. Template:', JSON.stringify(template, null, 2));
+	if (!Array.isArray(template) || template.length === 0) {
+		console.warn('WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu.');
+		return;
+	}
+	try {
+		Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+	} catch (err) {
+		console.error('ERROR: Failed to set application menu:', err);
+	}
 }
 
 module.exports = { buildAppMenu };

@@ -14,94 +14,33 @@ All notable changes to this project will be documented in this file.
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
+- Streamlines workflows, settings, and updates versioning
+
+Refactors repository workflows for improved metrics and Flatpak
+builds, replaces settings storage to reduce dependencies, and
+enhances UI consistency across platforms. Updates auto-update
+handling and Linux messaging, clarifies documentation, and bumps
+version to 19.7.0. Improves security by updating GitHub Actions
+dependencies.
+
 
 ## [19.7.0] - 2025-06-09
-
-### 🆕 New Version Number
-
-- Bump version to 19.6.0
-
-
-### 💼 Other
-
-- Improves Linux update messaging on failed auto-update
-
-Moves manual update prompt for Linux to error handling when auto-update fails, ensuring users only see the message if auto-updating is not supported instead of always. Clarifies instructions for Linux users.
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-
-## [19.6.0] - 2025-06-09
-
-### 🆕 New Version Number
-
-- Bump version to 19.5.0
-
-
-### 💼 Other
-
-- Enhance auto-updater stability by checking window usability before sending update events; add manual update prompt for Linux users.
-
-
-## [19.5.0] - 2025-06-09
-
-### 🆕 New Version Number
-
-- Bump version to 19.4.0
-
-
-### 💼 Other
-
-- Update dependencies, clarify UI, and add basic test
-
-Upgrades several dev dependencies, including vitest and rollup,
-to address stability and compatibility. Clarifies the UI by
-marking the Zwift tab as work in progress. Adds a simple test
-to verify chart rendering utility presence. Ensures the menu
-bar stays visible in the application window for improved
-usability.
-
-
-## [19.4.0] - 2025-06-09
-
-### 🆕 New Version Number
-
-- Bump version to 19.3.0
-
-
-### 💼 Other
-
-- Ensures menu bar remains visible on all platforms
-
-Prevents the menu from being auto-hidden, addressing cases
-where it may not be visible by default, especially on Linux.
-Improves user accessibility and consistency across operating
-systems.
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-
-## [19.3.0] - 2025-06-09
-
-### 🆕 New Version Number
-
-- Bump version to 19.2.0
-
-
-### 💼 Other
-
-- Removes custom auto-update feed URLs and bumps version
-
-Simplifies update handling by eliminating platform-specific feed URL configuration for auto-updates. Now relies on default provider settings, reducing maintenance and potential configuration errors. Increments version to 19.1.0 to reflect the change.
-
-
-## [19.2.0] - 2025-06-09
 
 ### 🆕 New Version Number
 
 - Bump version to 19.0.0
 
 - Bump version to 19.1.0
+
+- Bump version to 19.2.0
+
+- Bump version to 19.3.0
+
+- Bump version to 19.4.0
+
+- Bump version to 19.5.0
+
+- Bump version to 19.6.0
 
 
 ### 💼 Other
@@ -114,6 +53,36 @@ Switches settings persistence from electron-store to electron-conf
 throughout the app to reduce dependencies and simplify configuration.
 Removes electron-store and related packages, updates logic to use
 electron-conf API for all settings access and storage.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Removes custom auto-update feed URLs and bumps version
+
+Simplifies update handling by eliminating platform-specific feed URL configuration for auto-updates. Now relies on default provider settings, reducing maintenance and potential configuration errors. Increments version to 19.1.0 to reflect the change.
+
+- Ensures menu bar remains visible on all platforms
+
+Prevents the menu from being auto-hidden, addressing cases
+where it may not be visible by default, especially on Linux.
+Improves user accessibility and consistency across operating
+systems.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update dependencies, clarify UI, and add basic test
+
+Upgrades several dev dependencies, including vitest and rollup,
+to address stability and compatibility. Clarifies the UI by
+marking the Zwift tab as work in progress. Adds a simple test
+to verify chart rendering utility presence. Ensures the menu
+bar stays visible in the application window for improved
+usability.
+
+- Enhance auto-updater stability by checking window usability before sending update events; add manual update prompt for Linux users.
+
+- Improves Linux update messaging on failed auto-update
+
+Moves manual update prompt for Linux to error handling when auto-update fails, ensuring users only see the message if auto-updating is not supported instead of always. Clarifies instructions for Linux users.
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 

@@ -23,6 +23,15 @@ repo-stats branch for accurate and current statistics.
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
+- Streamlines workflows, settings, and updates versioning
+
+Refactors repository workflows for improved metrics and Flatpak
+builds, replaces settings storage to reduce dependencies, and
+enhances UI consistency across platforms. Updates auto-update
+handling and Linux messaging, clarifies documentation, and bumps
+version to 19.7.0. Improves security by updating GitHub Actions
+dependencies.
+
 
 ## [19.7.0] - 2025-06-09
 
