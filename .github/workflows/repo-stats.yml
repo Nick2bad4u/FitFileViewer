@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "53 4 * * *" # Runs daily at 4:53 AM (UTC)
+  push:
+    branches: [repo-stats]
+  pull_request:
+    branches: [repo-stats]
 
 jobs:
   metrics:

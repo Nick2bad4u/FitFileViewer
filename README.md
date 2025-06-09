@@ -368,7 +368,7 @@ For more information, documentation, and updates, visit the [GitHub repository](
 
 <div align="center">
     <img
-      src="https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/HEAD/metrics.repository.svg"
+      src="https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/repo-stats/metrics.repository.svg"
       alt="Repo Metrics"
       width="100%"
     />
