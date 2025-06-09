@@ -3,13 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [19.0.0] - 2025-06-07
 
 ### 💼 Other
 
 - Update changelogs and scripts: Add new version numbers, enhance GitHub Actions, and implement release cleanup script
 
 - Update changelogs and version numbers for releases 16.4.0, 16.5.0, and 16.6.0; enhance GitHub Actions and implement release cleanup script
+
+- Enhance workflows and documentation for Flatpak build process, including versioning updates and new download options
 
 
 ### ⚙️ Miscellaneous Tasks

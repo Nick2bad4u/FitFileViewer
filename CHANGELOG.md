@@ -7,10 +7,204 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
+- Bump version to 19.7.0
+
+
+### 💼 Other
+
+- Updates repo metrics workflow to target repo-stats branch
+
+Enables workflow runs and metrics generation on pushes and pull requests
+to the repo-stats branch, ensuring the displayed repository metrics
+reflect changes under active development.
+
+Also updates the README to reference the metrics output from the
+repo-stats branch for accurate and current statistics.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+## [19.7.0] - 2025-06-09
+
+### 🆕 New Version Number
+
+- Bump version to 19.0.0
+
+- Bump version to 19.1.0
+
+- Bump version to 19.2.0
+
+- Bump version to 19.3.0
+
+- Bump version to 19.4.0
+
+- Bump version to 19.5.0
+
+- Bump version to 19.6.0
+
+
+### 🛠️ GitHub Actions
+
+- Update Build.yml
+
+- Update upload-macos-ia.yml
+
+- Update flatpak-build.yml
+
+- Update cleanReleases.yml
+
+- Update Build.yml
+
+
+### 💼 Other
+
+- Refactor workflow_run syntax in release workflows for consistency
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Replaces electron-store with electron-conf for settings
+
+Switches settings persistence from electron-store to electron-conf
+throughout the app to reduce dependencies and simplify configuration.
+Removes electron-store and related packages, updates logic to use
+electron-conf API for all settings access and storage.
+
+- Update README.md
+
+- Update README.md
+
+- Update README.md
+
+- Update README.md
+
+- Update README.md
+
+- Update metrics.repository.svg - [Skip GitHub Action]
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Removes custom auto-update feed URLs and bumps version
+
+Simplifies update handling by eliminating platform-specific feed URL configuration for auto-updates. Now relies on default provider settings, reducing maintenance and potential configuration errors. Increments version to 19.1.0 to reflect the change.
+
+- Ensures menu bar remains visible on all platforms
+
+Prevents the menu from being auto-hidden, addressing cases
+where it may not be visible by default, especially on Linux.
+Improves user accessibility and consistency across operating
+systems.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update metrics.repository.svg - [Skip GitHub Action]
+
+- Update dependencies, clarify UI, and add basic test
+
+Upgrades several dev dependencies, including vitest and rollup,
+to address stability and compatibility. Clarifies the UI by
+marking the Zwift tab as work in progress. Adds a simple test
+to verify chart rendering utility presence. Ensures the menu
+bar stays visible in the application window for improved
+usability.
+
+- Enhance auto-updater stability by checking window usability before sending update events; add manual update prompt for Linux users.
+
+- Improves Linux update messaging on failed auto-update
+
+Moves manual update prompt for Linux to error handling when auto-update fails, ensuring users only see the message if auto-updating is not supported instead of always. Clarifies instructions for Linux users.
+
+- [StepSecurity] ci: Harden GitHub Actions
+
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
+
+- Merge pull request #105 from step-security-bot/chore/GHA-092136-stepsecurity-remediation
+
+[StepSecurity] ci: Harden GitHub Actions
+
+- Merge pull request #104 from Nick2bad4u/dependabot/github_actions/github-actions-27328bc44d
+
+Bump the github-actions group with 2 updates
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+### 🛡️ Security
+
+- Bump the github-actions group with 2 updates
+
+Bumps the github-actions group with 2 updates: [peter-evans/create-pull-request](https://github.com/peter-evans/create-pull-request) and [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog).
+
+
+Updates `peter-evans/create-pull-request` from 6 to 7
+- [Release notes](https://github.com/peter-evans/create-pull-request/releases)
+- [Commits](https://github.com/peter-evans/create-pull-request/compare/v6...v7)
+
+Updates `trufflesecurity/trufflehog` from 3.88.35 to 3.89.0
+- [Release notes](https://github.com/trufflesecurity/trufflehog/releases)
+- [Changelog](https://github.com/trufflesecurity/trufflehog/blob/main/.goreleaser.yml)
+- [Commits](https://github.com/trufflesecurity/trufflehog/compare/90694bf9af66e7536abc5824e7a87246dbf933cb...3fbb9e94740526c7ed73d0c7151ebdf57d8e1618)
+
+---
+updated-dependencies:
+- dependency-name: peter-evans/create-pull-request
+  dependency-version: '7'
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+  dependency-group: github-actions
+- dependency-name: trufflesecurity/trufflehog
+  dependency-version: 3.89.0
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: github-actions
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+
+## [19.0.0] - 2025-06-07
+
+### 🆕 New Version Number
+
+- Bump version to 18.4.0
+
+- Bump version to 18.5.0
+
+- Bump version to 18.6.0
+
+- Bump version to 18.7.0
+
+- Bump version to 18.8.0
+
 - Bump version to 18.9.0
 
 
 ### 💼 Other
+
+- Update package.json
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Fix path to Flatpak manifest in build step of GitHub Actions workflow
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Fix path to Flatpak manifest in build step of GitHub Actions workflow
+
+- Add caching for node modules in GitHub Actions workflow
+
+- Add Flatpak repository and installation steps to build process
+
+- Improve Flatpak installation commands in GitHub Actions workflow
+
+- Refactor Flatpak installation steps in GitHub Actions workflow for clarity and efficiency
+
+- Update app ID and refine build commands in Flatpak configuration
+
+- Reorganize caching step for node modules in Flatpak build workflow
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Refactor build commands in Flatpak configuration to improve clarity and organization
 
 - Add Flatpak bundle creation step and update upload path in workflow
 
@@ -38,70 +232,7 @@ All notable changes to this project will be documented in this file.
 
 - Fix cache path in Flatpak build workflow to ensure correct node modules directory is used
 
-
-## [18.9.0] - 2025-06-07
-
-### 🆕 New Version Number
-
-- Bump version to 18.7.0
-
-- Bump version to 18.8.0
-
-
-### 💼 Other
-
-- Fix path to Flatpak manifest in build step of GitHub Actions workflow
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Fix path to Flatpak manifest in build step of GitHub Actions workflow
-
-- Add caching for node modules in GitHub Actions workflow
-
-- Add Flatpak repository and installation steps to build process
-
-- Improve Flatpak installation commands in GitHub Actions workflow
-
-- Refactor Flatpak installation steps in GitHub Actions workflow for clarity and efficiency
-
-- Update app ID and refine build commands in Flatpak configuration
-
-- Reorganize caching step for node modules in Flatpak build workflow
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Refactor build commands in Flatpak configuration to improve clarity and organization
-
-
-## [18.7.0] - 2025-06-07
-
-### 🆕 New Version Number
-
-- Bump version to 18.6.0
-
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-
-## [18.6.0] - 2025-06-07
-
-### 🆕 New Version Number
-
-- Bump version to 18.5.0
-
-
-## [18.5.0] - 2025-06-07
-
-### 🆕 New Version Number
-
-- Bump version to 18.4.0
-
-
-### 💼 Other
-
-- Update package.json
+- Enhance workflows and documentation for Flatpak build process, including versioning updates and new download options
 
 
 ## [18.4.0] - 2025-06-07
@@ -112,6 +243,18 @@ All notable changes to this project will be documented in this file.
 
 
 ### 🆕 New Version Number
+
+- Bump version to 17.0.0
+
+- Bump version to 17.1.0
+
+- Bump version to 17.2.0
+
+- Bump version to 17.3.0
+
+- Bump version to 17.4.0
+
+- Bump version to 17.5.0
 
 - Bump version to 17.6.0
 
@@ -132,6 +275,10 @@ All notable changes to this project will be documented in this file.
 
 ### 🛠️ GitHub Actions
 
+- Add branch input to workflow_dispatch for Build.yml
+
+- Add branch input to checkout step in Build.yml for flexibility
+
 - Update section headers in Build.yml for clarity
 
 - Remove outdated Windows and Mac update file sections from Build.yml
@@ -142,6 +289,16 @@ All notable changes to this project will be documented in this file.
 
 
 ### 💼 Other
+
+- Enhance GitHub Actions summary report with detailed totals for asset sizes and downloads
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Rename Squirrel win32 nupkg and RELEASES for release
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update metrics.repository.svg - [Skip GitHub Action]
 
 - Update README.md
 
@@ -207,49 +364,9 @@ All notable changes to this project will be documented in this file.
 
 - Update changelogs and scripts for versioning and GitHub Actions enhancements
 
-- Remove outdated download links and update release notes formatting in Build.yml
-
-
-## [17.6.0] - 2025-06-06
-
-### 🆕 New Version Number
-
-- Bump version to 17.0.0
-
-- Bump version to 17.1.0
-
-- Bump version to 17.2.0
-
-- Bump version to 17.3.0
-
-- Bump version to 17.4.0
-
-- Bump version to 17.5.0
-
-
-### 🛠️ GitHub Actions
-
-- Add branch input to workflow_dispatch for Build.yml
-
-- Add branch input to checkout step in Build.yml for flexibility
-
-
-### 💼 Other
-
-- Enhance GitHub Actions summary report with detailed totals for asset sizes and downloads
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Rename Squirrel win32 nupkg and RELEASES for release
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-
-### ⚙️ Miscellaneous Tasks
-
 - Update changelogs and scripts for versioning and GitHub Actions enhancements
+
+- Remove outdated download links and update release notes formatting in Build.yml
 
 
 ## [17.0.0] - 2025-06-05

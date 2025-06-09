@@ -3,7 +3,28 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [19.5.0] - 2025-06-09
+
+### 💼 Other
+
+- Replaces electron-store with electron-conf for settings
+
+Switches settings persistence from electron-store to electron-conf
+throughout the app to reduce dependencies and simplify configuration.
+Removes electron-store and related packages, updates logic to use
+electron-conf API for all settings access and storage.
+
+- Update dependencies, clarify UI, and add basic test
+
+Upgrades several dev dependencies, including vitest and rollup,
+to address stability and compatibility. Clarifies the UI by
+marking the Zwift tab as work in progress. Adds a simple test
+to verify chart rendering utility presence. Ensures the menu
+bar stays visible in the application window for improved
+usability.
+
+
+## [19.0.0] - 2025-06-07
 
 ### 🚀 Features
 
@@ -48,6 +69,8 @@ Refines event listener options for better touch and scroll control, enhancing re
 - Update changelogs and scripts: Add new version numbers, enhance GitHub Actions, and implement release cleanup script
 
 - Update changelogs and version numbers for releases 16.4.0, 16.5.0, and 16.6.0; enhance GitHub Actions and implement release cleanup script
+
+- Enhance workflows and documentation for Flatpak build process, including versioning updates and new download options
 
 
 ### ⚙️ Miscellaneous Tasks

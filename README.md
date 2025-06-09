@@ -250,7 +250,6 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 <sub> - Most Mac users should download the "DMG" or "PKG" versions  </sub>
 
-
 | Platform | Architecture | Format     | Filename Example                                 |
 | :------- | :----------- | :--------- | :----------------------------------------------- |
 | macOS    | x64          | DMG        | Fit-File-Viewer-dmg-x64-X.X.X.dmg                |

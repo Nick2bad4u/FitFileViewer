@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
-- Bump version to 18.9.0
+- Bump version to 19.7.0
 
 
 ### 💼 Other
@@ -15,106 +15,116 @@ All notable changes to this project will be documented in this file.
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
 
-## [18.9.0] - 2025-06-07
+## [19.7.0] - 2025-06-09
 
 ### 🆕 New Version Number
 
-- Bump version to 18.7.0
+- Bump version to 19.6.0
 
-- Bump version to 18.8.0
+
+### 💼 Other
+
+- Improves Linux update messaging on failed auto-update
+
+Moves manual update prompt for Linux to error handling when auto-update fails, ensuring users only see the message if auto-updating is not supported instead of always. Clarifies instructions for Linux users.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+## [19.6.0] - 2025-06-09
+
+### 🆕 New Version Number
+
+- Bump version to 19.5.0
+
+
+### 💼 Other
+
+- Enhance auto-updater stability by checking window usability before sending update events; add manual update prompt for Linux users.
+
+
+## [19.5.0] - 2025-06-09
+
+### 🆕 New Version Number
+
+- Bump version to 19.4.0
+
+
+### 💼 Other
+
+- Update dependencies, clarify UI, and add basic test
+
+Upgrades several dev dependencies, including vitest and rollup,
+to address stability and compatibility. Clarifies the UI by
+marking the Zwift tab as work in progress. Adds a simple test
+to verify chart rendering utility presence. Ensures the menu
+bar stays visible in the application window for improved
+usability.
+
+
+## [19.4.0] - 2025-06-09
+
+### 🆕 New Version Number
+
+- Bump version to 19.3.0
+
+
+### 💼 Other
+
+- Ensures menu bar remains visible on all platforms
+
+Prevents the menu from being auto-hidden, addressing cases
+where it may not be visible by default, especially on Linux.
+Improves user accessibility and consistency across operating
+systems.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+## [19.3.0] - 2025-06-09
+
+### 🆕 New Version Number
+
+- Bump version to 19.2.0
+
+
+### 💼 Other
+
+- Removes custom auto-update feed URLs and bumps version
+
+Simplifies update handling by eliminating platform-specific feed URL configuration for auto-updates. Now relies on default provider settings, reducing maintenance and potential configuration errors. Increments version to 19.1.0 to reflect the change.
+
+
+## [19.2.0] - 2025-06-09
+
+### 🆕 New Version Number
+
+- Bump version to 19.0.0
+
+- Bump version to 19.1.0
 
 
 ### 💼 Other
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
-- Update app ID and refine build commands in Flatpak configuration
+- Replaces electron-store with electron-conf for settings
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Refactor build commands in Flatpak configuration to improve clarity and organization
-
-
-## [18.7.0] - 2025-06-07
-
-### 🆕 New Version Number
-
-- Bump version to 18.6.0
-
-
-### 💼 Other
+Switches settings persistence from electron-store to electron-conf
+throughout the app to reduce dependencies and simplify configuration.
+Removes electron-store and related packages, updates logic to use
+electron-conf API for all settings access and storage.
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
 
-## [18.6.0] - 2025-06-07
-
-### 🆕 New Version Number
-
-- Bump version to 18.5.0
-
-
-## [18.5.0] - 2025-06-07
-
-### 🐛 Bug Fixes
-
-- Update package.json for improved OS support and formatting consistency
-
-
-### 🆕 New Version Number
-
-- Bump version to 17.6.0
-
-- Bump version to 17.7.0
-
-- Bump version to 17.8.0
-
-- Bump version to 17.9.0
-
-- Bump version to 18.0.0
-
-- Bump version to 18.1.0
-
-- Bump version to 18.2.0
-
-- Bump version to 18.3.0
-
-- Bump version to 18.4.0
-
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Update package version to 18.3.0 and remove unused directories from package.json
-
-- Add Flatpak build workflow and manifest for Electron app
-
-- Update package.json
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs and scripts for versioning and GitHub Actions enhancements
-
-
-## [17.6.0] - 2025-06-06
+## [19.0.0] - 2025-06-07
 
 ### 🐛 Bug Fixes
 
 - Update artifact naming conventions for macOS and Linux builds to include architecture
+
+- Update package.json for improved OS support and formatting consistency
 
 
 ### 🆕 New Version Number
@@ -171,6 +181,34 @@ All notable changes to this project will be documented in this file.
 
 - Bump version to 17.5.0
 
+- Bump version to 17.6.0
+
+- Bump version to 17.7.0
+
+- Bump version to 17.8.0
+
+- Bump version to 17.9.0
+
+- Bump version to 18.0.0
+
+- Bump version to 18.1.0
+
+- Bump version to 18.2.0
+
+- Bump version to 18.3.0
+
+- Bump version to 18.4.0
+
+- Bump version to 18.5.0
+
+- Bump version to 18.6.0
+
+- Bump version to 18.7.0
+
+- Bump version to 18.8.0
+
+- Bump version to 18.9.0
+
 
 ### 💼 Other
 
@@ -212,10 +250,46 @@ Enhances the release cleanup script with parameters to control the number of rel
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update package version to 18.3.0 and remove unused directories from package.json
+
+- Add Flatpak build workflow and manifest for Electron app
+
+- Update package.json
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update app ID and refine build commands in Flatpak configuration
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Refactor build commands in Flatpak configuration to improve clarity and organization
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Enhance workflows and documentation for Flatpak build process, including versioning updates and new download options
+
 
 ### ⚙️ Miscellaneous Tasks
 
 - Add changelog files for electron-app, tests, and utils
+
+- Update changelogs and scripts for versioning and GitHub Actions enhancements
 
 - Update changelogs and scripts for versioning and GitHub Actions enhancements
 

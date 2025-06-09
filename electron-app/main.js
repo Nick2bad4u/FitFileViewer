@@ -72,6 +72,9 @@ app.whenReady().then(() => {
 	// Register file open dialog handler
 	const mainWindow = createWindow();
 
+	// Set the custom menu immediately after window creation to avoid menu flash/disappearance
+	buildAppMenu(mainWindow, 'dark', loadedFitFilePath);
+
 	// --- Auto-Updater ---
 	setupAutoUpdater(mainWindow);
 	autoUpdater.checkForUpdatesAndNotify();
