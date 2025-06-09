@@ -39,24 +39,24 @@ function setupAutoUpdater(mainWindow) {
 	}
 
 	autoUpdater.on('checking-for-update', () => {
-		mainWindow.webContents.send('update-checking');
+		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-checking');
 	});
 	autoUpdater.on('update-available', (info) => {
-		mainWindow.webContents.send('update-available', info);
+		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-available', info);
 	});
 	autoUpdater.on('update-not-available', (info) => {
-		mainWindow.webContents.send('update-not-available', info);
+		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-not-available', info);
 	});
 	autoUpdater.on('error', (err) => {
 		const errorMessage = err == null ? 'unknown' : err.message || err.toString();
 		autoUpdater.logger.error(`AutoUpdater Error: ${errorMessage}`);
-		mainWindow.webContents.send('update-error', errorMessage);
+		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-error', errorMessage);
 	});
 	autoUpdater.on('download-progress', (progressObj) => {
-		mainWindow.webContents.send('update-download-progress', progressObj);
+		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-download-progress', progressObj);
 	});
 	autoUpdater.on('update-downloaded', (info) => {
-		mainWindow.webContents.send('update-downloaded', info);
+		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-downloaded', info);
 		const menu = Menu.getApplicationMenu();
 		if (menu) {
 			const restartItem = menu.getMenuItemById('restart-update');
@@ -267,7 +267,36 @@ app.whenReady().then(() => {
 
 	// Optionally, allow renderer to trigger update install
 	ipcMain.on('install-update', () => {
-		autoUpdater.quitAndInstall();
+		if (process.platform === 'linux') {
+			const { dialog } = require('electron');
+			dialog.showMessageBox({
+				type: 'info',
+				title: 'Manual Update Required',
+				message: 'On Linux, please download and install the latest version manually from the website.'
+			});
+			return;
+		}
+		try {
+			autoUpdater.quitAndInstall();
+		} catch (err) {
+			console.error('Error during quitAndInstall:', err);
+		}
+	});
+	ipcMain.on('menu-restart-update', () => {
+		if (process.platform === 'linux') {
+			const { dialog } = require('electron');
+			dialog.showMessageBox({
+				type: 'info',
+				title: 'Manual Update Required',
+				message: 'On Linux, please download and install the latest version manually from the website.'
+			});
+			return;
+		}
+		try {
+			autoUpdater.quitAndInstall();
+		} catch (err) {
+			console.error('Error during quitAndInstall:', err);
+		}
 	});
 
 	// --- IPC handlers for File menu actions ---
@@ -352,3 +381,7 @@ app.on('web-contents-created', (event, contents) => {
 app.on('window-all-closed', function () {
 	if (process.platform !== 'darwin') app.quit();
 });
+
+function isWindowUsable(win) {
+	return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
+}
