@@ -34,7 +34,7 @@ jobs:
           cd utils && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
 
       - name: Create Pull Request for changelogs
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6.1.0
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           commit-message: "chore: update changelogs [skip ci]"
           title: "chore: update changelogs"
