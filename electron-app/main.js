@@ -72,6 +72,7 @@ app.whenReady().then(() => {
 	const mainWindow = createWindow();
 
 	// Set the custom menu immediately after window creation to avoid menu flash/disappearance
+	console.log('[main.js] About to call buildAppMenu after window creation');
 	buildAppMenu(mainWindow, 'dark', loadedFitFilePath);
 
 	// --- Auto-Updater ---
@@ -80,13 +81,16 @@ app.whenReady().then(() => {
 
 	// Only update the menu after did-finish-load to sync with renderer theme
 	mainWindow.webContents.on('did-finish-load', () => {
+		console.log('[main.js] did-finish-load event fired, about to call buildAppMenu');
 		mainWindow.webContents
 			.executeJavaScript('localStorage.getItem("ffv-theme")')
 			.then((theme) => {
+				console.log('[main.js] buildAppMenu with theme from renderer:', theme);
 				buildAppMenu(mainWindow, theme || 'dark', loadedFitFilePath);
 				mainWindow.webContents.send('set-theme', theme || 'dark');
 			})
 			.catch(() => {
+				console.log('[main.js] buildAppMenu fallback to dark');
 				buildAppMenu(mainWindow, 'dark', loadedFitFilePath);
 				mainWindow.webContents.send('set-theme', 'dark');
 			});
@@ -355,6 +359,26 @@ app.on('web-contents-created', (event, contents) => {
 // Gracefully quit the app on all windows closed (except macOS)
 app.on('window-all-closed', function () {
 	if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('browser-window-focus', async (event, win) => {
+	if (process.platform === 'linux') {
+		try {
+			// Try to get theme from renderer if possible
+			let theme = 'dark';
+			if (win && win.webContents) {
+				try {
+					const t = await win.webContents.executeJavaScript('localStorage.getItem("ffv-theme")');
+					if (t) theme = t;
+				} catch (err) {
+					console.error('[main.js] Failed to get theme from renderer on focus:', err);
+				}
+			}
+			buildAppMenu(win, theme, loadedFitFilePath);
+		} catch (err) {
+			console.error('[main.js] Error setting menu on browser-window-focus:', err);
+		}
+	}
 });
 
 function isWindowUsable(win) {

@@ -89,6 +89,28 @@ function getPlatformAppMenu(mainWindow) {
 function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
 	const theme = currentTheme || getTheme();
 	const recentFiles = loadRecentFiles();
+	console.log('[buildAppMenu] Called with:', { theme, loadedFitFilePath, recentFiles });
+
+	// Minimal menu for Linux troubleshooting
+	if (process.platform === 'linux') {
+		const minimalTemplate = [
+			{
+				label: 'File',
+				submenu: [
+					{ role: 'quit', label: 'Quit' }
+				]
+			}
+		];
+		try {
+			mainMenu = Menu.buildFromTemplate(minimalTemplate);
+			console.log('[buildAppMenu] Linux minimal menu set.');
+			Menu.setApplicationMenu(mainMenu);
+		} catch (err) {
+			console.error('[buildAppMenu] ERROR: Failed to set minimal Linux menu:', err);
+		}
+		return;
+	}
+
 	const recentMenuItems =
 		recentFiles.length > 0
 			? recentFiles.map((file) => ({
@@ -475,16 +497,18 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
 		},
 	];
 
-	console.log('DEBUG: Setting application menu. Template:', JSON.stringify(template, null, 2));
+	console.log('[buildAppMenu] Setting application menu. Template:', JSON.stringify(template, null, 2));
 	if (!Array.isArray(template) || template.length === 0) {
-		console.warn('WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu.');
+		console.warn('[buildAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu.');
 		return;
 	}
 	try {
 		mainMenu = Menu.buildFromTemplate(template);
+		console.log('[buildAppMenu] Menu built and assigned to mainMenu:', !!mainMenu);
 		Menu.setApplicationMenu(mainMenu);
+		console.log('[buildAppMenu] Menu set successfully.');
 	} catch (err) {
-		console.error('ERROR: Failed to set application menu:', err);
+		console.error('[buildAppMenu] ERROR: Failed to set application menu:', err);
 	}
 }
 
