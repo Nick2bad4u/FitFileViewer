@@ -67,6 +67,7 @@
 [![Show Release Stats](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml) 📊
 [![Print Release Asset Sizes](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/print-release-asset-sizes.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/print-release-asset-sizes.yml) 📋
 [![Analyze Repo with git-sizer](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/git-sizer-dispatch.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/git-sizer-dispatch.yml)
+[![Clean Old Releases](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml) 🧹
 [![CodeQL-Advanced](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/codeql.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/codeql.yml) 🛡️
 [![Dependabot Updates](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependabot/dependabot-updates) 🤖
 [![Dependency Review](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review.yml) 🔍
@@ -84,6 +85,7 @@
 [![StyleLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stylelint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stylelint.yml) 🎨
 [![Summarize new issues](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/summary.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/summary.yml) 📋
 [![TruffleHog Secret Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml) 🔑
+[![Update ChangeLogs](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/updateChangeLogs.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/updateChangeLogs.yml) 📝
 [![Upload Linux Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-linux-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-linux-ia.yml) 🐧
 [![Upload Mac Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-macos-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-macos-ia.yml) 🍏
 [![Upload Windows Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-windows-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-windows-ia.yml) 🪟

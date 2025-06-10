@@ -1,7 +1,7 @@
 name: Print Release Asset Sizes
 
 on:
-  workflow_dispatch: null
+  workflow_dispatch:
   schedule:
     -
       cron: '32 4 * * *'

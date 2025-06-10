@@ -5,14 +5,22 @@ on:
     paths-ignore:
       - "*"
       - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
       - "!electron-app/**"
       - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   pull_request:
     paths-ignore:
       - "*"
       - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
       - "!electron-app/**"
       - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   workflow_dispatch:
 
 permissions:

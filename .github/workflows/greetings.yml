@@ -4,6 +4,10 @@ name: Greetings
 on:
   pull_request_target: # Trigger on pull request events targeting the repository
   issues: # Trigger on issue events
+  discussion: # Trigger on discussion events
+  project: # Trigger on project events
+  fork: # Trigger on fork events
+  workflow_dispatch: # Allow manual triggering of the workflow
 
 # Define permissions required for the workflow
 permissions:

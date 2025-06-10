@@ -38,11 +38,31 @@ name: OSV-Scanner
 
 on:
   pull_request:
+    paths-ignore:
+      - "*"
+      - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
+      - "!electron-app/**"
+      - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   merge_group:
     branches: ["main"]
   schedule:
     - cron: "39 12 * * 1" # Runs every Monday at 12:39 PM UTC; https://crontab.guru/#39_12_*_*_1
   push:
+    paths-ignore:
+      - "*"
+      - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
+      - "!electron-app/**"
+      - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
+  workflow_dispatch:
+
 
 permissions:
   # Require writing security events to upload SARIF file to security tab

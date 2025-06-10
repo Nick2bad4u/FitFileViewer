@@ -2,7 +2,25 @@ name: Microsoft Security DevOps
 
 on:
   push:
+    paths-ignore:
+      - "*"
+      - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
+      - "!electron-app/**"
+      - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   pull_request:
+    paths-ignore:
+      - "*"
+      - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
+      - "!electron-app/**"
+      - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   workflow_dispatch:
   schedule:
     - cron: "23 9 * * *" # Every day at 9:23 AM UTC

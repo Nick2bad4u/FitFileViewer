@@ -16,14 +16,22 @@ on:
     paths-ignore:
       - "*"
       - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
       - "!electron-app/**"
       - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   pull_request:
     paths-ignore:
       - "*"
       - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
       - "!electron-app/**"
       - "!electron-app"
+      - "**/CHANGELOG.md"
+      - "CHANGELOG.md"
   workflow_dispatch:
   schedule:
     - cron: "44 2 * * 4" # run once a week on Thursday at 2:44 AM UTC
