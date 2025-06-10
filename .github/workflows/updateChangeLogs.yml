@@ -2,10 +2,6 @@ name: Update ChangeLogs
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build and Release Electron App"]
-    types:
-      - completed
 
 concurrency:
   group: update-changelogs-${{ github.ref }}

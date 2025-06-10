@@ -1,16 +1,22 @@
 name: Clean Old Releases
 
 on:
+  workflow_run:
+    workflows: ["Build and Release Electron App"]
+    types:
+      - completed
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       keep_last:
         description: 'Number of most recent releases to keep'
-        required: false
-        default: '5'
+        required: true
+        default: '10'
       delete_tags:
         description: 'Also delete git tags (true/false)'
-        required: false
-        default: 'false'
+        required: true
+        default: 'true'
 
 permissions: write-all
 
@@ -32,16 +38,14 @@ jobs:
         git config --global user.email "20943337+Nick2bad4u@users.noreply.github.com"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
     - name: Clean old releases and tags
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         KEEP_LAST: ${{ github.event.inputs.keep_last }}
         DELETE_TAGS: ${{ github.event.inputs.delete_tags }}
       run: |
-        KEEP_LAST=${KEEP_LAST:-5}
-        DELETE_TAGS=${DELETE_TAGS:-false}
+        KEEP_LAST=${KEEP_LAST:-10}
+        DELETE_TAGS=${DELETE_TAGS:-true}
         echo "Keeping last $KEEP_LAST releases. Delete tags: $DELETE_TAGS"
 
         releases=$(gh release list --limit 1000 --json tagName,publishedAt)
