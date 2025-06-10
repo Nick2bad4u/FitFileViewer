@@ -1,4 +1,4 @@
-name: Build and Release Electron App (My Runners)
+name: Build and Release Electron App
 
 concurrency:
   group: build-${{ github.ref }}
