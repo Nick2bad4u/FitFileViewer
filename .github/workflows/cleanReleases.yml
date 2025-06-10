@@ -62,17 +62,23 @@ jobs:
         # Sort by publishedAt
         releases=$(echo "$releases" | jq 'sort_by(.publishedAt)')
         echo "RELEASES after sort:"
-        echo "$releases" | jq -r '.[] | "\(.tagName) \(.publishedAt)"'
-
-        # Find first release for each major version
-        first_majors=$(echo "$releases" | jq -r '.[] | select(.tagName|test("^v?\\d+\\.")) | .tagName' | \
-          sed -E 's/^v?([0-9]+)\..*/\1 &/' | sort -k1,1n | uniq -f1 | awk '{print $2}')
+        echo "$releases" | jq -r '.[] | "\(.tagName) \(.publishedAt)"'        # Find first release for each major version (chronologically first, not just first in list)
+        first_majors=$(echo "$releases" | jq -r '
+          group_by(.tagName | gsub("^v"; "") | split(".")[0] | tonumber) |
+          map(sort_by(.publishedAt) | .[0].tagName) |
+          .[]
+        ')
+        echo "DEBUG: First major versions: $first_majors"
+        
         # Get last X releases
         last_x=$(echo "$releases" | jq -r '.[-'"$KEEP_LAST"':] | .[].tagName')
+        echo "DEBUG: Last $KEEP_LAST releases: $last_x"
 
         # Combine tags to keep
         keep_tags=$(echo -e "$first_majors\n$last_x" | sort | uniq)
-        echo "DEBUG: Keep tags: $keep_tags"        # Find releases to delete
+        echo "DEBUG: Keep tags: $keep_tags"
+
+        # Find releases to delete
         to_delete=$(echo "$releases" | jq -r '.[] | .tagName' | grep -vxFf <(echo "$keep_tags") || true)
         echo "DEBUG: To delete: $to_delete"
 
