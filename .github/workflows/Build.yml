@@ -325,6 +325,7 @@ jobs:
             electron-app/dist/nsis-web/*
           include-hidden-files: true
         continue-on-error: true
+
       - name: Initialize Build Matrix Summary Table
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'x64' }}
         run: |
@@ -336,6 +337,7 @@ jobs:
 
       - name: Update Build Matrix Summary (per platform/arch)
         if: always()
+        shell: bash
         run: |
           STATUS="${{ job.status }}"
           # If build_app step failed, mark as failure
