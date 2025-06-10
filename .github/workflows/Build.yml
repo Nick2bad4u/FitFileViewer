@@ -11,6 +11,8 @@ on:
     paths-ignore:
       - "*"
       - "*/**"
+      - "!electron-app/icons/**"
+      - "!electron-app/icons"
       - "!electron-app/**"
       - "!electron-app"
   workflow_dispatch:
