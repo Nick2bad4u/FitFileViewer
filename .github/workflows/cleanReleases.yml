@@ -28,8 +28,8 @@ jobs:
 
     - name: Set up git user
       run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
+        git config --global user.name "Nick2bad4u"
+        git config --global user.email "20943337+Nick2bad4u@users.noreply.github.com"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
