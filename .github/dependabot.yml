@@ -15,7 +15,6 @@ updates:
       interval: weekly
       time: "04:30"
       timezone: "America/Detroit"
-    reviewers: ["Nick2bad4u"]
     assignees: ["Nick2bad4u"]
     allow:
       # Allow both direct and indirect updates for all packages
