@@ -4,6 +4,9 @@ const { Menu, BrowserWindow, app } = require('electron');
 const { Conf } = require('electron-conf');
 const conf = new Conf({ name: 'settings' });
 
+// Persistent reference to prevent menu GC/disappearance on Linux
+let mainMenu = null;
+
 const decoderOptionDefaults = {
 	applyScaleAndOffset: true,
 	expandSubFields: true,
@@ -478,7 +481,8 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
 		return;
 	}
 	try {
-		Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+		mainMenu = Menu.buildFromTemplate(template);
+		Menu.setApplicationMenu(mainMenu);
 	} catch (err) {
 		console.error('ERROR: Failed to set application menu:', err);
 	}
