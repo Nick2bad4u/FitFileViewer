@@ -1,0 +1,720 @@
+name: Build and Release Electron App
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run against'
+        required: true
+        default: 'main'
+
+permissions: write-all
+jobs:
+  bump-version:
+    runs-on: [self-hosted, linux]
+    defaults:
+      run:
+        working-directory: electron-app
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        id: harden_runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repo code
+        id: checkout_code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Show git diff for electron-app (debug)
+        id: git_diff
+        run: |
+          echo "--- GIT DIFF OUTPUT (since last tag) ---"
+          git fetch --tags --force
+          LAST_REF=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)
+          git diff --name-status "$LAST_REF" -- "electron-app/"
+          echo "--- END GIT DIFF OUTPUT ---"
+        continue-on-error: true
+
+      - name: Bump package.json version number
+        id: bump
+        run: |
+          if [ ! -f package.json ]; then
+            echo "Error: package.json not found" >&2
+            exit 1
+          fi
+          if ! jq empty package.json >/dev/null 2>&1; then
+            echo "Error: package.json is not valid JSON" >&2
+            exit 1
+          fi
+          VERSION=$(jq -r .version package.json)
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          if [ "$MINOR" -lt 9 ]; then
+            NEW_VERSION="$MAJOR.$(($MINOR + 1)).0"
+          else
+            NEW_VERSION="$(($MAJOR + 1)).0.0"
+          fi
+          jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create new Tag for new version of app
+        id: tag_version
+        if: steps.bump.outputs.new_version != ''
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -a "v${{ steps.bump.outputs.new_version }}" -m "Release v${{ steps.bump.outputs.new_version }}"
+          git push origin "v${{ steps.bump.outputs.new_version }}"
+        working-directory: electron-app
+      - name: Commit and push version bump to repo
+        uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
+        with:
+          message: "Bump version to ${{ steps.bump.outputs.new_version }}"
+          add: "package.json"
+          cwd: electron-app
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload bumped package.json to repo
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bumped-package-json
+          path: electron-app/package.json
+
+  build:
+    needs: bump-version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [Linux, ubuntu-24.04-arm, Windows, macos-15, macos-latest, macos-13]
+        arch: [x64, ia32, arm64]
+        exclude:
+          # Exclude macOS with ia32 architecture as it is not supported by Electron
+          - os: macos-latest
+            arch: ia32
+          - os: macos-latest
+            arch: arm64
+          - os: macos-15
+            arch: ia32
+          - os: macos-15
+            arch: x64
+          - os: macos-13
+            arch: ia32
+          - os: macos-13
+            arch: arm64
+          # Exclude Ubuntu with ia32 and arm64 architectures as they are not commonly used and not officially supported except for ubuntu-24.04-arm/arm64
+          - os: ubuntu-latest
+            arch: ia32
+          - os: ubuntu-latest
+            arch: arm64
+          # Exclude ubuntu-24.04-arm with x64 and ia32
+          - os: ubuntu-24.04-arm
+            arch: x64
+          - os: ubuntu-24.04-arm
+            arch: ia32
+          - os: ubuntu-24.04-arm
+            arch: arm64
+          # Exclude Windows with arm64 (not supported)
+          - os: windows-latest
+            arch: arm64
+          # Exclude Windows with ia32 (if not supported, uncomment)
+          # - os: windows-latest
+          #   arch: ia32
+    defaults:
+      run:
+        working-directory: electron-app
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repo code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Download bumped package.json from bump-version job
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: bumped-package-json
+          path: ./electron-app
+
+      - name: Setup Node.js environment (v20)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+
+      - name: Install Linux build dependencies
+        id: install_linux_deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm dpkg fakeroot xz-utils flatpak flatpak-builder ruby ruby-dev build-essential zlib1g-dev
+          sudo gem install --no-document fpm
+          sudo apt-get install -y libarchive-tools
+          sudo apt-get install -y pkg-config pkgconf pkg-haskell-tools pkg-js-tools pkg-kde-tools pkg-perl-tools pkg-php-tools
+          which bsdtar
+          sudo apt-get install -y pacman
+
+      - name: Install macOS build dependencies
+        id: install_macos_deps
+        if: runner.os == 'macOS'
+        run: |
+          brew install rpm dpkg xz gnu-tar
+
+      - name: Install dmg-license workaround for Mac Builder
+        id: install_dmg_license
+        if: runner.os == 'macOS'
+        run: npm install --save-dev dmg-license
+        working-directory: electron-app
+
+      - name: Install Windows build dependencies (Chocolatey)
+        id: install_windows_deps
+        if: runner.os == 'Windows'
+        run: |
+          choco install -y 7zip.install
+
+      - name: Cache node modules (Windows)
+        id: cache_node_modules_windows
+        if: runner.os == 'Windows'
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~\.npm
+            electron-app\node_modules
+            ~\node_modules
+            ~\electron-app
+            ~\.cache
+            ~\icons
+            ~\libs
+          key: ${{ runner.os }}-node-${{ hashFiles('electron-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+          enableCrossOsArchive: true
+        continue-on-error: true
+
+      - name: Cache node modules (non-Windows)
+        id: cache_node_modules_non_windows
+        if: runner.os != 'Windows'
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+          enableCrossOsArchive: true
+        continue-on-error: true
+
+      - name: Install NPM dependencies (electron-app package.json)
+        id: install_dependencies
+        run: npm install
+        continue-on-error: true
+
+      # - name: Install electron-builder
+      #   run: npm install -D electron-builder
+
+      - name: Build Electron app (debug)
+        id: build_app
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            if [[ "${{ matrix.arch }}" == "x64" ]]; then
+              npx electron-builder --win
+            else
+              npx electron-builder --win --ia32
+            fi
+          elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
+            npx electron-builder --arm64
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            npx electron-builder --universal
+          elif [[ "${{ matrix.os }}" == "macos-13" ]]; then
+            npx electron-builder --mac --${{ matrix.arch }}
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            if [[ "${{ matrix.arch }}" == "x64" ]]; then
+              npx electron-builder --win
+            else
+              npx electron-builder --win --ia32
+            fi
+          elif [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
+            npx electron-builder --linux --arm64
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            npx electron-builder --linux --${{ matrix.arch }}
+          else
+            npx electron-builder --${{ matrix.arch }}
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG_DEMB: true
+          CI: true
+          DEBUG: "@malept/flatpak-bundler"
+        continue-on-error: true
+
+      - name: Print Windows distributable hash (debug, Windows)
+        id: print_hash_windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
+          $files = @()
+          foreach ($pattern in $patterns) {
+            $files += Get-ChildItem -Path dist -Recurse -Include $pattern -ErrorAction SilentlyContinue
+          }
+          foreach ($file in $files | Sort-Object FullName -Unique) {
+            $hash = Get-FileHash $file.FullName -Algorithm SHA512
+            $bytes = for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { [Convert]::ToByte($hash.Hash.Substring($i, 2), 16) }
+            $b64 = [Convert]::ToBase64String($bytes)
+            Write-Host "$($file.FullName): $b64"
+          }
+        continue-on-error: true
+      - name: Print Linux distributable hash (debug, Linux)
+        id: print_hash_linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          find dist -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+            hash=$(sha512sum "$file" | awk '{print $1}')
+            b64=$(echo "$hash" | xxd -r -p | base64)
+            echo "$file: $b64"
+          done
+        continue-on-error: true
+      - name: Print Mac distributable hash (debug, macOS)
+        id: print_hash_macos
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          find dist -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+            hash=$(shasum -a 512 "$file" | awk '{print $1}')
+            b64=$(echo "$hash" | xxd -r -p | base64)
+            echo "$file: $b64"
+          done
+        continue-on-error: true
+
+      - name: Upload build dist files as artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            electron-app/dist/Fit-File-Viewer-*
+            electron-app/dist/latest*.yml
+            electron-app/dist/squirrel*/*
+            electron-app/dist/nsis-web/*
+          include-hidden-files: true
+        continue-on-error: true
+
+  release:
+    needs: [build, bump-version]
+    if: ${{ needs.build.result == 'success' && needs.bump-version.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repo code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Download all build artifacts from build job
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: ./artifacts
+
+      - name: Print Windows artifact hash (debug, Windows)
+        id: print_artifact_hash_windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
+          $files = @()
+          foreach ($pattern in $patterns) {
+            $files += Get-ChildItem -Path artifacts -Recurse -Include $pattern -ErrorAction SilentlyContinue
+          }
+          foreach ($file in $files | Sort-Object FullName -Unique) {
+            $hash = Get-FileHash $file.FullName -Algorithm SHA512
+            $bytes = for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { [Convert]::ToByte($hash.Hash.Substring($i, 2), 16) }
+            $b64 = [Convert]::ToBase64String($bytes)
+            Write-Host "$($file.FullName): $b64"
+          }
+      - name: Print Linux artifact hash (debug, Linux)
+        id: print_artifact_hash_linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+            hash=$(sha512sum "$file" | awk '{print $1}')
+            b64=$(echo "$hash" | xxd -r -p | base64)
+            echo "$file: $b64"
+          done
+      - name: Print MacOS artifact hash (debug, macOS)
+        id: print_artifact_hash_macos
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+            hash=$(shasum -a 512 "$file" | awk '{print $1}')
+            b64=$(echo "$hash" | xxd -r -p | base64)
+            echo "$file: $b64"
+          done
+
+      - name: Get previous tag created
+        id: get_prev_tag
+        run: |
+          git fetch --tags
+          TAG_COUNT=$(git tag --sort=-creatordate | wc -l)
+          if [ "$TAG_COUNT" -ge 2 ]; then
+            PREV_TAG=$(git tag --sort=-creatordate | tail -2 | head -1)
+          else
+            PREV_TAG=""
+          fi
+          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes for the new version
+        id: release_notes
+        run: |
+          PREV_TAG="${{ steps.get_prev_tag.outputs.prev_tag }}"
+          if [ -n "$PREV_TAG" ]; then
+            NOTES=$(git log "$PREV_TAG"..HEAD --pretty=format:'- %s%n  - Author: %an <%ae>%n  - Commit: [`%h`](https://github.com/${{ github.repository }}/commit/%H)%n  - Date: %ad%n' --date=short)
+          else
+            NOTES=$(git log --pretty=format:'- %s%n  - Author: %an <%ae>%n  - Commit: [`%h`](https://github.com/${{ github.repository }}/commit/%H)%n  - Date: %ad%n' --date=short)
+          fi
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: List artifacts (debug)
+        id: list_artifacts
+        run: ls -R ./artifacts
+
+      - name: Rename Windows latest.yml files for unique arch/platform
+        id: rename_windows_latest_yml
+        shell: bash
+        run: |
+          echo "Renaming nsis-web and root latest.yml files for Windows builds in ./artifacts..."
+          # 32-bit (ia32)
+          ia32_root="./artifacts/dist-windows-latest-ia32/latest.yml"
+          ia32_nsis="./artifacts/dist-windows-latest-ia32/nsis-web/latest.yml"
+          if [ -f "$ia32_root" ]; then
+            mv "$ia32_root" "./artifacts/dist-windows-latest-ia32/latest-win32.yml"
+            echo "Renamed $ia32_root -> ./artifacts/dist-windows-latest-ia32/latest-win32.yml"
+          fi
+          if [ -f "$ia32_nsis" ]; then
+            mv "$ia32_nsis" "./artifacts/dist-windows-latest-ia32/nsis-web/latest-nsis-web-win32.yml"
+            echo "Renamed $ia32_nsis -> ./artifacts/dist-windows-latest-ia32/nsis-web/latest-nsis-web-win32.yml"
+          fi
+          # 64-bit (x64)
+          x64_nsis="./artifacts/dist-windows-latest-x64/nsis-web/latest.yml"
+          if [ -f "$x64_nsis" ]; then
+            mv "$x64_nsis" "./artifacts/dist-windows-latest-x64/nsis-web/latest-nsis-web.yml"
+            echo "Renamed $x64_nsis -> ./artifacts/dist-windows-latest-x64/nsis-web/latest-nsis-web.yml"
+          fi
+
+      - name: Organize distributables by platform and arch
+        id: organize_distributables
+        shell: bash
+        run: |
+          mkdir -p release-dist
+          echo "Before copy, contents of ./artifacts:"
+          ls -R ./artifacts
+      
+          for artifact_dir in ./artifacts/dist-*; do
+            [ -d "$artifact_dir" ] || continue
+            artifact_name=$(basename "$artifact_dir")
+            platform_arch=${artifact_name#dist-}
+            mkdir -p "release-dist/$platform_arch"
+            echo "Copying main files from $artifact_dir to release-dist/$platform_arch/"
+            cp -v "$artifact_dir"/Fit-File-Viewer-* "$artifact_dir"/*.yml "release-dist/$platform_arch/" 2>/dev/null || true
+            # Rename latest-mac.yml if it exists
+            if [ -f "$artifact_dir/latest-mac.yml" ]; then
+              cp "$artifact_dir/latest-mac.yml" "release-dist/$platform_arch/latest-$platform_arch.yml"
+              rm "$artifact_dir/latest-mac.yml"
+            fi
+            for subdir in nsis-web squirrel-windows squirrel-windows-ia32; do
+              if [ -d "$artifact_dir/$subdir" ]; then
+                echo "Copying $artifact_dir/$subdir to release-dist/$platform_arch/"
+                cp -r "$artifact_dir/$subdir" "release-dist/$platform_arch/"
+              fi
+            done
+            # Remove generic latest-mac.yml if it was copied, only keep the renamed one
+            if [ -f "release-dist/$platform_arch/latest-mac.yml" ]; then
+              rm "release-dist/$platform_arch/latest-mac.yml"
+            fi
+          done
+      
+          echo "After copy, contents of release-dist:"
+          ls -R release-dist
+
+      - name: Fix all sha512 in latest*.yml files
+        id: fix_sha512
+        shell: bash
+        run: |
+          set -e
+          for yml in $(find release-dist -type f -name 'latest*.yml'); do
+            echo "Processing $yml"
+            dir=$(dirname "$yml")
+            tmp_file="${yml}.tmp"
+            first_file_sha512=""
+            first_file_path=""
+            in_files_section=0
+            current_url=""
+            file_count=0
+            updated_count=0
+            missing_count=0
+            while IFS= read -r line; do
+              if [[ $line =~ ^[[:space:]]*files: ]]; then
+                in_files_section=1
+                echo "$line" >> "$tmp_file"
+                continue
+              fi
+              if [[ $in_files_section -eq 1 ]]; then
+                if [[ $line =~ ^[[:space:]]*-[[:space:]]url:[[:space:]](.*) ]]; then
+                  current_url="${BASH_REMATCH[1]}"
+                  echo "  - url: $current_url" >> "$tmp_file"
+                  file_count=$((file_count+1))
+                elif [[ $line =~ ^[[:space:]]*sha512:[[:space:]].* && -n $current_url ]]; then
+                  file_path="$dir/$current_url"
+                  if [ -f "$file_path" ]; then
+                    hash=$(sha512sum "$file_path" | awk '{print $1}')
+                    b64=$(echo "$hash" | xxd -r -p | base64 | tr -d '\n')
+                    echo "    sha512: $b64" >> "$tmp_file"
+                    if [[ -z "$first_file_sha512" ]]; then
+                      first_file_sha512="$b64"
+                      first_file_path="$current_url"
+                    fi
+                    updated_count=$((updated_count+1))
+                  else
+                    echo "    sha512: " >> "$tmp_file"
+                    missing_count=$((missing_count+1))
+                  fi
+                  current_url=""
+                elif [[ $line =~ ^[[:space:]]*size:[[:space:]].* ]]; then
+                  trimmed=$(echo "$line" | sed 's/^[[:space:]]*//')
+                  echo "    $trimmed" >> "$tmp_file"
+                elif [[ $line =~ ^[[:space:]]*path:[[:space:]].* || $line =~ ^[[:space:]]*sha512:[[:space:]].* || $line =~ ^[[:space:]]*releaseDate:[[:space:]].* ]]; then
+                  in_files_section=0
+                  echo "$line" >> "$tmp_file"
+                else
+                  echo "$line" >> "$tmp_file"
+                fi
+              else
+                if [[ $line =~ ^path:[[:space:]] ]]; then
+                  if [[ -n "$first_file_path" ]]; then
+                    echo "path: $first_file_path" >> "$tmp_file"
+                  else
+                    echo "$line" >> "$tmp_file"
+                  fi
+                elif [[ $line =~ ^sha512:[[:space:]] ]]; then
+                  if [[ -n "$first_file_sha512" ]]; then
+                    echo "sha512: $first_file_sha512" >> "$tmp_file"
+                  else
+                    echo "$line" >> "$tmp_file"
+                  fi
+                else
+                  echo "$line" >> "$tmp_file"
+                fi
+              fi
+            done < "$yml"
+            echo "[DEBUG] Summary for $yml: $file_count files, $updated_count updated, $missing_count missing"
+            mv "$tmp_file" "$yml"
+            echo "Updated $yml"
+          done
+
+      - name: Print artifact hash (debug, Windows)
+        id: print_artifact_hash_debug_windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $patterns = @('*.exe','*.nupkg','*.dmg','*.AppImage','*.snap','*.zip','*.yml','*.blockmap','*.msi','*.deb','*.rpm','*.7z','*.pkg','*.mas','*.apk','*.p5p','*.pacman','*.freebsd','*.flatpak','*.tar.xz','*.tar.gz','*.tar.bz2')
+          $files = @()
+          foreach ($pattern in $patterns) {
+            $files += Get-ChildItem -Path artifacts -Recurse -Include $pattern -ErrorAction SilentlyContinue
+          }
+          foreach ($file in $files | Sort-Object FullName -Unique) {
+            $hash = Get-FileHash $file.FullName -Algorithm SHA512
+            $bytes = for ($i = 0; $i -lt $hash.Hash.Length; $i += 2) { [Convert]::ToByte($hash.Hash.Substring($i, 2), 16) }
+            $b64 = [Convert]::ToBase64String($bytes)
+            Write-Host "$($file.FullName): $b64"
+          }
+      - name: Print artifact hash (debug, Linux)
+        id: print_artifact_hash_debug_linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+            hash=$(sha512sum "$file" | awk '{print $1}')
+            b64=$(echo "$hash" | xxd -r -p | base64)
+            echo "$file: $b64"
+          done
+      - name: Print artifact hash (debug, macOS)
+        id: print_artifact_hash_debug_macos
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+            hash=$(shasum -a 512 "$file" | awk '{print $1}')
+            b64=$(echo "$hash" | xxd -r -p | base64)
+            echo "$file: $b64"
+          done
+
+      - name: List release-dist files (debug)
+        id: list-dedupe
+        run: |
+          echo "Listing all files in release-dist before deduplication:"
+          find release-dist -type f | sort
+          echo "\nDeduplicating files in release-dist..."
+          find release-dist -type f | sort | uniq -d | while read dup; do
+            echo "Duplicate file: $dup"
+            # Optionally, remove or rename duplicates here
+          done
+          echo "\nFinal file list in release-dist:"
+          find release-dist -type f | sort
+        shell: bash
+        continue-on-error: true
+
+      - name: Rename Squirrel win32 nupkg and RELEASES for release
+        shell: bash
+        run: |
+          ia32_dir="./release-dist/windows-latest-ia32/squirrel-windows-ia32"
+          ia32_nupkg="$ia32_dir/fitfileviewer-*-full.nupkg"
+          for file in $ia32_nupkg; do
+            if [ -f "$file" ]; then
+              new_nupkg="${file/-full.nupkg/-win32-full.nupkg}"
+              mv "$file" "$new_nupkg"
+              echo "Renamed $file -> $new_nupkg"
+            fi
+          done
+          # Also rename RELEASES to RELEASES-win32 if it exists
+          if [ -f "$ia32_dir/RELEASES" ]; then
+            mv "$ia32_dir/RELEASES" "$ia32_dir/RELEASES-win32"
+            echo "Renamed $ia32_dir/RELEASES -> $ia32_dir/RELEASES-win32"
+          fi
+        continue-on-error: true
+
+      - name: Create or update release with distributable builds
+        id: release
+        uses: softprops/action-gh-release@d5382d3e6f2fa7bd53cb749d33091853d4985daf # v2.3.0
+        with:
+          tag_name: v${{ needs.bump-version.outputs.new_version }}
+          name: FitFileViewer v${{ needs.bump-version.outputs.new_version }}
+          body: |
+            ## 🚀 Release Notes
+
+            ${{ github.event.head_commit.message }}
+
+            **[📄 View Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)**
+
+            ---
+
+            <details>
+              <summary><strong>🔍 Merge Commit Details</strong></summary>
+
+            **Message:**
+            ```
+            ${{ steps.release_notes.outputs.notes }}
+            ```
+
+            **Commit SHA:** `${{ github.sha }}`
+            </details>
+
+            ---
+
+            ### 📦 Download FitFileViewer
+
+            <sub> - Most Windows users should download the "Installer EXE", "MSI" or "Portable" versions  </sub>
+
+            | Windows  | Builds       | Format           | Download Link |
+            |----------|--------------|------------------|---------------|
+            | Windows  | x64          | Installer EXE    | [Fit-File-Viewer-nsis-x64-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-nsis-x64-${{ needs.bump-version.outputs.new_version }}.exe) |
+            | Windows  | x64          | Installer Web    | [Fit-File-Viewer-nsis-web-x64-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-nsis-web-x64-${{ needs.bump-version.outputs.new_version }}.exe) |
+            | Windows  | x64          | Installer 7z     | [fitfileviewer-${{ needs.bump-version.outputs.new_version }}-x64.nsis.7z](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/fitfileviewer-${{ needs.bump-version.outputs.new_version }}-x64.nsis.7z) |
+            | Windows  | x64          | MSI              | [Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.msi](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.msi) |
+            | Windows  | x64          | MSI 7z           | [Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.7z](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.7z) |
+            | Windows  | x64          | MSI TAR.BZ2      | [Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.tar.bz2](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.tar.bz2) |
+            | Windows  | x64          | MSI TAR.GZ       | [Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.tar.gz) |
+            | Windows  | x64          | MSI TAR.XZ       | [Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
+            | Windows  | x64          | MSI ZIP          | [Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-x64-${{ needs.bump-version.outputs.new_version }}.zip) |
+            | Windows  | x64          | Portable         | [Fit-File-Viewer-portable-x64-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-portable-x64-${{ needs.bump-version.outputs.new_version }}.exe) |
+            | Windows  | ia32 / win32 | Installer EXE    | [Fit-File-Viewer-nsis-ia32-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-nsis-ia32-${{ needs.bump-version.outputs.new_version }}.exe) |
+            | Windows  | ia32 / win32 | Installer Web    | [Fit-File-Viewer-nsis-web-ia32-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-nsis-web-ia32-${{ needs.bump-version.outputs.new_version }}.exe) |
+            | Windows  | ia32 / win32 | Installer 7z     | [fitfileviewer-${{ needs.bump-version.outputs.new_version }}-ia32.nsis.7z](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/fitfileviewer-${{ needs.bump-version.outputs.new_version }}-ia32.nsis.7z) |
+            | Windows  | ia32 / win32 | MSI              | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.msi](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.msi) |
+            | Windows  | ia32 / win32 | MSI 7z           | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.7z](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.7z) |
+            | Windows  | ia32 / win32 | MSI TAR.BZ2      | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.bz2](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.bz2) |
+            | Windows  | ia32 / win32 | MSI TAR.GZ       | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.gz) |
+            | Windows  | ia32 / win32 | MSI TAR.XZ       | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
+            | Windows  | ia32 / win32 | MSI ZIP          | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.zip) |
+            | Windows  | ia32 / win32 | Portable         | [Fit-File-Viewer-portable-ia32-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-portable-ia32-${{ needs.bump-version.outputs.new_version }}.exe) |
+
+            | Mac      | Builds       | Format           | Download Link |
+            |----------|--------------|------------------|---------------|
+            | macOS    | x64          | DMG              | [Fit-File-Viewer-dmg-x64-${{ needs.bump-version.outputs.new_version }}.dmg](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-dmg-x64-${{ needs.bump-version.outputs.new_version }}.dmg) |
+            | macOS    | x64          | PKG              | [Fit-File-Viewer-pkg-x64-${{ needs.bump-version.outputs.new_version }}.pkg](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-pkg-x64-${{ needs.bump-version.outputs.new_version }}.pkg) |
+            | macOS    | x64          | TAR.BZ2          | [Fit-File-Viewer-darwin-${{ needs.bump-version.outputs.new_version }}.tar.bz2](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-${{ needs.bump-version.outputs.new_version }}.tar.bz2) |
+            | macOS    | x64          | TAR.GZ           | [Fit-File-Viewer-darwin-${{ needs.bump-version.outputs.new_version }}.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-${{ needs.bump-version.outputs.new_version }}.tar.gz) |
+            | macOS    | x64          | TAR.XZ           | [Fit-File-Viewer-darwin-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
+            | macOS    | universal    | DMG              | [Fit-File-Viewer-dmg-universal-${{ needs.bump-version.outputs.new_version }}.dmg](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-dmg-universal-${{ needs.bump-version.outputs.new_version }}.dmg) |
+            | macOS    | universal    | PKG              | [Fit-File-Viewer-pkg-universal-${{ needs.bump-version.outputs.new_version }}.pkg](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-pkg-universal-${{ needs.bump-version.outputs.new_version }}.pkg) |
+            | macOS    | universal    | TAR.BZ2          | [Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.tar.bz2](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.tar.bz2) |
+            | macOS    | universal    | TAR.GZ           | [Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.tar.gz) |
+            | macOS    | universal    | TAR.XZ           | [Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
+            | macOS    | universal    | ZIP              | [Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-universal-${{ needs.bump-version.outputs.new_version }}.zip) |
+            | macOS    | arm64        | DMG              | [Fit-File-Viewer-dmg-arm64-${{ needs.bump-version.outputs.new_version }}.dmg](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-dmg-arm64-${{ needs.bump-version.outputs.new_version }}.dmg) |
+            | macOS    | arm64        | PKG              | [Fit-File-Viewer-pkg-arm64-${{ needs.bump-version.outputs.new_version }}.pkg](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-pkg-arm64-${{ needs.bump-version.outputs.new_version }}.pkg) |
+            | macOS    | arm64        | TAR.BZ2          | [Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.tar.bz2](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.tar.bz2) |
+            | macOS    | arm64        | TAR.GZ           | [Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.tar.gz) |
+            | macOS    | arm64        | TAR.XZ           | [Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
+            | macOS    | arm64        | ZIP              | [Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-darwin-arm64-${{ needs.bump-version.outputs.new_version }}.zip) |
+
+            <sub> - Most Mac users should download the "DMG" or "PKG" versions  </sub>
+
+            | Linux    | Builds       | Format           | Download Link |
+            |----------|--------------|------------------|---------------|
+            | Linux    | x64          | AppImage         | [Fit-File-Viewer-appimage-x86_64-${{ needs.bump-version.outputs.new_version }}.AppImage](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-appimage-x86_64-${{ needs.bump-version.outputs.new_version }}.AppImage) |
+            | Linux    | x64          | DEB              | [Fit-File-Viewer-deb-amd64-${{ needs.bump-version.outputs.new_version }}.deb](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-deb-amd64-${{ needs.bump-version.outputs.new_version }}.deb) |
+            | Linux    | x64          | RPM              | [Fit-File-Viewer-rpm-x86_64-${{ needs.bump-version.outputs.new_version }}.rpm](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-rpm-x86_64-${{ needs.bump-version.outputs.new_version }}.rpm) |
+            | Linux    | x64          | PACMAN           | [Fit-File-Viewer-pacman-x64-${{ needs.bump-version.outputs.new_version }}.pacman](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-pacman-x64-${{ needs.bump-version.outputs.new_version }}.pacman) |
+            | Linux    | x64          | SNAP             | [Fit-File-Viewer-snap-amd64-${{ needs.bump-version.outputs.new_version }}.snap](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-snap-amd64-${{ needs.bump-version.outputs.new_version }}.snap) |
+            | Linux    | x64          | TAR.BZ2          | [Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.tar.bz2](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.tar.bz2) |
+            | Linux    | x64          | TAR.GZ           | [Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.tar.gz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.tar.gz) |
+            | Linux    | x64          | TAR.XZ           | [Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
+            | Linux    | x64          | ZIP              | [Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-linux-${{ needs.bump-version.outputs.new_version }}.zip) |
+            | Linux    | x64          | APK (Alpine)     | [Fit-File-Viewer-apk-x64-${{ needs.bump-version.outputs.new_version }}.apk](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-apk-x64-${{ needs.bump-version.outputs.new_version }}.apk) |
+            | Linux    | x64          | FreeBSD          | [Fit-File-Viewer-freebsd-x64-${{ needs.bump-version.outputs.new_version }}.freebsd](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-freebsd-x64-${{ needs.bump-version.outputs.new_version }}.freebsd) |
+            | Linux    | x64          | Flatpak          | [FitFileViewer-v${{ needs.bump-version.outputs.new_version }}.flatpak](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/FitFileViewer-v${{ needs.bump-version.outputs.new_version }}.flatpak) |
+            | Linux    | x64          | Flatpak ZIP      | [FitFileViewer-v${{ needs.bump-version.outputs.new_version }}.flatpak.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/FitFileViewer-v${{ needs.bump-version.outputs.new_version }}.flatpak.zip) |
+
+            <sub> - Most Linux users should download the "AppImage", "DEB", "FlatPak" or "RPM" versions  </sub>
+
+            ---
+
+            _See below for full release notes and all available assets._
+
+            ---
+
+            **[📄 View Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)**
+
+            ---
+
+            _Thank you for using **FitFileViewer**!_
+
+          files: release-dist/**
+          draft: false
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
