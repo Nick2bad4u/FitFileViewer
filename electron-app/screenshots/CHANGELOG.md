@@ -24,6 +24,12 @@ Streamlines menu theme sync and adds menu safety checks
 
 Simplifies theme synchronization by removing redundant menu update logic and ensuring menus are set only after renderer load for improved UI consistency. Adds debug logging and template validation to prevent invalid or empty menu setups, aiding stability and troubleshooting.
 
+- Improves Linux menu handling and adds menu injection support
+
+Refactors Linux menu logic to remove minimal menu fallback and enhance menu initialization logging for better troubleshooting.
+Introduces a DevTools-accessible function to manually inject or reset the application menu from the renderer, streamlining menu debugging and development workflow.
+Simplifies theme synchronization and adds safeguards to prevent invalid menu setups, improving stability and UI consistency across platforms.
+
 
 ## [19.0.0] - 2025-06-07
 

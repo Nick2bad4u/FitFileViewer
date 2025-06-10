@@ -44,6 +44,12 @@ Simplifies theme synchronization by removing redundant menu update logic and ens
 
 - Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu
 
+- Improves Linux menu handling and adds menu injection support
+
+Refactors Linux menu logic to remove minimal menu fallback and enhance menu initialization logging for better troubleshooting.
+Introduces a DevTools-accessible function to manually inject or reset the application menu from the renderer, streamlining menu debugging and development workflow.
+Simplifies theme synchronization and adds safeguards to prevent invalid menu setups, improving stability and UI consistency across platforms.
+
 
 ## [19.0.0] - 2025-06-07
 

@@ -7,7 +7,27 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
+- Bump version to 20.5.0
+
+
+## [20.5.0] - 2025-06-10
+
+### 🆕 New Version Number
+
 - Bump version to 20.0.0
+
+- Bump version to 20.1.0
+
+- Bump version to 20.2.0
+
+- Bump version to 20.3.0
+
+- Bump version to 20.4.0
+
+
+### 🛠️ GitHub Actions
+
+- Update dependabot.yml
 
 
 ### 💼 Other
@@ -15,6 +35,532 @@ All notable changes to this project will be documented in this file.
 - Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Improves Linux menu handling and adds menu injection support
+
+Refactors Linux menu logic to remove minimal menu fallback and enhance menu initialization logging for better troubleshooting.
+Introduces a DevTools-accessible function to manually inject or reset the application menu from the renderer, streamlining menu debugging and development workflow.
+Simplifies theme synchronization and adds safeguards to prevent invalid menu setups, improving stability and UI consistency across platforms.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge pull request #108 from Nick2bad4u/dependabot/github_actions/github-actions-2386549950
+
+Bump the github-actions group with 2 updates
+
+- Merge pull request #109 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-2c11b913aa
+
+Bump the npm-all group across 1 directory with 44 updates
+
+- Update metrics.repository.svg - [Skip GitHub Action]
+
+- Adds multi-platform CI workflow to build and release Electron app
+
+Introduces a robust GitHub Actions workflow to automate version bumping, building, artifact management, and release publishing for the Electron app across Windows, macOS, and Linux. Handles platform-specific dependencies, build matrix, release notes generation, artifact naming, hash validation, and asset organization to streamline cross-platform distribution and ensure release integrity.
+
+- Update workflow name to include '(My Runners)' for clarity
+
+- Clarifies workflow name to specify local builds
+
+Updates the workflow name for improved clarity,
+indicating it handles both local builds and releases for the Electron app.
+Helps distinguish this workflow from others in environments with multiple pipelines.
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove outdated dependencies from package.json
+
+
+### 🛡️ Security
+
+- Bump the github-actions group with 2 updates
+
+Bumps the github-actions group with 2 updates: [softprops/action-gh-release](https://github.com/softprops/action-gh-release) and [creyD/prettier_action](https://github.com/creyd/prettier_action).
+
+
+Updates `softprops/action-gh-release` from 2.2.2 to 2.3.0
+- [Release notes](https://github.com/softprops/action-gh-release/releases)
+- [Changelog](https://github.com/softprops/action-gh-release/blob/master/CHANGELOG.md)
+- [Commits](https://github.com/softprops/action-gh-release/compare/da05d552573ad5aba039eaac05058a918a7bf631...d5382d3e6f2fa7bd53cb749d33091853d4985daf)
+
+Updates `creyD/prettier_action` from 4.5 to 4.6
+- [Release notes](https://github.com/creyd/prettier_action/releases)
+- [Commits](https://github.com/creyd/prettier_action/compare/5e54c689403b43aac746a34c07656fd4cb71d822...8c18391fdc98ed0d884c6345f03975edac71b8f0)
+
+---
+updated-dependencies:
+- dependency-name: softprops/action-gh-release
+  dependency-version: 2.3.0
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: github-actions
+- dependency-name: creyD/prettier_action
+  dependency-version: '4.6'
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: github-actions
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+- Bump the npm-all group across 1 directory with 44 updates
+
+Bumps the npm-all group with 13 updates in the /electron-app directory:
+
+| Package | From | To |
+| --- | --- | --- |
+| [jest](https://github.com/jestjs/jest/tree/HEAD/packages/jest) | `29.7.0` | `30.0.0` |
+| [@azure/core-rest-pipeline](https://github.com/Azure/azure-sdk-for-js) | `1.20.0` | `1.21.0` |
+| [@bufbuild/protoplugin](https://github.com/bufbuild/protobuf-es/tree/HEAD/packages/protoplugin) | `2.5.1` | `2.5.2` |
+| [@eslint/css-tree](https://github.com/eslint/csstree) | `3.6.0` | `3.6.1` |
+| [@sigstore/protobuf-specs](https://github.com/sigstore/protobuf-specs) | `0.4.2` | `0.4.3` |
+| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node) | `22.15.30` | `22.15.31` |
+| [acorn](https://github.com/acornjs/acorn) | `8.14.1` | `8.15.0` |
+| [cacheable](https://github.com/jaredwray/cacheable/tree/HEAD/packages/cacheable) | `1.9.0` | `1.10.0` |
+| [cssstyle](https://github.com/jsdom/cssstyle) | `4.3.1` | `4.4.0` |
+| [electron-to-chromium](https://github.com/kilian/electron-to-chromium) | `1.5.165` | `1.5.166` |
+| [entities](https://github.com/fb55/entities) | `6.0.0` | `6.0.1` |
+| [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) | `5.2.3` | `5.2.5` |
+| [socks](https://github.com/JoshGlazebrook/socks) | `2.8.4` | `2.8.5` |
+
+
+
+Updates `jest` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest)
+
+Updates `@azure/core-rest-pipeline` from 1.20.0 to 1.21.0
+- [Release notes](https://github.com/Azure/azure-sdk-for-js/releases)
+- [Changelog](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/Changelog-for-next-generation.md)
+- [Commits](https://github.com/Azure/azure-sdk-for-js/compare/@azure/core-rest-pipeline_1.20.0...@azure/core-rest-pipeline_1.21.0)
+
+Updates `@bufbuild/protoplugin` from 2.5.1 to 2.5.2
+- [Release notes](https://github.com/bufbuild/protobuf-es/releases)
+- [Commits](https://github.com/bufbuild/protobuf-es/commits/v2.5.2/packages/protoplugin)
+
+Updates `@eslint/css-tree` from 3.6.0 to 3.6.1
+- [Release notes](https://github.com/eslint/csstree/releases)
+- [Changelog](https://github.com/eslint/csstree/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/eslint/csstree/compare/css-tree-v3.6.0...css-tree-v3.6.1)
+
+Updates `@jest/console` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-console)
+
+Updates `@jest/core` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-core)
+
+Updates `@jest/environment` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-environment)
+
+Updates `@jest/expect` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-expect)
+
+Updates `@jest/fake-timers` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-fake-timers)
+
+Updates `@jest/globals` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-globals)
+
+Updates `@jest/reporters` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-reporters)
+
+Updates `@jest/source-map` from 29.6.3 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-source-map)
+
+Updates `@jest/test-result` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-test-result)
+
+Updates `@jest/test-sequencer` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-test-sequencer)
+
+Updates `@sigstore/protobuf-specs` from 0.4.2 to 0.4.3
+- [Release notes](https://github.com/sigstore/protobuf-specs/releases)
+- [Changelog](https://github.com/sigstore/protobuf-specs/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/sigstore/protobuf-specs/compare/v0.4.2...v0.4.3)
+
+Updates `@sinonjs/fake-timers` from 10.3.0 to 13.0.5
+- [Release notes](https://github.com/sinonjs/fake-timers/releases)
+- [Changelog](https://github.com/sinonjs/fake-timers/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/sinonjs/fake-timers/compare/v10.3.0...v13.0.5)
+
+Updates `@types/node` from 22.15.30 to 22.15.31
+- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
+- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node)
+
+Updates `@typespec/ts-http-runtime` from 0.2.2 to 0.2.3
+- [Release notes](https://github.com/Azure/azure-sdk-for-js/releases)
+- [Changelog](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/Changelog-for-next-generation.md)
+- [Commits](https://github.com/Azure/azure-sdk-for-js/compare/@typespec/ts-http-runtime_0.2.2...@typespec/ts-http-runtime_0.2.3)
+
+Updates `acorn` from 8.14.1 to 8.15.0
+- [Commits](https://github.com/acornjs/acorn/compare/8.14.1...8.15.0)
+
+Updates `cacheable` from 1.9.0 to 1.10.0
+- [Release notes](https://github.com/jaredwray/cacheable/releases)
+- [Commits](https://github.com/jaredwray/cacheable/commits/HEAD/packages/cacheable)
+
+Updates `cjs-module-lexer` from 1.4.3 to 2.1.0
+- [Release notes](https://github.com/nodejs/cjs-module-lexer/releases)
+- [Changelog](https://github.com/nodejs/cjs-module-lexer/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/nodejs/cjs-module-lexer/compare/1.4.3...2.1.0)
+
+Updates `cssstyle` from 4.3.1 to 4.4.0
+- [Release notes](https://github.com/jsdom/cssstyle/releases)
+- [Commits](https://github.com/jsdom/cssstyle/compare/v4.3.1...v4.4.0)
+
+Updates `electron-to-chromium` from 1.5.165 to 1.5.166
+- [Changelog](https://github.com/Kilian/electron-to-chromium/blob/master/CHANGELOG.md)
+- [Commits](https://github.com/kilian/electron-to-chromium/compare/v1.5.165...v1.5.166)
+
+Updates `entities` from 6.0.0 to 6.0.1
+- [Release notes](https://github.com/fb55/entities/releases)
+- [Commits](https://github.com/fb55/entities/compare/v6.0.0...v6.0.1)
+
+Updates `fast-xml-parser` from 5.2.3 to 5.2.5
+- [Release notes](https://github.com/NaturalIntelligence/fast-xml-parser/releases)
+- [Changelog](https://github.com/NaturalIntelligence/fast-xml-parser/blob/master/CHANGELOG.md)
+- [Commits](https://github.com/NaturalIntelligence/fast-xml-parser/compare/v5.2.3...v5.2.5)
+
+Updates `istanbul-lib-source-maps` from 4.0.1 to 5.0.6
+- [Release notes](https://github.com/istanbuljs/istanbuljs/releases)
+- [Changelog](https://github.com/istanbuljs/istanbuljs/blob/main/packages/istanbul-lib-source-maps/CHANGELOG.md)
+- [Commits](https://github.com/istanbuljs/istanbuljs/commits/istanbul-lib-source-maps-v5.0.6/packages/istanbul-lib-source-maps)
+
+Updates `jest-changed-files` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-changed-files)
+
+Updates `jest-circus` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-circus)
+
+Updates `jest-cli` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-cli)
+
+Updates `jest-config` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-config)
+
+Updates `jest-docblock` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-docblock)
+
+Updates `jest-each` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-each)
+
+Updates `jest-environment-node` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-environment-node)
+
+Updates `jest-leak-detector` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-leak-detector)
+
+Updates `jest-mock` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-mock)
+
+Updates `jest-resolve` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-resolve)
+
+Updates `jest-resolve-dependencies` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-resolve-dependencies)
+
+Updates `jest-runner` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-runner)
+
+Updates `jest-runtime` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-runtime)
+
+Updates `jest-snapshot` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-snapshot)
+
+Updates `jest-validate` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-validate)
+
+Updates `jest-watcher` from 29.7.0 to 30.0.0
+- [Release notes](https://github.com/jestjs/jest/releases)
+- [Changelog](https://github.com/jestjs/jest/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/jestjs/jest/commits/v30.0.0/packages/jest-watcher)
+
+Updates `pure-rand` from 6.1.0 to 7.0.1
+- [Changelog](https://github.com/dubzzz/pure-rand/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/dubzzz/pure-rand/compare/v6.1.0...v7.0.1)
+
+Updates `socks` from 2.8.4 to 2.8.5
+- [Release notes](https://github.com/JoshGlazebrook/socks/releases)
+- [Commits](https://github.com/JoshGlazebrook/socks/compare/2.8.4...2.8.5)
+
+---
+updated-dependencies:
+- dependency-name: jest
+  dependency-version: 30.0.0
+  dependency-type: direct:development
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@azure/core-rest-pipeline"
+  dependency-version: 1.21.0
+  dependency-type: indirect
+  update-type: version-update:semver-minor
+  dependency-group: npm-all
+- dependency-name: "@bufbuild/protoplugin"
+  dependency-version: 2.5.2
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: "@eslint/css-tree"
+  dependency-version: 3.6.1
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: "@jest/console"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/core"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/environment"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/expect"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/fake-timers"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/globals"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/reporters"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/source-map"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/test-result"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@jest/test-sequencer"
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@sigstore/protobuf-specs"
+  dependency-version: 0.4.3
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: "@sinonjs/fake-timers"
+  dependency-version: 13.0.5
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: "@types/node"
+  dependency-version: 22.15.31
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: "@typespec/ts-http-runtime"
+  dependency-version: 0.2.3
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: acorn
+  dependency-version: 8.15.0
+  dependency-type: indirect
+  update-type: version-update:semver-minor
+  dependency-group: npm-all
+- dependency-name: cacheable
+  dependency-version: 1.10.0
+  dependency-type: indirect
+  update-type: version-update:semver-minor
+  dependency-group: npm-all
+- dependency-name: cjs-module-lexer
+  dependency-version: 2.1.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: cssstyle
+  dependency-version: 4.4.0
+  dependency-type: indirect
+  update-type: version-update:semver-minor
+  dependency-group: npm-all
+- dependency-name: electron-to-chromium
+  dependency-version: 1.5.166
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: entities
+  dependency-version: 6.0.1
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: fast-xml-parser
+  dependency-version: 5.2.5
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+- dependency-name: istanbul-lib-source-maps
+  dependency-version: 5.0.6
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-changed-files
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-circus
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-cli
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-config
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-docblock
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-each
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-environment-node
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-leak-detector
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-mock
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-resolve
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-resolve-dependencies
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-runner
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-runtime
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-snapshot
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-validate
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: jest-watcher
+  dependency-version: 30.0.0
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: pure-rand
+  dependency-version: 7.0.1
+  dependency-type: indirect
+  update-type: version-update:semver-major
+  dependency-group: npm-all
+- dependency-name: socks
+  dependency-version: 2.8.5
+  dependency-type: indirect
+  update-type: version-update:semver-patch
+  dependency-group: npm-all
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
 
 
 ## [20.0.0] - 2025-06-10
