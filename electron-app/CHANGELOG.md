@@ -7,10 +7,30 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
-- Bump version to 20.5.0
+- Bump version to 20.7.0
+
+- Bump version to 20.8.0
+
+- Bump version to 20.9.0
+
+- Bump version to 21.0.0
 
 
-## [20.5.0] - 2025-06-10
+### 💼 Other
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+## [20.7.0] - 2025-06-10
+
+### 🚀 Features
+
+- Update GitHub workflows for improved functionality and scheduling
+
 
 ### 🆕 New Version Number
 
@@ -23,6 +43,10 @@ All notable changes to this project will be documented in this file.
 - Bump version to 20.3.0
 
 - Bump version to 20.4.0
+
+- Bump version to 20.5.0
+
+- Bump version to 20.6.0
 
 
 ### 💼 Other
@@ -42,6 +66,12 @@ Simplifies theme synchronization and adds safeguards to prevent invalid menu set
 - Merge pull request #109 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-2c11b913aa
 
 Bump the npm-all group across 1 directory with 44 updates
+
+- Improves Linux menu logic and adds menu injection support
+
+Refactors Linux menu handling to remove the minimal menu fallback and adds enhanced logging for improved troubleshooting. Introduces a DevTools-accessible function allowing manual injection or reset of the application menu from the renderer, making menu debugging and development more efficient. Streamlines theme synchronization and implements safeguards to prevent invalid menu setups, boosting stability and UI consistency across platforms.
+
+Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability.
 
 
 ### ⚙️ Miscellaneous Tasks
