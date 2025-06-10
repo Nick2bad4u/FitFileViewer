@@ -94,16 +94,14 @@ jobs:
 
         for tag in $to_delete; do
           echo "Deleting release $tag..."
-          gh release delete "$tag" --yes
-          status=$?
-          echo "gh release delete exit code for $tag: $status"
-          if [ $status -ne 0 ]; then
-            echo "Failed to delete release $tag"
-          fi
+          gh release delete "$tag" --yes || echo "Failed to delete release $tag (may not exist or already deleted)"
           if [ "$DELETE_TAGS" = "true" ]; then
-            echo "Deleting tag $tag..."
-            git tag -d "$tag" || true
-            git push origin ":refs/tags/$tag"
+            if git tag | grep -qx "$tag"; then
+              echo "Deleting tag $tag locally..."
+              git tag -d "$tag" || true
+            fi
+            echo "Deleting tag $tag remotely..."
+            git push origin ":refs/tags/$tag" || echo "Failed to delete remote tag $tag"
           fi
         done
 
