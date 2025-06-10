@@ -383,12 +383,10 @@
     "eslint": "^9.28.0",
     "git-cliff": "^2.9.1",
     "globals": "^16.2.0",
-    "jest": "^30.0.0",
     "jsdom": "^26.1.0",
     "makensis": "^2.0.8",
     "screenfull": "^6.0.2",
     "stylelint-config-standard": "^38.0.0",
-    "ts-jest": "29.3.4",
     "vitest": "3.2.3"
   },
   "dependencies": {
