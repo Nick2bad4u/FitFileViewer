@@ -81,33 +81,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api -X PATCH -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ github.repository }}/check-runs/$CHECKID \
-            --input - <<- EOF
-            {
-              "status": "in_progress",
-              "output": {
-                "title": "Update ChangeLogs",
-                "summary": "Changelogs generated. Creating PR..."
-              }
+          echo '{
+            "status": "in_progress",
+            "output": {
+              "title": "Update ChangeLogs",
+              "summary": "Changelogs generated. Creating PR..."
             }
-            EOF
+          }' | gh api -X PATCH -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/check-runs/$CHECKID --input -
 
       - name: Complete Check Run
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api -X PATCH -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ github.repository }}/check-runs/$CHECKID \
-            --input - <<- EOF
-            {
-              "conclusion": "success",
-              "output": {
-                "title": "Update ChangeLogs",
-                "summary": "Changelog update workflow completed successfully."
-              }
+          echo '{
+            "conclusion": "success",
+            "output": {
+              "title": "Update ChangeLogs",
+              "summary": "Changelog update workflow completed successfully."
             }
-            EOF
+          }' | gh api -X PATCH -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/check-runs/$CHECKID --input -
