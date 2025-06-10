@@ -6,11 +6,15 @@ on:
     workflows: ["Build and Release Electron App"]
     types:
       - completed
+  schedule:
+    - cron: "33 3 1 * *" # Every month at 3:33 AM UTC
 
 concurrency:
   group: IAWINDOWS-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
 jobs:
   upload-windows:
     runs-on: ubuntu-latest

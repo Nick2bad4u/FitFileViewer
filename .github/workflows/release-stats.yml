@@ -67,6 +67,6 @@ jobs:
             echo "#### 📊 **Totals**"
             echo "- Total releases: **$total_releases**"
             echo "- Total release asset size: **$all_asset_total_mb MB**"
-          } >> $GITHUB_STEP_SUMMARY
+          } >> "$GITHUB_STEP_SUMMARY"
 
-          cat $GITHUB_STEP_SUMMARY
+          cat "$GITHUB_STEP_SUMMARY"

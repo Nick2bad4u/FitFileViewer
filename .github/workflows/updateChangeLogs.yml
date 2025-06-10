@@ -2,6 +2,22 @@ name: Update ChangeLogs
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build and Release Electron App"]
+    types:
+      - completed
+
+concurrency:
+  group: update-changelogs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  checks: write
+  issues: write
+  statuses: write
 
 jobs:
   update_changelogs:
@@ -15,6 +31,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Set status - checked out
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'Update ChangeLogs - Checkout',
+              description: 'Repository checked out',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })
+
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -23,15 +53,43 @@ jobs:
       - name: Install git-cliff
         run: npm install -g git-cliff
 
+      - name: Set status - dependencies installed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'Update ChangeLogs - Dependencies',
+              description: 'Dependencies installed',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })
+
       - name: Generate CHANGELOG.md files
         run: |
           npx git-cliff --config cliff.toml --output CHANGELOG.md
           cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
           cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd libs && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
-          cd screenshots && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
-          cd tests && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
-          cd utils && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
+          cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
+          cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
+          cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
+          cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
+
+      - name: Set status - changelogs generated
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'Update ChangeLogs - Changelogs',
+              description: 'Changelogs generated',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })
 
       - name: Create Pull Request for changelogs
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
@@ -43,3 +101,17 @@ jobs:
           add-paths: '**/CHANGELOG.md'
           delete-branch: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set status - pull request created
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'Update ChangeLogs - PR',
+              description: 'Pull request for changelogs created',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })

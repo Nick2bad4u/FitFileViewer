@@ -61,9 +61,9 @@ jobs:
         run: |
           pr_number=$(gh pr list --state open --base main --json number -q '.[0].number')
           if [ -n "$pr_number" ]; then
-            echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
+            echo "PR_NUMBER=$pr_number" >> "$GITHUB_ENV"
           else
-            echo "PR_NUMBER=" >> $GITHUB_ENV
+            echo "PR_NUMBER=" >> "$GITHUB_ENV"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

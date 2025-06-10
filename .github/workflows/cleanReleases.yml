@@ -66,7 +66,7 @@ jobs:
 
         # Find first release for each major version
         first_majors=$(echo "$releases" | jq -r '.[] | select(.tagName|test("^v?\\d+\\.")) | .tagName' | \
-          sed -E 's/^v?([0-9]+)\..*/\1 \0/' | sort -k1,1n | uniq -f1 | awk '{print $2}')
+          sed -E 's/^v?([0-9]+)\..*/\1 &/' | sort -k1,1n | uniq -f1 | awk '{print $2}')
         # Get last X releases
         last_x=$(echo "$releases" | jq -r '.[-'"$KEEP_LAST"':] | .[].tagName')
 
@@ -78,8 +78,14 @@ jobs:
         to_delete=$(echo "$releases" | jq -r '.[] | .tagName' | grep -vxFf <(echo "$keep_tags"))
         echo "DEBUG: To delete: $to_delete"
 
+        echo "DEBUG: Keep tags (one per line):"
+        echo "$keep_tags" | nl
+
+        echo "DEBUG: To delete (one per line):"
+        echo "$to_delete" | nl
+
         if [ -z "$to_delete" ]; then
-          echo "No releases to delete."
+          echo "No releases to delete. Exiting."
           exit 0
         fi
 
@@ -89,6 +95,11 @@ jobs:
         for tag in $to_delete; do
           echo "Deleting release $tag..."
           gh release delete "$tag" --yes
+          status=$?
+          echo "gh release delete exit code for $tag: $status"
+          if [ $status -ne 0 ]; then
+            echo "Failed to delete release $tag"
+          fi
           if [ "$DELETE_TAGS" = "true" ]; then
             echo "Deleting tag $tag..."
             git tag -d "$tag" || true
@@ -100,6 +111,10 @@ jobs:
           # Delete orphan tags
           all_tags=$(git tag)
           release_tags=$(gh release list --limit 1000 --json tagName | jq -r '.[].tagName' | tr '[:upper:]' '[:lower:]')
+          echo "DEBUG: All tags (one per line):"
+          echo "$all_tags" | nl
+          echo "DEBUG: Release tags (one per line):"
+          echo "$release_tags" | nl
           for tag in $all_tags; do
             tag_lc=$(echo "$tag" | tr '[:upper:]' '[:lower:]')
             tag_nov=$(echo "$tag_lc" | sed 's/^v//')

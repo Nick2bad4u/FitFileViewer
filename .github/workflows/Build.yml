@@ -64,16 +64,18 @@ jobs:
             exit 1
           fi
           VERSION=$(jq -r .version package.json)
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          # PATCH appears unused, so remove or export if needed
+          # export PATCH
           if [ "$MINOR" -lt 9 ]; then
-            NEW_VERSION="$MAJOR.$(($MINOR + 1)).0"
+            NEW_VERSION="$MAJOR.$((MINOR + 1)).0"
           else
-            NEW_VERSION="$(($MAJOR + 1)).0.0"
+            NEW_VERSION="$((MAJOR + 1)).0.0"
           fi
           jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create new Tag for new version of app
         id: tag_version
@@ -291,7 +293,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          find dist -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find dist -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
             hash=$(sha512sum "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -302,7 +304,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          find dist -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find dist -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
             hash=$(shasum -a 512 "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -363,7 +365,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
             hash=$(sha512sum "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -562,7 +564,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
             hash=$(sha512sum "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -572,7 +574,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
             hash=$(shasum -a 512 "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -583,12 +585,12 @@ jobs:
         run: |
           echo "Listing all files in release-dist before deduplication:"
           find release-dist -type f | sort
-          echo "\nDeduplicating files in release-dist..."
-          find release-dist -type f | sort | uniq -d | while read dup; do
+          printf "\nDeduplicating files in release-dist...\n"
+          find release-dist -type f | sort | uniq -d | while read -r dup; do
             echo "Duplicate file: $dup"
             # Optionally, remove or rename duplicates here
           done
-          echo "\nFinal file list in release-dist:"
+          printf "\nFinal file list in release-dist:\n"
           find release-dist -type f | sort
         shell: bash
         continue-on-error: true
@@ -614,7 +616,7 @@ jobs:
 
       - name: Create or update release with distributable builds
         id: release
-        uses: softprops/action-gh-release@v2.2.2 # v2.2.2
+        uses: softprops/action-gh-release@f3cad8bcbf209fe591aa1823e372c5d96b7fc800 # 2.3.1
         with:
           tag_name: v${{ needs.bump-version.outputs.new_version }}
           name: FitFileViewer v${{ needs.bump-version.outputs.new_version }}

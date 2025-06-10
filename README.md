@@ -228,7 +228,8 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | ia32 / win32    | MSI ZIP            | Fit-File-Viewer-msi-ia32-X.X.X.zip            |
 | Windows  | ia32 / win32    | Portable           | Fit-File-Viewer-portable-ia32-X.X.X.exe       |
 
-#### 🗂️ Update Files (Nupkg & Blockmap)
+<details>
+<summary>🗂️ Update Files (Nupkg & Blockmap)</summary>
 
 | Platform | Architecture    | Format             | Filename Example                              |
 | :------- | :-------------- | :----------------- | :--------------------------------------------- |
@@ -238,6 +239,8 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | ia32 / win32    | Squirrel Nupkg     | fitfileviewer-X.X.X-win32-full.nupkg          |
 | Windows  | x64             | Squirrel RELEASES  | RELEASES                                      |
 | Windows  | ia32 / win32    | Squirrel RELEASES  | RELEASES-win32                                |
+
+</details>
 
 **Note:**  
 
@@ -270,7 +273,8 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | macOS    | arm64        | TAR.XZ     | Fit-File-Viewer-darwin-arm64-X.X.X.tar.xz        |
 | macOS    | arm64        | ZIP        | Fit-File-Viewer-darwin-arm64-X.X.X.zip           |
 
-#### 🗂️ Update Files (Blockmap)
+<details>
+<summary>🗂️ Update Files (Blockmap)</summary>
 
 | Platform | Architecture | Format         | Filename Example                                     |
 | :------- | :----------- | :------------- | :--------------------------------------------------- |
@@ -279,6 +283,8 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | macOS    | arm64        | DMG Blockmap   | Fit-File-Viewer-dmg-arm64-X.X.X.dmg.blockmap         |
 | macOS    | universal    | ZIP Blockmap   | Fit-File-Viewer-darwin-universal-X.X.X.zip.blockmap  |
 | macOS    | arm64        | ZIP Blockmap   | Fit-File-Viewer-darwin-arm64-X.X.X.zip.blockmap      |
+
+</details>
 
 **Note:**  
 
@@ -339,8 +345,8 @@ npm run build
 
 This project uses the following libraries and tools:
 
-- `<a href="https://www.FitFileViewer.com/" class="italic ms-2 "><img alt="HarryOnline logo" src="https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/refs/heads/main/electron-app/screenshots/HarryOnlineLogo.png" class="ms-2 h-3 inline-block" width="14" height="12">``<span>` FitFileViewer.com `</a>` 🌐
-- `<a href="https://www.harryonline.net/" class="italic ms-2 "><img alt="HarryOnline logo" src="https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/refs/heads/main/electron-app/screenshots/HarryOnlineLogo.png" class="ms-2 h-3 inline-block" width="14" height="12">``<span>` HarryOnline `</a>` 🌍
+- [![FitFileViewer.com](electron-app/icons/harry.png){:width="14" height="12" style="vertical-align:middle;"} **FitFileViewer.com**](https://www.FitFileViewer.com/) 🌐
+- [![HarryOnline logo](electron-app/icons/harry.png){:width="14" height="12" style="vertical-align:middle;"} **HarryOnline**](https://www.harryonline.net/) 🌍
 - [Garmin FIT JavaScript SDK](https://github.com/garmin/fit-javascript-sdk) ([FIT Protocol License Agreement](https://developer.garmin.com/fit/download/)) ⌚
 - [Leaflet.js](https://leafletjs.com) ([BSD-2-Clause License](https://github.com/Leaflet/Leaflet/blob/main/LICENSE)) 🗺️
 - [Vega-Lite](https://vega.github.io/vega-lite/) ([BSD-3-Clause License](https://github.com/vega/vega-lite/blob/main/LICENSE)) 📊

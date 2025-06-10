@@ -11,6 +11,9 @@ concurrency:
   group: IALINUX-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   upload-linux:
     runs-on: ubuntu-latest

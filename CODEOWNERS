@@ -1,0 +1,25 @@
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# This file designates code owners for the FitFileViewer project.
+# Lines starting with '#' are comments.
+
+# Main project owner (all files)
+* @Nick2bad4u
+
+# Documentation
+README.md @Nick2bad4u
+CONTRIBUTING.md @Nick2bad4u
+CODE_OF_CONDUCT.md @Nick2bad4u
+SECURITY.md @Nick2bad4u
+LICENSE.md @Nick2bad4u
+
+# Electron app code
+/electron-app/ @Nick2bad4u
+
+# GitHub workflows
+/.github/ @Nick2bad4u
+
+# Test files
+/fit-test-files/ @Nick2bad4u
+
+# You can add more owners or teams as needed, e.g.:
+# /electron-app/renderer.js @SomeCollaborator

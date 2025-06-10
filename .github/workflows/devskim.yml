@@ -51,7 +51,7 @@ jobs:
           echo "Listing all files in workspace:"
           find . -type f | sort
           echo "Showing first 5 lines of each file (if text):"
-          for f in $(find . -type f); do
+          find . -type f | while read -r f; do
             echo "==== $f ===="
             head -n 5 "$f" || echo "Binary or unreadable file"
           done
