@@ -7,10 +7,89 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
-- Bump version to 20.5.0
+- Bump version to 21.0.0
 
 
-## [20.5.0] - 2025-06-10
+## [21.0.0] - 2025-06-10
+
+### 🐛 Bug Fixes
+
+- Refactor release filtering logic to group by major version and improve debug output
+
+- Update changelog generation workflow to commit changes directly and enhance clean releases configuration
+
+
+### 🆕 New Version Number
+
+- Bump version to 20.9.0
+
+
+### 💼 Other
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+## [20.9.0] - 2025-06-10
+
+### 🐛 Bug Fixes
+
+- Improve error handling for release and tag deletion in cleanReleases workflow
+
+- Enhance error handling for orphan tag deletion in cleanReleases workflow
+
+- Ensure orphan tag deletion does not fail the workflow
+
+- Update git user configuration for cleanReleases workflow
+
+- Improve tag deletion logic and enhance debugging output in cleanReleases workflow
+
+- Add initialization step for Build Matrix Summary Table and specify shell for update step
+
+
+### 🆕 New Version Number
+
+- Bump version to 20.8.0
+
+
+### 💼 Other
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+
+## [20.8.0] - 2025-06-10
+
+### 🚀 Features
+
+- Enhance changelog update workflow with check run integration
+
+
+### 🐛 Bug Fixes
+
+- Update Build and Update ChangeLogs workflows to refine paths and remove unnecessary status checks
+
+- Refactor Check Run update commands for improved readability and efficiency
+
+
+### 🆕 New Version Number
+
+- Bump version to 20.7.0
+
+
+### 💼 Other
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Adds workflow job summaries and updates dependencies
+
+Improves CI transparency by appending detailed job summaries to workflow run outputs for build, changelog, and release processes. Updates Prettier and GitHub release action to specific versions for consistency and reliability. Sets explicit permissions in macOS upload workflow to enhance security.
+
+
+## [20.7.0] - 2025-06-10
+
+### 🚀 Features
+
+- Update GitHub workflows for improved functionality and scheduling
+
 
 ### 🆕 New Version Number
 
@@ -23,6 +102,10 @@ All notable changes to this project will be documented in this file.
 - Bump version to 20.3.0
 
 - Bump version to 20.4.0
+
+- Bump version to 20.5.0
+
+- Bump version to 20.6.0
 
 
 ### 🛠️ GitHub Actions
@@ -65,6 +148,12 @@ Introduces a robust GitHub Actions workflow to automate version bumping, buildin
 Updates the workflow name for improved clarity,
 indicating it handles both local builds and releases for the Electron app.
 Helps distinguish this workflow from others in environments with multiple pipelines.
+
+- Improves Linux menu logic and adds menu injection support
+
+Refactors Linux menu handling to remove the minimal menu fallback and adds enhanced logging for improved troubleshooting. Introduces a DevTools-accessible function allowing manual injection or reset of the application menu from the renderer, making menu debugging and development more efficient. Streamlines theme synchronization and implements safeguards to prevent invalid menu setups, boosting stability and UI consistency across platforms.
+
+Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability.
 
 
 ### ⚙️ Miscellaneous Tasks
