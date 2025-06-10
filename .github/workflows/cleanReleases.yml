@@ -119,9 +119,10 @@ jobs:
             if ! echo "$release_tags" | grep -qxF "$tag_lc" && ! echo "$release_tags" | grep -qxF "$tag_nov"; then
               echo "Deleting orphan tag $tag"
               git tag -d "$tag" || true
-              git push origin ":refs/tags/$tag"
+              git push origin ":refs/tags/$tag" || echo "Failed to delete orphan remote tag $tag"
             fi
           done
         fi
 
         echo "Deletion complete."
+        exit 0
