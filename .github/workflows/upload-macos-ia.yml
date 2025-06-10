@@ -11,6 +11,9 @@ concurrency:
   group: IAMAC-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   upload-macos:
     runs-on: ubuntu-latest

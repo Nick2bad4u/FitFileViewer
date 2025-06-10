@@ -105,3 +105,12 @@ jobs:
           }' | gh api -X PATCH -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/check-runs/$CHECKID --input -
+
+      - name: Add Job Summary
+        if: always()
+        run: |
+          echo "## 📝 Changelog Update Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- CHANGELOG.md files were generated or updated in the repository and subfolders." >> $GITHUB_STEP_SUMMARY
+          echo "- A pull request was created or updated with the new changelogs." >> $GITHUB_STEP_SUMMARY
+          echo "- Check runs were updated to reflect the workflow status." >> $GITHUB_STEP_SUMMARY
+          echo "- Workflow completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY

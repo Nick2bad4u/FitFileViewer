@@ -325,6 +325,26 @@ jobs:
             electron-app/dist/nsis-web/*
           include-hidden-files: true
         continue-on-error: true
+      - name: Initialize Build Matrix Summary Table
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'x64' }}
+        run: |
+          echo "## 🏗️ Build and Release Electron App Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Matrix Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | OS | Arch | Build Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|----|------|--------------|" >> $GITHUB_STEP_SUMMARY
+
+      - name: Update Build Matrix Summary (per platform/arch)
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          # If build_app step failed, mark as failure
+          if [ "${{ steps.build_app.outcome }}" = "failure" ]; then
+            STATUS="failure"
+          elif [ "${{ steps.build_app.outcome }}" = "success" ]; then
+            STATUS="success"
+          fi
+          echo "| ${{ needs.bump-version.outputs.new_version }} | ${{ matrix.os }} | ${{ matrix.arch }} | $STATUS |" >> $GITHUB_STEP_SUMMARY
 
   release:
     needs: [build, bump-version]
@@ -618,7 +638,7 @@ jobs:
 
       - name: Create or update release with distributable builds
         id: release
-        uses: softprops/action-gh-release@f3cad8bcbf209fe591aa1823e372c5d96b7fc800 # 2.3.1
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
           tag_name: v${{ needs.bump-version.outputs.new_version }}
           name: FitFileViewer v${{ needs.bump-version.outputs.new_version }}
@@ -730,3 +750,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
+      - name: Add Job Summary
+        if: always()
+        run: |
+          echo "## 🏗️ Build and Release Electron App Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See above for the full build matrix results."
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version bump and tagging** performed for electron-app." >> $GITHUB_STEP_SUMMARY
+          echo "- **Builds executed** for multiple OS and architectures." >> $GITHUB_STEP_SUMMARY
+          echo "- **Build artifacts uploaded** for each platform." >> $GITHUB_STEP_SUMMARY
+          echo "- **Release created** if build and version bump succeeded." >> $GITHUB_STEP_SUMMARY
+          echo "- Workflow completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
