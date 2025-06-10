@@ -72,10 +72,8 @@ jobs:
 
         # Combine tags to keep
         keep_tags=$(echo -e "$first_majors\n$last_x" | sort | uniq)
-        echo "DEBUG: Keep tags: $keep_tags"
-
-        # Find releases to delete
-        to_delete=$(echo "$releases" | jq -r '.[] | .tagName' | grep -vxFf <(echo "$keep_tags"))
+        echo "DEBUG: Keep tags: $keep_tags"        # Find releases to delete
+        to_delete=$(echo "$releases" | jq -r '.[] | .tagName' | grep -vxFf <(echo "$keep_tags") || true)
         echo "DEBUG: To delete: $to_delete"
 
         echo "DEBUG: Keep tags (one per line):"
