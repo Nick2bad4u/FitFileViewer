@@ -174,4 +174,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 	 * @returns {Promise<any>}
 	 */
 	invoke: (...args) => ipcRenderer.invoke(...args),
+
+	/**
+	 * Manually inject/reset the menu from the renderer (DevTools or app code).
+	 * @param {string|null} theme
+	 * @param {string|null} fitFilePath
+	 * @returns {Promise<boolean>}
+	 */
+	injectMenu: (theme = null, fitFilePath = null) => ipcRenderer.invoke('devtools-inject-menu', theme, fitFilePath),
 });

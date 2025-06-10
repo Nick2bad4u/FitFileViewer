@@ -32,6 +32,18 @@ handling and Linux messaging, clarifies documentation, and bumps
 version to 19.7.0. Improves security by updating GitHub Actions
 dependencies.
 
+- Refactors menu theme sync and adds menu setup safeguards
+
+Simplifies menu theme handling by removing redundant logic and updating the menu only after renderer load for better sync. Adds safety checks and debug logging to prevent setting invalid or empty application menus, improving stability and troubleshooting of menu initialization.
+
+Streamlines menu theme sync and adds menu safety checks
+
+Simplifies theme synchronization by removing redundant menu update logic and ensuring menus are set only after renderer load for improved UI consistency. Adds debug logging and template validation to prevent invalid or empty menu setups, aiding stability and troubleshooting.
+
+- Fix menu persistence on Linux by storing a reference to the main menu
+
+- Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu
+
 
 ## [19.0.0] - 2025-06-07
 

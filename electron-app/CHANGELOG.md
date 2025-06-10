@@ -7,24 +7,17 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
-- Bump version to 19.7.0
+- Bump version to 20.0.0
 
 
 ### 💼 Other
 
+- Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu
+
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
-- Streamlines workflows, settings, and updates versioning
 
-Refactors repository workflows for improved metrics and Flatpak
-builds, replaces settings storage to reduce dependencies, and
-enhances UI consistency across platforms. Updates auto-update
-handling and Linux messaging, clarifies documentation, and bumps
-version to 19.7.0. Improves security by updating GitHub Actions
-dependencies.
-
-
-## [19.7.0] - 2025-06-09
+## [20.0.0] - 2025-06-10
 
 ### 🆕 New Version Number
 
@@ -41,6 +34,12 @@ dependencies.
 - Bump version to 19.5.0
 
 - Bump version to 19.6.0
+
+- Bump version to 19.7.0
+
+- Bump version to 19.8.0
+
+- Bump version to 19.9.0
 
 
 ### 💼 Other
@@ -83,6 +82,31 @@ usability.
 - Improves Linux update messaging on failed auto-update
 
 Moves manual update prompt for Linux to error handling when auto-update fails, ensuring users only see the message if auto-updating is not supported instead of always. Clarifies instructions for Linux users.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Streamlines workflows, settings, and updates versioning
+
+Refactors repository workflows for improved metrics and Flatpak
+builds, replaces settings storage to reduce dependencies, and
+enhances UI consistency across platforms. Updates auto-update
+handling and Linux messaging, clarifies documentation, and bumps
+version to 19.7.0. Improves security by updating GitHub Actions
+dependencies.
+
+- Refactors menu theme sync and adds menu setup safeguards
+
+Simplifies menu theme handling by removing redundant logic and updating the menu only after renderer load for better sync. Adds safety checks and debug logging to prevent setting invalid or empty application menus, improving stability and troubleshooting of menu initialization.
+
+Streamlines menu theme sync and adds menu safety checks
+
+Simplifies theme synchronization by removing redundant menu update logic and ensuring menus are set only after renderer load for improved UI consistency. Adds debug logging and template validation to prevent invalid or empty menu setups, aiding stability and troubleshooting.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Fix menu persistence on Linux by storing a reference to the main menu
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 

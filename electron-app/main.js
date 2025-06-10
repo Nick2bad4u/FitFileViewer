@@ -381,6 +381,15 @@ app.on('browser-window-focus', async (event, win) => {
 	}
 });
 
+ipcMain.handle('devtools-inject-menu', (event, theme, fitFilePath) => {
+	const win = BrowserWindow.fromWebContents(event.sender);
+	const t = theme || 'dark';
+	const f = fitFilePath || null;
+	console.log('[devtools-inject-menu] Manually injecting menu with theme:', t, 'fitFilePath:', f);
+	buildAppMenu(win, t, f);
+	return true;
+});
+
 function isWindowUsable(win) {
 	return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
 }

@@ -292,3 +292,14 @@ setupWindowOnload({
 	...renderFunctions,
 	...utilityFunctions,
 });
+
+// DEV: Expose a function to manually inject/reset the menu from DevTools
+window.injectMenu = function(theme = null, fitFilePath = null) {
+  if (window.electronAPI && typeof window.electronAPI.injectMenu === 'function') {
+    window.electronAPI.injectMenu(theme, fitFilePath);
+    console.log('[injectMenu] Requested menu injection with theme:', theme, 'fitFilePath:', fitFilePath);
+  } else {
+    console.warn('[injectMenu] electronAPI.injectMenu is not available.');
+  }
+};
+console.log('[injectMenu] window.injectMenu(theme, fitFilePath) is now available in DevTools console.');

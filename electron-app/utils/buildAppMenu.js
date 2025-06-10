@@ -91,26 +91,6 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
 	const recentFiles = loadRecentFiles();
 	console.log('[buildAppMenu] Called with:', { theme, loadedFitFilePath, recentFiles });
 
-	// Minimal menu for Linux troubleshooting
-	if (process.platform === 'linux') {
-		const minimalTemplate = [
-			{
-				label: 'File',
-				submenu: [
-					{ role: 'quit', label: 'Quit' }
-				]
-			}
-		];
-		try {
-			mainMenu = Menu.buildFromTemplate(minimalTemplate);
-			console.log('[buildAppMenu] Linux minimal menu set.');
-			Menu.setApplicationMenu(mainMenu);
-		} catch (err) {
-			console.error('[buildAppMenu] ERROR: Failed to set minimal Linux menu:', err);
-		}
-		return;
-	}
-
 	const recentMenuItems =
 		recentFiles.length > 0
 			? recentFiles.map((file) => ({

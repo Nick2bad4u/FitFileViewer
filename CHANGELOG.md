@@ -7,33 +7,17 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
-- Bump version to 19.7.0
+- Bump version to 20.0.0
 
 
 ### 💼 Other
 
-- Updates repo metrics workflow to target repo-stats branch
-
-Enables workflow runs and metrics generation on pushes and pull requests
-to the repo-stats branch, ensuring the displayed repository metrics
-reflect changes under active development.
-
-Also updates the README to reference the metrics output from the
-repo-stats branch for accurate and current statistics.
+- Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
-- Streamlines workflows, settings, and updates versioning
 
-Refactors repository workflows for improved metrics and Flatpak
-builds, replaces settings storage to reduce dependencies, and
-enhances UI consistency across platforms. Updates auto-update
-handling and Linux messaging, clarifies documentation, and bumps
-version to 19.7.0. Improves security by updating GitHub Actions
-dependencies.
-
-
-## [19.7.0] - 2025-06-09
+## [20.0.0] - 2025-06-10
 
 ### 🆕 New Version Number
 
@@ -50,6 +34,12 @@ dependencies.
 - Bump version to 19.5.0
 
 - Bump version to 19.6.0
+
+- Bump version to 19.7.0
+
+- Bump version to 19.8.0
+
+- Bump version to 19.9.0
 
 
 ### 🛠️ GitHub Actions
@@ -133,6 +123,40 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
 - Merge pull request #104 from Nick2bad4u/dependabot/github_actions/github-actions-27328bc44d
 
 Bump the github-actions group with 2 updates
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Updates repo metrics workflow to target repo-stats branch
+
+Enables workflow runs and metrics generation on pushes and pull requests
+to the repo-stats branch, ensuring the displayed repository metrics
+reflect changes under active development.
+
+Also updates the README to reference the metrics output from the
+repo-stats branch for accurate and current statistics.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Streamlines workflows, settings, and updates versioning
+
+Refactors repository workflows for improved metrics and Flatpak
+builds, replaces settings storage to reduce dependencies, and
+enhances UI consistency across platforms. Updates auto-update
+handling and Linux messaging, clarifies documentation, and bumps
+version to 19.7.0. Improves security by updating GitHub Actions
+dependencies.
+
+- Refactors menu theme sync and adds menu setup safeguards
+
+Simplifies menu theme handling by removing redundant logic and updating the menu only after renderer load for better sync. Adds safety checks and debug logging to prevent setting invalid or empty application menus, improving stability and troubleshooting of menu initialization.
+
+Streamlines menu theme sync and adds menu safety checks
+
+Simplifies theme synchronization by removing redundant menu update logic and ensuring menus are set only after renderer load for improved UI consistency. Adds debug logging and template validation to prevent invalid or empty menu setups, aiding stability and troubleshooting.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Fix menu persistence on Linux by storing a reference to the main menu
 
 - Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
