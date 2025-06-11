@@ -14,46 +14,188 @@ import { setupFullscreenListeners, setupDOMContentLoaded } from './utils/addFull
 import { setupWindowOnload } from './utils/setupWindow.js';
 import { renderChartJS } from './utils/renderChartJS.js';
 
-window.globalData = window.globalData || {}; // will hold all data received from the extension
+// Constants
+const CONSTANTS = {
+	SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+	IFRAME_PATHS: {
+		ALT_FIT: 'libs/ffv/index.html'
+	},
+	DOM_IDS: {
+		ALT_FIT_IFRAME: 'altfit-iframe',
+		ZWIFT_IFRAME: 'zwift-iframe',
+		DROP_OVERLAY: 'drop-overlay',
+		ACTIVE_FILE_NAME: 'activeFileName',
+		ACTIVE_FILE_NAME_CONTAINER: 'activeFileNameContainer',
+		UNLOAD_FILE_BTN: 'unloadFileBtn',
+		TAB_CHART: 'tab-chart',
+		TAB_SUMMARY: 'tab-summary',
+		CONTENT_MAP: 'content-map',
+		CONTENT_DATA: 'content-data',
+		CONTENT_CHART: 'content-chart',
+		CONTENT_SUMMARY: 'content-summary'
+	},
+	SELECTORS: {
+		SUMMARY_GEAR_BTN: '.summary-gear-btn'
+	}
+};
 
+// Centralized Application State
+const AppState = {
+	globalData: {},
+	isChartRendered: false,
+	dragCounter: 0,
+	eventListeners: new Map()
+};
+
+// Make globalData available on window for backwards compatibility
+Object.defineProperty(window, 'globalData', {
+	get() { return AppState.globalData; },
+	set(value) { AppState.globalData = value; }
+});
+
+// Event listener management
+function addEventListenerWithCleanup(element, event, handler, options = {}) {
+	if (!element) return;
+	
+	element.addEventListener(event, handler, options);
+	const key = `${element.constructor.name}-${event}`;
+	if (!AppState.eventListeners.has(key)) {
+		AppState.eventListeners.set(key, []);
+	}
+	AppState.eventListeners.get(key).push({ element, event, handler });
+}
+
+function cleanupEventListeners() {
+	AppState.eventListeners.forEach((listeners) => {
+		listeners.forEach(({ element, event, handler }) => {
+			if (element && element.removeEventListener) {
+				element.removeEventListener(event, handler);
+			}
+		});
+	});
+	AppState.eventListeners.clear();
+}
+
+// Validation functions
+function validateElectronAPI() {
+	return window.electronAPI && typeof window.electronAPI.decodeFitFile === 'function';
+}
+
+function validateElement(id) {
+	const element = document.getElementById(id);
+	if (!element) {
+		console.warn(`Element with ID "${id}" not found`);
+	}
+	return element;
+}
+
+// Utility functions for file operations
+function clearFileDisplay() {
+	const fileSpan = validateElement(CONSTANTS.DOM_IDS.ACTIVE_FILE_NAME);
+	if (fileSpan) {
+		fileSpan.textContent = '';
+		fileSpan.title = '';
+		fileSpan.classList.remove('marquee');
+	}
+	
+	const fileNameContainer = validateElement(CONSTANTS.DOM_IDS.ACTIVE_FILE_NAME_CONTAINER);
+	if (fileNameContainer) {
+		fileNameContainer.classList.remove('has-file');
+	}
+}
+
+function clearContentAreas() {
+	const contentIds = [
+		CONSTANTS.DOM_IDS.CONTENT_MAP,
+		CONSTANTS.DOM_IDS.CONTENT_DATA,
+		CONSTANTS.DOM_IDS.CONTENT_CHART,
+		CONSTANTS.DOM_IDS.CONTENT_SUMMARY
+	];
+	
+	contentIds.forEach(id => {
+		const element = document.getElementById(id);
+		if (element) {
+			element.innerHTML = '';
+		}
+	});
+}
+
+function unloadFitFile() {
+	// Clear global data
+	AppState.globalData = {};
+	
+	// Clear UI
+	clearFileDisplay();
+	clearContentAreas();
+	
+	// Hide unload button
+	const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
+	if (unloadBtn) {
+		unloadBtn.style.display = 'none';
+	}
+	
+	// Switch to map tab
+	setActiveTab('tab-map');
+	
+	// Notify main process to update menu
+	if (window.electronAPI && window.electronAPI.send) {
+		window.electronAPI.send('fit-file-loaded', null);
+	}
+	
+	// Disable tab buttons when no file is loaded
+	if (window.setTabButtonsEnabled) {
+		window.setTabButtonsEnabled(false);
+	}
+}
+
+// Expose essential functions to window for backward compatibility
 window.showFitData = showFitData;
 window.renderChartJS = renderChartJS;
+window.cleanupEventListeners = cleanupEventListeners;
 
-// When a FIT file is opened, always send it to the iframe (even if not active)
+// Enhanced iframe communication with better error handling
 window.sendFitFileToAltFitReader = async function (arrayBuffer) {
-	const iframe = document.getElementById('altfit-iframe');
-	if (iframe) {
-		// If iframe is not loaded yet, wait for it to load before posting message
-		const postToIframe = () => {
+	const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
+	if (!iframe) {
+		console.warn('Alt FIT iframe not found');
+		return;
+	}
+
+	// If iframe is not loaded yet, wait for it to load before posting message
+	const postToIframe = () => {
+		try {
 			if (iframe.contentWindow) {
 				const base64 = arrayBufferToBase64(arrayBuffer);
 				iframe.contentWindow.postMessage({ type: 'fit-file', base64 }, '*');
 			}
-		};
-		if (iframe.src != null && !iframe.src.includes('libs/ffv/index.html')) {
-			iframe.src = 'libs/ffv/index.html';
-			iframe.onload = postToIframe;
-		} else if (iframe.contentWindow && iframe.src) {
-			postToIframe();
-		} else {
-			iframe.onload = postToIframe;
+		} catch (error) {
+			console.error('Error posting message to iframe:', error);
 		}
+	};
+
+	if (!iframe.src || !iframe.src.includes(CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
+		iframe.src = CONSTANTS.IFRAME_PATHS.ALT_FIT;
+		iframe.onload = postToIframe;
+	} else if (iframe.contentWindow && iframe.src) {
+		postToIframe();
+	} else {
+		iframe.onload = postToIframe;
 	}
 };
 
-// Listen for theme change from main process
+// Enhanced theme change handling
 if (window.electronAPI && typeof window.electronAPI.onSetTheme === 'function' && typeof window.electronAPI.sendThemeChanged === 'function') {
 	// If chart tab is active, re-render chart to update theme
 	listenForThemeChange((theme) => {
 		applyTheme(theme);
-		const tabChart = document.getElementById('tab-chart');
+		const tabChart = validateElement(CONSTANTS.DOM_IDS.TAB_CHART);
 		if (tabChart && tabChart.classList.contains('active')) {
-			if (!window._isChartRendered) {
+			if (!AppState.isChartRendered) {
 				renderChart();
-				window._isChartRendered = true; // Mark chart as rendered
+				AppState.isChartRendered = true; // Mark chart as rendered
 			}
 		} else {
-			window._isChartRendered = false; // Reset flag if chart tab is not active
+			AppState.isChartRendered = false; // Reset flag if chart tab is not active
 		}
 	});
 }
@@ -61,7 +203,7 @@ if (window.electronAPI && typeof window.electronAPI.onSetTheme === 'function' &&
 // On load, apply theme
 applyTheme(loadTheme());
 
-// Listen for menu event to open summary column selector
+// Enhanced menu event handling with better error checking
 if (window.electronAPI && window.electronAPI.onOpenSummaryColumnSelector === undefined) {
 	window.electronAPI.onOpenSummaryColumnSelector = (callback) => {
 		if (window.electronAPI && window.electronAPI._summaryColListenerAdded !== true) {
@@ -74,191 +216,189 @@ if (window.electronAPI && window.electronAPI.onOpenSummaryColumnSelector === und
 // Register handler to show summary column selector from menu
 if (window.electronAPI && window.electronAPI.onIpc) {
 	window.electronAPI.onIpc('open-summary-column-selector', () => {
-		// Switch to summary tab if not already active
-		const tabSummary = document.getElementById('tab-summary');
-		if (!tabSummary.classList.contains('active')) {
-			tabSummary.click();
+		try {
+			// Switch to summary tab if not already active
+			const tabSummary = validateElement(CONSTANTS.DOM_IDS.TAB_SUMMARY);
+			if (tabSummary && !tabSummary.classList.contains('active')) {
+				tabSummary.click();
+			}
+			
+			// Wait for renderSummary to finish, then open the column selector
+			setTimeout(() => {
+				const gearBtn = document.querySelector(CONSTANTS.SELECTORS.SUMMARY_GEAR_BTN);
+				if (gearBtn) {
+					gearBtn.click();
+				} else {
+					console.warn('Summary gear button not found');
+				}
+			}, CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY);
+		} catch (error) {
+			console.error('Error handling summary column selector:', error);
 		}
-		// Wait for renderSummary to finish, then open the column selector
-		setTimeout(() => {
-			const gearBtn = document.querySelector('.summary-gear-btn');
-			if (gearBtn) gearBtn.click();
-		}, 100);
 	});
 }
 
 // Listen for unload-fit-file event from main process
 if (window.electronAPI && window.electronAPI.onIpc) {
-	window.electronAPI.onIpc('unload-fit-file', () => {
-		// Clear globalData and UI
-		window.globalData = {};
-		// Clear file name display
-		const fileSpan = document.getElementById('activeFileName');
-		if (fileSpan) {
-			fileSpan.textContent = '';
-			fileSpan.title = '';
-		}
-		// Reset all content areas
-		document.getElementById('content-map').innerHTML = '';
-		document.getElementById('content-data').innerHTML = '';
-		document.getElementById('content-chart').innerHTML = '';
-		document.getElementById('content-summary').innerHTML = '';
-		// Switch to map tab
-		setActiveTab('tab-map');
-		// Notify main process to update menu
-		if (window.electronAPI && window.electronAPI.send) {
-			window.electronAPI.send('fit-file-loaded', null);
-		}
-		// Disable tab buttons when no file is loaded
-		window.setTabButtonsEnabled(false);
-	});
+	window.electronAPI.onIpc('unload-fit-file', unloadFitFile);
 }
 
 // Unload file when the red X is clicked
-const unloadBtn = document.getElementById('unloadFileBtn');
+const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
 if (unloadBtn) {
-	unloadBtn.onclick = () => {
-		window.globalData = {};
-		const fileSpan = document.getElementById('activeFileName');
-		if (fileSpan) {
-			fileSpan.textContent = '';
-			fileSpan.title = '';
-			fileSpan.classList.remove('marquee');
-		}
-		const fileNameContainer = document.getElementById('activeFileNameContainer');
-		if (fileNameContainer) {
-			fileNameContainer.classList.remove('has-file');
-		}
-		unloadBtn.style.display = 'none';
-		// Reset all content areas
-		document.getElementById('content-map').innerHTML = '';
-		document.getElementById('content-data').innerHTML = '';
-		document.getElementById('content-chart').innerHTML = '';
-		document.getElementById('content-summary').innerHTML = '';
-		// Switch to map tab
-		setActiveTab('tab-map');
-		// Notify main process to update menu
-		if (window.electronAPI && window.electronAPI.send) {
-			window.electronAPI.send('fit-file-loaded', null);
-		}
-		// Disable tab buttons when no file is loaded
-		window.setTabButtonsEnabled(false);
-	};
+	unloadBtn.onclick = unloadFitFile;
 }
 
 // On startup, disable tab buttons
-window.addEventListener('DOMContentLoaded', () => {
-	window.setTabButtonsEnabled(false);
+addEventListenerWithCleanup(window, 'DOMContentLoaded', () => {
+	if (window.setTabButtonsEnabled) {
+		window.setTabButtonsEnabled(false);
+	}
 });
 
-// --- Enhanced Drag and Drop UI and Global Handling ---
-(function () {
-	let dragCounter = 0;
+// Enhanced Drag and Drop UI and Global Handling
+class DragDropHandler {
+	constructor() {
+		this.setupEventListeners();
+	}
 
-	function showDropOverlay() {
-		const dropOverlay = document.getElementById('drop-overlay');
+	showDropOverlay() {
+		const dropOverlay = validateElement(CONSTANTS.DOM_IDS.DROP_OVERLAY);
 		if (dropOverlay) dropOverlay.style.display = 'flex';
-		const iframe = document.getElementById('altfit-iframe');
+		
+		const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
 		if (iframe) iframe.style.pointerEvents = 'none';
-		const zwiftIframe = document.getElementById('zwift-iframe');
+		
+		const zwiftIframe = validateElement(CONSTANTS.DOM_IDS.ZWIFT_IFRAME);
 		if (zwiftIframe) zwiftIframe.style.pointerEvents = 'none';
 	}
-	function hideDropOverlay() {
-		const dropOverlay = document.getElementById('drop-overlay');
+
+	hideDropOverlay() {
+		const dropOverlay = validateElement(CONSTANTS.DOM_IDS.DROP_OVERLAY);
 		if (dropOverlay) dropOverlay.style.display = 'none';
-		const iframe = document.getElementById('altfit-iframe');
+		
+		const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
 		if (iframe) iframe.style.pointerEvents = '';
-		const zwiftIframe = document.getElementById('zwift-iframe');
+		
+		const zwiftIframe = validateElement(CONSTANTS.DOM_IDS.ZWIFT_IFRAME);
 		if (zwiftIframe) zwiftIframe.style.pointerEvents = '';
 	}
 
-	// Show overlay on dragenter, hide on dragleave/drop
-	window.addEventListener('dragenter', (e) => {
-		if (e.target === document || e.target === document.body) {
-			dragCounter++;
-			showDropOverlay();
-		}
-	});
-	window.addEventListener('dragleave', (e) => {
-		if (e.target === document || e.target === document.body) {
-			dragCounter--;
-			if (dragCounter <= 0) {
-				hideDropOverlay();
-				dragCounter = 0;
-			}
-		}
-	});
-	window.addEventListener('dragover', (e) => {
-		e.preventDefault();
-		e.dataTransfer.dropEffect = 'copy';
-		showDropOverlay();
-	});
-	window.addEventListener('drop', (e) => {
-		dragCounter = 0;
-		hideDropOverlay();
-		e.preventDefault();
-		if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) {
-			alert('No valid files detected. Please drop a .fit file.');
+	async processDroppedFile(file) {
+		if (!file || !file.name.toLowerCase().endsWith('.fit')) {
+			alert('Only .fit files are supported. Please drop a valid .fit file.');
 			return;
 		}
-		const file = e.dataTransfer.files[0];
-		if (file && file.name.toLowerCase().endsWith('.fit')) {
-			const reader = new FileReader();
-			reader.onload = async function (event) {
-				const arrayBuffer = event.target.result;
-				if (arrayBuffer) {
-					if (window.electronAPI && typeof window.electronAPI.decodeFitFile === 'function') {
-						try {
-							const fitData = await window.electronAPI.decodeFitFile(arrayBuffer);
-							if (fitData && !fitData.error) {
-								showFitData(fitData, file.name);
-								window.sendFitFileToAltFitReader(arrayBuffer);
-							} else {
-								alert('Unable to process the FIT file. Please try again or check the file format. Details: ' + (fitData.error || 'Unknown error'));
-							}
-						} catch (error) {
-							console.error('Error decoding FIT file:', error);
-							alert('An unexpected error occurred while decoding the FIT file.');
-						}
-					} else {
-						alert('FIT file decoding is not supported in this environment.');
-					}
-				}
-			};
-			reader.readAsArrayBuffer(file);
-		} else {
-			alert('Only .fit files are supported. Please drop a valid .fit file.');
-		}
-	});
 
-	// Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
-	if (window.enableDragAndDrop) {
-		const iframe = document.getElementById('altfit-iframe');
+		try {
+			const arrayBuffer = await this.readFileAsArrayBuffer(file);
+			if (!arrayBuffer) return;
+
+			if (!validateElectronAPI()) {
+				alert('FIT file decoding is not supported in this environment.');
+				return;
+			}
+
+			const fitData = await window.electronAPI.decodeFitFile(arrayBuffer);
+			if (fitData && !fitData.error) {
+				showFitData(fitData, file.name);
+				window.sendFitFileToAltFitReader(arrayBuffer);
+			} else {
+				alert('Unable to process the FIT file. Please try again or check the file format. Details: ' + (fitData.error || 'Unknown error'));
+			}
+		} catch (error) {
+			console.error('Error processing dropped file:', error);
+			alert('An unexpected error occurred while processing the FIT file.');
+		}
+	}
+
+	readFileAsArrayBuffer(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = (event) => resolve(event.target.result);
+			reader.onerror = (error) => reject(error);
+			reader.readAsArrayBuffer(file);
+		});
+	}
+
+	setupEventListeners() {
+		// Show overlay on dragenter, hide on dragleave/drop
+		addEventListenerWithCleanup(window, 'dragenter', (e) => {
+			if (e.target === document || e.target === document.body) {
+				AppState.dragCounter++;
+				this.showDropOverlay();
+			}
+		});
+
+		addEventListenerWithCleanup(window, 'dragleave', (e) => {
+			if (e.target === document || e.target === document.body) {
+				AppState.dragCounter--;
+				if (AppState.dragCounter <= 0) {
+					this.hideDropOverlay();
+					AppState.dragCounter = 0;
+				}
+			}
+		});
+
+		addEventListenerWithCleanup(window, 'dragover', (e) => {
+			e.preventDefault();
+			e.dataTransfer.dropEffect = 'copy';
+			this.showDropOverlay();
+		});
+
+		addEventListenerWithCleanup(window, 'drop', async (e) => {
+			AppState.dragCounter = 0;
+			this.hideDropOverlay();
+			e.preventDefault();
+			
+			if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+				alert('No valid files detected. Please drop a .fit file.');
+				return;
+			}
+			
+			await this.processDroppedFile(e.dataTransfer.files[0]);
+		});
+
+		// Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
+		if (window.enableDragAndDrop) {
+			this.setupIframeEventListeners();
+		}
+	}
+
+	setupIframeEventListeners() {
+		const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
 		if (iframe) {
-			iframe.addEventListener('dragover', (e) => {
+			addEventListenerWithCleanup(iframe, 'dragover', (e) => {
 				e.preventDefault();
-				showDropOverlay();
+				this.showDropOverlay();
 			});
-			iframe.addEventListener('drop', (e) => {
+			addEventListenerWithCleanup(iframe, 'drop', (e) => {
 				e.preventDefault();
-				hideDropOverlay();
+				this.hideDropOverlay();
 				alert('Please drop files outside the iframe to process them.');
 			});
 		}
-		const zwiftIframe = document.getElementById('zwift-iframe');
+
+		const zwiftIframe = validateElement(CONSTANTS.DOM_IDS.ZWIFT_IFRAME);
 		if (zwiftIframe) {
-			zwiftIframe.addEventListener('dragover', (e) => {
+			addEventListenerWithCleanup(zwiftIframe, 'dragover', (e) => {
 				e.preventDefault();
-				showDropOverlay();
+				this.showDropOverlay();
 			});
-			zwiftIframe.addEventListener('drop', (e) => {
+			addEventListenerWithCleanup(zwiftIframe, 'drop', (e) => {
 				e.preventDefault();
-				hideDropOverlay();
+				this.hideDropOverlay();
 				alert('Please drop files outside the ZwiftMap iframe to process them.');
 			});
 		}
 	}
-})();
+}
+
+// Initialize drag and drop handler
+const dragDropHandler = new DragDropHandler();
+
+// Expose dragDropHandler for cleanup if needed
+window.dragDropHandler = dragDropHandler;
 
 // Move event listener setup to utility functions
 // Sets up event listeners to handle fullscreen mode toggling for the application.
@@ -293,13 +433,67 @@ setupWindowOnload({
 	...utilityFunctions,
 });
 
-// DEV: Expose a function to manually inject/reset the menu from DevTools
+// External link handler for opening links in default browser
+function setupExternalLinkHandlers() {
+	// Handle all external links with data-external-link attribute
+	const externalLinks = document.querySelectorAll('[data-external-link="true"]');
+	externalLinks.forEach(link => {
+		const handleExternalLink = (e) => {
+			e.preventDefault();
+			const url = link.getAttribute('href');
+			if (url && window.electronAPI && window.electronAPI.openExternal) {
+				window.electronAPI.openExternal(url).catch(error => {
+					console.error('Failed to open external link:', error);
+					// Fallback to window.open if openExternal fails
+					window.open(url, '_blank', 'noopener,noreferrer');
+				});
+			} else if (url) {
+				// Fallback for non-Electron environments
+				window.open(url, '_blank', 'noopener,noreferrer');
+			}
+		};
+
+		link.onclick = handleExternalLink;
+		
+		link.onkeydown = (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				handleExternalLink(e);
+			}
+		};
+	});
+}
+
+// Initialize external link handlers after DOM is loaded
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', setupExternalLinkHandlers);
+} else {
+	setupExternalLinkHandlers();
+}
+
+// Enhanced development helper function with better error handling
 window.injectMenu = function(theme = null, fitFilePath = null) {
-  if (window.electronAPI && typeof window.electronAPI.injectMenu === 'function') {
-    window.electronAPI.injectMenu(theme, fitFilePath);
-    console.log('[injectMenu] Requested menu injection with theme:', theme, 'fitFilePath:', fitFilePath);
-  } else {
-    console.warn('[injectMenu] electronAPI.injectMenu is not available.');
-  }
+	try {
+		if (window.electronAPI && typeof window.electronAPI.injectMenu === 'function') {
+			window.electronAPI.injectMenu(theme, fitFilePath);
+			console.log('[injectMenu] Requested menu injection with theme:', theme, 'fitFilePath:', fitFilePath);
+		} else {
+			console.warn('[injectMenu] electronAPI.injectMenu is not available.');
+		}
+	} catch (error) {
+		console.error('[injectMenu] Error during menu injection:', error);
+	}
 };
-console.log('[injectMenu] window.injectMenu(theme, fitFilePath) is now available in DevTools console.');
+
+// Add cleanup function to development helpers
+window.devCleanup = function() {
+	cleanupEventListeners();
+	AppState.globalData = {};
+	AppState.isChartRendered = false;
+	AppState.dragCounter = 0;
+	console.log('[devCleanup] Application state and event listeners cleaned up');
+};
+
+console.log('[DEV] Development helpers available:');
+console.log('- window.injectMenu(theme, fitFilePath) - Inject menu with specified theme and file path');
+console.log('- window.devCleanup() - Clean up application state and event listeners');
+console.log('- window.cleanupEventListeners() - Clean up all event listeners');

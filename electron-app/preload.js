@@ -1,185 +1,473 @@
 /* eslint-env node */
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('electronAPI', {
+// Constants for better maintainability
+const CONSTANTS = {	CHANNELS: {
+		DIALOG_OPEN_FILE: 'dialog:openFile',
+		FILE_READ: 'file:read',
+		FIT_PARSE: 'fit:parse',
+		FIT_DECODE: 'fit:decode',
+		RECENT_FILES_GET: 'recentFiles:get',
+		RECENT_FILES_ADD: 'recentFiles:add',
+		THEME_GET: 'theme:get',
+		APP_VERSION: 'getAppVersion',
+		ELECTRON_VERSION: 'getElectronVersion',
+		NODE_VERSION: 'getNodeVersion',
+		CHROME_VERSION: 'getChromeVersion',
+		LICENSE_INFO: 'getLicenseInfo',
+		PLATFORM_INFO: 'getPlatformInfo',
+		DEVTOOLS_INJECT_MENU: 'devtools-inject-menu',
+		SHELL_OPEN_EXTERNAL: 'shell:openExternal'
+	},
+	EVENTS: {
+		MENU_OPEN_FILE: 'menu-open-file',
+		OPEN_RECENT_FILE: 'open-recent-file',
+		SET_THEME: 'set-theme',
+		THEME_CHANGED: 'theme-changed',
+		OPEN_SUMMARY_COLUMN_SELECTOR: 'open-summary-column-selector',
+		MENU_CHECK_FOR_UPDATES: 'menu-check-for-updates',
+		INSTALL_UPDATE: 'install-update',
+		SET_FULLSCREEN: 'set-fullscreen'
+	},
+	DEFAULT_VALUES: {
+		THEME: null,
+		FIT_FILE_PATH: null
+	}
+};
+
+// Enhanced error handling and validation
+function validateCallback(callback, methodName) {
+	if (typeof callback !== 'function') {
+		console.error(`[preload.js] ${methodName}: callback must be a function`);
+		return false;
+	}
+	return true;
+}
+
+function validateString(value, paramName, methodName) {
+	if (value !== null && typeof value !== 'string') {
+		console.error(`[preload.js] ${methodName}: ${paramName} must be a string or null`);
+		return false;
+	}
+	return true;
+}
+
+function createSafeInvokeHandler(channel, methodName) {
+	return async (...args) => {
+		try {
+			return await ipcRenderer.invoke(channel, ...args);
+		} catch (error) {
+			console.error(`[preload.js] Error in ${methodName}:`, error);
+			throw error;
+		}
+	};
+}
+
+function createSafeSendHandler(channel, methodName) {
+	return (...args) => {
+		try {
+			ipcRenderer.send(channel, ...args);
+		} catch (error) {
+			console.error(`[preload.js] Error in ${methodName}:`, error);
+		}
+	};
+}
+
+function createSafeEventHandler(channel, methodName, transform = null) {
+	return (callback) => {
+		if (!validateCallback(callback, methodName)) return;
+		
+		try {
+			if (transform) {
+				ipcRenderer.on(channel, (event, ...args) => {
+					try {
+						callback(transform(...args));
+					} catch (error) {
+						console.error(`[preload.js] Error in ${methodName} callback:`, error);
+					}
+				});
+			} else {
+				ipcRenderer.on(channel, (event, ...args) => {
+					try {
+						callback(...args);
+					} catch (error) {
+						console.error(`[preload.js] Error in ${methodName} callback:`, error);
+					}
+				});
+			}
+		} catch (error) {
+			console.error(`[preload.js] Error setting up ${methodName} event handler:`, error);
+		}
+	};
+}
+
+// Main API object
+const electronAPI = {	// File Operations
 	/**
 	 * Opens a file dialog and returns the selected file path(s).
 	 * @returns {Promise<string[]>}
 	 */
-	openFile: () => ipcRenderer.invoke('dialog:openFile'),
+	openFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, 'openFile'),
 
 	/**
 	 * Opens a file dialog and returns the selected file path(s).
 	 * Alias for openFile for compatibility.
 	 * @returns {Promise<string[]>}
 	 */
-	openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
+	openFileDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, 'openFileDialog'),
 
 	/**
 	 * Reads a file from the given file path and returns its contents as an ArrayBuffer.
 	 * @param {string} filePath
 	 * @returns {Promise<ArrayBuffer>}
 	 */
-	readFile: (filePath) => ipcRenderer.invoke('file:read', filePath),
+	readFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FILE_READ, 'readFile'),
 
+	// FIT File Operations
 	/**
 	 * Parses a FIT file from an ArrayBuffer and returns the decoded data.
 	 * @param {ArrayBuffer} arrayBuffer
 	 * @returns {Promise<any>}
 	 */
-	parseFitFile: (arrayBuffer) => ipcRenderer.invoke('fit:parse', arrayBuffer),
+	parseFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_PARSE, 'parseFitFile'),
 
 	/**
 	 * Decodes a FIT file from an ArrayBuffer and returns the parsed data.
 	 * @param {ArrayBuffer} arrayBuffer
 	 * @returns {Promise<any>}
 	 */
-	decodeFitFile: (arrayBuffer) => ipcRenderer.invoke('fit:decode', arrayBuffer),
+	decodeFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_DECODE, 'decodeFitFile'),
 
+	// Recent Files Management
 	/**
 	 * Gets the list of recent files.
 	 * @returns {Promise<string[]>}
 	 */
-	recentFiles: () => ipcRenderer.invoke('recentFiles:get'),
+	recentFiles: createSafeInvokeHandler(CONSTANTS.CHANNELS.RECENT_FILES_GET, 'recentFiles'),
 
 	/**
 	 * Adds a file to the recent files list.
 	 * @param {string} filePath
 	 * @returns {Promise<string[]>}
 	 */
-	addRecentFile: (filePath) => ipcRenderer.invoke('recentFiles:add', filePath),
+	addRecentFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.RECENT_FILES_ADD, 'addRecentFile'),
 
+	// Theme Management
 	/**
 	 * Gets the current theme from the main process.
 	 * @returns {Promise<string>}
 	 */
-	getTheme: () => ipcRenderer.invoke('theme:get'),
-
-	/**
-	 * Gets the app version from the main process.
-	 * @returns {Promise<string>}
-	 */
-	getAppVersion: () => ipcRenderer.invoke('getAppVersion'),
-
-	/**
-	 * Gets the Electron version.
-	 * @returns {Promise<string>}
-	 */
-	getElectronVersion: () => ipcRenderer.invoke('getElectronVersion'),
-
-	/**
-	 * Gets the Node.js version.
-	 * @returns {Promise<string>}
-	 */
-	getNodeVersion: () => ipcRenderer.invoke('getNodeVersion'),
-
-	/**
-	 * Gets the Chrome version.
-	 * @returns {Promise<string>}
-	 */
-	getChromeVersion: () => ipcRenderer.invoke('getChromeVersion'),
-
-	/**
-	 * Gets the license info from the main process.
-	 * @returns {Promise<string>}
-	 */
-	getLicenseInfo: () => ipcRenderer.invoke('getLicenseInfo'),
-
-	/**
-	 * Gets the platform and architecture.
-	 * @returns {Promise<{platform: string, arch: string}>}
-	 */
-	getPlatformInfo: () => ipcRenderer.invoke('getPlatformInfo'),
-
-	/**
-	 * Registers a handler for the 'menu-open-file' event.
-	 * @param {Function} callback
-	 */
-	onMenuOpenFile: (callback) => {
-		ipcRenderer.on('menu-open-file', callback);
-	},
-
-	/**
-	 * Registers a handler for the 'open-recent-file' event.
-	 * @param {Function} callback
-	 */
-	onOpenRecentFile: (callback) => {
-		ipcRenderer.on('open-recent-file', (event, filePath) => callback(filePath));
-	},
-
-	/**
-	 * Registers a handler for the 'set-theme' event.
-	 * @param {Function} callback
-	 */
-	onSetTheme: (callback) => ipcRenderer.on('set-theme', (event, theme) => callback(theme)),
+	getTheme: createSafeInvokeHandler(CONSTANTS.CHANNELS.THEME_GET, 'getTheme'),
 
 	/**
 	 * Sends a 'theme-changed' event to the main process.
 	 * @param {string} theme
 	 */
-	sendThemeChanged: (theme) => ipcRenderer.send('theme-changed', theme),
+	sendThemeChanged: createSafeSendHandler(CONSTANTS.EVENTS.THEME_CHANGED, 'sendThemeChanged'),
+	// Application Information
+	/**
+	 * Gets the app version from the main process.
+	 * @returns {Promise<string>}
+	 */
+	getAppVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.APP_VERSION, 'getAppVersion'),
+
+	/**
+	 * Gets the Electron version.
+	 * @returns {Promise<string>}
+	 */
+	getElectronVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.ELECTRON_VERSION, 'getElectronVersion'),
+
+	/**
+	 * Gets the Node.js version.
+	 * @returns {Promise<string>}
+	 */
+	getNodeVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.NODE_VERSION, 'getNodeVersion'),
+
+	/**
+	 * Gets the Chrome version.
+	 * @returns {Promise<string>}
+	 */
+	getChromeVersion: createSafeInvokeHandler(CONSTANTS.CHANNELS.CHROME_VERSION, 'getChromeVersion'),
+
+	/**
+	 * Gets the license info from the main process.
+	 * @returns {Promise<string>}
+	 */
+	getLicenseInfo: createSafeInvokeHandler(CONSTANTS.CHANNELS.LICENSE_INFO, 'getLicenseInfo'),	/**
+	 * Gets the platform and architecture.
+	 * @returns {Promise<{platform: string, arch: string}>}
+	 */
+	getPlatformInfo: createSafeInvokeHandler(CONSTANTS.CHANNELS.PLATFORM_INFO, 'getPlatformInfo'),
+
+	/**
+	 * Opens a URL in the user's default external browser.
+	 * @param {string} url - The URL to open (must be HTTP or HTTPS)
+	 * @returns {Promise<boolean>}
+	 */
+	openExternal: createSafeInvokeHandler(CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL, 'openExternal'),
+
+	// Event Handlers with enhanced error handling
+	/**
+	 * Registers a handler for the 'menu-open-file' event.
+	 * @param {Function} callback
+	 */
+	onMenuOpenFile: createSafeEventHandler(CONSTANTS.EVENTS.MENU_OPEN_FILE, 'onMenuOpenFile'),
+
+	/**
+	 * Registers a handler for the 'open-recent-file' event.
+	 * @param {Function} callback
+	 */
+	onOpenRecentFile: createSafeEventHandler(
+		CONSTANTS.EVENTS.OPEN_RECENT_FILE, 
+		'onOpenRecentFile',
+		(filePath) => filePath // Transform to extract just the filePath
+	),
+
+	/**
+	 * Registers a handler for the 'set-theme' event.
+	 * @param {Function} callback
+	 */
+	onSetTheme: createSafeEventHandler(
+		CONSTANTS.EVENTS.SET_THEME, 
+		'onSetTheme',
+		(theme) => theme // Transform to extract just the theme
+	),
 
 	/**
 	 * Registers a handler for the 'open-summary-column-selector' event.
 	 * @param {Function} callback
 	 */
-	onOpenSummaryColumnSelector: (callback) => {
-		ipcRenderer.on('open-summary-column-selector', callback);
-	},
+	onOpenSummaryColumnSelector: createSafeEventHandler(
+		CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR, 
+		'onOpenSummaryColumnSelector'
+	),
 
-	/**
-	 * Registers a generic handler for any IPC event (for internal use).
-	 */
-	onIpc: (channel, callback) => {
-		ipcRenderer.on(channel, callback);
-	},
-
-	/**
-	 * Send an IPC message to the main process.
-	 * @param {string} channel
-	 * @param {...any} args
-	 */
-	send: (channel, ...args) => ipcRenderer.send(channel, ...args),
-
-	// --- Auto-Updater: Expose update-related IPC ---
-
+	// Auto-Updater Functions with enhanced error handling
 	/**
 	 * Listen for update events from the main process (auto-updater).
-	 * @param {string} eventName
-	 * @param {Function} callback
+	 * @param {string} eventName - The update event name to listen for
+	 * @param {Function} callback - Callback function to handle the event
 	 */
 	onUpdateEvent: (eventName, callback) => {
-		ipcRenderer.on(eventName, (event, ...args) => callback(...args));
+		if (!validateCallback(callback, 'onUpdateEvent')) return;
+		if (!validateString(eventName, 'eventName', 'onUpdateEvent')) return;
+
+		try {
+			ipcRenderer.on(eventName, (event, ...args) => {
+				try {
+					callback(...args);
+				} catch (error) {
+					console.error(`[preload.js] Error in onUpdateEvent(${eventName}) callback:`, error);
+				}
+			});
+		} catch (error) {
+			console.error(`[preload.js] Error setting up onUpdateEvent(${eventName}):`, error);
+		}
 	},
 
 	/**
 	 * Trigger a check for updates (menu or manual).
 	 */
-	checkForUpdates: () => ipcRenderer.send('menu-check-for-updates'),
+	checkForUpdates: createSafeSendHandler(CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES, 'checkForUpdates'),
 
 	/**
 	 * Trigger install of a downloaded update.
 	 */
-	installUpdate: () => ipcRenderer.send('install-update'),
+	installUpdate: createSafeSendHandler(CONSTANTS.EVENTS.INSTALL_UPDATE, 'installUpdate'),
 
 	/**
 	 * Sets the full screen mode.
-	 * @param {boolean} flag
+	 * @param {boolean} flag - Whether to enable fullscreen
 	 */
-	setFullScreen: (flag) => ipcRenderer.send('set-fullscreen', flag),
+	setFullScreen: createSafeSendHandler(CONSTANTS.EVENTS.SET_FULLSCREEN, 'setFullScreen'),
+
+	// Generic IPC Functions with enhanced validation
+	/**
+	 * Registers a generic handler for any IPC event (for internal use).
+	 * @param {string} channel - The IPC channel to listen on
+	 * @param {Function} callback - Callback function to handle the event
+	 */
+	onIpc: (channel, callback) => {
+		if (!validateString(channel, 'channel', 'onIpc')) return;
+		if (!validateCallback(callback, 'onIpc')) return;
+
+		try {
+			ipcRenderer.on(channel, (event, ...args) => {
+				try {
+					callback(event, ...args);
+				} catch (error) {
+					console.error(`[preload.js] Error in onIpc(${channel}) callback:`, error);
+				}
+			});
+		} catch (error) {
+			console.error(`[preload.js] Error setting up onIpc(${channel}):`, error);
+		}
+	},
 
 	/**
-	 * Expose ipcRenderer.invoke for direct use.
-	 * @param {...any} args
+	 * Send an IPC message to the main process.
+	 * @param {string} channel - The IPC channel to send on
+	 * @param {...any} args - Arguments to send
+	 */
+	send: (channel, ...args) => {
+		if (!validateString(channel, 'channel', 'send')) return;
+
+		try {
+			ipcRenderer.send(channel, ...args);
+		} catch (error) {
+			console.error(`[preload.js] Error in send(${channel}):`, error);
+		}
+	},
+
+	/**
+	 * Expose ipcRenderer.invoke for direct use with error handling.
+	 * @param {string} channel - The IPC channel to invoke
+	 * @param {...any} args - Arguments to send
 	 * @returns {Promise<any>}
 	 */
-	invoke: (...args) => ipcRenderer.invoke(...args),
+	invoke: async (channel, ...args) => {
+		if (!validateString(channel, 'channel', 'invoke')) {
+			throw new Error('Invalid channel for invoke');
+		}
 
+		try {
+			return await ipcRenderer.invoke(channel, ...args);
+		} catch (error) {
+			console.error(`[preload.js] Error in invoke(${channel}):`, error);
+			throw error;
+		}
+	},
+
+	// Development Tools
 	/**
 	 * Manually inject/reset the menu from the renderer (DevTools or app code).
-	 * @param {string|null} theme
-	 * @param {string|null} fitFilePath
+	 * @param {string|null} theme - Current theme
+	 * @param {string|null} fitFilePath - Current FIT file path
 	 * @returns {Promise<boolean>}
 	 */
-	injectMenu: (theme = null, fitFilePath = null) => ipcRenderer.invoke('devtools-inject-menu', theme, fitFilePath),
+	injectMenu: async (theme = CONSTANTS.DEFAULT_VALUES.THEME, fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH) => {
+		if (!validateString(theme, 'theme', 'injectMenu')) return false;
+		if (!validateString(fitFilePath, 'fitFilePath', 'injectMenu')) return false;
+
+		try {
+			return await ipcRenderer.invoke(CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU, theme, fitFilePath);
+		} catch (error) {
+			console.error('[preload.js] Error in injectMenu:', error);
+			return false;
+		}
+	},
+
+	// Development and Debugging Helpers
+	/**
+	 * Get information about available IPC channels for debugging.
+	 * @returns {Object} Object containing channel information
+	 */
+	getChannelInfo: () => ({
+		channels: CONSTANTS.CHANNELS,
+		events: CONSTANTS.EVENTS,
+		totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
+		totalEvents: Object.keys(CONSTANTS.EVENTS).length
+	}),
+	/**
+	 * Validate the preload API is working correctly.
+	 * @returns {boolean} True if API is functional
+	 */
+	validateAPI: () => {
+		try {
+			// Test basic functionality
+			const hasIpcRenderer = typeof ipcRenderer !== 'undefined';
+			const hasContextBridge = typeof contextBridge !== 'undefined';
+			const hasConstants = typeof CONSTANTS !== 'undefined';
+			
+			console.log('[preload.js] API Validation:', {
+				hasIpcRenderer,
+				hasContextBridge,
+				hasConstants,
+				channelCount: Object.keys(CONSTANTS.CHANNELS).length,
+				eventCount: Object.keys(CONSTANTS.EVENTS).length
+			});
+			
+			return hasIpcRenderer && hasContextBridge && hasConstants;
+		} catch (error) {
+			console.error('[preload.js] API validation failed:', error);
+			return false;
+		}
+	}
+};
+
+// Enhanced API exposure with error handling
+try {
+	// Validate API before exposing
+	if (electronAPI.validateAPI()) {
+		contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+		console.log('[preload.js] Successfully exposed electronAPI to main world');
+		
+		// Log API structure in development
+		if (process.env.NODE_ENV === 'development') {
+			console.log('[preload.js] API Structure:', {
+				methods: Object.keys(electronAPI).filter(key => typeof electronAPI[key] === 'function'),
+				properties: Object.keys(electronAPI).filter(key => typeof electronAPI[key] !== 'function'),
+				total: Object.keys(electronAPI).length
+			});
+		}
+	} else {
+		console.error('[preload.js] API validation failed - not exposing to main world');
+	}
+} catch (error) {
+	console.error('[preload.js] Failed to expose electronAPI:', error);
+}
+
+// Development helpers - only available in development mode
+if (process.env.NODE_ENV === 'development') {
+	try {
+		contextBridge.exposeInMainWorld('devTools', {
+			/**
+			 * Get preload script information for debugging
+			 */
+			getPreloadInfo: () => ({
+				version: '1.0.0',
+				constants: CONSTANTS,
+				apiMethods: Object.keys(electronAPI),
+				timestamp: new Date().toISOString()
+			}),
+			
+			/**
+			 * Test IPC communication
+			 */
+			testIPC: async () => {
+				try {
+					const version = await electronAPI.getAppVersion();
+					console.log('[preload.js] IPC test successful, app version:', version);
+					return true;
+				} catch (error) {
+					console.error('[preload.js] IPC test failed:', error);
+					return false;
+				}
+			},
+			
+			/**
+			 * Log current API state
+			 */
+			logAPIState: () => {
+				console.log('[preload.js] Current API State:', {
+					electronAPI: typeof electronAPI,
+					methodCount: Object.keys(electronAPI).length,
+					constants: CONSTANTS,
+					timestamp: new Date().toISOString()
+				});
+			}
+		});
+		
+		console.log('[preload.js] Development tools exposed');
+	} catch (error) {
+		console.error('[preload.js] Failed to expose development tools:', error);
+	}
+}
+
+// Cleanup and final validation
+process.once('beforeExit', () => {
+	console.log('[preload.js] Process exiting, performing cleanup...');
 });
+
+// Report successful initialization
+console.log('[preload.js] Preload script initialized successfully');

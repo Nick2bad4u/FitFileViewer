@@ -1,5 +1,5 @@
 /* eslint-env node */
-const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const { createWindow } = require('./windowStateUtils');
 const path = require('path');
 const fs = require('fs');
@@ -8,388 +8,561 @@ const { autoUpdater } = require('electron-updater');
 const { loadRecentFiles, addRecentFile } = require('./utils/recentFiles');
 const { buildAppMenu } = require('./utils/buildAppMenu');
 
-let loadedFitFilePath = null;
+// Constants
+const CONSTANTS = {
+	DEFAULT_THEME: 'dark',
+	THEME_STORAGE_KEY: 'ffv-theme',
+	SETTINGS_CONFIG_NAME: 'settings',
+	LOG_LEVELS: {
+		INFO: 'info',
+		WARN: 'warn',
+		ERROR: 'error'
+	},
+	PLATFORMS: {
+		DARWIN: 'darwin',
+		LINUX: 'linux',
+		WIN32: 'win32'
+	},
+	DIALOG_FILTERS: {
+		FIT_FILES: [{ name: 'FIT Files', extensions: ['fit'] }],
+		EXPORT_FILES: [
+			{ name: 'CSV (Summary Table)', extensions: ['csv'] },
+			{ name: 'GPX (Track)', extensions: ['gpx'] },
+			{ name: 'All Files', extensions: ['*'] }
+		],
+		ALL_FILES: [
+			{ name: 'FIT Files', extensions: ['fit'] },
+			{ name: 'All Files', extensions: ['*'] }
+		]
+	},
+	UPDATE_EVENTS: {
+		CHECKING: 'update-checking',
+		AVAILABLE: 'update-available',
+		NOT_AVAILABLE: 'update-not-available',
+		ERROR: 'update-error',
+		DOWNLOAD_PROGRESS: 'update-download-progress',
+		DOWNLOADED: 'update-downloaded'
+	}
+};
 
-// --- Auto-Updater Setup ---
+// Application State
+const AppState = {
+	loadedFitFilePath: null,
+	mainWindow: null,
+	eventHandlers: new Map()
+};
+
+// Utility functions
+function isWindowUsable(win) {
+	return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
+}
+
+function validateWindow(win) {
+	if (!isWindowUsable(win)) {
+		console.warn('[main.js] Window is not usable or destroyed');
+		return false;
+	}
+	return true;
+}
+
+async function getThemeFromRenderer(win) {
+	if (!validateWindow(win)) return CONSTANTS.DEFAULT_THEME;
+	
+	try {
+		const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
+		return theme || CONSTANTS.DEFAULT_THEME;
+	} catch (err) {
+		console.error('[main.js] Failed to get theme from renderer:', err);
+		return CONSTANTS.DEFAULT_THEME;
+	}
+}
+
+function sendToRenderer(win, channel, ...args) {
+	if (validateWindow(win)) {
+		win.webContents.send(channel, ...args);
+	}
+}
+
+function logWithContext(level, message, context = {}) {
+	const timestamp = new Date().toISOString();
+	const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : '';
+	console[level](`[${timestamp}] [main.js] ${message}`, contextStr);
+}
+
+// Enhanced error handling wrapper
+function createErrorHandler(operation) {
+	return async (...args) => {
+		try {
+			return await operation(...args);
+		} catch (error) {
+			logWithContext('error', `Error in ${operation.name || 'operation'}:`, { error: error.message, stack: error.stack });
+			throw error;
+		}
+	};
+}
+
+// Enhanced Auto-Updater Setup with better error handling
 function setupAutoUpdater(mainWindow) {
+	if (!validateWindow(mainWindow)) {
+		logWithContext('warn', 'Cannot setup auto-updater: main window is not usable');
+		return;
+	}
+
 	// Set feed URL if needed (autoUpdater will use GitHub by default if configured in package.json)
 	autoUpdater.autoDownload = true;
 
+	// Enhanced logger initialization
 	try {
 		const log = require('electron-log');
 		if (log) {
 			autoUpdater.logger = log;
 		} else {
-			console.warn('Logger initialization failed. Falling back to console logging.');
+			logWithContext('warn', 'Logger initialization failed. Falling back to console logging.');
 			autoUpdater.logger = console;
 		}
 	} catch (err) {
-		console.error('Error initializing logger:', err);
+		logWithContext('error', 'Error initializing logger:', { error: err.message });
 		autoUpdater.logger = console;
 	}
-	autoUpdater.logger.transports.file.level = 'info';
+	
+	autoUpdater.logger.transports.file.level = CONSTANTS.LOG_LEVELS.INFO;
 
-	// Debug: Log the update feed URL
+	// Enhanced logging for update feed URL
 	if (autoUpdater.feedURL !== undefined && autoUpdater.feedURL !== null) {
+		const feedInfo = { feedURL: autoUpdater.feedURL };
 		autoUpdater.logger.info(`AutoUpdater feed URL: ${autoUpdater.feedURL}`);
-		console.log(`AutoUpdater feed URL: ${autoUpdater.feedURL}`);
+		logWithContext('info', 'AutoUpdater feed URL configured', feedInfo);
 	} else {
 		autoUpdater.logger.info('AutoUpdater using default feed (likely GitHub releases)');
-		console.log('AutoUpdater using default feed (likely GitHub releases)');
+		logWithContext('info', 'AutoUpdater using default feed (likely GitHub releases)');
 	}
 
-	autoUpdater.on('checking-for-update', () => {
-		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-checking');
-	});
-	autoUpdater.on('update-available', (info) => {
-		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-available', info);
-	});
-	autoUpdater.on('update-not-available', (info) => {
-		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-not-available', info);
-	});
-	autoUpdater.on('error', (err) => {
-		const errorMessage = err == null ? 'unknown' : err.message || err.toString();
-		autoUpdater.logger.error(`AutoUpdater Error: ${errorMessage}`);
-		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-error', errorMessage);
-	});
-	autoUpdater.on('download-progress', (progressObj) => {
-		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-download-progress', progressObj);
-	});
-	autoUpdater.on('update-downloaded', (info) => {
-		if (isWindowUsable(mainWindow)) mainWindow.webContents.send('update-downloaded', info);
-		const menu = Menu.getApplicationMenu();
-		if (menu) {
-			const restartItem = menu.getMenuItemById('restart-update');
-			if (restartItem && restartItem.enabled !== undefined) {
-				restartItem.enabled = true;
+	// Enhanced event handlers with better error handling
+	const updateEventHandlers = {
+		'checking-for-update': () => {
+			sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.CHECKING);
+		},
+		'update-available': (info) => {
+			sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.AVAILABLE, info);
+		},
+		'update-not-available': (info) => {
+			sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.NOT_AVAILABLE, info);
+		},
+		'error': (err) => {
+			const errorMessage = err == null ? 'unknown' : err.message || err.toString();
+			autoUpdater.logger.error(`AutoUpdater Error: ${errorMessage}`);
+			sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.ERROR, errorMessage);
+		},
+		'download-progress': (progressObj) => {
+			sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOAD_PROGRESS, progressObj);
+		},
+		'update-downloaded': (info) => {
+			sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOADED, info);
+			const menu = Menu.getApplicationMenu();
+			if (menu) {
+				const restartItem = menu.getMenuItemById('restart-update');
+				if (restartItem && restartItem.enabled !== undefined) {
+					restartItem.enabled = true;
+				}
 			}
 		}
+	};
+
+	// Register all update event handlers
+	Object.entries(updateEventHandlers).forEach(([event, handler]) => {
+		autoUpdater.on(event, handler);
+		AppState.eventHandlers.set(`autoUpdater:${event}`, handler);
 	});
 }
 
-// Register IPC handlers and create the main window when the app is ready
-app.whenReady().then(() => {
+// Enhanced application initialization
+async function initializeApplication() {
 	const mainWindow = createWindow();
+	AppState.mainWindow = mainWindow;
 
 	// Set the custom menu immediately after window creation to avoid menu flash/disappearance
-	console.log('[main.js] About to call buildAppMenu after window creation');
-	buildAppMenu(mainWindow, 'dark', loadedFitFilePath);
+	logWithContext('info', 'Calling buildAppMenu after window creation');
+	buildAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
 
-	// --- Auto-Updater ---
-	setupAutoUpdater(mainWindow);
-	autoUpdater.checkForUpdatesAndNotify();
+	// Setup auto-updater with error handling
+	try {
+		setupAutoUpdater(mainWindow);
+		await autoUpdater.checkForUpdatesAndNotify();
+	} catch (error) {
+		logWithContext('error', 'Failed to setup auto-updater:', { error: error.message });
+	}
 
-	// Only update the menu after did-finish-load to sync with renderer theme
-	mainWindow.webContents.on('did-finish-load', () => {
-		console.log('[main.js] did-finish-load event fired, about to call buildAppMenu');
-		mainWindow.webContents
-			.executeJavaScript('localStorage.getItem("ffv-theme")')
-			.then((theme) => {
-				console.log('[main.js] buildAppMenu with theme from renderer:', theme);
-				buildAppMenu(mainWindow, theme || 'dark', loadedFitFilePath);
-				mainWindow.webContents.send('set-theme', theme || 'dark');
-			})
-			.catch(() => {
-				console.log('[main.js] buildAppMenu fallback to dark');
-				buildAppMenu(mainWindow, 'dark', loadedFitFilePath);
-				mainWindow.webContents.send('set-theme', 'dark');
-			});
-	});
-
-	ipcMain.handle('dialog:openFile', async () => {
+	// Enhanced theme synchronization
+	mainWindow.webContents.on('did-finish-load', async () => {
+		logWithContext('info', 'did-finish-load event fired, syncing theme');
 		try {
-			const { canceled, filePaths } = await dialog.showOpenDialog({
-				filters: [{ name: 'FIT Files', extensions: ['fit'] }],
-				properties: ['openFile'],
-			});
-			if (canceled || filePaths.length === 0) return null;
-			addRecentFile(filePaths[0]);
-			loadedFitFilePath = filePaths[0];
-			// Fetch current theme from renderer before rebuilding menu
-			const win = BrowserWindow.getFocusedWindow() || mainWindow;
-			let theme = 'dark';
-			try {
-				theme = (await win.webContents.executeJavaScript('localStorage.getItem("ffv-theme")')) || 'dark';
-			} catch (err) {
-				console.error('Failed to get theme from renderer:', err);
-			}
-			buildAppMenu(win, theme, loadedFitFilePath);
-			return filePaths[0];
-		} catch (err) {
-			console.error('Error opening file dialog:', err);
-			return null;
+			const theme = await getThemeFromRenderer(mainWindow);
+			logWithContext('info', 'Retrieved theme from renderer', { theme });
+			buildAppMenu(mainWindow, theme, AppState.loadedFitFilePath);
+			sendToRenderer(mainWindow, 'set-theme', theme);
+		} catch (error) {
+			logWithContext('warn', 'Failed to get theme from renderer, using fallback', { error: error.message });
+			buildAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+			sendToRenderer(mainWindow, 'set-theme', CONSTANTS.DEFAULT_THEME);
 		}
 	});
 
-	ipcMain.on('fit-file-loaded', (event, filePath) => {
-		loadedFitFilePath = filePath;
-		const win = BrowserWindow.fromWebContents(event.sender);
-		// eslint-disable-next-line no-unused-vars
-		let theme = 'dark';
-		if (win) {
-			win.webContents.executeJavaScript('localStorage.getItem("ffv-theme")').then((theme) => {
-				buildAppMenu(win, theme || 'dark', loadedFitFilePath);
-			});
-		}
-	});
-
-	// IPC: Get recent files
-	ipcMain.handle('recentFiles:get', async () => {
-		return loadRecentFiles();
-	});
-
-	// IPC: Add a file to recent files (for manual add if needed)
-	ipcMain.handle('recentFiles:add', async (event, filePath) => {
-		addRecentFile(filePath);
+	return mainWindow;
+}
+// Enhanced IPC handlers with better error handling and organization
+function setupIPCHandlers(mainWindow) {
+	// File dialog handler
+	ipcMain.handle('dialog:openFile', createErrorHandler(async () => {
+		const { canceled, filePaths } = await dialog.showOpenDialog({
+			filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
+			properties: ['openFile'],
+		});
+		
+		if (canceled || filePaths.length === 0) return null;
+		
+		addRecentFile(filePaths[0]);
+		AppState.loadedFitFilePath = filePaths[0];
+		
 		// Fetch current theme from renderer before rebuilding menu
 		const win = BrowserWindow.getFocusedWindow() || mainWindow;
-		let theme = 'dark';
-		try {
-			theme = (await win.webContents.executeJavaScript('localStorage.getItem("ffv-theme")')) || 'dark';
-		} catch (err) {
-			console.error('Failed to get theme from renderer:', err);
+		const theme = await getThemeFromRenderer(win);
+		buildAppMenu(win, theme, AppState.loadedFitFilePath);
+		
+		return filePaths[0];
+	}));
+
+	// FIT file loaded handler
+	ipcMain.on('fit-file-loaded', async (event, filePath) => {
+		AppState.loadedFitFilePath = filePath;
+		const win = BrowserWindow.fromWebContents(event.sender);
+		if (validateWindow(win)) {
+			try {
+				const theme = await getThemeFromRenderer(win);
+				buildAppMenu(win, theme, AppState.loadedFitFilePath);
+			} catch (error) {
+				logWithContext('error', 'Failed to update menu after fit file loaded:', { error: error.message });
+			}
 		}
-		buildAppMenu(win, theme, loadedFitFilePath);
-		return loadRecentFiles();
 	});
 
-	// Add IPC handler for reading files
-	ipcMain.handle('file:read', async (event, filePath) => {
+	// Recent files handlers
+	ipcMain.handle('recentFiles:get', createErrorHandler(async () => {
+		return loadRecentFiles();
+	}));
+
+	ipcMain.handle('recentFiles:add', createErrorHandler(async (event, filePath) => {
+		addRecentFile(filePath);
+		const win = BrowserWindow.getFocusedWindow() || mainWindow;
+		const theme = await getThemeFromRenderer(win);
+		buildAppMenu(win, theme, AppState.loadedFitFilePath);
+		return loadRecentFiles();
+	}));
+
+	// File operations handlers
+	ipcMain.handle('file:read', createErrorHandler(async (event, filePath) => {
 		return new Promise((resolve, reject) => {
 			fs.readFile(filePath, (err, data) => {
 				if (err) {
-					console.error('Error reading file:', err);
+					logWithContext('error', 'Error reading file:', { filePath, error: err.message });
 					reject(err);
 				} else {
 					resolve(data.buffer);
 				}
 			});
 		});
-	});
+	}));
 
-	// Add IPC handler for parsing FIT files
-	ipcMain.handle('fit:parse', async (event, arrayBuffer) => {
+	// FIT file parsing handlers
+	ipcMain.handle('fit:parse', createErrorHandler(async (event, arrayBuffer) => {
 		const fitParser = require('./fitParser');
 		const buffer = Buffer.from(arrayBuffer);
 		return await fitParser.decodeFitFile(buffer);
-	});
+	}));
 
-	// Add IPC handler for decoding FIT files (for decodeFitFile)
-	ipcMain.handle('fit:decode', async (event, arrayBuffer) => {
+	ipcMain.handle('fit:decode', createErrorHandler(async (event, arrayBuffer) => {
 		const fitParser = require('./fitParser');
 		const buffer = Buffer.from(arrayBuffer);
 		return await fitParser.decodeFitFile(buffer);
-	});
+	}));
 
-	// Add IPC handler for getting the current theme
-	ipcMain.handle('theme:get', async () => {
-		const { Conf } = require('electron-conf');
-		const conf = new Conf({ name: 'settings' });
-		return conf.get('theme', 'dark');
-	});
-
-	ipcMain.handle('map-tab:get', async () => {
-		const { Conf } = require('electron-conf');
-		const conf = new Conf({ name: 'settings' });
-		return conf.get('selectedMapTab', 'map');
-	});
-
-	// Add IPC handler for getting the app version
-	ipcMain.handle('getAppVersion', async () => {
-		return app.getVersion();
-	});
-
-	// Add IPC handler for getting the Electron version
-	ipcMain.handle('getElectronVersion', async () => {
-		return process.versions.electron;
-	});
-
-	// Add IPC handler for getting the Node.js version
-	ipcMain.handle('getNodeVersion', async () => {
-		return process.versions.node;
-	});
-
-	// Add IPC handler for getting the Chrome version
-	ipcMain.handle('getChromeVersion', async () => {
-		return process.versions.chrome;
-	});
-
-	// Add IPC handler for getting the platform and architecture
-	ipcMain.handle('getPlatformInfo', async () => {
-		return {
+	// Application info handlers
+	const infoHandlers = {
+		'theme:get': async () => {
+			const { Conf } = require('electron-conf');
+			const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+			return conf.get('theme', CONSTANTS.DEFAULT_THEME);
+		},
+		'map-tab:get': async () => {
+			const { Conf } = require('electron-conf');
+			const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+			return conf.get('selectedMapTab', 'map');
+		},
+		'getAppVersion': async () => app.getVersion(),
+		'getElectronVersion': async () => process.versions.electron,
+		'getNodeVersion': async () => process.versions.node,
+		'getChromeVersion': async () => process.versions.chrome,
+		'getPlatformInfo': async () => ({
 			platform: process.platform,
 			arch: process.arch,
-		};
-	});
-
-	// Add IPC handler for license info
-	ipcMain.handle('getLicenseInfo', async () => {
-		try {
-			const packageJsonPath = path.join(app.getAppPath(), 'package.json');
-			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-			return packageJson.license || 'Unknown';
-		} catch (err) {
-			console.error('Failed to read license from package.json:', err);
-			return 'Unknown';
-		}
-	});
-
-	// Listen for theme change from renderer and update menu
-	ipcMain.on('theme-changed', (event, theme) => {
-		const win = BrowserWindow.fromWebContents(event.sender);
-		if (win) buildAppMenu(win, theme || 'dark', loadedFitFilePath);
-	});
-
-	// Listen for menu-triggered update check from renderer
-	ipcMain.on('menu-check-for-updates', () => {
-		autoUpdater.checkForUpdates();
-	});
-
-	// Optionally, allow renderer to trigger update install
-	ipcMain.on('install-update', () => {
-		try {
-			autoUpdater.quitAndInstall();
-		} catch (err) {
-			console.error('Error during quitAndInstall:', err);
-			if (process.platform === 'linux') {
-				const { dialog } = require('electron');
-				dialog.showMessageBox({
-					type: 'info',
-					title: 'Manual Update Required',
-					message: 'Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.'
-				});
-			}
-		}
-	});
-	ipcMain.on('menu-restart-update', () => {
-		try {
-			autoUpdater.quitAndInstall();
-		} catch (err) {
-			console.error('Error during quitAndInstall:', err);
-			if (process.platform === 'linux') {
-				const { dialog } = require('electron');
-				dialog.showMessageBox({
-					type: 'info',
-					title: 'Manual Update Required',
-					message: 'Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.'
-				});
-			}
-		}
-	});
-
-	// --- IPC handlers for File menu actions ---
-	ipcMain.on('menu-save-as', async (event) => {
-		const win = BrowserWindow.fromWebContents(event.sender);
-		if (!loadedFitFilePath) return;
-		const { canceled, filePath } = await dialog.showSaveDialog(win, {
-			title: 'Save As',
-			defaultPath: loadedFitFilePath,
-			filters: [
-				{ name: 'FIT Files', extensions: ['fit'] },
-				{ name: 'All Files', extensions: ['*'] },
-			],
-		});
-		if (!canceled && filePath) {
+		}),
+		'getLicenseInfo': async () => {
 			try {
-				fs.copyFileSync(loadedFitFilePath, filePath);
-				win.webContents.send('show-notification', 'File saved successfully.', 'success');
+				const packageJsonPath = path.join(app.getAppPath(), 'package.json');
+				const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+				return packageJson.license || 'Unknown';
 			} catch (err) {
-				win.webContents.send('show-notification', `Save failed: ${err}`, 'error');
+				logWithContext('error', 'Failed to read license from package.json:', { error: err.message });
+				return 'Unknown';
 			}
 		}
+	};
+	// Register all info handlers
+	Object.entries(infoHandlers).forEach(([channel, handler]) => {
+		ipcMain.handle(channel, createErrorHandler(handler));
 	});
 
-	ipcMain.on('menu-export', async (event) => {
+	// External link handler
+	ipcMain.handle('shell:openExternal', createErrorHandler(async (event, url) => {
+		if (!url || typeof url !== 'string') {
+			throw new Error('Invalid URL provided');
+		}
+		
+		// Basic URL validation
+		if (!url.startsWith('http://') && !url.startsWith('https://')) {
+			throw new Error('Only HTTP and HTTPS URLs are allowed');
+		}
+		
+		await shell.openExternal(url);
+		return true;
+	}));
+}
+// Enhanced menu and event handlers
+function setupMenuAndEventHandlers() {
+	// Theme change handler
+	ipcMain.on('theme-changed', async (event, theme) => {
 		const win = BrowserWindow.fromWebContents(event.sender);
-		if (!loadedFitFilePath) return;
-		const { canceled, filePath } = await dialog.showSaveDialog(win, {
-			title: 'Export As',
-			defaultPath: loadedFitFilePath.replace(/\.fit$/i, '.csv'),
-			filters: [
-				{ name: 'CSV (Summary Table)', extensions: ['csv'] },
-				{ name: 'GPX (Track)', extensions: ['gpx'] },
-				{ name: 'All Files', extensions: ['*'] },
-			],
-		});
-		if (!canceled && filePath) {
-			win.webContents.send('export-file', filePath);
+		if (validateWindow(win)) {
+			buildAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
 		}
 	});
 
-	ipcMain.on('menu-restart-update', () => {
-		autoUpdater.quitAndInstall();
+	// Update handlers
+	const updateHandlers = {
+		'menu-check-for-updates': () => {
+			try {
+				autoUpdater.checkForUpdates();
+			} catch (error) {
+				logWithContext('error', 'Failed to check for updates:', { error: error.message });
+			}
+		},
+		'install-update': () => {
+			try {
+				autoUpdater.quitAndInstall();
+			} catch (err) {
+				logWithContext('error', 'Error during quitAndInstall:', { error: err.message });
+				if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
+					dialog.showMessageBox({
+						type: 'info',
+						title: 'Manual Update Required',
+						message: 'Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.'
+					});
+				}
+			}
+		},
+		'menu-restart-update': () => {
+			try {
+				autoUpdater.quitAndInstall();
+			} catch (err) {
+				logWithContext('error', 'Error during restart and install:', { error: err.message });
+				if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
+					dialog.showMessageBox({
+						type: 'info',
+						title: 'Manual Update Required',
+						message: 'Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.'
+					});
+				}
+			}
+		}
+	};
+
+	// Register update handlers
+	Object.entries(updateHandlers).forEach(([event, handler]) => {
+		ipcMain.on(event, handler);
 	});
 
+	// File menu action handlers
+	const fileMenuHandlers = {
+		'menu-save-as': async (event) => {
+			const win = BrowserWindow.fromWebContents(event.sender);
+			if (!AppState.loadedFitFilePath) return;
+			
+			try {
+				const { canceled, filePath } = await dialog.showSaveDialog(win, {
+					title: 'Save As',
+					defaultPath: AppState.loadedFitFilePath,
+					filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
+				});
+				
+				if (!canceled && filePath) {
+					fs.copyFileSync(AppState.loadedFitFilePath, filePath);
+					sendToRenderer(win, 'show-notification', 'File saved successfully.', 'success');
+				}
+			} catch (err) {
+				sendToRenderer(win, 'show-notification', `Save failed: ${err}`, 'error');
+				logWithContext('error', 'Failed to save file:', { error: err.message });
+			}
+		},
+		'menu-export': async (event) => {
+			const win = BrowserWindow.fromWebContents(event.sender);
+			if (!AppState.loadedFitFilePath) return;
+			
+			try {
+				const { canceled, filePath } = await dialog.showSaveDialog(win, {
+					title: 'Export As',
+					defaultPath: AppState.loadedFitFilePath.replace(/\.fit$/i, '.csv'),
+					filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
+				});
+				
+				if (!canceled && filePath) {
+					sendToRenderer(win, 'export-file', filePath);
+				}
+			} catch (err) {
+				logWithContext('error', 'Failed to show export dialog:', { error: err.message });
+			}
+		}
+	};
+
+	// Register file menu handlers
+	Object.entries(fileMenuHandlers).forEach(([event, handler]) => {
+		ipcMain.on(event, handler);
+	});
+
+	// Fullscreen handler
 	ipcMain.on('set-fullscreen', (event, flag) => {
 		const win = BrowserWindow.getFocusedWindow();
-		if (win) win.setFullScreen(!!flag);
+		if (validateWindow(win)) {
+			win.setFullScreen(!!flag);
+		}
 	});
 
+	// Development helper for menu injection
+	ipcMain.handle('devtools-inject-menu', (event, theme, fitFilePath) => {
+		const win = BrowserWindow.fromWebContents(event.sender);
+		const t = theme || CONSTANTS.DEFAULT_THEME;
+		const f = fitFilePath || null;
+		logWithContext('info', 'Manual menu injection requested', { theme: t, fitFilePath: f });
+		buildAppMenu(win, t, f);
+		return true;
+	});
+}
+
+// Enhanced application event handlers
+function setupApplicationEventHandlers() {
+	// App activation handler (macOS)
 	app.on('activate', function () {
 		if (BrowserWindow.getAllWindows().length === 0) {
 			const win = createWindow();
-			// Set menu for new window
-			buildAppMenu(win, 'dark', loadedFitFilePath);
+			buildAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
 		} else {
-			const win = BrowserWindow.getFocusedWindow() || mainWindow;
-			if (win) buildAppMenu(win, 'dark', loadedFitFilePath);
-		}
-	});
-});
-
-// Prevent navigation to untrusted URLs
-app.on('web-contents-created', (event, contents) => {
-	contents.on('will-navigate', (event, navigationUrl) => {
-		const allowedOrigins = ['file://', 'about:blank'];
-		if (!allowedOrigins.some((origin) => navigationUrl.startsWith(origin))) {
-			event.preventDefault();
-		}
-	});
-
-	// Prevent new windows from opening untrusted URLs
-	contents.setWindowOpenHandler(({ url }) => {
-		const allowedOrigins = ['file://', 'about:blank'];
-		if (!allowedOrigins.some((origin) => url.startsWith(origin))) {
-			return { action: 'deny' };
-		}
-		return { action: 'allow' };
-	});
-});
-
-// Gracefully quit the app on all windows closed (except macOS)
-app.on('window-all-closed', function () {
-	if (process.platform !== 'darwin') app.quit();
-});
-
-app.on('browser-window-focus', async (event, win) => {
-	if (process.platform === 'linux') {
-		try {
-			// Try to get theme from renderer if possible
-			let theme = 'dark';
-			if (win && win.webContents) {
-				try {
-					const t = await win.webContents.executeJavaScript('localStorage.getItem("ffv-theme")');
-					if (t) theme = t;
-				} catch (err) {
-					console.error('[main.js] Failed to get theme from renderer on focus:', err);
-				}
+			const win = BrowserWindow.getFocusedWindow() || AppState.mainWindow;
+			if (validateWindow(win)) {
+				buildAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
 			}
-			buildAppMenu(win, theme, loadedFitFilePath);
-		} catch (err) {
-			console.error('[main.js] Error setting menu on browser-window-focus:', err);
 		}
+	});
+
+	// Browser window focus handler (Linux)
+	app.on('browser-window-focus', async (event, win) => {
+		if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
+			try {
+				const theme = await getThemeFromRenderer(win);
+				buildAppMenu(win, theme, AppState.loadedFitFilePath);
+			} catch (err) {
+				logWithContext('error', 'Error setting menu on browser-window-focus:', { error: err.message });
+			}
+		}
+	});
+
+	// Window all closed handler
+	app.on('window-all-closed', function () {
+		if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
+			app.quit();
+		}
+	});
+
+	// Security: Prevent navigation to untrusted URLs
+	app.on('web-contents-created', (event, contents) => {
+		const allowedOrigins = ['file://', 'about:blank'];
+		
+		contents.on('will-navigate', (event, navigationUrl) => {
+			if (!allowedOrigins.some((origin) => navigationUrl.startsWith(origin))) {
+				event.preventDefault();
+				logWithContext('warn', 'Blocked navigation to untrusted URL:', { url: navigationUrl });
+			}
+		});
+
+		// Prevent new windows from opening untrusted URLs
+		contents.setWindowOpenHandler(({ url }) => {
+			if (!allowedOrigins.some((origin) => url.startsWith(origin))) {
+				logWithContext('warn', 'Blocked opening untrusted URL in new window:', { url });
+				return { action: 'deny' };
+			}
+			return { action: 'allow' };
+		});
+	});
+}
+
+// Cleanup functions
+function cleanupEventHandlers() {
+	AppState.eventHandlers.forEach((handler, key) => {
+		logWithContext('info', 'Cleaning up event handler:', { key });
+	});
+	AppState.eventHandlers.clear();
+}
+
+// Development helpers
+function exposeDevHelpers() {
+	global.devHelpers = {
+		getAppState: () => AppState,
+		cleanupEventHandlers,
+		rebuildMenu: (theme, filePath) => {
+			const win = BrowserWindow.getFocusedWindow();
+			if (validateWindow(win)) {
+				buildAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, filePath || AppState.loadedFitFilePath);
+			}
+		},
+		logState: () => {
+			logWithContext('info', 'Current application state:', {
+				loadedFitFilePath: AppState.loadedFitFilePath,
+				hasMainWindow: !!AppState.mainWindow,
+				eventHandlersCount: AppState.eventHandlers.size
+			});
+		}
+	};
+	
+	logWithContext('info', 'Development helpers exposed on global.devHelpers');
+}
+
+// Main application initialization
+app.whenReady().then(async () => {
+	try {
+		const mainWindow = await initializeApplication();
+		
+		// Setup all IPC handlers
+		setupIPCHandlers(mainWindow);
+				// Setup menu and event handlers
+		setupMenuAndEventHandlers();
+		
+		// Setup application event handlers
+		setupApplicationEventHandlers();
+		
+		// Expose development helpers in development mode
+		if (process.env.NODE_ENV === 'development' || process.argv.includes('--dev')) {
+			exposeDevHelpers();
+		}
+		
+		logWithContext('info', 'Application initialized successfully');
+	} catch (error) {
+		logWithContext('error', 'Failed to initialize application:', { error: error.message });
 	}
 });
-
-ipcMain.handle('devtools-inject-menu', (event, theme, fitFilePath) => {
-	const win = BrowserWindow.fromWebContents(event.sender);
-	const t = theme || 'dark';
-	const f = fitFilePath || null;
-	console.log('[devtools-inject-menu] Manually injecting menu with theme:', t, 'fitFilePath:', f);
-	buildAppMenu(win, t, f);
-	return true;
-});
-
-function isWindowUsable(win) {
-	return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
-}
