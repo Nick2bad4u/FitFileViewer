@@ -47,7 +47,7 @@ jobs:
 
       - name: MegaLinter
         id: megalinter
-        uses: oxsecurity/megalinter/flavors/cupcake@985a3e35072d0e82d956cbb6a0ecd258cf11de8e # beta
+        uses: oxsecurity/megalinter@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISABLE_LINTERS: SPELL_CSPELL
