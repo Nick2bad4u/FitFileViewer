@@ -9,67 +9,46 @@
 
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      time: "04:30"
-      timezone: "America/Detroit"
-    assignees: ["Nick2bad4u"]
-    allow:
-      # Allow both direct and indirect updates for all packages
-      - dependency-type: "all"
-    labels:
-      - "github-actions"
-    groups:
-      github-actions:
-        applies-to: version-updates
-        patterns:
-          - "*"
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+    time: "04:30"
+    timezone: "America/Detroit"
+  assignees: [ "Nick2bad4u" ]
+  allow:
+  # Allow both direct and indirect updates for all packages
+  - dependency-type: "all"
+  labels:
+  - "github-actions"
+  commit-message:
+    prefix: "[ci]"
+    prefix-development: "[ci]"
+    include: "scope"
+  groups:
+    github-actions:
+      applies-to: version-updates
+      patterns:
+      - "*"
 
-  - package-ecosystem: npm
-    directory: /electron-app
-    schedule:
-      interval: weekly
-    reviewers: ["Nick2bad4u"]
-    assignees: ["Nick2bad4u"]
-    versioning-strategy: increase
-    allow:
-      # Allow both direct and indirect updates for all packages
-      - dependency-type: "all"
-    labels:
-      - "npm"
-    groups:
-      npm-all:
-        applies-to: version-updates
-        patterns:
-          - "*"
-    ignore:
-      - dependency-name: "@octokit/auth-token"
-        versions: ["<4.0.0"]
-      - dependency-name: "@octokit/core"
-        versions: ["<5.2.1"]
-      - dependency-name: "@octokit/graphql"
-        versions: ["<7.1.1"]
-      - dependency-name: "@octokit/openapi-types"
-        versions: ["<20.0.0"]
-      - dependency-name: "@octokit/plugin-retry"
-        versions: ["<6.1.0"]
-      - dependency-name: "@octokit/types"
-        versions: ["<12.6.0"]
-      - dependency-name: "@octokit/plugin-paginate-rest"
-        versions: ["<9.2.2"]
-      - dependency-name: "@octokit/plugin-rest-endpoint-methods"
-        versions: ["<10.4.1"]
-      - dependency-name: "@octokit/endpoint"
-        versions: ["<9.0.6"]
-      - dependency-name: "@octokit/request"
-        versions: ["<8.4.1"]
-      - dependency-name: "@octokit/request-error"
-        versions: ["<5.1.1"]
-      - dependency-name: "readable-stream"
-        versions: ["<3.6.2"]
-      - dependency-name: "safe-buffer"
-        versions: ["<5.2.1"]
-      - dependency-name: "string_decoder"
-        versions: ["<1.3.0"]
+- package-ecosystem: npm
+  directory: /electron-app
+  schedule:
+    interval: weekly
+  reviewers: [ "Nick2bad4u" ]
+  assignees: [ "Nick2bad4u" ]
+  versioning-strategy: increase
+  allow:
+  # Allow both direct and indirect updates for all packages
+  - dependency-type: "all"
+  labels:
+  - "npm"
+  commit-message:
+    prefix: "[dependency]"
+    prefix-development: "[dev-dependency]"
+    include: "scope"
+  groups:
+    npm-all:
+      applies-to: version-updates
+      patterns:
+      - "*"
