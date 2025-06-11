@@ -7,7 +7,31 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
+- Bump version to 21.1.0
+
+
+## [21.1.0] - 2025-06-11
+
+### 🐛 Bug Fixes
+
+- Update workflow configurations to ignore CHANGELOG.md and electron-app icons in various GitHub Actions
+
+
+### 🆕 New Version Number
+
 - Bump version to 21.0.0
+
+
+### 💼 Other
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update index.html
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.0.0 [skip ci]
 
 
 ## [21.0.0] - 2025-06-10
@@ -60,6 +84,8 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Update GitHub workflows for improved functionality and scheduling
+
 - Enhance changelog update workflow with check run integration
 
 
@@ -68,27 +94,6 @@ All notable changes to this project will be documented in this file.
 - Update Build and Update ChangeLogs workflows to refine paths and remove unnecessary status checks
 
 - Refactor Check Run update commands for improved readability and efficiency
-
-
-### 🆕 New Version Number
-
-- Bump version to 20.7.0
-
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Adds workflow job summaries and updates dependencies
-
-Improves CI transparency by appending detailed job summaries to workflow run outputs for build, changelog, and release processes. Updates Prettier and GitHub release action to specific versions for consistency and reliability. Sets explicit permissions in macOS upload workflow to enhance security.
-
-
-## [20.7.0] - 2025-06-10
-
-### 🚀 Features
-
-- Update GitHub workflows for improved functionality and scheduling
 
 
 ### 🆕 New Version Number
@@ -106,6 +111,8 @@ Improves CI transparency by appending detailed job summaries to workflow run out
 - Bump version to 20.5.0
 
 - Bump version to 20.6.0
+
+- Bump version to 20.7.0
 
 
 ### 🛠️ GitHub Actions
@@ -154,6 +161,12 @@ Helps distinguish this workflow from others in environments with multiple pipeli
 Refactors Linux menu handling to remove the minimal menu fallback and adds enhanced logging for improved troubleshooting. Introduces a DevTools-accessible function allowing manual injection or reset of the application menu from the renderer, making menu debugging and development more efficient. Streamlines theme synchronization and implements safeguards to prevent invalid menu setups, boosting stability and UI consistency across platforms.
 
 Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability.
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Adds workflow job summaries and updates dependencies
+
+Improves CI transparency by appending detailed job summaries to workflow run outputs for build, changelog, and release processes. Updates Prettier and GitHub release action to specific versions for consistency and reliability. Sets explicit permissions in macOS upload workflow to enhance security.
 
 
 ### ⚙️ Miscellaneous Tasks

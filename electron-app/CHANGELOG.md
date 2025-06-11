@@ -7,25 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ### 🆕 New Version Number
 
-- Bump version to 20.7.0
-
-- Bump version to 20.8.0
-
-- Bump version to 20.9.0
-
-- Bump version to 21.0.0
+- Bump version to 21.1.0
 
 
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-
-## [20.7.0] - 2025-06-10
+## [21.1.0] - 2025-06-11
 
 ### 🚀 Features
 
@@ -47,6 +32,14 @@ All notable changes to this project will be documented in this file.
 - Bump version to 20.5.0
 
 - Bump version to 20.6.0
+
+- Bump version to 20.7.0
+
+- Bump version to 20.8.0
+
+- Bump version to 20.9.0
+
+- Bump version to 21.0.0
 
 
 ### 💼 Other
@@ -73,10 +66,22 @@ Refactors Linux menu handling to remove the minimal menu fallback and adds enhan
 
 Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability.
 
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+
+- Update index.html
+
 
 ### ⚙️ Miscellaneous Tasks
 
 - Remove outdated dependencies from package.json
+
+- Update changelogs for v21.0.0 [skip ci]
 
 
 ### 🛡️ Security
