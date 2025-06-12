@@ -2,6 +2,7 @@
 
 let lastFocusedElement = null;
 let modalAnimationDuration = 300; // Animation duration in milliseconds
+let showingFeatures = false; // Track whether features or system info is currently displayed
 
 /**
  * Creates the enhanced modal content with modern styling and branding
@@ -20,13 +21,22 @@ function getAboutModalContent() {
 							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 					</button>
-				</div>
-				<div class="modal-body">
-					<h1 class="modal-title">
+				</div>				<div class="modal-body">					<h1 class="modal-title">
 						<span class="title-gradient">Fit File Viewer</span>
-						<span class="version-badge" id="version-badge">v21.1.0</span>
+						<span class="version-badge">
+							<span class="version-prefix">v</span>
+							<span class="version-number" id="version-number">21.1.0</span>
+						</span>
 					</h1>
 					<p class="modal-subtitle">Advanced FIT file analysis and visualization tool</p>
+					
+					<div class="modal-actions">
+						<button id="toggle-info-btn" class="features-btn" tabindex="0" aria-label="Toggle between features and system info">
+							<span class="btn-icon">✨</span>
+							<span class="btn-text">Features</span>
+						</button>
+					</div>
+					
 					<div class="feature-highlights">
 						<div class="feature-item">
 							<div class="feature-icon">📊</div>
@@ -41,13 +51,41 @@ function getAboutModalContent() {
 							<span>Performance Metrics</span>
 						</div>
 					</div>
-					<div class="modal-actions">
-						<button id="features-modal-btn" class="features-btn" tabindex="0" aria-label="View detailed features">
-							<span class="btn-icon">✨</span>
-							<span>Features</span>
-						</button>
+
+					<div id="info-toggle-section" class="system-info-section">
+						<div class="system-info-grid">
+							<div class="system-info-item">
+								<span class="system-info-label">Version</span>
+								<span class="system-info-value version-highlight">21.3.0</span>
+							</div>
+							<div class="system-info-item">
+								<span class="system-info-label">Electron</span>
+								<span class="system-info-value electron-highlight">36.4.0</span>
+							</div>
+							<div class="system-info-item">
+								<span class="system-info-label">Node.js</span>
+								<span class="system-info-value node-highlight">22.15.1</span>
+							</div>
+							<div class="system-info-item">
+								<span class="system-info-label">Chrome</span>
+								<span class="system-info-value chrome-highlight">136.0.7103.149</span>
+							</div>
+							<div class="system-info-item">
+								<span class="system-info-label">Platform</span>
+								<span class="system-info-value platform-highlight">win32 (x64)</span>
+							</div>
+							<div class="system-info-item">
+								<span class="system-info-label">Author</span>
+								<span class="system-info-value author-highlight">Nick2bad4u</span>
+							</div>
+							<div class="system-info-item">
+								<span class="system-info-label">License</span>
+								<span class="system-info-value license-highlight">Unlicense</span>
+							</div>
+						</div>
 					</div>
-					<div id="about-modal-body" class="modal-content-body"></div>					<div class="modal-footer">
+					<div id="about-modal-body" class="modal-content-body"></div>
+					<div class="modal-footer">
 						<div class="tech-stack">
 							<a href="https://electronjs.org/" class="tech-badge-link" data-external-link>
 								<span class="tech-badge">
@@ -136,14 +174,12 @@ function injectModalStyles() {
 			opacity: 1;
 			visibility: visible;
 		}
-
 		.fancy-modal .modal-backdrop {
 			position: relative;
 			max-width: 90vw;
-			max-height: 90vh;
+			max-height: 85vh;
 			overflow: hidden;
-		}
-		.fancy-modal .modal-content {
+		}		.fancy-modal .modal-content {
 			background: var(--color-glass);
 			border-radius: 24px;
 			box-shadow: var(--color-box-shadow);
@@ -153,28 +189,30 @@ function injectModalStyles() {
 			position: relative;
 			width: 500px;
 			max-width: 90vw;
+			max-height: 85vh;
 			color: var(--color-fg);
 			transform: scale(0.8) translateY(40px);
 			transition: transform ${modalAnimationDuration}ms var(--transition-bounce);
+			display: flex;
+			flex-direction: column;
 		}
 
 		.fancy-modal.show .modal-content {
 			transform: scale(1) translateY(0);
 		}
-
 		/* Header Styles */
 		.fancy-modal .modal-header {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-			padding: 24px 32px 16px;
+			padding: 20px 28px 12px;
 			position: relative;
-		}
-		.fancy-modal .modal-icon {
-			width: 48px;
-			height: 48px;
+			flex-shrink: 0;
+		}		.fancy-modal .modal-icon {
+			width: 56px;
+			height: 56px;
 			background: var(--color-glass);
-			border-radius: 12px;
+			border-radius: 16px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -182,17 +220,16 @@ function injectModalStyles() {
 			border: 1px solid var(--color-glass-border);
 		}
 		.fancy-modal .app-icon {
-			width: 24px;
-			height: 24px;
-			border-radius: 4px;
+			width: 40px;
+			height: 40px;
+			border-radius: 8px;
 		}
-
 		/* Features Button */
 		.fancy-modal .modal-actions {
 			display: flex;
 			justify-content: center;
-			margin: 24px 0 16px;
-		}		.fancy-modal .features-btn {
+			margin: 20px 0 12px;
+		}.fancy-modal .features-btn {
 			background: var(--color-glass);
 			border: 1px solid var(--color-glass-border);
 			border-radius: 16px;
@@ -263,22 +300,23 @@ function injectModalStyles() {
 		.fancy-modal .modal-close:active {
 			transform: scale(0.95);
 		}
-
 		/* Body Styles */
 		.fancy-modal .modal-body {
-			padding: 0 32px 32px;
+			padding: 0 28px 20px;
 			text-align: center;
+			overflow-y: auto;
+			flex: 1;
+			min-height: 0;
 		}
-
 		.fancy-modal .modal-title {
-			font-size: 2.5rem;
+			font-size: 2.2rem;
 			font-weight: 700;
-			margin: 0 0 8px 0;
+			margin: 0 0 6px 0;
 			line-height: 1.2;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			gap: 16px;
+			gap: 14px;
 			flex-wrap: wrap;
 		}
 		.fancy-modal .title-gradient {
@@ -293,8 +331,7 @@ function injectModalStyles() {
 		@keyframes gradientShift {
 			0%, 100% { background-position: 0% 50%; }
 			50% { background-position: 100% 50%; }
-		}
-		.fancy-modal .version-badge {
+		}		.fancy-modal .version-badge {
 			background: var(--color-glass);
 			border: 1px solid var(--color-glass-border);
 			border-radius: 20px;
@@ -303,33 +340,281 @@ function injectModalStyles() {
 			font-weight: 500;
 			backdrop-filter: var(--backdrop-blur);
 			animation: pulse 2s ease-in-out infinite;
+			display: flex;
+			align-items: center;
+			gap: 2px;
+		}
+
+		.fancy-modal .version-prefix {
+			color: var(--color-accent);
+			font-weight: 600;
+			opacity: 0.8;
+			font-size: 0.8rem;
+		}
+		.fancy-modal .version-number {
+			color: var(--color-fg);
+			font-weight: 700;
+			letter-spacing: 0.5px;
+		}		/* System Information Section */
+		.fancy-modal .system-info-section {
+			margin: 20px 0 18px;
+			background: var(--color-glass);
+			border: 1px solid var(--color-glass-border);
+			border-radius: 16px;
+			padding: 20px;
+			backdrop-filter: var(--backdrop-blur);
+			position: relative;
+			overflow: hidden;
+			max-height: 250px;
+			overflow-y: auto;
+			transition: var(--transition-smooth);
+		}
+
+		.fancy-modal .system-info-section::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 3px;
+			background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+			opacity: 0.8;
+		}
+		.fancy-modal .system-info-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 12px;
+			text-align: left;
+		}
+		.fancy-modal .system-info-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 10px 14px;
+			background: var(--color-glass);
+			border: 1px solid var(--color-glass-border);
+			border-radius: 12px;
+			transition: var(--transition-smooth);
+			backdrop-filter: var(--backdrop-blur);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.fancy-modal .system-info-item::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			width: 3px;
+			background: var(--color-accent);
+			opacity: 0.6;
+			transition: var(--transition-smooth);
+		}
+
+		.fancy-modal .system-info-item:hover {
+			transform: translateY(-2px);
+			border-color: var(--color-border-light);
+			filter: brightness(1.1);
+		}
+
+		.fancy-modal .system-info-item:hover::before {
+			opacity: 1;
+			width: 4px;
+		}
+
+		.fancy-modal .system-info-label {
+			font-size: 0.9rem;
+			font-weight: 500;
+			color: var(--color-fg);
+			opacity: 0.8;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.fancy-modal .system-info-value {
+			font-size: 0.9rem;
+			font-weight: 600;
+			font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+			padding: 4px 8px;
+			border-radius: 6px;
+			border: 1px solid transparent;
+			transition: var(--transition-smooth);
+		}
+
+		/* Features Content Styles */
+		.fancy-modal .features-content {
+			text-align: left;
+		}
+
+		.fancy-modal .features-title {
+			color: var(--color-fg);
+			opacity: 0.9;
+			margin: 0 0 16px 0;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 1.2rem;
+			font-weight: 600;
+		}
+
+		.fancy-modal .features-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		.fancy-modal .features-item {
+			margin-bottom: 12px;
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			padding: 12px;
+			background: var(--color-glass);
+			border: 1px solid var(--color-glass-border);
+			border-radius: 12px;
+			transition: var(--transition-smooth);
+			backdrop-filter: var(--backdrop-blur);
+		}
+
+		.fancy-modal .features-item:hover {
+			transform: translateY(-2px);
+			border-color: var(--color-border-light);
+			filter: brightness(1.1);
+		}
+
+		.fancy-modal .features-item:last-child {
+			margin-bottom: 0;
+		}
+
+		.fancy-modal .features-icon {
+			font-size: 1.2rem;
+			min-width: 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.fancy-modal .features-content-item {
+			flex: 1;
+		}
+
+		.fancy-modal .features-item-title {
+			color: var(--color-fg);
+			opacity: 0.95;
+			font-weight: 600;
+			margin: 0 0 4px 0;
+			font-size: 0.95rem;
+		}
+
+		.fancy-modal .features-item-description {
+			color: var(--color-fg);
+			opacity: 0.8;
+			font-size: 0.85rem;
+			line-height: 1.4;
+			margin: 0;
+		}
+
+		/* Individual system info value colors */
+		.fancy-modal .version-highlight {
+			color: #4ade80;
+			background: rgba(74, 222, 128, 0.1);
+			border-color: rgba(74, 222, 128, 0.3);
+		}
+
+		.fancy-modal .electron-highlight {
+			color: #60a5fa;
+			background: rgba(96, 165, 250, 0.1);
+			border-color: rgba(96, 165, 250, 0.3);
+		}
+
+		.fancy-modal .node-highlight {
+			color: #34d399;
+			background: rgba(52, 211, 153, 0.1);
+			border-color: rgba(52, 211, 153, 0.3);
+		}
+
+		.fancy-modal .chrome-highlight {
+			color: #fbbf24;
+			background: rgba(251, 191, 36, 0.1);
+			border-color: rgba(251, 191, 36, 0.3);
+		}
+
+		.fancy-modal .platform-highlight {
+			color: #a78bfa;
+			background: rgba(167, 139, 250, 0.1);
+			border-color: rgba(167, 139, 250, 0.3);
+		}
+
+		.fancy-modal .author-highlight {
+			color: #f472b6;
+			background: rgba(244, 114, 182, 0.1);
+			border-color: rgba(244, 114, 182, 0.3);
+		}
+
+		.fancy-modal .license-highlight {
+			color: #fb7185;
+			background: rgba(251, 113, 133, 0.1);
+			border-color: rgba(251, 113, 133, 0.3);
+		}
+
+		/* Add icons to labels */
+		.fancy-modal .system-info-label::before {
+			font-size: 0.8rem;
+			margin-right: 4px;
+		}
+
+		.fancy-modal .system-info-item:nth-child(1) .system-info-label::before {
+			content: '🏷️';
+		}
+
+		.fancy-modal .system-info-item:nth-child(2) .system-info-label::before {
+			content: '⚡';
+		}
+
+		.fancy-modal .system-info-item:nth-child(3) .system-info-label::before {
+			content: '🟢';
+		}
+
+		.fancy-modal .system-info-item:nth-child(4) .system-info-label::before {
+			content: '🌐';
+		}
+
+		.fancy-modal .system-info-item:nth-child(5) .system-info-label::before {
+			content: '💻';
+		}
+
+		.fancy-modal .system-info-item:nth-child(6) .system-info-label::before {
+			content: '👤';
+		}
+
+		.fancy-modal .system-info-item:nth-child(7) .system-info-label::before {
+			content: '📄';
 		}
 
 		@keyframes pulse {
 			0%, 100% { transform: scale(1); opacity: 1; }
 			50% { transform: scale(1.05); opacity: 0.9; }
 		}		.fancy-modal .modal-subtitle {
-			font-size: 1.1rem;
+			font-size: 1rem;
 			color: var(--color-fg);
 			opacity: 0.8;
-			margin: 0 0 32px 0;
+			margin: 0 0 24px 0;
 			font-weight: 300;
 		}
-
 		/* Feature Highlights */
 		.fancy-modal .feature-highlights {
 			display: flex;
 			justify-content: space-around;
-			margin: 24px 0 32px;
-			gap: 16px;
+			margin: 16px 0 20px;
+			gap: 12px;
 			flex-wrap: wrap;
-		}
-		.fancy-modal .feature-item {
+		}		.fancy-modal .feature-item {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: 8px;
-			padding: 16px;
+			gap: 6px;
+			padding: 12px;
 			background: var(--color-glass);
 			border-radius: 16px;
 			border: 1px solid var(--color-glass-border);
@@ -337,7 +622,7 @@ function injectModalStyles() {
 			transition: var(--transition-smooth);
 			cursor: default;
 			flex: 1;
-			min-width: 120px;
+			min-width: 60px;
 		}
 
 		.fancy-modal .feature-item:hover {
@@ -354,17 +639,16 @@ function injectModalStyles() {
 			font-weight: 500;
 			color: var(--color-fg);
 			opacity: 0.9;
-		}
-		/* Content Body */
+		}		/* Content Body */
 		.fancy-modal .modal-content-body {
 			background: var(--color-glass);
 			border-radius: 16px;
-			padding: 20px;
-			margin: 24px 0;
+			padding: 16px;
+			margin: 16px 0;
 			border: 1px solid var(--color-glass-border);
 			backdrop-filter: var(--backdrop-blur);
 			text-align: left;
-			max-height: 200px;
+			max-height: 150px;
 			overflow-y: auto;
 		}
 
@@ -375,10 +659,10 @@ function injectModalStyles() {
 			color: var(--color-fg) !important;
 			opacity: 0.9;
 		}
-
 		/* Footer */
 		.fancy-modal .modal-footer {
-			margin-top: 24px;
+			margin-top: 16px;
+			flex-shrink: 0;
 		}
 		.fancy-modal .tech-stack {
 			display: flex;
@@ -418,11 +702,50 @@ function injectModalStyles() {
 			border-color: var(--color-border-light);
 			opacity: 1;
 		}
-
 		.fancy-modal .tech-icon {
 			font-size: 0.9rem;
 			line-height: 1;
 		}
+		/* System Info Scrollbar Styles */
+		.fancy-modal .system-info-section::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.fancy-modal .system-info-section::-webkit-scrollbar-track {
+			background: var(--color-glass);
+			border-radius: 4px;
+		}
+
+		.fancy-modal .system-info-section::-webkit-scrollbar-thumb {
+			background: var(--color-border);
+			border-radius: 4px;
+			border: 1px solid var(--color-glass);
+		}
+
+		.fancy-modal .system-info-section::-webkit-scrollbar-thumb:hover {
+			background: var(--color-accent);
+		}
+
+		/* Modal Body Scrollbar Styles */
+		.fancy-modal .modal-body::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.fancy-modal .modal-body::-webkit-scrollbar-track {
+			background: transparent;
+			border-radius: 4px;
+		}
+
+		.fancy-modal .modal-body::-webkit-scrollbar-thumb {
+			background: var(--color-border);
+			border-radius: 4px;
+			border: 1px solid transparent;
+		}
+
+		.fancy-modal .modal-body::-webkit-scrollbar-thumb:hover {
+			background: var(--color-accent);
+		}
+
 		/* Scrollbar Styles */
 		.fancy-modal .modal-content-body::-webkit-scrollbar {
 			width: 6px;
@@ -440,38 +763,84 @@ function injectModalStyles() {
 
 		.fancy-modal .modal-content-body::-webkit-scrollbar-thumb:hover {
 			background: var(--color-accent);
-		}
-
-		/* Responsive Design */
+		}		/* Responsive Design */
 		@media (max-width: 600px) {
 			.fancy-modal .modal-content {
 				width: 95vw;
 				margin: 0 16px;
+				max-height: 90vh;
 			}
 			
 			.fancy-modal .modal-body {
-				padding: 0 20px 24px;
+				padding: 0 20px 16px;
 			}
 			
 			.fancy-modal .modal-header {
-				padding: 20px 20px 12px;
+				padding: 16px 20px 8px;
 			}
 			
 			.fancy-modal .modal-title {
-				font-size: 2rem;
+				font-size: 1.8rem;
 				flex-direction: column;
 				gap: 8px;
 			}
 			
 			.fancy-modal .feature-highlights {
 				flex-direction: column;
-				gap: 12px;
+				gap: 10px;
+				margin: 12px 0 16px;
 			}
 			
 			.fancy-modal .feature-item {
 				flex-direction: row;
 				justify-content: flex-start;
 				text-align: left;
+				padding: 10px;
+			}
+
+			.fancy-modal .system-info-grid {
+				grid-template-columns: 1fr;
+				gap: 10px;
+			}
+
+			.fancy-modal .system-info-section {
+				padding: 16px;
+				margin: 16px 0 16px;
+				max-height: 200px;
+			}
+
+			.fancy-modal .system-info-item {
+				padding: 8px 12px;
+			}
+
+			.fancy-modal .modal-actions {
+				margin: 16px 0 8px;
+			}
+
+			.fancy-modal .modal-footer {
+				margin-top: 12px;
+			}
+		}
+
+		/* Ensure proper fitting on 1920x1080 screens */
+		@media (min-height: 1080px) {
+			.fancy-modal .modal-backdrop {
+				max-height: 80vh;
+			}
+			
+			.fancy-modal .modal-content {
+				max-height: 80vh;
+			}
+		}
+
+		/* For very tall screens, allow more space */
+		@media (min-height: 1200px) {
+			.fancy-modal .modal-backdrop {
+				max-height: 85vh;
+			}
+			
+			.fancy-modal .modal-content {
+				max-height: 85vh;
 			}
 		}
 
@@ -503,14 +872,183 @@ async function loadVersionInfo() {
 		// Try to get version from electronAPI if available
 		if (window.electronAPI && typeof window.electronAPI.getAppVersion === 'function') {
 			const version = await window.electronAPI.getAppVersion();
-			const versionBadge = document.getElementById('version-badge');
-			if (versionBadge && version) {
-				versionBadge.textContent = `v${version}`;
+			const versionNumber = document.getElementById('version-number');
+			if (versionNumber && version) {
+				versionNumber.textContent = version;
+			}
+		}
+
+		// Update system information if electronAPI provides it
+		if (window.electronAPI && typeof window.electronAPI.getSystemInfo === 'function') {
+			const systemInfo = await window.electronAPI.getSystemInfo();
+			updateSystemInfo(systemInfo);
+		} else {
+			// Use process info if available (in renderer process)
+			if (typeof process !== 'undefined' && process.versions) {				const systemInfo = {
+					version: window.electronAPI ? await window.electronAPI.getAppVersion() : '21.3.0',
+					electron: process.versions.electron || '36.4.0',
+					node: process.versions.node || '22.15.1',
+					chrome: process.versions.chrome || '136.0.7103.149',
+					platform: process.platform ? `${process.platform} (${process.arch})` : 'win32 (x64)',
+					author: 'Nick2bad4u',
+					license: 'Unlicense'
+				};
+				updateSystemInfo(systemInfo);
 			}
 		}
 	} catch (error) {
 		console.warn('[aboutModal] Could not load version information:', error);
 	}
+}
+
+/**
+ * Updates the system information display
+ */
+function updateSystemInfo(info) {
+	const systemInfoItems = document.querySelectorAll('.system-info-value');
+	if (systemInfoItems.length >= 7) {
+		if (info.version) systemInfoItems[0].textContent = info.version;
+		if (info.electron) systemInfoItems[1].textContent = info.electron;
+		if (info.node) systemInfoItems[2].textContent = info.node;
+		if (info.chrome) systemInfoItems[3].textContent = info.chrome;
+		if (info.platform) systemInfoItems[4].textContent = info.platform;
+		if (info.author) systemInfoItems[5].textContent = info.author;
+		if (info.license) systemInfoItems[6].textContent = info.license;
+	}
+}
+
+/**
+ * Creates and returns the features content HTML
+ */
+function createFeaturesContent() {
+	return `
+		<div class="features-content">
+			<h3 class="features-title">
+				<span>✨</span> Key Features
+			</h3>
+			<ul class="features-list">
+				<li class="features-item">
+					<span class="features-icon" style="color: #4ade80;">📊</span>
+					<div class="features-content-item">
+						<h4 class="features-item-title">Data Analysis</h4>
+						<p class="features-item-description">View detailed FIT file data in interactive tables with sorting and filtering</p>
+					</div>
+				</li>
+				<li class="features-item">
+					<span class="features-icon" style="color: #60a5fa;">🗺️</span>
+					<div class="features-content-item">
+						<h4 class="features-item-title">GPS Mapping</h4>
+						<p class="features-item-description">Interactive maps with route visualization, elevation profiles, and GPX export</p>
+					</div>
+				</li>
+				<li class="features-item">
+					<span class="features-icon" style="color: #f472b6;">📈</span>
+					<div class="features-content-item">
+						<h4 class="features-item-title">Performance Metrics</h4>
+						<p class="features-item-description">Advanced charts and graphs for analyzing performance trends</p>
+					</div>
+				</li>
+				<li class="features-item">
+					<span class="features-icon" style="color: #34d399;">💾</span>
+					<div class="features-content-item">
+						<h4 class="features-item-title">Data Export</h4>
+						<p class="features-item-description">Export data to CSV, GPX, and other formats for further analysis</p>
+					</div>
+				</li>
+				<li class="features-item">
+					<span class="features-icon" style="color: #fbbf24;">🔧</span>
+					<div class="features-content-item">
+						<h4 class="features-item-title">File Recovery</h4>
+						<p class="features-item-description">Repair corrupted FIT files for import into Garmin Connect, Strava, etc.</p>
+					</div>
+				</li>
+				<li class="features-item">
+					<span class="features-icon" style="color: #a78bfa;">⚡</span>
+					<div class="features-content-item">
+						<h4 class="features-item-title">Cross-Platform</h4>
+						<p class="features-item-description">Native desktop application for Windows, macOS, and Linux</p>
+					</div>
+				</li>
+			</ul>
+		</div>
+	`;
+}
+
+/**
+ * Creates and returns the system info content HTML
+ */
+function createSystemInfoContent() {
+	return `
+		<div class="system-info-grid">
+			<div class="system-info-item">
+				<span class="system-info-label">Version</span>
+				<span class="system-info-value version-highlight">21.3.0</span>
+			</div>
+			<div class="system-info-item">
+				<span class="system-info-label">Electron</span>
+				<span class="system-info-value electron-highlight">36.4.0</span>
+			</div>
+			<div class="system-info-item">
+				<span class="system-info-label">Node.js</span>
+				<span class="system-info-value node-highlight">22.15.1</span>
+			</div>
+			<div class="system-info-item">
+				<span class="system-info-label">Chrome</span>
+				<span class="system-info-value chrome-highlight">136.0.7103.149</span>
+			</div>
+			<div class="system-info-item">
+				<span class="system-info-label">Platform</span>
+				<span class="system-info-value platform-highlight">win32 (x64)</span>
+			</div>
+			<div class="system-info-item">
+				<span class="system-info-label">Author</span>
+				<span class="system-info-value author-highlight">Nick2bad4u</span>
+			</div>
+			<div class="system-info-item">
+				<span class="system-info-label">License</span>
+				<span class="system-info-value license-highlight">Unlicense</span>
+			</div>
+		</div>
+	`;
+}
+
+/**
+ * Toggles between features and system info display
+ */
+function toggleInfoSection() {
+	const toggleSection = document.getElementById('info-toggle-section');
+	const toggleButton = document.getElementById('toggle-info-btn');
+	const buttonIcon = toggleButton?.querySelector('.btn-icon');
+	const buttonText = toggleButton?.querySelector('.btn-text');
+	
+	if (!toggleSection || !toggleButton) return;
+	
+	showingFeatures = !showingFeatures;
+	
+	// Add transition effect
+	toggleSection.style.opacity = '0.5';
+	
+	setTimeout(() => {
+		if (showingFeatures) {
+			// Show features
+			toggleSection.innerHTML = createFeaturesContent();
+			buttonIcon.textContent = '🔧';
+			buttonText.textContent = 'System Info';
+			toggleButton.setAttribute('aria-label', 'View system information');
+		} else {
+			// Show system info
+			toggleSection.innerHTML = createSystemInfoContent();
+			buttonIcon.textContent = '✨';
+			buttonText.textContent = 'Features';
+			toggleButton.setAttribute('aria-label', 'View detailed features');
+			
+			// Reload system info data after switching back
+			loadVersionInfo();
+		}
+		
+		// Restore opacity
+		toggleSection.style.opacity = '1';
+	}, 150);
 }
 
 /**
@@ -525,6 +1063,21 @@ function hideAboutModal() {
 		// Wait for animation to complete before hiding
 		setTimeout(() => {
 			modal.style.display = 'none';
+			
+			// Reset to system info state when closing
+			showingFeatures = false;
+			const toggleSection = document.getElementById('info-toggle-section');
+			const toggleButton = document.getElementById('toggle-info-btn');
+			if (toggleSection && toggleButton) {
+				toggleSection.innerHTML = createSystemInfoContent();
+				const buttonIcon = toggleButton.querySelector('.btn-icon');
+				const buttonText = toggleButton.querySelector('.btn-text');
+				if (buttonIcon) buttonIcon.textContent = '✨';
+				if (buttonText) buttonText.textContent = 'Features';
+				toggleButton.setAttribute('aria-label', 'View detailed features');
+				// Reload system info
+				loadVersionInfo();
+			}
 			
 			// Restore focus to last focused element
 			if (lastFocusedElement) {
@@ -550,68 +1103,6 @@ function handleEscapeKey(e) {
 }
 
 /**
- * Shows detailed features list in the modal body
- */
-function showFeaturesList() {
-	const featuresContent = `
-		<h3 style="color: var(--color-fg); opacity: 0.9; margin-top: 0; display: flex; align-items: center; gap: 8px;">
-			<span>✨</span> Key Features
-		</h3>
-		<div style="color: var(--color-fg); opacity: 0.8; text-align: left;">
-			<ul style="list-style: none; padding: 0; margin: 0;">
-				<li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
-					<span style="color: #4ade80;">📊</span>
-					<div>
-						<strong style="color: var(--color-fg); opacity: 0.95;">Data Analysis</strong>
-						<div style="font-size: 0.9em; margin-top: 2px;">View detailed FIT file data in interactive tables with sorting and filtering</div>
-					</div>
-				</li>
-				<li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
-					<span style="color: #60a5fa;">🗺️</span>
-					<div>
-						<strong style="color: var(--color-fg); opacity: 0.95;">GPS Mapping</strong>
-						<div style="font-size: 0.9em; margin-top: 2px;">Interactive maps with route visualization, elevation profiles, and GPX export</div>
-					</div>
-				</li>
-				<li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
-					<span style="color: #f472b6;">📈</span>
-					<div>
-						<strong style="color: var(--color-fg); opacity: 0.95;">Performance Metrics</strong>
-						<div style="font-size: 0.9em; margin-top: 2px;">Advanced charts and graphs for analyzing performance trends</div>
-					</div>
-				</li>
-				<li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
-					<span style="color: #34d399;">💾</span>
-					<div>
-						<strong style="color: var(--color-fg); opacity: 0.95;">Data Export</strong>
-						<div style="font-size: 0.9em; margin-top: 2px;">Export data to CSV, GPX, and other formats for further analysis</div>
-					</div>
-				</li>
-				<li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
-					<span style="color: #fbbf24;">🔧</span>
-					<div>
-						<strong style="color: var(--color-fg); opacity: 0.95;">File Recovery</strong>
-						<div style="font-size: 0.9em; margin-top: 2px;">Repair corrupted FIT files for import into Garmin Connect, Strava, etc.</div>
-					</div>
-				</li>
-				<li style="display: flex; align-items: flex-start; gap: 8px;">
-					<span style="color: #a78bfa;">⚡</span>
-					<div>
-						<strong style="color: var(--color-fg); opacity: 0.95;">Cross-Platform</strong>
-						<div style="font-size: 0.9em; margin-top: 2px;">Native desktop application for Windows, macOS, and Linux</div>
-					</div>
-				</li>
-			</ul>
-		</div>
-	`;
-	
-	const body = document.getElementById('about-modal-body');
-	if (body) {
-		body.innerHTML = featuresContent;
-	}
-}
-
-/**
  * Enhanced modal display function with animations and improved accessibility
  * @param {string} html - HTML content to display in the modal body
  */
@@ -621,7 +1112,7 @@ export function showAboutModal(html = '') {
 		if (modal) {
 		const body = document.getElementById('about-modal-body');
 		const closeBtn = document.getElementById('about-modal-close');
-		const featuresBtn = document.getElementById('features-modal-btn');
+		const toggleBtn = document.getElementById('toggle-info-btn');
 		
 		if (body && closeBtn) {
 			// Set content
@@ -650,17 +1141,17 @@ export function showAboutModal(html = '') {
 					hideAboutModal();
 				}
 			};
-					// Features button functionality
-			if (featuresBtn) {
-				featuresBtn.onclick = (e) => {
+					// Toggle button functionality
+			if (toggleBtn) {
+				toggleBtn.onclick = (e) => {
 					e.preventDefault();
-					showFeaturesList();
+					toggleInfoSection();
 				};
 				
-				featuresBtn.onkeydown = (e) => {
+				toggleBtn.onkeydown = (e) => {
 					if (e.key === 'Enter' || e.key === ' ') {
 						e.preventDefault();
-						showFeaturesList();
+						toggleInfoSection();
 					}
 				};
 			}

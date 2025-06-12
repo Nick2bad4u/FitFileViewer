@@ -212,6 +212,9 @@ body {
 	min-height: 100vh;
 	position: relative;
 	overflow-x: hidden;
+	text-rendering: optimizespeed;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 /* Add a subtle overlay pattern for depth */
@@ -1576,12 +1579,12 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 	outline-offset: 2px;
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
 	from { opacity: 0; }
 	to { opacity: 1; }
 }
 
-@keyframes slideUp {
+@keyframes slide-up {
 	from { 
 		opacity: 0;
 		transform: translateY(30px);
@@ -1655,18 +1658,18 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 /* =====================================================
-   Notification Styles - Modern Glass Design
+   Notification Styles - Enhanced Modern Design
    ===================================================== */
 .notification {
 	position: fixed;
 	top: 32px;
 	left: 50%;
 	transform: translateX(-50%) translateY(-100px);
-	min-width: 280px;
-	max-width: 90vw;
-	padding: 20px 32px;
+	min-width: 320px;
+	max-width: min(90vw, 600px);
+	padding: 16px 20px;
 	border-radius: var(--border-radius);
-	font-size: 1rem;
+	font-size: 0.95rem;
 	font-weight: 500;
 	z-index: 10001;
 	background: var(--color-glass);
@@ -1674,14 +1677,15 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 	color: var(--color-fg);
 	border: 1px solid var(--color-glass-border);
 	box-shadow: var(--color-box-shadow);
-	text-align: center;
 	opacity: 0;
 	visibility: hidden;
-	transition: var(--transition-bounce);
+	transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	gap: 12px;
+	justify-content: flex-start;
+	gap: 8px;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
 }
 
 .notification.show {
@@ -1690,28 +1694,121 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 	transform: translateX(-50%) translateY(0);
 }
 
+/* Enhanced notification type styles with better contrast */
 .notification.error {
-	background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%);
+	background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 	color: #fff;
-	border-color: rgb(255 255 255 / 20%);
+	border-color: rgb(255 255 255 / 30%);
+	box-shadow: 0 8px 32px rgb(239 68 68 / 30%);
 }
 
 .notification.success {
-	background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 	color: #fff;
-	border-color: rgb(255 255 255 / 20%);
+	border-color: rgb(255 255 255 / 30%);
+	box-shadow: 0 8px 32px rgb(16 185 129 / 30%);
 }
 
 .notification.warning {
-	background: linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%);
+	background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 	color: #fff;
-	border-color: rgb(255 255 255 / 20%);
+	border-color: rgb(255 255 255 / 30%);
+	box-shadow: 0 8px 32px rgb(245 158 11 / 30%);
 }
 
 .notification.info {
-	background: linear-gradient(135deg, var(--color-info) 0%, #2563eb 100%);
+	background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 	color: #fff;
-	border-color: rgb(255 255 255 / 20%);
+	border-color: rgb(255 255 255 / 30%);
+	box-shadow: 0 8px 32px rgb(59 130 246 / 30%);
+}
+
+/* Notification content styling */
+.notification-content {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 1;
+	min-width: 0; /* Allow text to wrap */
+}
+
+.notification-icon {
+	font-size: 1.2rem;
+	flex-shrink: 0;
+	line-height: 1;
+}
+
+.notification-message {
+	flex: 1;
+	text-align: left;
+	line-height: 1.4;
+	word-break: break-word;
+}
+
+.notification-actions {
+	display: flex;
+	gap: 8px;
+	margin-left: 12px;
+	flex-shrink: 0;
+}
+
+.notification-actions .themed-btn {
+	font-size: 0.85rem;
+	padding: 6px 12px;
+	min-height: auto;
+	border: 1px solid rgb(255 255 255 / 30%);
+	background: rgb(255 255 255 / 10%);
+	color: inherit;
+	transition: all 0.2s ease;
+}
+
+.notification-actions .themed-btn:hover {
+	background: rgb(255 255 255 / 20%);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+}
+
+.notification-close {
+	background: none !important;
+	border: none !important;
+	color: inherit !important;
+	font-size: 1.4rem !important;
+	cursor: pointer !important;
+	padding: 0 !important;
+	margin-left: 12px !important;
+	opacity: 0.7 !important;
+	transition: opacity 0.2s ease !important;
+	flex-shrink: 0 !important;
+	line-height: 1 !important;
+	width: 20px !important;
+	height: 20px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+.notification-close:hover {
+	opacity: 1 !important;
+}
+
+/* Mobile responsiveness */
+@media (width <= 640px) {
+	.notification {
+		top: 16px;
+		min-width: 280px;
+		max-width: calc(100vw - 32px);
+		font-size: 0.9rem;
+		padding: 14px 16px;
+	}
+	
+	.notification-actions {
+		margin-left: 8px;
+	}
+	
+	.notification-actions .themed-btn {
+		font-size: 0.8rem;
+		padding: 5px 10px;
+	}
 }
 
 /* =====================================================
@@ -2067,35 +2164,6 @@ body.theme-dark .map-action-btn.disabled {
 	opacity: 0.6;
 }
 
-/* ===========================
-   Modern Scrollbar Styles
-   =========================== */
-::-webkit-scrollbar {
-	width: 10px;
-	height: 10px;
-	background: #23263a;
-}
-
-::-webkit-scrollbar-thumb {
-	background: #444b6e;
-	border-radius: 8px;
-	border: 2px solid #23263a;
-	min-height: 40px;
-	transition: background 0.2s;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background: #21649b;
-}
-
-::-webkit-scrollbar-corner,
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-track-piece {
-	background: #23263a;
-	border-radius: 8px;
-	box-shadow: inset 0 0 5px #0003;
-}
-
 /* =====================================================
    Fullsize Container & No Border
    ===================================================== */
@@ -2109,22 +2177,6 @@ body.theme-dark .map-action-btn.disabled {
 
 .no-border {
 	border: none;
-}
-
-/* =====================================================
-   Keyboard Shortcut Dialog
-   ===================================================== */
-.shortcut-list {
-	list-style: none;
-	padding: 0;
-}
-
-.shortcut-list-item {
-	margin-bottom: 8px;
-}
-
-.shortcut-key {
-	color: #2196f3;
 }
 
 /* Inline CSS moved from JS templates and elements */
@@ -2471,13 +2523,6 @@ button:disabled {
 .credits-section,
 .header-bar {
 	contain: layout style paint;
-}
-
-/* Optimize font rendering */
-body {
-	text-rendering: optimizespeed;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
 }
 
 /* Efficient box model calculations */

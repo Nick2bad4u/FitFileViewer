@@ -258,44 +258,55 @@ export function setupListeners({
 			if (window.electronAPI.send) window.electronAPI.send('menu-export');
 		});
 		window.electronAPI.onIpc('menu-about', async () => {
-			const [version, electronVersion, nodeVersion, chromeVersion, platformInfo, license] = await Promise.all([
-				window.electronAPI.getAppVersion ? window.electronAPI.getAppVersion() : 'Unknown',
-				window.electronAPI.getElectronVersion ? window.electronAPI.getElectronVersion() : 'Unknown',
-				window.electronAPI.getNodeVersion ? window.electronAPI.getNodeVersion() : 'Unknown',
-				window.electronAPI.getChromeVersion ? window.electronAPI.getChromeVersion() : 'Unknown',
-				window.electronAPI.getPlatformInfo ? window.electronAPI.getPlatformInfo() : { platform: 'Unknown', arch: 'Unknown' },
-				window.electronAPI.getLicenseInfo ? window.electronAPI.getLicenseInfo() : 'Unknown',
-			]);
-			const author = 'Nick2bad4u';
-			const aboutMsg = `
-				Version: ${version}<br>
-				Electron: ${electronVersion}<br>
-				Node.js: ${nodeVersion}<br>
-				Chrome: ${chromeVersion}<br>
-				Platform: ${platformInfo.platform} (${platformInfo.arch})<br>
-				Author: ${author}<br>
-				License: ${license}
-			`;
-			showAboutModal(aboutMsg);
+			// Show the about modal without any content since the styled system info 
+			// section will automatically load and display all the version information
+			showAboutModal();
 		});
 		window.electronAPI.onIpc('menu-keyboard-shortcuts', () => {
-			const shortcuts = [
-				['Open File', 'Ctrl+O'],
-				['Save As', 'Ctrl+S'],
-				['Print', 'Ctrl+P'],
-				['Close Window', 'Ctrl+W'],
-				['Reload', 'Ctrl+R'],
-				['Toggle DevTools', 'Ctrl+Shift+I'],
-				['Toggle Fullscreen', 'F11'],
-				['Export', 'No default'],
-				['Theme: Dark/Light', 'Settings > Theme'],
-			];
-			let html = '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
-			for (const [action, keys] of shortcuts) {
-				html += `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`;
+			console.log('Keyboard shortcuts menu clicked - starting handler');
+			// Check if the keyboard shortcuts modal script is already loaded
+			if (typeof window.showKeyboardShortcutsModal === 'undefined') {
+				console.log('Modal script not loaded, loading dynamically...');
+				// Load the keyboard shortcuts modal script dynamically
+				const script = document.createElement('script');
+				script.src = './utils/keyboardShortcutsModal.js';
+				script.onload = () => {
+					console.log('Script loaded successfully');
+					// Call the function after the script is loaded
+					if (typeof window.showKeyboardShortcutsModal === 'function') {
+						console.log('Calling showKeyboardShortcutsModal function');
+						window.showKeyboardShortcutsModal();
+					} else {
+						console.error('showKeyboardShortcutsModal function not available after script load');
+					}
+				};
+				script.onerror = (error) => {
+					console.error('Failed to load keyboard shortcuts modal script:', error);
+					// Fallback to old implementation
+					const shortcuts = [
+						['Open File', 'Ctrl+O'],
+						['Save As', 'Ctrl+S'],
+						['Print', 'Ctrl+P'],
+						['Close Window', 'Ctrl+W'],
+						['Reload', 'Ctrl+R'],
+						['Toggle DevTools', 'Ctrl+Shift+I'],
+						['Toggle Fullscreen', 'F11'],
+						['Export', 'No default'],
+						['Theme: Dark/Light', 'Settings > Theme'],
+					];
+					let html = '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
+					for (const [action, keys] of shortcuts) {
+						html += `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`;
+					}
+					html += '</ul>';
+					showAboutModal(html);
+				};
+				document.head.appendChild(script);
+			} else {
+				console.log('Modal script already loaded, calling function directly');
+				// Function is already available, call it directly
+				window.showKeyboardShortcutsModal();
 			}
-			html += '</ul>';
-			showAboutModal(html);
 		});
 	}
 
