@@ -6,7 +6,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[7a0ea19](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)...[b738668](https://github.com/Nick2bad4u/FitFileViewer/commit/b738668d558d425f5ab4ed1d62bea631f1011eb8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7a0ea190c90bacc125afb8df9f66562de6eb54b0...b738668d558d425f5ab4ed1d62bea631f1011eb8))
+[[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)...[7b38cca](https://github.com/Nick2bad4u/FitFileViewer/commit/7b38ccaac3f8ff5627fdc8dd0e81e6bc3392c5ae)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a082640df2aeae666efa952d526efc6c54065154...7b38ccaac3f8ff5627fdc8dd0e81e6bc3392c5ae))
+
+### 📦 Dependencies
+
+- [dependency] Update version 21.4.0 [`(7b38cca)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7b38ccaac3f8ff5627fdc8dd0e81e6bc3392c5ae)
+
+
+## [21.4.0] - 2025-06-12
+
+[[7a0ea19](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)...[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7a0ea190c90bacc125afb8df9f66562de6eb54b0...a082640df2aeae666efa952d526efc6c54065154))
+
+### 💼 Other
+
+- Enhances UI polish, modals, and notification system
+
+Modernizes the UI with improved notification styles, icons, and queue management for better user feedback. Revamps the about modal with togglable system info and feature views, and introduces a dedicated, animated keyboard shortcuts modal. Refines initialization, error handling, and performance monitoring in the renderer process for greater robustness and developer experience. Updates style and linting configurations to support new visual components and ensures accessibility and consistency across dialogs. [`(a082640)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.3.0 [skip ci] [`(96d20c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96d20c9f09e77c9b557a734da86071e4bcdcf0f9)
+
 
 ### 📦 Dependencies
 
