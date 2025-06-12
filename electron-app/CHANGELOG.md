@@ -6,7 +6,41 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)...[3f3c3ce](https://github.com/Nick2bad4u/FitFileViewer/commit/3f3c3ce64587892c757c4fbad1696b5654fc32ee)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9411374418655f6be63e2d0c2c11b9e520d9541b...3f3c3ce64587892c757c4fbad1696b5654fc32ee))
+[[7a0ea19](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)...[b738668](https://github.com/Nick2bad4u/FitFileViewer/commit/b738668d558d425f5ab4ed1d62bea631f1011eb8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7a0ea190c90bacc125afb8df9f66562de6eb54b0...b738668d558d425f5ab4ed1d62bea631f1011eb8))
+
+### 📦 Dependencies
+
+- [dependency] Update version 21.3.0 [`(b738668)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b738668d558d425f5ab4ed1d62bea631f1011eb8)
+
+
+## [21.3.0] - 2025-06-11
+
+[[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)...[7a0ea19](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9411374418655f6be63e2d0c2c11b9e520d9541b...7a0ea190c90bacc125afb8df9f66562de6eb54b0))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(7a0ea19)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)
+
+
+### 💼 Other
+
+- Modernizes UI with glassmorphism and improves UX
+
+Revamps the user interface with a modern glassmorphism style, adding gradients, depth, and refined animations for a visually appealing and professional look.
+
+Enhances modal dialogs, tab navigation, notifications, and overlay effects for consistency and accessibility. Unifies style constants, improves dark/light theming, and ensures responsive, accessible design throughout.
+
+Refactors code for better modularity, state management, and error handling, including improved event cleanup and external link handling. Upgrades About modal with dynamic content, branding, and feature highlights.
+
+Improves maintainability and performance with utility function organization, window state management, and development helpers.
+
+Relates to UI/UX modernization and maintainability goals. [`(99bca90)`](https://github.com/Nick2bad4u/FitFileViewer/commit/99bca9067403a202d647d7942da8fd2df71ec662)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.2.0 [skip ci] [`(ae7208f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ae7208f8c8d5e7bc83fc9ad0ed56e6c114be53fb)
+
 
 ### 📦 Dependencies
 
