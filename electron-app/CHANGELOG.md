@@ -6,9 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[f852b00](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)...[40535bf](https://github.com/Nick2bad4u/FitFileViewer/commit/40535bf536a372fcc8995d8929c1a4f6717bd49d)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f852b00b5b566dd1b1126cf0dfa108b96a425a46...40535bf536a372fcc8995d8929c1a4f6717bd49d))
+[[f852b00](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)...[e012aad](https://github.com/Nick2bad4u/FitFileViewer/commit/e012aad052754653df34f62af6031fcbb07b468a)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f852b00b5b566dd1b1126cf0dfa108b96a425a46...e012aad052754653df34f62af6031fcbb07b468a))
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.5.0 [skip ci] [`(70ef106)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70ef106272504f376162e0d4010f0d04b58072ea)
+
 
 ### 📦 Dependencies
+
+- [dependency] Update version 21.6.0 [`(e012aad)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e012aad052754653df34f62af6031fcbb07b468a)
 
 - [dependency] Update version 21.5.0 [`(40535bf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/40535bf536a372fcc8995d8929c1a4f6717bd49d)
 
