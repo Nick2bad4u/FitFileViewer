@@ -44,9 +44,9 @@ updates:
   - dependency-type: "all"
   ignore:
   - dependency-name: "electron-builder"
-    versions: [ "< 26.0.16" ]
+    versions: [ "< 26.0.17" ]
   - dependency-name: "electron-builder-squirrel-windows"
-    versions: [ "< 26.0.16" ]
+    versions: [ "< 26.0.17" ]
   labels:
   - "npm"
   - "dependabot"
