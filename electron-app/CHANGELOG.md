@@ -6,7 +6,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)...[7b38cca](https://github.com/Nick2bad4u/FitFileViewer/commit/7b38ccaac3f8ff5627fdc8dd0e81e6bc3392c5ae)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a082640df2aeae666efa952d526efc6c54065154...7b38ccaac3f8ff5627fdc8dd0e81e6bc3392c5ae))
+[[f852b00](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)...[40535bf](https://github.com/Nick2bad4u/FitFileViewer/commit/40535bf536a372fcc8995d8929c1a4f6717bd49d)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f852b00b5b566dd1b1126cf0dfa108b96a425a46...40535bf536a372fcc8995d8929c1a4f6717bd49d))
+
+### 📦 Dependencies
+
+- [dependency] Update version 21.5.0 [`(40535bf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/40535bf536a372fcc8995d8929c1a4f6717bd49d)
+
+
+## [21.5.0] - 2025-06-13
+
+[[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)...[f852b00](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a082640df2aeae666efa952d526efc6c54065154...f852b00b5b566dd1b1126cf0dfa108b96a425a46))
+
+### 💼 Other
+
+- Revamps Chart.js integration with advanced controls and exports
+
+Overhauls the chart rendering system to add a modern, toggleable controls panel, advanced export and sharing options (PNG, CSV, JSON, ZIP, clipboard, Imgur), and improved accessibility and error handling. Introduces support for zone data visualization, lap analysis charts, and professional styling with theme-aware design. Optimizes performance, code structure, and user feedback for a richer FIT file data experience.
+
+Fixes chart layout, enhances maintainability, and prepares for future extensibility. [`(f852b00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.4.0 [skip ci] [`(7eba6b4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7eba6b4d5e3cb4743999441c103f19941bfd4df1)
+
 
 ### 📦 Dependencies
 
