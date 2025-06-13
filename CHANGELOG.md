@@ -6,7 +6,34 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[dd44ae5](https://github.com/Nick2bad4u/FitFileViewer/commit/dd44ae5249747719a794cfa2085bc992c4f8460d)...[7c8ac27](https://github.com/Nick2bad4u/FitFileViewer/commit/7c8ac27455ec87587dd65b62a04f813ba3be7105)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/dd44ae5249747719a794cfa2085bc992c4f8460d...7c8ac27455ec87587dd65b62a04f813ba3be7105))
+[[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)...[2c74478](https://github.com/Nick2bad4u/FitFileViewer/commit/2c74478cbdd3e523b98cf63c5e507d18b533359c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fad6333373c7a154c878deb90dafa81c6366faac...2c74478cbdd3e523b98cf63c5e507d18b533359c))
+
+### 📦 Dependencies
+
+- [dependency] Update version 21.8.0 [`(2c74478)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2c74478cbdd3e523b98cf63c5e507d18b533359c)
+
+
+## [21.8.0] - 2025-06-13
+
+[[dd44ae5](https://github.com/Nick2bad4u/FitFileViewer/commit/dd44ae5249747719a794cfa2085bc992c4f8460d)...[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/dd44ae5249747719a794cfa2085bc992c4f8460d...fad6333373c7a154c878deb90dafa81c6366faac))
+
+### 💼 Other
+
+- Improves Chart.js theming with robust dark/light detection
+
+Unifies and strengthens theme detection for all Chart.js charts, ensuring consistent light/dark appearance regardless of app state or user preference.
+
+Adds a global background color plugin for Chart.js, enabling reliable theme-aware chart backgrounds. Refactors chart rendering functions to use this theme detection and plugin, improving chart readability and polish.
+
+Cleans up legacy code, removes redundant theme logic, and enhances UI component event handler management to prevent memory leaks. [`(fad6333)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(e834c02)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e834c0218896ff772945dcc751cbe71e178e4734)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.7.0 [skip ci] [`(2f4d450)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f4d450a1f32e8b7e46cd0edc9e6ef17bed929e1)
+
 
 ### 📦 Dependencies
 
