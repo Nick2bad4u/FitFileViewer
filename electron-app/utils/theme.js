@@ -56,6 +56,8 @@ export function applyTheme(theme, withTransition = true) {
 			document.body.classList.remove(THEME_TRANSITION_CLASS);
 		}, 300);
 	}
+
+	console.log('[Theme] Applying theme:', theme);
 }
 
 /**

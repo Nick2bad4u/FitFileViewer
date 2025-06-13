@@ -27,90 +27,6 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
-// How to Use PerformanceMonitor.getMetrics()
-// 1. Through Development Utilities (Recommended)
-// Since you're in development mode, the performance monitor is exposed through the global development object:
-
-// Get all performance metrics
-// window.__renderer_dev.getPerformanceMetrics()
-
-// Or access the PerformanceMonitor directly
-// window.__renderer_dev.PerformanceMonitor.getMetrics()
-
-// You can also access individual methods
-// window.__renderer_dev.PerformanceMonitor.start('my_operation')
-// window.__renderer_dev.PerformanceMonitor.end('my_operation')
-
-// 2. Available Development Commands
-// Try these in your browser console:
-
-// See all available development utilities
-// console.log(window.__renderer_dev)
-
-//Get current performance metrics
-// window.__renderer_dev.getPerformanceMetrics()
-
-//Get application state
-// window.__renderer_dev.appState
-
-//Get app information
-// window.__renderer_dev.APP_INFO
-
-//Validate DOM elements
-// window.__renderer_dev.validateDOM()
-
-//Reinitialize the application (if needed)
-// window.__renderer_dev.reinitialize()
-
-//3. Real-time Performance Monitoring
-//You can also monitor performance in real-time:
-
-//Start timing a custom operation
-// window.__renderer_dev.PerformanceMonitor.start('file_processing')
-
-//... do some work ...
-
-//End timing and get the duration
-// const duration = window.__renderer_dev.PerformanceMonitor.end('file_processing')
-// console.log(`Operation took ${duration}ms`)
-
-//4. Check What Metrics Are Already Available
-//This should show you metrics like:
-
-//See what performance metrics have been collected so far
-// const metrics = window.__renderer_dev.getPerformanceMetrics()
-// console.table(metrics)
-
-// app_initialization - How long the app took to initialize
-// theme_setup - Theme system setup time
-// listeners_setup - Event listeners setup time
-// async_components - Async components initialization time
-
-// Try this first command to see your current metrics:
-
-// window.__renderer_dev.getPerformanceMetrics();
-
-// ==========================================
-
-// Legacy utility fallbacks for backwards compatibility
-const rendererUtils = window.rendererUtils || {};
-const setLoading = rendererUtils.setLoading || function(isLoading) {
-	console.warn('[Renderer] setLoading fallback called:', isLoading);
-};
-
-const themeUtils = window.theme || {};
-const applyTheme = themeUtils.applyTheme || function(theme) {
-	console.warn('[Renderer] applyTheme fallback called:', theme);
-};
-
-const listenForThemeChange = themeUtils.listenForThemeChange || (() => {
-	console.warn('[Renderer] listenForThemeChange fallback called');
-});
-
-// ==========================================
-// Modern ES6 Module Imports
-// ==========================================
-
 import { showNotification } from './utils/showNotification.js';
 import { handleOpenFile } from './utils/handleOpenFile.js';
 import { setupTheme } from './utils/setupTheme.js';
@@ -118,6 +34,8 @@ import { showUpdateNotification } from './utils/showUpdateNotification.js';
 import { setupListeners } from './utils/listeners.js';
 import { showAboutModal } from './utils/aboutModal.js';
 import { createExportGPXButton } from './utils/mapActionButtons.js';
+import { applyTheme, listenForThemeChange } from './utils/theme.js';
+import { setLoading } from './utils/rendererUtils.js';
 
 // ==========================================
 // Environment Detection

@@ -2662,3 +2662,7 @@ a:focus-visible {
 /* =====================================================
    END OF PROFESSIONAL THEME SYSTEM
    ===================================================== */
+
+#lap-select > option:nth-child(n) {
+	background: var(--color-bg-solid);
+}

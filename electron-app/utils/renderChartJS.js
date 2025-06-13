@@ -29,6 +29,53 @@
 /* global JSZip */
 
 import { showNotification } from './showNotification.js';
+import { getEffectiveTheme } from './theme.js';
+
+/**
+ * Detects the current theme robustly using multiple fallback methods
+ * @returns {string} Current theme ('dark' or 'light')
+ */
+function detectCurrentTheme() {
+	// Method 1: Check body classes (primary method used by the app)
+	if (document.body.classList.contains('theme-dark')) {
+		return 'dark';
+	}
+	if (document.body.classList.contains('theme-light')) {
+		return 'light';
+	}
+	
+	// Method 2: Use the theme utility if available
+	try {
+		const effectiveTheme = getEffectiveTheme();
+		if (effectiveTheme) {
+			return effectiveTheme;
+		}
+	} catch (error) {
+		console.warn('[ChartJS] getEffectiveTheme failed:', error);
+	}
+	
+	// Method 3: Check localStorage
+	try {
+		const savedTheme = localStorage.getItem('theme');
+		if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
+			return savedTheme;
+		}
+	} catch (error) {
+		console.warn('[ChartJS] localStorage access failed:', error);
+	}
+	
+	// Method 4: System preference fallback
+	try {
+		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			return 'dark';
+		}
+	} catch (error) {
+		console.warn('[ChartJS] matchMedia access failed:', error);
+	}
+	
+	// Final fallback
+	return 'light';
+}
 
 /**
  * Formats seconds into MM:SS or HH:MM:SS format
@@ -2014,7 +2061,6 @@ function createExportSection(wrapper) {
 		position: relative;
 		z-index: 1;
 	`;
-
 	const exportTitle = document.createElement('h4');
 	exportTitle.textContent = 'Export & Share';
 	exportTitle.style.cssText = `
@@ -2479,9 +2525,29 @@ const zoomResetPlugin = {
 				chart.resetZoom();
 				showNotification('Chart zoom reset', 'success');
 			}
-		}
-	},
+		}	},
 };
+
+// Background color plugin for theme-aware chart backgrounds
+const backgroundColorPlugin = {
+	id: 'backgroundColorPlugin',
+	beforeDraw: (chart, args, options) => {
+		const backgroundColor = options?.backgroundColor || chart.options?.plugins?.backgroundColorPlugin?.backgroundColor;
+		if (!backgroundColor) return;
+		
+		const { ctx, width, height } = chart;
+		ctx.save();
+		ctx.fillStyle = backgroundColor;
+		ctx.fillRect(0, 0, width, height);
+		ctx.restore();
+	}
+};
+
+// Register the background color plugin globally
+if (window.Chart && !window.Chart.registry.plugins.get('backgroundColorPlugin')) {
+	window.Chart.register(backgroundColorPlugin);
+	console.log('[ChartJS] backgroundColorPlugin registered');
+}
 
 // Helper function to create chart canvas element
 function createChartCanvas(field, index) {
@@ -2518,10 +2584,15 @@ function createEnhancedChart(canvas, options) {
 		smoothing,
 		customColors,
 		zoomPluginConfig,
-		fieldLabels
-	} = options;
-
-	try {
+		fieldLabels,
+		theme
+	} = options;	try {
+		// Get theme using robust detection
+		const currentTheme = detectCurrentTheme();
+		console.log('[ChartJS] Theme debugging for field:', field);
+		console.log('[ChartJS] - theme param:', theme);
+		console.log('[ChartJS] - detectCurrentTheme():', currentTheme);
+		
 		// Get field color
 		const fieldColor = customColors[field] || getFieldColor(field);
 		
@@ -2561,8 +2632,7 @@ function createEnhancedChart(canvas, options) {
 				interaction: {
 					intersect: false,
 					mode: 'index'
-				},
-				plugins: {
+				},				plugins: {
 					legend: {
 						display: showLegend,
 						position: 'top',
@@ -2570,7 +2640,8 @@ function createEnhancedChart(canvas, options) {
 							usePointStyle: true,
 							font: {
 								size: 12
-							}
+							},
+							color: currentTheme === 'dark' ? '#fff' : '#000'
 						}
 					},
 					title: {
@@ -2580,13 +2651,14 @@ function createEnhancedChart(canvas, options) {
 							size: 16,
 							weight: 'bold'
 						},
-						padding: 20
+						padding: 20,
+						color: currentTheme === 'dark' ? '#fff' : '#000'
 					},
 					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: fieldColor,
+						backgroundColor: currentTheme === 'dark' ? '#222' : '#fff',
+						titleColor: currentTheme === 'dark' ? '#fff' : '#000',
+						bodyColor: currentTheme === 'dark' ? '#fff' : '#000',
+						borderColor: currentTheme === 'dark' ? '#555' : '#ddd',
 						borderWidth: 1,
 						cornerRadius: 6,
 						displayColors: true,
@@ -2599,16 +2671,18 @@ function createEnhancedChart(canvas, options) {
 								const unit = getFieldUnit(field);
 								return `${context.dataset.label}: ${formatValue(value, field)}${unit}`;
 							}
-						}
-					},
-					zoom: zoomPluginConfig
-				},				scales: {
+						}					},
+					zoom: zoomPluginConfig,
+					backgroundColorPlugin: {
+						backgroundColor: currentTheme === 'dark' ? '#181c24' : '#ffffff'
+					}
+				},scales: {
 					x: {
 						type: 'linear',
 						display: true,
 						grid: {
 							display: showGrid,
-							color: 'rgba(0, 0, 0, 0.1)'
+							color: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
 						},
 						title: {
 							display: true,
@@ -2616,9 +2690,11 @@ function createEnhancedChart(canvas, options) {
 							font: {
 								size: 12,
 								weight: 'bold'
-							}
+							},
+							color: currentTheme === 'dark' ? '#fff' : '#000'
 						},
 						ticks: {
+							color: currentTheme === 'dark' ? '#fff' : '#000',
 							callback: function(value) {
 								// Format seconds as MM:SS or HH:MM:SS
 								return formatTime(value);
@@ -2629,7 +2705,7 @@ function createEnhancedChart(canvas, options) {
 						display: true,
 						grid: {
 							display: showGrid,
-							color: 'rgba(0, 0, 0, 0.1)'
+							color: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
 						},
 						title: {
 							display: true,
@@ -2637,7 +2713,11 @@ function createEnhancedChart(canvas, options) {
 							font: {
 								size: 12,
 								weight: 'bold'
-							}
+							},
+							color: currentTheme === 'dark' ? '#fff' : '#000'
+						},
+						ticks: {
+							color: currentTheme === 'dark' ? '#fff' : '#000'
 						}
 					}
 				},
@@ -2645,11 +2725,17 @@ function createEnhancedChart(canvas, options) {
 					duration: animationStyle === 'none' ? 0 : 
 							 animationStyle === 'fast' ? 500 : 
 							 animationStyle === 'slow' ? 2000 : 1000,
-					easing: interpolation
-				}
-			},
-			plugins: [zoomResetPlugin]
+					easing: interpolation				}
+			},			plugins: [
+				zoomResetPlugin,
+				'backgroundColorPlugin'
+			]
 		};
+		
+		// Apply theme-aware canvas styling (background handled by plugin)
+		canvas.style.borderRadius = '12px';
+		canvas.style.boxShadow = '0 2px 16px 0 rgba(0,0,0,0.18)';
+		
 		// Create and return chart
 		const chart = new window.Chart(canvas, config);
 		
@@ -2672,10 +2758,16 @@ function renderEventMessagesChart(container, options, startTime) {
 	try {
 		const eventMesgs = window.globalData?.eventMesgs;
 		if (!eventMesgs || !Array.isArray(eventMesgs) || eventMesgs.length === 0) {
-			return;
-		}
+			return;		}
 
+		// Get theme using robust detection
+		const currentTheme = detectCurrentTheme();
 		const canvas = createChartCanvas('events', 'events');
+		
+		// Apply theme-aware canvas styling (background handled by plugin)
+		canvas.style.borderRadius = '12px';
+		canvas.style.boxShadow = '0 2px 16px 0 rgba(0,0,0,0.18)';
+		
 		container.appendChild(canvas);
 		// Prepare event data with relative timestamps
 		const eventData = eventMesgs.map(event => {
@@ -2730,43 +2822,62 @@ function renderEventMessagesChart(container, options, startTime) {
 			},
 			options: {
 				responsive: true,
-				maintainAspectRatio: false,
-				plugins: {
+				maintainAspectRatio: false,				plugins: {
 					legend: {
-						display: options.showLegend
+						display: options.showLegend,
+						labels: {
+							color: currentTheme === 'dark' ? '#fff' : '#000'
+						}
 					},
 					title: {
 						display: options.showTitle,
 						text: 'Event Messages',
-						font: { size: 16, weight: 'bold' }
+						font: { size: 16, weight: 'bold' },
+						color: currentTheme === 'dark' ? '#fff' : '#000'
 					},
 					tooltip: {
+						backgroundColor: currentTheme === 'dark' ? '#222' : '#fff',
+						titleColor: currentTheme === 'dark' ? '#fff' : '#000',
+						bodyColor: currentTheme === 'dark' ? '#fff' : '#000',
+						borderColor: currentTheme === 'dark' ? '#555' : '#ddd',
+						borderWidth: 1,
 						callbacks: {
 							label: function(context) {
 								const point = context.raw;
 								return point.event || 'Event';
 							}
-						}
-					},
-					zoom: options.zoomPluginConfig
-				},				scales: {
+						}					},
+					zoom: options.zoomPluginConfig,
+					backgroundColorPlugin: {
+						backgroundColor: currentTheme === 'dark' ? '#181c24' : '#ffffff'
+					}
+				},scales: {
 					x: {
 						type: 'linear',
 						display: true,
-						grid: { display: options.showGrid },
-						title: { display: true, text: 'Time (seconds)' },
+						grid: { 
+							display: options.showGrid,
+							color: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+						},
+						title: { 
+							display: true, 
+							text: 'Time (seconds)',
+							color: currentTheme === 'dark' ? '#fff' : '#000'
+						},
 						ticks: {
+							color: currentTheme === 'dark' ? '#fff' : '#000',
 							callback: function(value) {
 								// Format seconds as MM:SS or HH:MM:SS
 								return formatTime(value);
 							}
-						}
-					},
+						}					},
 					y: {
 						display: false
-					}
-				}
-			}
+					}				}
+			},
+			plugins: [
+				'backgroundColorPlugin'
+			]
 		};
 
 		const chart = new window.Chart(canvas, config);
@@ -2786,8 +2897,7 @@ function renderTimeInZoneCharts(container, options) {
 		console.log('[ChartJS] renderTimeInZoneCharts called');
 		console.log('[ChartJS] window.heartRateZones:', window.heartRateZones);
 		console.log('[ChartJS] window.powerZones:', window.powerZones);
-		
-		// Check for heart rate zone data
+				// Check for heart rate zone data
 		if (window.heartRateZones && Array.isArray(window.heartRateZones) && window.heartRateZones.length > 0) {
 			console.log('[ChartJS] Rendering HR zone chart with data:', window.heartRateZones);
 			renderZoneChart(container, 'Heart Rate Zones', window.heartRateZones, 'heart-rate-zones', options);
@@ -2808,10 +2918,16 @@ function renderTimeInZoneCharts(container, options) {
 }
 
 // Helper function to render individual zone chart
-function renderZoneChart(container, title, zoneData, chartId, options) {
-	console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
+function renderZoneChart(container, title, zoneData, chartId, options) {	console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
 	
-	const canvas = createChartCanvas(chartId, chartId);
+	// Get theme using robust detection
+	const currentTheme = detectCurrentTheme();
+		const canvas = createChartCanvas(chartId, chartId);
+	
+	// Apply theme-aware canvas styling (background handled by plugin)
+	canvas.style.borderRadius = '12px';
+	canvas.style.boxShadow = '0 2px 16px 0 rgba(0,0,0,0.18)';
+	
 	container.appendChild(canvas);
 
 	const colors = [
@@ -2901,23 +3017,23 @@ function renderZoneChart(container, title, zoneData, chartId, options) {
 						meta.data[index].hidden = !meta.data[index].hidden;
 						chart.update();
 					}
-				},
-				title: {
+				},				title: {
 					display: options.showTitle,
 					text: title,
 					font: { size: 18, weight: 'bold' },
 					position: 'top',
 					align: 'center',
+					color: currentTheme === 'dark' ? '#fff' : '#000',
 					padding: {
 						top: 10,
 						bottom: 20
 					}
 				},
 				tooltip: {
-					backgroundColor: 'rgba(0, 0, 0, 0.9)',
-					titleColor: '#ffffff',
-					bodyColor: '#ffffff',
-					borderColor: '#ffffff',
+					backgroundColor: currentTheme === 'dark' ? '#222' : '#fff',
+					titleColor: currentTheme === 'dark' ? '#fff' : '#000',
+					bodyColor: currentTheme === 'dark' ? '#fff' : '#000',
+					borderColor: currentTheme === 'dark' ? '#555' : '#ddd',
 					borderWidth: 1,
 					cornerRadius: 8,
 					displayColors: true,
@@ -2941,9 +3057,11 @@ function renderZoneChart(container, title, zoneData, chartId, options) {
 								backgroundColor: context.dataset.backgroundColor[context.dataIndex],
 								borderWidth: 2,
 								borderRadius: 2
-							};
-						}
+							};						}
 					}
+				},
+				backgroundColorPlugin: {
+					backgroundColor: currentTheme === 'dark' ? '#181c24' : '#ffffff'
 				}
 			},
 			animation: {
@@ -2955,15 +3073,16 @@ function renderZoneChart(container, title, zoneData, chartId, options) {
 			interaction: {
 				intersect: false,
 				mode: 'point'
-			},
-			elements: {
+			},			elements: {
 				arc: {
 					borderWidth: 3,
 					borderColor: '#ffffff',
 					hoverBorderWidth: 4
 				}
 			}
-		}
+		},		plugins: [
+			'backgroundColorPlugin'
+		]
 	};
 
 	console.log(`[ChartJS] Creating zone chart with config:`, config);
@@ -2982,7 +3101,8 @@ function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         if (!window.Chart || !canvas || !Array.isArray(lapZoneData)) {
             throw new Error('Chart.js, canvas, or lapZoneData missing');
         }
-        const theme = options.theme || (document.documentElement.dataset.theme || 'light');
+        const theme = detectCurrentTheme();
+        console.log('[renderLapZoneChart] Detected theme:', theme);
         
         // Get unique zone labels from the first lap that has zones
         const firstLapWithZones = lapZoneData.find(lap => lap.zones && lap.zones.length > 0);
@@ -3019,8 +3139,7 @@ function renderLapZoneChart(canvas, lapZoneData, options = {}) {
             data: {
                 labels: lapLabels,
                 datasets
-            },
-            options: {
+            },            options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
@@ -3053,6 +3172,9 @@ function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                                 return `Total: ${total.toFixed(1)}s`;
                             }
                         }
+                    },
+                    backgroundColorPlugin: {
+                        backgroundColor: theme === 'dark' ? '#181c24' : '#ffffff'
                     }
                 },
                 scales: {
@@ -3083,13 +3205,18 @@ function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         grid: {
                             color: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
                         }
-                    }
-                },
+                    }                },
                 interaction: {
                     mode: 'index',
                     intersect: false
                 }
-            }
+            },
+            plugins: [
+                {
+                    id: 'backgroundColorPlugin',
+                    backgroundColor: theme === 'dark' ? '#181c24' : '#ffffff'
+                }
+            ]
         });
         return chart;
     } catch (error) {
@@ -3111,7 +3238,8 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
         if (!window.Chart || !canvas || !Array.isArray(zoneData)) {
             throw new Error('Chart.js, canvas, or zoneData missing');
         }
-        const theme = options.theme || (document.documentElement.dataset.theme || 'light');
+        const theme = detectCurrentTheme();
+        console.log('[renderSinglePowerZoneBar] Detected theme:', theme);
         const chart = new window.Chart(canvas, {
             type: 'bar',
             data: {
@@ -3148,6 +3276,9 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                                 return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}s`;
                             }
                         }
+                    },
+                    backgroundColorPlugin: {
+                        backgroundColor: theme === 'dark' ? '#181c24' : '#ffffff'
                     }
                 },
                 scales: {
@@ -3172,14 +3303,16 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                             color: theme === 'dark' ? '#fff' : '#000'
                         },
                         ticks: {
-                            color: theme === 'dark' ? '#fff' : '#000'
-                        },
+                            color: theme === 'dark' ? '#fff' : '#000'                        },
                         grid: {
                             color: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
                         }
                     }
                 }
-            }
+            },
+            plugins: [
+                'backgroundColorPlugin'
+            ]
         });
         return chart;
     } catch (error) {
@@ -3201,7 +3334,8 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         if (!window.Chart || !canvas || !Array.isArray(zoneData)) {
             throw new Error('Chart.js, canvas, or zoneData missing');
         }
-        const theme = options.theme || (document.documentElement.dataset.theme || 'light');
+        const theme = detectCurrentTheme();
+        console.log('[renderSingleHRZoneBar] Detected theme:', theme);
         const chart = new window.Chart(canvas, {
             type: 'bar',
             data: {
@@ -3232,12 +3366,14 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         titleColor: theme === 'dark' ? '#fff' : '#000',
                         bodyColor: theme === 'dark' ? '#fff' : '#000',
                         borderColor: theme === 'dark' ? '#555' : '#ddd',
-                        borderWidth: 1,
-                        callbacks: {
+                        borderWidth: 1,                        callbacks: {
                             label: function(context) {
                                 return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}s`;
                             }
                         }
+                    },
+                    backgroundColorPlugin: {
+                        backgroundColor: theme === 'dark' ? '#181c24' : '#ffffff'
                     }
                 },
                 scales: {
@@ -3262,14 +3398,16 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                             color: theme === 'dark' ? '#fff' : '#000'
                         },
                         ticks: {
-                            color: theme === 'dark' ? '#fff' : '#000'
-                        },
+                            color: theme === 'dark' ? '#fff' : '#000'                        },
                         grid: {
                             color: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
                         }
                     }
                 }
-            }
+            },
+            plugins: [
+                'backgroundColorPlugin'
+            ]
         });
         return chart;
     } catch (error) {
@@ -3531,8 +3669,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
 			enabled: true,
 			mode: 'x'
-		},
-		zoom: {
+		},		zoom: {
 			wheel: {
 				enabled: true
 			},
@@ -3540,7 +3677,13 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 				enabled: true
 			},
 			mode: 'x'
-		}	};	// Process data
+		}
+	};
+	// Get theme from options or fallback to system
+	const currentTheme = detectCurrentTheme();
+	console.log('[renderChartsWithData] Detected theme:', currentTheme);
+
+	// Process data
 	const data = recordMesgs; // Use the record messages
 	const labels = data.map((row, i) => {
 		// Convert timestamp to relative seconds from start time
@@ -3611,7 +3754,6 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 			const step = Math.ceil(chartData.length / maxPoints);
 			chartData = chartData.filter((_, i) => i % step === 0);
 		}
-
 		// Create enhanced chart
 		const chart = createEnhancedChart(canvas, {
 			field,
@@ -3627,7 +3769,8 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 			smoothing,
 			customColors,
 			zoomPluginConfig,
-			fieldLabels
+			fieldLabels,
+			theme: currentTheme
 		});
 
 		if (chart) {
@@ -3635,19 +3778,21 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 			renderCount++;
 		}
 	});
-
 	// Render additional chart types
 	renderEventMessagesChart(chartContainer, { 
 		showGrid: boolSettings.showGrid, 
 		showLegend: boolSettings.showLegend, 
 		showTitle: boolSettings.showTitle, 
-		zoomPluginConfig 
+		zoomPluginConfig,
+		theme: currentTheme
 	}, startTime);
-		renderTimeInZoneCharts(chartContainer, { 
+	
+	renderTimeInZoneCharts(chartContainer, { 
 		showGrid: boolSettings.showGrid, 
 		showLegend: boolSettings.showLegend, 
 		showTitle: boolSettings.showTitle, 
-		zoomPluginConfig 
+		zoomPluginConfig,
+		theme: currentTheme
 	});
 
 	// Render lap zone charts
@@ -3655,7 +3800,8 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 		showGrid: boolSettings.showGrid, 
 		showLegend: boolSettings.showLegend, 
 		showTitle: boolSettings.showTitle, 
-		zoomPluginConfig 
+		zoomPluginConfig,
+		theme: currentTheme
 	});
 
 	// Handle no charts case
@@ -3677,7 +3823,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 }
 
 // Lap zone charts renderer - renders 4 different lap zone visualizations
-function renderLapZoneCharts(container, options = {}) {
+function renderLapZoneCharts(container) {
 	try {
 		console.log('[ChartJS] renderLapZoneCharts called');
 		
@@ -3688,9 +3834,9 @@ function renderLapZoneCharts(container, options = {}) {
 
 		const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
 		const lapZoneMsgs = timeInZoneMesgs.filter(msg => msg.referenceMesg === 'lap');
-		
-		// Get theme from options or fallback to system
-		const theme = options.theme || (document.documentElement.dataset.theme || 'dark');
+				// Get theme from options or fallback to system
+		const theme = detectCurrentTheme();
+		console.log('[renderLapZoneCharts] Detected theme:', theme);
 		
 		if (lapZoneMsgs.length === 0) {
 			console.log('[ChartJS] No lap-specific zone data found');
