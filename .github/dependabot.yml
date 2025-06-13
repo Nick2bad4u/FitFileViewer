@@ -12,8 +12,8 @@ updates:
 - package-ecosystem: github-actions
   directory: /
   schedule:
-    interval: weekly
-    time: "04:30"
+    interval: daily
+    time: "05:30"
     timezone: "America/Detroit"
   assignees: [ "Nick2bad4u" ]
   allow:
@@ -21,6 +21,8 @@ updates:
   - dependency-type: "all"
   labels:
   - "github-actions"
+  - "dependabot"
+  - "dependencies"
   commit-message:
     prefix: "[ci]"
     prefix-development: "[ci]"
@@ -34,14 +36,21 @@ updates:
 - package-ecosystem: npm
   directory: /electron-app
   schedule:
-    interval: weekly
-  reviewers: [ "Nick2bad4u" ]
+    interval: daily
+  assignees: [ "Nick2bad4u" ]
   versioning-strategy: increase
   allow:
   # Allow both direct and indirect updates for all packages
   - dependency-type: "all"
+  ignore:
+  - dependency-name: "electron-builder"
+    versions: [ "< 26.0.16" ]
+  - dependency-name: "electron-builder-squirrel-windows"
+    versions: [ "< 26.0.16" ]
   labels:
   - "npm"
+  - "dependabot"
+  - "dependencies"
   commit-message:
     prefix: "[dependency]"
     prefix-development: "[dev-dependency]"

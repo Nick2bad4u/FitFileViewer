@@ -1792,7 +1792,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 /* Mobile responsiveness */
-@media (width <= 640px) {
+@media (max-width: 640px) {
 	.notification {
 		top: 16px;
 		min-width: 280px;
@@ -1916,7 +1916,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 .summary-filter-bar option {
-	background: var(--color-bg);
+	background: var(--color-bg-solid);
 	color: var(--color-fg);
 	font-size: 1rem;
 	font-family: inherit;
