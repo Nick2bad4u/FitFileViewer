@@ -6,7 +6,33 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[96e18ba](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)...[e27f886](https://github.com/Nick2bad4u/FitFileViewer/commit/e27f886c860f8822c17d578aae319e0f4a389167)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c...e27f886c860f8822c17d578aae319e0f4a389167))
+[[3613ca1](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)...[0548393](https://github.com/Nick2bad4u/FitFileViewer/commit/0548393d534f6973f2290c4989a611ae549b7ba8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3613ca13eda8e8668684632843f9fc98f94726cd...0548393d534f6973f2290c4989a611ae549b7ba8))
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.3.0 [`(0548393)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0548393d534f6973f2290c4989a611ae549b7ba8)
+
+
+## [22.3.0] - 2025-06-14
+
+[[96e18ba](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)...[3613ca1](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c...3613ca13eda8e8668684632843f9fc98f94726cd))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3613ca1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)
+
+
+### 💼 Other
+
+- Unifies styling with CSS variables and refactors theme logic
+
+Migrates hardcoded colors to CSS variables for consistent theming and easier maintenance across dark and light modes. Refactors chart re-rendering on theme change to ensure proper cleanup and real-time updates. Removes duplicated or redundant style logic, adds and adjusts hover/focus effects, and updates color opacities for modern, accessible visuals. Deletes the separate developer fields chart renderer, integrating its logic for better maintainability. Improves visual consistency and user experience in modals, dropdowns, and controls. [`(2790ed7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2790ed7f694fac0348c7986840950e0c88f548eb)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v22.2.0 [skip ci] [`(7364733)`](https://github.com/Nick2bad4u/FitFileViewer/commit/736473395e09d12a030a46f581d27504a1d19836)
+
 
 ### 📦 Dependencies
 
