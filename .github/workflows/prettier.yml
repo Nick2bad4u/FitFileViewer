@@ -27,8 +27,14 @@ concurrency:
   group: prettier-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   prettier:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
     runs-on: windows-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -60,7 +66,7 @@ jobs:
         run: npx prettier --write "**/*.{js,md,css,html}"
 
       - name: Commit & create pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           commit-message: "chore: format code with Prettier"
           title: "chore: format code with Prettier"
