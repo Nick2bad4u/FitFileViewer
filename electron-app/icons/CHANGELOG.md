@@ -4,18 +4,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [20.7.0] - 2025-06-10
+## [Unreleased]
 
-[[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)...[901941b](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aae539eeb94eef693613b973fcac471d1b78690b...901941b4886b15b63fe2233f897acc54318dc2fd))
+[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...9411374418655f6be63e2d0c2c11b9e520d9541b))
 
 ### 🚀 Features
 
+- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
+
 - Update GitHub workflows for improved functionality and scheduling [`(901941b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)
 
-
-## [20.6.0] - 2025-06-10
-
-[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...aae539eeb94eef693613b973fcac471d1b78690b))
 
 ### 💼 Other
 
@@ -76,7 +74,7 @@ dependencies. [`(62e5f5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6
 
 ## [3.0.0] - 2025-05-04
 
-[[00b83e0](https://github.com/Nick2bad4u/FitFileViewer/commit/00b83e05ae6011eb85204277c8f55d5488bddb22)...[052c1c9](https://github.com/Nick2bad4u/FitFileViewer/commit/052c1c92a83893caf16e151998eed153fb370a48)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/00b83e05ae6011eb85204277c8f55d5488bddb22...052c1c92a83893caf16e151998eed153fb370a48))
+[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[052c1c9](https://github.com/Nick2bad4u/FitFileViewer/commit/052c1c92a83893caf16e151998eed153fb370a48)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...052c1c92a83893caf16e151998eed153fb370a48))
 
 ### 💼 Other
 

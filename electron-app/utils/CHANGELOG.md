@@ -4,11 +4,61 @@
 
 All notable changes to this project will be documented in this file.
 
-## [20.6.0] - 2025-06-10
+## [21.9.0] - 2025-06-14
 
-[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...aae539eeb94eef693613b973fcac471d1b78690b))
+[[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)...[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fad6333373c7a154c878deb90dafa81c6366faac...6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62))
 
 ### 💼 Other
+
+- Modularizes chart rendering and improves data/unit handling
+
+Refactors chart rendering logic into smaller, focused modules to enhance maintainability and scalability. Improves developer field chart support and ensures unit conversion follows user preferences per field. Streamlines imports, reduces duplication, and enhances chart debugging and logging for better chart data quality and troubleshooting.
+
+Modularizes chart rendering and improves unit handling
+
+Splits chart rendering logic into focused modules for better maintainability and scalability. Enhances support for developer fields and applies user-specific unit conversions per metric. Streamlines imports, reduces code duplication, and improves debugging/logging to aid troubleshooting and ensure chart data quality. [`(6e6ec92)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)
+
+
+## [21.8.0] - 2025-06-13
+
+[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...fad6333373c7a154c878deb90dafa81c6366faac))
+
+### 🚀 Features
+
+- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
+
+
+### 💼 Other
+
+- Improves Chart.js theming with robust dark/light detection
+
+Unifies and strengthens theme detection for all Chart.js charts, ensuring consistent light/dark appearance regardless of app state or user preference.
+
+Adds a global background color plugin for Chart.js, enabling reliable theme-aware chart backgrounds. Refactors chart rendering functions to use this theme detection and plugin, improving chart readability and polish.
+
+Cleans up legacy code, removes redundant theme logic, and enhances UI component event handler management to prevent memory leaks. [`(fad6333)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)
+
+- Revamps Chart.js integration with advanced controls and exports
+
+Overhauls the chart rendering system to add a modern, toggleable controls panel, advanced export and sharing options (PNG, CSV, JSON, ZIP, clipboard, Imgur), and improved accessibility and error handling. Introduces support for zone data visualization, lap analysis charts, and professional styling with theme-aware design. Optimizes performance, code structure, and user feedback for a richer FIT file data experience.
+
+Fixes chart layout, enhances maintainability, and prepares for future extensibility. [`(f852b00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)
+
+- Enhances UI polish, modals, and notification system
+
+Modernizes the UI with improved notification styles, icons, and queue management for better user feedback. Revamps the about modal with togglable system info and feature views, and introduces a dedicated, animated keyboard shortcuts modal. Refines initialization, error handling, and performance monitoring in the renderer process for greater robustness and developer experience. Updates style and linting configurations to support new visual components and ensures accessibility and consistency across dialogs. [`(a082640)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)
+
+- Modernizes UI with glassmorphism and improves UX
+
+Revamps the user interface with a modern glassmorphism style, adding gradients, depth, and refined animations for a visually appealing and professional look.
+
+Enhances modal dialogs, tab navigation, notifications, and overlay effects for consistency and accessibility. Unifies style constants, improves dark/light theming, and ensures responsive, accessible design throughout.
+
+Refactors code for better modularity, state management, and error handling, including improved event cleanup and external link handling. Upgrades About modal with dynamic content, branding, and feature highlights.
+
+Improves maintainability and performance with utility function organization, window state management, and development helpers.
+
+Relates to UI/UX modernization and maintainability goals. [`(99bca90)`](https://github.com/Nick2bad4u/FitFileViewer/commit/99bca9067403a202d647d7942da8fd2df71ec662)
 
 - Improves Linux menu handling and adds menu injection support
 

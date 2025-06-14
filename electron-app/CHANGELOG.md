@@ -6,7 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[8855581](https://github.com/Nick2bad4u/FitFileViewer/commit/8855581c44615796f5be3f880a20fb59eba488e7)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...8855581c44615796f5be3f880a20fb59eba488e7))
+[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[aebc9b4](https://github.com/Nick2bad4u/FitFileViewer/commit/aebc9b427f2549856b43028a70703dde75d35d44)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...aebc9b427f2549856b43028a70703dde75d35d44))
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.9.0 [skip ci] [`(aebc9b4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aebc9b427f2549856b43028a70703dde75d35d44)
+
 
 ### 📦 Dependencies
 
