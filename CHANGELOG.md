@@ -6,7 +6,32 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)...[2c74478](https://github.com/Nick2bad4u/FitFileViewer/commit/2c74478cbdd3e523b98cf63c5e507d18b533359c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fad6333373c7a154c878deb90dafa81c6366faac...2c74478cbdd3e523b98cf63c5e507d18b533359c))
+[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[8855581](https://github.com/Nick2bad4u/FitFileViewer/commit/8855581c44615796f5be3f880a20fb59eba488e7)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...8855581c44615796f5be3f880a20fb59eba488e7))
+
+### 📦 Dependencies
+
+- [dependency] Update version 21.9.0 [`(8855581)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8855581c44615796f5be3f880a20fb59eba488e7)
+
+
+## [21.9.0] - 2025-06-14
+
+[[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)...[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fad6333373c7a154c878deb90dafa81c6366faac...6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62))
+
+### 💼 Other
+
+- Modularizes chart rendering and improves data/unit handling
+
+Refactors chart rendering logic into smaller, focused modules to enhance maintainability and scalability. Improves developer field chart support and ensures unit conversion follows user preferences per field. Streamlines imports, reduces duplication, and enhances chart debugging and logging for better chart data quality and troubleshooting.
+
+Modularizes chart rendering and improves unit handling
+
+Splits chart rendering logic into focused modules for better maintainability and scalability. Enhances support for developer fields and applies user-specific unit conversions per metric. Streamlines imports, reduces code duplication, and improves debugging/logging to aid troubleshooting and ensure chart data quality. [`(6e6ec92)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.8.0 [skip ci] [`(6e794cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e794cdc65509202ec5346cbc5055c191133c4bd)
+
 
 ### 📦 Dependencies
 
