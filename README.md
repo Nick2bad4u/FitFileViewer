@@ -161,7 +161,7 @@ Enjoy an intuitive interface designed for seamless `.fit` file exploration.
 ![Table](https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/refs/heads/main/electron-app/screenshots/DataV2.png)
 *Full FitFileViewer.com Intergration - Data table showing detailed activity metrics.*
 
-![Charts](https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/refs/heads/main/electron-app/screenshots/ChartsV2.png)
+![Charts](https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/refs/heads/main/electron-app/screenshots/ChartsV3.png)
 *Charts visualizing trends and performance data.*
 
 </div>
