@@ -89,7 +89,7 @@ jobs:
           commit-message: "chore: update changelogs [skip ci]"
           title: "chore: update changelogs"
           body: "Automated changelog update via GitHub Actions.\n\nThis PR was created automatically and will not be merged automatically."
-          branch: "main"
+          branch: "chore/update-changelogs"
           add-paths: '**/CHANGELOG.md'
           delete-branch: false
           token: ${{ secrets.GITHUB_TOKEN }}
