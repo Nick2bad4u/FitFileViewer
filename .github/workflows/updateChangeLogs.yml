@@ -24,8 +24,10 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Checkout repository
+      - name: Checkout repository (Full history)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Create Check Run
         id: create_check
@@ -53,33 +55,34 @@ jobs:
         shell: pwsh
         run: npm install -g git-cliff
 
-      - name: Generate CHANGELOG.md files
+      - name: Generate CHANGELOG.md files (With verbose logging)
         shell: pwsh
         run: |
-          npx git-cliff --config cliff.toml --output CHANGELOG.md
+          echo "Generating changelogs with git-cliff..."
+          npx git-cliff --config cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Push-Location electron-app
-          npx git-cliff --config ../cliff.toml --output CHANGELOG.md
+          npx git-cliff --config ../cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Pop-Location
           Push-Location electron-app/icons
-          npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Pop-Location
           Push-Location electron-app/libs
-          npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Pop-Location
           Push-Location electron-app/screenshots
-          npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Pop-Location
           Push-Location electron-app/tests
-          npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Pop-Location
           Push-Location electron-app/utils
-          npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
           Get-ChildItem -Name
           Pop-Location
 
@@ -140,4 +143,4 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY "- CHANGELOG.md files were generated or updated in the repository and subfolders."
           Add-Content -Path $env:GITHUB_STEP_SUMMARY "- A pull request was created or updated with the new changelogs."
           Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Check runs were updated to reflect the workflow status."
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Workflow completed with status: ${{ job.status }}"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Workflow completed with status: ${{ job.status }}".
