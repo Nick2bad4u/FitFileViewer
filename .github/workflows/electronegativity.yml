@@ -4,15 +4,6 @@
 name: Electronegativity Scan
 
 on:
-  push:
-    branches: ["main"]
-    paths-ignore:
-      - electron-app/libs/**
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: ["main"]
-    paths-ignore:
-      - electron-app/libs/**
   schedule:
     - cron: "12 4 * * *" # run once a day at 4:12 AM
 
