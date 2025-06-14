@@ -3,7 +3,7 @@ name: Upload macOS Distributables to Archive.org
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Build and Release Electron App"]
+    workflows: ['Build and Release Electron App']
     types:
       - completed
 
@@ -28,7 +28,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-darwin-*"
+          fileName: 'Fit-File-Viewer-darwin-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +37,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-dmg-*"
+          fileName: 'Fit-File-Viewer-dmg-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,7 +46,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-pkg-*"
+          fileName: 'Fit-File-Viewer-pkg-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,7 +55,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "latest-mac*.yml"
+          fileName: 'latest-mac*.yml'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 

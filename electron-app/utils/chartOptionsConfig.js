@@ -39,9 +39,9 @@ export const chartOptionsConfig = [
         id: "exportTheme",
         label: "Export Theme",
         type: "select",
-        options: ["light", "dark", "transparent"],
-        default: "light",
-        description: "Background theme for exported images",
+        options: ["auto", "light", "dark", "transparent"],
+        default: "auto",
+        description: "Background theme for exported images (auto = current app theme)",
     },
     {
         id: "showGrid",

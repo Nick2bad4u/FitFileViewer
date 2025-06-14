@@ -2,17 +2,17 @@
 {
 	"files.exclude": {
 		"out": false, // set this to true to hide the "out" folder with the compiled JS files
-		"**/.git": false, // set this to true to hide the .git folder
+		"**/.git": false // set this to true to hide the .git folder
 	},
 	"search.exclude": {
 		"out": true // set this to false to include "out" folder in search results
 	},
 	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
 	"typescript.tsc.autoDetect": "off",
-	
+
 	// GitHub Copilot Configuration
 	"github.copilot.chat.codeGeneration.instructions": "Follow the comprehensive coding guidelines and architectural patterns defined in the copilot-instructions.md file at the project root. Focus exclusively on the FitFileViewer Electron application located in the root and electron-app/ directories. Ignore fit-test-files/, vscode-extension/, vis/, and other non-core project folders. Use the established modular architecture with utilities in utils/, follow the ES6+ module patterns, implement proper error handling, support the theme system, and maintain the security model with context isolation. Prioritize performance, accessibility, and cross-platform compatibility. Reference existing patterns in main.js, renderer.js, preload.js, and the utils/ modules when suggesting code changes.",
-	
+
 	"github.copilot.chat.localeOverride": "en",
 	"github.copilot.enable": {
 		"*": true,
@@ -24,13 +24,13 @@
 		"css": true,
 		"html": true
 	},
-	
+
 	// Project-specific file associations for better Copilot context
 	"files.associations": {
 		"*.mjs": "javascript",
 		"copilot-instructions.md": "markdown"
 	},
-	
+
 	// Enhanced IntelliSense for the project
 	"typescript.preferences.includePackageJsonAutoImports": "on",
 	"javascript.preferences.includePackageJsonAutoImports": "on",

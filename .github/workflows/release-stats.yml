@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: '47 4 * * 0' # weekly
   workflow_run:
-    workflows: ["Build and Release Electron App"]
+    workflows: ['Build and Release Electron App']
     types:
       - completed
 

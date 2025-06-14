@@ -1,6 +1,8 @@
 import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
+import { getUnitSymbol } from "./getUnitSymbol.js";
+import { zoomResetPlugin } from "./zoomResetPlugin.js";
 
 // Altitude profile with gradient visualization
 export function renderAltitudeProfileChart(container, data, labels, options) {
@@ -94,6 +96,40 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             },
                         },
                     },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: "x",
+                            modifierKey: null,
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            drag: {
+                                enabled: true,
+                                backgroundColor: "rgba(59, 130, 246, 0.2)",
+                                borderColor: "rgba(59, 130, 246, 0.8)",
+                                borderWidth: 2,
+                                modifierKey: "shift",
+                            },
+                            mode: "x",
+                        },
+                        limits: {
+                            x: {
+                                min: "original",
+                                max: "original",
+                            },
+                            y: {
+                                min: "original",
+                                max: "original",
+                            },
+                        },
+                    },
                     backgroundColorPlugin: {
                         backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                     },
@@ -108,13 +144,13 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         },
                         title: {
                             display: true,
-                            text: "Time (minutes)",
+                            text: `Time (${getUnitSymbol("time", "time")})`,
                             color: currentTheme === "dark" ? "#fff" : "#000",
                         },
                         ticks: {
                             color: currentTheme === "dark" ? "#fff" : "#000",
                             callback: function (value) {
-                                return formatTime(value);
+                                return formatTime(value, true);
                             },
                         },
                     },
@@ -134,7 +170,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                     },
                 },
             },
-            plugins: ["backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
         };
 
         const chart = new window.Chart(canvas, config);

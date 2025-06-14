@@ -8,27 +8,27 @@ name: DevSkim
 on:
   push:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   pull_request:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   workflow_dispatch:
   schedule:
-    - cron: "37 1 * * 2"
+    - cron: '37 1 * * 2'
 
 concurrency:
   group: devskim-${{ github.ref }}
@@ -61,7 +61,7 @@ jobs:
           should-scan-archives: false
           output-filename: devskim-results.sarif
           output-directory: .
-          ignore-globs: "**/.git/**,**/bin/**,**/*.fit,**/*.png,**/*.jpg,**/*.jpeg,**/*.ico,**/*.icns,**/*.svg,**/*.pdf"
+          ignore-globs: '**/.git/**,**/bin/**,**/*.fit,**/*.png,**/*.jpg,**/*.jpeg,**/*.ico,**/*.icns,**/*.svg,**/*.pdf'
 
       - name: Debug - List files in workspace
         run: |

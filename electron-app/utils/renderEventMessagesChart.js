@@ -2,6 +2,8 @@ import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { updateChartAnimations } from "./updateChartAnimations.js";
+import { getUnitSymbol } from "./getUnitSymbol.js";
+import { zoomResetPlugin } from "./zoomResetPlugin.js";
 
 // Event messages chart renderer
 export function renderEventMessagesChart(container, options, startTime) {
@@ -117,14 +119,14 @@ export function renderEventMessagesChart(container, options, startTime) {
                         },
                         title: {
                             display: true,
-                            text: "Time (minutes)",
+                            text: `Time (${getUnitSymbol("time", "time")})`,
                             color: currentTheme === "dark" ? "#fff" : "#000",
                         },
                         ticks: {
                             color: currentTheme === "dark" ? "#fff" : "#000",
                             callback: function (value) {
-                                // Format seconds as MM:SS or HH:MM:SS
-                                return formatTime(value);
+                                // Format seconds according to user's preferred units
+                                return formatTime(value, true);
                             },
                         },
                     },
@@ -133,7 +135,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                     },
                 },
             },
-            plugins: ["backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
         };
 
         const chart = new window.Chart(canvas, config);

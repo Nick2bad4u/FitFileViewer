@@ -3,24 +3,24 @@ name: StyleLint
 on:
   push:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   pull_request:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   workflow_dispatch:
 
 permissions:
@@ -47,5 +47,5 @@ jobs:
       - name: Run StyleLint
         uses: actions-hub/stylelint@79a72921dfce2e51791be2df406f0c103fb47553 # v1.1.6
         env:
-          PATTERN: "electron-app/*.css electron-app/**/*.css"
+          PATTERN: 'electron-app/*.css electron-app/**/*.css'
         continue-on-error: true # Continue even if this step fails

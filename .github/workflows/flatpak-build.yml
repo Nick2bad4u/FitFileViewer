@@ -6,7 +6,7 @@ name: Build Flatpak
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Build and Release Electron App"]
+    workflows: ['Build and Release Electron App']
     types:
       - completed
 
@@ -67,7 +67,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: true
-          DEBUG: "@malept/flatpak-bundler"
+          DEBUG: '@malept/flatpak-bundler'
 
       - name: Create FlatPak bundle
         run: |
@@ -78,7 +78,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CI: true
-          DEBUG: "@malept/flatpak-bundler"
+          DEBUG: '@malept/flatpak-bundler'
 
       # Optionally, upload the FlatPak bundle as an artifact
       - name: Upload FlatPak bundle
@@ -92,7 +92,7 @@ jobs:
           cd electron-app
           ls -l
           zip FitFileViewer.flatpak.zip FitFileViewer.flatpak
-      
+
       - name: Get latest release tag
         id: get_release
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1

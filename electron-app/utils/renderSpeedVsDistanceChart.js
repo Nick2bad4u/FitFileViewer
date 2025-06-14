@@ -3,6 +3,7 @@ import { convertValueToUserUnits } from "./convertValueToUserUnits.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTooltipWithUnits } from "./formatTooltipWithUnits.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
+import { zoomResetPlugin } from "./zoomResetPlugin.js";
 
 // Speed vs Distance chart
 export function renderSpeedVsDistanceChart(container, data, options) {
@@ -62,8 +63,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                     {
                         label: "Speed vs Distance",
                         data: chartData,
-                        backgroundColor: "rgba(59, 130, 246, 0.6)",
-                        borderColor: "rgba(59, 130, 246, 1)",
+                        backgroundColor: "rgba(255, 255, 0, 0.6)",
+                        borderColor: "rgba(255, 255, 0, 1)",
                         pointRadius: options.showPoints ? 2 : 1,
                         pointHoverRadius: 4,
                         showLine: true,
@@ -114,6 +115,40 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             },
                         },
                     },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: "x",
+                            modifierKey: null,
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            drag: {
+                                enabled: true,
+                                backgroundColor: "rgba(255, 255, 0, 0.2)",
+                                borderColor: "rgba(255, 255, 0, 0.8)",
+                                borderWidth: 2,
+                                modifierKey: "shift",
+                            },
+                            mode: "x",
+                        },
+                        limits: {
+                            x: {
+                                min: "original",
+                                max: "original",
+                            },
+                            y: {
+                                min: "original",
+                                max: "original",
+                            },
+                        },
+                    },
                     backgroundColorPlugin: {
                         backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                     },
@@ -149,7 +184,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                     },
                 },
             },
-            plugins: ["backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
         };
 
         const chart = new window.Chart(canvas, config);

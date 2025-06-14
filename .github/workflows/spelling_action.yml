@@ -2,24 +2,24 @@ name: Spellcheck Action
 on:
   push:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   pull_request:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   workflow_dispatch:
 concurrency:
   group: spellcheck-${{ github.ref }}

@@ -1,5 +1,6 @@
 import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { createChartCanvas } from "./createChartCanvas.js";
+import { zoomResetPlugin } from "./zoomResetPlugin.js";
 
 // GPS track chart renderer
 export function renderGPSTrackChart(container, data, options) {
@@ -107,7 +108,40 @@ export function renderGPSTrackChart(container, data, options) {
                             },
                         },
                     },
-                    zoom: options.zoomPluginConfig,
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: "xy",
+                            modifierKey: null,
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            drag: {
+                                enabled: true,
+                                backgroundColor: "rgba(59, 130, 246, 0.2)",
+                                borderColor: "rgba(59, 130, 246, 0.8)",
+                                borderWidth: 2,
+                                modifierKey: "shift",
+                            },
+                            mode: "xy",
+                        },
+                        limits: {
+                            x: {
+                                min: "original",
+                                max: "original",
+                            },
+                            y: {
+                                min: "original",
+                                max: "original",
+                            },
+                        },
+                    },
                     backgroundColorPlugin: {
                         backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                     },
@@ -153,7 +187,7 @@ export function renderGPSTrackChart(container, data, options) {
                     },
                 },
             },
-            plugins: ["backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
         };
 
         const chart = new window.Chart(canvas, config);

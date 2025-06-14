@@ -7,7 +7,7 @@
 Thank you for intereset in contributing to our project!
 Read our [Code of Conduct](CODE_OF_CONDUCT.md) to keep our community approachable and respectable.
 
-In this guide you will get an overview of the contribution workflow. Changes made by your or your team will have to abide by the rules written here so make sure you carefully read this file. 
+In this guide you will get an overview of the contribution workflow. Changes made by your or your team will have to abide by the rules written here so make sure you carefully read this file.
 
 ## New Contributors
 
@@ -17,8 +17,6 @@ It is good to see new contributors who are eager to contribute to the open-sourc
 - [Set up Git](https://docs.github.com/en/get-started/quickstart/set-up-git)
 - [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-flow)
 - [Collaborating with pull requests](https://docs.github.com/en/github/collaborating-with-pull-requests)
-
-
 
 Getting started
 

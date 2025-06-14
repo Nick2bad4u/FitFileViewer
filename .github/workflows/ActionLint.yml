@@ -21,10 +21,10 @@ concurrency:
 on:
   push:
     paths:
-      - ".github/**"
+      - '.github/**'
   pull_request:
     paths:
-      - ".github/**"
+      - '.github/**'
   workflow_dispatch:
 
 permissions:

@@ -1,6 +1,7 @@
 import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
+import { getZoneTypeFromField, getChartZoneColors } from "./zoneColorUtils.js";
 
 // Helper function to render individual zone chart
 
@@ -17,12 +18,25 @@ export function renderZoneChart(container, title, zoneData, chartId, options) {
 
     container.appendChild(canvas);
 
-    const colors = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"];
+    // Determine zone type and get user-selected colors
+    let colors = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"];
+
+    // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
+    if (zoneData.length > 0 && zoneData[0].color) {
+        // Use colors from the zone data objects
+        colors = zoneData.map((zone) => zone.color);
+    } else {
+        // Fall back to getting saved colors by zone type
+        const zoneType = getZoneTypeFromField(chartId);
+        if (zoneType) {
+            colors = getChartZoneColors(zoneType, zoneData.length);
+        }
+    }
 
     const config = {
         type: "doughnut",
         data: {
-            labels: zoneData.map((zone, i) => `Zone ${i + 1}`),
+            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
             datasets: [
                 {
                     data: zoneData.map((zone) => zone.time || 0),

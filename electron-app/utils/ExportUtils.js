@@ -1,5 +1,6 @@
 import { showChartSelectionModal } from "./createSettingsHeader.js";
 import { showNotification } from "./showNotification.js";
+import { detectCurrentTheme } from "./chartThemeUtils.js";
 
 /* global JSZip */
 
@@ -10,16 +11,47 @@ export const ExportUtils = {
      * @returns {string} Background color based on export theme setting
      */
     getExportThemeBackground() {
-        const theme = localStorage.getItem("chartjs_exportTheme") || "light";
+        const exportTheme = localStorage.getItem("chartjs_exportTheme");
+
+        // Debug logging
+        console.log("[ExportUtils] exportTheme from localStorage:", exportTheme);
+
+        // If no export theme is set, fall back to the current app theme
+        let theme;
+        if (exportTheme) {
+            // Handle "auto" theme by detecting current theme
+            if (exportTheme === "auto") {
+                const currentTheme = detectCurrentTheme();
+                console.log("[ExportUtils] Auto theme detected as:", currentTheme);
+                theme = currentTheme || "light";
+            } else {
+                theme = exportTheme;
+                console.log("[ExportUtils] Using explicit export theme:", theme);
+            }
+        } else {
+            // Use current app theme as fallback, or default to "light"
+            const currentTheme = detectCurrentTheme();
+            console.log("[ExportUtils] detectCurrentTheme() returned:", currentTheme);
+            theme = currentTheme || "light";
+            console.log("[ExportUtils] Final fallback theme:", theme);
+        }
+
+        let backgroundColor;
         switch (theme) {
             case "dark":
-                return "#1a1a1a";
+                backgroundColor = "#1a1a1a";
+                break;
             case "transparent":
-                return "transparent";
+                backgroundColor = "transparent";
+                break;
             case "light":
             default:
-                return "#ffffff";
+                backgroundColor = "#ffffff";
+                break;
         }
+
+        console.log("[ExportUtils] Final background color:", backgroundColor);
+        return backgroundColor;
     },
 
     /**
@@ -703,6 +735,12 @@ export const ExportUtils = {
                     }
 
                     const chart = charts[chartIndex];
+
+                    if (!chart || !chart.canvas) {
+                        showNotification("Chart canvas not available", "error");
+                        return;
+                    }
+
                     showNotification("Uploading chart to Imgur...", "info");
 
                     const backgroundColor = ExportUtils.getExportThemeBackground();

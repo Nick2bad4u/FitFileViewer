@@ -9,14 +9,14 @@ on:
     branches:
       - main
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   workflow_dispatch:
     inputs:
       branch:
@@ -93,8 +93,8 @@ jobs:
       - name: Commit and push version bump to repo
         uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
         with:
-          message: "Bump version to ${{ steps.bump.outputs.new_version }}"
-          add: "package.json"
+          message: 'Bump version to ${{ steps.bump.outputs.new_version }}'
+          add: 'package.json'
           cwd: electron-app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -272,7 +272,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG_DEMB: true
           CI: true
-          DEBUG: "@malept/flatpak-bundler"
+          DEBUG: '@malept/flatpak-bundler'
         continue-on-error: true
 
       - name: Print Windows distributable hash (debug, Windows)
@@ -457,7 +457,7 @@ jobs:
           mkdir -p release-dist
           echo "Before copy, contents of ./artifacts:"
           ls -R ./artifacts
-      
+
           for artifact_dir in ./artifacts/dist-*; do
             [ -d "$artifact_dir" ] || continue
             artifact_name=$(basename "$artifact_dir")
@@ -481,7 +481,7 @@ jobs:
               rm "release-dist/$platform_arch/latest-mac.yml"
             fi
           done
-      
+
           echo "After copy, contents of release-dist:"
           ls -R release-dist
 
@@ -804,35 +804,35 @@ jobs:
           echo "Starting changelog generation with git-cliff..."
           echo "Current directory: $(pwd)"
           echo "Available files: $(ls -la)"
-          
+
           echo "Generating root CHANGELOG.md..."
           npx git-cliff --config cliff.toml --output CHANGELOG.md --verbose
           echo "Root CHANGELOG.md generated, size: $(stat -c%s CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "Generating electron-app CHANGELOG.md..."
           cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md --verbose && cd ..
           echo "electron-app CHANGELOG.md generated, size: $(stat -c%s electron-app/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "Generating electron-app/icons CHANGELOG.md..."
           cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
           echo "icons CHANGELOG.md generated, size: $(stat -c%s electron-app/icons/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "Generating electron-app/libs CHANGELOG.md..."
           cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
           echo "libs CHANGELOG.md generated, size: $(stat -c%s electron-app/libs/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "Generating electron-app/screenshots CHANGELOG.md..."
           cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
           echo "screenshots CHANGELOG.md generated, size: $(stat -c%s electron-app/screenshots/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "Generating electron-app/tests CHANGELOG.md..."
           cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
           echo "tests CHANGELOG.md generated, size: $(stat -c%s electron-app/tests/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "Generating electron-app/utils CHANGELOG.md..."
           cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
           echo "utils CHANGELOG.md generated, size: $(stat -c%s electron-app/utils/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-          
+
           echo "All changelog generation completed."
           echo "Final directory listing:"
           find . -name "CHANGELOG.md" -exec echo "Found: {}" \; -exec wc -l {} \;
@@ -841,10 +841,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
+
           # Add all CHANGELOG.md files
           git add **/CHANGELOG.md CHANGELOG.md
-          
+
           # Check if there are any changes to commit
           if git diff --staged --quiet; then
             echo "No changelog changes to commit"

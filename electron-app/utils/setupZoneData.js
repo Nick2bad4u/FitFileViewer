@@ -2,6 +2,8 @@
  * Extracts and sets up heart rate and power zone data from FIT file
  * @param {Object} globalData - FIT file data object
  */
+import { applyZoneColors } from "./zoneColorUtils.js";
+
 export function setupZoneData(globalData) {
     try {
         if (!globalData) return;
@@ -26,6 +28,7 @@ export function setupZoneData(globalData) {
                 if (sessionZoneData.timeInHrZone && Array.isArray(sessionZoneData.timeInHrZone)) {
                     console.log("[ChartJS] Found HR zone data in timeInZoneMesgs:", sessionZoneData.timeInHrZone);
                     const hrZoneData = sessionZoneData.timeInHrZone
+                        .slice(1) // Skip Zone 0
                         .map((time, index) => ({
                             zone: index + 1,
                             time: time || 0,
@@ -34,8 +37,8 @@ export function setupZoneData(globalData) {
                         .filter((zone) => zone.time > 0);
 
                     if (hrZoneData.length > 0) {
-                        window.heartRateZones = hrZoneData;
-                        console.log("[ChartJS] Heart rate zones data set:", hrZoneData);
+                        window.heartRateZones = applyZoneColors(hrZoneData, "hr");
+                        console.log("[ChartJS] Heart rate zones data set:", window.heartRateZones);
                     }
                 } else {
                     console.log("[ChartJS] No HR zone data found in session timeInZoneMesgs");
@@ -45,6 +48,7 @@ export function setupZoneData(globalData) {
                 if (sessionZoneData.timeInPowerZone && Array.isArray(sessionZoneData.timeInPowerZone)) {
                     console.log("[ChartJS] Found power zone data in timeInZoneMesgs:", sessionZoneData.timeInPowerZone);
                     const powerZoneData = sessionZoneData.timeInPowerZone
+                        .slice(1) // Skip Zone 0
                         .map((time, index) => ({
                             zone: index + 1,
                             time: time || 0,
@@ -53,8 +57,8 @@ export function setupZoneData(globalData) {
                         .filter((zone) => zone.time > 0);
 
                     if (powerZoneData.length > 0) {
-                        window.powerZones = powerZoneData;
-                        console.log("[ChartJS] Power zones data set:", powerZoneData);
+                        window.powerZones = applyZoneColors(powerZoneData, "power");
+                        console.log("[ChartJS] Power zones data set:", window.powerZones);
                     }
                 } else {
                     console.log("[ChartJS] No power zone data found in session timeInZoneMesgs");
@@ -74,6 +78,7 @@ export function setupZoneData(globalData) {
             if (sessionWithHrZones && sessionWithHrZones.time_in_hr_zone) {
                 console.log("[ChartJS] Found HR zone data in session:", sessionWithHrZones.time_in_hr_zone);
                 const hrZoneData = sessionWithHrZones.time_in_hr_zone
+                    .slice(1) // Skip Zone 0
                     .map((time, index) => ({
                         zone: index + 1,
                         time: time || 0,
@@ -82,8 +87,8 @@ export function setupZoneData(globalData) {
                     .filter((zone) => zone.time > 0);
 
                 if (hrZoneData.length > 0) {
-                    window.heartRateZones = hrZoneData;
-                    console.log("[ChartJS] Heart rate zones data set from session:", hrZoneData);
+                    window.heartRateZones = applyZoneColors(hrZoneData, "hr");
+                    console.log("[ChartJS] Heart rate zones data set from session:", window.heartRateZones);
                 }
             }
         }
@@ -98,6 +103,7 @@ export function setupZoneData(globalData) {
             if (sessionWithPowerZones && sessionWithPowerZones.time_in_power_zone) {
                 console.log("[ChartJS] Found power zone data in session:", sessionWithPowerZones.time_in_power_zone);
                 const powerZoneData = sessionWithPowerZones.time_in_power_zone
+                    .slice(1) // Skip Zone 0
                     .map((time, index) => ({
                         zone: index + 1,
                         time: time || 0,
@@ -106,8 +112,8 @@ export function setupZoneData(globalData) {
                     .filter((zone) => zone.time > 0);
 
                 if (powerZoneData.length > 0) {
-                    window.powerZones = powerZoneData;
-                    console.log("[ChartJS] Power zones data set from session:", powerZoneData);
+                    window.powerZones = applyZoneColors(powerZoneData, "power");
+                    console.log("[ChartJS] Power zones data set from session:", window.powerZones);
                 }
             }
         }
@@ -136,8 +142,9 @@ export function setupZoneData(globalData) {
                 });
 
                 // Set up HR zones from lap data
-                if (hrZoneTimes.length > 0 && hrZoneTimes.some((time) => time > 0)) {
+                if (hrZoneTimes.length > 1 && hrZoneTimes.slice(1).some((time) => time > 0)) {
                     window.heartRateZones = hrZoneTimes
+                        .slice(1) // Skip Zone 0
                         .map((time, index) => ({
                             zone: index + 1,
                             time: time || 0,
@@ -145,12 +152,15 @@ export function setupZoneData(globalData) {
                         }))
                         .filter((zone) => zone.time > 0);
 
+                    // Apply saved colors
+                    window.heartRateZones = applyZoneColors(window.heartRateZones, "hr");
                     console.log("[ChartJS] Heart rate zones processed from laps:", window.heartRateZones);
                 }
 
                 // Set up power zones from lap data
-                if (powerZoneTimes.length > 0 && powerZoneTimes.some((time) => time > 0)) {
+                if (powerZoneTimes.length > 1 && powerZoneTimes.slice(1).some((time) => time > 0)) {
                     window.powerZones = powerZoneTimes
+                        .slice(1) // Skip Zone 0
                         .map((time, index) => ({
                             zone: index + 1,
                             time: time || 0,
@@ -158,6 +168,8 @@ export function setupZoneData(globalData) {
                         }))
                         .filter((zone) => zone.time > 0);
 
+                    // Apply saved colors
+                    window.powerZones = applyZoneColors(window.powerZones, "power");
                     console.log("[ChartJS] Power zones processed from laps:", window.powerZones);
                 }
             }

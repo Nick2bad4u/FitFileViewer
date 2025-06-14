@@ -3,27 +3,27 @@ name: npm audit
 on:
   pull_request:
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   push:
     branches:
       - main
-      - "releases/*"
+      - 'releases/*'
     paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/icons/**"
-      - "!electron-app/icons"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
+      - '*'
+      - '*/**'
+      - '!electron-app/icons/**'
+      - '!electron-app/icons'
+      - '!electron-app/**'
+      - '!electron-app'
+      - '**/CHANGELOG.md'
+      - 'CHANGELOG.md'
   # schedule:
   #   - cron: '0 10 * * *'
 

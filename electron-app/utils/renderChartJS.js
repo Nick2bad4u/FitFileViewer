@@ -43,6 +43,19 @@ import { renderTimeInZoneCharts } from "./renderTimeInZoneCharts.js";
 import { renderPerformanceAnalysisCharts } from "./renderPerformanceAnalysisCharts.js";
 import { renderGPSTrackChart } from "./renderGPSTrackChart.js";
 import { renderLapZoneCharts } from "./renderLapZoneCharts.js";
+import { shouldShowRenderNotification } from "./shouldShowRenderNotification.js";
+
+// Debouncing variables for renderChartJS
+let renderTimeout = null;
+let lastRenderTime = 0;
+const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
+
+// Track previous render state for notification logic
+export let previousChartState = {
+    chartCount: 0,
+    fieldsRendered: [],
+    lastRenderTimestamp: 0,
+};
 
 // Chart.js plugin registration
 if (window.Chart && window.Chart.register && window.Chart.Zoom) {
@@ -64,7 +77,9 @@ if (!window._fitFileViewerChartListener) {
     let _fitfileLoadedFired = false;
     window.addEventListener("fitfile-loaded", function () {
         _fitfileLoadedFired = true;
-        console.log("[ChartJS] fitfile-loaded event received, re-rendering charts");
+        console.log("[ChartJS] fitfile-loaded event received, resetting notification state and re-rendering charts");
+        // Reset notification state for new file
+        resetChartNotificationState();
         // Re-render charts when a new file is loaded
         renderChartJS();
     });
@@ -132,6 +147,17 @@ export function hexToRgba(hex, alpha) {
  */
 export function renderChartJS(targetContainer) {
     console.log("[ChartJS] Starting chart rendering...");
+
+    // Debounce multiple rapid calls
+    const now = Date.now();
+    if (now - lastRenderTime < RENDER_DEBOUNCE_MS) {
+        console.log("[ChartJS] Debouncing rapid render calls");
+        clearTimeout(renderTimeout);
+        renderTimeout = setTimeout(() => renderChartJS(targetContainer), RENDER_DEBOUNCE_MS);
+        return false;
+    }
+    lastRenderTime = now;
+
     const performanceStart = performance.now();
 
     try {
@@ -311,15 +337,30 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         pan: {
             enabled: true,
             mode: "x",
+            modifierKey: null, // Allow panning without modifier key
         },
         zoom: {
             wheel: {
                 enabled: true,
+                speed: 0.1,
             },
             pinch: {
                 enabled: true,
             },
+            drag: {
+                enabled: true,
+                backgroundColor: "rgba(59, 130, 246, 0.2)",
+                borderColor: "rgba(59, 130, 246, 0.8)",
+                borderWidth: 2,
+                modifierKey: "shift", // Require shift key for drag selection
+            },
             mode: "x",
+        },
+        limits: {
+            x: {
+                min: "original",
+                max: "original",
+            },
         },
     };
     // Get theme from options or fallback to system
@@ -539,12 +580,46 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const endTime = performance.now();
     console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${(endTime - startTime).toFixed(2)}ms`);
 
-    // Show completion notification for multiple charts
-    if (totalChartsRendered > 1) {
-        showNotification(`Rendered ${totalChartsRendered} charts successfully`, "success", 3000);
+    // Check if this is a meaningful render that warrants a notification
+    const shouldShowNotification = shouldShowRenderNotification(totalChartsRendered, visibleFieldCount);
+
+    if (shouldShowNotification && totalChartsRendered > 0) {
+        const message = totalChartsRendered === 1 ? "Chart rendered successfully" : `Rendered ${totalChartsRendered} charts successfully`;
+
+        console.log(`[ChartJS] Showing success notification: "${message}"`);
+
+        // Use setTimeout to ensure notification shows after any DOM changes
+        setTimeout(() => {
+            showNotification(message, "success", 3000);
+        }, 100);
+    } else {
+        console.log(`[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`);
     }
 
     return true;
+}
+
+/**
+ * Updates the previous chart state tracking
+ * @param {number} chartCount - Current chart count
+ * @param {number} visibleFields - Current visible field count
+ * @param {number} timestamp - Current timestamp
+ */
+export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
+    previousChartState.chartCount = chartCount;
+    previousChartState.fieldsRendered = new Array(visibleFields).fill(true);
+    previousChartState.lastRenderTimestamp = timestamp;
+}
+
+/**
+ * Resets the chart state tracking - call when loading a new FIT file
+ * This ensures notifications are shown for the first render of a new file
+ */
+export function resetChartNotificationState() {
+    previousChartState.chartCount = 0;
+    previousChartState.fieldsRendered = [];
+    previousChartState.lastRenderTimestamp = 0;
+    console.log("[ChartJS] Chart notification state reset for new file");
 }
 
 // Developer fields charts renderer

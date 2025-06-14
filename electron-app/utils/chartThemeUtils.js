@@ -16,9 +16,11 @@ import { getEffectiveTheme } from "./theme.js";
 export function detectCurrentTheme() {
     // Method 1: Check body classes (primary method used by the app)
     if (document.body.classList.contains("theme-dark")) {
+        console.log("[ChartThemeUtils] Detected theme via body class: dark");
         return "dark";
     }
     if (document.body.classList.contains("theme-light")) {
+        console.log("[ChartThemeUtils] Detected theme via body class: light");
         return "light";
     }
 
@@ -26,17 +28,28 @@ export function detectCurrentTheme() {
     try {
         const effectiveTheme = getEffectiveTheme();
         if (effectiveTheme) {
+            console.log("[ChartThemeUtils] Detected theme via getEffectiveTheme:", effectiveTheme);
             return effectiveTheme;
         }
     } catch (error) {
         console.warn("[ChartThemeUtils] getEffectiveTheme failed:", error);
     }
 
-    // Method 3: Check localStorage
+    // Method 3: Check localStorage (using correct key "ffv-theme")
     try {
-        const savedTheme = localStorage.getItem("theme");
+        const savedTheme = localStorage.getItem("ffv-theme");
         if (savedTheme && (savedTheme === "dark" || savedTheme === "light")) {
+            console.log("[ChartThemeUtils] Detected theme via localStorage:", savedTheme);
             return savedTheme;
+        }
+        // Handle "auto" theme by resolving to system preference
+        if (savedTheme === "auto") {
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                console.log("[ChartThemeUtils] Auto theme resolved to: dark");
+                return "dark";
+            }
+            console.log("[ChartThemeUtils] Auto theme resolved to: light");
+            return "light";
         }
     } catch (error) {
         console.warn("[ChartThemeUtils] localStorage access failed:", error);
@@ -45,6 +58,7 @@ export function detectCurrentTheme() {
     // Method 4: System preference fallback
     try {
         if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            console.log("[ChartThemeUtils] System preference fallback: dark");
             return "dark";
         }
     } catch (error) {
@@ -52,5 +66,6 @@ export function detectCurrentTheme() {
     }
 
     // Final fallback
+    console.log("[ChartThemeUtils] Using final fallback: light");
     return "light";
 }

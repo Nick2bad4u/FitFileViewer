@@ -20,7 +20,7 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        
+
       - name: Use local git-sizer action
         id: sizer
         uses: ChrisCarini/github-git-sizer-action@09eaa4ae73038a5f0bbdc7e7b964f1bf6114c277 # latest

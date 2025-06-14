@@ -75,7 +75,7 @@ If applicable, add screenshots or GIFs demonstrating the new feature:
 **Browser/Platform Compatibility:**
 
 - [ ] Windows tested
-- [ ] macOS tested  
+- [ ] macOS tested
 - [ ] Linux tested
 - [ ] Theme compatibility (light/dark)
 - [ ] FIT file format compatibility maintained

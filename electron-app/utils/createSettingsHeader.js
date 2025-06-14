@@ -490,7 +490,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
         chartItem.addEventListener("click", () => {
             document.body.removeChild(overlay);
-            singleCallback(chart);
+            singleCallback(index);
         });
 
         chartList.appendChild(chartItem);
@@ -843,13 +843,15 @@ function createFieldToggle(field) {
 		font-size: 14px;
 		cursor: pointer;
 	`;
-    // Check if this is a zone chart
-    const isZoneChart = field.includes("zone_doughnut") || field.includes("zone_bar");
+    // Check if this is a zone chart - but only show zone color button for the first of each type
+    const isHRZoneChart = field.includes("hr_zone");
+    const showZoneColorButton = field === "hr_zone_doughnut" || field === "power_zone_doughnut"; // Only show on doughnut charts
 
-    if (isZoneChart) {
+    if (showZoneColorButton) {
         // Create zone color picker button for zone charts
         const zoneColorBtn = document.createElement("button");
-        zoneColorBtn.textContent = "🎨 Zones";
+        const zoneType = isHRZoneChart ? "HR" : "Power";
+        zoneColorBtn.textContent = `🎨 ${zoneType} Zones`;
         zoneColorBtn.style.cssText = `
 			padding: 6px 12px;
 			background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -863,7 +865,9 @@ function createFieldToggle(field) {
 		`;
 
         zoneColorBtn.addEventListener("click", () => {
-            openZoneColorPicker(field);
+            // Use a generic field name for the zone color picker
+            const genericField = isHRZoneChart ? "hr_zone" : "power_zone";
+            openZoneColorPicker(genericField);
         });
 
         zoneColorBtn.addEventListener("mouseenter", () => {

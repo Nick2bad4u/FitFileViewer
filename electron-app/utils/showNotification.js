@@ -69,6 +69,12 @@ async function processNotificationQueue() {
         return;
     }
 
+    if (isShowingNotification) {
+        // If already showing, wait a bit and try again
+        setTimeout(() => processNotificationQueue(), 500);
+        return;
+    }
+
     isShowingNotification = true;
     const notification = notificationQueue.shift();
 
@@ -78,8 +84,13 @@ async function processNotificationQueue() {
         console.error("Error displaying notification:", error);
     }
 
-    // Process next notification after current one is done
-    setTimeout(() => processNotificationQueue(), 100);
+    // Reset flag and process next notification
+    isShowingNotification = false;
+
+    // Process next notification after a short delay
+    if (notificationQueue.length > 0) {
+        setTimeout(() => processNotificationQueue(), 200);
+    }
 }
 
 /**
@@ -119,14 +130,12 @@ async function displayNotification(notification) {
         }, notification.duration);
     }
 
-    // Return promise that resolves when notification is hidden
+    // Return a promise that resolves after the display duration + animation time
+    const totalTime = notification.duration ? notification.duration + 500 : 1000; // Extra time for animations
     return new Promise((resolve) => {
-        notificationElement.addEventListener("transitionend", function onTransitionEnd(e) {
-            if (e.propertyName === "opacity" && !notificationElement.classList.contains("show")) {
-                notificationElement.removeEventListener("transitionend", onTransitionEnd);
-                resolve();
-            }
-        });
+        setTimeout(() => {
+            resolve();
+        }, totalTime);
     });
 }
 

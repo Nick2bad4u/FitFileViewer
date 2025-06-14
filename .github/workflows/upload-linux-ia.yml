@@ -3,7 +3,7 @@ name: Upload Linux Distributables to Archive.org
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Build and Release Electron App"]
+    workflows: ['Build and Release Electron App']
     types:
       - completed
 
@@ -28,7 +28,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-linux-*"
+          fileName: 'Fit-File-Viewer-linux-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +37,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-appimage-*"
+          fileName: 'Fit-File-Viewer-appimage-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,7 +46,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-deb-*"
+          fileName: 'Fit-File-Viewer-deb-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,7 +55,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-pacman-*"
+          fileName: 'Fit-File-Viewer-pacman-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -64,7 +64,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-rpm-*"
+          fileName: 'Fit-File-Viewer-rpm-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -73,7 +73,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-snap-*"
+          fileName: 'Fit-File-Viewer-snap-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -82,7 +82,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-freebsd-*"
+          fileName: 'Fit-File-Viewer-freebsd-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -91,7 +91,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "Fit-File-Viewer-apk-*"
+          fileName: 'Fit-File-Viewer-apk-*'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -100,7 +100,7 @@ jobs:
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
         with:
           latest: true
-          fileName: "latest-linux.yml"
+          fileName: 'latest-linux.yml'
           out-file-path: release-dist
           token: ${{ secrets.GITHUB_TOKEN }}
 

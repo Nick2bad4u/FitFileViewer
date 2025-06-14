@@ -1693,7 +1693,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
    ===================================================== */
 .notification {
     position: fixed;
-    top: 32px;
+    top: 250px;
     left: 50%;
     transform: translateX(-50%) translateY(-100px);
     min-width: 320px;

@@ -89,10 +89,10 @@ jobs:
       - name: Create Pull Request for changelogs
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
-          commit-message: "chore: update changelogs [skip ci]"
-          title: "chore: update changelogs"
+          commit-message: 'chore: update changelogs [skip ci]'
+          title: 'chore: update changelogs'
           body: "Automated changelog update via GitHub Actions.\n\nThis PR was created automatically and will not be merged automatically."
-          branch: "chore/update-changelogs"
+          branch: 'chore/update-changelogs'
           add-paths: '**/CHANGELOG.md'
           delete-branch: false
           token: ${{ secrets.GITHUB_TOKEN }}

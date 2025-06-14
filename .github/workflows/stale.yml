@@ -26,7 +26,7 @@ name: Mark stale issues and pull requests
 
 on:
   schedule:
-    - cron: "38 7 * * *"
+    - cron: '38 7 * * *'
   pull_request_target:
     types: [opened, reopened, synchronize]
   issues:
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: "Stale issue"
-          stale-pr-message: "Stale pull request"
-          stale-issue-label: "no-issue-activity"
-          stale-pr-label: "no-pr-activity"
+          stale-issue-message: 'Stale issue'
+          stale-pr-message: 'Stale pull request'
+          stale-issue-label: 'no-issue-activity'
+          stale-pr-label: 'no-pr-activity'
