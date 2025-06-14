@@ -6,9 +6,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)...[cf056fb](https://github.com/Nick2bad4u/FitFileViewer/commit/cf056fb67d902c3657cb8059db81cdd21623e31f)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/25c3b5e09fc01799a354e00c97ea827a48a5dfc8...cf056fb67d902c3657cb8059db81cdd21623e31f))
+[[96e18ba](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)...[f72fb53](https://github.com/Nick2bad4u/FitFileViewer/commit/f72fb538a639f8ae73db092315e64c39dc59d5e1)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c...f72fb538a639f8ae73db092315e64c39dc59d5e1))
 
 ### 📦 Dependencies
+
+- [dependency] Update version 22.2.0 [`(f72fb53)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f72fb538a639f8ae73db092315e64c39dc59d5e1)
+
+
+## [22.2.0] - 2025-06-14
+
+[[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)...[96e18ba](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/25c3b5e09fc01799a354e00c97ea827a48a5dfc8...96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c))
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v22.1.0 [skip ci] [`(ffce99a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ffce99aef7dcf5b97ac6e68083c5700034fa673c)
+
+
+### 📦 Dependencies
+
+- Merge pull request #120 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-2933a2d61b [`(96e18ba)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)
+
+- *(deps-dev)* [dependency] Update the npm-all group across 1 directory with 4 updates [`(fe1d608)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fe1d60880059598e3d3c7932fc100646688e74b9)
 
 - [dependency] Update version 22.1.0 [`(cf056fb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf056fb67d902c3657cb8059db81cdd21623e31f)
 
