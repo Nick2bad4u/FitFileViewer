@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   update_changelogs:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
@@ -54,12 +54,25 @@ jobs:
       - name: Generate CHANGELOG.md files
         run: |
           npx git-cliff --config cliff.toml --output CHANGELOG.md
-          cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
-          cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
+          ls
+          cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md
+          ls
+          cd ..
+          cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          ls
+          cd ../..
+          cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          ls
+          cd ../..
+          cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          ls
+          cd ../..
+          cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          ls
+          cd ../..
+          cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md
+          ls
+          cd ../..
 
       - name: Create Pull Request for changelogs
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
