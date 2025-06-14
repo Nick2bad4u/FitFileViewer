@@ -189,9 +189,38 @@ window.sendFitFileToAltFitReader = async function (arrayBuffer) {
 
 // Enhanced theme change handling
 if (window.electronAPI && typeof window.electronAPI.onSetTheme === "function" && typeof window.electronAPI.sendThemeChanged === "function") {
-    // If chart tab is active, re-render chart to update theme
+    // Re-render charts when theme changes, regardless of active tab
     listenForThemeChange((theme) => {
         applyTheme(theme);
+
+        // Always re-render ChartJS charts if data exists and charts container is present
+        if (window.globalData && window.globalData.recordMesgs) {
+            const chartsContainer = document.getElementById("chartjs-chart-container");
+            if (chartsContainer && window._chartjsInstances && window._chartjsInstances.length > 0) {
+                console.log("[main-ui] Re-rendering ChartJS charts for theme change from app menu");
+
+                // Destroy existing charts
+                window._chartjsInstances.forEach((chart) => {
+                    if (chart && typeof chart.destroy === "function") {
+                        try {
+                            chart.destroy();
+                        } catch (error) {
+                            console.warn("[main-ui] Error destroying chart during theme change:", error);
+                        }
+                    }
+                });
+                window._chartjsInstances = [];
+
+                // Re-render charts with new theme
+                setTimeout(() => {
+                    if (typeof renderChartJS === "function") {
+                        renderChartJS("chartjs-chart-container");
+                    }
+                }, 100);
+            }
+        }
+
+        // Handle legacy Vega chart if chart tab is active
         const tabChart = validateElement(CONSTANTS.DOM_IDS.TAB_CHART);
         if (tabChart && tabChart.classList.contains("active")) {
             if (!AppState.isChartRendered) {

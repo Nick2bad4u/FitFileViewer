@@ -35,17 +35,18 @@ export function setupListeners({
         menu.style.zIndex = 10010;
         menu.style.left = `${event.clientX}px`;
         menu.style.top = `${event.clientY}px`;
-        menu.style.background = "#23263a";
-        menu.style.color = "#fff";
-        menu.style.border = "2px solid #fff";
-        menu.style.borderRadius = "6px";
-        menu.style.boxShadow = "0 2px 12px rgb(0 0 0 / 40%)";
+        menu.style.background = "var(--color-bg-alt-solid)";
+        menu.style.color = "var(--color-fg)";
+        menu.style.border = "2px solid var(--color-border-light)";
+        menu.style.borderRadius = "var(--border-radius-small)";
+        menu.style.boxShadow = "var(--color-box-shadow)";
         menu.style.minWidth = "320px";
         menu.style.maxWidth = "480px";
         menu.style.fontSize = "1rem";
         menu.style.padding = "4px 0";
         menu.style.cursor = "pointer";
         menu.style.userSelect = "none";
+        menu.style.backdropFilter = "var(--backdrop-blur)";
         menu.oncontextmenu = (e) => e.preventDefault();
         menu.setAttribute("role", "menu");
         menu.setAttribute("aria-label", "Recent files");
@@ -63,12 +64,14 @@ export function setupListeners({
             item.style.textOverflow = "ellipsis";
             item.setAttribute("role", "menuitem");
             item.setAttribute("tabindex", "-1");
-            item.style.background = idx === 0 ? "#444b6e" : "transparent";
+            item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
             item.onmouseenter = () => {
-                item.style.background = "#444b6e";
+                item.style.background = "var(--color-glass-border)";
+                item.style.color = "var(--color-fg-alt)";
             };
             item.onmouseleave = () => {
-                item.style.background = focusedIndex === idx ? "#444b6e" : "transparent";
+                item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";
+                item.style.color = "var(--color-fg)";
             };
             item.onclick = async () => {
                 menu.remove();
@@ -97,7 +100,8 @@ export function setupListeners({
         });
         function focusItem(idx) {
             items.forEach((el, i) => {
-                el.style.background = i === idx ? "#444b6e" : "transparent";
+                el.style.background = i === idx ? "var(--color-glass-border)" : "transparent";
+                el.style.color = i === idx ? "var(--color-fg-alt)" : "var(--color-fg)";
                 if (i === idx) el.focus();
             });
             focusedIndex = idx;

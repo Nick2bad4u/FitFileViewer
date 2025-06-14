@@ -47,7 +47,7 @@ function createControlsToggleButton(container) {
     toggleBtn.setAttribute("aria-expanded", "false");
     toggleBtn.setAttribute("aria-controls", "chartjs-settings-wrapper");
     toggleBtn.style.cssText = `
-		background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+		background: linear-gradient(145deg, #3b82f665 0%, #2563eb 100%);
 		color: white;
 		border: none;
 		border-radius: 8px;

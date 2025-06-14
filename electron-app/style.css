@@ -22,6 +22,8 @@
     --color-fg-alt: #fff;
     --color-accent: #667eea;
     --color-accent-secondary: #764ba2;
+    --color-accent-hover: rgb(102 126 234 / 20%);
+    --color-shadow: rgb(0 0 0 / 30%);
     --color-header: linear-gradient(135deg, #23263a 0%, #2a2d42 100%);
     --color-table-header: #23263a;
     --color-table-row-even: #23263a;
@@ -39,7 +41,7 @@
     --color-error: #ef4444;
     --color-success: #10b981;
     --color-warning: #f59e0b;
-    --color-info: #3b82f6;
+    --color-info: #3b82f665;
     --color-overlay-bg: rgb(0 0 0 / 70%);
     --color-box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
     --color-box-shadow-light: 0 4px 16px rgb(0 0 0 / 10%);
@@ -61,20 +63,22 @@ body.theme-light {
     --color-bg-alt-solid: #fff;
     --color-fg: #1e293b;
     --color-fg-alt: #0f172a;
-    --color-accent: #3b82f6;
+    --color-accent: #3b82f665;
     --color-accent-secondary: #8b5cf6;
+    --color-accent-hover: rgb(59 130 246 / 20%);
+    --color-shadow: rgb(0 0 0 / 15%);
     --color-header: linear-gradient(135deg, #fff 0%, #f1f5f9 100%);
     --color-table-header: #f1f5f9;
     --color-table-row-even: #fff;
     --color-table-row-odd: #f8fafc;
     --color-table-hover: #e2e8f0;
-    --color-title: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+    --color-title: linear-gradient(45deg, #3b82f665, #8b5cf6, #ec4899);
     --color-border: rgb(0 0 0 / 10%);
     --color-border-light: rgb(0 0 0 / 5%);
-    --color-btn-bg: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    --color-btn-bg-solid: #3b82f6;
+    --color-btn-bg: linear-gradient(135deg, #3b82f665 0%, #8b5cf6 100%);
+    --color-btn-bg-solid: #3b82f665;
     --color-btn-hover: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-    --color-modal-bg: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    --color-modal-bg: linear-gradient(135deg, #3b82f665 0%, #8b5cf6 100%);
     --color-modal-fg: #fff;
     --color-credits: #64748b;
     --color-filename: #475569;
@@ -288,6 +292,7 @@ h2 {
     100% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
@@ -753,7 +758,7 @@ table.dataTable.display > tbody > tr:hover td {
     background: var(--color-bg-alt);
     color: var(--color-fg);
     overflow: auto;
-    border-radius: 6px;
+    border-radius: 4px;
     box-sizing: border-box;
 }
 
@@ -1442,8 +1447,8 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .summary-col-modal-overlay {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, rgb(0 0 0 / 50%) 0%, rgb(0 0 0 / 70%) 100%);
-    backdrop-filter: blur(8px);
+    background: var(--color-glass);
+    backdrop-filter: var(--backdrop-blur);
     z-index: 10010;
     display: flex;
     align-items: center;
@@ -1452,12 +1457,12 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 .summary-col-modal {
-    background: var(--color-modal-bg);
+    background: var(--color-glass);
+    backdrop-filter: var(--backdrop-blur);
     color: var(--color-modal-fg);
     border-radius: var(--border-radius);
     box-shadow: var(--color-box-shadow);
     border: 1px solid var(--color-glass-border);
-    backdrop-filter: var(--backdrop-blur);
     padding: 32px 28px 24px;
     min-width: 320px;
     max-width: 90vw;
@@ -1467,7 +1472,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     flex-direction: column;
     align-items: stretch;
     position: relative;
-    animation: slideUp 0.3s ease-out;
+    animation: slide-up 0.3s ease-out;
 }
 
 .summary-col-modal::before {
@@ -1502,6 +1507,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     overflow-y: auto;
     padding: 12px;
     background: var(--color-glass);
+    backdrop-filter: var(--backdrop-blur);
     border-radius: var(--border-radius-small);
     border: 1px solid var(--color-border);
 }
@@ -1515,11 +1521,28 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     border-radius: var(--border-radius-small);
     transition: var(--transition-smooth);
     cursor: pointer;
+    color: var(--color-modal-fg);
+    border: 1px solid transparent;
+    background: var(--color-glass);
 }
 
 .summary-col-modal label:hover {
-    background: var(--color-glass);
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent);
     transform: translateX(4px);
+    box-shadow: var(--color-box-shadow-light);
+}
+
+.summary-col-modal label:has(input:disabled) {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.summary-col-modal label:has(input:disabled):hover {
+    transform: none;
+    background: var(--color-glass);
+    border-color: transparent;
+    box-shadow: none;
 }
 
 .summary-col-modal .modal-actions {
@@ -1536,6 +1559,18 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     align-self: flex-end;
     margin-bottom: 10px;
     font-size: 0.95rem;
+    background: var(--color-btn-bg);
+    color: var(--color-modal-fg);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--border-radius-small);
+    padding: 8px 16px;
+    transition: var(--transition-smooth);
+}
+
+.summary-col-modal .select-all-btn:hover {
+    background: var(--color-btn-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--color-box-shadow-light);
 }
 
 /* Modern Modal Dialog Styles */
@@ -1562,7 +1597,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     border: 1px solid var(--color-glass-border);
     backdrop-filter: var(--backdrop-blur);
     position: relative;
-    animation: slideUp 0.3s ease-out;
+    animation: slide-up 0.3s ease-out;
 }
 
 .modal-content::before {
@@ -1606,10 +1641,15 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     outline-offset: 2px;
 }
 
+/* =====================================================
+   Modal Animations
+   ===================================================== */
+
 @keyframes fade-in {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1618,14 +1658,16 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 @keyframes slide-up {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px) scale(0.95);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
+
+/* ===================================================== */
 
 /* =====================================================
    Buttons - Professional Gradient Design
@@ -1748,7 +1790,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 .notification.info {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #3b82f665 0%, #2563eb 100%);
     color: #fff;
     border-color: rgb(255 255 255 / 30%);
     box-shadow: 0 8px 32px rgb(59 130 246 / 30%);

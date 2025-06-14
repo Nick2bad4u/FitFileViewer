@@ -242,7 +242,7 @@ export function getThemeConfig() {
         isDark: effectiveTheme === "dark",
         isLight: effectiveTheme === "light",
         colors: {
-            primary: effectiveTheme === "dark" ? "#3b82f6" : "#2563eb",
+            primary: effectiveTheme === "dark" ? "#3b82f665" : "#2563eb",
             background: effectiveTheme === "dark" ? "#1a1a1a" : "#ffffff",
             surface: effectiveTheme === "dark" ? "#2d2d2d" : "#f8f9fa",
             text: effectiveTheme === "dark" ? "#ffffff" : "#000000",

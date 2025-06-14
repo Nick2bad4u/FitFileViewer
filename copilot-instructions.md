@@ -214,7 +214,7 @@ Object.defineProperty(window, 'globalData', {
 :root[data-theme='dark'] {
 	--bg-primary: #1a1a1a;
 	--text-primary: #ffffff;
-	--accent-color: #3b82f6;
+	--accent-color: #3b82f665;
 }
 
 /* Light theme example */
