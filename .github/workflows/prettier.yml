@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   prettier:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
@@ -55,8 +55,19 @@ jobs:
       - name: Install Prettier
         run: npm install --no-save prettier@3.2.5
 
-      - name: Prettify code
-        uses: creyD/prettier_action@8c18391fdc98ed0d884c6345f03975edac71b8f0 # v4.6
+      - name: Run Prettier (fix)
+        working-directory: electron-app
+        run: npx prettier --write "**/*.{js,md,css,html}"
+
+      - name: Commit & create pull request
+        uses: peter-evans/create-pull-request@v7
         with:
-          prettier_options: --check **/*.{js,md,css,html}
-        continue-on-error: true
+          commit-message: "chore: format code with Prettier"
+          title: "chore: format code with Prettier"
+          body: |
+            This PR was created automatically by the Prettier workflow.
+            It applies code formatting changes using Prettier and your project's configuration.
+          branch: "chore/prettier-fix"
+          add-paths: electron-app/**/*.{js,md,css,html}
+          delete-branch: false
+          token: ${{ secrets.GITHUB_TOKEN }}
