@@ -41,27 +41,27 @@
  * @returns {string} The base name of the file.
  */
 // Utility functions for managing recent files
-const path = require('path');
-const fs = require('fs');
-const { app } = require('electron');
+const path = require("path");
+const fs = require("fs");
+const { app } = require("electron");
 
 let RECENT_FILES_PATH;
 if (process.env.RECENT_FILES_PATH) {
-	RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
+    RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
 } else {
-	let userDataPath;
-	try {
-		// app may be undefined in test environments
-		userDataPath = app && typeof app.getPath === 'function' ? app.getPath('userData') : null;
-	} catch {
-		userDataPath = null;
-	}
-	if (userDataPath) {
-		RECENT_FILES_PATH = path.join(userDataPath, 'recent-files.json');
-	} else {
-		// fallback for tests or non-Electron environments
-		RECENT_FILES_PATH = path.join(process.cwd(), 'recent-files-test.json');
-	}
+    let userDataPath;
+    try {
+        // app may be undefined in test environments
+        userDataPath = app && typeof app.getPath === "function" ? app.getPath("userData") : null;
+    } catch {
+        userDataPath = null;
+    }
+    if (userDataPath) {
+        RECENT_FILES_PATH = path.join(userDataPath, "recent-files.json");
+    } else {
+        // fallback for tests or non-Electron environments
+        RECENT_FILES_PATH = path.join(process.cwd(), "recent-files-test.json");
+    }
 }
 // Maximum number of recent files to retain
 const MAX_RECENT_FILES = 10;
@@ -75,15 +75,15 @@ const MAX_RECENT_FILES = 10;
  * @returns {Array} An array of recent files, or an empty array if none are found or an error occurs.
  */
 function loadRecentFiles() {
-	try {
-		if (fs.existsSync(RECENT_FILES_PATH)) {
-			const data = fs.readFileSync(RECENT_FILES_PATH, 'utf-8');
-			return JSON.parse(data);
-		}
-	} catch (err) {
-		console.error('Failed to load recent files:', err);
-	}
-	return [];
+    try {
+        if (fs.existsSync(RECENT_FILES_PATH)) {
+            const data = fs.readFileSync(RECENT_FILES_PATH, "utf-8");
+            return JSON.parse(data);
+        }
+    } catch (err) {
+        console.error("Failed to load recent files:", err);
+    }
+    return [];
 }
 
 /**
@@ -93,11 +93,11 @@ function loadRecentFiles() {
  * @returns {void}
  */
 function saveRecentFiles(list) {
-	try {
-		fs.writeFileSync(RECENT_FILES_PATH, JSON.stringify(list.slice(0, MAX_RECENT_FILES)), 'utf-8');
-	} catch (err) {
-		console.error('Failed to save recent files:', err);
-	}
+    try {
+        fs.writeFileSync(RECENT_FILES_PATH, JSON.stringify(list.slice(0, MAX_RECENT_FILES)), "utf-8");
+    } catch (err) {
+        console.error("Failed to save recent files:", err);
+    }
 }
 
 /**
@@ -108,19 +108,19 @@ function saveRecentFiles(list) {
  * @param {string} filePath - The path of the file to add to the recent files list.
  */
 function addRecentFile(filePath) {
-	let list = loadRecentFiles();
-	if (!Array.isArray(list)) {
-		console.warn('Invalid recent files list, resetting to an empty array.');
-		list = [];
-	}
-	const originalList = [...list];
-	if (list.includes(filePath)) {
-		list = list.filter((f) => f !== filePath);
-	}
-	list.unshift(filePath);
-	if (JSON.stringify(originalList) !== JSON.stringify(list)) {
-		saveRecentFiles(list);
-	}
+    let list = loadRecentFiles();
+    if (!Array.isArray(list)) {
+        console.warn("Invalid recent files list, resetting to an empty array.");
+        list = [];
+    }
+    const originalList = [...list];
+    if (list.includes(filePath)) {
+        list = list.filter((f) => f !== filePath);
+    }
+    list.unshift(filePath);
+    if (JSON.stringify(originalList) !== JSON.stringify(list)) {
+        saveRecentFiles(list);
+    }
 }
 
 /**
@@ -130,16 +130,16 @@ function addRecentFile(filePath) {
  * @returns {string} The base name of the file.
  */
 function getShortRecentName(file) {
-	if (!file) {
-		console.warn('Invalid file path provided to getShortRecentName.');
-		return '';
-	}
-	return path.basename(file);
+    if (!file) {
+        console.warn("Invalid file path provided to getShortRecentName.");
+        return "";
+    }
+    return path.basename(file);
 }
 
 module.exports = {
-	loadRecentFiles,
-	saveRecentFiles,
-	addRecentFile,
-	getShortRecentName,
+    loadRecentFiles,
+    saveRecentFiles,
+    addRecentFile,
+    getShortRecentName,
 };

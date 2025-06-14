@@ -1,556 +1,261 @@
+<!DOCTYPE electron>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1"
-		/>
-		<title>Fit File Viewer</title>
-		<!-- App/Website Icons -->
-		<link
-			rel="icon"
-			type="image/png"
-			href="icons/favicon-96x96.png"
-			sizes="96x96"
-		/>
-		<link
-			rel="icon"
-			type="image/svg+xml"
-			href="icons/favicon.svg"
-		/>
-		<link
-			rel="shortcut icon"
-			href="icons/favicon.ico"
-		/>
-		<link
-			rel="apple-touch-icon"
-			sizes="180x180"
-			href="icons/apple-touch-icon.png"
-		/>
-		<meta
-			name="apple-mobile-web-app-title"
-			content="FitFileViewer"
-		/>
-		<link
-			rel="manifest"
-			href="icons/site.webmanifest"
-		/>
-		<!-- Use local copies of JS/CSS libraries from libs/ -->
-		<script
-			src="libs/jquery-3.7.1.min.js"
-			defer
-		></script>
-		<script
-			src="libs/dataTables-2.2.1.min.js"
-			defer
-		></script>
-		<script
-			src="libs/arquero-latest.js"
-			defer
-		></script>
-		<script src="libs/chartjs-latest.js"></script>
-		<script src="libs/date-fns.js"></script>
-		<!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
-		<script src="libs/hammer.min.js"></script>
-		<script src="libs/chartjs-plugin-zoom.js"></script>
-		<script src="libs/chartjs-adapter-date-fns.js"></script>
-		<!-- JSZip for ZIP file creation -->
-		<script src="libs/jszip.min.js"></script>
-		<script
-			src="libs/vega-5-latest.js"
-			defer
-		></script>
-		<script
-			src="libs/vega-lite-5-latest.js"
-			defer
-		></script>
-		<script
-			src="libs/vega-embed-6-latest.js"
-			defer
-		></script>
-		<link
-			rel="stylesheet"
-			href="libs/dataTables-2.2.1.min.css"
-		/>
-		<link
-			rel="stylesheet"
-			href="libs/leaflet.css"
-		/>
-		<link
-			rel="stylesheet"
-			href="libs/leaflet.locatecontrol.css"
-		/>
-		<link
-			rel="stylesheet"
-			href="libs/Control.MiniMap.css"
-		/>
-		<script
-			src="libs/leaflet.js"
-			defer
-		></script>
-		<script
-			src="libs/leaflet.locatecontrol.js"
-			defer
-		></script>
-		<script
-			src="libs/Control.MiniMap.js"
-			defer
-		></script>
-		<link
-			rel="stylesheet"
-			href="libs/maplibre-gl.css"
-		/>
-		<script
-			src="libs/maplibre-gl.js"
-			defer
-		></script>
-		<script
-			src="libs/maplibre-gl-leaflet.js"
-			defer
-		></script>
-		<link
-			rel="stylesheet"
-			href="style.css"
-		/>
-		<!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
-		<script
-			src="utils.js"
-			type="module"
-			defer
-		></script>
-		<!-- Load screenfull before main-ui.js -->
-		<script
-			src="libs/screenfull.min.js"
-			defer
-		></script>
-		<script
-			src="main-ui.js"
-			type="module"
-			defer
-		></script>
-	</head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+            name="description"
+            content="Desktop application for viewing and analyzing FIT files from fitness devices with data visualization, mapping, and export capabilities"
+        />
+        <meta name="keywords" content="FIT file viewer, fitness data, GPS tracks, cycling, running, sports analytics, data visualization" />
+        <title>Fit File Viewer</title>
+        <!-- App/Website Icons -->
+        <link rel="icon" type="image/png" href="icons/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
+        <link rel="shortcut icon" href="icons/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content="FitFileViewer" />
+        <link rel="manifest" href="icons/site.webmanifest" />
+        <!-- Use local copies of JS/CSS libraries from libs/ -->
+        <script src="libs/jquery-3.7.1.min.js" defer></script>
+        <script src="libs/dataTables-2.2.1.min.js" defer></script>
+        <script src="libs/arquero-latest.js" defer></script>
+        <script src="libs/chartjs-latest.js"></script>
+        <script src="libs/date-fns.js"></script>
+        <!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
+        <script src="libs/hammer.min.js"></script>
+        <script src="libs/chartjs-plugin-zoom.js"></script>
+        <script src="libs/chartjs-adapter-date-fns.js"></script>
+        <!-- JSZip for ZIP file creation -->
+        <script src="libs/jszip.min.js"></script>
+        <script src="libs/vega-5-latest.js" defer></script>
+        <script src="libs/vega-lite-5-latest.js" defer></script>
+        <script src="libs/vega-embed-6-latest.js" defer></script>
+        <link rel="stylesheet" href="libs/dataTables-2.2.1.min.css" />
+        <link rel="stylesheet" href="libs/leaflet.css" />
+        <link rel="stylesheet" href="libs/leaflet.locatecontrol.css" />
+        <link rel="stylesheet" href="libs/Control.MiniMap.css" />
+        <script src="libs/leaflet.js" defer></script>
+        <script src="libs/leaflet.locatecontrol.js" defer></script>
+        <script src="libs/Control.MiniMap.js" defer></script>
+        <link rel="stylesheet" href="libs/maplibre-gl.css" />
+        <script src="libs/maplibre-gl.js" defer></script>
+        <script src="libs/maplibre-gl-leaflet.js" defer></script>
+        <link rel="stylesheet" href="style.css" />
+        <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
+        <script src="utils.js" type="module" defer></script>
+        <!-- Load screenfull before main-ui.js -->
+        <script src="libs/screenfull.min.js" defer></script>
+        <script src="main-ui.js" type="module" defer></script>
+    </head>
 
-	<body>
-		<!-- App Header -->
-		<header class="app-header">
-			<h1>Fit File Viewer</h1>
-		</header>
-		<!-- Header Bar for File Open and Filename -->
-		<div class="header-bar">
-			<button
-				id="openFileBtn"
-				class="themed-btn"
-				aria-label="Open FIT File"
-				role="button"
-				tabindex="0"
-			>
-				Open FIT File
-			</button>
-			<div id="activeFileNameContainer">
-				<span id="activeFileName"></span>
-				<button
-					id="unloadFileBtn"
-					title="Unload file"
-					style="display: none"
-					aria-label="Unload file"
-					tabindex="0"
-				>
-					<svg viewBox="0 0 24 24">
-						<path
-							d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z"
-						/>
-					</svg>
-				</button>
-			</div>
-		</div>
-		<!-- Centered Tab Bar -->
-		<div
-			id="tabs"
-			class="tab-bar"
-			role="tablist"
-			aria-label="Main Tabs"
-		>
-			<button
-				class="tab-button active"
-				id="tab-map"
-				role="tab"
-				aria-selected="true"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-					<circle
-						cx="12"
-						cy="10"
-						r="3"
-					/>
-				</svg>
-				Map
-			</button>
-			<button
-				class="tab-button"
-				id="tab-altfit"
-				role="tab"
-				aria-selected="false"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<ellipse
-						cx="12"
-						cy="5"
-						rx="9"
-						ry="3"
-					/>
-					<path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
-					<path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" />
-				</svg>
-				Data
-			</button>
-			<button
-				class="tab-button"
-				id="tab-data"
-				role="tab"
-				aria-selected="false"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<polyline points="16,18 22,12 16,6" />
-					<polyline points="8,6 2,12 8,18" />
-				</svg>
-				Raw Data
-			</button>
-			<button
-				class="tab-button"
-				id="tab-chart"
-				role="tab"
-				aria-selected="false"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<line
-						x1="18"
-						y1="20"
-						x2="18"
-						y2="10"
-					/>
-					<line
-						x1="12"
-						y1="20"
-						x2="12"
-						y2="4"
-					/>
-					<line
-						x1="6"
-						y1="20"
-						x2="6"
-						y2="14"
-					/>
-				</svg>
-				Chart
-			</button>
-			<button
-				class="tab-button"
-				id="tab-chartjs"
-				role="tab"
-				aria-selected="false"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<polyline points="3,12 7,8 13,14 21,6" />
-					<polyline points="17,6 21,6 21,10" />
-				</svg>
-				Charts v2
-			</button>
-			<button
-				class="tab-button"
-				id="tab-summary"
-				role="tab"
-				aria-selected="false"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-					<polyline points="14,2 14,8 20,8" />
-					<line
-						x1="16"
-						y1="13"
-						x2="8"
-						y2="13"
-					/>
-					<line
-						x1="16"
-						y1="17"
-						x2="8"
-						y2="17"
-					/>
-					<polyline points="10,9 9,9 8,9" />
-				</svg>
-				Summary
-			</button>
-			<button
-				class="tab-button"
-				id="tab-zwift"
-				role="tab"
-				aria-selected="false"
-				tabindex="0"
-			>
-				<svg
-					class="tab-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<circle
-						cx="5.5"
-						cy="17.5"
-						r="3.5"
-					/>
-					<circle
-						cx="18.5"
-						cy="17.5"
-						r="3.5"
-					/>
-					<path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
-					<path d="M8.5 10 15 15.5V21" />
-					<path d="M2.5 10.5 5 13l7.5-7.5" />
-					<path d="M15.5 17.5h-4" />
-				</svg>
-				Zwift (WIP)
-			</button>
-		</div>
-		<!-- Card-like Container for Tab Content -->
-		<div class="tab-card">
-			<div
-				id="content-map"
-				class="tab-content"
-			></div>
-			<div
-				id="content-data"
-				class="tab-content"
-			></div>
-			<div
-				id="content-chart"
-				class="tab-content"
-			>
-				<div id="vega-chart-container"></div>
-			</div>
-			<div
-				id="content-chartjs"
-				class="tab-content"
-			>
-				<div id="chartjs-chart-container"></div>
-			</div>
-			<div
-				id="content-summary"
-				class="tab-content"
-			></div>
-			<div
-				id="content-altfit"
-				class="tab-content"
-			>
-				<iframe
-					id="altfit-iframe"
-					class="fullsize-container no-border"
-					title="Alternative FIT Data View"
-					allowfullscreen
-					allow
-					sandbox="allow-top-navigation allow-presentation allow-pointer-lock allow-scripts allow-same-origin allow-modals allow-forms allow-popups allow-storage-access-by-user-activation allow-popups-to-escape-sandbox"
-					referrerpolicy="no-referrer"
-					loading="eager"
-					name="altfit-iframe"
-					class="fullsize-container no-border"
-					frameborder="0"
-					aria-label="Alternative FIT Data View"
-				></iframe>
-			</div>
-			<div
-				id="content-zwift"
-				class="tab-content"
-			>
-				<iframe
-					id="zwift-iframe"
-					title="ZwiftMap"
-					allowfullscreen
-					allow
-					sandbox="allow-top-navigation allow-presentation allow-pointer-lock allow-scripts allow-same-origin allow-modals allow-forms allow-popups allow-storage-access-by-user-activation allow-popups-to-escape-sandbox"
-					referrerpolicy="no-referrer"
-					loading="lazy"
-					src="https://zwiftmap.com/"
-					name="zwift-iframe"
-					class="fullsize-container no-border"
-					frameborder="0"
-					aria-label="ZwiftMap"
-				></iframe>
-			</div>
-		</div>
-		<!-- Hidden background containers for pre-rendering -->
-		<div id="background-chart-container"></div>
-		<div id="background-data-container"></div>
-		<!-- Credits Section -->
-		<div class="credits-section">
-			<footer>
-				<a
-					href="https://www.FitFileViewer.com/"
-					class="italic ms-2"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-					aria-label="FitFileViewer.com"
-					align="center"
-				>
-					FitFileViewer.com
-					<img
-						href="https://www.fitfileviewer.com/"
-						alt="FitFileViewer logo"
-						src="data:image/png;base64,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"
-						class="ms-2 h-3 inline-block"
-						width="14"
-						height="12"
-						loading="eager"
-						align="center"
-						aria-label="FitFileViewer logo"
-					/> </a
-				>,
-				<a
-					href="https://www.harryonline.net/"
-					class="italic ms-2"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-					aria-label="HarryOnline"
-				>
-					HarryOnline
-					<img
-						href="https://www.harryonline.net/"
-						alt="HarryOnline logo"
-						src="data:image/png;base64,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"
-						class="ms-2 h-3 inline-block"
-						width="14"
-						height="12"
-						loading="eager"
-						align="center"
-						aria-label="HarryOnline logo"
-					/> </a
-				>,
-				<a
-					href="https://github.com/thomascamminady/fit-viewer"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-				>
-					<span class="italic">Thomas Camminady</span>
-				</a>
-				💾,
-				<a
-					href="https://github.com/garmin/fit-javascript-sdk"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-				>
-					Garmin FIT JavaScript SDK
-				</a>
-				⌚,
-				<a
-					href="https://leafletjs.com/"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-				>
-					Leaflet.js
-				</a>
-				🗺️,
-				<a
-					href="https://vega.github.io/vega-lite/"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-				>
-					Vega-Lite
-				</a>
-				📊,
-				<a
-					href="https://github.com/vega/vega-embed"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-				>
-					Vega-Embed
-				</a>
-				📈
-				<a
-					href="https://zwiftmap.com"
-					data-external-link="true"
-					role="link"
-					tabindex="0"
-				>
-					ZwiftMap
-				</a>
-				🗺️
-			</footer>
-		</div>
+    <body>
+        <!-- App Header -->
+        <header class="app-header">
+            <h1>Fit File Viewer</h1>
+        </header>
+        <!-- Header Bar for File Open and Filename -->
+        <div class="header-bar">
+            <button id="openFileBtn" class="themed-btn" aria-label="Open FIT File" role="button" tabindex="0">Open FIT File</button>
+            <div id="activeFileNameContainer">
+                <span id="activeFileName"></span>
+                <button id="unloadFileBtn" title="Unload file" style="display: none" aria-label="Unload file" tabindex="0">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <!-- Centered Tab Bar -->
+        <div id="tabs" class="tab-bar" role="tablist" aria-label="Main Tabs">
+            <button class="tab-button active" id="tab-map" role="tab" aria-selected="true" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                Map
+            </button>
+            <button class="tab-button" id="tab-altfit" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
+                    <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" />
+                </svg>
+                Data
+            </button>
+            <button class="tab-button" id="tab-data" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16,18 22,12 16,6" />
+                    <polyline points="8,6 2,12 8,18" />
+                </svg>
+                Raw Data
+            </button>
+            <button class="tab-button" id="tab-chart" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                Chart
+            </button>
+            <button class="tab-button" id="tab-chartjs" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,12 7,8 13,14 21,6" />
+                    <polyline points="17,6 21,6 21,10" />
+                </svg>
+                Charts v2
+            </button>
+            <button class="tab-button" id="tab-summary" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14,2 14,8 20,8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10,9 9,9 8,9" />
+                </svg>
+                Summary
+            </button>
+            <button class="tab-button" id="tab-zwift" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="5.5" cy="17.5" r="3.5" />
+                    <circle cx="18.5" cy="17.5" r="3.5" />
+                    <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                    <path d="M8.5 10 15 15.5V21" />
+                    <path d="M2.5 10.5 5 13l7.5-7.5" />
+                    <path d="M15.5 17.5h-4" />
+                </svg>
+                Zwift (WIP)
+            </button>
+        </div>
+        <!-- Card-like Container for Tab Content -->
+        <div class="tab-card">
+            <div id="content-map" class="tab-content"></div>
+            <div id="content-data" class="tab-content"></div>
+            <div id="content-chart" class="tab-content">
+                <div id="vega-chart-container"></div>
+            </div>
+            <div id="content-chartjs" class="tab-content">
+                <div id="chartjs-chart-container"></div>
+            </div>
+            <div id="content-summary" class="tab-content"></div>
+            <div id="content-altfit" class="tab-content">
+                <iframe
+                    id="altfit-iframe"
+                    class="fullsize-container no-border"
+                    title="Alternative FIT Data View"
+                    allowfullscreen
+                    allow
+                    sandbox="allow-top-navigation allow-presentation allow-pointer-lock allow-scripts allow-same-origin allow-modals allow-forms allow-popups allow-storage-access-by-user-activation allow-popups-to-escape-sandbox"
+                    referrerpolicy="no-referrer"
+                    loading="eager"
+                    name="altfit-iframe"
+                    class="fullsize-container no-border"
+                    frameborder="0"
+                    aria-label="Alternative FIT Data View"
+                ></iframe>
+            </div>
+            <div id="content-zwift" class="tab-content">
+                <iframe
+                    id="zwift-iframe"
+                    title="ZwiftMap"
+                    allowfullscreen
+                    allow
+                    sandbox="allow-top-navigation allow-presentation allow-pointer-lock allow-scripts allow-same-origin allow-modals allow-forms allow-popups allow-storage-access-by-user-activation allow-popups-to-escape-sandbox"
+                    referrerpolicy="no-referrer"
+                    loading="lazy"
+                    src="https://zwiftmap.com/"
+                    name="zwift-iframe"
+                    class="fullsize-container no-border"
+                    frameborder="0"
+                    aria-label="ZwiftMap"
+                ></iframe>
+            </div>
+        </div>
+        <!-- Hidden background containers for pre-rendering -->
+        <div id="background-chart-container"></div>
+        <div id="background-data-container"></div>
+        <!-- Credits Section -->
+        <div class="credits-section">
+            <footer>
+                <a
+                    href="https://www.FitFileViewer.com/"
+                    class="italic ms-2"
+                    data-external-link="true"
+                    role="link"
+                    tabindex="0"
+                    aria-label="FitFileViewer.com"
+                    align="center"
+                >
+                    FitFileViewer.com
+                    <img
+                        href="https://www.fitfileviewer.com/"
+                        alt="FitFileViewer logo"
+                        src="data:image/png;base64,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"
+                        class="ms-2 h-3 inline-block"
+                        width="14"
+                        height="12"
+                        loading="eager"
+                        align="center"
+                        aria-label="FitFileViewer logo"
+                    /> </a
+                >,
+                <a
+                    href="https://www.harryonline.net/"
+                    class="italic ms-2"
+                    data-external-link="true"
+                    role="link"
+                    tabindex="0"
+                    aria-label="HarryOnline"
+                >
+                    HarryOnline
+                    <img
+                        href="https://www.harryonline.net/"
+                        alt="HarryOnline logo"
+                        src="data:image/png;base64,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"
+                        class="ms-2 h-3 inline-block"
+                        width="14"
+                        height="12"
+                        loading="eager"
+                        align="center"
+                        aria-label="HarryOnline logo"
+                    /> </a
+                >,
+                <a href="https://github.com/thomascamminady/fit-viewer" data-external-link="true" role="link" tabindex="0">
+                    <span class="italic">Thomas Camminady</span>
+                </a>
+                💾,
+                <a href="https://github.com/garmin/fit-javascript-sdk" data-external-link="true" role="link" tabindex="0">
+                    Garmin FIT JavaScript SDK
+                </a>
+                ⌚,
+                <a href="https://leafletjs.com/" data-external-link="true" role="link" tabindex="0"> Leaflet.js </a>
+                🗺️,
+                <a href="https://vega.github.io/vega-lite/" data-external-link="true" role="link" tabindex="0"> Vega-Lite </a>
+                📊,
+                <a href="https://github.com/vega/vega-embed" data-external-link="true" role="link" tabindex="0"> Vega-Embed </a>
+                📈
+                <a href="https://zwiftmap.com" data-external-link="true" role="link" tabindex="0"> ZwiftMap </a>
+                🗺️
+            </footer>
+        </div>
 
-		<!-- Notification UI -->
-		<div
-			id="notification"
-			class="notification"
-		></div>
-		<!-- Loading Overlay -->
-		<div id="loadingOverlay">
-			<span>Loading...</span>
-		</div>
-		<!-- Drag-and-Drop Overlay -->
-		<div
-			id="drop-overlay"
-			style="display: none"
-		>
-			<div class="drop-overlay-content">
-				<span>Drop FIT file to open</span>
-			</div>
-		</div>
-		<!-- Ensure utils.js and main-ui.js are loaded before renderer.js.
+        <!-- Notification UI -->
+        <div id="notification" class="notification"></div>
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay">
+            <span>Loading...</span>
+        </div>
+        <!-- Drag-and-Drop Overlay -->
+        <div id="drop-overlay" style="display: none">
+            <div class="drop-overlay-content">
+                <span>Drop FIT file to open</span>
+            </div>
+        </div>
+        <!-- Ensure utils.js and main-ui.js are loaded before renderer.js.
 			 If they are not loaded first, renderer.js will fail to execute properly
 			 because it relies on functions and variables defined in those scripts. -->
-		<script
-			src="renderer.js"
-			type="module"
-			defer
-		></script>
-	</body>
+        <script src="renderer.js" type="module" defer></script>
+    </body>
 </html>

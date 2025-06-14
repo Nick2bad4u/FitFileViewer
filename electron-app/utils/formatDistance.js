@@ -8,8 +8,8 @@ const METERS_PER_KILOMETER = 1000;
 const METERS_PER_MILE = 1609.34;
 
 export function formatDistance(meters) {
-	if (meters <= 0 || Number.isNaN(meters) || !Number.isFinite(meters)) return '';
-	const kilometers = meters / METERS_PER_KILOMETER;
-	const miles = meters / METERS_PER_MILE;
-	return `${kilometers.toFixed(2)} km / ` + `${miles.toFixed(2)} mi`;
+    if (meters <= 0 || Number.isNaN(meters) || !Number.isFinite(meters)) return "";
+    const kilometers = meters / METERS_PER_KILOMETER;
+    const miles = meters / METERS_PER_MILE;
+    return `${kilometers.toFixed(2)} km / ` + `${miles.toFixed(2)} mi`;
 }

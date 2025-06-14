@@ -6,7 +6,7 @@ const ICON_ANCHOR = [16, 32];
 const POPUP_ANCHOR = [0, -32];
 
 // Base path for asset URLs
-const ASSET_BASE_PATH = 'libs/assets/icons'.endsWith('/') ? 'libs/assets/icons' : 'libs/assets/icons/';
+const ASSET_BASE_PATH = "libs/assets/icons".endsWith("/") ? "libs/assets/icons" : "libs/assets/icons/";
 
 /**
  * Creates a Leaflet icon for the start marker.
@@ -15,12 +15,12 @@ const ASSET_BASE_PATH = 'libs/assets/icons'.endsWith('/') ? 'libs/assets/icons' 
  */
 
 export function createStartIcon() {
-	return L.icon({
-		iconUrl: `${ASSET_BASE_PATH}start-icon.png`,
-		iconSize: ICON_SIZE,
-		iconAnchor: ICON_ANCHOR,
-		popupAnchor: POPUP_ANCHOR,
-	});
+    return L.icon({
+        iconUrl: `${ASSET_BASE_PATH}start-icon.png`,
+        iconSize: ICON_SIZE,
+        iconAnchor: ICON_ANCHOR,
+        popupAnchor: POPUP_ANCHOR,
+    });
 }
 
 /**
@@ -30,10 +30,10 @@ export function createStartIcon() {
  */
 
 export function createEndIcon() {
-	return L.icon({
-		iconUrl: `${ASSET_BASE_PATH}end-icon.png`,
-		iconSize: ICON_SIZE,
-		iconAnchor: ICON_ANCHOR,
-		popupAnchor: POPUP_ANCHOR,
-	});
+    return L.icon({
+        iconUrl: `${ASSET_BASE_PATH}end-icon.png`,
+        iconSize: ICON_SIZE,
+        iconAnchor: ICON_ANCHOR,
+        popupAnchor: POPUP_ANCHOR,
+    });
 }

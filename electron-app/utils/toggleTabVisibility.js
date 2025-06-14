@@ -7,38 +7,32 @@
  * If `null` or `undefined` is passed, no tab content will be displayed.
  */
 export function toggleTabVisibility(visibleTabId) {
-	const tabContentIds = [
-		'content-data',
-		'content-chart',
-		'content-chartjs',
-		'content-map',
-		'content-summary',
-		'content-altfit',
-		'content-zwift',
-	];
-	// Iterate through each tab content ID to toggle its visibility based on the `visibleTabId`.
-	// Validate the DOM structure before toggling visibility
-	// Cache DOM elements in a map for better performance
-	const elementMap = {};
-	for (let i = 0; i < tabContentIds.length; i++) {
-		const id = tabContentIds[i];
-		const el = document.getElementById(id);
-		if (el) {
-			elementMap[id] = el;
-		} else {
-			console.warn(`toggleTabVisibility: Missing element in the DOM: ${id}. Please check the HTML structure to ensure the element with ID '${id}' exists, or verify that it is dynamically added to the DOM before calling toggleTabVisibility.`);
-		}
-	}
+    const tabContentIds = ["content-data", "content-chart", "content-chartjs", "content-map", "content-summary", "content-altfit", "content-zwift"];
+    // Iterate through each tab content ID to toggle its visibility based on the `visibleTabId`.
+    // Validate the DOM structure before toggling visibility
+    // Cache DOM elements in a map for better performance
+    const elementMap = {};
+    for (let i = 0; i < tabContentIds.length; i++) {
+        const id = tabContentIds[i];
+        const el = document.getElementById(id);
+        if (el) {
+            elementMap[id] = el;
+        } else {
+            console.warn(
+                `toggleTabVisibility: Missing element in the DOM: ${id}. Please check the HTML structure to ensure the element with ID '${id}' exists, or verify that it is dynamically added to the DOM before calling toggleTabVisibility.`
+            );
+        }
+    }
 
-	// Define constants for display styles
-	const DISPLAY_BLOCK = 'block';
-	const DISPLAY_NONE = 'none';
+    // Define constants for display styles
+    const DISPLAY_BLOCK = "block";
+    const DISPLAY_NONE = "none";
 
-	// Toggle visibility using the cached elements
-	Object.entries(elementMap).forEach(([id, el]) => {
-		// Check if the current tab ID matches the visibleTabId.
-		// If it matches, set the display style to DISPLAY_BLOCK to make it visible.
-		// Otherwise, set the display style to DISPLAY_NONE to hide it.
-		el.style.display = id === visibleTabId ? DISPLAY_BLOCK : DISPLAY_NONE;
-	});
+    // Toggle visibility using the cached elements
+    Object.entries(elementMap).forEach(([id, el]) => {
+        // Check if the current tab ID matches the visibleTabId.
+        // If it matches, set the display style to DISPLAY_BLOCK to make it visible.
+        // Otherwise, set the display style to DISPLAY_NONE to hide it.
+        el.style.display = id === visibleTabId ? DISPLAY_BLOCK : DISPLAY_NONE;
+    });
 }

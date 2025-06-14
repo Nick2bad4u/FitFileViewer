@@ -16,12 +16,12 @@
  * @returns {number|null} The lap number (1-based) if the index falls within a lap's range, or null if not found.
  */
 export function getLapNumForIdx(idx, lapMesgs) {
-	for (let i = 0; i < lapMesgs.length; i++) {
-		const lap = lapMesgs[i];
-		if (lap.start_index !== null && lap.end_index !== null && idx >= lap.start_index && idx <= lap.end_index) {
-			return i + 1;
-		}
-	}
-	// Return null if the index does not fall within any lap's start and end indices
-	return null;
+    for (let i = 0; i < lapMesgs.length; i++) {
+        const lap = lapMesgs[i];
+        if (lap.start_index !== null && lap.end_index !== null && idx >= lap.start_index && idx <= lap.end_index) {
+            return i + 1;
+        }
+    }
+    // Return null if the index does not fall within any lap's start and end indices
+    return null;
 }

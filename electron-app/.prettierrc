@@ -1,53 +1,53 @@
 {
-	"arrowParens": "always",
-	"bracketSameLine": false,
-	"bracketSpacing": true,
-	"embeddedLanguageFormatting": "auto",
-	"endOfLine": "lf",
-	"htmlWhitespaceSensitivity": "css",
-	"jsxSingleQuote": false,
-	"plugins": [],
-	"printWidth": 150,
-	"proseWrap": "preserve",
-	"quoteProps": "as-needed",
-	"semi": true,
-	"singleAttributePerLine": true,
-	"singleQuote": true,
-	"tabWidth": 2,
-	"trailingComma": "es5",
-	"useTabs": true,
-	"overrides": [
-		{
-			"files": "*.css",
-			"options": {
-				"parser": "css",
-				"printWidth": 150
-			}
-		},
-		{
-			"files": "*.user.css",
-			"options": {
-				"parser": "css",
-				"printWidth": 150
-			}
-		},
-		{
-			"files": "*.styl",
-			"options": {
-				"parser": "stylus"
-			}
-		},
-		{
-			"files": "*.html",
-			"options": {
-				"printWidth": 150
-			}
-		},
-		{
-			"files": "*.user.js",
-			"options": {
-				"printWidth": 150
-			}
-		}
-	]
+    "arrowParens": "always",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "embeddedLanguageFormatting": "auto",
+    "endOfLine": "lf",
+    "htmlWhitespaceSensitivity": "css",
+    "jsxSingleQuote": false,
+    "plugins": [],
+    "printWidth": 150,
+    "proseWrap": "preserve",
+    "quoteProps": "as-needed",
+    "semi": true,
+    "singleAttributePerLine": false,
+    "singleQuote": false,
+    "tabWidth": 4,
+    "trailingComma": "es5",
+    "useTabs": false,
+    "overrides": [
+        {
+            "files": "*.css",
+            "options": {
+                "parser": "css",
+                "printWidth": 150
+            }
+        },
+        {
+            "files": "*.user.css",
+            "options": {
+                "parser": "css",
+                "printWidth": 150
+            }
+        },
+        {
+            "files": "*.styl",
+            "options": {
+                "parser": "stylus"
+            }
+        },
+        {
+            "files": "*.html",
+            "options": {
+                "printWidth": 150
+            }
+        },
+        {
+            "files": "*.user.js",
+            "options": {
+                "printWidth": 150
+            }
+        }
+    ]
 }

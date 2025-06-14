@@ -5,13 +5,13 @@
  * @returns {number} Converted time value
  */
 export function convertTimeUnits(seconds, targetUnit) {
-	switch (targetUnit) {
-		case 'minutes':
-			return seconds / 60;
-		case 'hours':
-			return seconds / 3600;
-		case 'seconds':
-		default:
-			return seconds;
-	}
+    switch (targetUnit) {
+        case "minutes":
+            return seconds / 60;
+        case "hours":
+            return seconds / 3600;
+        case "seconds":
+        default:
+            return seconds;
+    }
 }

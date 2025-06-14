@@ -8,20 +8,20 @@
  * @throws {Error} If any value in the array or string cannot be converted to a number.
  */
 export function formatArray(val, digits = 2) {
-	if (Array.isArray(val))
-		return val
-			.map((v) => {
-				if (Number.isNaN(Number(v))) throw new Error(`Invalid number: ${v}`);
-				return parseFloat(Number(v).toFixed(digits));
-			})
-			.join(', ');
-	if (typeof val === 'string' && val.includes(','))
-		return val
-			.split(',')
-			.map((v) => {
-				if (isNaN(Number(v))) throw new Error(`Invalid number: ${v}`);
-				return Number(v).toFixed(digits);
-			})
-			.join(', ');
-	return val;
+    if (Array.isArray(val))
+        return val
+            .map((v) => {
+                if (Number.isNaN(Number(v))) throw new Error(`Invalid number: ${v}`);
+                return parseFloat(Number(v).toFixed(digits));
+            })
+            .join(", ");
+    if (typeof val === "string" && val.includes(","))
+        return val
+            .split(",")
+            .map((v) => {
+                if (isNaN(Number(v))) throw new Error(`Invalid number: ${v}`);
+                return Number(v).toFixed(digits);
+            })
+            .join(", ");
+    return val;
 }

@@ -757,6 +757,7 @@ jobs:
           echo "- **Release created** if build and version bump succeeded." >> $GITHUB_STEP_SUMMARY
           echo "- **Changelogs will be updated** and committed directly to the repository." >> $GITHUB_STEP_SUMMARY
           echo "- Workflow completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+
   update-changelogs:
     needs: [release, bump-version]
     if: ${{ needs.release.result == 'success' && needs.bump-version.result == 'success' }}
@@ -770,8 +771,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.inputs.branch || github.ref }}
+          ref: main
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Create Check Run
         id: create_check
@@ -799,13 +801,41 @@ jobs:
 
       - name: Generate CHANGELOG.md files
         run: |
-          npx git-cliff --config cliff.toml --output CHANGELOG.md
-          cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md && cd ..
-          cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
-          cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md && cd ../..
+          echo "Starting changelog generation with git-cliff..."
+          echo "Current directory: $(pwd)"
+          echo "Available files: $(ls -la)"
+          
+          echo "Generating root CHANGELOG.md..."
+          npx git-cliff --config cliff.toml --output CHANGELOG.md --verbose
+          echo "Root CHANGELOG.md generated, size: $(stat -c%s CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "Generating electron-app CHANGELOG.md..."
+          cd electron-app && npx git-cliff --config ../cliff.toml --output CHANGELOG.md --verbose && cd ..
+          echo "electron-app CHANGELOG.md generated, size: $(stat -c%s electron-app/CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "Generating electron-app/icons CHANGELOG.md..."
+          cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+          echo "icons CHANGELOG.md generated, size: $(stat -c%s electron-app/icons/CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "Generating electron-app/libs CHANGELOG.md..."
+          cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+          echo "libs CHANGELOG.md generated, size: $(stat -c%s electron-app/libs/CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "Generating electron-app/screenshots CHANGELOG.md..."
+          cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+          echo "screenshots CHANGELOG.md generated, size: $(stat -c%s electron-app/screenshots/CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "Generating electron-app/tests CHANGELOG.md..."
+          cd electron-app/tests && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+          echo "tests CHANGELOG.md generated, size: $(stat -c%s electron-app/tests/CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "Generating electron-app/utils CHANGELOG.md..."
+          cd electron-app/utils && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
+          echo "utils CHANGELOG.md generated, size: $(stat -c%s electron-app/utils/CHANGELOG.md 2>/dev/null || echo 'file not found')"
+          
+          echo "All changelog generation completed."
+          echo "Final directory listing:"
+          find . -name "CHANGELOG.md" -exec echo "Found: {}" \; -exec wc -l {} \;
 
       - name: Commit and push changelog updates
         run: |

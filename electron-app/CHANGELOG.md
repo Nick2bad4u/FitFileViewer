@@ -6,7 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[8855581](https://github.com/Nick2bad4u/FitFileViewer/commit/8855581c44615796f5be3f880a20fb59eba488e7)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...8855581c44615796f5be3f880a20fb59eba488e7))
+[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[aebc9b4](https://github.com/Nick2bad4u/FitFileViewer/commit/aebc9b427f2549856b43028a70703dde75d35d44)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...aebc9b427f2549856b43028a70703dde75d35d44))
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.9.0 [skip ci] [`(aebc9b4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aebc9b427f2549856b43028a70703dde75d35d44)
+
 
 ### 📦 Dependencies
 
@@ -65,31 +70,7 @@ Cleans up legacy code, removes redundant theme logic, and enhances UI component 
 
 ## [21.7.0] - 2025-06-13
 
-[[6480c2c](https://github.com/Nick2bad4u/FitFileViewer/commit/6480c2caca0080aa1e0a232ecd762c394f4dd1bd)...[dd44ae5](https://github.com/Nick2bad4u/FitFileViewer/commit/dd44ae5249747719a794cfa2085bc992c4f8460d)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6480c2caca0080aa1e0a232ecd762c394f4dd1bd...dd44ae5249747719a794cfa2085bc992c4f8460d))
-
-### 🚀 Features
-
-- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
-
-- Update GitHub workflows for improved functionality and scheduling [`(901941b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(7a0ea19)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2e05c27)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e05c270c142a462bb24d6af3e4a0c7ea23e1ca0)
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(46198fa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46198fab5a175aca2405b50d38b9c44399a31dc9)
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(91cc6b5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/91cc6b5af574df34d84c1afacdf0a2fa3f3a0d04)
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3a8f259)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a8f2596504ff0b3495abc240d6c1659dc5923b2)
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(64fb65c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64fb65c84b6a05f68acde1b4d25712f6756a044c)
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(d92fb25)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d92fb2552e55766b61165a120dc54458050edf79)
-
+[[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)...[dd44ae5](https://github.com/Nick2bad4u/FitFileViewer/commit/dd44ae5249747719a794cfa2085bc992c4f8460d)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a082640df2aeae666efa952d526efc6c54065154...dd44ae5249747719a794cfa2085bc992c4f8460d))
 
 ### 💼 Other
 
@@ -99,32 +80,6 @@ Overhauls the chart rendering system to add a modern, toggleable controls panel,
 
 Fixes chart layout, enhances maintainability, and prepares for future extensibility. [`(f852b00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)
 
-- Enhances UI polish, modals, and notification system
-
-Modernizes the UI with improved notification styles, icons, and queue management for better user feedback. Revamps the about modal with togglable system info and feature views, and introduces a dedicated, animated keyboard shortcuts modal. Refines initialization, error handling, and performance monitoring in the renderer process for greater robustness and developer experience. Updates style and linting configurations to support new visual components and ensures accessibility and consistency across dialogs. [`(a082640)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)
-
-- Modernizes UI with glassmorphism and improves UX
-
-Revamps the user interface with a modern glassmorphism style, adding gradients, depth, and refined animations for a visually appealing and professional look.
-
-Enhances modal dialogs, tab navigation, notifications, and overlay effects for consistency and accessibility. Unifies style constants, improves dark/light theming, and ensures responsive, accessible design throughout.
-
-Refactors code for better modularity, state management, and error handling, including improved event cleanup and external link handling. Upgrades About modal with dynamic content, branding, and feature highlights.
-
-Improves maintainability and performance with utility function organization, window state management, and development helpers.
-
-Relates to UI/UX modernization and maintainability goals. [`(99bca90)`](https://github.com/Nick2bad4u/FitFileViewer/commit/99bca9067403a202d647d7942da8fd2df71ec662)
-
-- Update index.html [`(00b83e0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/00b83e05ae6011eb85204277c8f55d5488bddb22)
-
-- Improves Linux menu handling and adds menu injection support
-
-Refactors Linux menu logic to remove minimal menu fallback and enhance menu initialization logging for better troubleshooting.
-Introduces a DevTools-accessible function to manually inject or reset the application menu from the renderer, streamlining menu debugging and development workflow.
-Simplifies theme synchronization and adds safeguards to prevent invalid menu setups, improving stability and UI consistency across platforms. [`(43dee75)`](https://github.com/Nick2bad4u/FitFileViewer/commit/43dee75c0ea2854e268bd89d97581101dae59e4c)
-
-- Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu [`(e95fcae)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e95fcaeabdb7e080ea1333b466a75daf2537387a)
-
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -133,16 +88,6 @@ Simplifies theme synchronization and adds safeguards to prevent invalid menu set
 - Update changelogs for v21.5.0 [skip ci] [`(70ef106)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70ef106272504f376162e0d4010f0d04b58072ea)
 
 - Update changelogs for v21.4.0 [skip ci] [`(7eba6b4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7eba6b4d5e3cb4743999441c103f19941bfd4df1)
-
-- Update changelogs for v21.3.0 [skip ci] [`(96d20c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96d20c9f09e77c9b557a734da86071e4bcdcf0f9)
-
-- Update changelogs for v21.2.0 [skip ci] [`(ae7208f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ae7208f8c8d5e7bc83fc9ad0ed56e6c114be53fb)
-
-- Update changelogs for v21.1.0 [skip ci] [`(15f6cdd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/15f6cdd09c5b8c43ae56a65762080aa9d47f1d5f)
-
-- Update changelogs for v21.0.0 [skip ci] [`(6454375)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64543757c95a63144835fee21e1b92c293811aea)
-
-- Remove outdated dependencies from package.json [`(3010de8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3010de8f0692c765ce745b798af0a8904838049f)
 
 
 ### 📦 Dependencies
@@ -159,11 +104,107 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 10 updat
 
 - [dependency] Update version 21.4.0 [`(7b38cca)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7b38ccaac3f8ff5627fdc8dd0e81e6bc3392c5ae)
 
+
+## [21.4.0] - 2025-06-12
+
+[[7a0ea19](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)...[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7a0ea190c90bacc125afb8df9f66562de6eb54b0...a082640df2aeae666efa952d526efc6c54065154))
+
+### 💼 Other
+
+- Enhances UI polish, modals, and notification system
+
+Modernizes the UI with improved notification styles, icons, and queue management for better user feedback. Revamps the about modal with togglable system info and feature views, and introduces a dedicated, animated keyboard shortcuts modal. Refines initialization, error handling, and performance monitoring in the renderer process for greater robustness and developer experience. Updates style and linting configurations to support new visual components and ensures accessibility and consistency across dialogs. [`(a082640)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.3.0 [skip ci] [`(96d20c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96d20c9f09e77c9b557a734da86071e4bcdcf0f9)
+
+
+### 📦 Dependencies
+
 - [dependency] Update version 21.3.0 [`(b738668)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b738668d558d425f5ab4ed1d62bea631f1011eb8)
+
+
+## [21.3.0] - 2025-06-11
+
+[[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)...[7a0ea19](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9411374418655f6be63e2d0c2c11b9e520d9541b...7a0ea190c90bacc125afb8df9f66562de6eb54b0))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(7a0ea19)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7a0ea190c90bacc125afb8df9f66562de6eb54b0)
+
+
+### 💼 Other
+
+- Modernizes UI with glassmorphism and improves UX
+
+Revamps the user interface with a modern glassmorphism style, adding gradients, depth, and refined animations for a visually appealing and professional look.
+
+Enhances modal dialogs, tab navigation, notifications, and overlay effects for consistency and accessibility. Unifies style constants, improves dark/light theming, and ensures responsive, accessible design throughout.
+
+Refactors code for better modularity, state management, and error handling, including improved event cleanup and external link handling. Upgrades About modal with dynamic content, branding, and feature highlights.
+
+Improves maintainability and performance with utility function organization, window state management, and development helpers.
+
+Relates to UI/UX modernization and maintainability goals. [`(99bca90)`](https://github.com/Nick2bad4u/FitFileViewer/commit/99bca9067403a202d647d7942da8fd2df71ec662)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.2.0 [skip ci] [`(ae7208f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ae7208f8c8d5e7bc83fc9ad0ed56e6c114be53fb)
+
+
+### 📦 Dependencies
 
 - [dependency] Update version 21.2.0 [`(3f3c3ce)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3f3c3ce64587892c757c4fbad1696b5654fc32ee)
 
+
+## [21.2.0] - 2025-06-11
+
+[[00b83e0](https://github.com/Nick2bad4u/FitFileViewer/commit/00b83e05ae6011eb85204277c8f55d5488bddb22)...[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/00b83e05ae6011eb85204277c8f55d5488bddb22...9411374418655f6be63e2d0c2c11b9e520d9541b))
+
+### 🚀 Features
+
+- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.1.0 [skip ci] [`(15f6cdd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/15f6cdd09c5b8c43ae56a65762080aa9d47f1d5f)
+
+
+### 📦 Dependencies
+
 - [dependency] Update version 21.1.0 [`(46df975)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46df975171ccb06fe3377350f42712def3ea0b52)
+
+
+## [21.1.0] - 2025-06-11
+
+[[901941b](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)...[00b83e0](https://github.com/Nick2bad4u/FitFileViewer/commit/00b83e05ae6011eb85204277c8f55d5488bddb22)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/901941b4886b15b63fe2233f897acc54318dc2fd...00b83e05ae6011eb85204277c8f55d5488bddb22))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2e05c27)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e05c270c142a462bb24d6af3e4a0c7ea23e1ca0)
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(46198fa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46198fab5a175aca2405b50d38b9c44399a31dc9)
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(91cc6b5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/91cc6b5af574df34d84c1afacdf0a2fa3f3a0d04)
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3a8f259)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a8f2596504ff0b3495abc240d6c1659dc5923b2)
+
+
+### 💼 Other
+
+- Update index.html [`(00b83e0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/00b83e05ae6011eb85204277c8f55d5488bddb22)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v21.0.0 [skip ci] [`(6454375)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64543757c95a63144835fee21e1b92c293811aea)
+
+
+### 📦 Dependencies
 
 - [dependency] Update version 21.0.0 [`(8c0d3b2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8c0d3b292394b9c30cd2563de16f11617a9fefdf)
 
@@ -173,9 +214,67 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 10 updat
 
 - [dependency] Update version 20.7.0 [`(44f225f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/44f225fea36de4d477a1a18a16babb6bc20240df)
 
+
+## [20.7.0] - 2025-06-10
+
+[[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)...[901941b](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aae539eeb94eef693613b973fcac471d1b78690b...901941b4886b15b63fe2233f897acc54318dc2fd))
+
+### 🚀 Features
+
+- Update GitHub workflows for improved functionality and scheduling [`(901941b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)
+
+
+### 📦 Dependencies
+
 - [dependency] Update version 20.6.0 [`(e219acf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e219acf64bf788accf96487a6bc99d4c0c5f1773)
 
+
+## [20.6.0] - 2025-06-10
+
+[[0447dcf](https://github.com/Nick2bad4u/FitFileViewer/commit/0447dcf91c85109ea97d858ffc05f51cbc48acee)...[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0447dcf91c85109ea97d858ffc05f51cbc48acee...aae539eeb94eef693613b973fcac471d1b78690b))
+
+### 📦 Dependencies
+
 - [dependency] Update version 20.5.0 [`(d0d7121)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d0d712191f80f85eb1d1d874c28e69e87bd28ce4)
+
+
+### 🛡️ Security
+
+- Improves Linux menu logic and adds menu injection support
+
+Refactors Linux menu handling to remove the minimal menu fallback and adds enhanced logging for improved troubleshooting. Introduces a DevTools-accessible function allowing manual injection or reset of the application menu from the renderer, making menu debugging and development more efficient. Streamlines theme synchronization and implements safeguards to prevent invalid menu setups, boosting stability and UI consistency across platforms.
+
+Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability. [`(aae539e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)
+
+
+## [20.5.0] - 2025-06-10
+
+[[6480c2c](https://github.com/Nick2bad4u/FitFileViewer/commit/6480c2caca0080aa1e0a232ecd762c394f4dd1bd)...[0447dcf](https://github.com/Nick2bad4u/FitFileViewer/commit/0447dcf91c85109ea97d858ffc05f51cbc48acee)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6480c2caca0080aa1e0a232ecd762c394f4dd1bd...0447dcf91c85109ea97d858ffc05f51cbc48acee))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(64fb65c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64fb65c84b6a05f68acde1b4d25712f6756a044c)
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(d92fb25)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d92fb2552e55766b61165a120dc54458050edf79)
+
+
+### 💼 Other
+
+- Improves Linux menu handling and adds menu injection support
+
+Refactors Linux menu logic to remove minimal menu fallback and enhance menu initialization logging for better troubleshooting.
+Introduces a DevTools-accessible function to manually inject or reset the application menu from the renderer, streamlining menu debugging and development workflow.
+Simplifies theme synchronization and adds safeguards to prevent invalid menu setups, improving stability and UI consistency across platforms. [`(43dee75)`](https://github.com/Nick2bad4u/FitFileViewer/commit/43dee75c0ea2854e268bd89d97581101dae59e4c)
+
+- Enhance menu handling for Linux by adding minimal menu support and improving logging in buildAppMenu [`(e95fcae)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e95fcaeabdb7e080ea1333b466a75daf2537387a)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove outdated dependencies from package.json [`(3010de8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3010de8f0692c765ce745b798af0a8904838049f)
+
+
+### 📦 Dependencies
 
 - [dependency] Update version 20.4.0 [`(0447dcf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0447dcf91c85109ea97d858ffc05f51cbc48acee)
 
@@ -648,15 +747,6 @@ Signed-off-by: dependabot[bot] <support@github.com> [`(39e3743)`](https://github
 - [dependency] Update version 20.1.0 [`(22e3381)`](https://github.com/Nick2bad4u/FitFileViewer/commit/22e3381a6225fe27d624e2eb5f7cf8964a5c2b03)
 
 - [dependency] Update version 20.0.0 [`(ca209a8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca209a86e07b6405fe6d0bb724b9c6bd182e87ec)
-
-
-### 🛡️ Security
-
-- Improves Linux menu logic and adds menu injection support
-
-Refactors Linux menu handling to remove the minimal menu fallback and adds enhanced logging for improved troubleshooting. Introduces a DevTools-accessible function allowing manual injection or reset of the application menu from the renderer, making menu debugging and development more efficient. Streamlines theme synchronization and implements safeguards to prevent invalid menu setups, boosting stability and UI consistency across platforms.
-
-Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability. [`(aae539e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)
 
 
 ## [20.0.0] - 2025-06-10
