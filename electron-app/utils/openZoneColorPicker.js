@@ -315,7 +315,7 @@ export function openZoneColorPicker(field) {
         applyButton.textContent = "Apply & Close";
         applyButton.style.cssText = `
 						padding: 10px 20px;
-						background: linear-gradient(145deg, #3b82f6, #2563eb);
+						background: linear-gradient(145deg, #3b82f665, #2563eb);
 						border: none;
 						border-radius: 8px;
 						color: #ffffff;

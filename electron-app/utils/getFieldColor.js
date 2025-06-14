@@ -4,7 +4,7 @@ export function getFieldColor(field) {
     const colorMap = {
         heartRate: "#EF4444",
         cadence: "#10B981",
-        speed: "#3B82F6",
+        speed: "#3b82f665",
         power: "#F59E0B",
         altitude: "#8B5CF6",
         temperature: "#EC4899",

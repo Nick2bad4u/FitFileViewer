@@ -33,7 +33,7 @@ export function createSettingsHeader(wrapper) {
     title.textContent = "Chart Controls";
     title.style.cssText = `
 		margin: 0;
-		color: #ffffff;
+		color: var(--color-fg-alt);
 		font-size: 20px;
 		font-weight: 600;
 		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -49,7 +49,28 @@ export function createSettingsHeader(wrapper) {
     // Reset to defaults button
     const resetBtn = createActionButton("↻ Reset", "Reset all settings to defaults", () => {
         resetAllSettings();
-        renderChartJS(wrapper.nextElementSibling);
+        // Force re-render all charts after reset with proper cleanup
+        const chartsContainer = document.getElementById("chart-container");
+        if (chartsContainer && window.globalData) {
+            // Clear existing chart instances
+            if (window._chartjsInstances) {
+                window._chartjsInstances.forEach((chart) => {
+                    if (chart && typeof chart.destroy === "function") {
+                        try {
+                            chart.destroy();
+                        } catch (error) {
+                            console.warn("[ResetBtn] Error destroying chart:", error);
+                        }
+                    }
+                });
+                window._chartjsInstances = [];
+            }
+
+            // Force complete re-render
+            setTimeout(() => {
+                renderChartJS(chartsContainer);
+            }, 50);
+        }
         showNotification("Settings reset to defaults", "success");
     });
 
@@ -99,22 +120,23 @@ function createControlGroup(option) {
     const group = document.createElement("div");
     group.className = "control-group";
     group.style.cssText = `
-		background: rgba(255, 255, 255, 0.05);
+		background: var(--color-glass);
 		border-radius: 12px;
 		padding: 16px;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		transition: all 0.3s ease;
+		border: 1px solid var(--color-border);
+		transition: var(--transition-smooth);
+		backdrop-filter: var(--backdrop-blur);
 	`;
 
     // Add hover effect
     group.addEventListener("mouseenter", () => {
-        group.style.background = "rgba(255, 255, 255, 0.08)";
+        group.style.background = "var(--color-glass-border)";
         group.style.transform = "translateY(-2px)";
-        group.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+        group.style.boxShadow = "var(--color-box-shadow)";
     });
 
     group.addEventListener("mouseleave", () => {
-        group.style.background = "rgba(255, 255, 255, 0.05)";
+        group.style.background = "var(--color-glass)";
         group.style.transform = "translateY(0)";
         group.style.boxShadow = "none";
     });
@@ -123,7 +145,7 @@ function createControlGroup(option) {
     label.textContent = option.label;
     label.style.cssText = `
 		display: block;
-		color: #ffffff;
+		color: var(--color-fg-alt);
 		font-weight: 600;
 		margin-bottom: 8px;
 		font-size: 14px;
@@ -133,10 +155,11 @@ function createControlGroup(option) {
         const description = document.createElement("div");
         description.textContent = option.description;
         description.style.cssText = `
-			color: rgba(255, 255, 255, 0.7);
+			color: var(--color-fg);
 			font-size: 12px;
 			margin-bottom: 12px;
 			line-height: 1.4;
+			opacity: 0.8;
 		`;
         group.appendChild(description);
     }
@@ -174,7 +197,7 @@ function createRangeControl(option) {
     slider.style.cssText = `
 		width: 100%;
 		height: 6px;
-		background: linear-gradient(to right, #3b82f6 0%, #3b82f6 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 100%);
+		background: linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) 50%, var(--color-border) 50%, var(--color-border) 100%);
 		border-radius: 3px;
 		outline: none;
 		-webkit-appearance: none;
@@ -188,16 +211,16 @@ function createRangeControl(option) {
 			-webkit-appearance: none;
 			width: 18px;
 			height: 18px;
-			background: linear-gradient(145deg, #60a5fa, #3b82f6);
+			background: var(--color-btn-bg);
 			border-radius: 50%;
 			cursor: pointer;
-			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-			border: 2px solid #ffffff;
+			box-shadow: var(--color-box-shadow-light);
+			border: 2px solid var(--color-fg-alt);
 		}
 		#${slider.id}::-moz-range-thumb {
 			width: 18px;
 			height: 18px;
-			background: linear-gradient(145deg, #60a5fa, #3b82f6);
+			background: var(--color-btn-bg);
 			border-radius: 50%;
 			cursor: pointer;
 			border: 2px solid #ffffff;
@@ -211,8 +234,8 @@ function createRangeControl(option) {
 		position: absolute;
 		right: 0;
 		top: -24px;
-		background: rgba(59, 130, 246, 0.9);
-		color: white;
+		background: var(--color-accent);
+		color: var(--color-fg-alt);
 		padding: 2px 8px;
 		border-radius: 6px;
 		font-size: 12px;
@@ -225,7 +248,7 @@ function createRangeControl(option) {
 
         // Update slider background
         const percentage = ((e.target.value - option.min) / (option.max - option.min)) * 100;
-        slider.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, rgba(255, 255, 255, 0.2) ${percentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+        slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
         // Debounced re-render
         clearTimeout(slider.timeout);
@@ -236,7 +259,7 @@ function createRangeControl(option) {
 
     // Initialize slider background
     const initialPercentage = ((slider.value - option.min) / (option.max - option.min)) * 100;
-    slider.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${initialPercentage}%, rgba(255, 255, 255, 0.2) ${initialPercentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+    slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
 
     container.appendChild(valueDisplay);
     container.appendChild(slider);
@@ -258,11 +281,11 @@ function createToggleControl(option) {
     toggle.style.cssText = `
 		width: 48px;
 		height: 24px;
-		background: rgba(255, 255, 255, 0.2);
+		background: var(--color-border);
 		border-radius: 12px;
 		position: relative;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition: var(--transition-smooth);
 	`;
 
     const toggleThumb = document.createElement("div");
@@ -270,30 +293,31 @@ function createToggleControl(option) {
     toggleThumb.style.cssText = `
 		width: 20px;
 		height: 20px;
-		background: #ffffff;
+		background: var(--color-fg-alt);
 		border-radius: 50%;
 		position: absolute;
 		top: 2px;
 		left: 2px;
-		transition: all 0.3s ease;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		transition: var(--transition-smooth);
+		box-shadow: var(--color-box-shadow-light);
 	`;
 
     const currentValue = localStorage.getItem(`chartjs_${option.id}`) || option.default;
     const isOn = currentValue === "on";
 
     if (isOn) {
-        toggle.style.background = "linear-gradient(145deg, #10b981, #059669)";
+        toggle.style.background = "var(--color-success)";
         toggleThumb.style.left = "26px";
     }
 
     const statusText = document.createElement("span");
     statusText.textContent = isOn ? "On" : "Off";
     statusText.style.cssText = `
-		color: ${isOn ? "#10b981" : "rgba(255, 255, 255, 0.7)"};
+		color: ${isOn ? "var(--color-success)" : "var(--color-fg)"};
 		font-weight: 600;
 		font-size: 14px;
 		min-width: 24px;
+		opacity: ${isOn ? "1" : "0.7"};
 	`;
 
     toggle.appendChild(toggleThumb);
@@ -306,15 +330,17 @@ function createToggleControl(option) {
         localStorage.setItem(`chartjs_${option.id}`, newValue);
 
         if (isOn) {
-            toggle.style.background = "linear-gradient(145deg, #10b981, #059669)";
+            toggle.style.background = "var(--color-success)";
             toggleThumb.style.left = "26px";
             statusText.textContent = "On";
-            statusText.style.color = "#10b981";
+            statusText.style.color = "var(--color-success)";
+            statusText.style.opacity = "1";
         } else {
-            toggle.style.background = "rgba(255, 255, 255, 0.2)";
+            toggle.style.background = "var(--color-border)";
             toggleThumb.style.left = "2px";
             statusText.textContent = "Off";
-            statusText.style.color = "rgba(255, 255, 255, 0.7)";
+            statusText.style.color = "var(--color-fg)";
+            statusText.style.opacity = "0.7";
         }
 
         renderChartJS();
@@ -334,22 +360,23 @@ function createSelectControl(option) {
 		width: 100%;
 		padding: 10px 12px;
 		border-radius: 8px;
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		background: rgba(255, 255, 255, 0.1);
-		color: #ffffff;
+		border: 1px solid var(--color-border);
+		background: var(--color-glass);
+		color: var(--color-fg);
 		font-size: 14px;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition: var(--transition-smooth);
 		outline: none;
+		backdrop-filter: var(--backdrop-blur);
 	`;
 
     select.addEventListener("focus", () => {
-        select.style.borderColor = "#3b82f6";
-        select.style.boxShadow = "0 0 0 2px rgba(59, 130, 246, 0.2)";
+        select.style.borderColor = "var(--color-accent)";
+        select.style.boxShadow = "0 0 0 2px var(--color-accent-secondary)";
     });
 
     select.addEventListener("blur", () => {
-        select.style.borderColor = "rgba(255, 255, 255, 0.2)";
+        select.style.borderColor = "var(--color-border)";
         select.style.boxShadow = "none";
     });
 
@@ -364,8 +391,8 @@ function createSelectControl(option) {
                   : val === "off"
                     ? "Disabled"
                     : String(val).charAt(0).toUpperCase() + String(val).slice(1);
-        optionEl.style.background = "#1a1f2e";
-        optionEl.style.color = "#ffffff";
+        optionEl.style.background = "var(--color-bg-solid)";
+        optionEl.style.color = "var(--color-fg)";
         select.appendChild(optionEl);
     });
 
@@ -425,6 +452,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		width: 100%;
 		height: 100%;
 		background: rgba(0, 0, 0, 0.7);
+		backdrop-filter: blur(8px);
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -434,14 +462,15 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
     // Create modal content
     const modal = document.createElement("div");
     modal.style.cssText = `
-		background: #2a2a2a;
-		border-radius: 12px;
+		background: var(--color-modal-bg);
+		border-radius: var(--border-radius);
 		padding: 24px;
 		max-width: 500px;
 		width: 90%;
 		max-height: 70vh;
 		overflow-y: auto;
-		border: 1px solid #444;
+		border: 1px solid var(--color-glass-border);
+		box-shadow: var(--color-box-shadow);
 	`;
 
     // Modal title
@@ -449,7 +478,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
     title.textContent = `Select Chart to ${actionType}`;
     title.style.cssText = `
 		margin: 0 0 16px 0;
-		color: #ffffff;
+		color: var(--color-modal-fg);
 		text-align: center;
 	`;
 
@@ -470,22 +499,22 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 			width: 100%;
 			padding: 12px;
 			margin-bottom: 8px;
-			background: rgba(59, 130, 246, 0.1);
-			border: 1px solid rgba(59, 130, 246, 0.3);
-			border-radius: 8px;
-			color: #ffffff;
+			background: var(--color-glass);
+			border: 1px solid var(--color-border);
+			border-radius: var(--border-radius-small);
+			color: var(--color-modal-fg);
 			cursor: pointer;
 			font-size: 14px;
 			text-align: left;
-			transition: all 0.3s ease;
+			transition: var(--transition-smooth);
 		`;
 
         chartItem.addEventListener("mouseenter", () => {
-            chartItem.style.background = "rgba(59, 130, 246, 0.2)";
+            chartItem.style.background = "var(--color-accent-hover)";
         });
 
         chartItem.addEventListener("mouseleave", () => {
-            chartItem.style.background = "rgba(59, 130, 246, 0.1)";
+            chartItem.style.background = "var(--color-glass)";
         });
 
         chartItem.addEventListener("click", () => {
@@ -583,19 +612,20 @@ export function createExportSection(wrapper) {
     const exportSection = document.createElement("div");
     exportSection.className = "export-section";
     exportSection.style.cssText = `
-		background: rgba(59, 130, 246, 0.1);
+		background: var(--color-glass);
 		border-radius: 12px;
 		padding: 16px;
 		margin-bottom: 20px;
-		border: 1px solid rgba(59, 130, 246, 0.2);
+		border: 1px solid var(--color-accent);
 		position: relative;
 		z-index: 1;
+		backdrop-filter: var(--backdrop-blur);
 	`;
     const exportTitle = document.createElement("h4");
     exportTitle.textContent = "Export & Share";
     exportTitle.style.cssText = `
 		margin: 0 0 12px 0;
-		color: #60a5fa;
+		color: var(--color-accent);
 		font-size: 16px;
 		font-weight: 600;
 	`;
@@ -741,19 +771,20 @@ export function createFieldTogglesSection(wrapper) {
     const fieldsSection = document.createElement("div");
     fieldsSection.className = "fields-section";
     fieldsSection.style.cssText = `
-		background: rgba(168, 85, 247, 0.1);
+		background: var(--color-glass);
 		border-radius: 12px;
 		padding: 16px;
-		border: 1px solid rgba(168, 85, 247, 0.2);
+		border: 1px solid var(--color-accent-secondary);
 		position: relative;
 		z-index: 1;
+		backdrop-filter: var(--backdrop-blur);
 	`;
 
     const fieldsTitle = document.createElement("h4");
     fieldsTitle.textContent = "Visible Metrics";
     fieldsTitle.style.cssText = `
 		margin: 0 0 12px 0;
-		color: #c084fc;
+		color: var(--color-accent-secondary);
 		font-size: 16px;
 		font-weight: 600;
 	`;
@@ -816,10 +847,11 @@ function createFieldToggle(field) {
 		align-items: center;
 		gap: 12px;
 		padding: 12px;
-		background: rgba(255, 255, 255, 0.05);
+		background: var(--color-glass);
 		border-radius: 8px;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		transition: all 0.3s ease;
+		border: 1px solid var(--color-border);
+		transition: var(--transition-smooth);
+		backdrop-filter: var(--backdrop-blur);
 	`;
 
     // Toggle switch
@@ -839,7 +871,7 @@ function createFieldToggle(field) {
     label.htmlFor = `field-toggle-${field}`;
     label.style.cssText = `
 		flex: 1;
-		color: #ffffff;
+		color: var(--color-fg);
 		font-size: 14px;
 		cursor: pointer;
 	`;
@@ -854,14 +886,14 @@ function createFieldToggle(field) {
         zoneColorBtn.textContent = `🎨 ${zoneType} Zones`;
         zoneColorBtn.style.cssText = `
 			padding: 6px 12px;
-			background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-			color: white;
+			background: var(--color-btn-bg);
+			color: var(--color-fg-alt);
 			border: none;
 			border-radius: 6px;
 			cursor: pointer;
 			font-size: 12px;
 			font-weight: 600;
-			transition: all 0.2s ease;
+			transition: var(--transition-smooth);
 		`;
 
         zoneColorBtn.addEventListener("click", () => {
@@ -872,7 +904,7 @@ function createFieldToggle(field) {
 
         zoneColorBtn.addEventListener("mouseenter", () => {
             zoneColorBtn.style.transform = "scale(1.05)";
-            zoneColorBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.4)";
+            zoneColorBtn.style.boxShadow = "var(--color-box-shadow)";
         });
 
         zoneColorBtn.addEventListener("mouseleave", () => {
@@ -916,12 +948,12 @@ function createFieldToggle(field) {
     });
     // Hover effects
     container.addEventListener("mouseenter", () => {
-        container.style.background = "rgba(255, 255, 255, 0.08)";
+        container.style.background = "var(--color-glass-border)";
         container.style.transform = "translateY(-1px)";
     });
 
     container.addEventListener("mouseleave", () => {
-        container.style.background = "rgba(255, 255, 255, 0.05)";
+        container.style.background = "var(--color-glass)";
         container.style.transform = "translateY(0)";
     });
 
@@ -939,24 +971,25 @@ function createActionButton(text, title, onClick, className = "") {
 		padding: 8px 12px;
 		border: none;
 		border-radius: 8px;
-		background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-		color: #ffffff;
+		background: var(--color-btn-bg);
+		color: var(--color-fg-alt);
 		font-size: 12px;
 		font-weight: 600;
 		cursor: pointer;
-		transition: all 0.3s ease;
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		transition: var(--transition-smooth);
+		border: 1px solid var(--color-border);
 		white-space: nowrap;
+		backdrop-filter: var(--backdrop-blur);
 	`;
 
     button.addEventListener("mouseenter", () => {
-        button.style.background = "linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1))";
+        button.style.background = "var(--color-btn-hover)";
         button.style.transform = "translateY(-1px)";
-        button.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+        button.style.boxShadow = "var(--color-box-shadow-light)";
     });
 
     button.addEventListener("mouseleave", () => {
-        button.style.background = "linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))";
+        button.style.background = "var(--color-btn-bg)";
         button.style.transform = "translateY(0)";
         button.style.boxShadow = "none";
     });
@@ -969,14 +1002,15 @@ function createActionButton(text, title, onClick, className = "") {
 
 export function applySettingsPanelStyles(wrapper) {
     wrapper.style.cssText = `
-		background: linear-gradient(145deg, #1a1f2e 0%, #252b3f 100%);
-		border-radius: 16px;
+		background: var(--color-bg-alt);
+		border-radius: var(--border-radius);
 		padding: 20px;
 		margin: 16px 0;
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		box-shadow: var(--color-box-shadow);
+		border: 1px solid var(--color-border);
 		position: relative;
 		overflow: hidden;
+		backdrop-filter: var(--backdrop-blur);
 	`;
 
     // Add subtle animated background effect
@@ -987,8 +1021,9 @@ export function applySettingsPanelStyles(wrapper) {
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-					radial-gradient(circle at 80% 50%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+		background: radial-gradient(circle at 20% 50%, var(--color-accent) 0%, transparent 50%),
+					radial-gradient(circle at 80% 50%, var(--color-accent-secondary) 0%, transparent 50%);
+		opacity: 0.05;
 		pointer-events: none;
 		z-index: 0;
 	`;

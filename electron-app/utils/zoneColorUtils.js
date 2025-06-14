@@ -8,7 +8,7 @@
  */
 export const DEFAULT_HR_ZONE_COLORS = [
     "#808080", // Zone 1 - Gray (recovery)
-    "#3B82F6", // Zone 2 - Blue (aerobic base)
+    "#3b82f665", // Zone 2 - Blue (aerobic base)
     "#10B981", // Zone 3 - Green (aerobic)
     "#F59E0B", // Zone 4 - Yellow (threshold)
     "#EF4444", // Zone 5 - Red (anaerobic)
@@ -20,7 +20,7 @@ export const DEFAULT_HR_ZONE_COLORS = [
  */
 export const DEFAULT_POWER_ZONE_COLORS = [
     "#808080", // Zone 1 - Gray (Active Recovery)
-    "#3B82F6", // Zone 2 - Blue (Endurance)
+    "#3b82f665", // Zone 2 - Blue (Endurance)
     "#10B981", // Zone 3 - Green (Tempo)
     "#F59E0B", // Zone 4 - Yellow (Lactate Threshold)
     "#FF6600", // Zone 5 - Orange (VO2 Max)

@@ -19,7 +19,7 @@ export function renderZoneChart(container, title, zoneData, chartId, options) {
     container.appendChild(canvas);
 
     // Determine zone type and get user-selected colors
-    let colors = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"];
+    let colors = ["#3b82f665", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"];
 
     // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
     if (zoneData.length > 0 && zoneData[0].color) {

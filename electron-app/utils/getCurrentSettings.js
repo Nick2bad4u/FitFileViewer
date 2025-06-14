@@ -101,7 +101,7 @@ export function resetAllSettings() {
                     }
                     // Update range slider background
                     const percentage = ((opt.default - (opt.min || 0)) / ((opt.max || 1) - (opt.min || 0))) * 100;
-                    control.style.background = `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, rgba(255, 255, 255, 0.2) ${percentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+                    control.style.background = `linear-gradient(to right, #3b82f665 0%, #3b82f665 ${percentage}%, rgba(255, 255, 255, 0.2) ${percentage}%, rgba(255, 255, 255, 0.2) 100%)`;
                 }
             }
         });
@@ -125,7 +125,25 @@ export function resetAllSettings() {
     // Re-render charts if data is available
     if (window.globalData && window.globalData.recordMesgs) {
         console.log("[ChartJS] Re-rendering charts after settings reset");
-        renderChartJS();
+        // Get the charts container
+        const chartsContainer = document.getElementById("chart-container");
+        if (chartsContainer) {
+            // Clear existing charts first
+            if (window._chartjsInstances) {
+                window._chartjsInstances.forEach((chart) => {
+                    if (chart && typeof chart.destroy === "function") {
+                        chart.destroy();
+                    }
+                });
+                window._chartjsInstances = [];
+            }
+
+            // Force a complete re-render
+            renderChartJS(chartsContainer);
+        } else {
+            // Fallback: try to render without container
+            renderChartJS();
+        }
     }
 
     showNotification("Settings reset to defaults", "success");

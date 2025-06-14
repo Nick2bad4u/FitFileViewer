@@ -1,7 +1,25 @@
 /**
  * @fileoverview Enhanced Chart.js rendering utility for FIT file data visualization
  * @description Provides comprehensive chart rendering, controls management, and export capabilities
- * for fitness device data visualization in the FitFileViewer Electron application.
+ * for fitness device data visualization in the FitFileViewe            container.innerHTML = `
+				<div class="chart-error" style="
+					text-align: center; 
+					padding: 40px; 
+					color: var(--color-error);
+					background: var(--color-glass);
+					border: 1px solid var(--color-border);
+					border-radius: var(--border-radius);
+					margin: 20px 0;
+				">
+					<h3 style="margin-bottom: 16px; color: var(--color-error);">Chart Rendering Error</h3>
+					<p style="margin-bottom: 8px; color: var(--color-fg);">An error occurred while rendering the charts.</p>
+					<details style="text-align: left; margin-top: 16px;">
+						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg);">Error Details</summary>
+						<pre style="background: var(--color-glass); color: var(--color-fg); padding: 8px; border-radius: var(--border-radius-small); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border);">${
+                            error.stack || error.message
+                        }</pre>
+					</details>
+				</div>`;on.
  *
  * Features:
  * - Multiple chart types (line, bar, doughnut) with dynamic data binding
@@ -44,6 +62,9 @@ import { renderPerformanceAnalysisCharts } from "./renderPerformanceAnalysisChar
 import { renderGPSTrackChart } from "./renderGPSTrackChart.js";
 import { renderLapZoneCharts } from "./renderLapZoneCharts.js";
 import { shouldShowRenderNotification } from "./shouldShowRenderNotification.js";
+import { createUserDeviceInfoBox } from "./createUserDeviceInfoBox.js";
+import { addChartHoverEffects, addHoverEffectsToExistingCharts, removeChartHoverEffects } from "./addChartHoverEffects.js";
+import { setupChartThemeListener } from "./chartThemeListener.js";
 
 // Debouncing variables for renderChartJS
 let renderTimeout = null;
@@ -279,6 +300,10 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Ensure settings dropdowns exist
     ensureChartSettingsDropdowns(targetContainer);
 
+    // Setup theme listener for real-time theme updates
+    const settingsWrapper = document.getElementById("chartjs-settings-wrapper");
+    setupChartThemeListener(targetContainer, settingsWrapper);
+
     // Get chart container
     let chartContainer = targetContainer
         ? typeof targetContainer === "string"
@@ -304,8 +329,12 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         }
     }
 
-    // Clear existing charts
+    // Clear existing charts and remove any hover effects
+    removeChartHoverEffects(chartContainer);
     chartContainer.innerHTML = "";
+
+    // Add user and device info box
+    createUserDeviceInfoBox(chartContainer);
 
     // Get current settings
     const settings = getCurrentSettings();
@@ -523,21 +552,6 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         showTitle: boolSettings.showTitle,
         zoomPluginConfig,
         theme: currentTheme,
-    }); // Render developer fields charts
-    renderDeveloperFieldsCharts(chartContainer, data, labels, {
-        showGrid: boolSettings.showGrid,
-        showLegend: boolSettings.showLegend,
-        showTitle: boolSettings.showTitle,
-        zoomPluginConfig,
-        theme: currentTheme,
-        maxPoints,
-        chartType,
-        interpolation,
-        animationStyle,
-        showPoints: boolSettings.showPoints,
-        showFill: boolSettings.showFill,
-        smoothing,
-        customColors,
     }); // Render GPS track chart if position data is available
     renderGPSTrackChart(chartContainer, data, {
         showGrid: boolSettings.showGrid,
@@ -596,6 +610,37 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         console.log(`[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`);
     }
 
+    // Add hover effects to all rendered charts
+    if (totalChartsRendered > 0) {
+        // Get theme configuration for hover effects
+        let themeConfig;
+        if (window.getThemeConfig) {
+            themeConfig = window.getThemeConfig();
+        } else {
+            // Fallback theme configuration using the current theme
+            const currentThemeForEffects = detectCurrentTheme();
+            const isDark = currentThemeForEffects === "dark";
+            themeConfig = {
+                theme: currentThemeForEffects,
+                isDark,
+                isLight: !isDark,
+                colors: {
+                    primary: isDark ? "#3b82f665" : "#2563eb",
+                    background: isDark ? "#1a1a1a" : "#ffffff",
+                    surface: isDark ? "#181c24" : "#ffffff",
+                    surfaceSecondary: isDark ? "#4a5568" : "#e9ecef",
+                    text: isDark ? "#ffffff" : "#000000",
+                    textSecondary: isDark ? "#a0a0a0" : "#6b7280",
+                    border: isDark ? "#404040" : "#e5e7eb",
+                    accent: isDark ? "#63b3ed" : "#007bff",
+                },
+            };
+        }
+
+        // Add hover effects to charts
+        addChartHoverEffects(chartContainer, themeConfig);
+    }
+
     return true;
 }
 
@@ -622,96 +667,7 @@ export function resetChartNotificationState() {
     console.log("[ChartJS] Chart notification state reset for new file");
 }
 
-// Developer fields charts renderer
-function renderDeveloperFieldsCharts(container, data, labels, options) {
-    try {
-        console.log("[ChartJS] renderDeveloperFieldsCharts called");
-
-        if (!data || data.length === 0) {
-            console.log("[ChartJS] No data available for developer fields charts");
-            return;
-        } // Extract developer fields from the data
-        const fieldMaps = new Map();
-
-        data.forEach((row, index) => {
-            if (row.developerFields && typeof row.developerFields === "string") {
-                try {
-                    const devFields = JSON.parse(row.developerFields);
-                    Object.keys(devFields).forEach((fieldId) => {
-                        const value = devFields[fieldId];
-
-                        // Handle both array and scalar values
-                        if (Array.isArray(value)) {
-                            value.forEach((val, arrayIndex) => {
-                                const fieldKey = `dev_${fieldId}_${arrayIndex}`;
-                                if (!fieldMaps.has(fieldKey)) {
-                                    fieldMaps.set(fieldKey, []);
-                                }
-                                fieldMaps.get(fieldKey).push({ x: labels[index], y: val });
-                            });
-                        } else if (typeof value === "number" && !isNaN(value)) {
-                            const fieldKey = `dev_${fieldId}`;
-                            if (!fieldMaps.has(fieldKey)) {
-                                fieldMaps.set(fieldKey, []);
-                            }
-                            fieldMaps.get(fieldKey).push({ x: labels[index], y: value });
-                        }
-                    });
-                } catch {
-                    // Skip malformed JSON
-                }
-            }
-        });
-
-        console.log(`[ChartJS] Found ${fieldMaps.size} developer fields to chart`);
-
-        // Create charts for each developer field that has enough data
-        fieldMaps.forEach((chartData, fieldKey) => {
-            if (chartData.length < 2) return; // Skip fields with insufficient data
-
-            // Check if this field is hidden
-            const visibility = localStorage.getItem(`chartjs_field_${fieldKey}`);
-            if (visibility === "hidden") {
-                return;
-            }
-
-            // Apply data point limiting
-            if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
-                const step = Math.ceil(chartData.length / options.maxPoints);
-                chartData = chartData.filter((_, i) => i % step === 0);
-            }
-
-            const canvas = createChartCanvas(fieldKey, fieldKey);
-            container.appendChild(canvas);
-
-            // Create enhanced chart for developer field
-            const chart = createEnhancedChart(canvas, {
-                field: fieldKey,
-                chartData,
-                chartType: options.chartType,
-                interpolation: options.interpolation,
-                animationStyle: options.animationStyle,
-                showGrid: options.showGrid,
-                showLegend: options.showLegend,
-                showTitle: options.showTitle,
-                showPoints: options.showPoints,
-                showFill: options.showFill,
-                smoothing: options.smoothing,
-                customColors: options.customColors,
-                zoomPluginConfig: options.zoomPluginConfig,
-                fieldLabels: {
-                    ...fieldLabels,
-                    [fieldKey]: `Developer Field ${fieldKey.replace("dev_", "")}`,
-                },
-                theme: options.theme,
-            });
-
-            if (chart) {
-                window._chartjsInstances.push(chart);
-                console.log(`[ChartJS] Created developer field chart for ${fieldKey}`);
-            }
-        });
-    } catch (error) {
-        console.error("[ChartJS] Error rendering developer fields charts:", error);
-    }
+// Expose to window for development
+if (typeof window !== "undefined") {
+    window.addHoverEffectsToExistingCharts = addHoverEffectsToExistingCharts;
 }
