@@ -119,4 +119,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ steps.get_release.outputs.result }}
         run: |
-          gh release upload "$RELEASE_TAG" electron-app/FitFileViewer-${RELEASE_TAG}.flatpak electron-app/FitFileViewer-${RELEASE_TAG}.flatpak.zip --clobber
+          gh release upload "$RELEASE_TAG" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak.zip" --clobber

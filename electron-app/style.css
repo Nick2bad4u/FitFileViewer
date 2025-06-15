@@ -2514,7 +2514,7 @@ input[type="radio"]:checked::before {
 }
 
 /* Range/Slider Styling */
-input[type="range"] {
+ input[type="range"] {
     appearance: none;
     height: 6px;
     background: var(--color-modal-bg);
@@ -2764,6 +2764,22 @@ a:focus-visible {
 /* =====================================================
    END OF PROFESSIONAL THEME SYSTEM
    ===================================================== */
+
+/* =====================================================
+   Utility Classes
+   ===================================================== */
+
+/* Hide element utility class */
+.hidden {
+    display: none;
+}
+
+/* Show element utility class */
+.visible {
+    display: block;
+}
+
+/* ===================================================== */
 
 #lap-select > option:nth-child(n):checked {
     background-color: var(--color-accent) !important;

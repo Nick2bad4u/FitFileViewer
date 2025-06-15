@@ -21,14 +21,14 @@ import { updateMapTheme } from "./updateMapTheme.js";
 import { createStartIcon, createEndIcon } from "./mapIcons.js";
 import { baseLayers } from "./mapBaseLayers.js";
 import {
-    createPrintButton,
-    createExportGPXButton,
-    createElevationProfileButton,
     createMarkerCountSelector,
-    createAddFitFileToMapButton,
     createShownFilesList,
-    overlayColorPalette,
 } from "./mapActionButtons.js";
+import { createAddFitFileToMapButton } from './createAddFitFileToMapButton.js';
+import { createExportGPXButton } from './createExportGPXButton.js';
+import { createPrintButton } from './createPrintButton.js';
+import { overlayColorPalette } from './overlayColorPalette.js';
+import { createElevationProfileButton } from './createElevationProfileButton.js';
 import { addFullscreenControl } from "./mapFullscreenControl.js";
 import { drawOverlayForFitFile } from "./drawMapForLap.js";
 

@@ -33,7 +33,7 @@ import { setupTheme } from "./utils/setupTheme.js";
 import { showUpdateNotification } from "./utils/showUpdateNotification.js";
 import { setupListeners } from "./utils/listeners.js";
 import { showAboutModal } from "./utils/aboutModal.js";
-import { createExportGPXButton } from "./utils/mapActionButtons.js";
+import { createExportGPXButton } from './utils/createExportGPXButton.js';
 import { applyTheme, listenForThemeChange } from "./utils/theme.js";
 import { setLoading } from "./utils/rendererUtils.js";
 

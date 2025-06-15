@@ -43,3 +43,10 @@ jobs:
       - uses: devops-actions/actionlint@c6744a34774e4e1c1df0ff66bdb07ec7ee480ca0 #v0.1.9
         continue-on-error: true
         id: action-lint
+        with:
+          shellcheck_opts: '-e SC2129'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: actionlint-results
+          path: ${{ steps.action-lint.outputs.results-file }}

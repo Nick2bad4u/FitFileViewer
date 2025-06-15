@@ -1,4 +1,5 @@
-import { getOverlayFileName, overlayColorPalette } from "./mapActionButtons.js";
+import { getOverlayFileName } from "./mapActionButtons.js";
+import { overlayColorPalette } from './overlayColorPalette.js';
 
 /* global L */
 // Helper to find the index in recordMesgs closest to a given lat/lon

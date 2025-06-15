@@ -6,29 +6,7 @@
 name: DevSkim
 
 on:
-  push:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  pull_request:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
   workflow_dispatch:
-  schedule:
-    - cron: '37 1 * * 2'
 
 concurrency:
   group: devskim-${{ github.ref }}

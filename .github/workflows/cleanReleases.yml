@@ -123,7 +123,7 @@ jobs:
             echo "$release_tags" | nl
             for tag in $all_tags; do
               tag_lc=$(echo "$tag" | tr '[:upper:]' '[:lower:]')
-              tag_nov=$(echo "$tag_lc" | sed 's/^v//')
+              tag_nov="${tag_lc/#v/}"
               if ! echo "$release_tags" | grep -qxF "$tag_lc" && ! echo "$release_tags" | grep -qxF "$tag_nov"; then
                 echo "Deleting orphan tag $tag"
                 git tag -d "$tag" || true

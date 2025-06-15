@@ -308,7 +308,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          find dist -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find dist -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
             hash=$(shasum -a 512 "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -339,7 +339,7 @@ jobs:
           elif [ "${{ steps.build_app.outcome }}" = "success" ]; then
             STATUS="success"
           fi
-            echo "| ${{ needs.bump-version.outputs.new_version }} | ${{ matrix.os }} | ${{ matrix.arch }} | Build Status: $STATUS |" >> $GITHUB_STEP_SUMMARY
+            echo "| ${{ needs.bump-version.outputs.new_version }} | ${{ matrix.os }} | ${{ matrix.arch }} | Build Status: $STATUS |" >> "$GITHUB_STEP_SUMMARY"
 
   release:
     needs: [build, bump-version]
@@ -392,7 +392,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          find artifacts -type f \( -name '*.exe' -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
             hash=$(shasum -a 512 "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -401,27 +401,29 @@ jobs:
       - name: Get previous tag created
         id: get_prev_tag
         run: |
-          git fetch --tags
           TAG_COUNT=$(git tag --sort=-creatordate | wc -l)
           if [ "$TAG_COUNT" -ge 2 ]; then
             PREV_TAG=$(git tag --sort=-creatordate | tail -2 | head -1)
           else
             PREV_TAG=""
           fi
-          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+          echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes for the new version
         id: release_notes
         run: |
           PREV_TAG="${{ steps.get_prev_tag.outputs.prev_tag }}"
           if [ -n "$PREV_TAG" ]; then
-            NOTES=$(git log "$PREV_TAG"..HEAD --pretty=format:'- %s%n  - Author: %an <%ae>%n  - Commit: [`%h`](https://github.com/${{ github.repository }}/commit/%H)%n  - Date: %ad%n' --date=short)
+            NOTES=$(git log "$PREV_TAG"..HEAD --pretty=format:"- %s%n  - Author: %an <%ae>%n  - Commit: [$(%h)](https://github.com/${{ github.repository }}/commit/$(%H))%n  - Date: %ad%n" --date=short)
           else
-            NOTES=$(git log --pretty=format:'- %s%n  - Author: %an <%ae>%n  - Commit: [`%h`](https://github.com/${{ github.repository }}/commit/%H)%n  - Date: %ad%n' --date=short)
+            NOTES=$(git log --pretty=format:"- %s%n  - Author: %an <%ae>%n  - Commit: [$(%h)](https://github.com/${{ github.repository }}/commit/$(%H))%n  - Date: %ad%n" --date=short)
           fi
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "notes<<EOF"
+            echo -e "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: List artifacts (debug)
         id: list_artifacts
@@ -490,7 +492,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          for yml in $(find release-dist -type f -name 'latest*.yml'); do
+          find release-dist -type f -name 'latest*.yml' | while IFS= read -r yml; do
             echo "Processing $yml"
             dir=$(dirname "$yml")
             tmp_file="${yml}.tmp"
@@ -529,7 +531,7 @@ jobs:
                   fi
                   current_url=""
                 elif [[ $line =~ ^[[:space:]]*size:[[:space:]].* ]]; then
-                  trimmed=$(echo "$line" | sed 's/^[[:space:]]*//')
+                  trimmed="${line#"${line%%[![:space:]]*}"}"
                   echo "    $trimmed" >> "$tmp_file"
                 elif [[ $line =~ ^[[:space:]]*path:[[:space:]].* || $line =~ ^[[:space:]]*sha512:[[:space:]].* || $line =~ ^[[:space:]]*releaseDate:[[:space:]].* ]]; then
                   in_files_section=0
@@ -591,7 +593,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read file; do
+          find artifacts -type f \( -name '*.exe' -o -name '*.7z' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.snap' -o -name '*.zip' -o -name '*.yml' -o -name '*.blockmap' -o -name '*.msi' -o -name '*.deb' -o -name '*.rpm' -o -name '*.pkg' -o -name '*.mas' -o -name '*.apk' -o -name '*.p5p' -o -name '*.pacman' -o -name '*.freebsd' -o -name '*.flatpak' -o -name '*.tar.xz' -o -name '*.tar.gz' -o -name '*.tar.bz2' \) | sort | while read -r file; do
             hash=$(shasum -a 512 "$file" | awk '{print $1}')
             b64=$(echo "$hash" | xxd -r -p | base64)
             echo "$file: $b64"
@@ -748,15 +750,18 @@ jobs:
       - name: Add Job Summary
         if: always()
         run: |
-          echo "## 🏗️ Build and Release Electron App Workflow Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "See above for the full build matrix results."
-          echo "---" >> $GITHUB_STEP_SUMMARY          echo "- **Version bump and tagging** performed for electron-app." >> $GITHUB_STEP_SUMMARY
-          echo "- **Builds executed** for multiple OS and architectures." >> $GITHUB_STEP_SUMMARY
-          echo "- **Build artifacts uploaded** for each platform." >> $GITHUB_STEP_SUMMARY
-          echo "- **Release created** if build and version bump succeeded." >> $GITHUB_STEP_SUMMARY
-          echo "- **Changelogs will be updated** and committed directly to the repository." >> $GITHUB_STEP_SUMMARY
-          echo "- Workflow completed with status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 🏗️ Build and Release Electron App Workflow Summary"
+            echo ""
+            echo "See above for the full build matrix results."
+            echo "---"
+            echo "- **Version bump and tagging** performed for electron-app."
+            echo "- **Builds executed** for multiple OS and architectures."
+            echo "- **Build artifacts uploaded** for each platform."
+            echo "- **Release created** if build and version bump succeeded."
+            echo "- **Changelogs will be updated** and committed directly to the repository."
+            echo "- Workflow completed with status: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   update-changelogs:
     needs: [release, bump-version]
@@ -789,7 +794,7 @@ jobs:
             -f 'output[summary]=Changelog update in progress' \
             --jq '.id' \
             /repos/${{ github.repository }}/check-runs)
-          echo "CHECKID=$CHECKID" >> $GITHUB_ENV
+          echo "CHECKID=$CHECKID" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -843,8 +848,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Add all CHANGELOG.md files
-          git add **/CHANGELOG.md CHANGELOG.md
-
+          git add ./**/CHANGELOG.md ./CHANGELOG.md
           # Check if there are any changes to commit
           if git diff --staged --quiet; then
             echo "No changelog changes to commit"
@@ -867,7 +871,7 @@ jobs:
             }
           }' | gh api -X PATCH -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ github.repository }}/check-runs/$CHECKID --input -
+            /repos/${{ github.repository }}/check-runs/"$CHECKID" --input -
 
       - name: Complete Check Run
         if: always()
@@ -886,22 +890,24 @@ jobs:
             }
           }' | gh api -X PATCH -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ github.repository }}/check-runs/$CHECKID --input -
+            /repos/${{ github.repository }}/check-runs/"$CHECKID" --input -
 
       - name: Add Changelog Job Summary
         if: always()
         run: |
-          echo "## 📝 Changelog Update Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: v${{ needs.bump-version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **CHANGELOG.md files** generated for root and all subdirectories" >> $GITHUB_STEP_SUMMARY
-          echo "- **Changes committed** directly to repository (no PR required)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Files Updated:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/electron-app/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/electron-app/icons/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/electron-app/libs/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/electron-app/screenshots/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/electron-app/tests/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`/electron-app/utils/CHANGELOG.md\`" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 📝 Changelog Update Summary"
+            echo "- **Version**: v${{ needs.bump-version.outputs.new_version }}"
+            echo "- **CHANGELOG.md files** generated for root and all subdirectories"
+            echo "- **Changes committed** directly to repository (no PR required)"
+            echo "- **Status**: ${{ job.status }}"
+            echo ""
+            echo "### Files Updated:"
+            echo "- \`/CHANGELOG.md\`"
+            echo "- \`/electron-app/CHANGELOG.md\`"
+            echo "- \`/electron-app/icons/CHANGELOG.md\`"
+            echo "- \`/electron-app/libs/CHANGELOG.md\`"
+            echo "- \`/electron-app/screenshots/CHANGELOG.md\`"
+            echo "- \`/electron-app/tests/CHANGELOG.md\`"
+            echo "- \`/electron-app/utils/CHANGELOG.md\`"
+          } >> "$GITHUB_STEP_SUMMARY"
