@@ -6,7 +6,52 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)...[17ad448](https://github.com/Nick2bad4u/FitFileViewer/commit/17ad44891c45d5db786707c5646d1bcebb83a7ec)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/403063838cdda2c7a496838806b54909461420f3...17ad44891c45d5db786707c5646d1bcebb83a7ec))
+[[3cbd5ec](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)...[61ed3ab](https://github.com/Nick2bad4u/FitFileViewer/commit/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3cbd5ec5033e12f89143d5874fbf98765058c314...61ed3ab45c1ba8800047c7a3313989d3cd4cd5de))
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.8.0 [`(61ed3ab)`](https://github.com/Nick2bad4u/FitFileViewer/commit/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de)
+
+
+## [22.8.0] - 2025-06-15
+
+[[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)...[3cbd5ec](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/403063838cdda2c7a496838806b54909461420f3...3cbd5ec5033e12f89143d5874fbf98765058c314))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(3cbd5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)
+
+
+### 💼 Other
+
+- Refactor chart utilities and enhance theme handling
+
+- Removed the chart specification generation code from chartSpec.js, streamlining the chart rendering process.
+- Improved the chart theme listener in chartThemeListener.js for better event handling and performance.
+- Updated ensureAboutModal.js to enhance modal initialization and styling.
+- Cleaned up exportAllCharts.js by removing unnecessary whitespace.
+- Refined modal styles injection in injectModalStyles.js to prevent duplicate style applications.
+- Enhanced animation logging utility in lastAnimLog.js for better performance tracking during development.
+- Improved version information loading in loadVersionInfo.js for dynamic updates.
+- Updated system information display logic in updateSystemInfo.js for better clarity.
+- Added gitleaks-report.json to track potential API key exposure in the codebase. [`(07f01c6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/07f01c601ecc9c3c5e720de2231ecebd734fa321)
+
+- Refactor and enhance modal functionality; remove unused chart tab, optimize notification delay, and improve theme configurations
+
+- Removed the "chart" tab functionality from the setupWindow.js file.
+- Reduced the notification processing delay from 200ms to 50ms in showNotification.js.
+- Updated theme.js to adjust surface color opacity and added new color zones for various functionalities.
+- Modified toggleTabVisibility.js to exclude the "content-chart" from the tab content IDs.
+- Fixed import path for throttledAnimLog in updateChartAnimations.js.
+- Added new utility functions for about modal management, including ensureAboutModal.js, loadVersionInfo.js, updateSystemInfo.js, and injectModalStyles.js.
+- Implemented a throttled animation logging utility in lastAnimLog.js for better performance during development.
+- Created exportAllCharts.js to handle exporting multiple charts with notifications for success or failure. [`(d5c18e4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d5c18e4b82598d1df4a24aca265504a0bbf52af3)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v22.7.0 [skip ci] [`(e7f9594)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e7f9594ed308f37204961a516470e5c593a12527)
+
 
 ### 📦 Dependencies
 
