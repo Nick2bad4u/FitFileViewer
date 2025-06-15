@@ -6,11 +6,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[482d49d](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)...[df90c13](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/482d49d682a81fee19fa3411cdec3ac41473ea29...df90c13d66328dc7a0481dd81db1f989a3905499))
+[[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)...[17ad448](https://github.com/Nick2bad4u/FitFileViewer/commit/17ad44891c45d5db786707c5646d1bcebb83a7ec)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/403063838cdda2c7a496838806b54909461420f3...17ad44891c45d5db786707c5646d1bcebb83a7ec))
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.7.0 [`(17ad448)`](https://github.com/Nick2bad4u/FitFileViewer/commit/17ad44891c45d5db786707c5646d1bcebb83a7ec)
+
+
+## [22.7.0] - 2025-06-15
+
+[[482d49d](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)...[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/482d49d682a81fee19fa3411cdec3ac41473ea29...403063838cdda2c7a496838806b54909461420f3))
 
 ### 🔀 Merge Commits
 
 - [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(df90c13)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)
+
+
+### 🚜 Refactor
+
+- Update Gyazo configuration data with new obfuscation method [`(4030638)`](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v22.6.0 [skip ci] [`(c338233)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c338233fa5c3967da61a4bc282b6ea60ca9ccc41)
 
 
 ### 📦 Dependencies
