@@ -596,12 +596,12 @@ export function createMarkerCountSelector(onChange) {
         const applyTheme = () => {
             try {
                 const themeColors = getThemeColors();
-                container.style.background = themeColors.surface;
+                container.style.background = themeColors.backgroundAlt;
                 container.style.color = themeColors.text;
                 container.style.border = `1px solid ${themeColors.border}`;
                 
                 label.style.color = themeColors.text;
-                select.style.background = themeColors.surface;
+                select.style.background = themeColors.backgroundAlt;
                 select.style.color = themeColors.text;
                 select.style.border = `1px solid ${themeColors.border}`;
             } catch (error) {
