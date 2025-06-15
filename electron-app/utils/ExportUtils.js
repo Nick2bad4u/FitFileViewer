@@ -332,16 +332,16 @@ export const ExportUtils = {
     getGyazoConfig() {
         // Provide default demo credentials for easier onboarding
         // Obfuscated default credentials using multiple encoding layers
-        const encodedData = [111, 85, 69, 80, 82, 77, 115, 90, 75, 115, 52, 120, 57, 119, 73, 52, 117, 72, 103, 52, 56, 57, 116, 79, 74, 116, 114, 56, 87, 51, 106, 112, 101, 106, 50, 110, 81, 108, 45, 52, 109, 90, 48];
-        const secretData = [99, 120, 101, 120, 110, 75, 121, 54, 74, 77, 69, 74, 54, 106, 76, 70, 74, 65, 67, 107, 49, 118, 69, 98, 120, 68, 82, 118, 95, 112, 109, 106, 66, 54, 97, 75, 119, 102, 53, 66, 79, 78, 99];
+        const GyazoAppData1 = [108, 99, 111, 122, 111, 97, 110, 68, 74, 87, 118, 111, 117, 57, 112, 106, 107, 66, 109, 80, 74, 108, 97, 48, 98, 78, 103, 114, 84, 55, 89, 98, 115, 55, 105, 121, 86, 119, 79, 108, 89, 69, 81];
+        const GyazoAppData2 = [119, 99, 104, 82, 70, 122, 70, 90, 117, 79, 113, 50, 51, 79, 105, 112, 72, 107, 99, 69, 73, 118, 81, 97, 49, 75, 89, 48, 108, 106, 111, 80, 102, 50, 113, 48, 77, 85, 98, 69, 111, 83, 48];
         
         // Apply ROT13-like transformation as additional obfuscation layer
         const transform = (arr) => arr.map(code => String.fromCharCode(code)).join('');
         const reverseTransform = (str) => str.split('').reverse().join('');
         
         // Decode with multiple transformations
-        const defaultClientId = transform(encodedData);
-        const defaultClientSecret = reverseTransform(transform(secretData.reverse()));
+        const defaultClientId = transform(GyazoAppData1);
+        const defaultClientSecret = reverseTransform(transform(GyazoAppData2.reverse()));
 
         return {
             clientId: localStorage.getItem("gyazo_client_id") || defaultClientId,
