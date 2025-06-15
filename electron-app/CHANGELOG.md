@@ -6,7 +6,73 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[3613ca1](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)...[0548393](https://github.com/Nick2bad4u/FitFileViewer/commit/0548393d534f6973f2290c4989a611ae549b7ba8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3613ca13eda8e8668684632843f9fc98f94726cd...0548393d534f6973f2290c4989a611ae549b7ba8))
+[[482d49d](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)...[df90c13](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/482d49d682a81fee19fa3411cdec3ac41473ea29...df90c13d66328dc7a0481dd81db1f989a3905499))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(df90c13)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.6.0 [`(7f7dc61)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7f7dc6127a1f969c015f3cc583e4d1d49256379d)
+
+
+## [22.6.0] - 2025-06-15
+
+[[80c4c78](https://github.com/Nick2bad4u/FitFileViewer/commit/80c4c78c6465a125984744b2f18402dcb3d6e4c1)...[482d49d](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/80c4c78c6465a125984744b2f18402dcb3d6e4c1...482d49d682a81fee19fa3411cdec3ac41473ea29))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(482d49d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.5.0 [`(9b5e402)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9b5e402b61de560e3ee14cf90c3a9dc68d7c2ae5)
+
+
+### 🛡️ Security
+
+- Improves obfuscation for default Gyazo credentials
+
+Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience. [`(7bbab40)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82)
+
+
+## [22.5.0] - 2025-06-15
+
+[[5d82f2e](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)...[80c4c78](https://github.com/Nick2bad4u/FitFileViewer/commit/80c4c78c6465a125984744b2f18402dcb3d6e4c1)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf...80c4c78c6465a125984744b2f18402dcb3d6e4c1))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(80c4c78)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80c4c78c6465a125984744b2f18402dcb3d6e4c1)
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.4.0 [`(fd79abf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fd79abf351151eb054c0fca9b51c7c5d64b41a48)
+
+
+### 🛡️ Security
+
+- Obfuscate default Gyazo credentials for improved security [`(4064001)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4064001df17fce67d9fde5eb04a9b5743464476c)
+
+
+## [22.4.0] - 2025-06-15
+
+[[3613ca1](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)...[5d82f2e](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3613ca13eda8e8668684632843f9fc98f94726cd...5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf))
+
+### 💼 Other
+
+- Adds Gyazo integration with OAuth upload and theming
+
+Implements direct Gyazo chart upload using a secure OAuth flow, including automatic local callback server management and user credential configuration via new settings UI. Updates export utilities, modal flows, and introduces account management and onboarding guides for Gyazo. Refactors chart and UI theming to use a robust, centralized theme configuration, improving color consistency and dark mode support. Enhances chart selection modals, hover effects, and settings controls for better UX and maintainability. [`(5d82f2e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v22.3.0 [skip ci] [`(7447f7a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7447f7a853025778a184afe72eda268429743a85)
+
 
 ### 📦 Dependencies
 
@@ -28,15 +94,42 @@ All notable changes to this project will be documented in this file.
 
 Migrates hardcoded colors to CSS variables for consistent theming and easier maintenance across dark and light modes. Refactors chart re-rendering on theme change to ensure proper cleanup and real-time updates. Removes duplicated or redundant style logic, adds and adjusts hover/focus effects, and updates color opacities for modern, accessible visuals. Deletes the separate developer fields chart renderer, integrating its logic for better maintainability. Improves visual consistency and user experience in modals, dropdowns, and controls. [`(2790ed7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2790ed7f694fac0348c7986840950e0c88f548eb)
 
+- Adds Gyazo integration with OAuth upload and theming
+
+Implements direct Gyazo chart upload using a secure OAuth flow, including automatic local callback server management and user credential configuration via new settings UI. Updates export utilities, modal flows, and introduces account management and onboarding guides for Gyazo. Refactors chart and UI theming to use a robust, centralized theme configuration, improving color consistency and dark mode support. Enhances chart selection modals, hover effects, and settings controls for better UX and maintainability. [`(c75cddb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c75cddb9f3239ff300c4259ba665a0bf526b47e0)
+
+- Unifies styling with CSS variables and refactors theme logic
+
+Migrates hardcoded colors to CSS variables for consistent theming and easier maintenance across dark and light modes. Refactors chart re-rendering on theme change to ensure proper cleanup and real-time updates. Removes duplicated or redundant style logic, adds and adjusts hover/focus effects, and updates color opacities for modern, accessible visuals. Deletes the separate developer fields chart renderer, integrating its logic for better maintainability. Improves visual consistency and user experience in modals, dropdowns, and controls. [`(4c52de5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c52de52f856fd4bd6670b1e04c2e01044982cf1)
+
 
 ### ⚙️ Miscellaneous Tasks
 
 - Update changelogs for v22.2.0 [skip ci] [`(7364733)`](https://github.com/Nick2bad4u/FitFileViewer/commit/736473395e09d12a030a46f581d27504a1d19836)
 
+- Update changelogs for v22.3.0 [skip ci] [`(efee3da)`](https://github.com/Nick2bad4u/FitFileViewer/commit/efee3da7ea4e512eacc75aab5673ecc1a896b496)
+
+- Update changelogs for v22.2.0 [skip ci] [`(98cfa5b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/98cfa5bafc16b0af7ca1ada3558d989b583e6983)
+
 
 ### 📦 Dependencies
 
+- [dependency] Update version 22.5.0 [`(0f26639)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f266391551d999979719bce6883a3caded0ec30)
+
+- [dependency] Update version 22.3.0 [`(0f67f26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f67f2669e956ddd8529c3d3b3d62f7deb2846c4)
+
 - [dependency] Update version 22.2.0 [`(f72fb53)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f72fb538a639f8ae73db092315e64c39dc59d5e1)
+
+
+### 🛡️ Security
+
+- Obfuscate default Gyazo credentials for improved security
+
+[dependency] Update version 22.4.0
+
+Improves obfuscation for default Gyazo credentials
+
+Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience. [`(b048580)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0485801c3ba885a6a585c429c9063be2ea64eef)
 
 
 ## [22.2.0] - 2025-06-14
