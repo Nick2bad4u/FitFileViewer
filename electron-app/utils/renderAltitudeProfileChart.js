@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
@@ -20,7 +20,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             return;
         }
 
-        const currentTheme = detectCurrentTheme();
+        const themeConfig = getThemeConfig();
 
         let chartData = data
             .map((row, index) => {
@@ -45,9 +45,9 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
         }
 
         const canvas = createChartCanvas("altitude-profile", "altitude-profile");
-        canvas.style.background = currentTheme === "dark" ? "#181c24" : "#ffffff";
+        canvas.style.background = themeConfig.colors.chartBackground;
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+        canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadow}`;
         container.appendChild(canvas);
 
         const config = {
@@ -57,8 +57,8 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                     {
                         label: "Altitude Profile",
                         data: chartData,
-                        backgroundColor: "rgba(67, 160, 71, 0.3)",
-                        borderColor: "rgba(67, 160, 71, 1)",
+                        backgroundColor: themeConfig.colors.success + "4D", // Green with alpha
+                        borderColor: themeConfig.colors.success,
                         pointRadius: 0,
                         pointHoverRadius: 4,
                         borderWidth: 2,
@@ -73,19 +73,19 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                 plugins: {
                     legend: {
                         display: options.showLegend,
-                        labels: { color: currentTheme === "dark" ? "#fff" : "#000" },
+                        labels: { color: themeConfig.colors.textPrimary },
                     },
                     title: {
                         display: options.showTitle,
                         text: "Altitude Profile",
                         font: { size: 16, weight: "bold" },
-                        color: currentTheme === "dark" ? "#fff" : "#000",
+                        color: themeConfig.colors.textPrimary,
                     },
                     tooltip: {
-                        backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
-                        titleColor: currentTheme === "dark" ? "#fff" : "#000",
-                        bodyColor: currentTheme === "dark" ? "#fff" : "#000",
-                        borderColor: currentTheme === "dark" ? "#555" : "#ddd",
+                        backgroundColor: themeConfig.colors.chartSurface,
+                        titleColor: themeConfig.colors.textPrimary,
+                        bodyColor: themeConfig.colors.textPrimary,
+                        borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
                             title: function (context) {
@@ -112,8 +112,8 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             },
                             drag: {
                                 enabled: true,
-                                backgroundColor: "rgba(59, 130, 246, 0.2)",
-                                borderColor: "rgba(59, 130, 246, 0.8)",
+                                backgroundColor: themeConfig.colors.primaryAlpha,
+                                borderColor: themeConfig.colors.primary + "CC", // Primary with more opacity
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -131,7 +131,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         },
                     },
                     backgroundColorPlugin: {
-                        backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor: themeConfig.colors.chartBackground,
                     },
                 },
                 scales: {
@@ -140,15 +140,15 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.chartGrid,
                         },
                         title: {
                             display: true,
                             text: `Time (${getUnitSymbol("time", "time")})`,
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         ticks: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                             callback: function (value) {
                                 return formatTime(value, true);
                             },
@@ -159,14 +159,14 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.chartGrid,
                         },
                         title: {
                             display: true,
                             text: "Altitude (m)",
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
-                        ticks: { color: currentTheme === "dark" ? "#fff" : "#000" },
+                        ticks: { color: themeConfig.colors.textPrimary },
                     },
                 },
             },

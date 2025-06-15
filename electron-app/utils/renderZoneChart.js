@@ -2,24 +2,26 @@ import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { getZoneTypeFromField, getChartZoneColors } from "./zoneColorUtils.js";
+import { getThemeConfig } from "./theme.js";
 
 // Helper function to render individual zone chart
 
 export function renderZoneChart(container, title, zoneData, chartId, options) {
     console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
 
-    // Get theme using robust detection
+    const themeConfig = getThemeConfig();
     const currentTheme = detectCurrentTheme();
+
     const canvas = createChartCanvas(chartId, chartId);
 
     // Apply theme-aware canvas styling (background handled by plugin)
     canvas.style.borderRadius = "12px";
-    canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+    canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadowLight}`;
 
     container.appendChild(canvas);
 
-    // Determine zone type and get user-selected colors
-    let colors = ["#3b82f665", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"];
+    // Determine zone type and get user-selected colors from theme
+    let colors = themeConfig.colors.zoneColors;
 
     // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
     if (zoneData.length > 0 && zoneData[0].color) {

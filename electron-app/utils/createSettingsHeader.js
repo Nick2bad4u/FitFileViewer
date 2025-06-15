@@ -7,6 +7,7 @@ import { extractDeveloperFieldsList } from "./extractDeveloperFieldsList.js";
 import { openZoneColorPicker } from "./openZoneColorPicker.js";
 import { resetAllSettings } from "./getCurrentSettings.js";
 import { showNotification } from "./showNotification.js";
+import { getThemeConfig } from "./theme.js";
 
 /**
  * Creates the settings header with title and global actions
@@ -36,7 +37,7 @@ export function createSettingsHeader(wrapper) {
 		color: var(--color-fg-alt);
 		font-size: 20px;
 		font-weight: 600;
-		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+		text-shadow: 0 2px 4px var(--color-shadow);
 	`;
 
     const globalActions = document.createElement("div");
@@ -223,7 +224,7 @@ function createRangeControl(option) {
 			background: var(--color-btn-bg);
 			border-radius: 50%;
 			cursor: pointer;
-			border: 2px solid #ffffff;
+			border: 2px solid var(--color-fg-alt);
 		}
 	`;
     document.head.appendChild(style);
@@ -437,9 +438,17 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
         return;
     }
 
-    if (charts.length === 1) {
-        // Only one chart, execute single callback directly
-        singleCallback(charts[0]);
+    // Filter out invalid charts using ExportUtils validation
+    const validCharts = charts.filter((chart) => ExportUtils.isValidChart(chart));
+
+    if (validCharts.length === 0) {
+        showNotification("No valid charts available", "warning");
+        return;
+    }
+
+    if (validCharts.length === 1) {
+        // Only one valid chart, execute single callback directly
+        singleCallback(validCharts[0]);
         return;
     }
 
@@ -451,7 +460,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: rgba(0, 0, 0, 0.7);
+		background: var(--color-overlay-bg);
 		backdrop-filter: blur(8px);
 		display: flex;
 		justify-content: center;
@@ -488,7 +497,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		margin-bottom: 20px;
 	`;
 
-    charts.forEach((chart, index) => {
+    validCharts.forEach((chart, index) => {
         const dataset = chart.data.datasets[0];
         const fieldName = dataset?.label || `Chart ${index + 1}`;
 
@@ -519,7 +528,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
         chartItem.addEventListener("click", () => {
             document.body.removeChild(overlay);
-            singleCallback(index);
+            singleCallback(chart); // Pass the actual chart object, not the index
         });
 
         chartList.appendChild(chartItem);
@@ -527,16 +536,16 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
     // Combined option
     const combinedItem = document.createElement("button");
-    combinedItem.textContent = `🔗 All Charts Combined (${charts.length} charts)`;
+    combinedItem.textContent = `🔗 All Charts Combined (${validCharts.length} charts)`;
     combinedItem.style.cssText = `
 		display: block;
 		width: 100%;
 		padding: 12px;
 		margin-bottom: 16px;
-		background: rgba(168, 85, 247, 0.1);
-		border: 1px solid rgba(168, 85, 247, 0.3);
+		background: var(--color-accent-hover);
+		border: 1px solid var(--color-accent);
 		border-radius: 8px;
-		color: #ffffff;
+		color: var(--color-fg-alt);
 		cursor: pointer;
 		font-size: 14px;
 		text-align: left;
@@ -544,16 +553,16 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 	`;
 
     combinedItem.addEventListener("mouseenter", () => {
-        combinedItem.style.background = "rgba(168, 85, 247, 0.2)";
+        combinedItem.style.background = "var(--color-accent-hover)";
     });
 
     combinedItem.addEventListener("mouseleave", () => {
-        combinedItem.style.background = "rgba(168, 85, 247, 0.1)";
+        combinedItem.style.background = "var(--color-accent-hover)";
     });
 
     combinedItem.addEventListener("click", () => {
         document.body.removeChild(overlay);
-        combinedCallback(charts);
+        combinedCallback(validCharts);
     });
 
     // Cancel button
@@ -562,10 +571,10 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
     cancelButton.style.cssText = `
 		width: 100%;
 		padding: 12px;
-		background: rgba(255, 255, 255, 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.2);
+		background: var(--color-border-light);
+		border: 1px solid var(--color-border);
 		border-radius: 8px;
-		color: #ffffff;
+		color: var(--color-fg-alt);
 		cursor: pointer;
 		font-size: 14px;
 		transition: all 0.3s ease;
@@ -747,6 +756,23 @@ export function createExportSection(wrapper) {
             text: "Share URL",
             action: () => ExportUtils.shareChartsAsURL(),
         },
+        {
+            icon: "📸",
+            text: "Share Gyazo",
+            action: () => {
+                if (!ExportUtils.isGyazoAuthenticated()) {
+                    showNotification("Please connect your Gyazo account first", "warning");
+                    ExportUtils.showGyazoAccountManager();
+                    return;
+                }
+                ExportUtils.shareChartsToGyazo();
+            },
+        },
+        {
+            icon: "⚙️",
+            text: "Gyazo Settings",
+            action: () => ExportUtils.showGyazoAccountManager(),
+        },
     ];
 
     exportButtons.forEach((btn) => {
@@ -840,6 +866,7 @@ export function createFieldTogglesSection(wrapper) {
  * Creates individual field toggle controls
  */
 function createFieldToggle(field) {
+    const themeConfig = getThemeConfig();
     const container = document.createElement("div");
     container.className = "field-toggle";
     container.style.cssText = `
@@ -919,7 +946,7 @@ function createFieldToggle(field) {
         // Regular color picker for non-zone charts
         const colorPicker = document.createElement("input");
         colorPicker.type = "color";
-        colorPicker.value = localStorage.getItem(`chartjs_color_${field}`) || fieldColors[field] || "#1976d2";
+        colorPicker.value = localStorage.getItem(`chartjs_color_${field}`) || fieldColors[field] || themeConfig.colors.primaryAlpha;
         colorPicker.style.cssText = `
 			width: 32px;
 			height: 32px;

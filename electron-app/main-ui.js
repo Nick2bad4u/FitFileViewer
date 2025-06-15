@@ -468,32 +468,37 @@ setupWindowOnload({
 
 // External link handler for opening links in default browser
 function setupExternalLinkHandlers() {
-    // Handle all external links with data-external-link attribute
-    const externalLinks = document.querySelectorAll('[data-external-link="true"]');
-    externalLinks.forEach((link) => {
-        const handleExternalLink = (e) => {
-            e.preventDefault();
-            const url = link.getAttribute("href");
-            if (url && window.electronAPI && window.electronAPI.openExternal) {
-                window.electronAPI.openExternal(url).catch((error) => {
-                    console.error("Failed to open external link:", error);
-                    // Fallback to window.open if openExternal fails
-                    window.open(url, "_blank", "noopener,noreferrer");
-                });
-            } else if (url) {
-                // Fallback for non-Electron environments
-                window.open(url, "_blank", "noopener,noreferrer");
-            }
-        };
-
-        link.onclick = handleExternalLink;
-
-        link.onkeydown = (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                handleExternalLink(e);
-            }
-        };
+    // Use event delegation to handle both existing and dynamically added external links
+    document.addEventListener("click", (e) => {
+        const link = e.target.closest('[data-external-link="true"]');
+        if (link) {
+            handleExternalLink(e, link);
+        }
     });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            const link = e.target.closest('[data-external-link="true"]');
+            if (link) {
+                handleExternalLink(e, link);
+            }
+        }
+    });
+
+    function handleExternalLink(e, link) {
+        e.preventDefault();
+        const url = link.getAttribute("href");
+        if (url && window.electronAPI && window.electronAPI.openExternal) {
+            window.electronAPI.openExternal(url).catch((error) => {
+                console.error("Failed to open external link:", error);
+                // Fallback to window.open if openExternal fails
+                window.open(url, "_blank", "noopener,noreferrer");
+            });
+        } else if (url) {
+            // Fallback for non-Electron environments
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
+    }
 }
 
 // Initialize external link handlers after DOM is loaded

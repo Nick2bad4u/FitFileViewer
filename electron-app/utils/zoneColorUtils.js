@@ -3,30 +3,31 @@
  * Handles saving, loading, and applying zone color preferences for HR and Power zones
  */
 
+import { getThemeConfig } from "./theme.js";
+
+/**
+ * Gets default zone colors from theme configuration
+ * @param {string} zoneType - "hr" or "power"
+ * @returns {Array} Array of color strings
+ */
+function getDefaultZoneColors(zoneType) {
+    const themeConfig = getThemeConfig();
+    if (zoneType === "power") {
+        return themeConfig.colors.powerZoneColors;
+    }
+    return themeConfig.colors.heartRateZoneColors;
+}
+
 /**
  * Default zone colors for Heart Rate zones
  */
-export const DEFAULT_HR_ZONE_COLORS = [
-    "#808080", // Zone 1 - Gray (recovery)
-    "#3b82f665", // Zone 2 - Blue (aerobic base)
-    "#10B981", // Zone 3 - Green (aerobic)
-    "#F59E0B", // Zone 4 - Yellow (threshold)
-    "#EF4444", // Zone 5 - Red (anaerobic)
-];
+export const DEFAULT_HR_ZONE_COLORS = getDefaultZoneColors("hr");
 
 /**
  * Default zone colors for Power zones, based on Coggan's levels
  * https://www.trainingpeaks.com/learn/articles/power-training-levels/
  */
-export const DEFAULT_POWER_ZONE_COLORS = [
-    "#808080", // Zone 1 - Gray (Active Recovery)
-    "#3b82f665", // Zone 2 - Blue (Endurance)
-    "#10B981", // Zone 3 - Green (Tempo)
-    "#F59E0B", // Zone 4 - Yellow (Lactate Threshold)
-    "#FF6600", // Zone 5 - Orange (VO2 Max)
-    "#EF4444", // Zone 6 - Red (Anaerobic Capacity)
-    "#FF00FF", // Zone 7 - Magenta (Neuromuscular Power)
-];
+export const DEFAULT_POWER_ZONE_COLORS = getDefaultZoneColors("power");
 
 /**
  * Gets the saved color for a specific zone or returns default

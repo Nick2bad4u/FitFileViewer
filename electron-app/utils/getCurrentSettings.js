@@ -2,6 +2,7 @@ import { fieldColors, chartFields } from "./chartFields.js";
 import { chartOptionsConfig } from "./chartOptionsConfig.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { showNotification } from "./showNotification.js";
+import { getThemeConfig } from "./theme.js";
 
 /**
  * Gets default settings object
@@ -20,6 +21,7 @@ export function getDefaultSettings() {
  */
 
 export function getCurrentSettings() {
+    const themeConfig = getThemeConfig();
     const settings = {};
     chartOptionsConfig.forEach((opt) => {
         const stored = localStorage.getItem(`chartjs_${opt.id}`);
@@ -36,7 +38,7 @@ export function getCurrentSettings() {
     settings.colors = {};
     chartFields.forEach((field) => {
         const stored = localStorage.getItem(`chartjs_color_${field}`);
-        settings.colors[field] = stored || fieldColors[field] || "#1976d2";
+        settings.colors[field] = stored || fieldColors[field] || themeConfig.colors.primaryAlpha;
     });
 
     return settings;
@@ -99,9 +101,12 @@ export function resetAllSettings() {
                     if (valueDisplay) {
                         valueDisplay.textContent = opt.default;
                     }
-                    // Update range slider background
+                    // Update range slider background with theme-aware colors
+                    const themeConfig = getThemeConfig();
+                    const accentColor = themeConfig.colors.accent;
+                    const borderLight = themeConfig.colors.borderLight;
                     const percentage = ((opt.default - (opt.min || 0)) / ((opt.max || 1) - (opt.min || 0))) * 100;
-                    control.style.background = `linear-gradient(to right, #3b82f665 0%, #3b82f665 ${percentage}%, rgba(255, 255, 255, 0.2) ${percentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+                    control.style.background = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${percentage}%, ${borderLight} ${percentage}%, ${borderLight} 100%)`;
                 }
             }
         });

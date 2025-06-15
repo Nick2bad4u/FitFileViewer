@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 import { getZoneColor } from "./zoneColorUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { formatTime } from "./formatTime.js";
@@ -10,8 +10,8 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         if (!window.Chart || !canvas || !Array.isArray(lapZoneData)) {
             throw new Error("Chart.js, canvas, or lapZoneData missing");
         }
-        const theme = detectCurrentTheme();
-        console.log("[renderLapZoneChart] Detected theme:", theme);
+        const themeConfig = getThemeConfig();
+        console.log("[renderLapZoneChart] Using theme config:", themeConfig.name);
 
         // Get unique zone labels from all laps (since we now filter zones)
         const allZoneLabels = new Set();
@@ -59,7 +59,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                     return zone ? zone.value : 0;
                 }),
                 backgroundColor: zoneColor,
-                borderColor: theme === "dark" ? "#333" : "#fff",
+                borderColor: themeConfig.colors.textSecondary,
                 borderWidth: 1,
                 stack: "zones",
             });
@@ -82,23 +82,23 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         display: true,
                         position: "top",
                         labels: {
-                            color: theme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                             font: { size: 12 },
                         },
                     },
                     title: {
                         display: !!options.title,
                         text: options.title || "Zone Distribution by Lap",
-                        color: theme === "dark" ? "#fff" : "#000",
+                        color: themeConfig.colors.textPrimary,
                         font: { size: 16, weight: "bold" },
                     },
                     tooltip: {
                         mode: "index",
                         intersect: false,
-                        backgroundColor: theme === "dark" ? "#222" : "#fff",
-                        titleColor: theme === "dark" ? "#fff" : "#000",
-                        bodyColor: theme === "dark" ? "#fff" : "#000",
-                        borderColor: theme === "dark" ? "#555" : "#ddd",
+                        backgroundColor: themeConfig.colors.chartSurface,
+                        titleColor: themeConfig.colors.textPrimary,
+                        bodyColor: themeConfig.colors.textPrimary,
+                        borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
                             label: function (context) {
@@ -138,8 +138,8 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                             },
                             drag: {
                                 enabled: true,
-                                backgroundColor: "rgba(59, 130, 246, 0.2)",
-                                borderColor: "rgba(59, 130, 246, 0.8)",
+                                backgroundColor: themeConfig.colors.primaryAlpha,
+                                borderColor: themeConfig.colors.primary,
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -153,7 +153,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         },
                     },
                     backgroundColorPlugin: {
-                        backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor: themeConfig.colors.chartBackground,
                     },
                 },
                 scales: {
@@ -161,13 +161,13 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         title: {
                             display: true,
                             text: "Lap",
-                            color: theme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         ticks: {
-                            color: theme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         grid: {
-                            color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.chartGrid,
                         },
                     },
                     y: {
@@ -176,16 +176,16 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         title: {
                             display: true,
                             text: `Time (${getUnitSymbol("time", "time")})`,
-                            color: theme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         ticks: {
-                            color: theme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                             callback: function (value) {
                                 return formatTime(value, true);
                             },
                         },
                         grid: {
-                            color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.chartGrid,
                         },
                     },
                 },
@@ -198,7 +198,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 zoomResetPlugin,
                 {
                     id: "backgroundColorPlugin",
-                    backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                    backgroundColor: themeConfig.colors.chartBackground,
                 },
             ],
         });

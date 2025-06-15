@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 
 /**
  * Adds fancy hover effects to chart canvases to match the info box styling
@@ -33,8 +33,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             border: 2px solid ${themeConfig.colors.border};
             background: ${themeConfig.colors.surface};
             padding: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,${themeConfig.isDark ? "0.2" : "0.05"}), 
-                        0 2px 8px rgba(${themeConfig.isDark ? "59, 130, 246" : "37, 99, 235"}, 0.05);
+            box-shadow: 0 4px 20px ${themeConfig.colors.shadowLight}, 
+                        0 2px 8px ${themeConfig.colors.primaryShadowLight};
             box-sizing: border-box;
         `;
 
@@ -81,7 +81,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             top: 8px;
             left: 16px;
             background: ${themeConfig.colors.primary};
-            color: white;
+            color: ${themeConfig.colors.textPrimary};
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 12px;
@@ -91,7 +91,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             transition: all 0.3s ease;
             z-index: 10;
             pointer-events: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px ${themeConfig.colors.shadowLight};
         `;
         titleOverlay.textContent = chartTitle.replace("Chart for ", "").toUpperCase();
         wrapper.appendChild(titleOverlay);
@@ -100,8 +100,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         wrapper.addEventListener("mouseenter", () => {
             // Main transform and shadow effects
             wrapper.style.transform = "translateY(-6px) scale(1.02)";
-            wrapper.style.boxShadow = `0 12px 40px rgba(0,0,0,${themeConfig.isDark ? "0.4" : "0.15"}), 
-                                       0 8px 20px rgba(${themeConfig.isDark ? "59, 130, 246" : "37, 99, 235"}, 0.2)`;
+            wrapper.style.boxShadow = `0 12px 40px ${themeConfig.colors.shadow}, 
+                                       0 8px 20px ${themeConfig.colors.primaryShadowHeavy}`;
             wrapper.style.borderColor = themeConfig.colors.primary;
 
             // Glow effect
@@ -118,8 +118,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         wrapper.addEventListener("mouseleave", () => {
             // Reset all effects
             wrapper.style.transform = "translateY(0) scale(1)";
-            wrapper.style.boxShadow = `0 4px 20px rgba(0,0,0,${themeConfig.isDark ? "0.2" : "0.05"}), 
-                                       0 2px 8px rgba(${themeConfig.isDark ? "59, 130, 246" : "37, 99, 235"}, 0.05)`;
+            wrapper.style.boxShadow = `0 4px 20px ${themeConfig.colors.shadowLight}, 
+                                       0 2px 8px ${themeConfig.colors.primaryShadowLight}`;
             wrapper.style.borderColor = themeConfig.colors.border;
 
             // Reset glow
@@ -216,6 +216,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
 export function removeChartHoverEffects(chartContainer) {
     if (!chartContainer) return;
 
+    const themeConfig = getThemeConfig();
     const chartWrappers = chartContainer.querySelectorAll(".chart-wrapper");
     chartWrappers.forEach((wrapper) => {
         const canvas = wrapper.querySelector(".chart-canvas");
@@ -225,7 +226,7 @@ export function removeChartHoverEffects(chartContainer) {
             wrapper.parentNode.removeChild(wrapper);
             // Reset canvas styles to original createChartCanvas values
             canvas.style.border = "";
-            canvas.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+            canvas.style.boxShadow = `0 2px 8px ${themeConfig.colors.shadowLight}`;
             canvas.style.margin = "";
             canvas.style.marginBottom = "20px";
             canvas.style.borderRadius = "8px";
@@ -258,23 +259,7 @@ export function addHoverEffectsToExistingCharts() {
     if (window.getThemeConfig) {
         themeConfig = window.getThemeConfig();
     } else {
-        const currentTheme = detectCurrentTheme();
-        const isDark = currentTheme === "dark";
-        themeConfig = {
-            theme: currentTheme,
-            isDark,
-            isLight: !isDark,
-            colors: {
-                primary: isDark ? "#3b82f66550" : "#2563eb",
-                background: isDark ? "#1a1a1a" : "#ffffff",
-                surface: isDark ? "#181c24" : "#ffffff",
-                surfaceSecondary: isDark ? "#4a5568" : "#e9ecef",
-                text: isDark ? "#ffffff" : "#000000",
-                textSecondary: isDark ? "#a0a0a0" : "#6b7280",
-                border: isDark ? "#404040" : "#e5e7eb",
-                accent: isDark ? "#63b3ed50" : "#007bff",
-            },
-        };
+        themeConfig = getThemeConfig();
     }
 
     addChartHoverEffects(chartContainer, themeConfig);
