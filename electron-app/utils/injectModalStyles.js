@@ -4,12 +4,12 @@ import { modalAnimationDuration } from "./aboutModal.js";
  * Injects comprehensive modern styles for the modal
  */
 export function injectModalStyles() {
-	// Prevent duplicate style injection
-	if (document.getElementById("about-modal-styles")) return;
+    // Prevent duplicate style injection
+    if (document.getElementById("about-modal-styles")) return;
 
-	const style = document.createElement("style");
-	style.id = "about-modal-styles";
-	style.textContent = `
+    const style = document.createElement("style");
+    style.id = "about-modal-styles";
+    style.textContent = `
 		/* Modal Base Styles */
 		.fancy-modal {
 			position: fixed !important;
@@ -719,5 +719,5 @@ export function injectModalStyles() {
 			to { opacity: 1; }
 		}
 	`;
-	document.head.appendChild(style);
+    document.head.appendChild(style);
 }

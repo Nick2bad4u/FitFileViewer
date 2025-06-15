@@ -1,0 +1,149 @@
+# Title for the gitleaks configuration file.
+title = "Custom Gitleaks configuration"
+
+# You have basically two options for your custom configuration:
+#
+# 1. define your own configuration, default rules do not apply
+#
+#    use e.g., the default configuration as starting point:
+#    https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+#
+# 2. extend a configuration, the rules are overwritten or extended
+#
+#    When you extend a configuration the extended rules take precedence over the
+#    default rules. I.e., if there are duplicate rules in both the extended
+#    configuration and the default configuration the extended rules or
+#    attributes of them will override the default rules.
+#    Another thing to know with extending configurations is you can chain
+#    together multiple configuration files to a depth of 2. Allowlist arrays are
+#    appended and can contain duplicates.
+
+# useDefault and path can NOT be used at the same time. Choose one.
+[extend]
+# useDefault will extend the default gitleaks config built in to the binary
+# the latest version is located at:
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+useDefault = true
+# or you can provide a path to a configuration to extend from.
+# The path is relative to where gitleaks was invoked,
+# not the location of the base config.
+# path = "common_config.toml"
+# If there are any rules you don't want to inherit, they can be specified here.
+disabledRules = ["generic-api-key"]
+
+# An array of tables that contain information that define instructions
+# on how to detect secrets
+# [[rules]]
+# # Unique identifier for this rule
+# id = "awesome-rule-1"
+
+# # Short human-readable description of the rule.
+# description = "awesome rule 1"
+
+# # Golang regular expression used to detect secrets. Note Golang's regex engine
+# # does not support lookaheads.
+# regex = '''one-go-style-regex-for-this-rule'''
+
+# # Int used to extract secret from regex match and used as the group that will have
+# # its entropy checked if `entropy` is set.
+# secretGroup = 3
+
+# # Float representing the minimum shannon entropy a regex group must have to be considered a secret.
+# entropy = 3.5
+
+# # Golang regular expression used to match paths. This can be used as a standalone rule or it can be used
+# # in conjunction with a valid `regex` entry.
+# path = '''a-file-path-regex'''
+
+# # Keywords are used for pre-regex check filtering. Rules that contain
+# # keywords will perform a quick string compare check to make sure the
+# # keyword(s) are in the content being scanned. Ideally these values should
+# # either be part of the identiifer or unique strings specific to the rule's regex
+# # (introduced in v8.6.0)
+# keywords = [
+#   "auth",
+#   "password",
+#   "token",
+# ]
+
+# # Array of strings used for metadata and reporting purposes.
+# tags = ["tag","another tag"]
+
+#     # ⚠️ In v8.21.0 `[rules.allowlist]` was replaced with `[[rules.allowlists]]`.
+#     # This change was backwards-compatible: instances of `[rules.allowlist]` still  work.
+#     #
+#     # You can define multiple allowlists for a rule to reduce false positives.
+#     # A finding will be ignored if _ANY_ `[[rules.allowlists]]` matches.
+#     [[rules.allowlists]]
+#     description = "ignore commit A"
+#     # When multiple criteria are defined the default condition is "OR".
+#     # e.g., this can match on |commits| OR |paths| OR |stopwords|.
+#     condition = "OR"
+#     commits = [ "commit-A", "commit-B"]
+#     paths = [
+#       '''go\.mod''',
+#       '''go\.sum'''
+#     ]
+#     # note: stopwords targets the extracted secret, not the entire regex match
+#     # like 'regexes' does. (stopwords introduced in 8.8.0)
+#     stopwords = [
+#       '''client''',
+#       '''endpoint''',
+#     ]
+
+#     [[rules.allowlists]]
+#     # The "AND" condition can be used to make sure all criteria match.
+#     # e.g., this matches if |regexes| AND |paths| are satisfied.
+#     condition = "AND"
+#     # note: |regexes| defaults to check the _Secret_ in the finding.
+#     # Acceptable values for |regexTarget| are "secret" (default), "match", and "line".
+#     regexTarget = "match"
+#     regexes = [ '''(?i)parseur[il]''' ]
+#     paths = [ '''package-lock\.json''' ]
+
+# # You can extend a particular rule from the default config. e.g., gitlab-pat
+# # if you have defined a custom token prefix on your GitLab instance
+# [[rules]]
+# id = "gitlab-pat"
+# # all the other attributes from the default rule are inherited
+
+#     [[rules.allowlists]]
+#     regexTarget = "line"
+#     regexes = [ '''MY-glpat-''' ]
+
+
+# # ⚠️ In v8.25.0 `[allowlist]` was replaced with `[[allowlists]]`.
+# #
+# # Global allowlists have a higher order of precedence than rule-specific allowlists.
+# # If a commit listed in the `commits` field below is encountered then that commit will be skipped and no
+# # secrets will be detected for said commit. The same logic applies for regexes and paths.
+# [[allowlists]]
+# description = "global allow list"
+# commits = [ "commit-A", "commit-B", "commit-C"]
+# paths = [
+#   '''gitleaks\.toml''',
+#   '''(.*?)(jpg|gif|doc)'''
+# ]
+# # note: (global) regexTarget defaults to check the _Secret_ in the finding.
+# # Acceptable values for regexTarget are "match" and "line"
+# regexTarget = "match"
+# regexes = [
+#   '''219-09-9999''',
+#   '''078-05-1120''',
+#   '''(9[0-9]{2}|666)-\d{2}-\d{4}''',
+# ]
+# # note: stopwords targets the extracted secret, not the entire regex match
+# # like 'regexes' does. (stopwords introduced in 8.8.0)
+# stopwords = [
+#   '''client''',
+#   '''endpoint''',
+# ]
+
+# # ⚠️ In v8.25.0, `[[allowlists]]` have a new field called |targetRules|.
+# #
+# # Common allowlists can be defined once and assigned to multiple rules using |targetRules|.
+# # This will only run on the specified rules, not globally.
+# [[allowlists]]
+# targetRules = ["awesome-rule-1", "awesome-rule-2"]
+# description = "Our test assets trigger false-positives in a couple rules."
+# paths = ['''tests/expected/._\.json$''']

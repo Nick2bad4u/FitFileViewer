@@ -4,7 +4,8 @@ const { Menu, BrowserWindow, app } = require("electron");
 const { Conf } = require("electron-conf");
 const conf = new Conf({ name: "settings" });
 
-// Persistent reference to prevent menu GC/disappearance on Linux
+// Persistent reference to prevent menu GC/disappearance on Linux.
+// See: https://github.com/electron/electron/issues/18397
 let mainMenu = null;
 
 const decoderOptionDefaults = {
@@ -89,7 +90,9 @@ function getPlatformAppMenu(mainWindow) {
 function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
     const theme = currentTheme || getTheme();
     const recentFiles = loadRecentFiles();
-    console.log("[buildAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
+    if (!app.isPackaged) {
+        console.log("[buildAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
+    }
 
     const recentMenuItems =
         recentFiles.length > 0
@@ -354,7 +357,7 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
                                 {
                                     label: "🚫 Off",
                                     type: "radio",
-                                    checked: !conf.get("highContrast", false) || conf.get("highContrast", "black") === "off",
+                                    checked: conf.get("highContrast", "off") === "off",
                                     click: () => {
                                         conf.set("highContrast", "off");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -388,7 +391,7 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
                         {
                             label: "🌕 Light",
                             type: "radio",
-                            checked: theme === "light" || !theme,
+                            checked: theme === "light",
                             click: () => {
                                 setTheme("light");
                                 const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -477,7 +480,11 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
         },
     ];
 
-    console.log("[buildAppMenu] Setting application menu. Template:", JSON.stringify(template, null, 2));
+    if (!app.isPackaged) {
+        // Log only the menu labels for debugging, avoid full serialization
+        const menuLabels = template.map((item) => item.label);
+        console.log("[buildAppMenu] Setting application menu. Menu labels:", menuLabels);
+    }
     if (!Array.isArray(template) || template.length === 0) {
         console.warn("[buildAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu.");
         return;

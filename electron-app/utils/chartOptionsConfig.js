@@ -1,6 +1,33 @@
 // Enhanced configuration for chart customization
-const defaultMaxPoints = 250;
+const DEFAULT_MAX_POINTS = 250;
+/**
+ * Allowed options for maximum number of chart points.
+ * Numeric values specify the limit; the string "all" means no limit.
+ * Consumers should handle both number and string types.
+ * @type {(number|string)[]}
+ */
 const maxPointsOptions = [1, 10, 25, 50, 100, 200, 250, 500, 700, 1000, 2000, 3000, 5000, 10000, 50000, 100000, 1000000, "all"];
+/**
+ * Array of chart configuration option objects for customizing chart rendering.
+ * Each option defines a configurable chart property, including its type, allowed values, default, and description.
+ *
+ * @typedef {Object} ChartOption
+ * @property {string} id - Unique identifier for the option (used as a key).
+ * @property {string} label - Human-readable label for UI display.
+ * @property {string} type - Option type ("select", "toggle", "range", etc.).
+ * @property {Array|undefined} options - Allowed values for "select" or "toggle" types.
+ * @property {number|string|boolean} default - Default value for the option.
+ * @property {string} description - Description of the option for tooltips/help.
+ * @property {number} [min] - Minimum value (for "range" type).
+ * @property {number} [max] - Maximum value (for "range" type).
+ * @property {number} [step] - Step size (for "range" type).
+        options: ["line", "bar", "scatter"],
+        default: "line",
+        description: "Type of chart visualization (use 'line' with fill for area charts)",
+ * import { chartOptionsConfig } from './chartOptionsConfig.js';
+ * // Iterate over options to build a settings UI
+ * chartOptionsConfig.forEach(opt => { ... });
+ */
 // Comprehensive chart configuration options
 export const chartOptionsConfig = [
     {
@@ -8,7 +35,7 @@ export const chartOptionsConfig = [
         label: "Max Points",
         type: "select",
         options: maxPointsOptions,
-        default: defaultMaxPoints,
+        default: DEFAULT_MAX_POINTS,
         description: "Maximum number of data points to display",
     },
     {
@@ -23,7 +50,7 @@ export const chartOptionsConfig = [
         id: "interpolation",
         label: "Interpolation",
         type: "select",
-        options: ["linear", "monotone", "stepped"],
+        options: ["linear", "monotone", "step"],
         default: "monotone",
         description: "Line interpolation method",
     },
@@ -91,7 +118,7 @@ export const chartOptionsConfig = [
         max: 1,
         step: 0.1,
         default: 0.4,
-        description: "Line curve smoothing amount",
+        description: "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing)",
     },
     {
         id: "timeUnits",

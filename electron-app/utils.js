@@ -104,8 +104,6 @@ function validateFunction(fn, name) {
     return true;
 }
 
-
-
 // List of utilities to expose globally with enhanced metadata
 const utils = {
     // Formatting utilities

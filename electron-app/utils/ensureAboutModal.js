@@ -6,22 +6,22 @@ import { loadVersionInfo } from "./loadVersionInfo.js";
  * Enhanced modal initialization with modern styling and smooth animations
  */
 export function ensureAboutModal() {
-	const existingModal = document.getElementById("about-modal");
-	if (existingModal) return;
+    const existingModal = document.getElementById("about-modal");
+    if (existingModal) return;
 
-	const modal = document.createElement("div");
-	modal.id = "about-modal";
-	modal.className = "modal fancy-modal";
-	modal.style.display = "none";
-	modal.innerHTML = getAboutModalContent();
-	document.body.appendChild(modal);
+    const modal = document.createElement("div");
+    modal.id = "about-modal";
+    modal.className = "modal fancy-modal";
+    modal.style.display = "none";
+    modal.innerHTML = getAboutModalContent();
+    document.body.appendChild(modal);
 
-	// Add global event listeners
-	document.addEventListener("keydown", handleEscapeKey, true);
+    // Add global event listeners
+    document.addEventListener("keydown", handleEscapeKey, true);
 
-	// Inject enhanced styles
-	injectModalStyles();
+    // Inject enhanced styles
+    injectModalStyles();
 
-	// Load version information dynamically
-	loadVersionInfo();
+    // Load version information dynamically
+    loadVersionInfo();
 }

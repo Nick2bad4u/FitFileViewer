@@ -11,24 +11,22 @@ import { renderChartJS } from "./renderChartJS.js";
 let chartThemeListener = null;
 
 /**
- * Set up theme change listener for charts
- * @param {HTMLElement} chartsContainer - The container holding all charts
- * @param {HTMLElement} settingsContainer - The settings panel container
+ * Theme change event handler for charts and settings
+ * @param {Event} event
+ * @param {HTMLElement} chartsContainer
+ * @param {HTMLElement} settingsContainer
  */
-export function setupChartThemeListener(chartsContainer, settingsContainer) {
-    // Clean up existing listener
-    if (chartThemeListener) {
-        document.body.removeEventListener("themechange", chartThemeListener);
-    } // Create new listener
-    chartThemeListener = (event) => {
+function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
+    // Return the actual event handler function
+    const handler = function (event) {
         console.log("[ChartThemeListener] Theme changed to:", event.detail.theme);
 
         // Debounce rapid theme changes
-        if (chartThemeListener.timeout) {
-            clearTimeout(chartThemeListener.timeout);
+        if (handler.timeout) {
+            clearTimeout(handler.timeout);
         }
 
-        chartThemeListener.timeout = setTimeout(() => {
+        handler.timeout = setTimeout(() => {
             // Re-render all charts with new theme
             if (chartsContainer && window.globalData) {
                 console.log("[ChartThemeListener] Re-rendering charts for theme change");
@@ -57,6 +55,21 @@ export function setupChartThemeListener(chartsContainer, settingsContainer) {
             }
         }, 150); // Slightly longer delay to ensure CSS variables are updated
     };
+    return handler;
+}
+
+/**
+ * Set up theme change listener for charts
+ * @param {HTMLElement} chartsContainer - The container holding all charts
+ * @param {HTMLElement} settingsContainer - The settings panel container
+ */
+export function setupChartThemeListener(chartsContainer, settingsContainer) {
+    // Clean up existing listener
+    if (chartThemeListener) {
+        document.body.removeEventListener("themechange", chartThemeListener);
+    }
+    // Create new listener
+    chartThemeListener = onChartThemeChangeFactory(chartsContainer, settingsContainer);
 
     // Add the listener
     document.body.addEventListener("themechange", chartThemeListener);
@@ -76,8 +89,11 @@ export function removeChartThemeListener() {
 }
 
 /**
- * Update settings panel theme colors in real-time
- * @param {HTMLElement} settingsContainer - The settings panel container
+ * Updates the theme colors of the settings panel UI elements in real-time.
+ * Applies theme-based styles to range sliders, toggle switches, and status text
+ * to ensure consistency with the current application theme.
+ *
+ * @param {HTMLElement} settingsContainer - The settings panel container element whose child elements will be updated.
  */
 function updateSettingsPanelTheme(settingsContainer) {
     try {

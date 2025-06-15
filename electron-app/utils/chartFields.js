@@ -1,4 +1,25 @@
+/**
+ * List of supported chart field keys for FIT file data visualization.
+ * These correspond to actual FIT file field names and are used to determine
+ * which data series can be rendered in charts throughout the application.
+ *
+ * @type {string[]}
+ * @example
+ * import { chartFields } from './chartFields.js';
+ * if (chartFields.includes(fieldName)) { ... }
+ */
+
 // Enhanced chart fields with better categorization - match actual FIT file field names
+/**
+ *
+ * Mapping of chart field keys to their associated color codes for consistent and accessible chart rendering.
+ * Use this object to retrieve the color for a given field when rendering charts or visualizations.
+ *
+ * @type {Object.<string, string>}
+ * @example
+ * import { fieldColors } from './chartFields.js';
+ * const color = fieldColors['speed']; // "#1976d2"
+ */
 export const chartFields = [
     "speed",
     "heartRate",
@@ -12,9 +33,19 @@ export const chartFields = [
     "resistance",
     "flow",
     "grit",
-    "positionLat",
-    "positionLong",
+    "position_lat",
+    "position_long",
 ];
+/**
+ * Maps FIT file field keys to human-readable chart labels.
+ * Used throughout the application to display user-friendly names
+ * for chart axes, legends, tooltips, and UI elements.
+ *
+ * @type {Object.<string, string>}
+ * @example
+ * import { fieldLabels } from './chartFields.js';
+ * const label = fieldLabels[fieldKey] || fieldKey;
+ */
 export const fieldLabels = {
     speed: "Speed",
     heartRate: "Heart Rate",
@@ -28,8 +59,8 @@ export const fieldLabels = {
     resistance: "Resistance",
     flow: "Flow",
     grit: "Grit",
-    positionLat: "Latitude",
-    positionLong: "Longitude",
+    position_lat: "Latitude",
+    position_long: "Longitude",
     gps_track: "GPS Track",
     speed_vs_distance: "Speed vs Distance",
     power_vs_hr: "Power vs Heart Rate",
@@ -53,8 +84,8 @@ export const fieldColors = {
     resistance: "#795548",
     flow: "#c42196",
     grit: "#6e1cbb",
-    positionLat: "#ff5722",
-    positionLong: "#3f51b5",
+    position_lat: "#ff5722",
+    position_long: "#3f51b5",
     gps_track: "#4caf50",
     speed_vs_distance: "#2196f3",
     power_vs_hr: "#ff5722",

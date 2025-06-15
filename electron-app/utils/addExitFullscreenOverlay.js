@@ -1,3 +1,15 @@
+/**
+ * Adds an exit fullscreen overlay button to the specified container.
+ * The button allows users to exit fullscreen mode and is styled according to the app's theme.
+ *
+ * @param {HTMLElement} container - The DOM element to which the overlay button will be added.
+ * @returns {void}
+ * @example
+ * // Add exit fullscreen overlay to a chart container
+ * addExitFullscreenOverlay(document.getElementById('chart-container'));
+ * Uses "themed-btn" and "exit-fullscreen-btn" classes for consistent button styling.
+ * See style.css and the project style guide for documentation and usage patterns.
+ */
 export function addExitFullscreenOverlay(container) {
     const existingOverlay = container.querySelector(".exit-fullscreen-overlay");
     if (existingOverlay) return;
@@ -28,5 +40,5 @@ export function addExitFullscreenOverlay(container) {
             console.error("Failed to exit fullscreen mode:", error);
         }
     };
-    container.append(exitFullscreenButton);
+    container.appendChild(exitFullscreenButton);
 }

@@ -1,7 +1,6 @@
 import { ExportUtils } from "./ExportUtils.js";
 import { showNotification } from "./showNotification.js";
 
-
 export function exportAllCharts() {
     if (!window._chartjsInstances || window._chartjsInstances.length === 0) {
         showNotification("No charts available to export", "warning");
