@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 import { renderSingleHRZoneBar } from "./renderSingleHRZoneBar.js";
 import { renderSinglePowerZoneBar } from "./renderSinglePowerZoneBar.js";
@@ -16,9 +16,9 @@ export function renderLapZoneCharts(container) {
 
         const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
         const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
-        // Get theme from options or fallback to system
-        const theme = detectCurrentTheme();
-        console.log("[renderLapZoneCharts] Detected theme:", theme);
+        // Get theme configuration
+        const themeConfig = getThemeConfig();
+        console.log("[renderLapZoneCharts] Using theme config:", themeConfig.name);
 
         if (lapZoneMsgs.length === 0) {
             console.log("[ChartJS] No lap-specific zone data found");
@@ -130,14 +130,14 @@ export function renderLapZoneCharts(container) {
             canvas1.id = "chartjs-canvas-lap-hr-zones";
             canvas1.style.marginBottom = "32px";
             canvas1.style.maxHeight = "400px";
-            canvas1.style.background = theme === "dark" ? "#181c24" : "#ffffff";
+            canvas1.style.background = themeConfig.colors.bgPrimary;
             canvas1.style.borderRadius = "12px";
-            canvas1.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+            canvas1.style.boxShadow = themeConfig.colors.shadow;
             container.appendChild(canvas1);
 
             const hrChart = renderLapZoneChart(canvas1, hrZoneData, {
                 title: "Heart Rate Zone Distribution by Lap",
-                theme: theme,
+                theme: themeConfig.name,
             });
             if (hrChart) window._chartjsInstances.push(hrChart);
         }
@@ -148,14 +148,14 @@ export function renderLapZoneCharts(container) {
             canvas2.id = "chartjs-canvas-lap-power-zones";
             canvas2.style.marginBottom = "32px";
             canvas2.style.maxHeight = "400px";
-            canvas2.style.background = theme === "dark" ? "#181c24" : "#ffffff";
+            canvas2.style.background = themeConfig.colors.bgPrimary;
             canvas2.style.borderRadius = "12px";
-            canvas2.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+            canvas2.style.boxShadow = themeConfig.colors.shadow;
             container.appendChild(canvas2);
 
             const pwrChart = renderLapZoneChart(canvas2, pwrZoneData, {
                 title: "Power Zone Distribution by Lap",
-                theme: theme,
+                theme: themeConfig.name,
             });
             if (pwrChart) window._chartjsInstances.push(pwrChart);
         }
@@ -206,14 +206,14 @@ export function renderLapZoneCharts(container) {
                 canvas3.id = "chartjs-canvas-single-lap-hr";
                 canvas3.style.marginBottom = "32px";
                 canvas3.style.maxHeight = "350px";
-                canvas3.style.background = theme === "dark" ? "#181c24" : "#ffffff";
+                canvas3.style.background = themeConfig.colors.bgPrimary;
                 canvas3.style.borderRadius = "12px";
-                canvas3.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+                canvas3.style.boxShadow = themeConfig.colors.shadow;
                 container.appendChild(canvas3);
 
                 const singleHRChart = renderSingleHRZoneBar(canvas3, sessionHRZones, {
                     title: "Heart Rate Zones - Entire Ride",
-                    theme: theme,
+                    theme: themeConfig.name,
                 });
                 if (singleHRChart) window._chartjsInstances.push(singleHRChart);
             } else {
@@ -268,14 +268,14 @@ export function renderLapZoneCharts(container) {
                 canvas4.id = "chartjs-canvas-single-lap-power";
                 canvas4.style.marginBottom = "32px";
                 canvas4.style.maxHeight = "350px";
-                canvas4.style.background = theme === "dark" ? "#181c24" : "#ffffff";
+                canvas4.style.background = themeConfig.colors.bgPrimary;
                 canvas4.style.borderRadius = "12px";
-                canvas4.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+                canvas4.style.boxShadow = themeConfig.colors.shadow;
                 container.appendChild(canvas4);
 
                 const singlePwrChart = renderSinglePowerZoneBar(canvas4, sessionPowerZones, {
                     title: "Power Zones - Entire Ride",
-                    theme: theme,
+                    theme: themeConfig.name,
                 });
                 if (singlePwrChart) window._chartjsInstances.push(singlePwrChart);
             } else {

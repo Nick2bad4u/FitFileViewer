@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { zoomResetPlugin } from "./zoomResetPlugin.js";
 
@@ -22,7 +22,7 @@ export function renderGPSTrackChart(container, data, options) {
             return;
         }
 
-        const currentTheme = detectCurrentTheme();
+        const themeConfig = getThemeConfig();
 
         // Convert GPS positions to chart data
         let gpsData = data
@@ -56,9 +56,9 @@ export function renderGPSTrackChart(container, data, options) {
         console.log(`[ChartJS] Creating GPS track chart with ${gpsData.length} points`);
 
         const canvas = createChartCanvas("gps-track", "gps-track");
-        canvas.style.background = currentTheme === "dark" ? "#181c24" : "#ffffff";
+        canvas.style.background = themeConfig.colors.bgPrimary;
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+        canvas.style.boxShadow = themeConfig.colors.shadow;
         container.appendChild(canvas);
 
         const config = {
@@ -68,8 +68,8 @@ export function renderGPSTrackChart(container, data, options) {
                     {
                         label: "GPS Track",
                         data: gpsData,
-                        backgroundColor: "rgba(59, 130, 246, 0.8)",
-                        borderColor: "rgba(59, 130, 246, 1)",
+                        backgroundColor: themeConfig.colors.primaryAlpha,
+                        borderColor: themeConfig.colors.primary,
                         pointRadius: options.showPoints ? 2 : 1,
                         pointHoverRadius: 4,
                         showLine: true,
@@ -86,20 +86,20 @@ export function renderGPSTrackChart(container, data, options) {
                     legend: {
                         display: options.showLegend,
                         labels: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                     },
                     title: {
                         display: options.showTitle,
                         text: "GPS Track",
                         font: { size: 16, weight: "bold" },
-                        color: currentTheme === "dark" ? "#fff" : "#000",
+                        color: themeConfig.colors.textPrimary,
                     },
                     tooltip: {
-                        backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
-                        titleColor: currentTheme === "dark" ? "#fff" : "#000",
-                        bodyColor: currentTheme === "dark" ? "#fff" : "#000",
-                        borderColor: currentTheme === "dark" ? "#555" : "#ddd",
+                        backgroundColor: themeConfig.colors.bgSecondary,
+                        titleColor: themeConfig.colors.textPrimary,
+                        bodyColor: themeConfig.colors.textPrimary,
+                        borderColor: themeConfig.colors.border,
                         borderWidth: 1,
                         callbacks: {
                             label: function (context) {
@@ -124,8 +124,8 @@ export function renderGPSTrackChart(container, data, options) {
                             },
                             drag: {
                                 enabled: true,
-                                backgroundColor: "rgba(59, 130, 246, 0.2)",
-                                borderColor: "rgba(59, 130, 246, 0.8)",
+                                backgroundColor: themeConfig.colors.primaryAlpha,
+                                borderColor: themeConfig.colors.primary,
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -143,7 +143,7 @@ export function renderGPSTrackChart(container, data, options) {
                         },
                     },
                     backgroundColorPlugin: {
-                        backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor: themeConfig.colors.bgPrimary,
                     },
                 },
                 scales: {
@@ -152,15 +152,15 @@ export function renderGPSTrackChart(container, data, options) {
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.gridLines,
                         },
                         title: {
                             display: true,
                             text: "Longitude (°)",
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         ticks: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                             callback: function (value) {
                                 return value.toFixed(4) + "°";
                             },
@@ -171,15 +171,15 @@ export function renderGPSTrackChart(container, data, options) {
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.gridLines,
                         },
                         title: {
                             display: true,
                             text: "Latitude (°)",
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         ticks: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                             callback: function (value) {
                                 return value.toFixed(4) + "°";
                             },

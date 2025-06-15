@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 import { convertValueToUserUnits } from "./convertValueToUserUnits.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTooltipWithUnits } from "./formatTooltipWithUnits.js";
@@ -22,7 +22,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             return;
         }
 
-        const currentTheme = detectCurrentTheme();
+        const themeConfig = getThemeConfig();
         let chartData = data
             .map((row) => {
                 const speed = row.enhancedSpeed || row.speed;
@@ -51,9 +51,9 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         }
 
         const canvas = createChartCanvas("speed-vs-distance", "speed-vs-distance");
-        canvas.style.background = currentTheme === "dark" ? "#181c24" : "#ffffff";
+        canvas.style.background = themeConfig.colors.chartBackground;
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+        canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadow}`;
         container.appendChild(canvas);
 
         const config = {
@@ -63,8 +63,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                     {
                         label: "Speed vs Distance",
                         data: chartData,
-                        backgroundColor: "rgba(255, 255, 0, 0.6)",
-                        borderColor: "rgba(255, 255, 0, 1)",
+                        backgroundColor: themeConfig.colors.warning + "99", // Yellow with alpha
+                        borderColor: themeConfig.colors.warning,
                         pointRadius: options.showPoints ? 2 : 1,
                         pointHoverRadius: 4,
                         showLine: true,
@@ -80,19 +80,19 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                 plugins: {
                     legend: {
                         display: options.showLegend,
-                        labels: { color: currentTheme === "dark" ? "#fff" : "#000" },
+                        labels: { color: themeConfig.colors.text },
                     },
                     title: {
                         display: options.showTitle,
                         text: "Speed vs Distance",
                         font: { size: 16, weight: "bold" },
-                        color: currentTheme === "dark" ? "#fff" : "#000",
+                        color: themeConfig.colors.text,
                     },
                     tooltip: {
-                        backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
-                        titleColor: currentTheme === "dark" ? "#fff" : "#000",
-                        bodyColor: currentTheme === "dark" ? "#fff" : "#000",
-                        borderColor: currentTheme === "dark" ? "#555" : "#ddd",
+                        backgroundColor: themeConfig.colors.chartSurface,
+                        titleColor: themeConfig.colors.text,
+                        bodyColor: themeConfig.colors.text,
+                        borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
                             label: function (context) {
@@ -131,8 +131,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             },
                             drag: {
                                 enabled: true,
-                                backgroundColor: "rgba(255, 255, 0, 0.2)",
-                                borderColor: "rgba(255, 255, 0, 0.8)",
+                                backgroundColor: themeConfig.colors.warning + "33", // Yellow with alpha
+                                borderColor: themeConfig.colors.warning + "CC", // Yellow with more opacity
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -150,7 +150,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         },
                     },
                     backgroundColorPlugin: {
-                        backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor: themeConfig.colors.chartBackground,
                     },
                 },
                 scales: {
@@ -159,28 +159,28 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.chartGrid,
                         },
                         title: {
                             display: true,
                             text: `Distance (${getUnitSymbol("distance")})`,
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.text,
                         },
-                        ticks: { color: currentTheme === "dark" ? "#fff" : "#000" },
+                        ticks: { color: themeConfig.colors.text },
                     },
                     y: {
                         type: "linear",
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.chartGrid,
                         },
                         title: {
                             display: true,
                             text: `Speed (${getUnitSymbol("speed")})`,
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.text,
                         },
-                        ticks: { color: currentTheme === "dark" ? "#fff" : "#000" },
+                        ticks: { color: themeConfig.colors.text },
                     },
                 },
             },

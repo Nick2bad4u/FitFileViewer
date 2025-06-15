@@ -173,7 +173,7 @@ function dispatchThemeChangeEvent(theme) {
  */
 function updateMetaThemeColor(theme) {
     const effectiveTheme = getEffectiveTheme(theme);
-    let themeColor = effectiveTheme === "dark" ? "#1a1a1a" : "#ffffff";
+    let themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
 
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
@@ -242,12 +242,63 @@ export function getThemeConfig() {
         isDark: effectiveTheme === "dark",
         isLight: effectiveTheme === "light",
         colors: {
-            primary: effectiveTheme === "dark" ? "#3b82f665" : "#2563eb",
-            background: effectiveTheme === "dark" ? "#1a1a1a" : "#ffffff",
+            primary: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
+            primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
+            background: effectiveTheme === "dark" ? "#181a20" : "#f8fafc",
+            backgroundAlt: effectiveTheme === "dark" ? "#23263a" : "#ffffff",
             surface: effectiveTheme === "dark" ? "#2d2d2d" : "#f8f9fa",
-            text: effectiveTheme === "dark" ? "#ffffff" : "#000000",
+            surfaceSecondary: effectiveTheme === "dark" ? "#4a5568" : "#e9ecef",
+            text: effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b",
+            textPrimary: effectiveTheme === "dark" ? "#ffffff" : "#0f172a",
             textSecondary: effectiveTheme === "dark" ? "#a0a0a0" : "#6b7280",
             border: effectiveTheme === "dark" ? "#404040" : "#e5e7eb",
+            borderLight: effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)",
+            accent: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
+            accentHover: effectiveTheme === "dark" ? "#667eea33" : "#3b82f633",
+            shadow: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)",
+            shadowLight: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)",
+            shadowMedium: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.1)",
+            shadowHeavy: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.15)",
+            primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
+            primaryShadowLight: effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
+            primaryShadowHeavy: effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
+            error: "#ef4444",
+            success: "#10b981",
+            warning: "#f59e0b",
+            info: "#3b82f665",
+            // Chart-specific colors
+            chartBackground: effectiveTheme === "dark" ? "#181c24" : "#ffffff",
+            chartSurface: effectiveTheme === "dark" ? "#222" : "#fff",
+            chartBorder: effectiveTheme === "dark" ? "#555" : "#ddd",
+            chartGrid: effectiveTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            // Zone colors (consistent across themes)
+            zoneColors: [
+                "#808080", // Zone 1 - Gray
+                "#3b82f665", // Zone 2 - Blue
+                "#10B981", // Zone 3 - Green
+                "#F59E0B", // Zone 4 - Yellow
+                "#EF4444", // Zone 5 - Red
+                "#FF6600", // Zone 6 - Orange
+                "#FF00FF", // Zone 7 - Magenta
+            ],
+            // Power zone colors
+            powerZoneColors: [
+                "#808080", // Zone 1 - Gray (recovery)
+                "#3b82f665", // Zone 2 - Blue (aerobic base)
+                "#10B981", // Zone 3 - Green (aerobic)
+                "#F59E0B", // Zone 4 - Yellow (threshold)
+                "#EF4444", // Zone 5 - Red (anaerobic)
+            ],
+            // Heart rate zone colors
+            heartRateZoneColors: [
+                "#808080", // Zone 1 - Gray (Active Recovery)
+                "#3b82f665", // Zone 2 - Blue (Endurance)
+                "#10B981", // Zone 3 - Green (Tempo)
+                "#F59E0B", // Zone 4 - Yellow (Lactate Threshold)
+                "#FF6600", // Zone 5 - Orange (VO2 Max)
+                "#EF4444", // Zone 6 - Red (Anaerobic Capacity)
+                "#FF00FF", // Zone 7 - Magenta (Neuromuscular Power)
+            ],
         },
     };
 }

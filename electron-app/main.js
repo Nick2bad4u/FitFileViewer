@@ -3,6 +3,8 @@ const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require("electron")
 const { createWindow } = require("./windowStateUtils");
 const path = require("path");
 const fs = require("fs");
+const http = require("http");
+const url = require("url");
 const { autoUpdater } = require("electron-updater");
 
 const { loadRecentFiles, addRecentFile } = require("./utils/recentFiles");
@@ -48,6 +50,10 @@ const CONSTANTS = {
 // Application State
 const AppState = {
     loadedFitFilePath: null,
+    // Gyazo OAuth server state
+    gyazoServer: null,
+    gyazoServerPort: null,
+    pendingOAuthResolvers: new Map(),
     mainWindow: null,
     eventHandlers: new Map(),
 };
@@ -356,6 +362,21 @@ function setupIPCHandlers(mainWindow) {
             return true;
         })
     );
+
+    // Gyazo OAuth Server Handlers
+    ipcMain.handle(
+        "gyazo:server:start",
+        createErrorHandler(async (event, port = 3000) => {
+            return await startGyazoOAuthServer(port);
+        })
+    );
+
+    ipcMain.handle(
+        "gyazo:server:stop",
+        createErrorHandler(async () => {
+            return await stopGyazoOAuthServer();
+        })
+    );
 }
 // Enhanced menu and event handlers
 function setupMenuAndEventHandlers() {
@@ -513,9 +534,29 @@ function setupApplicationEventHandlers() {
         }
     });
 
+    // Cleanup Gyazo server when app is quitting
+    app.on("before-quit", async (event) => {
+        if (AppState.gyazoServer) {
+            event.preventDefault();
+            try {
+                await stopGyazoOAuthServer();
+                app.quit();
+            } catch (error) {
+                logWithContext("error", "Failed to stop Gyazo server during quit:", { error: error.message });
+                app.quit();
+            }
+        }
+    });
+
     // Security: Prevent navigation to untrusted URLs
     app.on("web-contents-created", (event, contents) => {
-        const allowedOrigins = ["file://", "about:blank"];
+        const allowedOrigins = [
+            "file://",
+            "about:blank",
+            "https://gyazo.com/oauth/", // Allow Gyazo OAuth
+            "https://gyazo.com/api/oauth/login", // Allow Gyazo API OAuth
+            "https://imgur.com/oauth/", // Allow Imgur OAuth (if needed)
+        ];
 
         contents.on("will-navigate", (event, navigationUrl) => {
             if (!allowedOrigins.some((origin) => navigationUrl.startsWith(origin))) {
@@ -589,3 +630,205 @@ app.whenReady().then(async () => {
         logWithContext("error", "Failed to initialize application:", { error: error.message });
     }
 });
+
+// Gyazo OAuth Server Functions
+async function startGyazoOAuthServer(port = 3000) {
+    // Stop existing server if running
+    if (AppState.gyazoServer) {
+        await stopGyazoOAuthServer();
+    }
+
+    return new Promise((resolve, reject) => {
+        try {
+            const server = http.createServer((req, res) => {
+                const parsedUrl = url.parse(req.url, true);
+
+                // Handle CORS and preflight requests
+                res.setHeader("Access-Control-Allow-Origin", "*");
+                res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+                if (req.method === "OPTIONS") {
+                    res.writeHead(200);
+                    res.end();
+                    return;
+                }
+
+                if (parsedUrl.pathname === "/gyazo/callback") {
+                    const { code, state, error } = parsedUrl.query;
+
+                    // Send a response to the browser
+                    if (error) {
+                        res.writeHead(200, { "Content-Type": "text/html" });
+                        res.end(`
+                            <!DOCTYPE html>
+                            <html>
+                                <head>
+                                    <title>Gyazo OAuth - Error</title>
+                                    <style>
+                                        body { 
+                                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                            margin: 0; padding: 40px; min-height: 100vh; display: flex; 
+                                            align-items: center; justify-content: center; 
+                                        }
+                                        .container { 
+                                            background: white; padding: 40px; border-radius: 12px; 
+                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; 
+                                            max-width: 500px; 
+                                        }
+                                        h1 { color: #e74c3c; margin: 0 0 20px 0; }
+                                        p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }
+                                        .error { background: #ffeaea; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <h1>❌ Authorization Failed</h1>
+                                        <div class="error">
+                                            <strong>Error:</strong> ${error}
+                                        </div>
+                                        <p>Please close this window and try again from the FitFileViewer application.</p>
+                                    </div>
+                                </body>
+                            </html>
+                        `);
+                    } else if (code && state) {
+                        res.writeHead(200, { "Content-Type": "text/html" });
+                        res.end(`
+                            <!DOCTYPE html>
+                            <html>
+                                <head>
+                                    <title>Gyazo OAuth - Success</title>
+                                    <style>
+                                        body { 
+                                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                            margin: 0; padding: 40px; min-height: 100vh; display: flex; 
+                                            align-items: center; justify-content: center; 
+                                        }
+                                        .container { 
+                                            background: white; padding: 40px; border-radius: 12px; 
+                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; 
+                                            max-width: 500px; 
+                                        }
+                                        h1 { color: #27ae60; margin: 0 0 20px 0; }
+                                        p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }
+                                        .success { background: #eafaf1; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                                        .auto-close { font-size: 14px; color: #888; margin-top: 20px; }
+                                    </style>
+                                    <script>
+                                        setTimeout(() => {
+                                            window.close();
+                                        }, 3000);
+                                    </script>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <h1>✅ Authorization Successful!</h1>
+                                        <div class="success">
+                                            <strong>Success!</strong> Your Gyazo account has been connected to FitFileViewer.
+                                        </div>
+                                        <p>You can now upload charts to your Gyazo account. This window will close automatically.</p>
+                                        <div class="auto-close">Closing in 3 seconds...</div>
+                                    </div>
+                                </body>
+                            </html>
+                        `);
+
+                        // Send the code to the renderer process
+                        if (AppState.mainWindow && !AppState.mainWindow.isDestroyed()) {
+                            AppState.mainWindow.webContents.send("gyazo-oauth-callback", { code, state });
+                        }
+                    } else {
+                        res.writeHead(400, { "Content-Type": "text/html" });
+                        res.end(`
+                            <!DOCTYPE html>
+                            <html>
+                                <head>
+                                    <title>Gyazo OAuth - Invalid Request</title>
+                                    <style>
+                                        body { 
+                                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                            margin: 0; padding: 40px; min-height: 100vh; display: flex; 
+                                            align-items: center; justify-content: center; 
+                                        }
+                                        .container { 
+                                            background: white; padding: 40px; border-radius: 12px; 
+                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; 
+                                            max-width: 500px; 
+                                        }
+                                        h1 { color: #f39c12; margin: 0 0 20px 0; }
+                                        p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <h1>⚠️ Invalid Request</h1>
+                                        <p>Missing authorization code or state parameter. Please try again from the FitFileViewer application.</p>
+                                    </div>
+                                </body>
+                            </html>
+                        `);
+                    }
+                } else {
+                    // 404 for other paths
+                    res.writeHead(404, { "Content-Type": "text/plain" });
+                    res.end("Not Found");
+                }
+            });
+
+            server.on("error", (err) => {
+                if (err.code === "EADDRINUSE") {
+                    logWithContext("warn", `Port ${port} is in use, trying port ${port + 1}`);
+                    // Try next port
+                    if (port < 3010) {
+                        startGyazoOAuthServer(port + 1)
+                            .then(resolve)
+                            .catch(reject);
+                    } else {
+                        reject(new Error("Unable to find an available port for OAuth callback server"));
+                    }
+                } else {
+                    reject(err);
+                }
+            });
+
+            server.listen(port, "localhost", () => {
+                AppState.gyazoServer = server;
+                AppState.gyazoServerPort = port;
+                logWithContext("info", `Gyazo OAuth callback server started on http://localhost:${port}`);
+                resolve({
+                    success: true,
+                    port,
+                    message: `OAuth callback server started on port ${port}`,
+                });
+            });
+        } catch (error) {
+            logWithContext("error", "Failed to start Gyazo OAuth server:", { error: error.message });
+            reject(error);
+        }
+    });
+}
+
+async function stopGyazoOAuthServer() {
+    return new Promise((resolve) => {
+        if (AppState.gyazoServer) {
+            AppState.gyazoServer.close(() => {
+                logWithContext("info", "Gyazo OAuth callback server stopped");
+                AppState.gyazoServer = null;
+                AppState.gyazoServerPort = null;
+                resolve({
+                    success: true,
+                    message: "OAuth callback server stopped",
+                });
+            });
+        } else {
+            resolve({
+                success: true,
+                message: "No server was running",
+            });
+        }
+    });
+}

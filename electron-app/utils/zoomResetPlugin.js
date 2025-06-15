@@ -1,4 +1,5 @@
 import { showNotification } from "./showNotification.js";
+import { getThemeConfig } from "./theme.js";
 
 // Enhanced zoom reset plugin
 
@@ -13,10 +14,12 @@ export const zoomResetPlugin = {
         const x = canvas.width - btnW - 12;
         const y = 12;
 
+        const themeConfig = getThemeConfig();
+
         ctx.save();
         ctx.globalAlpha = 0.9;
-        ctx.fillStyle = "rgba(59, 130, 246, 0.8)";
-        ctx.strokeStyle = "rgba(59, 130, 246, 1)";
+        ctx.fillStyle = themeConfig.colors.accent + "CC"; // Add alpha to accent color
+        ctx.strokeStyle = themeConfig.colors.accent;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(x, y, btnW, btnH, 8);
@@ -25,7 +28,7 @@ export const zoomResetPlugin = {
 
         ctx.globalAlpha = 1;
         ctx.font = "bold 12px system-ui";
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = themeConfig.colors.textPrimary;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("🔄 Reset Zoom", x + btnW / 2, y + btnH / 2);

@@ -1,4 +1,4 @@
-import { detectCurrentTheme } from "./chartThemeUtils.js";
+import { getThemeConfig } from "./theme.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { updateChartAnimations } from "./updateChartAnimations.js";
@@ -13,13 +13,13 @@ export function renderEventMessagesChart(container, options, startTime) {
             return;
         }
 
-        // Get theme using robust detection
-        const currentTheme = detectCurrentTheme();
+        // Get theme configuration
+        const themeConfig = getThemeConfig();
         const canvas = createChartCanvas("events", "events");
 
         // Apply theme-aware canvas styling (background handled by plugin)
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+        canvas.style.boxShadow = themeConfig.colors.shadow;
 
         container.appendChild(canvas);
         // Prepare event data with relative timestamps
@@ -82,20 +82,20 @@ export function renderEventMessagesChart(container, options, startTime) {
                     legend: {
                         display: options.showLegend,
                         labels: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                     },
                     title: {
                         display: options.showTitle,
                         text: "Event Messages",
                         font: { size: 16, weight: "bold" },
-                        color: currentTheme === "dark" ? "#fff" : "#000",
+                        color: themeConfig.colors.textPrimary,
                     },
                     tooltip: {
-                        backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
-                        titleColor: currentTheme === "dark" ? "#fff" : "#000",
-                        bodyColor: currentTheme === "dark" ? "#fff" : "#000",
-                        borderColor: currentTheme === "dark" ? "#555" : "#ddd",
+                        backgroundColor: themeConfig.colors.bgSecondary,
+                        titleColor: themeConfig.colors.textPrimary,
+                        bodyColor: themeConfig.colors.textPrimary,
+                        borderColor: themeConfig.colors.border,
                         borderWidth: 1,
                         callbacks: {
                             label: function (context) {
@@ -106,7 +106,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                     },
                     zoom: options.zoomPluginConfig,
                     backgroundColorPlugin: {
-                        backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                        backgroundColor: themeConfig.colors.bgPrimary,
                     },
                 },
                 scales: {
@@ -115,15 +115,15 @@ export function renderEventMessagesChart(container, options, startTime) {
                         display: true,
                         grid: {
                             display: options.showGrid,
-                            color: currentTheme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            color: themeConfig.colors.gridLines,
                         },
                         title: {
                             display: true,
                             text: `Time (${getUnitSymbol("time", "time")})`,
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                         },
                         ticks: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: themeConfig.colors.textPrimary,
                             callback: function (value) {
                                 // Format seconds according to user's preferred units
                                 return formatTime(value, true);

@@ -19,6 +19,9 @@ const CONSTANTS = {
         PLATFORM_INFO: "getPlatformInfo",
         DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
         SHELL_OPEN_EXTERNAL: "shell:openExternal",
+        // Gyazo OAuth server channels
+        GYAZO_SERVER_START: "gyazo:server:start",
+        GYAZO_SERVER_STOP: "gyazo:server:stop",
     },
     EVENTS: {
         MENU_OPEN_FILE: "menu-open-file",
@@ -207,6 +210,20 @@ const electronAPI = {
      * @returns {Promise<boolean>}
      */
     openExternal: createSafeInvokeHandler(CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL, "openExternal"),
+
+    // Gyazo OAuth Server Functions
+    /**
+     * Starts a temporary local server for Gyazo OAuth callback handling.
+     * @param {number} port - The port to start the server on (default: 3000)
+     * @returns {Promise<{success: boolean, port: number, message?: string}>}
+     */
+    startGyazoServer: createSafeInvokeHandler(CONSTANTS.CHANNELS.GYAZO_SERVER_START, "startGyazoServer"),
+
+    /**
+     * Stops the temporary Gyazo OAuth callback server.
+     * @returns {Promise<{success: boolean, message?: string}>}
+     */
+    stopGyazoServer: createSafeInvokeHandler(CONSTANTS.CHANNELS.GYAZO_SERVER_STOP, "stopGyazoServer"),
 
     // Event Handlers with enhanced error handling
     /**

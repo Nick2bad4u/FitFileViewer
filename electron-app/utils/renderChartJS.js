@@ -65,6 +65,7 @@ import { shouldShowRenderNotification } from "./shouldShowRenderNotification.js"
 import { createUserDeviceInfoBox } from "./createUserDeviceInfoBox.js";
 import { addChartHoverEffects, addHoverEffectsToExistingCharts, removeChartHoverEffects } from "./addChartHoverEffects.js";
 import { setupChartThemeListener } from "./chartThemeListener.js";
+import { getThemeConfig } from "./theme.js";
 
 // Debouncing variables for renderChartJS
 let renderTimeout = null;
@@ -225,16 +226,18 @@ export function renderChartJS(targetContainer) {
             // Still render the UI but show a helpful message
             const container = document.getElementById("content-chart");
             if (container) {
+                const themeConfig = getThemeConfig();
                 container.innerHTML = `
 					<div class="chart-placeholder" style="
 						text-align: center; 
 						padding: 40px; 
-						color: var(--text-secondary, #666);
-						background: var(--bg-secondary, #f8f9fa);
+						color: var(--color-fg, ${themeConfig.colors.text});
+						background: var(--color-bg-alt-solid, ${themeConfig.colors.backgroundAlt});
 						border-radius: 12px;
 						margin: 20px 0;
+						border: 1px solid var(--color-border, ${themeConfig.colors.border});
 					">
-						<h3 style="color: var(--text-primary, #333); margin-bottom: 16px;">No Chart Data Available</h3>
+						<h3 style="color: var(--color-fg-alt, ${themeConfig.colors.textPrimary}); margin-bottom: 16px;">No Chart Data Available</h3>
 						<p style="margin-bottom: 8px;">This FIT file does not contain time-series data that can be charted.</p>
 						<p style="margin-bottom: 0;">Try loading a FIT file from a fitness activity or workout.</p>
 					</div>
@@ -266,22 +269,22 @@ export function renderChartJS(targetContainer) {
         // Try to show error information to user
         const container = document.getElementById("content-chart") || targetContainer;
         if (container) {
+            const themeConfig = getThemeConfig();
             container.innerHTML = `
 				<div class="chart-error" style="
 					text-align: center; 
- 
 					padding: 40px; 
-					color: #dc3545;
-					background: #f8d7da;
-					border: 1px solid #f5c6cb;
-					border-radius: 12px;
+					color: var(--color-error, ${themeConfig.colors.error});
+					background: var(--color-glass, ${themeConfig.colors.backgroundAlt});
+					border: 1px solid var(--color-border, ${themeConfig.colors.border});
+					border-radius: var(--border-radius, 12px);
 					margin: 20px 0;
 				">
-					<h3 style="margin-bottom: 16px;">Chart Rendering Error</h3>
-					<p style="margin-bottom: 8px;">An error occurred while rendering the charts.</p>
+					<h3 style="margin-bottom: 16px; color: var(--color-error, ${themeConfig.colors.error});">Chart Rendering Error</h3>
+					<p style="margin-bottom: 8px; color: var(--color-fg, ${themeConfig.colors.text});">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
-						<summary style="cursor: pointer; font-weight: bold;">Error Details</summary>
-						<pre style="background: #fff; padding: 8px; border-radius: 4px; margin-top: 8px; font-size: 12px; overflow-x: auto;">${
+						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${themeConfig.colors.text});">Error Details</summary>
+						<pre style="background: var(--color-glass, ${themeConfig.colors.backgroundAlt}); color: var(--color-fg, ${themeConfig.colors.text}); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${themeConfig.colors.border});">${
                             error.stack || error.message
                         }</pre>
 					</details>
@@ -297,6 +300,9 @@ export function renderChartJS(targetContainer) {
  * @private
  */
 function renderChartsWithData(targetContainer, recordMesgs, startTime) {
+    // Get theme configuration for consistent theming
+    const themeConfig = getThemeConfig();
+
     // Ensure settings dropdowns exist
     ensureChartSettingsDropdowns(targetContainer);
 
@@ -317,7 +323,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         chartContainer.style.cssText = `
 			margin-top: 20px;
 			padding: 20px;
-			background: rgba(0, 0, 0, 0.05);
+			background: var(--color-shadow, rgba(0, 0, 0, 0.05));
 			border-radius: 12px;
 		`;
 
@@ -378,8 +384,8 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             },
             drag: {
                 enabled: true,
-                backgroundColor: "rgba(59, 130, 246, 0.2)",
-                borderColor: "rgba(59, 130, 246, 0.8)",
+                backgroundColor: themeConfig.colors.primaryAlpha || "rgba(59, 130, 246, 0.2)",
+                borderColor: themeConfig.colors.primary || "rgba(59, 130, 246, 0.8)",
                 borderWidth: 2,
                 modifierKey: "shift", // Require shift key for drag selection
             },
@@ -617,24 +623,8 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         if (window.getThemeConfig) {
             themeConfig = window.getThemeConfig();
         } else {
-            // Fallback theme configuration using the current theme
-            const currentThemeForEffects = detectCurrentTheme();
-            const isDark = currentThemeForEffects === "dark";
-            themeConfig = {
-                theme: currentThemeForEffects,
-                isDark,
-                isLight: !isDark,
-                colors: {
-                    primary: isDark ? "#3b82f665" : "#2563eb",
-                    background: isDark ? "#1a1a1a" : "#ffffff",
-                    surface: isDark ? "#181c24" : "#ffffff",
-                    surfaceSecondary: isDark ? "#4a5568" : "#e9ecef",
-                    text: isDark ? "#ffffff" : "#000000",
-                    textSecondary: isDark ? "#a0a0a0" : "#6b7280",
-                    border: isDark ? "#404040" : "#e5e7eb",
-                    accent: isDark ? "#63b3ed" : "#007bff",
-                },
-            };
+            // Use the established theme configuration
+            themeConfig = getThemeConfig();
         }
 
         // Add hover effects to charts
