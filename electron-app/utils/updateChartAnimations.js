@@ -1,4 +1,4 @@
-import { throttledAnimLog } from "./_lastAnimLog.js";
+import { throttledAnimLog } from "./lastAnimLog.js";
 
 // Helper function to update animation configurations for all charts
 export function updateChartAnimations(chart, type) {

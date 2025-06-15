@@ -209,13 +209,7 @@ body.theme-light {
    Base Layout & Typography
    ===================================================== */
 body {
-    font-family:
-        "Open Sans",
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     padding: 0;
     margin: 0;
     font-size: 14px;
@@ -591,9 +585,7 @@ tr:hover {
     min-width: 0;
     max-width: 100%;
     flex: 0 1 auto;
-    transition:
-        max-width 0.3s,
-        flex 0.3s;
+    transition: max-width 0.3s, flex 0.3s;
 }
 
 #activeFileNameContainer:not(.has-file) {
@@ -640,9 +632,7 @@ tr:hover {
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition:
-        color 0.2s,
-        background 0.2s;
+    transition: color 0.2s, background 0.2s;
     border-radius: 50%;
     outline: none;
     width: 36px;
@@ -949,9 +939,7 @@ body .custom-maptype-btn {
     color: var(--color-fg);
     text-decoration: none;
     border-radius: 3px;
-    transition:
-        background 0.2s,
-        color 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
 .vega-embed .vega-actions a:hover,
@@ -1199,10 +1187,7 @@ body.theme-light .custom-lap-control select {
     padding: 2px 8px;
     border-radius: 4px;
     cursor: pointer;
-    transition:
-        background 0.2s,
-        color 0.2s,
-        border 0.2s;
+    transition: background 0.2s, color 0.2s, border 0.2s;
     outline: none;
     box-shadow: none;
     display: flex;
@@ -1274,10 +1259,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition:
-        background 0.2s,
-        box-shadow 0.2s,
-        transform 0.2s;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
     cursor: pointer;
     outline: none;
 }
@@ -1343,10 +1325,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     cursor: pointer;
     margin-bottom: 18px;
     margin-right: 10px;
-    transition:
-        background 0.3s,
-        color 0.3s,
-        box-shadow 0.3s;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
     box-shadow: 0 2px 4px #0003;
     width: auto !important;
     height: auto !important;
@@ -1930,9 +1909,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     outline: none;
     vertical-align: middle;
     opacity: 0.65;
-    transition:
-        opacity 0.2s,
-        color 0.2s;
+    transition: opacity 0.2s, color 0.2s;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1949,9 +1926,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     box-shadow: none;
     outline: none;
     cursor: pointer;
-    transition:
-        opacity 0.2s,
-        color 0.2s;
+    transition: opacity 0.2s, color 0.2s;
 }
 
 /* =====================================================
@@ -1979,9 +1954,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     font-size: 1rem;
     font-family: inherit;
     outline: none;
-    transition:
-        border 0.2s,
-        box-shadow 0.2s;
+    transition: border 0.2s, box-shadow 0.2s;
     box-shadow: 0 1px 4px #0002;
     appearance: none;
     cursor: pointer;
@@ -1990,9 +1963,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .summary-filter-bar select:focus {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 2px var(--color-accent) 33;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
 }
 
@@ -2119,9 +2090,7 @@ footer {
     width: 28px;
     height: 28px;
     border-radius: 4px;
-    transition:
-        background 0.2s,
-        color 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
 .exit-multilap-btn:hover,
@@ -2187,10 +2156,7 @@ footer {
     display: flex;
     align-items: center;
     gap: 8px;
-    transition:
-        background 0.2s,
-        color 0.2s,
-        border 0.2s;
+    transition: background 0.2s, color 0.2s, border 0.2s;
     outline: none;
     min-width: 0;
     user-select: none;
@@ -2355,16 +2321,12 @@ body.theme-dark .map-action-btn.disabled {
 @keyframes pulse-glow {
     0%,
     100% {
-        box-shadow:
-            var(--color-box-shadow),
-            0 0 20px var(--color-accent);
+        box-shadow: var(--color-box-shadow), 0 0 20px var(--color-accent);
         will-change: box-shadow;
     }
 
     50% {
-        box-shadow:
-            var(--color-box-shadow),
-            0 0 40px var(--color-accent);
+        box-shadow: var(--color-box-shadow), 0 0 40px var(--color-accent);
         will-change: box-shadow;
     }
 }
@@ -2437,9 +2399,7 @@ input[type="search"]:focus,
 textarea:focus,
 select:focus {
     border-color: var(--color-accent);
-    box-shadow:
-        0 0 0 3px rgb(var(--color-accent-rgb) / 20%),
-        var(--color-box-shadow);
+    box-shadow: 0 0 0 3px rgb(var(--color-accent-rgb) / 20%), var(--color-box-shadow);
     background: var(--color-bg-alt);
 }
 
@@ -2656,16 +2616,12 @@ button:disabled {
 @keyframes pulse-glow {
     0%,
     100% {
-        box-shadow:
-            var(--color-box-shadow),
-            0 0 20px var(--color-accent);
+        box-shadow: var(--color-box-shadow), 0 0 20px var(--color-accent);
         will-change: box-shadow;
     }
 
     50% {
-        box-shadow:
-            var(--color-box-shadow),
-            0 0 40px var(--color-accent);
+        box-shadow: var(--color-box-shadow), 0 0 40px var(--color-accent);
         will-change: box-shadow;
     }
 }
@@ -2690,10 +2646,7 @@ button:disabled {
 
 /* Theme transition optimization */
 body.theme-switching * {
-    transition:
-        background-color 0.3s ease,
-        color 0.3s ease,
-        border-color 0.3s ease !important;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
 }
 
 /* =====================================================
@@ -2765,6 +2718,9 @@ a:focus-visible {
    END OF PROFESSIONAL THEME SYSTEM
    ===================================================== */
 
-#lap-select > option:nth-child(n) {
-    background: var(--color-bg-solid);
+#lap-select > option:nth-child(n):checked {
+    background-color: var(--color-accent) !important;
+    color: var(--color-title) !important;
+    font-weight: 800 !important;
+    border-radius: 5px;
 }

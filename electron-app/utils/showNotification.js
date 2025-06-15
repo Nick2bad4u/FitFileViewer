@@ -89,7 +89,7 @@ async function processNotificationQueue() {
 
     // Process next notification after a short delay
     if (notificationQueue.length > 0) {
-        setTimeout(() => processNotificationQueue(), 200);
+        setTimeout(() => processNotificationQueue(), 50);
     }
 }
 

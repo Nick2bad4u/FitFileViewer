@@ -1,6 +1,5 @@
 // This file is part of the Electron app that interacts with the main process and the UI.
 import { displayTables } from "./utils/displayTables.js";
-import { renderChart } from "./utils/renderChart.js";
 import { renderMap } from "./utils/renderMap.js";
 import { renderSummary } from "./utils/renderSummary.js";
 import { setActiveTab } from "./utils/setActiveTab.js";
@@ -31,7 +30,6 @@ const CONSTANTS = {
         TAB_SUMMARY: "tab-summary",
         CONTENT_MAP: "content-map",
         CONTENT_DATA: "content-data",
-        CONTENT_CHART: "content-chart",
         CONTENT_SUMMARY: "content-summary",
     },
     SELECTORS: {
@@ -218,17 +216,6 @@ if (window.electronAPI && typeof window.electronAPI.onSetTheme === "function" &&
                     }
                 }, 100);
             }
-        }
-
-        // Handle legacy Vega chart if chart tab is active
-        const tabChart = validateElement(CONSTANTS.DOM_IDS.TAB_CHART);
-        if (tabChart && tabChart.classList.contains("active")) {
-            if (!AppState.isChartRendered) {
-                renderChart();
-                AppState.isChartRendered = true; // Mark chart as rendered
-            }
-        } else {
-            AppState.isChartRendered = false; // Reset flag if chart tab is not active
         }
     });
 }
@@ -448,7 +435,6 @@ const tabFunctions = {
 
 const renderFunctions = {
     displayTables,
-    renderChart,
     renderMap,
     renderSummary,
 };

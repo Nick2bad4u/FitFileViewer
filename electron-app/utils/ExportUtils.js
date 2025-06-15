@@ -332,8 +332,8 @@ export const ExportUtils = {
     getGyazoConfig() {
         // Provide default demo credentials for easier onboarding
         // Obfuscated default credentials using multiple encoding layers
-        const GyazoAppData1 = [108, 99, 111, 122, 111, 97, 110, 68, 74, 87, 118, 111, 117, 57, 112, 106, 107, 66, 109, 80, 74, 108, 97, 48, 98, 78, 103, 114, 84, 55, 89, 98, 115, 55, 105, 121, 86, 119, 79, 108, 89, 69, 81];
-        const GyazoAppData2 = [119, 99, 104, 82, 70, 122, 70, 90, 117, 79, 113, 50, 51, 79, 105, 112, 72, 107, 99, 69, 73, 118, 81, 97, 49, 75, 89, 48, 108, 106, 111, 80, 102, 50, 113, 48, 77, 85, 98, 69, 111, 83, 48];
+        const GyazoAppData1=[0x6c,0x63,0x6f,0x7a,0x6f,0x61,0x6e,0x44,0x4a,0x57,0x76,0x6f,0x75,0x39,0x70,0x6a,0x6b,0x42,0x6d,0x50,0x4a,0x6c,0x61,0x30,0x62,0x4e,0x67,0x72,0x54,0x37,0x59,0x62,0x73,0x37,0x69,0x79,0x56,0x77,0x4f,0x6c,0x59,0x45,0x51];
+        const GyazoAppData2=[0x77,0x63,0x68,0x52,0x46,0x7a,0x46,0x5a,0x75,0x4f,0x71,0x32,0x33,0x4f,0x69,0x70,0x48,0x6b,0x63,0x45,0x49,0x76,0x51,0x61,0x31,0x4b,0x59,0x30,0x6c,0x6a,0x6f,0x50,0x66,0x32,0x71,0x30,0x4d,0x55,0x62,0x45,0x6f,0x53,0x30];
         
         // Apply ROT13-like transformation as additional obfuscation layer
         const transform = (arr) => arr.map(code => String.fromCharCode(code)).join('');
@@ -2013,21 +2013,4 @@ export const ExportUtils = {
     },
 }; // Global export functions for the settings panel
 
-export function exportAllCharts() {
-    if (!window._chartjsInstances || window._chartjsInstances.length === 0) {
-        showNotification("No charts available to export", "warning");
-        return;
-    }
 
-    try {
-        window._chartjsInstances.forEach((chart, index) => {
-            const field = chart.data.datasets[0]?.label || `chart-${index}`;
-            const filename = `${field.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
-            ExportUtils.downloadChartAsPNG(chart, filename);
-        });
-        showNotification(`Exported ${window._chartjsInstances.length} charts`, "success");
-    } catch (error) {
-        console.error("Error exporting all charts:", error);
-        showNotification("Failed to export charts", "error");
-    }
-}

@@ -29,28 +29,6 @@ export function setupWindowOnload({ toggleTabVisibility, setActiveTab, setupTabB
                 },
             },
             {
-                id: "tab-chart",
-                content: "content-chart",
-                handler: () => {
-                    if (document.getElementById("tab-chart").classList.contains("active")) return;
-                    toggleTabVisibility("content-chart");
-                    setActiveTab("tab-chart");
-                    // If chart is pre-rendered in background, move it to visible container
-                    const bg = document.getElementById("background-chart-container");
-                    const chartContent = bg && bg.firstChild ? bg.firstChild : null;
-                    const visible = document.getElementById("content-chart");
-                    if (chartContent && visible) {
-                        visible.innerHTML = "";
-                        visible.appendChild(chartContent);
-                    } else {
-                        // Fallback: render as usual
-                        setTimeout(() => {
-                            window.renderChart();
-                        }, 0);
-                    }
-                },
-            },
-            {
                 id: "tab-chartjs",
                 content: "content-chartjs",
                 handler: () => {

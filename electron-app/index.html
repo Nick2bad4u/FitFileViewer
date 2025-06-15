@@ -28,9 +28,6 @@
         <script src="libs/chartjs-adapter-date-fns.js"></script>
         <!-- JSZip for ZIP file creation -->
         <script src="libs/jszip.min.js"></script>
-        <script src="libs/vega-5-latest.js" defer></script>
-        <script src="libs/vega-lite-5-latest.js" defer></script>
-        <script src="libs/vega-embed-6-latest.js" defer></script>
         <link rel="stylesheet" href="libs/dataTables-2.2.1.min.css" />
         <link rel="stylesheet" href="libs/leaflet.css" />
         <link rel="stylesheet" href="libs/leaflet.locatecontrol.css" />
@@ -92,20 +89,12 @@
                 </svg>
                 Raw Data
             </button>
-            <button class="tab-button" id="tab-chart" role="tab" aria-selected="false" tabindex="0">
-                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-                Chart
-            </button>
             <button class="tab-button" id="tab-chartjs" role="tab" aria-selected="false" tabindex="0">
                 <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3,12 7,8 13,14 21,6" />
                     <polyline points="17,6 21,6 21,10" />
                 </svg>
-                Charts v2
+                Charts
             </button>
             <button class="tab-button" id="tab-summary" role="tab" aria-selected="false" tabindex="0">
                 <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -133,9 +122,6 @@
         <div class="tab-card">
             <div id="content-map" class="tab-content"></div>
             <div id="content-data" class="tab-content"></div>
-            <div id="content-chart" class="tab-content">
-                <div id="vega-chart-container"></div>
-            </div>
             <div id="content-chartjs" class="tab-content">
                 <div id="chartjs-chart-container"></div>
             </div>

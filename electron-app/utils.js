@@ -16,6 +16,23 @@
  * @author FitFileViewer Team
  */
 
+// Import utility functions
+import { formatDistance } from "./utils/formatDistance.js";
+import { formatDuration } from "./utils/formatDuration.js";
+import { patchSummaryFields } from "./utils/patchSummaryFields.js";
+import { displayTables } from "./utils/displayTables.js";
+import { renderTable } from "./utils/renderTable.js";
+import { copyTableAsCSV } from "./utils/copyTableAsCSV.js";
+import { renderMap } from "./utils/renderMap.js";
+import { renderSummary } from "./utils/renderSummary.js";
+import { setActiveTab } from "./utils/setActiveTab.js";
+import { toggleTabVisibility } from "./utils/toggleTabVisibility.js";
+import { showFitData } from "./utils/showFitData.js";
+import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
+import { showNotification, setLoading } from "./utils/rendererUtils.js";
+import { formatArray } from "./utils/formatUtils.js";
+import { setTabButtonsEnabled } from "./utils/enableTabButtons.js";
+
 // Constants for better maintainability
 const CONSTANTS = {
     NAMESPACE: "FitFileViewer",
@@ -87,23 +104,7 @@ function validateFunction(fn, name) {
     return true;
 }
 
-// Import utility functions
-import { formatDistance } from "./utils/formatDistance.js";
-import { formatDuration } from "./utils/formatDuration.js";
-import { patchSummaryFields } from "./utils/patchSummaryFields.js";
-import { displayTables } from "./utils/displayTables.js";
-import { renderTable } from "./utils/renderTable.js";
-import { copyTableAsCSV } from "./utils/copyTableAsCSV.js";
-import { renderChart } from "./utils/renderChart.js";
-import { renderMap } from "./utils/renderMap.js";
-import { renderSummary } from "./utils/renderSummary.js";
-import { setActiveTab } from "./utils/setActiveTab.js";
-import { toggleTabVisibility } from "./utils/toggleTabVisibility.js";
-import { showFitData } from "./utils/showFitData.js";
-import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
-import { showNotification, setLoading } from "./utils/rendererUtils.js";
-import { formatArray } from "./utils/formatUtils.js";
-import { setTabButtonsEnabled } from "./utils/enableTabButtons.js";
+
 
 // List of utilities to expose globally with enhanced metadata
 const utils = {
@@ -119,7 +120,6 @@ const utils = {
     copyTableAsCSV,
 
     // Visualization utilities
-    renderChart,
     renderMap,
     renderSummary,
 

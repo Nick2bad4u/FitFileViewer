@@ -246,7 +246,7 @@ export function getThemeConfig() {
             primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
             background: effectiveTheme === "dark" ? "#181a20" : "#f8fafc",
             backgroundAlt: effectiveTheme === "dark" ? "#23263a" : "#ffffff",
-            surface: effectiveTheme === "dark" ? "#2d2d2d" : "#f8f9fa",
+            surface: effectiveTheme === "dark" ? "#2d2d2d50" : "#f8f9fa",
             surfaceSecondary: effectiveTheme === "dark" ? "#4a5568" : "#e9ecef",
             text: effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b",
             textPrimary: effectiveTheme === "dark" ? "#ffffff" : "#0f172a",
@@ -280,6 +280,13 @@ export function getThemeConfig() {
                 "#EF4444", // Zone 5 - Red
                 "#FF6600", // Zone 6 - Orange
                 "#FF00FF", // Zone 7 - Magenta
+                "#00FFFF", // Zone 8 - Cyan
+                "#FF1493", // Zone 9 - Deep Pink
+                "#FF4500", // Zone 10 - Orange Red
+                "#FFD700", // Zone 11 - Gold
+                "#32CD32", // Zone 12 - Lime Green
+                "#8A2BE2", // Zone 13 - Blue Violet
+                "#000000", // Zone 14 - Black
             ],
             // Power zone colors
             powerZoneColors: [
@@ -288,6 +295,15 @@ export function getThemeConfig() {
                 "#10B981", // Zone 3 - Green (aerobic)
                 "#F59E0B", // Zone 4 - Yellow (threshold)
                 "#EF4444", // Zone 5 - Red (anaerobic)
+                "#FF6600", // Zone 6 - Orange (VO2 Max)
+                "#FF00FF", // Zone 7 - Magenta (neuromuscular)
+                "#00FFFF", // Zone 8 - Cyan (sprint)
+                "#FF1493", // Zone 9 - Deep Pink (max effort)
+                "#FF4500", // Zone 10 - Orange Red (extreme effort)
+                "#FFD700", // Zone 11 - Gold (peak power)
+                "#32CD32", // Zone 12 - Lime Green (explosive power)
+                "#8A2BE2", // Zone 13 - Blue Violet (maximal effort)
+                "#000000", // Zone 14 - Black (ultimate effort)
             ],
             // Heart rate zone colors
             heartRateZoneColors: [
@@ -298,6 +314,13 @@ export function getThemeConfig() {
                 "#FF6600", // Zone 5 - Orange (VO2 Max)
                 "#EF4444", // Zone 6 - Red (Anaerobic Capacity)
                 "#FF00FF", // Zone 7 - Magenta (Neuromuscular Power)
+                "#00FFFF", // Zone 8 - Cyan (Sprint)
+                "#FF1493", // Zone 9 - Deep Pink (Maximal Effort)
+                "#FF4500", // Zone 10 - Orange Red (Extreme Effort)
+                "#FFD700", // Zone 11 - Gold (Peak Heart Rate)
+                "#32CD32", // Zone 12 - Lime Green (Explosive Power)
+                "#8A2BE2", // Zone 13 - Blue Violet (Maximal Heart Rate)
+                "#000000", // Zone 14 - Black (Ultimate Effort)
             ],
         },
     };

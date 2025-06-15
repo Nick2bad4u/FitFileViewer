@@ -101,7 +101,7 @@ export function setupFullscreenListeners() {
             window.electronAPI.setFullScreen(false);
         }
         try {
-            const requiredElements = ["content-data", "content-chart", "content-map", "content-summary", "content-altfit"];
+            const requiredElements = ["content-data", "content-map", "content-summary", "content-altfit"];
             requiredElements.forEach((id) => {
                 if (document.getElementById(id)) {
                     addFullScreenButton();
@@ -117,7 +117,7 @@ export function setupFullscreenListeners() {
 
 export function setupDOMContentLoaded() {
     window.addEventListener("DOMContentLoaded", () => {
-        if (["content-data", "content-chart", "content-map", "content-summary", "content-altfit"].some((id) => document.getElementById(id))) {
+        if (["content-data", "content-map", "content-summary", "content-altfit"].some((id) => document.getElementById(id))) {
             addFullScreenButton();
         }
     });

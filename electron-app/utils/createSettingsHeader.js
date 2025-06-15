@@ -2,7 +2,7 @@ import { chartFields, fieldLabels, fieldColors } from "./chartFields.js";
 import { chartOptionsConfig } from "./chartOptionsConfig.js";
 import { ExportUtils } from "./ExportUtils.js";
 import { renderChartJS } from "./renderChartJS.js";
-import { exportAllCharts } from "./ExportUtils.js";
+import { exportAllCharts } from "./exportAllCharts.js";
 import { extractDeveloperFieldsList } from "./extractDeveloperFieldsList.js";
 import { openZoneColorPicker } from "./openZoneColorPicker.js";
 import { resetAllSettings } from "./getCurrentSettings.js";
