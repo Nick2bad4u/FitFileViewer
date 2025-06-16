@@ -6,7 +6,47 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[3cbd5ec](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)...[61ed3ab](https://github.com/Nick2bad4u/FitFileViewer/commit/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3cbd5ec5033e12f89143d5874fbf98765058c314...61ed3ab45c1ba8800047c7a3313989d3cd4cd5de))
+[[c7ba0c5](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)...[c6e3694](https://github.com/Nick2bad4u/FitFileViewer/commit/c6e3694ae4c5e25817c6c3338b48f38779f690c2)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f...c6e3694ae4c5e25817c6c3338b48f38779f690c2))
+
+### 📦 Dependencies
+
+- [dependency] Update version 23.0.0 [`(c6e3694)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c6e3694ae4c5e25817c6c3338b48f38779f690c2)
+
+
+## [23.0.0] - 2025-06-15
+
+[[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)...[c7ba0c5](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0931bbd36523cdc74818b12147c6434c6866ce4e...c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f))
+
+### 🐛 Bug Fixes
+
+- Update theme colors in marker count selector for improved UI consistency [`(97fbe38)`](https://github.com/Nick2bad4u/FitFileViewer/commit/97fbe38163151bc6a9e2f1a1d139e71aa97f661a)
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(c7ba0c5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 22.9.0 [`(ecd3814)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ecd3814d87ed2311b4619bb45897b50ebeac35af)
+
+
+## [22.9.0] - 2025-06-15
+
+[[3cbd5ec](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)...[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3cbd5ec5033e12f89143d5874fbf98765058c314...0931bbd36523cdc74818b12147c6434c6866ce4e))
+
+### 💼 Other
+
+- Modularizes map actions and adds themed UI utilities
+
+Refactors map action button logic into dedicated modules for better maintainability and separation of concerns. Introduces new utility classes and theme-aware helper functions to ensure consistent styling across interactive map controls. Adds robust error handling and notification feedback for overlay file operations. Enhances user experience by improving overlay loading, theming, and map centering logic, and updates workflow and linter configurations for improved CI/CD feedback. [`(0931bbd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v22.8.0 [skip ci] [`(824c249)`](https://github.com/Nick2bad4u/FitFileViewer/commit/824c249a896325bf875b69e6ad8e2b88e9b750d4)
+
 
 ### 📦 Dependencies
 
