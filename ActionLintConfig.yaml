@@ -22,3 +22,11 @@ paths:
   ../.github/workflows/Build.yml:
     ignore:
     - 'shellcheck reported issue in this script: SC2034:warning'
+
+  .github/workflows/summary.yml:
+    ignore:
+    - "unknown permission scope"
+
+  .github/workflows/Build.yml:
+    ignore:
+    - 'shellcheck reported issue in this script: SC2034:warning'

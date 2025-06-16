@@ -50,20 +50,6 @@ jobs:
         uses: oxsecurity/megalinter@5a91fb06c83d0e69fbd23756d47438aa723b4a5a # v8.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DISABLE_LINTERS: SPELL_CSPELL
-          EXCLUDED_DIRECTORIES: libs, tests, screenshots, node_modules, icons
-          SHOW_ELAPSED_TIME: true
-          GITHUB_STATUS_REPORTER: true
-          FILEIO_REPORTER: true
-          GITHUB_COMMENT_REPORTER: true
-          JSON_REPORTER: true
-          JSON_REPORTER_OUTPUT_DETAIL: true
-          MARKDOWN_SUMMARY_REPORTER: true
-          SARIF_REPORTER: true
-          TAP_REPORTER: true
-          TAP_REPORTER_OUTPUT_DETAIL: true
-          DISABLE_ERRORS: true
-          JAVASCRIPT_DEFAULT_STYLE: prettier
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
