@@ -6,6 +6,47 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+[[f3d97bc](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)...[b74a072](https://github.com/Nick2bad4u/FitFileViewer/commit/b74a07258e1585a40e95662144201fc3d2d921d7)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f3d97bc16c56ff8079d22237bba9c488d9a10395...b74a07258e1585a40e95662144201fc3d2d921d7))
+
+### 📦 Dependencies
+
+- [dependency] Update version 23.2.0 [`(b74a072)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b74a07258e1585a40e95662144201fc3d2d921d7)
+
+
+## [23.2.0] - 2025-06-16
+
+[[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)...[f3d97bc](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7ffb095d12f23e64e8ddd674d6fae21666535496...f3d97bc16c56ff8079d22237bba9c488d9a10395))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(f3d97bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)
+
+
+### 💼 Other
+
+- Refactor and improve code readability across multiple utility files
+
+- Updated various functions in `patchSummaryFields.js` to enhance readability by formatting conditional statements.
+- Improved the structure of `renderAltitudeProfileChart.js`, `renderChartJS.js`, `renderGPSTrackChart.js`, `renderPowerVsHeartRateChart.js`, and `renderSpeedVsDistanceChart.js` for better clarity.
+- Enhanced logging messages in `renderChartsWithData` and `shouldShowRenderNotification` for improved debugging.
+- Cleaned up import statements in `renderMap.js` and `setupWindow.js` for consistency.
+- Removed sensitive data from `gitleaks-report.json` and added configuration files for various tools including Checkov, Markdown Link Check, and Lychee.
+- Updated `setupZoneData.js` to improve the extraction of heart rate zones.
+- General code formatting and style improvements across multiple files to adhere to best practices. [`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.1.0 [skip ci] [`(4fbecd8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4fbecd855b00cf5fc2fd1e2bdd0d8f333efcd67f)
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 23.1.0 [`(cb736ed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb736ed801ee8a388b4dee248473437482ffde5c)
+
+
+## [23.1.0] - 2025-06-16
+
 [[c7ba0c5](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)...[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f...7ffb095d12f23e64e8ddd674d6fae21666535496))
 
 ### 🔀 Merge Commits
@@ -5529,8 +5570,6 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(5b5d013)`](https://gith
 
 
 ## [1.0.1] - 2025-04-20
-
-[[c7ba0c5](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)...[eb3cc72](https://github.com/Nick2bad4u/FitFileViewer/commit/eb3cc72516671423c3585a61119b2576da28625c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f...eb3cc72516671423c3585a61119b2576da28625c))
 
 ### 🚀 Features
 
