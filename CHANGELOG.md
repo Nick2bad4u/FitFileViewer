@@ -6,9 +6,41 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[c7ba0c5](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)...[c6e3694](https://github.com/Nick2bad4u/FitFileViewer/commit/c6e3694ae4c5e25817c6c3338b48f38779f690c2)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f...c6e3694ae4c5e25817c6c3338b48f38779f690c2))
+[[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)...[cb736ed](https://github.com/Nick2bad4u/FitFileViewer/commit/cb736ed801ee8a388b4dee248473437482ffde5c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7ffb095d12f23e64e8ddd674d6fae21666535496...cb736ed801ee8a388b4dee248473437482ffde5c))
 
 ### 📦 Dependencies
+
+- [dependency] Update version 23.1.0 [`(cb736ed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb736ed801ee8a388b4dee248473437482ffde5c)
+
+
+## [23.1.0] - 2025-06-16
+
+[[c7ba0c5](https://github.com/Nick2bad4u/FitFileViewer/commit/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f)...[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c7ba0c51959ceb9dd79780e7fa0f47f6c10f098f...7ffb095d12f23e64e8ddd674d6fae21666535496))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(7ffb095)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)
+
+
+### 💼 Other
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(e75b087)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e75b0878de43cc2a67c3d0777f4e1c2786223be5)
+
+- Megalinter FIX [`(3ca4928)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.0.0 [skip ci] [`(4c18c7c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c18c7c52ecf8a1cb93b9e0b11ea5c58d6aa6051)
+
+
+### 📦 Dependencies
+
+- Merge pull request #122 from Nick2bad4u/dependabot/github_actions/github-actions-bf04c3e706
+
+[ci](deps): [dependency] Update dependency group [`(147b94b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/147b94be7fde9d2d1bb0c33d21e28a4cfbff7f9c)
+
+- *(deps)* [dependency] Update dependency group [`(6dba014)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6dba0142500a7d6915b704a349883bca5a1f5dd6)
 
 - [dependency] Update version 23.0.0 [`(c6e3694)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c6e3694ae4c5e25817c6c3338b48f38779f690c2)
 
