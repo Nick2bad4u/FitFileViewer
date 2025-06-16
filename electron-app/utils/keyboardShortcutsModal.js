@@ -30,7 +30,11 @@ function getKeyboardShortcutsModalContent() {
             category: "Application",
             items: [
                 { action: "Export", keys: "No default", description: "Export data (assign in menu)" },
-                { action: "Theme: Dark/Light", keys: "Settings > Theme", description: "Switch between dark and light themes" },
+                {
+                    action: "Theme: Dark/Light",
+                    keys: "Settings > Theme",
+                    description: "Switch between dark and light themes",
+                },
             ],
         },
     ];
@@ -565,7 +569,9 @@ function closeKeyboardShortcutsModal() {
  * Traps focus within the modal for accessibility
  */
 function trapFocusInModal(modal) {
-    const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
 
     if (focusableElements.length === 0) return;
 

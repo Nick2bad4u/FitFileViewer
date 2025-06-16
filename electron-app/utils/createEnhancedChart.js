@@ -134,7 +134,8 @@ export function createEnhancedChart(canvas, options) {
                                             rawValue = value; // Already in meters
                                     }
                                 } else if (field === "temperature") {
-                                    const temperatureUnits = localStorage.getItem("chartjs_temperatureUnits") || "celsius";
+                                    const temperatureUnits =
+                                        localStorage.getItem("chartjs_temperatureUnits") || "celsius";
                                     if (temperatureUnits === "fahrenheit") {
                                         rawValue = ((value - 32) * 5) / 9; // Convert F back to C
                                     }
@@ -207,7 +208,14 @@ export function createEnhancedChart(canvas, options) {
                     },
                 },
                 animation: {
-                    duration: animationStyle === "none" ? 0 : animationStyle === "fast" ? 500 : animationStyle === "slow" ? 2000 : 1000,
+                    duration:
+                        animationStyle === "none"
+                            ? 0
+                            : animationStyle === "fast"
+                              ? 500
+                              : animationStyle === "slow"
+                                ? 2000
+                                : 1000,
                     easing: interpolation,
                 },
             },

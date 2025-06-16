@@ -1,7 +1,13 @@
 import { formatTime } from "./formatTime.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { showNotification } from "./showNotification.js";
-import { DEFAULT_HR_ZONE_COLORS, DEFAULT_POWER_ZONE_COLORS, getZoneColor, saveZoneColor, resetZoneColors } from "./zoneColorUtils.js";
+import {
+    DEFAULT_HR_ZONE_COLORS,
+    DEFAULT_POWER_ZONE_COLORS,
+    getZoneColor,
+    saveZoneColor,
+    resetZoneColors,
+} from "./zoneColorUtils.js";
 
 export function openZoneColorPicker(field) {
     try {

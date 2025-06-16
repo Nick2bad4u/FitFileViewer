@@ -27,7 +27,12 @@ export function renderGPSTrackChart(container, data, options) {
         // Convert GPS positions to chart data
         let gpsData = data
             .map((row, index) => {
-                if (row.positionLat !== undefined && row.positionLat !== null && row.positionLong !== undefined && row.positionLong !== null) {
+                if (
+                    row.positionLat !== undefined &&
+                    row.positionLat !== null &&
+                    row.positionLong !== undefined &&
+                    row.positionLong !== null
+                ) {
                     // Convert semicircle coordinates to degrees
                     const lat = (row.positionLat * 180) / Math.pow(2, 31);
                     const lng = (row.positionLong * 180) / Math.pow(2, 31);
@@ -104,7 +109,11 @@ export function renderGPSTrackChart(container, data, options) {
                         callbacks: {
                             label: function (context) {
                                 const point = context.raw;
-                                return [`Latitude: ${point.y.toFixed(6)}°`, `Longitude: ${point.x.toFixed(6)}°`, `Point: ${point.pointIndex}`];
+                                return [
+                                    `Latitude: ${point.y.toFixed(6)}°`,
+                                    `Longitude: ${point.x.toFixed(6)}°`,
+                                    `Point: ${point.pointIndex}`,
+                                ];
                             },
                         },
                     },

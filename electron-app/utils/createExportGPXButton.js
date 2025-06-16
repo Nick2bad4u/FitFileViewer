@@ -1,14 +1,13 @@
-import { getThemeColors } from './getThemeColors.js';
-
+import { getThemeColors } from "./getThemeColors.js";
 
 export function createExportGPXButton() {
     const exportBtn = document.createElement("button");
     exportBtn.className = "map-action-btn";
-    exportBtn.innerHTML =
-        `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><path d="M10 2v12M10 14l-4-4m4 4l4-4" stroke="${getThemeColors().primary}" stroke-width="2" fill="none"/><rect x="4" y="16" width="12" height="2" rx="1" fill="${getThemeColors().primary}"/></svg> <span>Export GPX</span>`;
+    exportBtn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><path d="M10 2v12M10 14l-4-4m4 4l4-4" stroke="${getThemeColors().primary}" stroke-width="2" fill="none"/><rect x="4" y="16" width="12" height="2" rx="1" fill="${getThemeColors().primary}"/></svg> <span>Export GPX</span>`;
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.onclick = () => {
-        if (!window.globalData || !window.globalData.recordMesgs || !Array.isArray(window.globalData.recordMesgs)) return;
+        if (!window.globalData || !window.globalData.recordMesgs || !Array.isArray(window.globalData.recordMesgs))
+            return;
         const coords = window.globalData.recordMesgs
             .filter((row) => row.positionLat != null && row.positionLong != null)
             .map((row) => [Number((row.positionLat / 2 ** 31) * 180), Number((row.positionLong / 2 ** 31) * 180)]);

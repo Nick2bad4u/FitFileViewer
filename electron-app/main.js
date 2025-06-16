@@ -101,7 +101,10 @@ function createErrorHandler(operation) {
         try {
             return await operation(...args);
         } catch (error) {
-            logWithContext("error", `Error in ${operation.name || "operation"}:`, { error: error.message, stack: error.stack });
+            logWithContext("error", `Error in ${operation.name || "operation"}:`, {
+                error: error.message,
+                stack: error.stack,
+            });
             throw error;
         }
     };

@@ -63,7 +63,11 @@ import { renderGPSTrackChart } from "./renderGPSTrackChart.js";
 import { renderLapZoneCharts } from "./renderLapZoneCharts.js";
 import { shouldShowRenderNotification } from "./shouldShowRenderNotification.js";
 import { createUserDeviceInfoBox } from "./createUserDeviceInfoBox.js";
-import { addChartHoverEffects, addHoverEffectsToExistingCharts, removeChartHoverEffects } from "./addChartHoverEffects.js";
+import {
+    addChartHoverEffects,
+    addHoverEffectsToExistingCharts,
+    removeChartHoverEffects,
+} from "./addChartHoverEffects.js";
 import { setupChartThemeListener } from "./chartThemeListener.js";
 import { getThemeConfig } from "./theme.js";
 
@@ -466,7 +470,9 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
                 if (index < 3) {
                     // Debug first few rows
-                    console.log(`[ChartJS] Field ${field}, row ${index}: raw=${row[field]}, converted=${value} ${getUnitSymbol(field)}`);
+                    console.log(
+                        `[ChartJS] Field ${field}, row ${index}: raw=${row[field]}, converted=${value} ${getUnitSymbol(field)}`
+                    );
                 }
                 return isNaN(value) ? null : value;
             }
@@ -593,7 +599,8 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         chartContainer.innerHTML =
             '<div class="no-data-message">No visible metrics selected. Enable metrics in the "Visible Metrics" section above.</div>';
     } else if (totalChartsRendered === 0) {
-        chartContainer.innerHTML = '<div class="no-data-message">No suitable numeric data available for selected chart type.</div>';
+        chartContainer.innerHTML =
+            '<div class="no-data-message">No suitable numeric data available for selected chart type.</div>';
     }
 
     // Performance logging
@@ -604,7 +611,10 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const shouldShowNotification = shouldShowRenderNotification(totalChartsRendered, visibleFieldCount);
 
     if (shouldShowNotification && totalChartsRendered > 0) {
-        const message = totalChartsRendered === 1 ? "Chart rendered successfully" : `Rendered ${totalChartsRendered} charts successfully`;
+        const message =
+            totalChartsRendered === 1
+                ? "Chart rendered successfully"
+                : `Rendered ${totalChartsRendered} charts successfully`;
 
         console.log(`[ChartJS] Showing success notification: "${message}"`);
 
@@ -613,7 +623,9 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             showNotification(message, "success", 3000);
         }, 100);
     } else {
-        console.log(`[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`);
+        console.log(
+            `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
+        );
     }
 
     // Add hover effects to all rendered charts

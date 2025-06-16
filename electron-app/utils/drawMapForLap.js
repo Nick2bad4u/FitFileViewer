@@ -1,5 +1,5 @@
 import { getOverlayFileName } from "./mapActionButtons.js";
-import { overlayColorPalette } from './overlayColorPalette.js';
+import { overlayColorPalette } from "./overlayColorPalette.js";
 
 /* global L */
 // Helper to find the index in recordMesgs closest to a given lat/lon
@@ -41,7 +41,17 @@ function patchLapIndices(lapMesgs, recordMesgs) {
 // Dependencies must be passed as arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
 export function drawMapForLap(
     lapIdx,
-    { map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx }
+    {
+        map,
+        baseLayers,
+        markerClusterGroup,
+        startIcon,
+        endIcon,
+        mapContainer,
+        getLapColor,
+        formatTooltipData,
+        getLapNumForIdx,
+    }
 ) {
     // --- Always reset overlay polylines and main polyline at the start of a redraw ---
     window._overlayPolylines = {};
@@ -61,7 +71,13 @@ export function drawMapForLap(
         window.loadedFitFiles = [window.loadedFitFiles[window._activeMainFileIdx]];
     }
 
-    console.log("[drawMapForLap] ENTERED FUNCTION, lapIdx =", lapIdx, "type:", typeof lapIdx, Array.isArray(lapIdx) ? "isArray" : "notArray");
+    console.log(
+        "[drawMapForLap] ENTERED FUNCTION, lapIdx =",
+        lapIdx,
+        "type:",
+        typeof lapIdx,
+        Array.isArray(lapIdx) ? "isArray" : "notArray"
+    );
     let coords = [];
     const lapMesgs = window.globalData.lapMesgs || [];
     const recordMesgs = window.globalData.recordMesgs || [];
@@ -71,7 +87,12 @@ export function drawMapForLap(
     // Helper: Wait until map container is visible and sized before fitBounds
     function safeFitBounds(map, bounds, options = {}) {
         function tryFit() {
-            if (map._container && map._container.offsetParent !== null && map._container.clientWidth > 0 && map._container.clientHeight > 0) {
+            if (
+                map._container &&
+                map._container.offsetParent !== null &&
+                map._container.clientWidth > 0 &&
+                map._container.clientHeight > 0
+            ) {
                 map.invalidateSize();
                 map.fitBounds(bounds, options);
             } else {
@@ -91,7 +112,12 @@ export function drawMapForLap(
 
     // --- FIX: handle both string 'all' and array containing 'all' ---
     if (lapIdx === "all" || (Array.isArray(lapIdx) && lapIdx.includes("all"))) {
-        console.log('[drawMapForLap] "all" laps mode: recordMesgs.length =', recordMesgs.length, "lapMesgs.length =", lapMesgs.length);
+        console.log(
+            '[drawMapForLap] "all" laps mode: recordMesgs.length =',
+            recordMesgs.length,
+            "lapMesgs.length =",
+            lapMesgs.length
+        );
         console.log("[drawMapForLap] lapMesgs[0]:", lapMesgs[0]);
         console.log("[drawMapForLap] lapMesgs[1]:", lapMesgs[1]);
         console.log("[drawMapForLap] lapMesgs[2]:", lapMesgs[2]);
@@ -111,7 +137,9 @@ export function drawMapForLap(
                         if (!lapNum || isNaN(lapNum)) lapNum = 1;
                     }
                     if (idx < 10 || idx > recordMesgs.length - 10) {
-                        console.log(`[drawMapForLap] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`);
+                        console.log(
+                            `[drawMapForLap] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
+                        );
                     }
                     return [
                         Number((row.positionLat / 2 ** 31) * 180),
@@ -149,7 +177,8 @@ export function drawMapForLap(
             window._overlayPolylines[0] = polyline;
             // --- Store original bounds for main polyline ---
             const origBounds = polyline.getBounds();
-            window._mainPolylineOriginalBounds = typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
+            window._mainPolylineOriginalBounds =
+                typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
             map.invalidateSize();
             map.fitBounds(window._mainPolylineOriginalBounds, { padding: [20, 20] });
             const start = coords[0];
@@ -173,7 +202,10 @@ export function drawMapForLap(
             for (
                 let i = 0;
                 i < coords.length;
-                i += window.mapMarkerCount === 0 || !window.mapMarkerCount ? 1 : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
+                i +=
+                    window.mapMarkerCount === 0 || !window.mapMarkerCount
+                        ? 1
+                        : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
             ) {
                 const c = coords[i];
                 let lapDisplay = c[8]; // c[8] is set to lapNum above
@@ -208,7 +240,8 @@ export function drawMapForLap(
             for (let i = 1; i < window.loadedFitFiles.length; ++i) {
                 const overlay = window.loadedFitFiles[i];
                 const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName = typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
+                const fileName =
+                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
                 const bounds = drawOverlayForFitFile({
                     fitData: overlay.data,
                     map,
@@ -260,7 +293,9 @@ export function drawMapForLap(
                             if (!lapNum || isNaN(lapNum)) lapNum = 1;
                         }
                         if (idx < 10 || idx > recordMesgs.length - 10) {
-                            console.log(`[drawMapForLap] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`);
+                            console.log(
+                                `[drawMapForLap] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
+                            );
                         }
                         return [
                             Number((row.positionLat / 2 ** 31) * 180),
@@ -295,7 +330,8 @@ export function drawMapForLap(
                 ).addTo(map);
                 // --- Store original bounds for main polyline ---
                 const origBounds = polyline.getBounds();
-                window._mainPolylineOriginalBounds = typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
+                window._mainPolylineOriginalBounds =
+                    typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
                 map.invalidateSize();
                 map.fitBounds(window._mainPolylineOriginalBounds, { padding: [20, 20] });
                 const start = coords[0];
@@ -319,7 +355,10 @@ export function drawMapForLap(
                 for (
                     let i = 0;
                     i < coords.length;
-                    i += window.mapMarkerCount === 0 || !window.mapMarkerCount ? 1 : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
+                    i +=
+                        window.mapMarkerCount === 0 || !window.mapMarkerCount
+                            ? 1
+                            : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
                 ) {
                     const c = coords[i];
                     let lapDisplay = c[8]; // c[8] is set to lapNum above
@@ -354,7 +393,8 @@ export function drawMapForLap(
                 for (let i = 1; i < window.loadedFitFiles.length; ++i) {
                     const overlay = window.loadedFitFiles[i];
                     const color = colorPalette[overlayIdx % colorPalette.length];
-                    const fileName = typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
+                    const fileName =
+                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
                     const bounds = drawOverlayForFitFile({
                         fitData: overlay.data,
                         map,
@@ -390,8 +430,18 @@ export function drawMapForLap(
         lapIdx.forEach((lapVal) => {
             if (lapVal === "all") return;
             const lap = lapMesgs[Number(lapVal)];
-            if (lap && lap.startPositionLat != null && lap.startPositionLong != null && lap.endPositionLat != null && lap.endPositionLong != null) {
-                const startIdx = findClosestRecordIndexByLatLon(lap.startPositionLat, lap.startPositionLong, recordMesgs);
+            if (
+                lap &&
+                lap.startPositionLat != null &&
+                lap.startPositionLong != null &&
+                lap.endPositionLat != null &&
+                lap.endPositionLong != null
+            ) {
+                const startIdx = findClosestRecordIndexByLatLon(
+                    lap.startPositionLat,
+                    lap.startPositionLong,
+                    recordMesgs
+                );
                 let endIdx = findClosestRecordIndexByLatLon(lap.endPositionLat, lap.endPositionLong, recordMesgs);
                 if (endIdx === -1) {
                     // Fallback: use the last record
@@ -495,7 +545,8 @@ export function drawMapForLap(
             for (let i = 1; i < window.loadedFitFiles.length; ++i) {
                 const overlay = window.loadedFitFiles[i];
                 const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName = typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
+                const fileName =
+                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
                 const bounds = drawOverlayForFitFile({
                     fitData: overlay.data,
                     map,
@@ -528,7 +579,13 @@ export function drawMapForLap(
 
     if (lapIdx !== undefined && lapIdx !== "all" && lapMesgs.length > 0) {
         const lap = lapMesgs[Number(lapIdx)];
-        if (lap && lap.startPositionLat != null && lap.startPositionLong != null && lap.endPositionLat != null && lap.endPositionLong != null) {
+        if (
+            lap &&
+            lap.startPositionLat != null &&
+            lap.startPositionLong != null &&
+            lap.endPositionLat != null &&
+            lap.endPositionLong != null
+        ) {
             const startIdx = findClosestRecordIndexByLatLon(lap.startPositionLat, lap.startPositionLong, recordMesgs);
             let endIdx = findClosestRecordIndexByLatLon(lap.endPositionLat, lap.endPositionLong, recordMesgs);
             if (endIdx === -1) {
@@ -605,7 +662,8 @@ export function drawMapForLap(
 
         // --- Store original bounds for main polyline ---
         const origBounds = polyline.getBounds();
-        window._mainPolylineOriginalBounds = typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
+        window._mainPolylineOriginalBounds =
+            typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
 
         // Fix: Ensure map is sized before fitBounds
         map.invalidateSize();
@@ -631,7 +689,10 @@ export function drawMapForLap(
         for (
             let i = 0;
             i < coords.length;
-            i += window.mapMarkerCount === 0 || !window.mapMarkerCount ? 1 : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
+            i +=
+                window.mapMarkerCount === 0 || !window.mapMarkerCount
+                    ? 1
+                    : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
         ) {
             const c = coords[i];
             const marker = L.circleMarker([c[0], c[1]], {
@@ -667,7 +728,8 @@ export function drawMapForLap(
             for (let i = 1; i < window.loadedFitFiles.length; ++i) {
                 const overlay = window.loadedFitFiles[i];
                 const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName = typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
+                const fileName =
+                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
                 const bounds = drawOverlayForFitFile({
                     fitData: overlay.data,
                     map,
@@ -814,7 +876,10 @@ export function drawOverlayForFitFile({
         for (
             let i = 0;
             i < coords.length;
-            i += window.mapMarkerCount === 0 || !window.mapMarkerCount ? 1 : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
+            i +=
+                window.mapMarkerCount === 0 || !window.mapMarkerCount
+                    ? 1
+                    : Math.max(1, Math.floor(coords.length / window.mapMarkerCount))
         ) {
             const c = coords[i];
             const marker = L.circleMarker([c[0], c[1]], {
@@ -864,7 +929,9 @@ window.updateOverlayHighlights = function () {
         });
         const polyElem = polyline.getElement && polyline.getElement();
         if (polyElem) {
-            polyElem.style.filter = isHighlighted ? "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")" : "";
+            polyElem.style.filter = isHighlighted
+                ? "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")"
+                : "";
         }
     });
 };

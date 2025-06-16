@@ -7,7 +7,14 @@
  * If `null` or `undefined` is passed, no tab content will be displayed.
  */
 export function toggleTabVisibility(visibleTabId) {
-    const tabContentIds = ["content-data", "content-chartjs", "content-map", "content-summary", "content-altfit", "content-zwift"];
+    const tabContentIds = [
+        "content-data",
+        "content-chartjs",
+        "content-map",
+        "content-summary",
+        "content-altfit",
+        "content-zwift",
+    ];
     // Iterate through each tab content ID to toggle its visibility based on the `visibleTabId`.
     // Validate the DOM structure before toggling visibility
     // Cache DOM elements in a map for better performance

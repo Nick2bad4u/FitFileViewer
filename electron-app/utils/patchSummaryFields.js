@@ -183,12 +183,18 @@ function patchCadence(obj) {
  * @param {number|string} [obj.enhancedMinRespirationRate] - Minimum respiration rate (camelCase).
  */
 function patchRespirationRate(obj) {
-    if (obj.enhanced_avg_respiration_rate != null) obj.enhanced_avg_respiration_rate = Number(obj.enhanced_avg_respiration_rate).toFixed(1);
-    if (obj.enhancedAvgRespirationRate != null) obj.enhancedAvgRespirationRate = Number(obj.enhancedAvgRespirationRate).toFixed(1);
-    if (obj.enhanced_max_respiration_rate != null) obj.enhanced_max_respiration_rate = Number(obj.enhanced_max_respiration_rate).toFixed(1);
-    if (obj.enhancedMaxRespirationRate != null) obj.enhancedMaxRespirationRate = Number(obj.enhancedMaxRespirationRate).toFixed(1);
-    if (obj.enhanced_min_respiration_rate != null) obj.enhanced_min_respiration_rate = Number(obj.enhanced_min_respiration_rate).toFixed(1);
-    if (obj.enhancedMinRespirationRate != null) obj.enhancedMinRespirationRate = Number(obj.enhancedMinRespirationRate).toFixed(1);
+    if (obj.enhanced_avg_respiration_rate != null)
+        obj.enhanced_avg_respiration_rate = Number(obj.enhanced_avg_respiration_rate).toFixed(1);
+    if (obj.enhancedAvgRespirationRate != null)
+        obj.enhancedAvgRespirationRate = Number(obj.enhancedAvgRespirationRate).toFixed(1);
+    if (obj.enhanced_max_respiration_rate != null)
+        obj.enhanced_max_respiration_rate = Number(obj.enhanced_max_respiration_rate).toFixed(1);
+    if (obj.enhancedMaxRespirationRate != null)
+        obj.enhancedMaxRespirationRate = Number(obj.enhancedMaxRespirationRate).toFixed(1);
+    if (obj.enhanced_min_respiration_rate != null)
+        obj.enhanced_min_respiration_rate = Number(obj.enhanced_min_respiration_rate).toFixed(1);
+    if (obj.enhancedMinRespirationRate != null)
+        obj.enhancedMinRespirationRate = Number(obj.enhancedMinRespirationRate).toFixed(1);
 }
 
 /**
@@ -252,8 +258,10 @@ function patchTrainingLoad(obj) {
     if (obj.intensityFactor != null) obj.intensityFactor = Number(obj.intensityFactor).toFixed(3);
     if (obj.total_training_effect != null) obj.total_training_effect = Number(obj.total_training_effect).toFixed(1);
     if (obj.totalTrainingEffect != null) obj.totalTrainingEffect = Number(obj.totalTrainingEffect).toFixed(1);
-    if (obj.total_anaerobic_training_effect != null) obj.total_anaerobic_training_effect = Number(obj.total_anaerobic_training_effect).toFixed(1);
-    if (obj.totalAnaerobicTrainingEffect != null) obj.totalAnaerobicTrainingEffect = Number(obj.totalAnaerobicTrainingEffect).toFixed(1);
+    if (obj.total_anaerobic_training_effect != null)
+        obj.total_anaerobic_training_effect = Number(obj.total_anaerobic_training_effect).toFixed(1);
+    if (obj.totalAnaerobicTrainingEffect != null)
+        obj.totalAnaerobicTrainingEffect = Number(obj.totalAnaerobicTrainingEffect).toFixed(1);
 }
 
 /**
@@ -305,14 +313,21 @@ function patchFractionalCadence(obj) {
  * @property {number|string|null} [obj.avgRightPedalSmoothness] - Average right pedal smoothness (camelCase).
  */
 function patchTorquePedal(obj) {
-    if (obj.avg_left_torque_effectiveness != null) obj.avg_left_torque_effectiveness = Number(obj.avg_left_torque_effectiveness).toFixed(1);
-    if (obj.avgLeftTorqueEffectiveness != null) obj.avgLeftTorqueEffectiveness = Number(obj.avgLeftTorqueEffectiveness).toFixed(1);
-    if (obj.avg_right_torque_effectiveness != null) obj.avg_right_torque_effectiveness = Number(obj.avg_right_torque_effectiveness).toFixed(1);
-    if (obj.avgRightTorqueEffectiveness != null) obj.avgRightTorqueEffectiveness = Number(obj.avgRightTorqueEffectiveness).toFixed(1);
-    if (obj.avg_left_pedal_smoothness != null) obj.avg_left_pedal_smoothness = Number(obj.avg_left_pedal_smoothness).toFixed(1);
+    if (obj.avg_left_torque_effectiveness != null)
+        obj.avg_left_torque_effectiveness = Number(obj.avg_left_torque_effectiveness).toFixed(1);
+    if (obj.avgLeftTorqueEffectiveness != null)
+        obj.avgLeftTorqueEffectiveness = Number(obj.avgLeftTorqueEffectiveness).toFixed(1);
+    if (obj.avg_right_torque_effectiveness != null)
+        obj.avg_right_torque_effectiveness = Number(obj.avg_right_torque_effectiveness).toFixed(1);
+    if (obj.avgRightTorqueEffectiveness != null)
+        obj.avgRightTorqueEffectiveness = Number(obj.avgRightTorqueEffectiveness).toFixed(1);
+    if (obj.avg_left_pedal_smoothness != null)
+        obj.avg_left_pedal_smoothness = Number(obj.avg_left_pedal_smoothness).toFixed(1);
     if (obj.avgLeftPedalSmoothness != null) obj.avgLeftPedalSmoothness = Number(obj.avgLeftPedalSmoothness).toFixed(1);
-    if (obj.avg_right_pedal_smoothness != null) obj.avg_right_pedal_smoothness = Number(obj.avg_right_pedal_smoothness).toFixed(1);
-    if (obj.avgRightPedalSmoothness != null) obj.avgRightPedalSmoothness = Number(obj.avgRightPedalSmoothness).toFixed(1);
+    if (obj.avg_right_pedal_smoothness != null)
+        obj.avg_right_pedal_smoothness = Number(obj.avg_right_pedal_smoothness).toFixed(1);
+    if (obj.avgRightPedalSmoothness != null)
+        obj.avgRightPedalSmoothness = Number(obj.avgRightPedalSmoothness).toFixed(1);
 }
 
 /**
@@ -362,11 +377,13 @@ function formatArray(val, digits = 2) {
 function patchArrays(obj) {
     if (obj.avg_left_power_phase != null) obj.avg_left_power_phase = formatArray(obj.avg_left_power_phase, 2);
     if (obj.avgLeftPowerPhase != null) obj.avgLeftPowerPhase = formatArray(obj.avgLeftPowerPhase, 2);
-    if (obj.avg_left_power_phase_peak != null) obj.avg_left_power_phase_peak = formatArray(obj.avg_left_power_phase_peak, 2);
+    if (obj.avg_left_power_phase_peak != null)
+        obj.avg_left_power_phase_peak = formatArray(obj.avg_left_power_phase_peak, 2);
     if (obj.avgLeftPowerPhasePeak != null) obj.avgLeftPowerPhasePeak = formatArray(obj.avgLeftPowerPhasePeak, 2);
     if (obj.avg_right_power_phase != null) obj.avg_right_power_phase = formatArray(obj.avg_right_power_phase, 2);
     if (obj.avgRightPowerPhase != null) obj.avgRightPowerPhase = formatArray(obj.avgRightPowerPhase, 2);
-    if (obj.avg_right_power_phase_peak != null) obj.avg_right_power_phase_peak = formatArray(obj.avg_right_power_phase_peak, 2);
+    if (obj.avg_right_power_phase_peak != null)
+        obj.avg_right_power_phase_peak = formatArray(obj.avg_right_power_phase_peak, 2);
     if (obj.avgRightPowerPhasePeak != null) obj.avgRightPowerPhasePeak = formatArray(obj.avgRightPowerPhasePeak, 2);
 }
 
@@ -384,9 +401,12 @@ function patchArrays(obj) {
  * @param {Object} obj - The object whose timestamp fields will be patched.
  */
 function patchTimestamps(obj) {
-    if (obj.timestamp != null && typeof obj.timestamp === "number") obj.timestamp = new Date(obj.timestamp * 1000).toString();
-    if (obj.start_time != null && typeof obj.start_time === "number") obj.start_time = new Date(obj.start_time * 1000).toString();
-    if (obj.startTime != null && typeof obj.startTime === "number") obj.startTime = new Date(obj.startTime * 1000).toString();
+    if (obj.timestamp != null && typeof obj.timestamp === "number")
+        obj.timestamp = new Date(obj.timestamp * 1000).toString();
+    if (obj.start_time != null && typeof obj.start_time === "number")
+        obj.start_time = new Date(obj.start_time * 1000).toString();
+    if (obj.startTime != null && typeof obj.startTime === "number")
+        obj.startTime = new Date(obj.startTime * 1000).toString();
 }
 
 /**

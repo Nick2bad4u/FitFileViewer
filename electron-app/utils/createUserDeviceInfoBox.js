@@ -141,8 +141,11 @@ export function createUserDeviceInfoBox(container) {
         });
 
         // Process device info to get primary device and sensors
-        const primaryDevice = deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0];
-        const sensors = deviceInfos.filter((d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator"));
+        const primaryDevice =
+            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0];
+        const sensors = deviceInfos.filter(
+            (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
+        );
         let deviceHtml = `
             <h3 style="margin: 0 0 20px 0; color: ${themeConfig.colors.text}; font-size: 18px; font-weight: 700; border-bottom: 3px solid ${themeConfig.colors.primary}; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, ${themeConfig.colors.primary}, ${themeConfig.colors.accent}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                 <span style="font-size: 20px; filter: drop-shadow(0 2px 4px ${themeConfig.colors.shadowLight});"></span> Device Information

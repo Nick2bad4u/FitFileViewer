@@ -1,0 +1,17 @@
+{
+    "ignorePatterns": [
+        {
+            "pattern": "^.*CHANGELOG.*$"
+        },
+        {
+            "pattern": "^.*changelog.*$"
+        },
+        {
+            "pattern": "^.*Changelog.*$"
+        }
+    ],
+    "timeout": "10s",
+    "retryOn429": true,
+    "retryCount": 2,
+    "aliveStatusCodes": [200, 206, 301, 302, 307, 308]
+}

@@ -9,7 +9,9 @@ import { zoomResetPlugin } from "./zoomResetPlugin.js";
 export function renderSpeedVsDistanceChart(container, data, options) {
     try {
         const hasSpeed = data.some(
-            (row) => (row.speed !== undefined && row.speed !== null) || (row.enhancedSpeed !== undefined && row.enhancedSpeed !== null)
+            (row) =>
+                (row.speed !== undefined && row.speed !== null) ||
+                (row.enhancedSpeed !== undefined && row.enhancedSpeed !== null)
         );
         const hasDistance = data.some((row) => row.distance !== undefined && row.distance !== null);
 

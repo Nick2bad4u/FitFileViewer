@@ -20,7 +20,9 @@ export function shouldShowRenderNotification(currentChartCount, currentVisibleFi
     // Show notification if chart count significantly changed (more than just minor adjustments)
     const chartCountDiff = Math.abs(currentChartCount - previousChartState.chartCount);
     if (chartCountDiff > 0 && (chartCountDiff > 2 || previousChartState.chartCount === 0)) {
-        console.log(`[ChartJS] Showing notification due to significant chart count change: ${previousChartState.chartCount} -> ${currentChartCount}`);
+        console.log(
+            `[ChartJS] Showing notification due to significant chart count change: ${previousChartState.chartCount} -> ${currentChartCount}`
+        );
         updatePreviousChartState(currentChartCount, currentVisibleFields, now);
         return true;
     }

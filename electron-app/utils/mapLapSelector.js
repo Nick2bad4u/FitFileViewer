@@ -2,7 +2,8 @@
 // Exports: addLapSelector(map, container, drawMapForLap)
 
 export function addLapSelector(map, container, drawMapForLap) {
-    if (!window.globalData || !Array.isArray(window.globalData.lapMesgs) || window.globalData.lapMesgs.length === 0) return;
+    if (!window.globalData || !Array.isArray(window.globalData.lapMesgs) || window.globalData.lapMesgs.length === 0)
+        return;
 
     const lapControl = document.createElement("div");
     lapControl.className = "custom-lap-control-container leaflet-bottom leaflet-left";
@@ -57,9 +58,13 @@ export function addLapSelector(map, container, drawMapForLap) {
             lapControl.classList.remove("multi-select-active");
             deselectAllBtn.style.display = "none";
             multiLapToggle.innerHTML = getMultiLapIcon(false);
-            multiLapToggle.title = "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
+            multiLapToggle.title =
+                "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
             // If more than one selected, reset to 'all'
-            if (lapSelect.selectedOptions.length > 1 || (lapSelect.selectedOptions.length === 1 && lapSelect.selectedOptions[0].value !== "all")) {
+            if (
+                lapSelect.selectedOptions.length > 1 ||
+                (lapSelect.selectedOptions.length === 1 && lapSelect.selectedOptions[0].value !== "all")
+            ) {
                 lapSelect.selectedIndex = 0;
                 lapSelect.dispatchEvent(new Event("change"));
             }

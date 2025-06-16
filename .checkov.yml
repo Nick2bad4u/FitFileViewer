@@ -1,0 +1,3 @@
+skip-check:
+- CKV_GHA_1 # Ignore: workflow_dispatch inputs must be empty (build output restriction)
+- CKV_GHA_7 # Ignore: Ensure top-level permissions are not set to write-all

@@ -2,7 +2,12 @@ import { chartControlsState } from "./renderChartJS.js";
 import { syncControlsState } from "./syncControlsState.js";
 import { getDefaultSettings, getCurrentSettings } from "./getCurrentSettings.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
-import { createSettingsHeader, createControlsSection, createExportSection, createFieldTogglesSection } from "./createSettingsHeader.js";
+import {
+    createSettingsHeader,
+    createControlsSection,
+    createExportSection,
+    createFieldTogglesSection,
+} from "./createSettingsHeader.js";
 
 /**
  * Toggles the visibility of the chart controls panel

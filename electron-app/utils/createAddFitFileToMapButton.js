@@ -1,6 +1,6 @@
-import { getThemeColors } from './getThemeColors.js';
-import { _openFileSelector } from './mapActionButtons.js';
-import { showNotification } from './showNotification.js';
+import { getThemeColors } from "./getThemeColors.js";
+import { _openFileSelector } from "./mapActionButtons.js";
+import { showNotification } from "./showNotification.js";
 
 /**
  * Creates a button to add FIT files as overlays to the map
@@ -21,20 +21,20 @@ export function createAddFitFileToMapButton() {
         `;
 
         addOverlayBtn.title = "Overlay one or more FIT files on the map (points and tooltips will be shown)";
-        addOverlayBtn.setAttribute('aria-label', 'Add FIT files as map overlays');
+        addOverlayBtn.setAttribute("aria-label", "Add FIT files as map overlays");
 
-        addOverlayBtn.addEventListener('click', () => {
+        addOverlayBtn.addEventListener("click", () => {
             try {
                 _openFileSelector();
             } catch (error) {
-                console.error('[MapActions] Failed to open file selector:', error);
-                showNotification('Failed to open file selector', 'error');
+                console.error("[MapActions] Failed to open file selector:", error);
+                showNotification("Failed to open file selector", "error");
             }
         });
 
         return addOverlayBtn;
     } catch (error) {
-        console.error('[MapActions] Failed to create add file button:', error);
+        console.error("[MapActions] Failed to create add file button:", error);
         throw error;
     }
 }

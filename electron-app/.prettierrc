@@ -7,7 +7,7 @@
     "htmlWhitespaceSensitivity": "css",
     "jsxSingleQuote": false,
     "plugins": [],
-    "printWidth": 150,
+    "printWidth": 120,
     "proseWrap": "preserve",
     "quoteProps": "as-needed",
     "semi": true,
@@ -21,14 +21,14 @@
             "files": "*.css",
             "options": {
                 "parser": "css",
-                "printWidth": 150
+                "printWidth": 120
             }
         },
         {
             "files": "*.user.css",
             "options": {
                 "parser": "css",
-                "printWidth": 150
+                "printWidth": 120
             }
         },
         {
@@ -40,13 +40,13 @@
         {
             "files": "*.html",
             "options": {
-                "printWidth": 150
+                "printWidth": 120
             }
         },
         {
             "files": "*.user.js",
             "options": {
-                "printWidth": 150
+                "printWidth": 120
             }
         }
     ]

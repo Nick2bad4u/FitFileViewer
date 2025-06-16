@@ -83,7 +83,10 @@ export function renderSummary(data) {
                 val !== null &&
                 val !== undefined &&
                 val !== "" &&
-                !((typeof val === "number" && val === 0) || (typeof val === "string" && /^(0+(\.0+)?|0*\.\d*0+)$/.test(val.trim()))) &&
+                !(
+                    (typeof val === "number" && val === 0) ||
+                    (typeof val === "string" && /^(0+(\.0+)?|0*\.\d*0+)$/.test(val.trim()))
+                ) &&
                 !(typeof val === "number" && isNaN(val))
             );
         });

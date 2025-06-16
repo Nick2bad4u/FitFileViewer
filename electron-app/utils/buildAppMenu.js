@@ -486,7 +486,9 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
         console.log("[buildAppMenu] Setting application menu. Menu labels:", menuLabels);
     }
     if (!Array.isArray(template) || template.length === 0) {
-        console.warn("[buildAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu.");
+        console.warn(
+            "[buildAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu."
+        );
         return;
     }
     try {

@@ -1,11 +1,9 @@
-import { getThemeColors } from './getThemeColors.js';
-
+import { getThemeColors } from "./getThemeColors.js";
 
 export function createElevationProfileButton() {
     const btn = document.createElement("button");
     btn.className = "map-action-btn";
-    btn.innerHTML =
-        `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${getThemeColors().primary}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${getThemeColors().primary}"/><circle cx="6" cy="10" r="1.5" fill="${getThemeColors().primary}"/><circle cx="10" cy="14" r="1.5" fill="${getThemeColors().primary}"/><circle cx="14" cy="6" r="1.5" fill="${getThemeColors().primary}"/><circle cx="18" cy="12" r="1.5" fill="${getThemeColors().primary}"/></svg> <span>Elevation</span>`;
+    btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${getThemeColors().primary}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${getThemeColors().primary}"/><circle cx="6" cy="10" r="1.5" fill="${getThemeColors().primary}"/><circle cx="10" cy="14" r="1.5" fill="${getThemeColors().primary}"/><circle cx="14" cy="6" r="1.5" fill="${getThemeColors().primary}"/><circle cx="18" cy="12" r="1.5" fill="${getThemeColors().primary}"/></svg> <span>Elevation</span>`;
     btn.title = "Show Elevation Profile";
 
     btn.onclick = () => {
@@ -128,18 +126,22 @@ export function createElevationProfileButton() {
 			<div id="elevChartsContainer"></div>
 			<script>
 				const fitFiles = ${JSON.stringify(
-            fitFiles.map((f, idx) => ({
-                filePath: f.filePath || `File ${idx + 1}`,
-                altitudes: f.data && f.data.recordMesgs
-                    ? f.data.recordMesgs
-                        .filter((r) => r.positionLat != null && r.positionLong != null && r.altitude != null)
-                        .map((r, i) => ({ x: i, y: r.altitude }))
-                    : [],
-                color: window.opener && window.opener.overlayColorPalette
-                    ? window.opener.overlayColorPalette[idx % window.opener.overlayColorPalette.length]
-                    : "#1976d2",
-            }))
-        )};
+                    fitFiles.map((f, idx) => ({
+                        filePath: f.filePath || `File ${idx + 1}`,
+                        altitudes:
+                            f.data && f.data.recordMesgs
+                                ? f.data.recordMesgs
+                                      .filter(
+                                          (r) => r.positionLat != null && r.positionLong != null && r.altitude != null
+                                      )
+                                      .map((r, i) => ({ x: i, y: r.altitude }))
+                                : [],
+                        color:
+                            window.opener && window.opener.overlayColorPalette
+                                ? window.opener.overlayColorPalette[idx % window.opener.overlayColorPalette.length]
+                                : "#1976d2",
+                    }))
+                )};
 				const isDark = ${isDark};
 				const container = document.getElementById('elevChartsContainer');
 				fitFiles.forEach((f, idx) => {

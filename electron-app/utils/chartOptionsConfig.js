@@ -6,7 +6,26 @@ const DEFAULT_MAX_POINTS = 250;
  * Consumers should handle both number and string types.
  * @type {(number|string)[]}
  */
-const maxPointsOptions = [1, 10, 25, 50, 100, 200, 250, 500, 700, 1000, 2000, 3000, 5000, 10000, 50000, 100000, 1000000, "all"];
+const maxPointsOptions = [
+    1,
+    10,
+    25,
+    50,
+    100,
+    200,
+    250,
+    500,
+    700,
+    1000,
+    2000,
+    3000,
+    5000,
+    10000,
+    50000,
+    100000,
+    1000000,
+    "all",
+];
 /**
  * Array of chart configuration option objects for customizing chart rendering.
  * Each option defines a configurable chart property, including its type, allowed values, default, and description.

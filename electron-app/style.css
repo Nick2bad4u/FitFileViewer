@@ -2514,7 +2514,7 @@ input[type="radio"]:checked::before {
 }
 
 /* Range/Slider Styling */
- input[type="range"] {
+input[type="range"] {
     appearance: none;
     height: 6px;
     background: var(--color-modal-bg);

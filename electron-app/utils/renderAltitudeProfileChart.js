@@ -8,7 +8,9 @@ import { zoomResetPlugin } from "./zoomResetPlugin.js";
 export function renderAltitudeProfileChart(container, data, labels, options) {
     try {
         const hasAltitude = data.some(
-            (row) => (row.altitude !== undefined && row.altitude !== null) || (row.enhancedAltitude !== undefined && row.enhancedAltitude !== null)
+            (row) =>
+                (row.altitude !== undefined && row.altitude !== null) ||
+                (row.enhancedAltitude !== undefined && row.enhancedAltitude !== null)
         );
 
         if (!hasAltitude) {

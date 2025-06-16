@@ -109,7 +109,11 @@ export function toggleTheme(withTransition = true) {
  * @param {(theme: string) => void} onThemeChange
  */
 export function listenForThemeChange(onThemeChange) {
-    if (window.electronAPI && typeof window.electronAPI.onSetTheme === "function" && typeof window.electronAPI.sendThemeChanged === "function") {
+    if (
+        window.electronAPI &&
+        typeof window.electronAPI.onSetTheme === "function" &&
+        typeof window.electronAPI.sendThemeChanged === "function"
+    ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
         window.electronAPI.onSetTheme((theme) => {
             onThemeChange(theme);

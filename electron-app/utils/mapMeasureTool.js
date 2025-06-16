@@ -63,7 +63,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             const dist = map.distance(measurePoints[0], measurePoints[1]);
             const distKm = dist / 1000;
             const distMi = dist / 1609.344;
-            const mid = L.latLng((measurePoints[0].lat + measurePoints[1].lat) / 2, (measurePoints[0].lng + measurePoints[1].lng) / 2);
+            const mid = L.latLng(
+                (measurePoints[0].lat + measurePoints[1].lat) / 2,
+                (measurePoints[0].lng + measurePoints[1].lng) / 2
+            );
             measureLabel = L.marker(mid, {
                 icon: L.divIcon({
                     className: "measure-label",

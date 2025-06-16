@@ -442,7 +442,8 @@ const devHelpers = {
         const modal = document.getElementById("about-modal");
         if (modal) {
             modal.style.transition = "all 1000ms ease";
-            modal.querySelector(".modal-content").style.transition = "transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+            modal.querySelector(".modal-content").style.transition =
+                "transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)";
         }
         devHelpers.showSample();
     },

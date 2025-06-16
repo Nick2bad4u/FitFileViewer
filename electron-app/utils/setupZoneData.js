@@ -73,7 +73,9 @@ export function setupZoneData(globalData) {
         // Fallback: Extract heart rate zones from session messages (legacy approach)
         if (!window.heartRateZones && globalData.sessionMesgs && Array.isArray(globalData.sessionMesgs)) {
             console.log("[ChartJS] Trying legacy session messages for HR zones");
-            const sessionWithHrZones = globalData.sessionMesgs.find((session) => session.time_in_hr_zone && Array.isArray(session.time_in_hr_zone));
+            const sessionWithHrZones = globalData.sessionMesgs.find(
+                (session) => session.time_in_hr_zone && Array.isArray(session.time_in_hr_zone)
+            );
 
             if (sessionWithHrZones && sessionWithHrZones.time_in_hr_zone) {
                 console.log("[ChartJS] Found HR zone data in session:", sessionWithHrZones.time_in_hr_zone);

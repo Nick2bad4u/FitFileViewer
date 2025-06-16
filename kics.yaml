@@ -1,0 +1,2 @@
+exclude-paths:
+- ".github/workflows/superlinter.yml"

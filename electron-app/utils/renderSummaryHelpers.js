@@ -115,7 +115,13 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
         // Summary row
         if (filterValue === "All" || filterValue === "Summary") {
             const summaryRows = getSummaryRows(data);
-            rows.push(sortedVisible.map((k) => (k === LABEL_COL ? "Summary" : summaryRows[0][k] !== undefined ? summaryRows[0][k] : "")).join(","));
+            rows.push(
+                sortedVisible
+                    .map((k) =>
+                        k === LABEL_COL ? "Summary" : summaryRows[0][k] !== undefined ? summaryRows[0][k] : ""
+                    )
+                    .join(",")
+            );
         }
         // Lap rows
         if (data.lapMesgs && data.lapMesgs.length > 0 && (filterValue === "All" || filterValue.startsWith("Lap"))) {
@@ -126,7 +132,11 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
             });
             patchedLaps.forEach((lap, i) => {
                 if (filterValue === "All" || filterValue === `Lap ${i + 1}`) {
-                    rows.push(sortedVisible.map((k) => (k === LABEL_COL ? `Lap ${i + 1}` : lap[k] !== undefined ? lap[k] : "")).join(","));
+                    rows.push(
+                        sortedVisible
+                            .map((k) => (k === LABEL_COL ? `Lap ${i + 1}` : lap[k] !== undefined ? lap[k] : ""))
+                            .join(",")
+                    );
                 }
             });
         }
@@ -153,7 +163,8 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
         const summaryRow = document.createElement("tr");
         sortedVisible.forEach((key, idx) => {
             const td = document.createElement("td");
-            td.textContent = key === LABEL_COL ? "Summary" : summaryRows[0][key] !== undefined ? summaryRows[0][key] : "";
+            td.textContent =
+                key === LABEL_COL ? "Summary" : summaryRows[0][key] !== undefined ? summaryRows[0][key] : "";
             if (idx === 0) td.classList.add("summary-row");
             summaryRow.appendChild(td);
         });

@@ -20,15 +20,12 @@ import { drawMapForLap } from "./drawMapForLap.js";
 import { updateMapTheme } from "./updateMapTheme.js";
 import { createStartIcon, createEndIcon } from "./mapIcons.js";
 import { baseLayers } from "./mapBaseLayers.js";
-import {
-    createMarkerCountSelector,
-    createShownFilesList,
-} from "./mapActionButtons.js";
-import { createAddFitFileToMapButton } from './createAddFitFileToMapButton.js';
-import { createExportGPXButton } from './createExportGPXButton.js';
-import { createPrintButton } from './createPrintButton.js';
-import { overlayColorPalette } from './overlayColorPalette.js';
-import { createElevationProfileButton } from './createElevationProfileButton.js';
+import { createMarkerCountSelector, createShownFilesList } from "./mapActionButtons.js";
+import { createAddFitFileToMapButton } from "./createAddFitFileToMapButton.js";
+import { createExportGPXButton } from "./createExportGPXButton.js";
+import { createPrintButton } from "./createPrintButton.js";
+import { overlayColorPalette } from "./overlayColorPalette.js";
+import { createElevationProfileButton } from "./createElevationProfileButton.js";
 import { addFullscreenControl } from "./mapFullscreenControl.js";
 import { drawOverlayForFitFile } from "./drawMapForLap.js";
 
@@ -290,7 +287,8 @@ export function renderMap() {
                 markerClusterGroup,
                 startIcon,
                 endIcon,
-                formatTooltipData: (idx, row, lapNum) => formatTooltipData(idx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                formatTooltipData: (idx, row, lapNum) =>
+                    formatTooltipData(idx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
                 getLapNumForIdx,
                 fileName,
                 overlayIdx: idx,
@@ -329,7 +327,10 @@ export function renderMap() {
 
     // Restore highlight after overlays are drawn, if any
     if (window.updateOverlayHighlights) {
-        console.log("[FFV] [renderMap] Calling updateOverlayHighlights, highlightedOverlayIdx:", window._highlightedOverlayIdx);
+        console.log(
+            "[FFV] [renderMap] Calling updateOverlayHighlights, highlightedOverlayIdx:",
+            window._highlightedOverlayIdx
+        );
         window.updateOverlayHighlights();
     }
     if (window.updateShownFilesList) {

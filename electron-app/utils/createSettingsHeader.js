@@ -776,7 +776,12 @@ export function createExportSection(wrapper) {
     ];
 
     exportButtons.forEach((btn) => {
-        const button = createActionButton(`${btn.icon} ${btn.text}`, `${btn.text} for charts`, btn.action, "export-btn");
+        const button = createActionButton(
+            `${btn.icon} ${btn.text}`,
+            `${btn.text} for charts`,
+            btn.action,
+            "export-btn"
+        );
         exportGrid.appendChild(button);
     });
 
@@ -946,7 +951,8 @@ function createFieldToggle(field) {
         // Regular color picker for non-zone charts
         const colorPicker = document.createElement("input");
         colorPicker.type = "color";
-        colorPicker.value = localStorage.getItem(`chartjs_color_${field}`) || fieldColors[field] || themeConfig.colors.primaryAlpha;
+        colorPicker.value =
+            localStorage.getItem(`chartjs_color_${field}`) || fieldColors[field] || themeConfig.colors.primaryAlpha;
         colorPicker.style.cssText = `
 			width: 32px;
 			height: 32px;

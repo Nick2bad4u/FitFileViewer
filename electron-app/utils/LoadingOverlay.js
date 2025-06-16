@@ -1,4 +1,4 @@
-import { getThemeColors } from './getThemeColors.js';
+import { getThemeColors } from "./getThemeColors.js";
 
 /**
  * Loading overlay management functions
@@ -29,7 +29,7 @@ export const LoadingOverlay = {
                 justifyContent: "center",
                 zIndex: "99999",
                 color: themeColors.textPrimary,
-                fontSize: "1.3em"
+                fontSize: "1.3em",
             });
 
             overlay.innerHTML = `
@@ -71,5 +71,5 @@ export const LoadingOverlay = {
     hide() {
         const overlay = document.getElementById("fitfile-loading-overlay");
         if (overlay) overlay.remove();
-    }
+    },
 };

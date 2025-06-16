@@ -1,4 +1,4 @@
-import { getThemeConfig } from './theme.js';
+import { getThemeConfig } from "./theme.js";
 
 /**
  * Helper function to get theme colors from the theme configuration

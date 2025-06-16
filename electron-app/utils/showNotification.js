@@ -309,7 +309,8 @@ export const notify = {
      * @param {string} [type='info'] - Notification type
      * @param {Object} [options] - Additional options
      */
-    persistent: (message, type = "info", options = {}) => showNotification(message, type, null, { ...options, persistent: true }),
+    persistent: (message, type = "info", options = {}) =>
+        showNotification(message, type, null, { ...options, persistent: true }),
 
     /**
      * Shows a notification with action buttons

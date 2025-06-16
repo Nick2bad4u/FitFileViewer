@@ -14,7 +14,8 @@ export function syncControlsState() {
 
     // Get the actual visibility from the DOM
     const computedStyle = window.getComputedStyle(wrapper);
-    const isActuallyVisible = wrapper.style.display !== "none" && computedStyle.display !== "none" && wrapper.offsetParent !== null;
+    const isActuallyVisible =
+        wrapper.style.display !== "none" && computedStyle.display !== "none" && wrapper.offsetParent !== null;
 
     // Update internal state to match DOM reality
     chartControlsState.isVisible = isActuallyVisible;

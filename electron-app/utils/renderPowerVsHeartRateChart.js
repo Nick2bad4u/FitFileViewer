@@ -21,7 +21,12 @@ export function renderPowerVsHeartRateChart(container, data, options) {
 
         let chartData = data
             .map((row) => {
-                if (row.power !== undefined && row.power !== null && row.heartRate !== undefined && row.heartRate !== null) {
+                if (
+                    row.power !== undefined &&
+                    row.power !== null &&
+                    row.heartRate !== undefined &&
+                    row.heartRate !== null
+                ) {
                     return {
                         x: row.heartRate,
                         y: row.power,

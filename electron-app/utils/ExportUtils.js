@@ -291,7 +291,9 @@ export const ExportUtils = {
         const clientId = "0046ee9e30ac578"; // User needs to replace this
 
         if (clientId === "YOUR_IMGUR_CLIENT_ID") {
-            throw new Error("Imgur client ID not configured. Please add your Imgur client ID to the ExportUtils.uploadToImgur function.");
+            throw new Error(
+                "Imgur client ID not configured. Please add your Imgur client ID to the ExportUtils.uploadToImgur function."
+            );
         }
 
         try {
@@ -333,12 +335,14 @@ export const ExportUtils = {
         // Provide default demo credentials for easier onboarding
         // Obfuscated default credentials using multiple encoding layers
         const GyazoAppData1 = [
-            0x6c, 0x63, 0x6f, 0x7a, 0x6f, 0x61, 0x6e, 0x44, 0x4a, 0x57, 0x76, 0x6f, 0x75, 0x39, 0x70, 0x6a, 0x6b, 0x42, 0x6d, 0x50, 0x4a, 0x6c, 0x61,
-            0x30, 0x62, 0x4e, 0x67, 0x72, 0x54, 0x37, 0x59, 0x62, 0x73, 0x37, 0x69, 0x79, 0x56, 0x77, 0x4f, 0x6c, 0x59, 0x45, 0x51,
+            0x6c, 0x63, 0x6f, 0x7a, 0x6f, 0x61, 0x6e, 0x44, 0x4a, 0x57, 0x76, 0x6f, 0x75, 0x39, 0x70, 0x6a, 0x6b, 0x42,
+            0x6d, 0x50, 0x4a, 0x6c, 0x61, 0x30, 0x62, 0x4e, 0x67, 0x72, 0x54, 0x37, 0x59, 0x62, 0x73, 0x37, 0x69, 0x79,
+            0x56, 0x77, 0x4f, 0x6c, 0x59, 0x45, 0x51,
         ];
         const GyazoAppData2 = [
-            0x77, 0x63, 0x68, 0x52, 0x46, 0x7a, 0x46, 0x5a, 0x75, 0x4f, 0x71, 0x32, 0x33, 0x4f, 0x69, 0x70, 0x48, 0x6b, 0x63, 0x45, 0x49, 0x76, 0x51,
-            0x61, 0x31, 0x4b, 0x59, 0x30, 0x6c, 0x6a, 0x6f, 0x50, 0x66, 0x32, 0x71, 0x30, 0x4d, 0x55, 0x62, 0x45, 0x6f, 0x53, 0x30,
+            0x77, 0x63, 0x68, 0x52, 0x46, 0x7a, 0x46, 0x5a, 0x75, 0x4f, 0x71, 0x32, 0x33, 0x4f, 0x69, 0x70, 0x48, 0x6b,
+            0x63, 0x45, 0x49, 0x76, 0x51, 0x61, 0x31, 0x4b, 0x59, 0x30, 0x6c, 0x6a, 0x6f, 0x50, 0x66, 0x32, 0x71, 0x30,
+            0x4d, 0x55, 0x62, 0x45, 0x6f, 0x53, 0x30,
         ];
 
         // Apply ROT13-like transformation as additional obfuscation layer
@@ -710,7 +714,10 @@ export const ExportUtils = {
 
                 try {
                     showNotification("Exchanging code for access token...", "info");
-                    const tokenData = await ExportUtils.exchangeGyazoCodeForToken(code, ExportUtils.getGyazoConfig().redirectUri);
+                    const tokenData = await ExportUtils.exchangeGyazoCodeForToken(
+                        code,
+                        ExportUtils.getGyazoConfig().redirectUri
+                    );
                     ExportUtils.setGyazoAccessToken(tokenData.access_token);
 
                     document.body.removeChild(overlay);
@@ -1038,7 +1045,10 @@ export const ExportUtils = {
                 // Add chart data as CSV
                 if (dataset && dataset.data) {
                     const headers = ["timestamp", fieldName];
-                    const csvContent = [headers.join(","), ...dataset.data.map((point) => `${point.x},${point.y}`)].join("\n");
+                    const csvContent = [
+                        headers.join(","),
+                        ...dataset.data.map((point) => `${point.x},${point.y}`),
+                    ].join("\n");
                     zip.file(`${safeFieldName}-data.csv`, csvContent);
                 }
 
@@ -1833,7 +1843,11 @@ export const ExportUtils = {
 
         // Clear all data
         clearDataBtn.addEventListener("click", () => {
-            if (confirm("Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account.")) {
+            if (
+                confirm(
+                    "Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account."
+                )
+            ) {
                 ExportUtils.clearGyazoConfig();
                 document.body.removeChild(overlay);
                 showNotification("All Gyazo data cleared", "info");

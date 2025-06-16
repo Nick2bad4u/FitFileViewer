@@ -9,7 +9,13 @@ export default defineConfig([
     { files: ["**/*.{js,mjs,cjs,ts}"], plugins: { js: js }, extends: ["js/recommended"] },
     // Merging browser and node globals to support environments where both are used, such as Electron.
     { files: ["**/*.{js,mjs,cjs,ts}"], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
-    { files: ["**/*.json"], plugins: { json }, language: "json/json", extends: ["json/recommended"], rules: { "json/no-empty-keys": "off" } },
+    {
+        files: ["**/*.json"],
+        plugins: { json },
+        language: "json/json",
+        extends: ["json/recommended"],
+        rules: { "json/no-empty-keys": "off" },
+    },
     { files: ["**/*.jsonc"], plugins: { json }, language: "json/jsonc", extends: ["json/recommended"] },
     { files: ["**/*.json5"], plugins: { json }, language: "json/json5", extends: ["json/recommended"] },
     { files: ["**/*.md"], plugins: { markdown }, language: "markdown/commonmark", extends: ["markdown/recommended"] },

@@ -1,7 +1,15 @@
 // Configuration constants
 const ZWIFT_MAP_URL = "https://zwiftmap.com/";
 
-export function setupWindowOnload({ toggleTabVisibility, setActiveTab, setupTabButton, displayTables, renderChart, renderMap, renderSummary }) {
+export function setupWindowOnload({
+    toggleTabVisibility,
+    setActiveTab,
+    setupTabButton,
+    displayTables,
+    renderChart,
+    renderMap,
+    renderSummary,
+}) {
     window.onload = () => {
         // Default: show the Map tab
         toggleTabVisibility("content-map");
@@ -22,7 +30,11 @@ export function setupWindowOnload({ toggleTabVisibility, setActiveTab, setupTabB
                         visible.innerHTML = "";
                         while (bg.firstChild) visible.appendChild(bg.firstChild);
                     } else {
-                        if (typeof window.globalData === "object" && window.globalData !== null && Object.keys(window.globalData).length > 0) {
+                        if (
+                            typeof window.globalData === "object" &&
+                            window.globalData !== null &&
+                            Object.keys(window.globalData).length > 0
+                        ) {
                             window.displayTables(window.globalData);
                         }
                     }
@@ -61,7 +73,10 @@ export function setupWindowOnload({ toggleTabVisibility, setActiveTab, setupTabB
                     toggleTabVisibility("content-summary");
                     setActiveTab("tab-summary");
                     if (window.globalData && Object.keys(window.globalData).length > 0) {
-                        if (!window.previousGlobalData || JSON.stringify(window.previousGlobalData) !== JSON.stringify(window.globalData)) {
+                        if (
+                            !window.previousGlobalData ||
+                            JSON.stringify(window.previousGlobalData) !== JSON.stringify(window.globalData)
+                        ) {
                             window.previousGlobalData = JSON.parse(JSON.stringify(window.globalData));
                             setTimeout(() => {
                                 window.renderSummary(window.globalData);

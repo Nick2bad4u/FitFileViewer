@@ -3,7 +3,12 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
     if (isOpeningFileRef.value) return;
     isOpeningFileRef.value = true;
     try {
-        if (!window.electronAPI || !window.electronAPI.openFile || !window.electronAPI.readFile || !window.electronAPI.parseFitFile) {
+        if (
+            !window.electronAPI ||
+            !window.electronAPI.openFile ||
+            !window.electronAPI.readFile ||
+            !window.electronAPI.parseFitFile
+        ) {
             showNotification("Electron API not available. Please restart the app.", "error", 7000);
             openFileBtn.disabled = false;
             setLoading(false);

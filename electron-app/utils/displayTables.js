@@ -60,7 +60,11 @@ export function displayTables(dataFrames, containerOverride) {
     keys.forEach((key, index) => {
         try {
             const rows = dataFrames[key];
-            if (!Array.isArray(rows) || rows.length === 0 || !rows.every((row) => row && typeof row === "object" && !Array.isArray(row))) {
+            if (
+                !Array.isArray(rows) ||
+                rows.length === 0 ||
+                !rows.every((row) => row && typeof row === "object" && !Array.isArray(row))
+            ) {
                 console.warn(`[WARNING] Skipping table for key: ${key} as it is not compatible with Arquero.`);
                 return;
             }
@@ -68,7 +72,10 @@ export function displayTables(dataFrames, containerOverride) {
             console.log(`[DEBUG] Rendering table for key: ${key}, rows:`, table.numRows());
             renderTable(container, key, table, index);
         } catch (e) {
-            console.error(`[ERROR] Failed to render table for key: ${key}. Error message: ${e.message}. Stack trace:`, e.stack);
+            console.error(
+                `[ERROR] Failed to render table for key: ${key}. Error message: ${e.message}. Stack trace:`,
+                e.stack
+            );
         }
     });
 }

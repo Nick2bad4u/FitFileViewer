@@ -256,7 +256,10 @@ const electronAPI = {
      * Registers a handler for the 'open-summary-column-selector' event.
      * @param {Function} callback
      */
-    onOpenSummaryColumnSelector: createSafeEventHandler(CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR, "onOpenSummaryColumnSelector"),
+    onOpenSummaryColumnSelector: createSafeEventHandler(
+        CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR,
+        "onOpenSummaryColumnSelector"
+    ),
 
     // Auto-Updater Functions with enhanced error handling
     /**
@@ -361,7 +364,10 @@ const electronAPI = {
      * @param {string|null} fitFilePath - Current FIT file path
      * @returns {Promise<boolean>}
      */
-    injectMenu: async (theme = CONSTANTS.DEFAULT_VALUES.THEME, fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH) => {
+    injectMenu: async (
+        theme = CONSTANTS.DEFAULT_VALUES.THEME,
+        fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH
+    ) => {
         if (!validateString(theme, "theme", "injectMenu")) return false;
         if (!validateString(fitFilePath, "fitFilePath", "injectMenu")) return false;
 

@@ -54,7 +54,8 @@ export function setupListeners({
         const items = [];
         recentFiles.forEach((file, idx) => {
             const parts = file.split(/\\|\//g);
-            const shortName = parts.length >= 2 ? `${parts[parts.length - 2]}\\${parts[parts.length - 1]}` : parts[parts.length - 1];
+            const shortName =
+                parts.length >= 2 ? `${parts[parts.length - 2]}\\${parts[parts.length - 1]}` : parts[parts.length - 1];
             const item = document.createElement("div");
             item.textContent = shortName;
             item.title = file;
@@ -221,7 +222,10 @@ export function setupListeners({
                 ) {
                     const coords = window.globalData.recordMesgs
                         .filter((row) => row.positionLat != null && row.positionLong != null)
-                        .map((row) => [Number((row.positionLat / 2 ** 31) * 180), Number((row.positionLong / 2 ** 31) * 180)]);
+                        .map((row) => [
+                            Number((row.positionLat / 2 ** 31) * 180),
+                            Number((row.positionLong / 2 ** 31) * 180),
+                        ]);
                     if (coords.length > 0) {
                         let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="FitFileViewer">\n<trk><name>Exported Track</name><trkseg>`;
                         coords.forEach((c) => {

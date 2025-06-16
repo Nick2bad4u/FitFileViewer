@@ -107,7 +107,9 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         const decoder = new Decoder(stream);
         if (!decoder.checkIntegrity()) {
             const integrityErrors =
-                typeof decoder.getIntegrityErrors === "function" ? decoder.getIntegrityErrors() : "No additional details available";
+                typeof decoder.getIntegrityErrors === "function"
+                    ? decoder.getIntegrityErrors()
+                    : "No additional details available";
             const msg = `FIT file integrity check failed. Details: ${integrityErrors}`;
             console.error(msg);
             throw new FitDecodeError(msg, integrityErrors);

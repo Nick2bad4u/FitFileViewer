@@ -1,128 +1,504 @@
 <!-- markdownlint-disable -->
-
+<!-- eslint-disable markdown/no-missing-label-refs -->
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [Unreleased]
 
-### 🆕 New Version Number
+[[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)...[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0931bbd36523cdc74818b12147c6434c6866ce4e...7ffb095d12f23e64e8ddd674d6fae21666535496))
 
-- Bump version to 15.8.0
+### 🔀 Merge Commits
 
-### 💼 Other
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(7ffb095)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)
 
-- Add '.nupkg' pattern to file matching in Windows build steps
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [15.8.0] - 2025-06-05
-
-### 🆕 New Version Number
-
-- Bump version to 15.7.0
 
 ### 💼 Other
 
-- Refactor Electron app build command to handle architecture and OS conditions more explicitly
+- Megalinter FIX [`(3ca4928)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
-## [15.7.0] - 2025-06-05
+### 📦 Dependencies
 
-### 🆕 New Version Number
+- Merge pull request #122 from Nick2bad4u/dependabot/github_actions/github-actions-bf04c3e706
 
-- Bump version to 15.5.0
+[ci](deps): [dependency] Update dependency group [`(147b94b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/147b94be7fde9d2d1bb0c33d21e28a4cfbff7f9c)
 
-- Bump version to 15.6.0
+- *(deps)* [dependency] Update dependency group [`(6dba014)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6dba0142500a7d6915b704a349883bca5a1f5dd6)
 
-### 💼 Other
 
-- Enhance electron-builder command to support multiple macOS architectures
+## [22.9.0] - 2025-06-15
 
-- Clear previous onload listener for iframe before setting a new one
-
-- Fix electron-builder command to conditionally include architecture flag for macOS builds
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Clear redundant onload listener for iframe before setting a new one
-
-## [15.5.0] - 2025-06-04
-
-### 🆕 New Version Number
-
-- Bump version to 15.3.0
-
-- Bump version to 15.4.0
+[[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)...[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/25c3b5e09fc01799a354e00c97ea827a48a5dfc8...0931bbd36523cdc74818b12147c6434c6866ce4e))
 
 ### 🛠️ GitHub Actions
 
-- Update Build.yml
+- Update prettier.yml [`(07cc911)`](https://github.com/Nick2bad4u/FitFileViewer/commit/07cc9114d60a6c335a36ee937f1c4f8944337813)
+
 
 ### 💼 Other
 
-- Add macOS 15 and 13 to CI workflow for ia32 architecture
+- Modularizes map actions and adds themed UI utilities
 
-- Clear previous onload listener for iframe before setting a new one
+Refactors map action button logic into dedicated modules for better maintainability and separation of concerns. Introduces new utility classes and theme-aware helper functions to ensure consistent styling across interactive map controls. Adds robust error handling and notification feedback for overlay file operations. Enhances user experience by improving overlay loading, theming, and map centering logic, and updates workflow and linter configurations for improved CI/CD feedback. [`(0931bbd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)
 
-- Fix electron-builder command to correctly handle macOS OS detection
 
-- Clear previous onload listener for iframe before setting a new one
+### 🛡️ Security
 
-## [15.3.0] - 2025-06-04
+- Merge pull request #121 from step-security-bot/chore/GHA-141913-stepsecurity-remediation
 
-### 🆕 New Version Number
+[StepSecurity] ci: Harden GitHub Actions [`(e27f886)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e27f886c860f8822c17d578aae319e0f4a389167)
 
-- Bump version to 15.2.0
+- [StepSecurity] ci: Harden GitHub Actions
 
-### 💼 Other
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(c23f422)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c23f422373f159ed64451bab3c9cfd2fc18d4281)
 
-- Update version to 15.2.0 and set CI environment variable in build workflow
 
-## [15.2.0] - 2025-06-04
+## [22.1.0] - 2025-06-14
 
-### 🆕 New Version Number
-
-- Bump version to 15.1.0
-
-## [15.1.0] - 2025-06-04
-
-### 🆕 New Version Number
-
-- Bump version to 15.0.0
+[[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)...[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034...25c3b5e09fc01799a354e00c97ea827a48a5dfc8))
 
 ### 💼 Other
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Standardizes YAML, JSON, and config formatting across repo
 
-- Full win32 support added
+Improves consistency by normalizing quotes, indentation, and
+key/value styles in all GitHub Actions workflows, project config,
+and markdown files. Adds Prettier ignore rules, updates settings,
+and syncs formatting to reduce lint noise and tooling friction.
 
-## [15.0.0] - 2025-06-04
+Prepares for cleaner future diffs and better cross-platform collaboration. [`(25c3b5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)
 
-### 🆕 New Version Number
 
-- Bump version to 14.8.0
+## [22.0.0] - 2025-06-14
+
+[[743ca38](https://github.com/Nick2bad4u/FitFileViewer/commit/743ca3876dc493d686bf8ebd1e60f14be6e06a12)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/743ca3876dc493d686bf8ebd1e60f14be6e06a12...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
+
+### 🚀 Features
+
+- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
+
+
+### 🐛 Bug Fixes
+
+- Update workflow configurations to ignore CHANGELOG.md and electron-app icons in various GitHub Actions [`(4f78a54)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4f78a54c1f5471a093fc2b7f8ae2e8b4c13e43a8)
+
 
 ### 🛠️ GitHub Actions
 
-- Update Build.yml
+- Update electronegativity.yml [`(ff1bbf9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff1bbf93d2c440142d8a5d59967974399400aea0)
+
+- Update devskim.yml [`(03d0be6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/03d0be6212908869faad42c460e64576e6626961)
+
+- Update spelling_action.yml [`(66abe1f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/66abe1ff206d70eda294536c0af4ad0e1f417eaf)
+
+- Update trufflehog.yml [`(70f0b9f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70f0b9f865bbd6fb76a408bab9e19099f871bae9)
+
+- Update updateChangeLogs.yml [`(6ccd567)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6ccd56769bde32d932a6f136a10f06ce4d379a25)
+
+- Update updateChangeLogs.yml [`(3707625)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3707625968fa5d59d1412f934c71b995fa8fc8cb)
+
+- Update updateChangeLogs.yml [`(74a1c8d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/74a1c8df826aaffd5e9fb0e764b0f735d30d48b0)
+
+- Update updateChangeLogs.yml [`(eac41cb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/eac41cbbff102cca5ba75c9efd9165cfbc328a96)
+
+- Update updateChangeLogs.yml [`(56587b8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/56587b83e04fa55f684d448b4913ef9c56218748)
+
+- Update updateChangeLogs.yml [`(e65b73c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e65b73cd0da1d92ce0b964d99c85ba9eb07cdbf4)
+
+- Update updateChangeLogs.yml [`(58eaaa0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/58eaaa0ab283fca015c47eb68b64ffc9cacae8c0)
+
+- Update updateChangeLogs.yml [`(2bc6c46)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2bc6c467179949fadd3a3f31cf6d3dfabdbf1e80)
+
+- Update summary.yml [`(57a2619)`](https://github.com/Nick2bad4u/FitFileViewer/commit/57a2619d3a661044566886fffd644329f5a9bb3c)
+
+- Update mega-linter.yml [`(52f2a54)`](https://github.com/Nick2bad4u/FitFileViewer/commit/52f2a543c01073606f30c194dc59fe6c4dae1a38)
+
 
 ### 💼 Other
 
-- Add supported builds section to README and enhance download links
+- Run Prettier on all Files. [`(21bf6c1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)
 
-- Add CI build support for win32.
+- Revamps Chart.js integration with advanced controls and exports
 
-adds win32 versions to the CI pipeline
+Overhauls the chart rendering system to add a modern, toggleable controls panel, advanced export and sharing options (PNG, CSV, JSON, ZIP, clipboard, Imgur), and improved accessibility and error handling. Introduces support for zone data visualization, lap analysis charts, and professional styling with theme-aware design. Optimizes performance, code structure, and user feedback for a richer FIT file data experience.
 
-## [14.8.0] - 2025-06-04
+Fixes chart layout, enhances maintainability, and prepares for future extensibility. [`(f852b00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)
 
-### 🆕 New Version Number
+- Update pull_request_template.md [`(a4b1473)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a4b14731fd2585c8a2037e99f0b8bad65a6fef0e)
 
-- Bump version to 14.7.0
+
+### 📦 Dependencies
+
+- Update dependabot.yml [`(3d61c16)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3d61c1656f182cac8a69bbf2656fc34f7fe2a3ad)
+
+- Update dependabot.yml [`(afdd98d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/afdd98d49655be34ee105e7fb31fb9166c877129)
+
+- Merge pull request #111 from Nick2bad4u/dependabot/github_actions/github-actions-4d40514eb5
+
+[ci](deps): [dependency] Update dependency group [`(57df393)`](https://github.com/Nick2bad4u/FitFileViewer/commit/57df393327e7cbec612dd1d5e3f2be72fb01c49a)
+
+- *(deps)* [dependency] Update dependency group [`(4c436bb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c436bbf3be1b9f641810f3f849d1b52b8a2b51b)
+
+
+## [21.0.0] - 2025-06-10
+
+[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[743ca38](https://github.com/Nick2bad4u/FitFileViewer/commit/743ca3876dc493d686bf8ebd1e60f14be6e06a12)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...743ca3876dc493d686bf8ebd1e60f14be6e06a12))
+
+### 🚀 Features
+
+- Enhance changelog update workflow with check run integration [`(832287c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/832287c170e6ea7395c0e2e3c4269365c09b9aef)
+
+- Update GitHub workflows for improved functionality and scheduling [`(901941b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/901941b4886b15b63fe2233f897acc54318dc2fd)
+
+
+### 🐛 Bug Fixes
+
+- Update changelog generation workflow to commit changes directly and enhance clean releases configuration [`(743ca38)`](https://github.com/Nick2bad4u/FitFileViewer/commit/743ca3876dc493d686bf8ebd1e60f14be6e06a12)
+
+- Refactor release filtering logic to group by major version and improve debug output [`(0198d9c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0198d9ceee626b8ab0497f64d73fd69c61fe8078)
+
+- Add initialization step for Build Matrix Summary Table and specify shell for update step [`(bcf8692)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bcf86925c812732cfb8fca69321370e8d34f9f92)
+
+- Improve tag deletion logic and enhance debugging output in cleanReleases workflow [`(f2149ca)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f2149ca2e577459202a854fc2a43d82bed0e2bc5)
+
+- Update git user configuration for cleanReleases workflow [`(c236b8b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c236b8b1d2b93eab236cd0aafef4aad2c9beec5c)
+
+- Ensure orphan tag deletion does not fail the workflow [`(2010d9c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2010d9cefdbc63f6e46093ab61ae6c80e6d0ebc1)
+
+- Enhance error handling for orphan tag deletion in cleanReleases workflow [`(9fe58e2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9fe58e2fcfcd777458a4a131ddc4954fa10f623e)
+
+- Improve error handling for release and tag deletion in cleanReleases workflow [`(05d9621)`](https://github.com/Nick2bad4u/FitFileViewer/commit/05d962112439fce12c2bd89e200faf3c91985980)
+
+- Refactor Check Run update commands for improved readability and efficiency [`(a12b365)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a12b3651a438878dcfef6c472ac26aa99f425bf7)
+
+- Update Build and Update ChangeLogs workflows to refine paths and remove unnecessary status checks [`(dee34b5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dee34b5ee19cbdb85aae0a299d02f58fa50db00b)
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(2f6f371)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f6f37124af395d4d46fd24d0cdeccf16a27269d)
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(640e8c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/640e8c92d29454bb9d0fc19794699961a6243598)
+
 
 ### 🛠️ GitHub Actions
+
+- Update Build.yml [`(dae64aa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dae64aa4ef0f6887b9bfee1810a5129b0db0cdb6)
+
+- Update cleanReleases.yml [`(9fe7bd4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9fe7bd4e0b41fda338dcd5b53c2b78bc46c7b3aa)
+
+- Update flatpak-build.yml [`(dcecae4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dcecae4cfec9ba4ed924c86cd33a798497f8ab8f)
+
+- Update upload-macos-ia.yml [`(a2fa17b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a2fa17b9e1570d3f3bfae8e4d53624ec214856fc)
+
+- Update Build.yml [`(cb94d54)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb94d54f17a2adbda8f8f38285d6912f9b974ea6)
+
+
+### 💼 Other
+
+- Clarifies workflow name to specify local builds
+
+Updates the workflow name for improved clarity,
+indicating it handles both local builds and releases for the Electron app.
+Helps distinguish this workflow from others in environments with multiple pipelines. [`(5ad9323)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5ad9323b4bd0ed0fe0df2ce49f7d14f731f6206b)
+
+- Update workflow name to include '(My Runners)' for clarity [`(4a77b8b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4a77b8b362a4dea9ec1ddedd7d61d36d2aa7d364)
+
+- Adds multi-platform CI workflow to build and release Electron app
+
+Introduces a robust GitHub Actions workflow to automate version bumping, building, artifact management, and release publishing for the Electron app across Windows, macOS, and Linux. Handles platform-specific dependencies, build matrix, release notes generation, artifact naming, hash validation, and asset organization to streamline cross-platform distribution and ensure release integrity. [`(f577a4e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f577a4e99d3a6f344fafd69a4b8b4243da25c06c)
+
+- Updates repo metrics workflow to target repo-stats branch
+
+Enables workflow runs and metrics generation on pushes and pull requests
+to the repo-stats branch, ensuring the displayed repository metrics
+reflect changes under active development.
+
+Also updates the README to reference the metrics output from the
+repo-stats branch for accurate and current statistics. [`(870c2da)`](https://github.com/Nick2bad4u/FitFileViewer/commit/870c2da04b631ac26611007c31e62ed9e4988ee5)
+
+- Refactor workflow_run syntax in release workflows for consistency [`(aaa2351)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aaa23517d155a3c46e218137a7c42c4fe8a09c37)
+
+
+### 📦 Dependencies
+
+- Merge pull request #108 from Nick2bad4u/dependabot/github_actions/github-actions-2386549950
+
+[dependency] Update dependency group [`(80f16a1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80f16a1a3cd9dac532334ab347ff8d6484a03420)
+
+- [dependency] Update dependency group[dependency] Updates the github-actions group with 2 updates: [softprops/action-gh-release](https://github.com/softprops/action-gh-release) and [creyD/prettier_action](https://github.com/creyd/prettier_action).
+
+
+Updates `softprops/action-gh-release` from 2.2.2 to 2.3.0
+- [Release notes](https://github.com/softprops/action-gh-release/releases)
+- [Changelog](https://github.com/softprops/action-gh-release/blob/master/CHANGELOG.md)
+- [Commits](https://github.com/softprops/action-gh-release/compare/da05d552573ad5aba039eaac05058a918a7bf631...d5382d3e6f2fa7bd53cb749d33091853d4985daf)
+
+Updates `creyD/prettier_action` from 4.5 to 4.6
+- [Release notes](https://github.com/creyd/prettier_action/releases)
+- [Commits](https://github.com/creyd/prettier_action/compare/5e54c689403b43aac746a34c07656fd4cb71d822...8c18391fdc98ed0d884c6345f03975edac71b8f0)
+
+---
+updated-dependencies:
+- dependency-name: softprops/action-gh-release
+  dependency-version: 2.3.0
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: github-actions
+- dependency-name: creyD/prettier_action
+  dependency-version: '4.6'
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: github-actions
+...
+
+Signed-off-by: dependabot[bot] <support@github.com> [`(1740d00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1740d0009d7fb60fcaa4066fcdc1e666df20b548)
+
+- Update dependabot.yml [`(66e3042)`](https://github.com/Nick2bad4u/FitFileViewer/commit/66e3042c904f6e9e9a1b57e708becf639ebcb58e)
+
+- Merge pull request #104 from Nick2bad4u/dependabot/github_actions/github-actions-27328bc44d
+
+[dependency] Update dependency group [`(3b8f3cb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3b8f3cb6a83c764a150e09e013748a682027c36d)
+
+- [dependency] Update dependency group[dependency] Updates the github-actions group with 2 updates: [peter-evans/create-pull-request](https://github.com/peter-evans/create-pull-request) and [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog).
+
+
+Updates `peter-evans/create-pull-request` from 6 to 7
+- [Release notes](https://github.com/peter-evans/create-pull-request/releases)
+- [Commits](https://github.com/peter-evans/create-pull-request/compare/v6...v7)
+
+Updates `trufflesecurity/trufflehog` from 3.88.35 to 3.89.0
+- [Release notes](https://github.com/trufflesecurity/trufflehog/releases)
+- [Changelog](https://github.com/trufflesecurity/trufflehog/blob/main/.goreleaser.yml)
+- [Commits](https://github.com/trufflesecurity/trufflehog/compare/90694bf9af66e7536abc5824e7a87246dbf933cb...3fbb9e94740526c7ed73d0c7151ebdf57d8e1618)
+
+---
+updated-dependencies:
+- dependency-name: peter-evans/create-pull-request
+  dependency-version: '7'
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+  dependency-group: github-actions
+- dependency-name: trufflesecurity/trufflehog
+  dependency-version: 3.89.0
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: github-actions
+...
+
+Signed-off-by: dependabot[bot] <support@github.com> [`(ddc549f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ddc549f40076ff458c9afd959bdcc2b4b3ce7466)
+
+
+### 🛡️ Security
+
+- Adds workflow job summaries and updates dependencies
+
+Improves CI transparency by appending detailed job summaries to workflow run outputs for build, changelog, and release processes. Updates Prettier and GitHub release action to specific versions for consistency and reliability. Sets explicit permissions in macOS upload workflow to enhance security. [`(5b65bb9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b65bb96c21ad9dc92b654c25d0a9d9748757e0d)
+
+- Improves Linux menu logic and adds menu injection support
+
+Refactors Linux menu handling to remove the minimal menu fallback and adds enhanced logging for improved troubleshooting. Introduces a DevTools-accessible function allowing manual injection or reset of the application menu from the renderer, making menu debugging and development more efficient. Streamlines theme synchronization and implements safeguards to prevent invalid menu setups, boosting stability and UI consistency across platforms.
+
+Also bumps version to 20.5.0 and updates npm dependencies, including a major Jest upgrade and multiple minor and patch updates, enhancing overall security and reliability. [`(aae539e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)
+
+- Merge pull request #105 from step-security-bot/chore/GHA-092136-stepsecurity-remediation
+
+[StepSecurity] ci: Harden GitHub Actions [`(d1b5a38)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d1b5a3824fa399dad4d5643c0672d4056674e0ad)
+
+- [StepSecurity] ci: Harden GitHub Actions
+
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(2aee308)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2aee3086f285ae627aa327aa4144e41820d41a32)
+
+
+## [19.0.0] - 2025-06-07
+
+[[13eb50e](https://github.com/Nick2bad4u/FitFileViewer/commit/13eb50e1f0d67da2a731007cf26ee684e25a5f27)...[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/13eb50e1f0d67da2a731007cf26ee684e25a5f27...5debf805345db114c8a0ff6749ae0be9c5818ee5))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(f2ae023)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f2ae023ee136e38843ea242981753f1bd5e61b73)
+
+
+### 💼 Other
+
+- Enhance workflows and documentation for Flatpak build process, including versioning updates and new download options [`(5debf80)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)
+
+- Fix cache path in Flatpak build workflow to ensure correct node modules directory is used [`(324062e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/324062e4d7e71d0363b70c8c2cff1b0bdfa71bdc)
+
+- Enhance Flatpak build workflow by adding zip step for the Flatpak bundle and ensuring the dist repo is built and up-to-date before creating the bundle. [`(ddc8c19)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ddc8c198e7ae02a8a1328745f7f4ab021661191a)
+
+- Refactor cache path in Flatpak build workflow to remove redundant npm cache directory [`(1c20134)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1c20134b348705a1af0e3b50df761c3948fcca50)
+
+- Add download notes for Mac and Linux build formats in release section [`(707dffb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/707dffb892878276f01eac4f85838ee373b7f246)
+
+- Remove obsolete p5p build workflow and clean up Flatpak build step [`(7ad85db)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ad85dbc4a1e012a5d7f7e4059f30ff68da7202d)
+
+- Fix package installation command in p5p build workflow [`(71fcb6c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/71fcb6c70f47cb534b4e5037cdbe974a97af39bd)
+
+- Improve caching for node modules and ensure dist repo is always built in Flatpak workflow [`(106c001)`](https://github.com/Nick2bad4u/FitFileViewer/commit/106c001c433bf6ff5138eca8ebb041532b41a657)
+
+- Fix package installation step in p5p build workflow [`(408440f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/408440fe3641ee32967281f18d65bccfbab0f5ad)
+
+- Add check to create dist repo if it doesn't exist in Flatpak build step [`(4605895)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46058950c18f8476157ae8a33420d52ea1980c12)
+
+- Add pkg-utils installation step in p5p build workflow [`(75cbe00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/75cbe00bf6277c58b0f8b2139c46c7ec6b26895e)
+
+- Add GitHub Action workflow for building p5p Linux package using electron-builder [`(7897753)`](https://github.com/Nick2bad4u/FitFileViewer/commit/78977539d1a3fbbd2c229a007e6c1ee9ea6383ee)
+
+- Add Flatpak bundle creation step and update upload path in workflow [`(269afdb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/269afdb41c0817aff5e0a254179337d888f34de7)
+
+- Reorganize caching step for node modules in Flatpak build workflow [`(627bf10)`](https://github.com/Nick2bad4u/FitFileViewer/commit/627bf10ebbd1e4a1c3ddd464f2d2b73163f57af0)
+
+- Refactor Flatpak installation steps in GitHub Actions workflow for clarity and efficiency [`(86cc21e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/86cc21e58222259a32995585fc8221936bb193f4)
+
+- Improve Flatpak installation commands in GitHub Actions workflow [`(1663bcc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1663bcc668f4866ef9d4660a12dc0df074fc95be)
+
+- Add Flatpak repository and installation steps to build process [`(dbea3f8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dbea3f839a97d922b6edc932d70f8974c59f971d)
+
+- Add caching for node modules in GitHub Actions workflow [`(4895f98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4895f98438c2fded825737c2ea555df381c3e11f)
+
+- Fix path to Flatpak manifest in build step of GitHub Actions workflow [`(5f12067)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5f12067044e023921113eeaef7ed6d766950dbb5)
+
+- Fix path to Flatpak manifest in build step of GitHub Actions workflow [`(da8f63f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/da8f63fcfca9f0e4865d72c80eadf601cac7fd12)
+
+
+## [18.4.0] - 2025-06-07
+
+[[58249d4](https://github.com/Nick2bad4u/FitFileViewer/commit/58249d418315ca6224f2dc8b02d34647b5d36c8d)...[13eb50e](https://github.com/Nick2bad4u/FitFileViewer/commit/13eb50e1f0d67da2a731007cf26ee684e25a5f27)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/58249d418315ca6224f2dc8b02d34647b5d36c8d...13eb50e1f0d67da2a731007cf26ee684e25a5f27))
+
+### 🛠️ GitHub Actions
+
+- Update Build.yml [`(13eb50e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13eb50e1f0d67da2a731007cf26ee684e25a5f27)
+
+- Add update file sections for Windows and Mac to Build.yml [`(62862ac)`](https://github.com/Nick2bad4u/FitFileViewer/commit/62862aca1c0927ff1051543cf9802550035b5527)
+
+- Remove outdated Windows and Mac update file sections from Build.yml [`(f73e212)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f73e21224af1522824400419fb48c120cc58b85a)
+
+- Update section headers in Build.yml for clarity [`(a873388)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a873388b8447377fcd027e749e07a7547cba3d96)
+
+- Add branch input to checkout step in Build.yml for flexibility [`(dfb79d6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dfb79d6f456cbb590ed8e9018834a0dff51e4fad)
+
+- Add branch input to workflow_dispatch for Build.yml [`(66077d1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/66077d1c0d5d37d8e7009f26b437b4810633afec)
+
+
+### 💼 Other
+
+- Add Flatpak build workflow and manifest for Electron app [`(c14189e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c14189e9d12d6c34e66df37a9c86127773b4546b)
+
+- Sadd [`(9ae11e8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9ae11e8648786b5aeab6fcef75b8798c0e34c7c9)
+
+- Fdsf [`(e303673)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e3036733551280d867f59ba647ad3069482aa346)
+
+- Df# Please enter the commit message for your changes. Lines starting [`(c21b389)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c21b389b7ee7fb1c263933b1d005afa82eb784ac)
+
+- Cancel in progres [`(1c31b25)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1c31b25e78f52142dfebbf6eb99261bc4b26ef7f)
+
+- Reformat [`(45ca4e4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/45ca4e44f112820a4bd693801e0a0e75ca4ff9ff)
+
+- Rename Squirrel win32 nupkg and RELEASES for release [`(b9715eb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b9715eb1fb5bcd73b406338b7678f06bb8337d43)
+
+- Enhance GitHub Actions summary report with detailed totals for asset sizes and downloads [`(69d2206)`](https://github.com/Nick2bad4u/FitFileViewer/commit/69d2206e7f3e82fd5cdbf5cc4264a33110641543)
+
+
+### 📚 Documentation
+
+- Remove detailed auto-updater files section from Build.yml [`(93ad6a7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/93ad6a7b094900c06ed5526ac6640ffa83a792ea)
+
+- Add detailed auto-updater files section with download links for Windows and Mac [`(4b7a4bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4b7a4bcd167283bfb9b8f56270cd70062baae561)
+
+- Update section headers for auto-updater files in Build.yml [`(35c564b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/35c564b0132bf65240f711e9a5356a1e3b7f219e)
+
+- Add detailed auto-updater files section with download links for Windows and Mac [`(e2a2c0f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e2a2c0fa054b41f4ce12350a998bf137f0aa66d1)
+
+- Remove auto-updater files section from Build.yml [`(7882ba7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7882ba7f69f948a6e92c3d5857b33d32b9e3088e)
+
+- Update formatting for auto-updater files section in Build.yml [`(b0f4be1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0f4be1dadf1ab9b6c4e489336c6d81e5fd24111)
+
+- Enhance release notes with detailed merge commit information and changelog link [`(094e1eb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/094e1ebb43f5bd210c7f8ee762c9d23068b5099b)
+
+- Add auto-updater files section with download links for Windows and Mac [`(03831a3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/03831a3cb549ff75b101aa763d912b659656071f)
+
+- Fix formatting in download instructions for Windows and Mac in Build.yml [`(2c8c4f3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2c8c4f3c495698d78fdc18fb4f0fde3f0e7bbb83)
+
+- Update download instructions for Windows, macOS, and Linux in Build.yml [`(dc6f0d6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dc6f0d6ee6bb4470659c708a306209b1905fcabb)
+
+- Add download links and update release notes for FitFileViewer [`(b2bc621)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b2bc621d7cd5070585fb0b395247324325db59b2)
+
+- Add user guidance for downloading Mac and Linux versions in Build.yml [`(9b6a4c9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9b6a4c9649190f2806fe5f4f1020388cc078c378)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove outdated download links and update release notes formatting in Build.yml [`(655b504)`](https://github.com/Nick2bad4u/FitFileViewer/commit/655b5043351ea3daa2df0637226645b36d337005)
+
+- Update changelogs and scripts for versioning and GitHub Actions enhancements [`(27471d3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/27471d38f7b7749f7b57665551aeb8696b5fbcbe)
+
+
+## [17.0.0] - 2025-06-05
+
+[[ea9ba1a](https://github.com/Nick2bad4u/FitFileViewer/commit/ea9ba1a537b246d8e257744abbd9d3d08f8c6d74)...[58249d4](https://github.com/Nick2bad4u/FitFileViewer/commit/58249d418315ca6224f2dc8b02d34647b5d36c8d)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/ea9ba1a537b246d8e257744abbd9d3d08f8c6d74...58249d418315ca6224f2dc8b02d34647b5d36c8d))
+
+### 🚀 Features
+
+- Add link to full changelog in release notes [`(303bde4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/303bde43298fed31150096240d7d5a583925e95d)
+
+- Enhance drag-and-drop functionality for Zwift iframe and improve tab management [`(f37ec72)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f37ec72fb276c31e9a693a75ef7bdbb28d2055a8)
+
+- Update workflows to download all release assets and improve chart rendering options [`(55838f7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/55838f757ffcc227aef3bbe0b11a769575429e74)
+
+- Add workflows to upload Linux, macOS, and Windows distributables to Archive.org [`(b6a782d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b6a782d400f222770acbe33c8c78fabe7619f24a)
+
+- Integrate upload step to archive.org into Build workflow and remove UploadToIA workflow [`(2576d5d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2576d5dc9f7fa876ceca7bf4bb57bbfa50493e51)
+
+- Remove upload step to archive.org from Build workflow and add new UploadToIA workflow for scheduled uploads [`(507f253)`](https://github.com/Nick2bad4u/FitFileViewer/commit/507f25326becbd7b390be5f81c01ec2a2988988d)
+
+- Add support for uploading distributables to archive.org and enhance drag-and-drop functionality in the UI [`(05ff7fd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/05ff7fd76a85cba8eb20700f1df336a48d428afc)
+
+
+### 🐛 Bug Fixes
+
+- Update CI workflow to support additional architectures for Ubuntu and Windows [`(991e66c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/991e66c7130bfd8ff52aa6ae2ffb03d7a2adfbd3)
+
+- Update artifact naming conventions for macOS and Linux builds to include architecture [`(5884a77)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5884a77b8983edb22c86131a9199ee2917f13efc)
+
+- Remove pull_request trigger and paths-ignore from Build.yml [`(2626cf2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2626cf27e6f3b3881ce2b6b0aa663edc27ae33ae)
+
+- Update internet-archive-upload action to use the correct repository [`(78a101c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/78a101c6988e135588835a44381b42c5f2694a4b)
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(4c5887a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c5887a84e76c84381018a477fc7bd7d2af6849c)
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(ca4c59b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca4c59b68af77d7014a58e34e6398e9f5e77b4cc)
+
+
+### 🛠️ GitHub Actions
+
+- Update Build.yml [`(30254d0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/30254d09e0677980f1c20743f87f32b94763074b)
+
+- Update release-stats.yml [`(e42b143)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e42b1437782005c0eea4553b431e551c73298428)
+
+- Update release-stats.yml [`(b3a7a54)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b3a7a54c39001cdbfcd92a9d9ea4dbcbb0fcbd0f)
+
+- Update release-stats.yml [`(7c62afa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7c62afa7b17ad681430f45c589025a6723874745)
+
+- Create release-stats.yml [`(24f6fed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/24f6fedf5686c9578aa69c8b749f638b2487918d)
+
+- Update Build.yml [`(180e8a6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/180e8a6202b5a1b26caf83808632c3f92f44ce1a)
+
+- Update Build.yml [`(87f1147)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87f1147ba47067fea52145b35664f693d7f1fc1f)
+
+- Update Build.yml [`(fc5585e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fc5585e266f91c877303095feaf477e7bc4a1f2d)
+
+- Update Build.yml [`(6a151f1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6a151f140f10f307655f3d6eb5760b12d08b5a4b)
+
+- Update Build.yml [`(9dbfb2a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9dbfb2a690b34d6a42b1d3e4c006cacc4e452dac)
+
+- Update Build.yml [`(3d488e6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3d488e6662369cd3286ecacf9732140b311de74a)
+
+- Update Build.yml [`(2f4622f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f4622f3dcb9a423a27253d6d7382b79bbe64502)
 
 - Update build configuration and versioning
 
@@ -130,185 +506,228 @@ adds win32 versions to the CI pipeline
 - Set DEBUG_DEMB environment variable to true in build job
 - Add electron-builder configuration for macOS
 - Downgrade package version to 14.2.0 in package-lock.json
-- Remove trailing comma in stylelint configuration
+- Remove trailing comma in stylelint configuration [`(81c7b9b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/81c7b9b8ee749f6caeeb70c4d9a0ea88f3e727cd)
 
-## [14.7.0] - 2025-06-04
+- Add step to rename nsis-web latest.yml to latest-squirrel.yml for Windows [`(9f32260)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9f32260b17069c82e46ca8bd9e5c6ce7436c2ab4)
 
-### 🆕 New Version Number
+- Remove unnecessary continue-on-error flags from Build.yml steps [`(8b022ac)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8b022ac06ac7262a17232f0c23abc77535dc977d)
 
-- Bump version to 14.6.0
+- Update summary.yml [`(58ef64a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/58ef64a05770229df34546e5400a76f010476eb9)
 
-### 💼 Other
+- Update summary.yml [`(84f4f10)`](https://github.com/Nick2bad4u/FitFileViewer/commit/84f4f10bc8fa8f0f75ea09b09d91961b2c61c6ae)
 
-- Refactor Windows build file renaming process for clarity and organization
+- Update codeql.yml [`(31f1aa3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31f1aa314deb722807697ead7f2ae1bccf3fc36d)
 
-## [14.6.0] - 2025-06-04
+- Update npm-audit.yml [`(36f0aa0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/36f0aa0551b293eecfeffffb54d1e2277601d12e)
 
-### 🆕 New Version Number
+- Update npm-audit.yml [`(bedb6dd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bedb6dd1a55bf5190086dce7812860701c684f23)
 
-- Bump version to 14.5.0
+- Update npm-audit.yml [`(197c131)`](https://github.com/Nick2bad4u/FitFileViewer/commit/197c1311308ae18a8107f11305bc0dee6123db09)
 
-### 💼 Other
+- Update npm-audit.yml [`(8c70516)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8c70516e3c7b00f8415431ddcd0f6dba8cb35bfd)
 
-- Update Electron version to 36.3.2 and rename build step for clarity
+- Update upload-linux-ia.yml [`(a5064ac)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a5064ac2d6d225dc1fbe6b970f213f9744e950e7)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Update sitemap.yml [`(ce5d303)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ce5d303b7fd40cf835c81fe9a5c29207bac805be)
 
-## [14.5.0] - 2025-06-04
+- Update sitemap.yml to trigger workflow on push events only [`(991971e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/991971e4045f8ad355881fa90b829afce954ff56)
 
-### 🆕 New Version Number
+- Update jekyll-gh-pages.yml [`(a07c92d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a07c92d7036a6509c4ff617cb1bbc76975ffde01)
 
-- Bump version to 14.4.0
+- Update GitHub workflows to enhance build and linter configurations
 
-### 💼 Other
+- Modify Build.yml to include additional paths for push and pull request triggers.
+- Update mega-linter.yml to set defaults for working directory and enhance linter settings. [`(ac88886)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ac88886a8c3fc850a91c263bf9389de4cf0b95ca)
 
-- Remove fileSystem property for macOS in package.json
+- Refines GitHub Actions workflows for clarity and efficiency
 
-## [14.4.0] - 2025-06-04
+Updates release note formatting in Build.yml to ensure accurate content display. Simplifies file definition syntax in upload workflows for Linux, macOS, and Windows by consolidating file lists into single-line declarations, improving readability and maintainability. [`(9725759)`](https://github.com/Nick2bad4u/FitFileViewer/commit/97257594cf4b10401a85d71bcb97fe6f6f1b0713)
 
-### 🆕 New Version Number
+- Update Build.yml [`(13dd47c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13dd47cce34ada28fa6d453507ba735a0f2fe041)
 
-- Bump version to 14.3.0
+- Update repo-stats.yml [`(9464e4f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9464e4f6549e705d773b29855bb8a3b292817929)
 
-### 💼 Other
-
-- Refactor Windows file renaming steps and add fileSystem property for macOS in package.json
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [14.3.0] - 2025-06-04
-
-### 🆕 New Version Number
-
-- Bump version to 14.2.0
-
-### 🛠️ GitHub Actions
-
-- Remove unnecessary continue-on-error flags from Build.yml steps
-
-- Add step to rename nsis-web latest.yml to latest-squirrel.yml for Windows
 
 ### 💼 Other
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Add step to rename Squirrel win32 nupkg for release
 
-## [14.2.0] - 2025-06-04
+Renames Squirrel win32 nupkg for release clarity
 
-### 🆕 New Version Number
+Adds a workflow step to rename the Squirrel Windows 32-bit package,
+ensuring consistent and descriptive naming for release artifacts.
+Improves clarity and makes artifact identification easier during distribution. [`(58249d4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/58249d418315ca6224f2dc8b02d34647b5d36c8d)
 
-- Bump version to 14.0.0
+- Refactor release management scripts and workflows for improved asset size reporting and cleanup processes [`(224db3a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/224db3a3a48215f5bb6af5e47c81cb27e864220c)
 
-- Bump version to 14.1.0
+- Update release asset handling and auto-updater URLs for better artifact management [`(2f810dc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f810dc92434daab68d5d17c488ae0e77036dba8)
 
-### 💼 Other
+- Enhance artifact organization in release process by adding detailed logging and ensuring all distributables are copied correctly to the release-dist directory. [`(6c0b053)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6c0b053abaa1e76416f1708ab2e3f693f33f87b2)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Add GitHub Actions workflow and PowerShell script to calculate and print release asset sizes [`(e8e67f9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e8e67f9132b840583154bf983649420775c536dc)
 
-- Update version to 14.0.0 and adjust artifact naming conventions for architecture
+- Fix path handling in release distribution script for better artifact copying [`(0881de7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0881de751f565449489ce575051fb23f3ae48cc9)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Enhance README.md: Add CI badge for Electron Builds, improve formatting, and update supported builds section with detailed platform and architecture information. [`(8fcc2f3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8fcc2f37d4457c67cc559833a25f39a52afde279)
 
-## [14.0.0] - 2025-06-04
+- Add '.nupkg' pattern to file matching in Windows build steps [`(485c97f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/485c97f667f5d9e17b4ffac7274b4f47cbdee6bb)
 
-### 🆕 New Version Number
+- Refactor Electron app build command to handle architecture and OS conditions more explicitly [`(800cb9d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/800cb9dd58d1e149695fd04c06664c1477008e15)
 
-- Bump version to 13.9.0
+- Fix electron-builder command to conditionally include architecture flag for macOS builds [`(019ac48)`](https://github.com/Nick2bad4u/FitFileViewer/commit/019ac48b1667168fd8b86f2e7c6910c31cbfb1dc)
 
-### 💼 Other
+- Enhance electron-builder command to support multiple macOS architectures [`(35dc735)`](https://github.com/Nick2bad4u/FitFileViewer/commit/35dc735810cbcb04ef34ee5a24be3093f792b68d)
+
+- Fix electron-builder command to correctly handle macOS OS detection [`(0ecc4b3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0ecc4b3677f9be88232461897df52cd540dfb73c)
+
+- Add macOS 15 and 13 to CI workflow for ia32 architecture [`(1821d26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1821d2641052961d6361eab62644c97ac7fa98a1)
+
+- Update version to 15.2.0 and set CI environment variable in build workflow [`(6d6e2c8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6d6e2c86a2f0a2c87e51f74f93016192eee9180e)
+
+- Full win32 support added [`(db4737c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/db4737cfaa6dafc941ac6bdc47d47b4ebc5eb826)
+
+- Add supported builds section to README and enhance download links [`(7d123d5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7d123d5f2ca0bb94791f25efa430866d97331d9a)
+
+- Refactor Windows build file renaming process for clarity and organization [`(866717c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/866717c8ad8fa09a3165c19a93d11fdf7797e272)
+
+- Update Electron version to 36.3.2 and rename build step for clarity [`(633ee3c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/633ee3c658150f384e62f27ef0bac67f39db2a73)
+
+- Refactor Windows file renaming steps and add fileSystem property for macOS in package.json [`(5c81eab)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5c81eabd344ef357a944a9ae28c60decba1fca4c)
 
 - Adds support for 32-bit Windows auto-update feed
 
-Ensures the auto-updater uses a separate feed URL and renames the update metadata for 32-bit Windows builds, preventing conflicts with other architectures and enabling correct update detection for ia32 users.
+Ensures the auto-updater uses a separate feed URL and renames the update metadata for 32-bit Windows builds, preventing conflicts with other architectures and enabling correct update detection for ia32 users. [`(5d33f01)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d33f01455624ec6fb9e58577e591d5ee9a8b15f)
 
-## [13.9.0] - 2025-06-04
+- Add branch specification for main in push event of Build workflow [`(ac013c1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ac013c1eda948db5a81f9409e589755d80c988a5)
 
-### 🆕 New Version Number
+- Refactor build workflow and update artifact naming conventions; improve CSS stylelint rules and fix README formatting [`(7e98645)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7e98645c576e0961a125d8aa8edb4df627d43dc7)
 
-- Bump version to 13.7.0
+- Create PULL_REQUEST_TEMPLATE/pull_request_template.md [`(3e60cea)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3e60cea039b807fff4edae9ead642eb27b8821b7)
 
-- Bump version to 13.6.0
-
-- Bump version to 13.7.0
-
-- Bump version to 13.8.0
-
-### 🛠️ GitHub Actions
-
-- Update codeql.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-- Update summary.yml
-
-- Update summary.yml
-
-- Update dependabot.yml
-
-- Update dependabot.yml
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Update issue templates [`(c307863)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c307863a76ed46ce5221472e48b32acd44fc3f6a)
 
 - Refactor code structure and improve readability; no functional changes made.
-  Removed a ton of un-needed files.
+Removed a ton of un-needed files. [`(077d18c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/077d18cdbfa39b9c68b8e86abdcfbe6e9d101c15)
 
-- Update README.md
+- Update archive upload action to v1.4 in workflows
 
-- Create CONTRIBUTING.md
+Upgrades the internet-archive-upload GitHub Action from v1.3 to v1.4
+across Linux, macOS, and Windows workflows to ensure access to the
+latest features, improvements, and potential bug fixes. [`(e1f6df6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e1f6df6380fab22e0d681b994da8a1b790561a1b)
 
-- Update issue templates
+- Updates archive upload action to v1.3 in workflows
 
-- Create PULL_REQUEST_TEMPLATE/pull_request_template.md
+Switches the internet-archive-upload GitHub Action to version 1.3
+across all platform workflows to benefit from the latest fixes and
+improvements. Ensures consistency and up-to-date dependency usage. [`(b77e7e3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b77e7e322774cc890662ae0f9143b783382225dc)
+
+- Update action to 1.2 [`(98d761c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/98d761cab3017847138f014dfe29281a8cb50955)
+
+- Updates archive.org upload action to new repository
+
+Switches the GitHub Actions workflow to use an alternative maintained fork of the internet-archive-upload action for uploading distributables. Ensures continued support and compatibility with workflow dependencies. [`(cf15948)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf15948968e9e8afc8d36a71be8b2eb25bd269de)
+
+- Refactor workflows to improve path ignore patterns and update cron schedules [`(e02115e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e02115e7aef31a598897f3d09ed6b9ef392a234b)
+
+- Refactor git-sizer workflows for scheduled analysis and dispatch execution [`(5ea09b9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5ea09b9274fea53bbd365736453aedbc34c3e5ad)
+
+- Add Git Sizer workflow for repository size analysis [`(8c74ba4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8c74ba4e5cb50b02346500898b57bca183befbe9)
+
+- Refactor code structure for improved readability and maintainability [`(04ee88e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/04ee88eb465f46844c5677016c24a6a3d8fa7c13)
+
+- Add concurrency settings to superlinter and typos workflows for improved job management [`(d31616b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d31616b698ad1cba8a99899e042e4a2c95f62ed5)
+
+- Add write all perms [`(fedfafb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fedfafbee991374dc94511570ff18839bd5ddb2c)
+
+- Update MegaLinter configuration and VSCode version retrieval to improve linting and version management [`(87a3167)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87a31675aea8744d2c481046deee5a7b150d4f3c)
+
+- Add checkout step to MegaLinter workflow [`(431ec74)`](https://github.com/Nick2bad4u/FitFileViewer/commit/431ec7451fc8713c872d5ae073c0cb2ad7c76b6d)
+
+- Add FILTER_REGEX_INCLUDE to MegaLinter for electron-app directory [`(8d05de0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8d05de026665c9964809c8752b35282e70f9e40d)
+
+- Remove redundant download steps for macOS release assets [`(d5c9200)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d5c92009b4223799d79106d0b36846410ab8f2a8)
+
+- Rename download step for Windows release assets to use the correct filename [`(3e17b5f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3e17b5f5d76a7c4d72ce893f61aab599a4458eab)
+
+- Enhance workflows to download additional Linux and macOS release assets and update Windows asset identifiers [`(fa82c8b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fa82c8b7e0edd4f629e1e2d3bab473bdf9c6722e)
+
+- Refactor workflows to download and upload Linux, macOS, and Windows release assets to archive.org [`(f4758ad)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f4758ad1a837b744f2a89bb4dffca516827af4ff)
+
+- Refactor workflows to list and upload distributables to archive.org for Linux, macOS, and Windows [`(10da187)`](https://github.com/Nick2bad4u/FitFileViewer/commit/10da18726909cda98f3165a0c7965e005b272827)
+
+- Adds option to disable linters for repository git diff
+
+Introduces the `DISABLE_LINTERS` environment variable set to `REPOSITORY_GIT_DIFF` in the MegaLinter workflow, allowing selective disabling of linters based on git diff.
+
+Improves flexibility and efficiency in linting workflows by targeting specific changes. [`(071ed4a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/071ed4a7c224f8bbb388f311840d07d1d4f81f03)
+
+- Update MegaLinter configuration to set working directory and format disable linters list [`(f06ec41)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f06ec414cc64c6fb21745cf91503fbff306aa6bd)
+
+- Enhances workflows and updates dependencies
+
+- Adds exclusions for libraries and node_modules in spellcheck configuration.
+- Improves release notes generation with detailed commit information.
+- Simplifies VirusTotal artifact scanning configuration.
+- Removes redundant version checks in upload scripts for Linux, macOS, and Windows.
+- [dependency] Updates application version from 11.6.0 to 12.0.0 in package-lock.json.
+
+These changes streamline automation, improve clarity, and update dependencies for better maintainability. [`(d6ff30b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d6ff30bdb5cc4166ffbb5bacf1fda298934d547c)
+
+- Remove unused workflows and update CI configurations
+
+Deletes obsolete GitHub Actions workflows for Microsoft Defender for DevOps and OSSAR, streamlining the repository's CI setup. Updates logic in upload workflows to improve handling of archive.org metadata and switches runners to Ubuntu for macOS and Windows workflows. Adds workflow badges to README for better visibility of CI status.
+
+These changes enhance maintainability by removing unused workflows and improving the reliability and consistency of existing workflows. [`(a3ecc3e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a3ecc3e130312da693e8699eb8f3604473d81ca6)
+
+- Refactor code structure and remove redundant sections for improved readability and maintainability [`(85ec8d0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/85ec8d0b188bec04e99ea841b2239bc20229bef3)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Add changelog files for electron-app, tests, and utils [`(b9d2e0a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b9d2e0a4df3224672415510d505e98054a593934)
+
+- Update workflows for concurrency and improve artifact downloads; add badges to README [`(cbe820d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cbe820de464dba4544a1d6e33f2f72fbffb76232)
+
+
+### 📦 Dependencies
+
+- Update dependabot.yml [`(9ac7c5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9ac7c5efba0afeb322c699442fab0f697a66391c)
+
+- Update dependabot.yml [`(cfc92d3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cfc92d3a5ce5559df678d836d0ea4a2357fa4740)
+
+- Update dependabot.yml [`(ff3bef8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff3bef8b6ba4fd87a42d16cbb0ee350e98b94457)
+
+- Update dependabot.yml [`(ca8da3a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca8da3abc2c21aec3b892220f7375f54b2daabd2)
+
+- Update dependabot.yml [`(bfe3af4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bfe3af4ee823b1294b018bdb9276bd421c825fac)
+
+- Update dependabot.yml [`(fd9db7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fd9db7f15d6183ac0cabcc5c02d3eec1dcb9dadd)
+
+- Update dependabot.yml [`(5dd401f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5dd401ffb53b46109e2328b30c9d4f994719dc5f)
+
+- Update dependabot.yml [`(d4f38f4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d4f38f493e627d6a1d85de9de30e84ae54edaef1)
+
+- Update dependabot.yml [`(66fdfb4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/66fdfb4ce17f0f56970cdb43e66d4e682fa240ba)
 
 - Merge pull request #94 from Nick2bad4u/dependabot/github_actions/github-actions-7d0b73f1b5
 
-Bump the github-actions group with 2 updates
+[dependency] Update dependency group [`(c3dd4ba)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c3dd4bac2e1c95337ee779c533c9db07dec4ca1c)
 
-- Update metrics.repository.svg - [Skip GitHub Action]
+- [dependency] Update dependency group[dependency] Updates the github-actions group with 2 updates: [github/codeql-action](https://github.com/github/codeql-action) and [crate-ci/typos](https://github.com/crate-ci/typos).
 
-- Refactor build workflow and update artifact naming conventions; improve CSS stylelint rules and fix README formatting
-
-- Add branch specification for main in push event of Build workflow
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-### 🛡️ Security
-
-- Bump the github-actions group with 2 updates
-
-Bumps the github-actions group with 2 updates: [github/codeql-action](https://github.com/github/codeql-action) and [crate-ci/typos](https://github.com/crate-ci/typos).
 
 Updates `github/codeql-action` from 3.28.18 to 3.28.19
-
 - [Release notes](https://github.com/github/codeql-action/releases)
 - [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)
 - [Commits](https://github.com/github/codeql-action/compare/ff0a06e83cb2de871e5a09832bc6a81e7276941f...fca7ace96b7d713c7035871441bd52efbe39e27e)
 
 Updates `crate-ci/typos` from 1.32.0 to 1.33.1
-
 - [Release notes](https://github.com/crate-ci/typos/releases)
 - [Changelog](https://github.com/crate-ci/typos/blob/master/CHANGELOG.md)
 - [Commits](https://github.com/crate-ci/typos/compare/0f0ccba9ed1df83948f0c15026e4f5ccfce46109...b1ae8d918b6e85bd611117d3d9a3be4f903ee5e4)
 
 ---
-
 updated-dependencies:
-
 - dependency-name: github/codeql-action
   dependency-version: 3.28.19
   dependency-type: direct:production
@@ -319,1014 +738,106 @@ updated-dependencies:
   dependency-type: direct:production
   update-type: version-update:semver-minor
   dependency-group: github-actions
-  ...
+...
 
-Signed-off-by: dependabot[bot] <support@github.com>
+Signed-off-by: dependabot[bot] <support@github.com> [`(3439452)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3439452ba78079f1b2c63b96a046144fbb0fa412)
 
-## [13.7.0] - 2025-06-03
+- Update dependabot.yml [`(82e9303)`](https://github.com/Nick2bad4u/FitFileViewer/commit/82e93035f1e362a11f475ffe465c04806473a341)
 
-### 🆕 New Version Number
+- Merge pull request #90 from Nick2bad4u/dependabot/github_actions/github-actions-3f12c82615
 
-- Bump version to 13.6.0
+[dependency] Update Nick2bad4u/internet-archive-upload 1.6 in the github-actions group [`(fd646af)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fd646af0a4330f331c1eccbc434dae82f21157a1)
 
-### 💼 Other
+- [dependency] Update Nick2bad4u/internet-archive-upload in the github-actions group
 
-- Merge pull request #92 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/npm_and_yarn-2f20eee292
+[dependency] Updates the github-actions group with 1 update: [Nick2bad4u/internet-archive-upload](https://github.com/nick2bad4u/internet-archive-upload).
 
-Bump the npm_and_yarn group in /electron-app/libs/zwiftmap-main/frontend with 1 update
-
-## [13.6.0] - 2025-06-03
-
-### 🆕 New Version Number
-
-- Bump version to 13.5.0
-
-- Bump Nick2bad4u/internet-archive-upload in the github-actions group
-
-Bumps the github-actions group with 1 update: [Nick2bad4u/internet-archive-upload](https://github.com/nick2bad4u/internet-archive-upload).
 
 Updates `Nick2bad4u/internet-archive-upload` from 1.5 to 1.6
-
 - [Release notes](https://github.com/nick2bad4u/internet-archive-upload/releases)
 - [Commits](https://github.com/nick2bad4u/internet-archive-upload/compare/79b45e1106a9ac95be87ba5eb660f487437d8d6e...947bc6bdf79d0bcf816b576082fd7b503d33ddc9)
 
 ---
-
 updated-dependencies:
-
 - dependency-name: Nick2bad4u/internet-archive-upload
   dependency-version: '1.6'
   dependency-type: direct:production
   update-type: version-update:semver-minor
   dependency-group: github-actions
-  ...
+...
 
-Signed-off-by: dependabot[bot] <support@github.com>
+Signed-off-by: dependabot[bot] <support@github.com> [`(c15ab05)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c15ab058f0e0dafa0d9b24b4360df3d3700a808d)
 
-### 🛠️ GitHub Actions
-
-- Update dependabot.yml
-
-- Update npm-audit.yml
-
-- Update npm-audit.yml
-
-- Update npm-audit.yml
-
-- Update npm-audit.yml
-
-### 💼 Other
-
-- Merge pull request #90 from Nick2bad4u/dependabot/github_actions/github-actions-3f12c82615
-
-Bump Nick2bad4u/internet-archive-upload from 1.5 to 1.6 in the github-actions group
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Create CODE_OF_CONDUCT.md
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Update README.md
-
-### ⚙️ Miscellaneous Tasks
-
-- Update package.json dependencies and metadata
-
-### 🛡️ Security
-
-- Bump the npm_and_yarn group
-
-Bumps the npm_and_yarn group in /electron-app/libs/zwiftmap-main/frontend with 2 updates: and [tar-fs](https://github.com/mafintosh/tar-fs).
-
-Updates `tar-fs` from 2.1.2 to 3.0.9
-
-- [Commits](https://github.com/mafintosh/tar-fs/compare/v2.1.2...v3.0.9)
-
-Updates `tar-fs` from 3.0.8 to 3.0.9
-
-- [Commits](https://github.com/mafintosh/tar-fs/compare/v2.1.2...v3.0.9)
-
----
-
-updated-dependencies:
-
-- dependency-name: tar-fs
-  dependency-version: 3.0.9
-  dependency-type: indirect
-  dependency-group: npm_and_yarn
-- dependency-name: tar-fs
-  dependency-version: 3.0.9
-  dependency-type: indirect
-  dependency-group: npm_and_yarn
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-## [13.5.0] - 2025-06-02
-
-### 🆕 New Version Number
-
-- Bump version to 13.3.0
-
-- Bump @modelcontextprotocol/sdk from 1.11.1 to 1.12.1 in /electron-app
-
-Bumps [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) from 1.11.1 to 1.12.1.
-
-- [Release notes](https://github.com/modelcontextprotocol/typescript-sdk/releases)
-- [Commits](https://github.com/modelcontextprotocol/typescript-sdk/compare/1.11.1...1.12.1)
-
----
-
-updated-dependencies:
-
-- dependency-name: "@modelcontextprotocol/sdk"
-  dependency-version: 1.12.1
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-- Bump zod from 3.24.4 to 3.25.46 in /electron-app
-
-Bumps [zod](https://github.com/colinhacks/zod) from 3.24.4 to 3.25.46.
-
-- [Release notes](https://github.com/colinhacks/zod/releases)
-- [Commits](https://github.com/colinhacks/zod/compare/v3.24.4...v3.25.46)
-
----
-
-updated-dependencies:
-
-- dependency-name: zod
-  dependency-version: 3.25.46
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-- Bump version to 13.3.0
-
-- Bump eventsource-parser from 3.0.1 to 3.0.2 in /electron-app
-
-Bumps [eventsource-parser](https://github.com/rexxars/eventsource-parser) from 3.0.1 to 3.0.2.
-
-- [Release notes](https://github.com/rexxars/eventsource-parser/releases)
-- [Changelog](https://github.com/rexxars/eventsource-parser/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/rexxars/eventsource-parser/compare/v3.0.1...v3.0.2)
-
----
-
-updated-dependencies:
-
-- dependency-name: eventsource-parser
-  dependency-version: 3.0.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-- Bump @protobuf-ts/plugin-framework in /electron-app
-
-Bumps [@protobuf-ts/plugin-framework](https://github.com/timostamm/protobuf-ts/tree/HEAD/packages/plugin-framework) from 2.10.0 to 2.11.0.
-
-- [Release notes](https://github.com/timostamm/protobuf-ts/releases)
-- [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.0/packages/plugin-framework)
-
----
-
-updated-dependencies:
-
-- dependency-name: "@protobuf-ts/plugin-framework"
-  dependency-version: 2.11.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-- Bump version to 13.4.0
-
-- Bump version to 13.4.0
-
-### 💼 Other
-
-- Merge pull request #81 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/browser-extension/npm-all-8289ba21ba
-
-Bump the npm-all group in /electron-app/libs/zwiftmap-main/browser-extension with 29 updates
-
-- Merge pull request #85 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/modelcontextprotocol/sdk-1.12.1
-
-Bump @modelcontextprotocol/sdk from 1.11.1 to 1.12.1 in /electron-app
-
-- Merge pull request #86 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/zod-3.25.46
-
-Bump zod from 3.24.4 to 3.25.46 in /electron-app
-
-- Merge pull request #87 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/eventsource-parser-3.0.2
-
-Bump eventsource-parser from 3.0.1 to 3.0.2 in /electron-app
-
-- Merge pull request #88 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/protobuf-ts/plugin-framework-2.11.0
-
-Bump @protobuf-ts/plugin-framework from 2.10.0 to 2.11.0 in /electron-app
-
-- Merge pull request #89 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-bb89b57e2c
-
-Bump the npm-all group across 1 directory with 64 updates
-
-### 🛡️ Security
-
-- Bump the npm-all group across 1 directory with 64 updates
-
-Bumps the npm-all group with 24 updates in the /electron-app directory:
-
-| Package                                                                                                                     | From       | To         |
-| --------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
-| [@actions/artifact](https://github.com/actions/toolkit/tree/HEAD/packages/artifact)                                         | `1.1.2`    | `2.3.2`    |
-| [@eslint/css](https://github.com/eslint/css)                                                                                | `0.8.0`    | `0.8.1`    |
-| [@eslint/js](https://github.com/eslint/eslint/tree/HEAD/packages/js)                                                        | `9.26.0`   | `9.28.0`   |
-| [@kurkle/color](https://github.com/kurkle/color)                                                                            | `0.3.4`    | `0.4.0`    |
-| [electron](https://github.com/electron/electron)                                                                            | `36.2.1`   | `36.3.2`   |
-| [eslint](https://github.com/eslint/eslint)                                                                                  | `9.26.0`   | `9.28.0`   |
-| [globals](https://github.com/sindresorhus/globals)                                                                          | `16.1.0`   | `16.2.0`   |
-| [ts-jest](https://github.com/kulshekhar/ts-jest)                                                                            | `29.3.3`   | `29.3.4`   |
-| [vitest](https://github.com/vitest-dev/vitest/tree/HEAD/packages/vitest)                                                    | `3.1.3`    | `3.1.4`    |
-| [@asamuzakjp/css-color](https://github.com/asamuzaK/cssColor)                                                               | `3.1.7`    | `3.2.0`    |
-| [@babel/compat-data](https://github.com/babel/babel/tree/HEAD/packages/babel-compat-data)                                   | `7.27.2`   | `7.27.3`   |
-| [@babel/core](https://github.com/babel/babel/tree/HEAD/packages/babel-core)                                                 | `7.27.1`   | `7.27.4`   |
-| [@csstools/css-calc](https://github.com/csstools/postcss-plugins/tree/HEAD/packages/css-calc)                               | `2.1.3`    | `2.1.4`    |
-| [@csstools/css-color-parser](https://github.com/csstools/postcss-plugins/tree/HEAD/packages/css-color-parser)               | `3.0.9`    | `3.0.10`   |
-| [@csstools/media-query-list-parser](https://github.com/csstools/postcss-plugins/tree/HEAD/packages/media-query-list-parser) | `4.0.2`    | `4.0.3`    |
-| [@eslint/css-tree](https://github.com/eslint/csstree)                                                                       | `3.5.0`    | `3.5.4`    |
-| [@protobuf-ts/plugin](https://github.com/timostamm/protobuf-ts/tree/HEAD/packages/plugin)                                   | `2.10.0`   | `2.11.0`   |
-| [@sigstore/protobuf-specs](https://github.com/sigstore/protobuf-specs)                                                      | `0.4.1`    | `0.4.2`    |
-| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node)                                      | `22.15.17` | `22.15.29` |
-| [browserslist](https://github.com/browserslist/browserslist)                                                                | `4.24.5`   | `4.25.0`   |
-| [debug](https://github.com/debug-js/debug)                                                                                  | `4.4.0`    | `4.4.1`    |
-| [postcss](https://github.com/postcss/postcss)                                                                               | `8.5.3`    | `8.5.4`    |
-| [stylelint](https://github.com/stylelint/stylelint)                                                                         | `16.19.1`  | `16.20.0`  |
-| [tinypool](https://github.com/tinylibs/tinypool)                                                                            | `1.0.2`    | `1.1.0`    |
-
-Updates `@actions/artifact` from 1.1.2 to 2.3.2
-
-- [Changelog](https://github.com/actions/toolkit/blob/main/packages/artifact/RELEASES.md)
-- [Commits](https://github.com/actions/toolkit/commits/HEAD/packages/artifact)
-
-Updates `@eslint/css` from 0.8.0 to 0.8.1
-
-- [Release notes](https://github.com/eslint/css/releases)
-- [Changelog](https://github.com/eslint/css/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/eslint/css/compare/css-v0.8.0...css-v0.8.1)
-
-Updates `@eslint/js` from 9.26.0 to 9.28.0
-
-- [Release notes](https://github.com/eslint/eslint/releases)
-- [Changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/eslint/eslint/commits/v9.28.0/packages/js)
-
-Updates `@kurkle/color` from 0.3.4 to 0.4.0
-
-- [Release notes](https://github.com/kurkle/color/releases)
-- [Commits](https://github.com/kurkle/color/compare/v0.3.4...v0.4.0)
-
-Updates `electron` from 36.2.1 to 36.3.2
-
-- [Release notes](https://github.com/electron/electron/releases)
-- [Changelog](https://github.com/electron/electron/blob/main/docs/breaking-changes.md)
-- [Commits](https://github.com/electron/electron/compare/v36.2.1...v36.3.2)
-
-Updates `eslint` from 9.26.0 to 9.28.0
-
-- [Release notes](https://github.com/eslint/eslint/releases)
-- [Changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/eslint/eslint/compare/v9.26.0...v9.28.0)
-
-Updates `globals` from 16.1.0 to 16.2.0
-
-- [Release notes](https://github.com/sindresorhus/globals/releases)
-- [Commits](https://github.com/sindresorhus/globals/compare/v16.1.0...v16.2.0)
-
-Updates `ts-jest` from 29.3.3 to 29.3.4
-
-- [Release notes](https://github.com/kulshekhar/ts-jest/releases)
-- [Changelog](https://github.com/kulshekhar/ts-jest/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/kulshekhar/ts-jest/compare/v29.3.3...v29.3.4)
-
-Updates `vitest` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/vitest)
-
-Updates `@octokit/auth-token` from 4.0.0 to 2.5.0
-
-- [Release notes](https://github.com/octokit/auth-token.js/releases)
-- [Commits](https://github.com/octokit/auth-token.js/compare/v4.0.0...v2.5.0)
-
-Updates `@octokit/core` from 5.2.1 to 3.6.0
-
-- [Release notes](https://github.com/octokit/core.js/releases)
-- [Commits](https://github.com/octokit/core.js/compare/v5.2.1...v3.6.0)
-
-Updates `@octokit/graphql` from 7.1.1 to 4.8.0
-
-- [Release notes](https://github.com/octokit/graphql.js/releases)
-- [Commits](https://github.com/octokit/graphql.js/compare/v7.1.1...v4.8.0)
-
-Updates `@octokit/openapi-types` from 20.0.0 to 12.11.0
-
-- [Release notes](https://github.com/octokit/openapi-types.ts/releases)
-- [Commits](https://github.com/octokit/openapi-types.ts/commits/v12.11.0/packages/openapi-types)
-
-Updates `@octokit/plugin-retry` from 6.1.0 to 3.0.9
-
-- [Release notes](https://github.com/octokit/plugin-retry.js/releases)
-- [Commits](https://github.com/octokit/plugin-retry.js/compare/v6.1.0...v3.0.9)
-
-Updates `@octokit/types` from 12.6.0 to 6.41.0
-
-- [Release notes](https://github.com/octokit/types.ts/releases)
-- [Commits](https://github.com/octokit/types.ts/compare/v12.6.0...v6.41.0)
-
-Updates `@octokit/plugin-paginate-rest` from 9.2.2 to 2.21.3
-
-- [Release notes](https://github.com/octokit/plugin-paginate-rest.js/releases)
-- [Commits](https://github.com/octokit/plugin-paginate-rest.js/compare/v9.2.2...v2.21.3)
-
-Updates `@octokit/plugin-rest-endpoint-methods` from 10.4.1 to 5.16.2
-
-- [Release notes](https://github.com/octokit/plugin-rest-endpoint-methods.js/releases)
-- [Commits](https://github.com/octokit/plugin-rest-endpoint-methods.js/compare/v10.4.1...v5.16.2)
-
-Updates `@asamuzakjp/css-color` from 3.1.7 to 3.2.0
-
-- [Release notes](https://github.com/asamuzaK/cssColor/releases)
-- [Commits](https://github.com/asamuzaK/cssColor/compare/v3.1.7...v3.2.0)
-
-Updates `@babel/compat-data` from 7.27.2 to 7.27.3
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.3/packages/babel-compat-data)
-
-Updates `@babel/core` from 7.27.1 to 7.27.4
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.4/packages/babel-core)
-
-Updates `@babel/generator` from 7.27.1 to 7.27.3
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.3/packages/babel-generator)
-
-Updates `@babel/helper-module-transforms` from 7.27.1 to 7.27.3
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.3/packages/babel-helper-module-transforms)
-
-Updates `@babel/helpers` from 7.27.1 to 7.27.4
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.4/packages/babel-helpers)
-
-Updates `@babel/parser` from 7.27.2 to 7.27.4
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.4/packages/babel-parser)
-
-Updates `@babel/traverse` from 7.27.1 to 7.27.4
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.4/packages/babel-traverse)
-
-Updates `@babel/types` from 7.27.1 to 7.27.3
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.3/packages/babel-types)
-
-Updates `@csstools/css-calc` from 2.1.3 to 2.1.4
-
-- [Changelog](https://github.com/csstools/postcss-plugins/blob/main/packages/css-calc/CHANGELOG.md)
-- [Commits](https://github.com/csstools/postcss-plugins/commits/HEAD/packages/css-calc)
-
-Updates `@csstools/css-color-parser` from 3.0.9 to 3.0.10
-
-- [Changelog](https://github.com/csstools/postcss-plugins/blob/main/packages/css-color-parser/CHANGELOG.md)
-- [Commits](https://github.com/csstools/postcss-plugins/commits/HEAD/packages/css-color-parser)
-
-Updates `@csstools/css-parser-algorithms` from 3.0.4 to 3.0.5
-
-- [Changelog](https://github.com/csstools/postcss-plugins/blob/main/packages/css-parser-algorithms/CHANGELOG.md)
-- [Commits](https://github.com/csstools/postcss-plugins/commits/HEAD/packages/css-parser-algorithms)
-
-Updates `@csstools/css-tokenizer` from 3.0.3 to 3.0.4
-
-- [Changelog](https://github.com/csstools/postcss-plugins/blob/main/packages/css-tokenizer/CHANGELOG.md)
-- [Commits](https://github.com/csstools/postcss-plugins/commits/HEAD/packages/css-tokenizer)
-
-Updates `@csstools/media-query-list-parser` from 4.0.2 to 4.0.3
-
-- [Changelog](https://github.com/csstools/postcss-plugins/blob/main/packages/media-query-list-parser/CHANGELOG.md)
-- [Commits](https://github.com/csstools/postcss-plugins/commits/HEAD/packages/media-query-list-parser)
-
-Updates `@esbuild/win32-x64` from 0.25.4 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.4...v0.25.5)
-
-Updates `@eslint/css-tree` from 3.5.0 to 3.5.4
-
-- [Release notes](https://github.com/eslint/csstree/releases)
-- [Changelog](https://github.com/eslint/csstree/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/eslint/csstree/compare/css-tree-v3.5.0...css-tree-v3.5.4)
-
-Updates `@octokit/endpoint` from 9.0.6 to 6.0.12
-
-- [Release notes](https://github.com/octokit/endpoint.js/releases)
-- [Commits](https://github.com/octokit/endpoint.js/compare/v9.0.6...v6.0.12)
-
-Updates `@octokit/request` from 8.4.1 to 5.6.3
-
-- [Release notes](https://github.com/octokit/request.js/releases)
-- [Commits](https://github.com/octokit/request.js/compare/v8.4.1...v5.6.3)
-
-Updates `@octokit/request-error` from 5.1.1 to 2.1.0
-
-- [Release notes](https://github.com/octokit/request-error.js/releases)
-- [Commits](https://github.com/octokit/request-error.js/compare/v5.1.1...v2.1.0)
-
-Updates `@protobuf-ts/plugin` from 2.10.0 to 2.11.0
-
-- [Release notes](https://github.com/timostamm/protobuf-ts/releases)
-- [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.0/packages/plugin)
-
-Updates `@protobuf-ts/protoc` from 2.10.0 to 2.11.0
-
-- [Release notes](https://github.com/timostamm/protobuf-ts/releases)
-- [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.0/packages/protoc)
-
-Updates `@protobuf-ts/runtime-rpc` from 2.10.0 to 2.11.0
-
-- [Release notes](https://github.com/timostamm/protobuf-ts/releases)
-- [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.0/packages/runtime-rpc)
-
-Updates `@rollup/rollup-win32-x64-msvc` from 4.40.2 to 4.41.1
-
-- [Release notes](https://github.com/rollup/rollup/releases)
-- [Changelog](https://github.com/rollup/rollup/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/rollup/rollup/compare/v4.40.2...v4.41.1)
-
-Updates `@sigstore/protobuf-specs` from 0.4.1 to 0.4.2
-
-- [Release notes](https://github.com/sigstore/protobuf-specs/releases)
-- [Changelog](https://github.com/sigstore/protobuf-specs/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/sigstore/protobuf-specs/compare/v0.4.1...v0.4.2)
-
-Updates `@types/node` from 22.15.17 to 22.15.29
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node)
-
-Updates `@vitest/expect` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/expect)
-
-Updates `@vitest/mocker` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/mocker)
-
-Updates `@vitest/pretty-format` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/pretty-format)
-
-Updates `@vitest/runner` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/runner)
-
-Updates `@vitest/snapshot` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/snapshot)
-
-Updates `@vitest/spy` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/spy)
-
-Updates `@vitest/utils` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/utils)
-
-Updates `browserslist` from 4.24.5 to 4.25.0
-
-- [Release notes](https://github.com/browserslist/browserslist/releases)
-- [Changelog](https://github.com/browserslist/browserslist/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/browserslist/browserslist/compare/4.24.5...4.25.0)
-
-Updates `caniuse-lite` from 1.0.30001717 to 1.0.30001720
-
-- [Commits](https://github.com/browserslist/caniuse-lite/compare/1.0.30001717...1.0.30001720)
-
-Updates `debug` from 4.4.0 to 4.4.1
-
-- [Release notes](https://github.com/debug-js/debug/releases)
-- [Commits](https://github.com/debug-js/debug/compare/4.4.0...4.4.1)
-
-Updates `electron-to-chromium` from 1.5.151 to 1.5.161
-
-- [Changelog](https://github.com/Kilian/electron-to-chromium/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/kilian/electron-to-chromium/compare/v1.5.151...v1.5.161)
-
-Updates `esbuild` from 0.25.4 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.4...v0.25.5)
-
-Updates `postcss` from 8.5.3 to 8.5.4
-
-- [Release notes](https://github.com/postcss/postcss/releases)
-- [Changelog](https://github.com/postcss/postcss/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/postcss/postcss/compare/8.5.3...8.5.4)
-
-Updates `readable-stream` from 3.6.2 to 2.3.8
-
-- [Release notes](https://github.com/nodejs/readable-stream/releases)
-- [Commits](https://github.com/nodejs/readable-stream/compare/v3.6.2...v2.3.8)
-
-Updates `rollup` from 4.40.2 to 4.41.1
-
-- [Release notes](https://github.com/rollup/rollup/releases)
-- [Changelog](https://github.com/rollup/rollup/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/rollup/rollup/compare/v4.40.2...v4.41.1)
-
-Updates `safe-buffer` from 5.2.1 to 5.1.2
-
-- [Commits](https://github.com/feross/safe-buffer/compare/v5.2.1...v5.1.2)
-
-Updates `string_decoder` from 1.3.0 to 1.1.1
-
-- [Release notes](https://github.com/nodejs/string_decoder/releases)
-- [Commits](https://github.com/nodejs/string_decoder/compare/v1.3.0...v1.1.1)
-
-Updates `stylelint` from 16.19.1 to 16.20.0
-
-- [Release notes](https://github.com/stylelint/stylelint/releases)
-- [Changelog](https://github.com/stylelint/stylelint/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/stylelint/stylelint/compare/16.19.1...16.20.0)
-
-Updates `tinyglobby` from 0.2.13 to 0.2.14
-
-- [Release notes](https://github.com/SuperchupuDev/tinyglobby/releases)
-- [Changelog](https://github.com/SuperchupuDev/tinyglobby/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/SuperchupuDev/tinyglobby/compare/0.2.13...0.2.14)
-
-Updates `fdir` from 6.4.4 to 6.4.5
-
-- [Release notes](https://github.com/thecodrr/fdir/releases)
-- [Commits](https://github.com/thecodrr/fdir/compare/v6.4.4...v6.4.5)
-
-Updates `tinypool` from 1.0.2 to 1.1.0
-
-- [Release notes](https://github.com/tinylibs/tinypool/releases)
-- [Commits](https://github.com/tinylibs/tinypool/compare/v1.0.2...v1.1.0)
-
-Updates `vite-node` from 3.1.3 to 3.1.4
-
-- [Release notes](https://github.com/vitest-dev/vitest/releases)
-- [Commits](https://github.com/vitest-dev/vitest/commits/v3.1.4/packages/vite-node)
-
----
-
-updated-dependencies:
-
-- dependency-name: "@actions/artifact"
-  dependency-version: 2.3.2
-  dependency-type: direct:development
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@eslint/css"
-  dependency-version: 0.8.1
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@eslint/js"
-  dependency-version: 9.28.0
-  dependency-type: direct:development
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@kurkle/color"
-  dependency-version: 0.4.0
-  dependency-type: direct:development
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: electron
-  dependency-version: 36.3.2
-  dependency-type: direct:development
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: eslint
-  dependency-version: 9.28.0
-  dependency-type: direct:development
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: globals
-  dependency-version: 16.2.0
-  dependency-type: direct:development
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: ts-jest
-  dependency-version: 29.3.4
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: vitest
-  dependency-version: 3.1.4
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@octokit/auth-token"
-  dependency-version: 2.5.0
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/core"
-  dependency-version: 3.6.0
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/graphql"
-  dependency-version: 4.8.0
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/openapi-types"
-  dependency-version: 12.11.0
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/plugin-retry"
-  dependency-version: 3.0.9
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/types"
-  dependency-version: 6.41.0
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/plugin-paginate-rest"
-  dependency-version: 2.21.3
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/plugin-rest-endpoint-methods"
-  dependency-version: 5.16.2
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@asamuzakjp/css-color"
-  dependency-version: 3.2.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@babel/compat-data"
-  dependency-version: 7.27.3
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/core"
-  dependency-version: 7.27.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/generator"
-  dependency-version: 7.27.3
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/helper-module-transforms"
-  dependency-version: 7.27.3
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/helpers"
-  dependency-version: 7.27.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/parser"
-  dependency-version: 7.27.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/traverse"
-  dependency-version: 7.27.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/types"
-  dependency-version: 7.27.3
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@csstools/css-calc"
-  dependency-version: 2.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@csstools/css-color-parser"
-  dependency-version: 3.0.10
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@csstools/css-parser-algorithms"
-  dependency-version: 3.0.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@csstools/css-tokenizer"
-  dependency-version: 3.0.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@csstools/media-query-list-parser"
-  dependency-version: 4.0.3
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/win32-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@eslint/css-tree"
-  dependency-version: 3.5.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@octokit/endpoint"
-  dependency-version: 6.0.12
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/request"
-  dependency-version: 5.6.3
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@octokit/request-error"
-  dependency-version: 2.1.0
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: "@protobuf-ts/plugin"
-  dependency-version: 2.11.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@protobuf-ts/protoc"
-  dependency-version: 2.11.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@protobuf-ts/runtime-rpc"
-  dependency-version: 2.11.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@rollup/rollup-win32-x64-msvc"
-  dependency-version: 4.41.1
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@sigstore/protobuf-specs"
-  dependency-version: 0.4.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/node"
-  dependency-version: 22.15.29
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/expect"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/mocker"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/pretty-format"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/runner"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/snapshot"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/spy"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@vitest/utils"
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: browserslist
-  dependency-version: 4.25.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: caniuse-lite
-  dependency-version: 1.0.30001720
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: debug
-  dependency-version: 4.4.1
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: electron-to-chromium
-  dependency-version: 1.5.161
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: esbuild
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: postcss
-  dependency-version: 8.5.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: readable-stream
-  dependency-version: 2.3.8
-  dependency-type: indirect
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: rollup
-  dependency-version: 4.41.1
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: safe-buffer
-  dependency-version: 5.1.2
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: string_decoder
-  dependency-version: 1.1.1
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: stylelint
-  dependency-version: 16.20.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: tinyglobby
-  dependency-version: 0.2.14
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: fdir
-  dependency-version: 6.4.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: tinypool
-  dependency-version: 1.1.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: vite-node
-  dependency-version: 3.1.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-## [13.3.0] - 2025-06-01
-
-### 💼 Other
+- Update dependabot.yml [`(cc9c730)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cc9c7304d72eefc79beef30467cd333edd54f967)
 
 - Merge pull request #83 from Nick2bad4u/dependabot/github_actions/github-actions-896f5400c9
 
-Bump the github-actions group with 10 updates
+[dependency] Update dependency group [`(dd95c52)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd95c529bee2b9b3ae93110896bf1dc3661c61fd)
 
-### 🛡️ Security
+- [dependency] Update dependency group[dependency] Updates the github-actions group with 10 updates:
 
-- Bump the github-actions group with 10 updates
+| Package | From | To |
+| --- | --- | --- |
+| [actions/checkout](https://github.com/actions/checkout) | `3.6.0` | `4.2.2` |
+| [github/codeql-action](https://github.com/github/codeql-action) | `3.28.16` | `3.28.18` |
+| [actions/dependency-review-action](https://github.com/actions/dependency-review-action) | `4.7.0` | `4.7.1` |
+| [microsoft/DevSkim-Action](https://github.com/microsoft/devskim-action) | `1.0.15` | `1.0.16` |
+| [ossf/scorecard-action](https://github.com/ossf/scorecard-action) | `2.4.1` | `2.4.2` |
+| [rojopolis/spellcheck-github-actions](https://github.com/rojopolis/spellcheck-github-actions) | `0.48.0` | `0.49.0` |
+| [actions/ai-inference](https://github.com/actions/ai-inference) | `1.0.0` | `1.1.0` |
+| [super-linter/super-linter](https://github.com/super-linter/super-linter) | `7.3.0` | `7.4.0` |
+| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) | `3.88.28` | `3.88.35` |
+| [Nick2bad4u/internet-archive-upload](https://github.com/nick2bad4u/internet-archive-upload) | `1.4` | `1.5` |
 
-Bumps the github-actions group with 10 updates:
-
-| Package                                                                                       | From      | To        |
-| --------------------------------------------------------------------------------------------- | --------- | --------- |
-| [actions/checkout](https://github.com/actions/checkout)                                       | `3.6.0`   | `4.2.2`   |
-| [github/codeql-action](https://github.com/github/codeql-action)                               | `3.28.16` | `3.28.18` |
-| [actions/dependency-review-action](https://github.com/actions/dependency-review-action)       | `4.7.0`   | `4.7.1`   |
-| [microsoft/DevSkim-Action](https://github.com/microsoft/devskim-action)                       | `1.0.15`  | `1.0.16`  |
-| [ossf/scorecard-action](https://github.com/ossf/scorecard-action)                             | `2.4.1`   | `2.4.2`   |
-| [rojopolis/spellcheck-github-actions](https://github.com/rojopolis/spellcheck-github-actions) | `0.48.0`  | `0.49.0`  |
-| [actions/ai-inference](https://github.com/actions/ai-inference)                               | `1.0.0`   | `1.1.0`   |
-| [super-linter/super-linter](https://github.com/super-linter/super-linter)                     | `7.3.0`   | `7.4.0`   |
-| [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)                   | `3.88.28` | `3.88.35` |
-| [Nick2bad4u/internet-archive-upload](https://github.com/nick2bad4u/internet-archive-upload)   | `1.4`     | `1.5`     |
 
 Updates `actions/checkout` from 3.6.0 to 4.2.2
-
 - [Release notes](https://github.com/actions/checkout/releases)
 - [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)
 - [Commits](https://github.com/actions/checkout/compare/v3.6.0...11bd71901bbe5b1630ceea73d27597364c9af683)
 
 Updates `github/codeql-action` from 3.28.16 to 3.28.18
-
 - [Release notes](https://github.com/github/codeql-action/releases)
 - [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)
 - [Commits](https://github.com/github/codeql-action/compare/v3.28.16...ff0a06e83cb2de871e5a09832bc6a81e7276941f)
 
 Updates `actions/dependency-review-action` from 4.7.0 to 4.7.1
-
 - [Release notes](https://github.com/actions/dependency-review-action/releases)
 - [Commits](https://github.com/actions/dependency-review-action/compare/38ecb5b593bf0eb19e335c03f97670f792489a8b...da24556b548a50705dd671f47852072ea4c105d9)
 
 Updates `microsoft/DevSkim-Action` from 1.0.15 to 1.0.16
-
 - [Release notes](https://github.com/microsoft/devskim-action/releases)
 - [Commits](https://github.com/microsoft/devskim-action/compare/a6b6966a33b497cd3ae2ebc406edf8f4cc2feec6...4b5047945a44163b94642a1cecc0d93a3f428cc6)
 
 Updates `ossf/scorecard-action` from 2.4.1 to 2.4.2
-
 - [Release notes](https://github.com/ossf/scorecard-action/releases)
 - [Changelog](https://github.com/ossf/scorecard-action/blob/main/RELEASE.md)
 - [Commits](https://github.com/ossf/scorecard-action/compare/f49aabe0b5af0936a0987cfb85d86b75731b0186...05b42c624433fc40578a4040d5cf5e36ddca8cde)
 
 Updates `rojopolis/spellcheck-github-actions` from 0.48.0 to 0.49.0
-
 - [Release notes](https://github.com/rojopolis/spellcheck-github-actions/releases)
 - [Changelog](https://github.com/rojopolis/spellcheck-github-actions/blob/master/CHANGELOG.md)
 - [Commits](https://github.com/rojopolis/spellcheck-github-actions/compare/23dc186319866e1de224f94fe1d31b72797aeec7...584b2ae95998967a53af7fbfb7f5b15352c38748)
 
 Updates `actions/ai-inference` from 1.0.0 to 1.1.0
-
 - [Release notes](https://github.com/actions/ai-inference/releases)
 - [Commits](https://github.com/actions/ai-inference/compare/c7105a4c1e9d7e35f7677b5e6f830f5d631ce76e...d645f067d89ee1d5d736a5990e327e504d1c5a4a)
 
 Updates `super-linter/super-linter` from 7.3.0 to 7.4.0
-
 - [Release notes](https://github.com/super-linter/super-linter/releases)
 - [Changelog](https://github.com/super-linter/super-linter/blob/main/CHANGELOG.md)
 - [Commits](https://github.com/super-linter/super-linter/compare/4e8a7c2bf106c4c766c816b35ec612638dc9b6b2...12150456a73e248bdc94d0794898f94e23127c88)
 
 Updates `trufflesecurity/trufflehog` from 3.88.28 to 3.88.35
-
 - [Release notes](https://github.com/trufflesecurity/trufflehog/releases)
 - [Changelog](https://github.com/trufflesecurity/trufflehog/blob/main/.goreleaser.yml)
 - [Commits](https://github.com/trufflesecurity/trufflehog/compare/e42153d44a5e5c37c1bd0c70e074781e9edcb760...90694bf9af66e7536abc5824e7a87246dbf933cb)
 
 Updates `Nick2bad4u/internet-archive-upload` from 1.4 to 1.5
-
 - [Release notes](https://github.com/nick2bad4u/internet-archive-upload/releases)
 - [Commits](https://github.com/nick2bad4u/internet-archive-upload/compare/ecf1bdea26a78610d394e48c4162759fc00c1308...79b45e1106a9ac95be87ba5eb660f487437d8d6e)
 
 ---
-
 updated-dependencies:
-
 - dependency-name: actions/checkout
   dependency-version: 4.2.2
   dependency-type: direct:production
@@ -1377,1743 +888,150 @@ updated-dependencies:
   dependency-type: direct:production
   update-type: version-update:semver-minor
   dependency-group: github-actions
-  ...
+...
 
-Signed-off-by: dependabot[bot] <support@github.com>
+Signed-off-by: dependabot[bot] <support@github.com> [`(edfe41a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/edfe41a974da84b42ae2ab5ae6bac9ce907712d2)
 
-- Bump the npm-all group
-
-Bumps the npm-all group in /electron-app/libs/zwiftmap-main/browser-extension with 29 updates:
-
-| Package                                                                                      | From      | To         |
-| -------------------------------------------------------------------------------------------- | --------- | ---------- |
-| [@types/chrome](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/chrome)   | `0.0.318` | `0.0.326`  |
-| [@types/leaflet](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/leaflet) | `1.9.17`  | `1.9.18`   |
-| [esbuild](https://github.com/evanw/esbuild)                                                  | `0.25.3`  | `0.25.5`   |
-| [@esbuild/aix-ppc64](https://github.com/evanw/esbuild)                                       | `0.25.3`  | `0.25.5`   |
-| [@esbuild/android-arm](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/android-arm64](https://github.com/evanw/esbuild)                                   | `0.25.3`  | `0.25.5`   |
-| [@esbuild/android-x64](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/darwin-arm64](https://github.com/evanw/esbuild)                                    | `0.25.3`  | `0.25.5`   |
-| [@esbuild/darwin-x64](https://github.com/evanw/esbuild)                                      | `0.25.3`  | `0.25.5`   |
-| [@esbuild/freebsd-arm64](https://github.com/evanw/esbuild)                                   | `0.25.3`  | `0.25.5`   |
-| [@esbuild/freebsd-x64](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-arm](https://github.com/evanw/esbuild)                                       | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-arm64](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-ia32](https://github.com/evanw/esbuild)                                      | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-loong64](https://github.com/evanw/esbuild)                                   | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-mips64el](https://github.com/evanw/esbuild)                                  | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-ppc64](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-riscv64](https://github.com/evanw/esbuild)                                   | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-s390x](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/linux-x64](https://github.com/evanw/esbuild)                                       | `0.25.3`  | `0.25.5`   |
-| [@esbuild/netbsd-arm64](https://github.com/evanw/esbuild)                                    | `0.25.3`  | `0.25.5`   |
-| [@esbuild/netbsd-x64](https://github.com/evanw/esbuild)                                      | `0.25.3`  | `0.25.5`   |
-| [@esbuild/openbsd-arm64](https://github.com/evanw/esbuild)                                   | `0.25.3`  | `0.25.5`   |
-| [@esbuild/openbsd-x64](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/sunos-x64](https://github.com/evanw/esbuild)                                       | `0.25.3`  | `0.25.5`   |
-| [@esbuild/win32-arm64](https://github.com/evanw/esbuild)                                     | `0.25.3`  | `0.25.5`   |
-| [@esbuild/win32-ia32](https://github.com/evanw/esbuild)                                      | `0.25.3`  | `0.25.5`   |
-| [@esbuild/win32-x64](https://github.com/evanw/esbuild)                                       | `0.25.3`  | `0.25.5`   |
-| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node)       | `22.15.3` | `22.15.29` |
-
-Updates `@types/chrome` from 0.0.318 to 0.0.326
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/chrome)
-
-Updates `@types/leaflet` from 1.9.17 to 1.9.18
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/leaflet)
-
-Updates `esbuild` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/aix-ppc64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/android-arm` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/android-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/android-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/darwin-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/darwin-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/freebsd-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/freebsd-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-arm` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-ia32` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-loong64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-mips64el` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-ppc64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-riscv64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-s390x` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/linux-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/netbsd-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/netbsd-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/openbsd-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/openbsd-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/sunos-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/win32-arm64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/win32-ia32` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@esbuild/win32-x64` from 0.25.3 to 0.25.5
-
-- [Release notes](https://github.com/evanw/esbuild/releases)
-- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.5)
-
-Updates `@types/node` from 22.15.3 to 22.15.29
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node)
-
----
-
-updated-dependencies:
-
-- dependency-name: "@types/chrome"
-  dependency-version: 0.0.326
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/leaflet"
-  dependency-version: 1.9.18
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: esbuild
-  dependency-version: 0.25.5
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/aix-ppc64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/android-arm"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/android-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/android-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/darwin-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/darwin-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/freebsd-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/freebsd-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-arm"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-ia32"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-loong64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-mips64el"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-ppc64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-riscv64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-s390x"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/linux-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/netbsd-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/netbsd-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/openbsd-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/openbsd-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/sunos-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/win32-arm64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/win32-ia32"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@esbuild/win32-x64"
-  dependency-version: 0.25.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/node"
-  dependency-version: 22.15.29
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-## [13.4.0] - 2025-06-01
-
-### 🆕 New Version Number
-
-- Bump version to 13.2.0
-
-- Bump version to 13.3.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Merge pull request #82 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/npm-all-3319742fda
-
-Bump the npm-all group in /electron-app/libs/zwiftmap-main/backend with 34 updates
 
 ### 🛡️ Security
 
-- Bump the npm-all group
+- Improves release cleanup and updates dependencies
 
-Bumps the npm-all group in /electron-app/libs/zwiftmap-main/backend with 34 updates:
-
-| Package                                                                                              | From      | To         |
-| ---------------------------------------------------------------------------------------------------- | --------- | ---------- |
-| [@google-cloud/firestore](https://github.com/googleapis/nodejs-firestore)                            | `7.11.0`  | `7.11.1`   |
-| [@google-cloud/logging-winston](https://github.com/googleapis/nodejs-logging-winston)                | `6.0.0`   | `6.0.1`    |
-| [@sentry/node](https://github.com/getsentry/sentry-javascript)                                       | `9.15.0`  | `9.24.0`   |
-| [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser)                            | `5.2.1`   | `5.2.3`    |
-| [sharp](https://github.com/lovell/sharp)                                                             | `0.34.1`  | `0.34.2`   |
-| [@types/compression](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/compression) | `1.7.5`   | `1.8.0`    |
-| [@types/cors](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/cors)               | `2.8.17`  | `2.8.18`   |
-| [@types/express](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/express)         | `5.0.1`   | `5.0.2`    |
-| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node)               | `22.15.3` | `22.15.29` |
-| [@types/validator](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/validator)     | `13.15.0` | `13.15.1`  |
-| [tsc-watch](https://github.com/gilamran/tsc-watch)                                                   | `6.2.1`   | `7.1.1`    |
-| [google-gax](https://github.com/googleapis/gax-nodejs/tree/HEAD/gax)                                 | `4.6.0`   | `4.6.1`    |
-| [@grpc/grpc-js](https://github.com/grpc/grpc-node)                                                   | `1.13.3`  | `1.13.4`   |
-| [@img/sharp-darwin-arm64](https://github.com/lovell/sharp/tree/HEAD/npm/darwin-arm64)                | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-darwin-x64](https://github.com/lovell/sharp/tree/HEAD/npm/darwin-x64)                    | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-linux-arm](https://github.com/lovell/sharp/tree/HEAD/npm/linux-arm)                      | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-linux-arm64](https://github.com/lovell/sharp/tree/HEAD/npm/linux-arm64)                  | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-linux-s390x](https://github.com/lovell/sharp/tree/HEAD/npm/linux-s390x)                  | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-linux-x64](https://github.com/lovell/sharp/tree/HEAD/npm/linux-x64)                      | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-linuxmusl-arm64](https://github.com/lovell/sharp/tree/HEAD/npm/linuxmusl-arm64)          | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-linuxmusl-x64](https://github.com/lovell/sharp/tree/HEAD/npm/linuxmusl-x64)              | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-wasm32](https://github.com/lovell/sharp/tree/HEAD/npm/wasm32)                            | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-win32-ia32](https://github.com/lovell/sharp/tree/HEAD/npm/win32-ia32)                    | `0.34.1`  | `0.34.2`   |
-| [@img/sharp-win32-x64](https://github.com/lovell/sharp/tree/HEAD/npm/win32-x64)                      | `0.34.1`  | `0.34.2`   |
-| [@prisma/instrumentation](https://github.com/prisma/prisma/tree/HEAD/packages/instrumentation)       | `6.6.0`   | `6.8.2`    |
-| [@sentry/core](https://github.com/getsentry/sentry-javascript)                                       | `9.15.0`  | `9.24.0`   |
-| [@sentry/opentelemetry](https://github.com/getsentry/sentry-javascript)                              | `9.15.0`  | `9.24.0`   |
-| [@types/lodash](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/lodash)           | `4.17.16` | `4.17.17`  |
-| [@types/qs](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/qs)                   | `6.9.18`  | `6.14.0`   |
-| [http-cache-semantics](https://github.com/kornelski/http-cache-semantics)                            | `4.1.1`   | `4.2.0`    |
-| [import-in-the-middle](https://github.com/nodejs/import-in-the-middle)                               | `1.13.1`  | `1.14.0`   |
-| [jwa](https://github.com/brianloveswords/node-jwa)                                                   | `2.0.0`   | `2.0.1`    |
-| [pg-protocol](https://github.com/brianc/node-postgres/tree/HEAD/packages/pg-protocol)                | `1.9.5`   | `1.10.0`   |
-| [protobufjs](https://github.com/protobufjs/protobuf.js)                                              | `7.5.0`   | `7.5.3`    |
-
-Updates `@google-cloud/firestore` from 7.11.0 to 7.11.1
-
-- [Release notes](https://github.com/googleapis/nodejs-firestore/releases)
-- [Changelog](https://github.com/googleapis/nodejs-firestore/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/googleapis/nodejs-firestore/compare/v7.11.0...v7.11.1)
-
-Updates `@google-cloud/logging-winston` from 6.0.0 to 6.0.1
-
-- [Release notes](https://github.com/googleapis/nodejs-logging-winston/releases)
-- [Changelog](https://github.com/googleapis/nodejs-logging-winston/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/googleapis/nodejs-logging-winston/compare/v6.0.0...v6.0.1)
-
-Updates `@sentry/node` from 9.15.0 to 9.24.0
-
-- [Release notes](https://github.com/getsentry/sentry-javascript/releases)
-- [Changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md)
-- [Commits](https://github.com/getsentry/sentry-javascript/compare/9.15.0...9.24.0)
-
-Updates `fast-xml-parser` from 5.2.1 to 5.2.3
-
-- [Release notes](https://github.com/NaturalIntelligence/fast-xml-parser/releases)
-- [Changelog](https://github.com/NaturalIntelligence/fast-xml-parser/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/NaturalIntelligence/fast-xml-parser/compare/v5.2.1...v5.2.3)
-
-Updates `sharp` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/compare/v0.34.1...v0.34.2)
-
-Updates `@types/compression` from 1.7.5 to 1.8.0
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/compression)
-
-Updates `@types/cors` from 2.8.17 to 2.8.18
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/cors)
-
-Updates `@types/express` from 5.0.1 to 5.0.2
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/express)
-
-Updates `@types/node` from 22.15.3 to 22.15.29
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node)
-
-Updates `@types/validator` from 13.15.0 to 13.15.1
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/validator)
-
-Updates `tsc-watch` from 6.2.1 to 7.1.1
-
-- [Release notes](https://github.com/gilamran/tsc-watch/releases)
-- [Changelog](https://github.com/gilamran/tsc-watch/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/gilamran/tsc-watch/commits)
-
-Updates `google-gax` from 4.6.0 to 4.6.1
-
-- [Release notes](https://github.com/googleapis/gax-nodejs/releases)
-- [Changelog](https://github.com/googleapis/gax-nodejs/blob/main/gax/CHANGELOG.md)
-- [Commits](https://github.com/googleapis/gax-nodejs/commits/google-gax-v4.6.1/gax)
-
-Updates `@grpc/grpc-js` from 1.13.3 to 1.13.4
-
-- [Release notes](https://github.com/grpc/grpc-node/releases)
-- [Commits](https://github.com/grpc/grpc-node/compare/@grpc/grpc-js@1.13.3...@grpc/grpc-js@1.13.4)
-
-Updates `@img/sharp-darwin-arm64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/darwin-arm64)
-
-Updates `@img/sharp-darwin-x64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/darwin-x64)
-
-Updates `@img/sharp-linux-arm` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/linux-arm)
-
-Updates `@img/sharp-linux-arm64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/linux-arm64)
-
-Updates `@img/sharp-linux-s390x` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/linux-s390x)
-
-Updates `@img/sharp-linux-x64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/linux-x64)
-
-Updates `@img/sharp-linuxmusl-arm64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/linuxmusl-arm64)
-
-Updates `@img/sharp-linuxmusl-x64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/linuxmusl-x64)
-
-Updates `@img/sharp-wasm32` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/wasm32)
-
-Updates `@img/sharp-win32-ia32` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/win32-ia32)
-
-Updates `@img/sharp-win32-x64` from 0.34.1 to 0.34.2
-
-- [Release notes](https://github.com/lovell/sharp/releases)
-- [Commits](https://github.com/lovell/sharp/commits/v0.34.2/npm/win32-x64)
-
-Updates `@prisma/instrumentation` from 6.6.0 to 6.8.2
-
-- [Release notes](https://github.com/prisma/prisma/releases)
-- [Commits](https://github.com/prisma/prisma/commits/6.8.2/packages/instrumentation)
-
-Updates `@sentry/core` from 9.15.0 to 9.24.0
-
-- [Release notes](https://github.com/getsentry/sentry-javascript/releases)
-- [Changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md)
-- [Commits](https://github.com/getsentry/sentry-javascript/compare/9.15.0...9.24.0)
-
-Updates `@sentry/opentelemetry` from 9.15.0 to 9.24.0
-
-- [Release notes](https://github.com/getsentry/sentry-javascript/releases)
-- [Changelog](https://github.com/getsentry/sentry-javascript/blob/develop/CHANGELOG.md)
-- [Commits](https://github.com/getsentry/sentry-javascript/compare/9.15.0...9.24.0)
-
-Updates `@types/lodash` from 4.17.16 to 4.17.17
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/lodash)
-
-Updates `@types/qs` from 6.9.18 to 6.14.0
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/qs)
-
-Updates `http-cache-semantics` from 4.1.1 to 4.2.0
-
-- [Commits](https://github.com/kornelski/http-cache-semantics/commits)
-
-Updates `import-in-the-middle` from 1.13.1 to 1.14.0
-
-- [Release notes](https://github.com/nodejs/import-in-the-middle/releases)
-- [Changelog](https://github.com/nodejs/import-in-the-middle/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/nodejs/import-in-the-middle/compare/import-in-the-middle-v1.13.1...import-in-the-middle-v1.14.0)
-
-Updates `jwa` from 2.0.0 to 2.0.1
-
-- [Release notes](https://github.com/brianloveswords/node-jwa/releases)
-- [Commits](https://github.com/brianloveswords/node-jwa/compare/v2.0.0...v2.0.1)
-
-Updates `pg-protocol` from 1.9.5 to 1.10.0
-
-- [Changelog](https://github.com/brianc/node-postgres/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/brianc/node-postgres/commits/pg-protocol@1.10.0/packages/pg-protocol)
-
-Updates `protobufjs` from 7.5.0 to 7.5.3
-
-- [Release notes](https://github.com/protobufjs/protobuf.js/releases)
-- [Changelog](https://github.com/protobufjs/protobuf.js/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/protobufjs/protobuf.js/compare/protobufjs-v7.5.0...protobufjs-v7.5.3)
-
----
-
-updated-dependencies:
-
-- dependency-name: "@google-cloud/firestore"
-  dependency-version: 7.11.1
-  dependency-type: direct:production
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@google-cloud/logging-winston"
-  dependency-version: 6.0.1
-  dependency-type: direct:production
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@sentry/node"
-  dependency-version: 9.24.0
-  dependency-type: direct:production
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: fast-xml-parser
-  dependency-version: 5.2.3
-  dependency-type: direct:production
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: sharp
-  dependency-version: 0.34.2
-  dependency-type: direct:production
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/compression"
-  dependency-version: 1.8.0
-  dependency-type: direct:development
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@types/cors"
-  dependency-version: 2.8.18
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/express"
-  dependency-version: 5.0.2
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/node"
-  dependency-version: 22.15.29
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/validator"
-  dependency-version: 13.15.1
-  dependency-type: direct:development
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: tsc-watch
-  dependency-version: 7.1.1
-  dependency-type: direct:development
-  update-type: version-update:semver-major
-  dependency-group: npm-all
-- dependency-name: google-gax
-  dependency-version: 4.6.1
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@grpc/grpc-js"
-  dependency-version: 1.13.4
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-darwin-arm64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-darwin-x64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-linux-arm"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-linux-arm64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-linux-s390x"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-linux-x64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-linuxmusl-arm64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-linuxmusl-x64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-wasm32"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-win32-ia32"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@img/sharp-win32-x64"
-  dependency-version: 0.34.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@prisma/instrumentation"
-  dependency-version: 6.8.2
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@sentry/core"
-  dependency-version: 9.24.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@sentry/opentelemetry"
-  dependency-version: 9.24.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: "@types/lodash"
-  dependency-version: 4.17.17
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/qs"
-  dependency-version: 6.14.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: http-cache-semantics
-  dependency-version: 4.2.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: import-in-the-middle
-  dependency-version: 1.14.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: jwa
-  dependency-version: 2.0.1
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: pg-protocol
-  dependency-version: 1.10.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-- dependency-name: protobufjs
-  dependency-version: 7.5.3
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-## [13.2.0] - 2025-05-31
-
-### 🚀 Features
-
-- Add default configuration file for git-cliff
-
-- Add changelog section and update license links in README.md
-
-- Add link to full changelog in release notes
-
-### 🐛 Bug Fixes
-
-- Update internet-archive-upload action to use the correct repository
-
-- Remove pull_request trigger and paths-ignore from Build.yml
-
-### 🆕 New Version Number
-
-- Bump version to 13.1.0
-
-### 🛠️ GitHub Actions
-
-- Update jekyll-gh-pages.yml
-
-- Update sitemap.yml to trigger workflow on push events only
-
-- Update sitemap.yml
-
-- Update upload-linux-ia.yml
-
-### 💼 Other
-
-- Add Git Sizer workflow for repository size analysis
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Refactor git-sizer workflows for scheduled analysis and dispatch execution
-
-- Refactor workflows to improve path ignore patterns and update cron schedules
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- [create-pull-request] automated change
-
-- Merge pull request #72 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- [create-pull-request] automated change
-
-- Merge PR #73
-
-Automated sitemap update
-
-- [create-pull-request] automated change
-
-- Merge PR #74
-
-Automated sitemap update
-
-- [create-pull-request] automated change
-
-- Merge pull request #75 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- [create-pull-request] automated change
-
-- Merge pull request #77 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Updates archive.org upload action to new repository
-
-Switches the GitHub Actions workflow to use an alternative maintained fork of the internet-archive-upload action for uploading distributables. Ensures continued support and compatibility with workflow dependencies.
-
-- Update action to 1.2
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Updates archive upload action to v1.3 in workflows
-
-Switches the internet-archive-upload GitHub Action to version 1.3
-across all platform workflows to benefit from the latest fixes and
-improvements. Ensures consistency and up-to-date dependency usage.
-
-- Update archive upload action to v1.4 in workflows
-
-Upgrades the internet-archive-upload GitHub Action from v1.3 to v1.4
-across Linux, macOS, and Windows workflows to ensure access to the
-latest features, improvements, and potential bug fixes.
-
-- [StepSecurity] ci: Harden GitHub Actions
-
-Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
+Enhances the release cleanup script with parameters to control the number of releases to keep and optionally delete git tags, including orphan tag detection. Updates Electron, vitest, and several dev dependencies to latest versions for improved compatibility and security. Adjusts auto-updater feed URLs for better platform specificity and consistency. [`(945fcad)`](https://github.com/Nick2bad4u/FitFileViewer/commit/945fcadfcdac599ee51566c615aff5fc8ef63a0f)
 
 - Merge pull request #80 from step-security-bot/chore/GHA-301837-stepsecurity-remediation
 
-[StepSecurity] ci: Harden GitHub Actions
+[StepSecurity] ci: Harden GitHub Actions [`(8307a83)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8307a831043185f4a523362a0287361ce1c99e77)
 
-- Merge pull request #79 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/npm_and_yarn-0523d757ec
+- [StepSecurity] ci: Harden GitHub Actions
 
-Bump the npm_and_yarn group in /electron-app/libs/zwiftmap-main/frontend with 2 updates
-
-### 🛡️ Security
-
-- Bump the npm_and_yarn group
-
-Bumps the npm_and_yarn group in /electron-app/libs/zwiftmap-main/frontend with 2 updates: [fastify](https://github.com/fastify/fastify) and [netlify-cli](https://github.com/netlify/cli).
-
-Removes `fastify`
-
-Updates `netlify-cli` from 20.1.1 to 21.5.0
-
-- [Release notes](https://github.com/netlify/cli/releases)
-- [Changelog](https://github.com/netlify/cli/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/netlify/cli/compare/v20.1.1...v21.5.0)
-
----
-
-updated-dependencies:
-
-- dependency-name: fastify
-  dependency-version:
-  dependency-type: indirect
-  dependency-group: npm_and_yarn
-- dependency-name: netlify-cli
-  dependency-version: 21.5.0
-  dependency-type: direct:development
-  dependency-group: npm_and_yarn
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-## [13.1.0] - 2025-05-22
-
-### 🆕 New Version Number
-
-- Bump version to 13.0.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Refactor code structure for improved readability and maintainability
-
-## [13.0.0] - 2025-05-22
-
-### 🆕 New Version Number
-
-- Bump version to 12.9.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(8f87833)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8f87833cfed3ec7c02dc4bd454fdaa26f3281842)
 
 - Improves event handling and security, streamlines startup
 
-Refines event listener options for better touch and scroll control, enhancing responsiveness and preventing unwanted behavior. Strengthens security by blocking navigation to untrusted URLs in new and existing windows. Simplifies tab setup logic and startup functions for maintainability. Excludes certain library files from automated workflows and linting to speed up CI. Small UI and code hygiene improvements.
+Refines event listener options for better touch and scroll control, enhancing responsiveness and preventing unwanted behavior. Strengthens security by blocking navigation to untrusted URLs in new and existing windows. Simplifies tab setup logic and startup functions for maintainability. Excludes certain library files from automated workflows and linting to speed up CI. Small UI and code hygiene improvements. [`(95a1c15)`](https://github.com/Nick2bad4u/FitFileViewer/commit/95a1c15c5c64964801264db90b143e7d68620662)
 
-- [create-pull-request] automated change
+- Merge pull request #70 from step-security-bot/chore/GHA-182017-stepsecurity-remediation
 
-- Merge pull request #71 from Nick2bad4u/create-pull-request/patch
+[StepSecurity] ci: Harden GitHub Actions [`(88e29a8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/88e29a838a99a0a3ecd039411f3c41e1fb41bcb5)
 
-Automated sitemap update
+- [StepSecurity] ci: Harden GitHub Actions
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [12.9.0] - 2025-05-20
-
-### 🆕 New Version Number
-
-- Bump version to 12.8.0
-
-### 💼 Other
-
-- Improves UI robustness and fullscreen handling
-
-Refactors UI utility functions for better error handling, DOM validation, and code clarity. Enhances fullscreen logic for reliability and accessibility, including robust event management and overlay cleanup. Updates map layer attributions and usage notes, improves notification display, and adds more defensive checks throughout tab and table-related utilities. Also updates version metadata and minor menu text.
-
-These improvements aim to make the app's interface more resilient to edge cases and DOM inconsistencies while streamlining the codebase for maintainability.
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [12.8.0] - 2025-05-20
-
-### 🚀 Features
-
-- Enhance drag-and-drop functionality for Zwift iframe and improve tab management
-
-### 🆕 New Version Number
-
-- Bump version to 12.7.0
-
-### 💼 Other
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6c948de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6c948de99d0680b66b5b1e4c698bbba291208f35)
 
 - Update GitHub workflows to ignore paths except for the electron-app directory and adjust schedules
 
 Update GitHub workflows to focus on electron-app paths and adjust schedules
 
-Refines workflows to ignore all paths except those related to the electron-app directory for push and pull_request triggers, streamlining CI/CD processes. Adjusts cron schedules for gitleaks, repo-stats, and security-devops workflows to optimize execution timing. Adds workflow_dispatch inputs to scorecards for manual triggering flexibility.
+Refines workflows to ignore all paths except those related to the electron-app directory for push and pull_request triggers, streamlining CI/CD processes. Adjusts cron schedules for gitleaks, repo-stats, and security-devops workflows to optimize execution timing. Adds workflow_dispatch inputs to scorecards for manual triggering flexibility. [`(2843409)`](https://github.com/Nick2bad4u/FitFileViewer/commit/284340907019bbb51d6cf251b61f8ed79c435de8)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Update MegaLinter configuration and VSCode version retrieval to improve linting and version management
-
-- Add write all perms
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- [create-pull-request] automated change
-
-- Merge PR #67
-
-Automated sitemap update
-
-- [create-pull-request] automated change
-
-- Merge pull request #68 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-- Add concurrency settings to superlinter and typos workflows for improved job management
-
-- [StepSecurity] ci: Harden GitHub Actions
-
-Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
-
-- Merge pull request #70 from step-security-bot/chore/GHA-182017-stepsecurity-remediation
-
-[StepSecurity] ci: Harden GitHub Actions
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [12.7.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.6.0
-
-### 🛠️ GitHub Actions
-
-- Update GitHub workflows to enhance build and linter configurations
-
-- Modify Build.yml to include additional paths for push and pull request triggers.
-- Update mega-linter.yml to set defaults for working directory and enhance linter settings.
-
-## [12.6.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.5.0
-
-### 💼 Other
-
-- Add checkout step to MegaLinter workflow
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [12.5.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.4.0
-
-### 💼 Other
-
-- Enhance workflows to download additional Linux and macOS release assets and update Windows asset identifiers
-
-- Tst
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Rename download step for Windows release assets to use the correct filename
-
-- Remove redundant download steps for macOS release assets
-
-- Add FILTER_REGEX_INCLUDE to MegaLinter for electron-app directory
-
-## [12.4.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.3.0
-
-### 💼 Other
-
-- Refactor workflows to list and upload distributables to archive.org for Linux, macOS, and Windows
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Refactor workflows to download and upload Linux, macOS, and Windows release assets to archive.org
-
-## [12.3.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.2.0
-
-### 💼 Other
-
-- Update MegaLinter configuration to set working directory and format disable linters list
-
-- Adds option to disable linters for repository git diff
-
-Introduces the `DISABLE_LINTERS` environment variable set to `REPOSITORY_GIT_DIFF` in the MegaLinter workflow, allowing selective disabling of linters based on git diff.
-
-Improves flexibility and efficiency in linting workflows by targeting specific changes.
-
-## [12.2.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.1.0
-
-### 🛠️ GitHub Actions
-
-- Refines GitHub Actions workflows for clarity and efficiency
-
-Updates release note formatting in Build.yml to ensure accurate content display. Simplifies file definition syntax in upload workflows for Linux, macOS, and Windows by consolidating file lists into single-line declarations, improving readability and maintainability.
-
-## [12.1.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 12.0.0
-
-### 💼 Other
-
-- Enhances workflows and updates dependencies
-
-- Adds exclusions for libraries and node_modules in spellcheck configuration.
-- Improves release notes generation with detailed commit information.
-- Simplifies VirusTotal artifact scanning configuration.
-- Removes redundant version checks in upload scripts for Linux, macOS, and Windows.
-- Bumps application version from 11.6.0 to 12.0.0 in package-lock.json.
-
-These changes streamline automation, improve clarity, and update dependencies for better maintainability.
-
-## [12.0.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 11.9.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-### ⚙️ Miscellaneous Tasks
-
-- Update workflows for concurrency and improve artifact downloads; add badges to README
-
-## [11.9.0] - 2025-05-17
-
-### 🆕 New Version Number
-
-- Bump version to 11.8.0
-
-### 💼 Other
-
-- Remove unused workflows and update CI configurations
-
-Deletes obsolete GitHub Actions workflows for Microsoft Defender for DevOps and OSSAR, streamlining the repository's CI setup. Updates logic in upload workflows to improve handling of archive.org metadata and switches runners to Ubuntu for macOS and Windows workflows. Adds workflow badges to README for better visibility of CI status.
-
-These changes enhance maintainability by removing unused workflows and improving the reliability and consistency of existing workflows.
-
-## [11.8.0] - 2025-05-17
-
-### 🚀 Features
-
-- Update workflows to download all release assets and improve chart rendering options
-
-### 🆕 New Version Number
-
-- Bump version to 11.7.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [11.7.0] - 2025-05-17
-
-### 🚀 Features
-
-- Add workflows to upload Linux, macOS, and Windows distributables to Archive.org
-
-### 🆕 New Version Number
-
-- Bump version to 11.6.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [11.6.0] - 2025-05-17
-
-### 🚀 Features
-
-- Integrate upload step to archive.org into Build workflow and remove UploadToIA workflow
-
-### 🆕 New Version Number
-
-- Bump version to 11.5.0
-
-### 💼 Other
-
-- Merge branches 'main' and 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-### ⚙️ Miscellaneous Tasks
-
-- Bump version to 11.5.0
-
-## [11.5.0] - 2025-05-17
-
-### 🚀 Features
-
-- Remove upload step to archive.org from Build workflow and add new UploadToIA workflow for scheduled uploads
-
-### 🆕 New Version Number
-
-- Bump version to 11.4.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [11.4.0] - 2025-05-16
-
-### 🚀 Features
-
-- Add support for uploading distributables to archive.org and enhance drag-and-drop functionality in the UI
-
-### 🆕 New Version Number
-
-- Bump version to 11.3.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [11.3.0] - 2025-05-15
-
-### 🆕 New Version Number
-
-- Bump version to 11.2.0
-
-### 💼 Other
-
-- Enhances Charts and Libraries Integration
-
-Replaces outdated screenshots and descriptions in README
-Introduces new "Charts v2" tab with Chart.js support
-Adds Hammer.js for touch/pinch functionality in charts
-Updates dependencies, icons, and credits for improved clarity
-Refines tab visibility and loading behavior for better UX
-
-Enhances charts and updates documentation
-
-Introduces "Charts v2" tab with Chart.js and touch/pinch support
-Replaces outdated screenshots and descriptions in README
-Updates dependencies, icons, and credits for clarity
-Improves tab visibility and loading behavior for better UX
-
-Relates to #456
-
-## [11.2.0] - 2025-05-15
-
-### 🆕 New Version Number
-
-- Bump version to 11.1.0
-
-### ⚙️ Miscellaneous Tasks
-
-- Update dependencies and improve map rendering logic
-
-## [11.1.0] - 2025-05-15
-
-### 🆕 New Version Number
-
-- Bump version to 11.0.0
-
-### 🛠️ GitHub Actions
-
-- Update Build.yml
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [11.0.0] - 2025-05-14
-
-### 🆕 New Version Number
-
-- Bump version to 10.9.0
-
-- Bump version to 10.9.0 and enhance overlay handling in map rendering
-
-Enhances map overlay handling and updates version
-
-Improves map rendering by refining overlay management, ensuring precise zoom behavior, and adding robustness to polyline handling. Updates overlay color palette to exclude similar colors and introduces logic to highlight active overlays. Bumps application version to 10.9.0 for feature enhancement.
-
-Relates to improved user experience in map visualization.
-
-## [10.9.0] - 2025-05-14
-
-### 🆕 New Version Number
-
-- Bump version to 10.8.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Refactors and optimizes codebase formatting and structure
-
-Applies consistent formatting across files to enhance readability
-Reduces nested conditions and simplifies logic for maintainability
-Improves performance by optimizing loops and reducing redundant calculations
-Updates Prettier configuration for ES5 trailing comma style
-
-No functional changes introduced
-
-## [10.8.0] - 2025-05-13
-
-### 🆕 New Version Number
-
-- Bump version to 10.7.0
-
-### 💼 Other
-
-- Enhances map visualization and chart customization
-
-Adds refined tooltip styling and animations for Vega charts
-Improves chart theming and axis/legend configuration for clarity
-Optimizes map drawing logic and lap data handling for better accuracy
-Introduces error handling for missing location data
-
-Fixes #123
-
-## [10.7.0] - 2025-05-13
-
-### 🆕 New Version Number
-
-- Bump version to 10.6.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [10.6.0] - 2025-05-13
-
-### 🆕 New Version Number
-
-- Bump version to 10.5.0
-
-### 💼 Other
-
-- Refactor code structure and remove redundant sections for improved readability and maintainability
-
-- Update sitemap.xml with new lastmod dates and additional URLs for electron-app resources
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- [create-pull-request] automated change
-
-- Merge pull request #65 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-## [10.5.0] - 2025-05-13
-
-### 🆕 New Version Number
-
-- Bump version to 10.4.0
-
-### 💼 Other
-
-- Enhance theme handling and improve map rendering performance; update version to 10.4.0
-
-## [10.4.0] - 2025-05-12
-
-### 🆕 New Version Number
-
-- Bump version to 10.3.0
-
-### 💼 Other
-
-- Enhance GPX export button validation and improve file loading error handling
-
-## [10.3.0] - 2025-05-12
-
-### 🆕 New Version Number
-
-- Bump version to 10.2.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Enhance elevation profile button and loading overlay functionality
-
-## [10.2.0] - 2025-05-11
-
-### 🆕 New Version Number
-
-- Bump version to 10.1.0
-
-- Bump version to 10.1.0 and enhance overlay file management with accessibility checks and clear all functionality
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [10.1.0] - 2025-05-11
-
-### 🆕 New Version Number
-
-- Bump version to 10.0.0
-
-### 🛠️ GitHub Actions
-
-- Update repo-stats.yml
 
 ## [10.0.0] - 2025-05-11
 
-### 🆕 New Version Number
+[[45e22a1](https://github.com/Nick2bad4u/FitFileViewer/commit/45e22a1de6eeef84992ac114954c933955d20e59)...[ea9ba1a](https://github.com/Nick2bad4u/FitFileViewer/commit/ea9ba1a537b246d8e257744abbd9d3d08f8c6d74)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/45e22a1de6eeef84992ac114954c933955d20e59...ea9ba1a537b246d8e257744abbd9d3d08f8c6d74))
 
-- Bump version to 9.9.0
+### 🚀 Features
+
+- Add dmg-license workaround for macOS builds [`(0ccadbc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0ccadbc15e85914094ad3a0344b73a1c53d611c2)
+
+- Update ESLint installation commands and bump version to 9.2.0 [`(7989023)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7989023379903e0201cfc19c102e8042d836aa37)
+
+- Update Node.js version to 20 in workflows [`(106a149)`](https://github.com/Nick2bad4u/FitFileViewer/commit/106a149f47fc0291246bb2ede3625de104419ea4)
+
+
+### 🐛 Bug Fixes
+
+- Simplify npm cache path for Windows builds [`(86376f4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/86376f4bc414ab78fba2e4cfd331418c4951e721)
+
+
+### 🛠️ GitHub Actions
+
+- Update eslint.yml [`(8127a6b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8127a6b2b5f96bd00eeba08f0e7eeed9bfaa8e4c)
+
 
 ### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
 
 - Enhances map overlay functionality and fixes workflow issues
 
 Refines map rendering with dynamic overlay highlights and improved color management. Updates tooltip display to include filenames and enhances UI accessibility. Exports color palette for consistency across components.
 
-Fixes unsupported input in repo-stats workflow and corrects artifact path in eslint workflow. Updates dependencies to version 9.9.0.
+Fixes unsupported input in repo-stats workflow and corrects artifact path in eslint workflow. Updates dependencies to version 9.9.0. [`(ea9ba1a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ea9ba1a537b246d8e257744abbd9d3d08f8c6d74)
 
-## [9.9.0] - 2025-05-10
-
-### 🆕 New Version Number
-
-- Bump version to 9.8.0
-
-### 💼 Other
-
-- Enhance map rendering functionality with fit file overlays and new controls
-
-- Integrated functionality to add fit files to the map, including a button for adding fit files and a list to display shown files.
-- Implemented overlay drawing for loaded fit files, allowing for visual representation on the map.
-- Updated marker count selector to refresh the shown files list when the marker count changes.
-- Improved map controls by adding a simple measurement tool and ensuring proper bounds fitting for overlays.
-- Added favicon.ico to the project.
-
-## [9.8.0] - 2025-05-10
-
-### 🆕 New Version Number
-
-- Bump version to 9.7.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [9.7.0] - 2025-05-10
-
-### 🆕 New Version Number
-
-- Bump version to 9.6.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Merge pull request #64 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-37eee9a49a
-
-Bump the npm-all group across 1 directory with 11 updates
-
-### ⚙️ Miscellaneous Tasks
-
-- Update package versions and improve workflow configurations
-
-### 🛡️ Security
-
-- Bump the npm-all group across 1 directory with 11 updates
-
-Bumps the npm-all group with 10 updates in the /electron-app directory:
-
-| Package                                                                                                                 | From      | To         |
-| ----------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
-| [@babel/compat-data](https://github.com/babel/babel/tree/HEAD/packages/babel-compat-data)                               | `7.27.1`  | `7.27.2`   |
-| [@babel/helper-compilation-targets](https://github.com/babel/babel/tree/HEAD/packages/babel-helper-compilation-targets) | `7.27.1`  | `7.27.2`   |
-| [@babel/parser](https://github.com/babel/babel/tree/HEAD/packages/babel-parser)                                         | `7.27.1`  | `7.27.2`   |
-| [@babel/template](https://github.com/babel/babel/tree/HEAD/packages/babel-template)                                     | `7.27.1`  | `7.27.2`   |
-| [@electron/windows-sign](https://github.com/electron/windows-sign)                                                      | `1.2.1`   | `1.2.2`    |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)                                     | `1.11.0`  | `1.11.1`   |
-| [@types/node](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/node)                                  | `22.15.3` | `22.15.17` |
-| [browserslist](https://github.com/browserslist/browserslist)                                                            | `4.24.4`  | `4.24.5`   |
-| [eventsource](https://github.com/EventSource/eventsource)                                                               | `3.0.6`   | `3.0.7`    |
-| [http-cache-semantics](https://github.com/kornelski/http-cache-semantics)                                               | `4.1.1`   | `4.2.0`    |
-
-Updates `@babel/compat-data` from 7.27.1 to 7.27.2
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.2/packages/babel-compat-data)
-
-Updates `@babel/helper-compilation-targets` from 7.27.1 to 7.27.2
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.2/packages/babel-helper-compilation-targets)
-
-Updates `@babel/parser` from 7.27.1 to 7.27.2
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.2/packages/babel-parser)
-
-Updates `@babel/template` from 7.27.1 to 7.27.2
-
-- [Release notes](https://github.com/babel/babel/releases)
-- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/babel/babel/commits/v7.27.2/packages/babel-template)
-
-Updates `@electron/windows-sign` from 1.2.1 to 1.2.2
-
-- [Release notes](https://github.com/electron/windows-sign/releases)
-- [Changelog](https://github.com/electron/windows-sign/blob/main/.releaserc.json)
-- [Commits](https://github.com/electron/windows-sign/compare/v1.2.1...v1.2.2)
-
-Updates `@modelcontextprotocol/sdk` from 1.11.0 to 1.11.1
-
-- [Release notes](https://github.com/modelcontextprotocol/typescript-sdk/releases)
-- [Commits](https://github.com/modelcontextprotocol/typescript-sdk/compare/1.11.0...1.11.1)
-
-Updates `@types/node` from 22.15.3 to 22.15.17
-
-- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)
-- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/node)
-
-Updates `browserslist` from 4.24.4 to 4.24.5
-
-- [Release notes](https://github.com/browserslist/browserslist/releases)
-- [Changelog](https://github.com/browserslist/browserslist/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/browserslist/browserslist/compare/4.24.4...4.24.5)
-
-Updates `electron-to-chromium` from 1.5.148 to 1.5.151
-
-- [Changelog](https://github.com/Kilian/electron-to-chromium/blob/master/CHANGELOG.md)
-- [Commits](https://github.com/kilian/electron-to-chromium/compare/v1.5.148...v1.5.151)
-
-Updates `eventsource` from 3.0.6 to 3.0.7
-
-- [Release notes](https://github.com/EventSource/eventsource/releases)
-- [Changelog](https://github.com/EventSource/eventsource/blob/main/CHANGELOG.md)
-- [Commits](https://github.com/EventSource/eventsource/compare/v3.0.6...v3.0.7)
-
-Updates `http-cache-semantics` from 4.1.1 to 4.2.0
-
-- [Commits](https://github.com/kornelski/http-cache-semantics/commits)
-
----
-
-updated-dependencies:
-
-- dependency-name: "@babel/compat-data"
-  dependency-version: 7.27.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/helper-compilation-targets"
-  dependency-version: 7.27.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/parser"
-  dependency-version: 7.27.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@babel/template"
-  dependency-version: 7.27.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@electron/windows-sign"
-  dependency-version: 1.2.2
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@modelcontextprotocol/sdk"
-  dependency-version: 1.11.1
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: "@types/node"
-  dependency-version: 22.15.17
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: browserslist
-  dependency-version: 4.24.5
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: electron-to-chromium
-  dependency-version: 1.5.151
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: eventsource
-  dependency-version: 3.0.7
-  dependency-type: indirect
-  update-type: version-update:semver-patch
-  dependency-group: npm-all
-- dependency-name: http-cache-semantics
-  dependency-version: 4.2.0
-  dependency-type: indirect
-  update-type: version-update:semver-minor
-  dependency-group: npm-all
-  ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-## [9.6.0] - 2025-05-10
-
-### 🚀 Features
-
-- Add dmg-license workaround for macOS builds
-
-### 🐛 Bug Fixes
-
-- Simplify npm cache path for Windows builds
-
-### 🆕 New Version Number
-
-- Bump version to 9.5.0
-
-## [9.5.0] - 2025-05-09
-
-### 🆕 New Version Number
-
-- Bump version to 9.4.0
 
 ### 🚜 Refactor
 
-- Remove unused VS Code extension files and assets
+- Remove unused VS Code extension files and assets [`(5dee8ce)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5dee8ce6b99dfcb7c38b3a18220009aa39a1c3e8)
 
-## [9.4.0] - 2025-05-09
 
-### 🆕 New Version Number
+### ⚙️ Miscellaneous Tasks
 
-- Bump version to 9.3.0
+- Update package versions and improve workflow configurations [`(353eea0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/353eea0cfa5ee42c3182a86e3faecc5b2d77a3d3)
 
-### 🛠️ GitHub Actions
-
-- Update eslint.yml
-
-## [9.3.0] - 2025-05-09
-
-### 🚀 Features
-
-- Update ESLint installation commands and bump version to 9.2.0
-
-### 🆕 New Version Number
-
-- Bump version to 9.2.0
-
-## [9.2.0] - 2025-05-09
-
-### 🚀 Features
-
-- Update Node.js version to 20 in workflows
-
-### 🆕 New Version Number
-
-- Bump version to 9.1.0
-
-## [9.1.0] - 2025-05-09
-
-### 🆕 New Version Number
-
-- Bump version to 9.0.0
-
-### 💼 Other
-
-- Merge branch 'main' into chore/GHA-090317-stepsecurity-remediation
-
-- Merge pull request #61 from step-security-bot/chore/GHA-090317-stepsecurity-remediation
-
-[StepSecurity] ci: Harden GitHub Actions
-
-## [9.0.0] - 2025-05-09
-
-### 🆕 New Version Number
-
-- Bump version to 8.9.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-- [StepSecurity] ci: Harden GitHub Actions
-
-Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
-
-- Merge pull request #60 from Nick2bad4u/dependabot/github_actions/github-actions-0ba9d3d503
-
-Bump the github-actions group with 3 updates
 
 ### 🛡️ Security
 
-- Bump the github-actions group with 3 updates
+- Merge pull request #61 from step-security-bot/chore/GHA-090317-stepsecurity-remediation
 
-Bumps the github-actions group with 3 updates: [actions/dependency-review-action](https://github.com/actions/dependency-review-action), [google/osv-scanner-action](https://github.com/google/osv-scanner-action) and [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog).
+[StepSecurity] ci: Harden GitHub Actions [`(ba8e3e4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ba8e3e4e5f4d31abe01ecf1dd9168825d387a493)
+
+- [chore] Merge Branch 'main' into chore/GHA-090317-stepsecurity-remediation [`(4c3e6b9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c3e6b92c5018bb50ef8d19ac2bbed83562f32eb)
+
+
+## [9.0.0] - 2025-05-09
+
+[[f7f3de8](https://github.com/Nick2bad4u/FitFileViewer/commit/f7f3de831c09658b6c78e414fd7ab27d148baed9)...[45e22a1](https://github.com/Nick2bad4u/FitFileViewer/commit/45e22a1de6eeef84992ac114954c933955d20e59)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f7f3de831c09658b6c78e414fd7ab27d148baed9...45e22a1de6eeef84992ac114954c933955d20e59))
+
+### 🚀 Features
+
+- Update GitHub workflows with concurrency settings and add new badges to README [`(4ec7375)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4ec7375d9152866d92948135f2bc85f4588b0028)
+
+- Update GitHub workflows for improved linting and scanning processes [`(c7e0304)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7e030415cf69e25ba5674b857b87058ec44247b)
+
+- Update Node.js version in Electronegativity workflow and remove unused plugins from repo-stats workflow [`(3a16d20)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a16d203c9d8a475ea8167c100bf96136c967065)
+
+- Add GitHub Actions for Electronegativity Scan and VSCode Version Matrix [`(fbdf2c0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fbdf2c0c1fed67578e056b5b7813e79c54d61334)
+
+- Enhance Electron app functionality and UI [`(012b014)`](https://github.com/Nick2bad4u/FitFileViewer/commit/012b0141eb04038847bdbae1e4e56ae2ab74af8e)
+
+
+### 🛠️ GitHub Actions
+
+- Update electronegativity.yml [`(15d7770)`](https://github.com/Nick2bad4u/FitFileViewer/commit/15d7770c065e340ea31428ae068589e3b8b4474c)
+
+- Update trugglehog.yml [`(74fbcb1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/74fbcb14b1cdc6fb272ddb5d8f050b9503c8ea06)
+
+- Update osv-scanner.yml [`(dd948a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd948a2309d30f50a612705cf6462a09cecf2ed3)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update GitHub Actions workflows and dependencies; fix badge link in README [`(c401c26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c401c26b48c572958c7a8cb8a3e58fd556c88d12)
+
+
+### 📦 Dependencies
+
+- Merge pull request #60 from Nick2bad4u/dependabot/github_actions/github-actions-0ba9d3d503
+
+[dependency] Update dependency group [`(45e22a1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/45e22a1de6eeef84992ac114954c933955d20e59)
+
+- [dependency] Update dependency group[dependency] Updates the github-actions group with 3 updates: [actions/dependency-review-action](https://github.com/actions/dependency-review-action), [google/osv-scanner-action](https://github.com/google/osv-scanner-action) and [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog).
+
 
 Updates `actions/dependency-review-action` from 4.6.0 to 4.7.0
-
 - [Release notes](https://github.com/actions/dependency-review-action/releases)
 - [Commits](https://github.com/actions/dependency-review-action/compare/ce3cf9537a52e8119d91fd484ab5b8a807627bf8...38ecb5b593bf0eb19e335c03f97670f792489a8b)
 
 Updates `google/osv-scanner-action` from 2.0.1 to 2.0.2
-
 - [Release notes](https://github.com/google/osv-scanner-action/releases)
 - [Commits](https://github.com/google/osv-scanner-action/compare/6fc714450122bda9d00e4ad5d639ad6a39eedb1f...e69cc6c86b31f1e7e23935bbe7031b50e51082de)
 
 Updates `trufflesecurity/trufflehog` from 3.88.28 to 3.88.29
-
 - [Release notes](https://github.com/trufflesecurity/trufflehog/releases)
 - [Changelog](https://github.com/trufflesecurity/trufflehog/blob/main/.goreleaser.yml)
 - [Commits](https://github.com/trufflesecurity/trufflehog/compare/v3.88.28...v3.88.29)
 
 ---
-
 updated-dependencies:
-
 - dependency-name: actions/dependency-review-action
   dependency-version: 4.7.0
   dependency-type: direct:production
@@ -3129,17 +1047,16 @@ updated-dependencies:
   dependency-type: direct:production
   update-type: version-update:semver-patch
   dependency-group: github-actions
-  ...
+...
 
-Signed-off-by: dependabot[bot] <support@github.com>
+Signed-off-by: dependabot[bot] <support@github.com> [`(09f20a5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09f20a5bd8482863560b9ebbae13c1352416cdb7)
 
-## [8.9.0] - 2025-05-09
 
-### 🆕 New Version Number
+### 🛡️ Security
 
-- Bump version to 8.8.0
+- [StepSecurity] ci: Harden GitHub Actions
 
-### 💼 Other
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(72b041f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/72b041f295317b56a7223dffe6e7cc9fb94a650f)
 
 - Refactor GitHub Actions workflows and enhance application features
 
@@ -3153,138 +1070,39 @@ Signed-off-by: dependabot[bot] <support@github.com>
 - Implemented tab button enabling/disabling functionality in main UI and utility functions.
 - Added hover effects and improved close button functionality in about modal.
 - Removed unnecessary tsconfig.json file.
-- Created enableTabButtons.js utility to manage tab button states.
+- Created enableTabButtons.js utility to manage tab button states. [`(ccacc58)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ccacc58627a7877220fa43fd16da97a3f9db74d2)
 
-## [8.8.0] - 2025-05-08
-
-### 🆕 New Version Number
-
-- Bump version to 8.7.0
-
-### 🛠️ GitHub Actions
-
-- Update electronegativity.yml
-
-## [8.7.0] - 2025-05-08
-
-### 🆕 New Version Number
-
-- Bump version to 8.6.0
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-### ⚙️ Miscellaneous Tasks
-
-- Update GitHub Actions workflows and dependencies; fix badge link in README
-
-## [8.6.0] - 2025-05-08
-
-### 🚀 Features
-
-- Update GitHub workflows with concurrency settings and add new badges to README
-
-### 🆕 New Version Number
-
-- Bump version to 8.5.0
-
-## [8.5.0] - 2025-05-08
-
-### 🆕 New Version Number
-
-- Bump version to 8.4.0
-
-### 🛠️ GitHub Actions
-
-- Update trugglehog.yml
-
-### 💼 Other
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [8.4.0] - 2025-05-08
-
-### 🚀 Features
-
-- Update GitHub workflows for improved linting and scanning processes
-
-### 🆕 New Version Number
-
-- Bump version to 8.3.0
-
-## [8.3.0] - 2025-05-08
-
-### 🆕 New Version Number
-
-- Bump version to 8.2.0
-
-### 🛠️ GitHub Actions
-
-- Update osv-scanner.yml
-
-## [8.2.0] - 2025-05-08
-
-### 🚀 Features
-
-- Add GitHub Actions for Electronegativity Scan and VSCode Version Matrix
-
-- Update Node.js version in Electronegativity workflow and remove unused plugins from repo-stats workflow
-
-### 🆕 New Version Number
-
-- Bump version to 8.1.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Update metrics.repository.svg - [Skip GitHub Action]
-
-## [8.1.0] - 2025-05-08
-
-### 🚀 Features
-
-- Enhance Electron app functionality and UI
-
-### 🆕 New Version Number
-
-- Bump version to 8.0.0
 
 ## [8.0.0] - 2025-05-07
 
-### 🆕 New Version Number
+[[1a61d0e](https://github.com/Nick2bad4u/FitFileViewer/commit/1a61d0ed75293d109c66c84369d708fcfe8e9591)...[f7f3de8](https://github.com/Nick2bad4u/FitFileViewer/commit/f7f3de831c09658b6c78e414fd7ab27d148baed9)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1a61d0ed75293d109c66c84369d708fcfe8e9591...f7f3de831c09658b6c78e414fd7ab27d148baed9))
 
-- Bump version to 7.9.0
+### 🚀 Features
+
+- Enhance UI and functionality with modern modal dialog and improved notifications [`(2a544bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2a544bc72bf7513bdf3ffe77a452b72760511ee4)
+
+- Update credits section in index.html and enhance accessibility features in the app menu [`(94b964c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/94b964c73525caf9fd9b7166000ec22368057dcb)
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(3e10be8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3e10be8bdb8ff033a1f00d9f667183c93c21369f)
+
+
+### 🛠️ GitHub Actions
+
+- Create devskim.yml [`(e0888ab)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e0888ab16ca35ef5c126415c159de5fa485caa2c)
+
 
 ### 💼 Other
 
 - Add Vitest configuration and Stylelint configuration files
 
 - Created vitest.config.js to set up testing environment with jsdom and specified setup files.
-- Added stylelint.config.js to enforce standard stylelint rules, including preventing empty blocks.
+- Added stylelint.config.js to enforce standard stylelint rules, including preventing empty blocks. [`(f7f3de8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f7f3de831c09658b6c78e414fd7ab27d148baed9)
 
-## [7.9.0] - 2025-05-07
 
-### 🆕 New Version Number
-
-- Bump version to 7.8.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [7.8.0] - 2025-05-07
-
-### 🆕 New Version Number
-
-- Bump version to 7.7.0
-
-### 🛠️ GitHub Actions
-
-- Create devskim.yml
-
-### 💼 Other
+### 🛡️ Security
 
 - Refactor and enhance Electron app functionality
 
@@ -3295,1575 +1113,276 @@ Signed-off-by: dependabot[bot] <support@github.com>
 - Removed package-lock.json and package.json to streamline dependencies.
 - Introduced GitHub Actions workflows for automated greetings, security scanning with Sobelow, style linting, and code linting with Super Linter.
 - Added screenfull.min.js library for fullscreen functionality.
-- Implemented setupWindow.js to manage window load events and tab interactions more efficiently.
+- Implemented setupWindow.js to manage window load events and tab interactions more efficiently. [`(a27cf89)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a27cf8946699acf9c65a5799041abce0c653bc3e)
 
-## [7.7.0] - 2025-05-07
-
-### 🚀 Features
-
-- Refactor UI components and enhance fullscreen functionality with new utilities
-
-### 🆕 New Version Number
-
-- Bump version to 7.6.0
-
-## [7.6.0] - 2025-05-06
-
-### 🚀 Features
-
-- Enhance UI and functionality with modern modal dialog and improved notifications
-
-### 🆕 New Version Number
-
-- Bump version to 7.5.0
-
-## [7.5.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 7.4.0
-
-### 💼 Other
-
-- [create-pull-request] automated change
-
-- Merge pull request #59 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-## [7.4.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 7.2.0
-
-### 💼 Other
-
-- Update package.json
-
-## [7.2.0] - 2025-05-06
-
-### 🚀 Features
-
-- Update credits section in index.html and enhance accessibility features in the app menu
-
-### 🆕 New Version Number
-
-- Bump version to 7.1.0
 
 ## [7.1.0] - 2025-05-06
 
-### 🚀 Features
-
-- Update version to 7.0.0 and enhance workflow error handling
-
-### 🆕 New Version Number
-
-- Bump version to 7.0.0
-
-## [7.0.0] - 2025-05-06
+[[36ba8e7](https://github.com/Nick2bad4u/FitFileViewer/commit/36ba8e7a4b311980ad425746fed7408200dd7675)...[1a61d0e](https://github.com/Nick2bad4u/FitFileViewer/commit/1a61d0ed75293d109c66c84369d708fcfe8e9591)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/36ba8e7a4b311980ad425746fed7408200dd7675...1a61d0ed75293d109c66c84369d708fcfe8e9591))
 
 ### 🚀 Features
 
-- Enhance accessibility features with font size and high contrast options
+- Update version to 7.0.0 and enhance workflow error handling [`(1a61d0e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1a61d0ed75293d109c66c84369d708fcfe8e9591)
 
-### 🆕 New Version Number
+- Enhance accessibility features with font size and high contrast options [`(2ae1eb2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2ae1eb2bd1d40d766947b41a8d7f71def0a98928)
 
-- Bump version to 6.9.0
 
-## [6.9.0] - 2025-05-06
+### 🔀 Merge Commits
 
-### 🆕 New Version Number
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(f576138)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f5761380971bf9b74865cd5b2bd5bac52ddcea10)
 
-- Bump version to 6.8.0
-
-### 💼 Other
-
-- Implement fullscreen toggle functionality and update version to 6.8.0
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [6.8.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 6.7.0
-
-### 💼 Other
-
-- Enhance application menu with About and Keyboard Shortcuts options, and enable restart after updates
-
-## [6.7.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 6.6.0
-
-### 💼 Other
-
-- Refactor code structure for improved readability and maintainability
-
-## [6.6.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 6.5.0 and remove macOS App Store target from build configurations
-
-- Bump version to 6.5.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [6.5.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 6.4.0
-
-### 💼 Other
-
-- Remove deprecated artifact names from package.json and standardize appImage key
-
-## [6.4.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 6.3.0
-
-- Bump version to 6.4.0
-
-### 💼 Other
-
-- Update version to 6.3.0 and enhance artifact handling in package.json; modify buildAppMenu.js for menu item updates
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Update version to 6.3.0 and enhance update notification handling in renderer.js
-
-## [6.3.0] - 2025-05-06
-
-### 🆕 New Version Number
-
-- Bump version to 6.1.0
-
-- Bump version to 6.2.0 in package.json
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [6.1.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 6.0.0
 
 ### 🛠️ GitHub Actions
 
-- Update Build.yml
+- Update Build.yml [`(6d34bb4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6d34bb41175ce49a34469ab3a2542cb12307b538)
+
+- Update version to 5.6.0 in package-lock.json and improve indentation in Build.yml [`(6de66a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6de66a2a22cb5b94e8444e9e0d2ca275b58bb0ee)
+
+- Update version to 5.5.0 in package-lock.json and enhance SHA512 handling in Build.yml [`(978ff5c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/978ff5c13619fa382c5fd49f032e629a2a32e02e)
+
+- Update version to 5.4.0 in package-lock.json and improve SHA512 handling in Build.yml [`(fb47f6b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fb47f6b98fdec7d6f985a500d846aaf070571bfe)
+
+- Fix sha512 checksums in latest.yml files for accurate artifact verification [`(62e1600)`](https://github.com/Nick2bad4u/FitFileViewer/commit/62e1600815c3b46792826c90343ed6aa1d140318)
+
 
 ### 💼 Other
 
-- Update version to 6.2.0, add makensis dependency, and include LICENSE file
+- Enhance application menu with About and Keyboard Shortcuts options, and enable restart after updates [`(02c6a7c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/02c6a7c8f5c02f0780e839bddd7454b5e1cc01ee)
 
-## [6.0.0] - 2025-05-05
+- Refactor code structure for improved readability and maintainability [`(829fd2f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/829fd2f4610020d853e8268116d12c21539e1ed9)
 
-### 🆕 New Version Number
+- Update version to 6.3.0 and enhance artifact handling in package.json; modify buildAppMenu.js for menu item updates [`(3b8e4d7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3b8e4d729f8ee430a4a089370c71bfb25f4e31aa)
 
-- Bump version to 5.9.0
+- Update version to 6.2.0, add makensis dependency, and include LICENSE file [`(386d075)`](https://github.com/Nick2bad4u/FitFileViewer/commit/386d075737feef02afad8b2b17b73ddcf918489a)
 
-### 💼 Other
+- Enhance fullscreen functionality with improved button design and IPC handling for menu actions [`(db9a874)`](https://github.com/Nick2bad4u/FitFileViewer/commit/db9a87499c7ef8fb5902bbc8b23b85b4377ceace)
 
-- Enhance fullscreen functionality by ensuring tab content fills the screen and adding exit overlay button
+- Add IPC handlers for file menu actions and enhance export functionality [`(58b851b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/58b851b2c40682059c4a163d7c1397542089e3e7)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Fix escaping in URL handling and update sed command for sha512 hash replacement [`(a43aab0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a43aab043e1ef407fba980f033eb4da440ee4cba)
 
-## [5.9.0] - 2025-05-05
+- Refactor buildAppMenu function parameters for improved readability and update package version to 5.2.0 [`(cb7b5b9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb7b5b9350f68551dfb3866b559a34eb944cbdc6)
 
-### 🆕 New Version Number
+- Update sha512 handling in YAML files and enhance application description [`(e355d72)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e355d720f2c8610c3b039fd171526c6a85358bd3)
 
-- Bump version to 5.8.0
-
-### 💼 Other
-
-- Enhance fullscreen functionality with improved button design and IPC handling for menu actions
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [5.8.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.7.0
-
-### 💼 Other
-
-- Add IPC handlers for file menu actions and enhance export functionality
-
-## [5.7.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.6.0
-
-### 🛠️ GitHub Actions
-
-- Update version to 5.6.0 in package-lock.json and improve indentation in Build.yml
-
-## [5.6.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.5.0
-
-### 🛠️ GitHub Actions
-
-- Update version to 5.5.0 in package-lock.json and enhance SHA512 handling in Build.yml
-
-## [5.5.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.4.0
-
-### 🛠️ GitHub Actions
-
-- Update version to 5.4.0 in package-lock.json and improve SHA512 handling in Build.yml
-
-## [5.4.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.3.0
-
-### 💼 Other
-
-- Fix escaping in URL handling and update sed command for sha512 hash replacement
-
-## [5.3.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.2.0
-
-### 💼 Other
-
-- Refactor buildAppMenu function parameters for improved readability and update package version to 5.2.0
-
-## [5.2.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.1.0
-
-### 💼 Other
-
-- Update sha512 handling in YAML files and enhance application description
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [5.1.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 5.0.0
-
-### 🛠️ GitHub Actions
-
-- Fix sha512 checksums in latest.yml files for accurate artifact verification
 
 ## [5.0.0] - 2025-05-05
 
-### 🆕 New Version Number
-
-- Bump version to 4.9.0
+[[c87b8b7](https://github.com/Nick2bad4u/FitFileViewer/commit/c87b8b7c64c51550d6b4c1e233e617d1efbf51fd)...[36ba8e7](https://github.com/Nick2bad4u/FitFileViewer/commit/36ba8e7a4b311980ad425746fed7408200dd7675)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c87b8b7c64c51550d6b4c1e233e617d1efbf51fd...36ba8e7a4b311980ad425746fed7408200dd7675))
 
 ### 💼 Other
 
-- Add YAML files to distribution and release artifacts
+- Add YAML files to distribution and release artifacts [`(36ba8e7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/36ba8e7a4b311980ad425746fed7408200dd7675)
 
-## [4.9.0] - 2025-05-05
+- Update version to 4.6.0 and refine artifact naming in build process [`(ea4a270)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ea4a270ea0bd15d4283987a55b87d0ebb83a1987)
 
-### 🆕 New Version Number
+- Refactor hash printing for Linux and macOS in build workflow [`(8ecf584)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8ecf58482a6e333ab0794056922ac95581dd1801)
 
-- Bump version to 4.8.0
+- Add hash printing for distributable files in Windows and Linux/macOS [`(bf9a186)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bf9a186d2596d1d2531f171e08e2ff302a185267)
 
-- Bump version to 4.8.0 and add cross-env as a dev dependency
+- Use recursive copy for organizing distributables in release process [`(6337f77)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6337f77918d7ff4e44515c46e287bb70a892bb0d)
 
-## [4.8.0] - 2025-05-05
+- Refactor release process to organize distributables by platform and architecture [`(ca0c2c8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca0c2c86084a17b0f7f514fa664470308b23b5a8)
 
-### 🆕 New Version Number
+- Comment out deduplication and validation step for distributable files in the build workflow [`(5f2ed49)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5f2ed49a67e4678045bc11b9f4dd9d0308a932ec)
 
-- Bump version to 4.7.0 and update legal trademarks; refine start-prod script for cross-platform compatibility
 
-- Bump version to 4.7.0
+### 📦 Dependencies
 
-### 💼 Other
+- [dependency] Update version 4.7.0 and update legal trademarks; refine start-prod script for cross-platform compatibility [`(633a72d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/633a72db15ee43cb8fd79622c06bbddb6938b24e)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [4.7.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 4.6.0
-
-### 💼 Other
-
-- Update version to 4.6.0 and refine artifact naming in build process
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [4.6.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 4.5.0
-
-### 💼 Other
-
-- Refactor hash printing for Linux and macOS in build workflow
-
-## [4.5.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 4.4.0
-
-### 💼 Other
-
-- Add hash printing for distributable files in Windows and Linux/macOS
-
-## [4.4.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 4.3.0
-
-### 💼 Other
-
-- Use recursive copy for organizing distributables in release process
-
-## [4.3.0] - 2025-05-05
-
-### 🆕 New Version Number
-
-- Bump version to 4.2.0
-
-### 💼 Other
-
-- Refactor release process to organize distributables by platform and architecture
-
-## [4.2.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 4.1.0
-
-### 💼 Other
-
-- Comment out deduplication and validation step for distributable files in the build workflow
-
-## [4.1.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 4.0.0
-
-### 💼 Other
-
-- Update auto-updater logging and bump version to 4.0.0
 
 ## [4.0.0] - 2025-05-04
 
-### 🆕 New Version Number
+[[052c1c9](https://github.com/Nick2bad4u/FitFileViewer/commit/052c1c92a83893caf16e151998eed153fb370a48)...[c87b8b7](https://github.com/Nick2bad4u/FitFileViewer/commit/c87b8b7c64c51550d6b4c1e233e617d1efbf51fd)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/052c1c92a83893caf16e151998eed153fb370a48...c87b8b7c64c51550d6b4c1e233e617d1efbf51fd))
 
-- Bump version to 3.9.0
+### 🚀 Features
 
-### 💼 Other
+- Add listener for decoder options changes and update data table [`(236b7ae)`](https://github.com/Nick2bad4u/FitFileViewer/commit/236b7ae7449a7424ae74e4e969dca624b192a62e)
 
-- Update caching paths for npm on Windows and enable cross-OS archive support
+- Add core files for FIT File Viewer application [`(194d975)`](https://github.com/Nick2bad4u/FitFileViewer/commit/194d975ac042f443bdbe18d918f9880d1f230271)
 
-## [3.9.0] - 2025-05-04
+- Add multiple GitHub Actions workflows for enhanced CI/CD processes including ActionLint, Microsoft Defender, Dependency Review, ESLint, OSSAR, OSV-Scanner, Scorecard, Sitemap generation, Stale issue management, and Static content deployment [`(2b34cbd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2b34cbdbf7f0be1356aa75da9891dfeb05d16a09)
 
-### 🆕 New Version Number
-
-- Bump version to 3.8.0 and rename latest.yml for architecture in Windows
-
-- Bump version to 3.8.0
-
-- Bump version to 3.9.0
-
-- Bump version to 3.8.0 in package.json and package-lock.json
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Exclude ia32 architecture for Windows and update version to 3.7.0 in package.json
-
-## [3.8.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.7.0 and update autoUpdater feed URL for Windows architecture
-
-- Bump version to 3.7.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [3.7.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.6.0
-
-- Bump version to 3.6.0 and update caching strategy for node modules in Build.yml
-
-## [3.6.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.5.0
-
-- Bump version to 3.5.0 and update artifact naming convention in package.json; add support for additional release artifacts in Build.yml
-
-## [3.5.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.4.0
-
-- Bump version to 3.4.0, update cache path for consistency, and add update notification functionality
-
-## [3.4.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.3.0
-
-- Bump version to 3.3.0 and remove unused property from package.json
-
-## [3.3.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.2.0
-
-### 💼 Other
-
-- Update version to 3.2.0, enhance auto-updater functionality, and adjust cache path for Windows
-
-## [3.2.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 3.1.0
-
-### 💼 Other
-
-- Refactor package.json to update publisher information and restructure mac desktop entry
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [3.1.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 2.9.0 and enhance auto-update notifications
-
-- Bump version to 3.0.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [3.0.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 2.9.0
-
-### 💼 Other
-
-- Refactor code structure for improved readability and maintainability
-
-## [2.9.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 2.8.0
-
-- Bump version to 2.8.0
-
-### 💼 Other
-
-- Refactor code structure for improved readability and maintainability
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.8.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 2.7.0
-
-### 💼 Other
-
-- Refactor code structure for improved readability and maintainability
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.7.0] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 2.6.0
-
-### 💼 Other
-
-- Refactor code structure for improved readability and maintainability
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.6.0] - 2025-05-04
 
 ### 🐛 Bug Fixes
 
-- Update artifact patterns to include all YAML and blockmap files
+- Update artifact patterns to include all YAML and blockmap files [`(7889426)`](https://github.com/Nick2bad4u/FitFileViewer/commit/78894269d0fc90e09bc95dfa14a022e8237c530c)
 
-### 🆕 New Version Number
+- Update artifact paths for release process [`(08d0e18)`](https://github.com/Nick2bad4u/FitFileViewer/commit/08d0e18f6b56a291681186e0f3f296d65aceecc7)
 
-- Bump version to 2.5.0
+- Update Dependabot configuration to use consistent group naming for npm updates [`(ce65a7b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ce65a7b5ffb1f57f75f6c0e0e199d338b862d22d)
 
-## [2.5.0] - 2025-05-04
+- Enable cancellation of in-progress GitHub Pages deployments [`(060b9f5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/060b9f57e6400b7f50cb4cd563ced2754e1fb950)
 
-### 🐛 Bug Fixes
+- Update base URL in sitemap generation workflow [`(705c631)`](https://github.com/Nick2bad4u/FitFileViewer/commit/705c631fbe2acb46f4660d1334744699440098da)
 
-- Update artifact paths for release process
 
-### 🆕 New Version Number
+### 🔀 Merge Commits
 
-- Bump version to 2.4.0
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(34122ea)`](https://github.com/Nick2bad4u/FitFileViewer/commit/34122ea628d796a125476535d58ccdd9cdc4ee84)
 
-## [2.4.0] - 2025-05-04
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(a58b129)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a58b1297d372be61346d4f0f45d94b41966ba09e)
 
-### 🆕 New Version Number
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(203c08d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/203c08d6ca0fc4fc67c222145b5e2dabee13290f)
 
-- Bump version to 2.3.13
-
-### 🚜 Refactor
-
-- Simplify version bump logic and improve update notifications in renderer
-
-## [2.3.13] - 2025-05-04
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.12
 
 ### 🛠️ GitHub Actions
 
-- Update codeql.yml
+- Update codeql.yml [`(d20ea1b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d20ea1b726e1f83ed95a98efba641cefb85cc46e)
 
-## [2.3.12] - 2025-05-04
+- Create summary.yml [`(5b7c14e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b7c14e11864ad5d894d75bc597631db187c44b9)
 
-### 🆕 New Version Number
+- Update codeql.yml [`(c7c0873)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c7c0873c94cdaf8ed8a2420acad354df90061fc9)
 
-- Bump version to 2.3.11
+- Update codeql.yml [`(da7d274)`](https://github.com/Nick2bad4u/FitFileViewer/commit/da7d2744470225c048953bfd9dbdcc44be27b244)
 
-### 💼 Other
+- Enhance version bump logic and update release notes formatting in Build.yml [`(d0592e8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d0592e854a779d2422658d3299a7b73719226af4)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
+- Update Build.yml [`(9539415)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9539415eec32ff3a073498924e3dec7f32026820)
 
-### ⚙️ Miscellaneous Tasks
+- Update Build.yml [`(5228c0d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5228c0d4d029c054cf04f7411ccf319ea21903e9)
 
-- Update dependencies and version to 2.3.10
+- Update Build.yml [`(364d4ee)`](https://github.com/Nick2bad4u/FitFileViewer/commit/364d4ee9cd6f46903e45dd98d2993561e450f2fb)
 
-## [2.3.11] - 2025-05-03
+- Update Build.yml [`(e8e4063)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e8e40637dd1fa40eefa06ce52f672627109808e2)
 
-### 🚀 Features
+- Update Build.yml [`(36679a7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/36679a70ad0800a04fbdf2df24acfec2c6710a53)
 
-- Add listener for decoder options changes and update data table
+- Update Build.yml [`(91190ef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/91190ef99e53b80b1337179dd69d230d2661b281)
 
-### 🆕 New Version Number
+- Update Build.yml [`(44ec334)`](https://github.com/Nick2bad4u/FitFileViewer/commit/44ec33442827c0271e1efb898c0ca82d1b68d6fb)
 
-- Bump version to 2.3.10
+- Update Build.yml [`(9322bc2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9322bc292f7e26e52254ff8874c3acd211aa34e3)
 
-## [2.3.10] - 2025-05-03
+- Update Build.yml [`(6d1917a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6d1917a17102cde7c5c1a7ef632162da922e239f)
 
-### 🆕 New Version Number
+- Update Build.yml [`(9e6ebff)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e6ebffbaa2dfd7500bbc28ff67b0ee3a5270428)
 
-- Bump version to 2.3.9
+- Update Build.yml [`(81d66fc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/81d66fc8c677fb623208149d83b7ed266ef629bd)
 
-### 🛠️ GitHub Actions
+- Create Build.yml [`(f67c2f0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f67c2f03e1800f6e78700919b484bd2346790099)
 
-- Create summary.yml
+- Create jekyll-gh-pages.yml [`(f261cc4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f261cc4195186ccda56ccbf7f45b2d65235d15b3)
 
-## [2.3.9] - 2025-05-03
+- Create codeql.yml [`(75706f9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/75706f927fef5404609602fb3b206d392cc758de)
 
-### 🚀 Features
+- Update eslint.yml [`(adb753d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/adb753dd858f42bde074927310b6b18a3f5179e5)
 
-- Unify file open logic and ensure both readers update from all sources
+- Update eslint.yml [`(4433a79)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4433a799253bfd5f04b7b9b6b81f8c0a899940f5)
 
-### 🆕 New Version Number
+- Update eslint.yml [`(548c5a9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/548c5a9034a491b2ac1fe94ad1dfee6a6577af20)
 
-- Bump version to 2.3.8
+- Update eslint.yml [`(c5cba71)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c5cba71c7c0227546fc31f2dbab6f81862118dc6)
 
-## [2.3.8] - 2025-05-03
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.7
-
-### 🛠️ GitHub Actions
-
-- Update codeql.yml
-
-## [2.3.7] - 2025-05-03
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.6
-
-### 🛠️ GitHub Actions
-
-- Update codeql.yml
-
-## [2.3.6] - 2025-05-03
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.5
 
 ### 💼 Other
 
-- _(deps-dev)_ Bump @types/chrome
+- Update caching paths for npm on Windows and enable cross-OS archive support [`(c87b8b7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c87b8b7c64c51550d6b4c1e233e617d1efbf51fd)
 
-- Merge pull request #56 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/browser-extension/npm-all-ccf39fe968
+- Exclude ia32 architecture for Windows and update version to 3.7.0 in package.json [`(ce505d0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ce505d072045f186c94e3645c5c7541c73a130d6)
 
-build(deps-dev): bump @types/chrome from 0.0.317 to 0.0.318 in /electron-app/libs/zwiftmap-main/browser-extension in the npm-all group
+- Update version to 3.2.0, enhance auto-updater functionality, and adjust cache path for Windows [`(e16aa30)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e16aa3078da3e957e8c9b3e3f523fd6cece5a9a0)
 
-- _(deps-dev)_ Bump the npm-all group in /electron-app with 3 updates
+- Refactor code structure for improved readability and maintainability [`(967db82)`](https://github.com/Nick2bad4u/FitFileViewer/commit/967db82e404e61a7fec7a13671fa7c0127740813)
 
-- Merge pull request #57 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-3ba5ff75b8
+- Enhance version bump logic to include tagging with v prefix and update versioning scheme for major and minor releases [`(7e89d59)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7e89d59990b0bb6bad6374a6c5c4de4b8e9d947f)
 
-build(deps-dev): bump the npm-all group in /electron-app with 3 updates
+- Simplify file listing in workflow by changing path to current directory [`(64f53e8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/64f53e81b8fc941c0d06e15c63d6b4ad9464c62c)
 
-- _(deps)_ Bump the npm-all group with 8 updates
+- Update package version to 2.2.0 and adjust build workflow for package.json handling [`(0a1e0b6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0a1e0b621eebb9ee6d68115c1469aa12dadd26a7)
 
-- Merge pull request #58 from Nick2bad4u/dependabot/npm_and_yarn/npm-all-ebff2fd4aa
+- Enhance build workflow: add validation for package.json, upload bumped version, and improve deduplication of distributable files [`(4609fc1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4609fc1fa395d8a428b73c3bb45111ab905faf03)
 
-build(deps): bump the npm-all group with 8 updates
+- Deduplicate distributable files before creating release [`(51fd771)`](https://github.com/Nick2bad4u/FitFileViewer/commit/51fd77162362ddd818a4ef3ef2a689f06241c5b0)
 
-## [2.3.5] - 2025-05-03
+- Enhance release workflow by listing artifacts and updating file patterns for artifact uploads [`(8470c43)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8470c4365144a7309926bb415693f0f85cf29a6a)
 
-### 🚀 Features
+- Update artifact upload and release steps in CI workflow [`(1d808ac)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1d808acc2ef11401a9a54bd4c1e1b7aa0058a67b)
 
-- Add core files for FIT File Viewer application
+- Update release action to include all files in artifacts directory [`(8069386)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8069386f62ec475424a18cf469bbb6c5722d0458)
 
-### 🆕 New Version Number
+- Implement automatic minor version bump in CI workflow [`(abd2c63)`](https://github.com/Nick2bad4u/FitFileViewer/commit/abd2c63c838bdc7153da28a8c78a2f62ef8c1ddc)
 
-- Bump version to 2.3.4
+- Fix exclusion of ia32 architecture for ubuntu-latest in build matrix [`(7fb6fb6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7fb6fb62b5f362473c1e428223fcb6a6e24f3d08)
 
-### 💼 Other
+- Fix exclusion of macOS ia32 architecture in build matrix [`(83eb944)`](https://github.com/Nick2bad4u/FitFileViewer/commit/83eb9440ec44db2a9a5e35dc58f9a9ef7e6a698d)
 
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.3.4] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.3
-
-### 💼 Other
-
-- Implement theme management and decoder options persistence using electron-store
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.3.3] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.1
-
-- Bump version to 2.3.2 in package.json
-
-- Bump version to 2.3.2
-
-### 🛠️ GitHub Actions
-
-- Enhance version bump logic and update release notes formatting in Build.yml
-
-### 💼 Other
-
-- Simplify file listing in workflow by changing path to current directory
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Enhance version bump logic to include tagging with v prefix and update versioning scheme for major and minor releases
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.3.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 2.3.0
-
-### 💼 Other
-
-- Update package version to 2.2.0 and adjust build workflow for package.json handling
-
-## [2.2.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 2.1.0
-
-- Bump version to 2.2.0
-
-### 🛠️ GitHub Actions
-
-- Update Build.yml
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-## [2.0.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 2.0.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Enhance build workflow: add validation for package.json, upload bumped version, and improve deduplication of distributable files
-
-## [1.9.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 1.9.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Deduplicate distributable files before creating release
-
-## [1.8.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 1.8.0
-
-### 💼 Other
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Enhance release workflow by listing artifacts and updating file patterns for artifact uploads
-
-## [1.7.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 1.7.0
-
-### 💼 Other
-
-- Update release action to include all files in artifacts directory
-
-- Update artifact upload and release steps in CI workflow
-
-## [1.6.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 1.6.0
-
-### 💼 Other
-
-- Add build-all script to package.json for building all platforms
-
-- Fix exclusion of macOS ia32 architecture in build matrix
-
-- Fix exclusion of ia32 architecture for ubuntu-latest in build matrix
-
-- Implement automatic minor version bump in CI workflow
-
-## [1.5.0] - 2025-05-02
-
-### 🆕 New Version Number
-
-- Bump version to 1.5.0
-
-### 🛠️ GitHub Actions
-
-- Update Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-### 💼 Other
-
-- Update package.json
-
-- Update package.json
-
-- Update package.json
-
-- Update package.json
-
-- Update package.json
-
-## [1.4.0] - 2025-05-02
-
-### 🚀 Features
-
-- Implement multi-select mode for lap selection and add simple measurement tool
-
-- Add marker count selector and update map rendering logic
-
-- Disable text selection on footer for improved user experience
-
-- Enhance lap row rendering to include start time in summary table
-
-- Implement FIT reader library with core functionalities
-
-- Add mapping for unknown FIT messages and enhance label application logic
-
-### 🐛 Bug Fixes
-
-- Enable cancellation of in-progress GitHub Pages deployments
-
-- Update Dependabot configuration to use consistent group naming for npm updates
-
-- Update vite version to 6.3.4; enhance measurement tool UI with SVG icons and add GPX export functionality
-
-### 🆕 New Version Number
-
-- Bump version to 1.4.0
-
-### 🛠️ GitHub Actions
-
-- Update dependabot.yml
-
-- _(deps-dev)_ Bump typescript
-
-- _(deps)_ Bump the npm-all group
-
-- Create Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-- Update Build.yml
-
-### 💼 Other
-
-- [StepSecurity] Apply security best practices
-
-Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
-
-- Merge pull request #19 from step-security-bot/chore/GHA-291632-stepsecurity-remediation
-
-[StepSecurity] Apply security best practices
-
-- _(deps)_ Bump react-dom and @types/react-dom
-
-- Merge pull request #33 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/multi-1dbe629cdc
-
-build(deps): bump react-dom and @types/react-dom in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps)_ Bump @tanstack/react-query-devtools
-
-- Merge pull request #32 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/tanstack/react-query-devtools-5.74.9
-
-build(deps): bump @tanstack/react-query-devtools from 5.66.0 to 5.74.9 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps-dev)_ Bump the npm group in /electron-app with 2 updates
-
-- Merge pull request #34 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-c916c61fa3
-
-build(deps-dev): bump the npm group in /electron-app with 2 updates
-
-- _(deps)_ Bump @turf/nearest-point-on-line
-
-- Merge pull request #26 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/turf/nearest-point-on-line-7.2.0
-
-build(deps): bump @turf/nearest-point-on-line from 6.5.0 to 7.2.0 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps)_ Bump zwift-data
-
-- Merge pull request #24 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/browser-extension/zwift-data-1.43.0
-
-build(deps): bump zwift-data from 1.42.0 to 1.43.0 in /electron-app/libs/zwiftmap-main/browser-extension
-
-- _(deps)_ Bump @google-cloud/secret-manager
-
-- Merge pull request #20 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/google-cloud/secret-manager-6.0.1
-
-build(deps): bump @google-cloud/secret-manager from 5.6.0 to 6.0.1 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps)_ Bump @sentry/react
-
-- Merge pull request #31 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/sentry/react-9.15.0
-
-build(deps): bump @sentry/react from 8.53.0 to 9.15.0 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps-dev)_ Bump @types/node
-
-- Merge pull request #30 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/types/node-22.15.3
-
-build(deps-dev): bump @types/node from 22.13.0 to 22.15.3 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps)_ Bump fast-xml-parser
-
-- Merge pull request #29 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/fast-xml-parser-5.2.1
-
-build(deps): bump fast-xml-parser from 4.5.1 to 5.2.1 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps-dev)_ Bump esbuild
-
-- Merge pull request #21 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/browser-extension/esbuild-0.25.3
-
-build(deps-dev): bump esbuild from 0.25.0 to 0.25.3 in /electron-app/libs/zwiftmap-main/browser-extension
-
-- _(deps)_ Bump dotenv in /electron-app/libs/zwiftmap-main/backend
-
-- Merge pull request #22 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/dotenv-16.5.0
-
-build(deps): bump dotenv from 16.4.7 to 16.5.0 in /electron-app/libs/zwiftmap-main/backend
-
-- Merge pull request #23 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/typescript-5.8.3
-
-build(deps-dev): bump typescript from 5.7.3 to 5.8.3 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps-dev)_ Bump @types/chrome
-
-- Merge pull request #25 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/browser-extension/types/chrome-0.0.317
-
-build(deps-dev): bump @types/chrome from 0.0.316 to 0.0.317 in /electron-app/libs/zwiftmap-main/browser-extension
-
-- _(deps)_ Bump @tanstack/react-query
-
-- Merge pull request #28 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/tanstack/react-query-5.74.9
-
-build(deps): bump @tanstack/react-query from 5.66.0 to 5.74.9 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps-dev)_ Bump electron-to-chromium in the npm group
-
-- Merge pull request #35 from Nick2bad4u/dependabot/npm_and_yarn/npm-693064aba8
-
-build(deps-dev): bump electron-to-chromium from 1.5.143 to 1.5.144 in the npm group
-
-- Refactor code structure for improved readability and maintainability
-
-- _(deps)_ Bump @sentry/node
-
-- Merge PR #46
-
-build(deps): bump @sentry/node from 8.53.0 to 9.15.0 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps)_ Bump @turf/length
-
-- Merge PR #45
-
-build(deps): bump @turf/length from 6.5.0 to 7.2.0 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps-dev)_ Bump @types/validator
-
-- Merge PR #44
-
-build(deps-dev): bump @types/validator from 13.12.2 to 13.15.0 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps)_ Bump @turf/difference
-
-- Merge PR #43
-
-build(deps): bump @turf/difference from 6.5.0 to 7.2.0 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps)_ Bump the npm-all group
-
-- Merge PR #47
-
-build(deps): bump the npm-all group in /electron-app/libs/zwiftmap-main/browser-extension with 4 updates
-
-- _(deps)_ Bump @turf/buffer
-
-- Merge PR #42
-
-build(deps): bump @turf/buffer from 6.5.0 to 7.2.0 in /electron-app/libs/zwiftmap-main/backend
-
-- _(deps-dev)_ Bump vitest
-
-- Merge pull request #36 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/vitest-3.1.2
-
-build(deps-dev): bump vitest from 2.1.9 to 3.1.2 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps)_ Bump @turf/length
-
-- Merge pull request #37 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/turf/length-7.2.0
-
-build(deps): bump @turf/length from 6.5.0 to 7.2.0 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps)_ Bump @types/leaflet
-
-- Merge pull request #38 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/types/leaflet-1.9.17
-
-build(deps): bump @types/leaflet from 1.9.5 to 1.9.17 in /electron-app/libs/zwiftmap-main/frontend
-
-- _(deps)_ Bump @turf/buffer
-
-- Merge pull request #40 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/turf/buffer-7.2.0
-
-build(deps): bump @turf/buffer from 6.5.0 to 7.2.0 in /electron-app/libs/zwiftmap-main/frontend
-
-- Add point-to-point measurement tool for Leaflet maps
-
-- _(deps-dev)_ Bump the npm-all group with 3 updates
-
-- Merge pull request #49 from Nick2bad4u/dependabot/npm_and_yarn/npm-all-6c6b09f879
-
-build(deps-dev): bump the npm-all group with 3 updates
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- _(deps-dev)_ Bump @babel/runtime from 7.27.0 to 7.27.1
-
-- Merge PR #52
-
-build(deps-dev): bump @babel/runtime from 7.27.0 to 7.27.1
-
-- _(deps-dev)_ Bump vite
-
-- Merge pull request #50 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/frontend/npm_and_yarn-de653eece3
-
-build(deps-dev): bump vite from 6.3.3 to 6.3.4 in /electron-app/libs/zwiftmap-main/frontend in the npm_and_yarn group
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Enhances map rendering and user interaction
-
-Refactors map rendering logic for modularity and maintainability
-Adds flexible layout for map controls with improved styling
-Introduces map action buttons for printing, exporting GPX, and elevation profiles
-Implements escape key and exit button handlers for measurement tool
-Fixes potential issues with duplicate map instances and grey background bug
-Improves theme support for dark/light mode compatibility
-
-Refactors map rendering and enhances user interaction
-
-Modularizes map rendering logic for maintainability
-Improves map controls layout and styling
-Adds action buttons for print/export/elevation profile
-Introduces escape key and exit button handlers for measurement tool
-Fixes duplicate map instance and grey background issues
-Enhances dark/light mode theme compatibility
-
-- _(deps)_ Bump the npm-all group across 1 directory with 96 updates
-
-- Merge pull request #55 from Nick2bad4u/dependabot/npm_and_yarn/npm-all-3d36a931d8
-
-build(deps): bump the npm-all group across 1 directory with 96 updates
-
-- Merge pull request #54 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/libs/zwiftmap-main/backend/npm-all-4c4c415551
-
-build(deps): bump the npm-all group in /electron-app/libs/zwiftmap-main/backend with 56 updates
-
-- _(deps)_ Bump the npm-all group in /electron-app with 22 updates
-
-- Merge pull request #53 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-c3615f18f2
-
-build(deps): bump the npm-all group in /electron-app with 22 updates
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Remove unused FIT reader utility functions and related code
-
-- Deleted datetime.js, getBits.js, getFieldData.js, index.js, isInvalid.js, nTimes.js, namedFields.js, readData.js, readDefinition.js, readFileHeader.js, and readRecordHeader.js.
-- These files contained functions and logic that are no longer needed in the FIT reader implementation.
-- This cleanup helps streamline the codebase and improve maintainability.
-
-### 🚜 Refactor
-
-- Change Dependabot update schedule from daily to monthly for all ecosystems; add lap selection UI logic to a new module
-
-### ⚙️ Miscellaneous Tasks
-
-- Add Copilot instructions for FitFileViewer project
-
-- Update Babel dependencies to version 7.27.1
-
-## [1.3] - 2025-04-29
-
-### 🚀 Features
-
-- Enhance accessibility and improve UI responsiveness
-
-- Implement feed entries fetching and image replacement for Zwift map extension
-
-- Add IPC handlers for reading and parsing FIT files
-
-- Add custom map type selection button and zoom slider for enhanced user interaction
-
-- Enhance map rendering with lap selection UI and improved control styles
-
-### 💼 Other
-
-- Refactor code structure for improved readability and maintainability
-
-- Fix path to Chart.js library in renderMap function for elevation profile chart
-
-- _(deps-dev)_ Bump the npm group with 2 updates
-
-- Merge PR #12
-
-build(deps-dev): bump the npm group with 2 updates
-
-- _(deps)_ Bump the npm group in /electron-app with 3 updates
-
-- Merge PR #11
-
-build(deps): bump the npm group in /electron-app with 3 updates
-
-- Delete 34 files
-
-- Refactor code structure and remove redundant sections for improved readability and maintainability
-
-- _(deps)_ Bump the npm_and_yarn group across 2 directories with 21 updates
-
-- Merge PR #15
-
-build(deps): bump the npm_and_yarn group across 2 directories with 21 updates
-
-- _(deps-dev)_ Bump @types/node in the npm group
-
-- Merge PR #14
-
-build(deps-dev): bump @types/node from 22.15.0 to 22.15.2 in the npm group
-
-- _(deps-dev)_ Bump @types/node in /electron-app in the npm group
-
-- Merge PR #13
-
-build(deps-dev): bump @types/node from 22.15.0 to 22.15.2 in /electron-app in the npm group
-
-- Refactor code structure for improved readability and maintainability
-
-- _(deps)_ Bump the npm group with 12 updates
-
-- Merge pull request #18 from Nick2bad4u/dependabot/npm_and_yarn/npm-bc334dfba7
-
-build(deps): bump the npm group with 12 updates
-
-- _(deps-dev)_ Bump the npm group in /electron-app with 2 updates
-
-- Merge PR #17
-
-build(deps-dev): bump the npm group in /electron-app with 2 updates
-
-- [create-pull-request] automated change
-
-- Merge PR #16
-
-Automated sitemap update
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-### 🎨 Styling
-
-- Add elevation profile CSS for dark and light themes
-
-### ⚙️ Miscellaneous Tasks
-
-- Update package.json for versioning, scripts, and metadata improvements
-
-- Update launch configuration and enable debugging for Electron app
-
-- Update version to 1.3.0 in package.json
-
-## [1.1.0] - 2025-04-24
-
-### 🚀 Features
-
-- Add ESLint configuration and update dependencies in package.json and package-lock.json
-
-- Migrate ESLint configuration from .eslintrc.js to eslint.config.js
-
-- Refactor showFitData and tab management functions into separate utility modules
-
-- Add additional utility functions for global access in utils.js
-
-- Remove unused utility functions from global exports in utils.js
-
-- Implement recent files functionality with context menu for file opening
-
-- Move recent files utility functions to separate module
-
-- Refactor and modularize recent files and renderer utilities
-
-- Move showNotification and setLoading utilities to renderer.js for better encapsulation
-
-- Add window resize handler for responsive chart rendering
-
-- Enhance utility functions with detailed JSDoc comments for better documentation
-
-- Add comprehensive tests for main UI, preload, and window state utilities
-
-- Implement theme switching and persistence across the Electron app
-
-- Implement theme switching and persistence with utility functions
-
-- Add scroll wheel support for filter selection in renderTable function
-
-### 🐛 Bug Fixes
-
-- Update link to the Releases Page in README for accurate navigation
-
-- Update package metadata for fitfileviewer with correct name, version, and description
-
-- Update electron version to 35.2.0 in package.json and package-lock.json
-
-- Update base URL in sitemap generation workflow
-
-### 🛠️ GitHub Actions
-
-- _(deps)_ Bump the npm group with 29 updates
-
-- Update eslint.yml
-
-- Update eslint.yml
-
-- Update eslint.yml
-
-- Update eslint.yml
-
-- Create codeql.yml
-
-- Create jekyll-gh-pages.yml
-
-### 💼 Other
-
-- Merge pull request #1 from Nick2bad4u/dependabot/npm_and_yarn/npm-1952bbb91e
-
-build(deps): bump the npm group with 29 updates
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Add comprehensive tests for utility functions in electron-app
-
-- Implement tests for patchSummaryFields to validate formatting and rounding of various fields.
-- Create tests for recentFiles utility functions to ensure correct loading, saving, and adding of recent files.
-- Add tests for renderChart to verify chart rendering in different scenarios.
-- Develop tests for renderMap to check map rendering and handling of coordinates.
-- Implement tests for renderSummary to validate summary rendering from session and record messages.
-- Create tests for renderTable to ensure proper table rendering and interaction.
-- Add tests for rendererUtils to verify notification and loading overlay functionality.
-- Implement tests for setActiveTab to ensure correct tab activation behavior.
-- Create tests for showFitData to validate data display and tab rendering logic.
-- Add tests for toggleTabVisibility to ensure correct visibility toggling of tab content.
-
-- Add Jest as a dev dependency for testing
-
-- Update README.md
-
-- Create .eslintrc.js
-
-- Update .eslintrc.js
-
-- Remove old ESLint configuration files and add new .eslintrc.cjs with updated rules
-
-- Add ESLint configuration file with basic rules and ECMAScript 2020 support
-
-- Add additional badges to README for various GitHub workflows
-
-- [StepSecurity] Apply security best practices
-
-Signed-off-by: StepSecurity Bot <bot@stepsecurity.io>
-
-- Merge pull request #3 from step-security-bot/chore/GHA-211451-stepsecurity-remediation
-
-[StepSecurity] Apply security best practices
-
-- [create-pull-request] automated change
-
-- Merge pull request #2 from Nick2bad4u/create-pull-request/patch
-
-Automated sitemap update
-
-- Refactor HTML structure for improved readability and consistency; update JavaScript files to disable console warnings and enhance theme handling logic.
-
-- Enhance chart rendering logic to filter allowed fields and provide user feedback for missing data; update ESLint config to disable console warnings.
-
-- Remove CodeQL workflow file as it is no longer needed for the project.
-
-- Refactor Dependabot configuration to remove redundant whitespace and ensure consistent formatting across package ecosystems.
-
-- Fix CodeQL badge link in README to point to the correct workflow file
-
-- Add chart specification and enhance chart rendering logic with error handling
-
-- Improve error handling and formatting in renderChart function
-
-- Enhance renderChart function with improved error handling and validation for chart data
-
-- Enhance documentation for getChartSpec function with detailed parameter and return descriptions
-
-- Refactor null checks in patchSummaryFields utility functions for consistency and clarity
-
-- Refactor ESLint configuration for improved structure and clarity
-
-- Enhance renderSummary function layout with improved styling for summary section and header bar
-
-- Refactor renderSummary function layout for improved styling and alignment
-
-- Refactor renderSummary function to use CSS classes for summary and lap section styling
-
-- Add summary column selector functionality and modal for column preferences
-
-- _(deps)_ Bump the npm group with 11 updates
-
-- Merge PR #6
-
-build(deps): bump the npm group with 11 updates
-
-- _(deps-dev)_ Bump electron-to-chromium
-
-- Merge PR #5
-
-build(deps-dev): bump electron-to-chromium from 1.5.139 to 1.5.140 in /electron-app in the npm group
-
-- Merge PR #4
-
-build(deps): bump step-security/harden-runner from 2.11.1 to 2.12.0 in the github-actions group
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Refactor summary column modal styles for improved readability and consistency
-
-- Enhance FIT file loading functionality and menu integration
-
-- Implemented global state management for loaded FIT file path.
-- Updated IPC communication to notify main process of loaded FIT files.
-- Modified buildAppMenu to enable/disable Summary Columns based on loaded FIT file.
-- Improved recent files path handling for better compatibility in different environments.
-
-- Refactor notification and loading utilities into separate module for cleaner code structure
-
-- Add column width synchronization for summary and lap tables
-
-- _(deps-dev)_ Bump the npm group with 2 updates
-
-- Merge PR #7
-
-build(deps-dev): bump the npm group with 2 updates
-
-- Refactor showFitData function and add unload file functionality; enhance summary rendering and UI updates
-
-- Refactor CSS for improved theming and layout; enhance readability and organization of styles
-
-- Refactor renderSummary and add helper functions for improved column management; enhance summary rendering and UI interactions
-
-- Remove obsolete test files for chart, map, summary, table, renderer, and utility functions
-
-- Deleted tests for renderChart, renderMap, renderSummary, renderTable, and showFitData.
-- Removed tests for rendererUtils, toggleTabVisibility, and windowStateUtils.
-- Cleaned up theme and style tests, along with utility tests.
-- Removed associated CSS files used for testing styles.
-
-- _(deps-dev)_ Bump electron-to-chromium in the npm group
-
-- Merge PR #10
-
-build(deps-dev): bump electron-to-chromium from 1.5.140 to 1.5.141 in the npm group
-
-- _(deps)_ Bump github/codeql-action in the github-actions group
+- Add build-all script to package.json for building all platforms [`(ca630b7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca630b7a810fda59ae24b82801c119e4e20667e2)
 
 - Merge PR #9
 
-build(deps): bump github/codeql-action from 3.28.15 to 3.28.16 in the github-actions group
+build(deps): bump github/codeql-action from 3.28.15 to 3.28.16 in the github-actions group [`(bd433fa)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bd433fa1b45bbc3fd7e28c0f23cf8daeffb39264)
 
-- _(deps-dev)_ Bump the npm group in /electron-app with 2 updates
+- Refactor Dependabot configuration to remove redundant whitespace and ensure consistent formatting across package ecosystems. [`(e8e76fc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e8e76fcd8f61cddb4e579c9d09b1b154494686ad)
 
-- Merge PR #8
+- Remove CodeQL workflow file as it is no longer needed for the project. [`(62afc9a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/62afc9a34500ca25f114561e12c95b444878d6de)
 
-build(deps-dev): bump the npm group in /electron-app with 2 updates
-
-- Enhance theme handling in chart rendering; support light and dark themes in getChartSpec and re-render chart on theme change
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
 
 ### 🚜 Refactor
 
-- Remove unused test_index.html and update utility functions for theme management
+- Simplify version bump logic and improve update notifications in renderer [`(f85a00b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f85a00b2e1f6457739f2fa8a1045e194a58a9acc)
 
-- Remove unused roles from the application menu
+- Change Dependabot update schedule from daily to monthly for all ecosystems; add lap selection UI logic to a new module [`(23e22ea)`](https://github.com/Nick2bad4u/FitFileViewer/commit/23e22ea4a3b382f4f6dbce8a3f46d3f791cff3d5)
 
-- Refactor: improve formatDuration function to handle string inputs and ensure finite number validation
-  refactor: enhance renderSummary function to filter out empty or invalid summary columns
-  fix: add logic to renderTable for destroying existing DataTable instances before reinitialization
+- Simplify ESLint workflow by consolidating steps and updating action versions [`(65ea31f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/65ea31f6c997bbb0abf08fe6299efd56b605700b)
 
-- Update button border style and adjust margin for copy button in content summary
-
-- Enhance color variables and improve box shadow styles for better UI consistency
-
-- Update documentation for global utility exposure and clarify security considerations
-
-- Enhance theme handling in menu updates and improve filename color variable for better readability
-
-- Improve error handling in theme persistence and loading functions
-
-- Switch from ES module to CommonJS syntax in ESLint configuration
-
-- Update ESLint configuration to use ES module syntax and simplify filter value persistence in renderTable function
-
-- Simplify ESLint workflow by consolidating steps and updating action versions
-
-- Convert ES module syntax to CommonJS in fitParser.js
-
-### 📚 Documentation
-
-- Enhance .gitkeep with guidelines for organizing Jest test files
-
-### 🎨 Styling
-
-- Update CSS variables for improved theme support and readability
-
-### 🧪 Testing
-
-- Add unit tests for theme management functions
 
 ### ⚙️ Miscellaneous Tasks
 
-- Add @typescript-eslint/eslint-plugin to dependencies
+- Add Copilot instructions for FitFileViewer project [`(0512f60)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0512f601db8c19a29a0dba51bd83604c0786b56b)
 
-- Update ESLint configuration and dependencies
+- Update eslint to version 9.25.1 and related dependencies in package.json and package-lock.json [`(fa290ff)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fa290ff98278eea759583f6108d19c36d3134b8a)
 
-- Downgrade ESLint version to 9.0.0 and update workflow for improved security and functionality
+- Downgrade ESLint version to 9.0.0 and update workflow for improved security and functionality [`(fe53342)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fe5334290abe33f414014c1ca7fd7de16e83c6fc)
 
-- Update eslint to version 9.25.1 and related dependencies in package.json and package-lock.json
 
-- Update ESLint configuration import and add eslint-define-config dependency
+### 📦 Dependencies
+
+- [dependency] Update version 3.8.0 and rename latest.yml for architecture in Windows [`(3420901)`](https://github.com/Nick2bad4u/FitFileViewer/commit/34209013b180eaf92883f427fa1fec735795f213)
+
+- [dependency] Update version 3.7.0 and update autoUpdater feed URL for Windows architecture [`(69acfaf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/69acfaf09a4f370aada766676ecd3e68f605cd63)
+
+- [dependency] Update version 3.6.0 and update caching strategy for node modules in Build.yml [`(d35e3f6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d35e3f6cc28e3a485918d45a159558ca8dd633bc)
+
+- [dependency] Update version 3.5.0 and update artifact naming convention in package.json; add support for additional release artifacts in Build.yml [`(44f56b7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/44f56b7d4492fbbf87c890317b6259c775139501)
+
+- [dependency] Update version 3.4.0, update cache path for consistency, and add update notification functionality [`(77f634d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/77f634dc2cf27ebf54b10f79ccb92b0432502752)
+
+- Update dependabot.yml [`(c4101b9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c4101b901894360e9b2533c69284c4c6c2ec8315)
+
+- *(deps)* [dependency] Update github/codeql-action in the github-actions group [`(4c1630a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c1630a39162eb09c5be1be1abefc03f6fb52086)
+
+- *(deps)* [dependency] Update step-security/harden-runner [`(49874d6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/49874d63b450049ab3f364b0a209979da12fb2e7)
+
+- Create dependabot.yml [`(142f71d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/142f71d8b2859e0a5706aff756b0fabd51fc2940)
+
 
 ### 🛡️ Security
 
-- _(deps)_ Bump step-security/harden-runner
+- Merge pull request #19 from step-security-bot/chore/GHA-291632-stepsecurity-remediation
 
-## [1.0.1] - 2025-04-20
+[StepSecurity] Apply security best practices [`(328573a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/328573a0c8743f6ed5facb4bd4682858d8da7f4f)
 
-### 🚀 Features
+- [StepSecurity] Apply security best practices
 
-- Implement FIT Viewer extension with custom editor for FIT files
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(a827f56)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a827f563a3498a1a9c965fd35f490c7fe2c89f2b)
 
-- Enhance patchSummaryFields function for comprehensive data formatting
+- Merge PR #4
 
-- Improve comments and structure in index.html for better clarity and organization
+build(deps): bump step-security/harden-runner from 2.11.1 to 2.12.0 in the github-actions group [`(3acf2c1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3acf2c1ac893c4cdc2461a15ae08184eeb3de8ad)
 
-- Refactor main UI logic into main-ui.js for improved organization and maintainability
+- Merge pull request #3 from step-security-bot/chore/GHA-211451-stepsecurity-remediation
 
-- Refactor fitParser.js and preload.js for improved readability and consistency
+[StepSecurity] Apply security best practices [`(0bcca04)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0bcca042f97ce4ac01947b269eeb7fda4de21008)
 
-- Update script loading order and enhance global data handling in main-ui.js; improve dark mode styling for the map in style.css
+- [StepSecurity] Apply security best practices
 
-- Enhance pagination styles in style.css for improved visibility and user experience
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(5b5d013)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b5d013f37f9bd83ae22f004889ad630885c1d25)
 
-- Improve loading order and enhance error handling in utils.js; update credits section in index.html for better organization
 
-- Refactor utils.js for improved readability and consistency; enhance chart rendering and warning messages
-
-- Update .gitignore to include additional rules for Node.js, Python, and Visual Studio Code; enhance project organization
-
-- Add utility functions for CSV export, distance and duration formatting, and summary patching
-
-- Implement window state management and add utility functions for formatting speed and arrays
-
-- Add notification UI and loading overlay; enhance user feedback during file operations
-
-- Add electron-builder configuration and build script
-
-- Add multiple GitHub Actions workflows for enhanced CI/CD processes including ActionLint, Microsoft Defender, Dependency Review, ESLint, OSSAR, OSV-Scanner, Scorecard, Sitemap generation, Stale issue management, and Static content deployment
-
-- Add initial Jekyll configuration with essential plugins and site metadata
-
-### 🛠️ GitHub Actions
-
-- Create dependabot.yml
-
-### 💼 Other
-
-- Initial commit
-
-- Add Prettier configuration file for consistent code formatting
-
-- Introduced a new .prettierrc file in the electron-app directory.
-- Configured various formatting options including arrowParens, printWidth, and trailingComma.
-- Added specific overrides for CSS, Stylus, HTML, and user JavaScript files to customize formatting rules.
-
-- Moved extension files to the new directory
-
-- Implement code changes to enhance functionality and improve performance
-
-- Refactor code structure for improved readability and maintainability
-
-- Refactor code structure for improved readability and maintainability
-
-- Merge branch 'main' of https://github.com/Nick2bad4u/FitFileViewer
-
-- Create CNAME
-
-- Implement code changes to enhance functionality and improve performance
-
-### 🚜 Refactor
-
-- Remove unused imports from main-ui.js, main.js, and preload.js
-
-- Improve code formatting and organization across multiple files for better readability
-
-- Enhance layout and styling for app header, tab bar, and content sections for improved user experience
-
-- Update padding and margin in app header and tab card for improved layout; remove unused styles
-
-- Update Prettier configuration for consistent print width; improve HTML structure and readability
-
-- Simplify credits section in HTML; enhance readability and structure in main UI JavaScript
-
-- Consolidate utility exports in utils.js for improved organization and global access
-
-- Enhance error handling and key sorting in displayTables function; improve code clarity and robustness
-
-- Prevent redundant tab activation by checking active state before toggling
-
-- Improve object serialization in copyTableAsCSV function; enhance performance and prevent redundant serialization
-
-- Enhance formatting functions for distance and duration; improve validation and error handling
-
-- Improve patchSummaryFields function; enhance readability and validation for summary metrics
-
-- Enhance background data pre-rendering and improve DataTables pagination in night mode
-
-- Optimize chart rendering and enhance tab visibility handling; improve styling for better layout
-
-### 🎨 Styling
-
-- Clean up CSS formatting and organization for improved readability
-
-<!-- generated by git-cliff -->
+## Contributors
+Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
+## License
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+*This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*

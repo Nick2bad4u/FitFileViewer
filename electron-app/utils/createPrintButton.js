@@ -1,5 +1,5 @@
-import { getThemeColors } from './getThemeColors.js';
-import { showNotification } from './showNotification.js';
+import { getThemeColors } from "./getThemeColors.js";
+import { showNotification } from "./showNotification.js";
 
 /**
  * Creates a print/export button for the map
@@ -23,20 +23,20 @@ export function createPrintButton() {
         `;
 
         printBtn.title = "Print or export the current map view";
-        printBtn.setAttribute('aria-label', 'Print or export map');
+        printBtn.setAttribute("aria-label", "Print or export map");
 
-        printBtn.addEventListener('click', () => {
+        printBtn.addEventListener("click", () => {
             try {
                 window.print();
             } catch (error) {
-                console.error('[MapActions] Print failed:', error);
-                showNotification('Print failed. Please try again.', 'error');
+                console.error("[MapActions] Print failed:", error);
+                showNotification("Print failed. Please try again.", "error");
             }
         });
 
         return printBtn;
     } catch (error) {
-        console.error('[MapActions] Failed to create print button:', error);
+        console.error("[MapActions] Failed to create print button:", error);
         throw error;
     }
 }

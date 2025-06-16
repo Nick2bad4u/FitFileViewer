@@ -1,6 +1,6 @@
 /**
  * @fileoverview Map action buttons utilities for FitFileViewer
- * 
+ *
  * This module provides functions to create interactive map controls and manage FIT file overlays.
  * Features include:
  * - Print/export buttons for map visualization
@@ -9,19 +9,19 @@
  * - Marker count selector for performance optimization
  * - Loading overlays with progress tracking
  * - Theme-integrated UI components with proper error handling
- * 
+ *
  * All components support dynamic theming and include comprehensive error handling
  * with user notifications. The module follows modern ES6+ patterns with proper
  * JSDoc documentation and modular architecture.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
 
-import { showNotification } from './showNotification.js';
-import { getThemeColors } from './getThemeColors.js';
-import { LoadingOverlay } from './LoadingOverlay.js';
-import { overlayColorPalette } from './overlayColorPalette.js';
+import { showNotification } from "./showNotification.js";
+import { getThemeColors } from "./getThemeColors.js";
+import { LoadingOverlay } from "./LoadingOverlay.js";
+import { overlayColorPalette } from "./overlayColorPalette.js";
 
 // Export loading functions for backward compatibility
 export function showLoadingOverlay(progressText, fileName = "") {
@@ -42,21 +42,21 @@ export function _openFileSelector() {
     input.accept = ".fit";
     input.multiple = true;
     input.style.display = "none";
-    
-    input.addEventListener('change', async (e) => {
+
+    input.addEventListener("change", async (e) => {
         try {
             if (!e.target.files?.length) return;
-            
+
             const files = Array.from(e.target.files);
             await _loadOverlayFiles(files);
         } catch (error) {
-            console.error('[MapActions] File loading failed:', error);
-            showNotification('Failed to load FIT files', 'error');
+            console.error("[MapActions] File loading failed:", error);
+            showNotification("Failed to load FIT files", "error");
         } finally {
             LoadingOverlay.hide();
         }
     });
-    
+
     document.body.appendChild(input);
     input.click();
     document.body.removeChild(input);
@@ -71,47 +71,50 @@ export function _openFileSelector() {
 async function _loadSingleOverlayFile(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
-        
-        reader.onload = async function(event) {
+
+        reader.onload = async function (event) {
             try {
                 const arrayBuffer = event.target.result;
-                
+
                 if (!arrayBuffer || !window.electronAPI?.decodeFitFile) {
-                    resolve({ success: false, error: 'No file data or decoder not available' });
+                    resolve({ success: false, error: "No file data or decoder not available" });
                     return;
                 }
-                
+
                 const fitData = await window.electronAPI.decodeFitFile(arrayBuffer);
-                
+
                 if (!fitData || fitData.error) {
-                    resolve({ success: false, error: fitData?.error || 'Failed to parse FIT file' });
+                    resolve({ success: false, error: fitData?.error || "Failed to parse FIT file" });
                     return;
                 }
-                
+
                 // Validate that file has location data
                 const validLocationCount = Array.isArray(fitData.recordMesgs)
-                    ? fitData.recordMesgs.filter(r => 
-                        typeof r.positionLat === 'number' && typeof r.positionLong === 'number'
-                    ).length
+                    ? fitData.recordMesgs.filter(
+                          (r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
+                      ).length
                     : 0;
-                
-                if (!Array.isArray(fitData.recordMesgs) || fitData.recordMesgs.length === 0 || validLocationCount === 0) {
-                    resolve({ success: false, error: 'No valid location data found in file' });
+
+                if (
+                    !Array.isArray(fitData.recordMesgs) ||
+                    fitData.recordMesgs.length === 0 ||
+                    validLocationCount === 0
+                ) {
+                    resolve({ success: false, error: "No valid location data found in file" });
                     return;
                 }
-                
+
                 resolve({ success: true, data: fitData });
-                
             } catch (error) {
-                console.error('[mapActionButtons] Error processing file:', file.name, error);
-                resolve({ success: false, error: error.message || 'Unknown error processing file' });
+                console.error("[mapActionButtons] Error processing file:", file.name, error);
+                resolve({ success: false, error: error.message || "Unknown error processing file" });
             }
         };
-        
+
         reader.onerror = () => {
-            resolve({ success: false, error: 'Failed to read file' });
+            resolve({ success: false, error: "Failed to read file" });
         };
-        
+
         reader.readAsArrayBuffer(file);
     });
 }
@@ -124,27 +127,29 @@ async function _loadSingleOverlayFile(file) {
 async function _loadOverlayFiles(files) {
     try {
         LoadingOverlay.show(`Loading 0 / ${files.length} files...`);
-        
+
         let loaded = 0;
         const invalidFiles = [];
-        
+
         // Initialize loaded files array if needed
         if (!window.loadedFitFiles || window.loadedFitFiles.length === 0) {
             if (window.globalData && window.globalData.recordMesgs) {
-                window.loadedFitFiles = [{
-                    data: window.globalData,
-                    filePath: window.globalData?.cachedFilePath,
-                }];
+                window.loadedFitFiles = [
+                    {
+                        data: window.globalData,
+                        filePath: window.globalData?.cachedFilePath,
+                    },
+                ];
             } else {
                 window.loadedFitFiles = [];
             }
         }
-        
+
         // Process each file
         for (const file of files) {
             try {
                 LoadingOverlay.show(`Loading ${loaded + 1} / ${files.length} files...`, file.name);
-                
+
                 const result = await _loadSingleOverlayFile(file);
                 if (result.success) {
                     if (!window.loadedFitFiles.some((f) => f.filePath?.toLowerCase() === file.name.toLowerCase())) {
@@ -152,40 +157,39 @@ async function _loadOverlayFiles(files) {
                             data: result.data,
                             filePath: file.name,
                         });
-                        
+
                         // Update UI
                         if (window.renderMap) window.renderMap();
                         if (window.updateShownFilesList) window.updateShownFilesList();
                     } else {
-                        showNotification('File already loaded', `${file.name} is already shown on the map`, 'warning');
+                        showNotification("File already loaded", `${file.name} is already shown on the map`, "warning");
                     }
                 } else {
                     invalidFiles.push(file.name);
-                    showNotification('File load failed', `Failed to load ${file.name}: ${result.error}`, 'error');
+                    showNotification("File load failed", `Failed to load ${file.name}: ${result.error}`, "error");
                 }
-                
+
                 loaded++;
             } catch (error) {
-                console.error('[mapActionButtons] Error loading overlay file:', file.name, error);
+                console.error("[mapActionButtons] Error loading overlay file:", file.name, error);
                 invalidFiles.push(file.name);
                 loaded++;
             }
         }
-        
+
         LoadingOverlay.hide();
-        
+
         // Show summary notification
         if (invalidFiles.length > 0) {
             const message = `${files.length - invalidFiles.length} files loaded successfully. ${invalidFiles.length} files failed.`;
-            showNotification('Load complete with errors', message, 'warning');
+            showNotification("Load complete with errors", message, "warning");
         } else {
-            showNotification('Load complete', `Successfully loaded ${files.length} files`, 'success');
+            showNotification("Load complete", `Successfully loaded ${files.length} files`, "success");
         }
-        
     } catch (error) {
-        console.error('[mapActionButtons] Error in _loadOverlayFiles:', error);
+        console.error("[mapActionButtons] Error in _loadOverlayFiles:", error);
         LoadingOverlay.hide();
-        showNotification('Load failed', 'Failed to load overlay files', 'error');
+        showNotification("Load failed", "Failed to load overlay files", "error");
     }
 }
 
@@ -204,7 +208,8 @@ export function createShownFilesList() {
     container.style.maxWidth = "350px";
     container.style.overflow = "auto";
     container.style.maxHeight = "80px";
-    container.innerHTML = '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
+    container.innerHTML =
+        '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
 
     function applyTheme() {
         const themeColors = getThemeColors();
@@ -286,7 +291,9 @@ export function createShownFilesList() {
                 const bg = isDark ? "rgb(30,34,40)" : "#fff";
                 li.style.color = color;
                 li.style.filter = filter;
-                li.style.textShadow = isDark ? "0 0 2px #000, 0 0 1px #000, 0 0 1px #000" : "0 0 2px #fff, 0 0 1px #fff, 0 0 1px #fff";
+                li.style.textShadow = isDark
+                    ? "0 0 2px #000, 0 0 1px #000, 0 0 1px #000"
+                    : "0 0 2px #fff, 0 0 1px #fff, 0 0 1px #fff";
                 // Improved: check accessibility using the filtered color as actually rendered
                 let filteredColor = color;
                 if (filter) {
@@ -364,10 +371,12 @@ export function createShownFilesList() {
                         const polyElem = polyline.getElement && polyline.getElement();
                         if (polyElem) {
                             polyElem.style.transition = "filter 0.2s";
-                            polyElem.style.filter = "drop-shadow(0 0 16px " + (polyline.options.color || "#1976d2") + ")";
+                            polyElem.style.filter =
+                                "drop-shadow(0 0 16px " + (polyline.options.color || "#1976d2") + ")";
                             setTimeout(() => {
                                 if (window._highlightedOverlayIdx === idx) {
-                                    polyElem.style.filter = "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")";
+                                    polyElem.style.filter =
+                                        "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")";
                                 }
                             }, 250);
                             // Center and fit map to this overlay
@@ -411,7 +420,8 @@ export function createShownFilesList() {
                         tooltip.style.boxShadow = "0 2px 8px #0003";
                         let html = "<b>File:</b> " + fullPath;
                         if (showWarning) {
-                            html += '<br><span style="color:#eab308;">⚠️ This color may be hard to read in this theme.</span>';
+                            html +=
+                                '<br><span style="color:#eab308;">⚠️ This color may be hard to read in this theme.</span>';
                         }
                         tooltip.innerHTML = html;
                         document.body.appendChild(tooltip);
@@ -419,8 +429,10 @@ export function createShownFilesList() {
                             const pad = 12;
                             let x = evt.clientX + pad;
                             let y = evt.clientY + pad;
-                            if (x + tooltip.offsetWidth > window.innerWidth) x = window.innerWidth - tooltip.offsetWidth - pad;
-                            if (y + tooltip.offsetHeight > window.innerHeight) y = window.innerHeight - tooltip.offsetHeight - pad;
+                            if (x + tooltip.offsetWidth > window.innerWidth)
+                                x = window.innerWidth - tooltip.offsetWidth - pad;
+                            if (y + tooltip.offsetHeight > window.innerHeight)
+                                y = window.innerHeight - tooltip.offsetHeight - pad;
                             tooltip.style.left = x + "px";
                             tooltip.style.top = y + "px";
                         };
@@ -534,7 +546,7 @@ export function createMarkerCountSelector(onChange) {
         // Set initial value from global or default
         const validOptions = [10, 25, 50, 100, 200, 500, 1000, "all"];
         let initial;
-        
+
         if (window.mapMarkerCount === undefined) {
             window.mapMarkerCount = 50;
             initial = 50;
@@ -549,7 +561,7 @@ export function createMarkerCountSelector(onChange) {
         select.value = initial;
 
         // Handle selection changes
-        select.addEventListener('change', function() {
+        select.addEventListener("change", function () {
             try {
                 const val = select.value;
                 if (val === "all") {
@@ -557,40 +569,48 @@ export function createMarkerCountSelector(onChange) {
                 } else {
                     window.mapMarkerCount = parseInt(val, 10);
                 }
-                
+
                 if (typeof onChange === "function") {
                     onChange(window.mapMarkerCount);
                 }
-                
+
                 if (window.updateShownFilesList) {
                     window.updateShownFilesList();
                 }
             } catch (error) {
-                console.error('[mapActionButtons] Error in marker count change:', error);
-                showNotification('Error', 'Failed to update marker count', 'error');
+                console.error("[mapActionButtons] Error in marker count change:", error);
+                showNotification("Error", "Failed to update marker count", "error");
             }
         });
 
         // Add mouse wheel support for changing marker count
-        select.addEventListener('wheel', (e) => {
-            try {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const options = Array.from(select.options);
-                let idx = select.selectedIndex;
-                
-                if (e.deltaY > 0 && idx < options.length - 1) {
-                    select.selectedIndex = idx + 1;
-                    select.dispatchEvent(new Event("change", { bubbles: false, cancelable: true, composed: false }));
-                } else if (e.deltaY < 0 && idx > 0) {
-                    select.selectedIndex = idx - 1;
-                    select.dispatchEvent(new Event("change", { bubbles: false, cancelable: true, composed: false }));
+        select.addEventListener(
+            "wheel",
+            (e) => {
+                try {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const options = Array.from(select.options);
+                    let idx = select.selectedIndex;
+
+                    if (e.deltaY > 0 && idx < options.length - 1) {
+                        select.selectedIndex = idx + 1;
+                        select.dispatchEvent(
+                            new Event("change", { bubbles: false, cancelable: true, composed: false })
+                        );
+                    } else if (e.deltaY < 0 && idx > 0) {
+                        select.selectedIndex = idx - 1;
+                        select.dispatchEvent(
+                            new Event("change", { bubbles: false, cancelable: true, composed: false })
+                        );
+                    }
+                } catch (error) {
+                    console.error("[mapActionButtons] Error in wheel event:", error);
                 }
-            } catch (error) {
-                console.error('[mapActionButtons] Error in wheel event:', error);
-            }
-        }, { passive: false });
+            },
+            { passive: false }
+        );
 
         // Apply theme styling
         const applyTheme = () => {
@@ -599,32 +619,31 @@ export function createMarkerCountSelector(onChange) {
                 container.style.background = themeColors.backgroundAlt;
                 container.style.color = themeColors.text;
                 container.style.border = `1px solid ${themeColors.border}`;
-                
+
                 label.style.color = themeColors.text;
                 select.style.background = themeColors.backgroundAlt;
                 select.style.color = themeColors.text;
                 select.style.border = `1px solid ${themeColors.border}`;
             } catch (error) {
-                console.error('[mapActionButtons] Error applying theme to marker selector:', error);
+                console.error("[mapActionButtons] Error applying theme to marker selector:", error);
             }
         };
 
         applyTheme();
-        
+
         // Listen for theme changes
         if (window.addEventListener) {
-            window.addEventListener('themeChanged', applyTheme);
+            window.addEventListener("themeChanged", applyTheme);
         }
 
         container.appendChild(label);
         container.appendChild(select);
 
         return container;
-        
     } catch (error) {
-        console.error('[mapActionButtons] Error creating marker count selector:', error);
-        showNotification('Error', 'Failed to create marker count selector', 'error');
-        return document.createElement('div'); // Return empty div as fallback
+        console.error("[mapActionButtons] Error creating marker count selector:", error);
+        showNotification("Error", "Failed to create marker count selector", "error");
+        return document.createElement("div"); // Return empty div as fallback
     }
 }
 
@@ -644,11 +663,11 @@ function setupActiveFileNameMapActions() {
         // Configure element appearance and behavior
         activeFileName.style.cursor = "pointer";
         activeFileName.title = "Click to center map on main file";
-        
+
         // Apply theme styling
         const themeColors = getThemeColors();
         activeFileName.style.transition = "color 0.2s ease";
-        
+
         // Remove any previous listeners to avoid stacking
         activeFileName.onclick = null;
         activeFileName.onmouseenter = null;
@@ -658,7 +677,7 @@ function setupActiveFileNameMapActions() {
         activeFileName.onclick = () => {
             try {
                 console.log("[mapActionButtons] Active file name clicked");
-                
+
                 // Switch to map tab if not active
                 const mapTabBtn = document.querySelector('[data-tab="map"]');
                 if (mapTabBtn && !mapTabBtn.classList.contains("active")) {
@@ -670,10 +689,9 @@ function setupActiveFileNameMapActions() {
                 setTimeout(() => {
                     _centerMapOnMainFile();
                 }, 100);
-                
             } catch (error) {
-                console.error('[mapActionButtons] Error in active filename click:', error);
-                showNotification('Error', 'Failed to center map on file', 'error');
+                console.error("[mapActionButtons] Error in active filename click:", error);
+                showNotification("Error", "Failed to center map on file", "error");
             }
         };
 
@@ -687,7 +705,7 @@ function setupActiveFileNameMapActions() {
                     window.updateOverlayHighlights();
                 }
             } catch (error) {
-                console.error('[mapActionButtons] Error in mouseenter:', error);
+                console.error("[mapActionButtons] Error in mouseenter:", error);
             }
         };
 
@@ -700,12 +718,11 @@ function setupActiveFileNameMapActions() {
                     window.updateOverlayHighlights();
                 }
             } catch (error) {
-                console.error('[mapActionButtons] Error in mouseleave:', error);
+                console.error("[mapActionButtons] Error in mouseleave:", error);
             }
         };
-
     } catch (error) {
-        console.error('[mapActionButtons] Error setting up active filename actions:', error);
+        console.error("[mapActionButtons] Error setting up active filename actions:", error);
     }
 }
 
@@ -717,16 +734,16 @@ function _centerMapOnMainFile() {
     try {
         const idx = 0; // Main file is always index 0
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
-        
+
         if (!window._overlayPolylines || !window._overlayPolylines[idx]) {
             console.warn("[mapActionButtons] No main polyline found");
-            showNotification('Info', 'No main track to center on', 'info');
+            showNotification("Info", "No main track to center on", "info");
             return;
         }
 
         const polyline = window._overlayPolylines[idx];
         window._highlightedOverlayIdx = idx;
-        
+
         if (window.updateOverlayHighlights) {
             window.updateOverlayHighlights();
         }
@@ -739,9 +756,12 @@ function _centerMapOnMainFile() {
         // Bring associated markers to front
         if (window.L && window.L.CircleMarker && polyline._map && polyline._map._layers) {
             Object.values(polyline._map._layers).forEach((layer) => {
-                if (layer instanceof window.L.CircleMarker && 
-                    layer.options && polyline.options &&
-                    layer.options.color === polyline.options.color) {
+                if (
+                    layer instanceof window.L.CircleMarker &&
+                    layer.options &&
+                    polyline.options &&
+                    layer.options.color === polyline.options.color
+                ) {
                     if (layer.bringToFront) {
                         layer.bringToFront();
                     }
@@ -754,7 +774,7 @@ function _centerMapOnMainFile() {
         if (polyElem) {
             polyElem.style.transition = "filter 0.2s";
             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
-            
+
             setTimeout(() => {
                 if (window._highlightedOverlayIdx === idx) {
                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
@@ -765,10 +785,12 @@ function _centerMapOnMainFile() {
         // Fit map bounds to main polyline only
         if (window._leafletMapInstance) {
             let bounds = null;
-            
-            if (window._mainPolylineOriginalBounds && 
-                window._mainPolylineOriginalBounds.isValid && 
-                window._mainPolylineOriginalBounds.isValid()) {
+
+            if (
+                window._mainPolylineOriginalBounds &&
+                window._mainPolylineOriginalBounds.isValid &&
+                window._mainPolylineOriginalBounds.isValid()
+            ) {
                 bounds = window._mainPolylineOriginalBounds;
                 console.log("[mapActionButtons] Using stored main polyline bounds");
             } else if (polyline.getBounds) {
@@ -779,7 +801,7 @@ function _centerMapOnMainFile() {
             if (bounds && bounds.isValid && bounds.isValid()) {
                 console.log("[mapActionButtons] Fitting map to bounds");
                 window._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
-                
+
                 setTimeout(() => {
                     try {
                         const center = window._leafletMapInstance.getCenter();
@@ -791,16 +813,15 @@ function _centerMapOnMainFile() {
                 }, 200);
             } else {
                 console.warn("[mapActionButtons] No valid bounds found for main polyline");
-                showNotification('Warning', 'Could not determine track bounds', 'warning');
+                showNotification("Warning", "Could not determine track bounds", "warning");
             }
         } else {
             console.warn("[mapActionButtons] Leaflet map instance not available");
-            showNotification('Warning', 'Map not ready for centering', 'warning');
+            showNotification("Warning", "Map not ready for centering", "warning");
         }
-
     } catch (error) {
-        console.error('[mapActionButtons] Error centering map on main file:', error);
-        showNotification('Error', 'Failed to center map on main file', 'error');
+        console.error("[mapActionButtons] Error centering map on main file:", error);
+        showNotification("Error", "Failed to center map on main file", "error");
     }
 }
 
@@ -809,7 +830,7 @@ function _centerMapOnMainFile() {
     try {
         const targetElement = document.getElementById("activeFileName");
         const parent = targetElement?.parentNode;
-        
+
         if (!parent) {
             console.log("[mapActionButtons] Active filename parent not found for observer");
             // Try again after DOM loads
@@ -824,14 +845,13 @@ function _centerMapOnMainFile() {
             console.log("[mapActionButtons] Active filename element changed, reapplying setup");
             setupActiveFileNameMapActions();
         });
-        
+
         observer.observe(parent, { childList: true, subtree: false });
 
         // Initial setup
         setupActiveFileNameMapActions();
-
     } catch (error) {
-        console.error('[mapActionButtons] Error initializing active filename:', error);
+        console.error("[mapActionButtons] Error initializing active filename:", error);
     }
 })();
 
@@ -842,8 +862,8 @@ window._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
 (function patchUpdateShownFilesList() {
     try {
         const origUpdateShownFilesList = window.updateShownFilesList;
-        
-        window.updateShownFilesList = function() {
+
+        window.updateShownFilesList = function () {
             try {
                 if (origUpdateShownFilesList) {
                     origUpdateShownFilesList.apply(this, arguments);
@@ -851,10 +871,10 @@ window._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
                 console.log("[mapActionButtons] Files list updated, reapplying active filename setup");
                 setupActiveFileNameMapActions();
             } catch (error) {
-                console.error('[mapActionButtons] Error in patched updateShownFilesList:', error);
+                console.error("[mapActionButtons] Error in patched updateShownFilesList:", error);
             }
         };
     } catch (error) {
-        console.error('[mapActionButtons] Error patching updateShownFilesList:', error);
+        console.error("[mapActionButtons] Error patching updateShownFilesList:", error);
     }
 })();

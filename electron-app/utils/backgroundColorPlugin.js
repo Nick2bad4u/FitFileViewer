@@ -28,7 +28,8 @@ export const backgroundColorPlugin = {
      */
     beforeDraw: (chart, options) => {
         // Precedence: use backgroundColor from plugin options if provided, otherwise fallback to chart config
-        const backgroundColor = options?.backgroundColor || chart.options?.plugins?.backgroundColorPlugin?.backgroundColor;
+        const backgroundColor =
+            options?.backgroundColor || chart.options?.plugins?.backgroundColorPlugin?.backgroundColor;
         if (!backgroundColor) return;
 
         const { ctx, width, height } = chart;

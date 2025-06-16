@@ -186,7 +186,11 @@ window.sendFitFileToAltFitReader = async function (arrayBuffer) {
 };
 
 // Enhanced theme change handling
-if (window.electronAPI && typeof window.electronAPI.onSetTheme === "function" && typeof window.electronAPI.sendThemeChanged === "function") {
+if (
+    window.electronAPI &&
+    typeof window.electronAPI.onSetTheme === "function" &&
+    typeof window.electronAPI.sendThemeChanged === "function"
+) {
     // Re-render charts when theme changes, regardless of active tab
     listenForThemeChange((theme) => {
         applyTheme(theme);
@@ -324,7 +328,10 @@ class DragDropHandler {
                 showFitData(fitData, file.name);
                 window.sendFitFileToAltFitReader(arrayBuffer);
             } else {
-                alert("Unable to process the FIT file. Please try again or check the file format. Details: " + (fitData.error || "Unknown error"));
+                alert(
+                    "Unable to process the FIT file. Please try again or check the file format. Details: " +
+                        (fitData.error || "Unknown error")
+                );
             }
         } catch (error) {
             console.error("Error processing dropped file:", error);

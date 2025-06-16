@@ -15,7 +15,9 @@ export function updateChartAnimations(chart, type) {
         easing: "easeInOutQuart",
         onProgress: function (context) {
             if (context && context.currentStep !== undefined && context.numSteps !== undefined) {
-                throttledAnimLog(`[ChartJS] ${type} chart animation: ${Math.round((100 * context.currentStep) / context.numSteps)}%`);
+                throttledAnimLog(
+                    `[ChartJS] ${type} chart animation: ${Math.round((100 * context.currentStep) / context.numSteps)}%`
+                );
             }
         },
         onComplete: function () {
