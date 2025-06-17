@@ -8,17 +8,18 @@ import { formatProduct } from "./formatProduct.js";
  */
 
 export function formatSensorName(sensor) {
-    if (sensor.garminProduct) {
+    // Prefer manufacturer + product approach when both are available
+    if (sensor.manufacturer && sensor.product) {
+        const manufacturerName = formatManufacturer(sensor.manufacturer);
+        const productName = formatProduct(sensor.manufacturer, sensor.product);
+        return `${manufacturerName} ${productName}`;
+    } else if (sensor.garminProduct) {
         // Ensure garminProduct is a string before formatting
         const garminProductStr = String(sensor.garminProduct);
         return garminProductStr
             .split("_")
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
-    } else if (sensor.manufacturer && sensor.product) {
-        const manufacturerName = formatManufacturer(sensor.manufacturer);
-        const productName = formatProduct(sensor.manufacturer, sensor.product);
-        return `${manufacturerName} ${productName}`;
     } else if (sensor.manufacturer) {
         return formatManufacturer(sensor.manufacturer);
     } else {

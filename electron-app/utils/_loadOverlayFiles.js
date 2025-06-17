@@ -3,11 +3,10 @@ import { LoadingOverlay } from "./LoadingOverlay.js";
 import { showNotification } from "./showNotification.js";
 
 /**
- * Internal function to load FIT files as overlays
+ * Loads FIT files as overlays.
  * @param {File[]} files - Array of files to load
- * @private
+ * @returns {Promise<void>} Resolves when all files have been processed
  */
-
 export async function _loadOverlayFiles(files) {
     try {
         LoadingOverlay.show(`Loading 0 / ${files.length} files...`);
@@ -36,15 +35,18 @@ export async function _loadOverlayFiles(files) {
 
                 const result = await _loadSingleOverlayFile(file);
                 if (result.success) {
-                    if (!window.loadedFitFiles.some((f) => f.filePath?.toLowerCase() === file.name.toLowerCase())) {
+                    if (
+                        !window.loadedFitFiles.some((f) => {
+                            const loadedBase = f.filePath ? f.filePath.split(/[\\/]/).pop() : "";
+                            return loadedBase === file.name;
+                        })
+                    ) {
                         window.loadedFitFiles.push({
                             data: result.data,
                             filePath: file.name,
                         });
 
-                        // Update UI
-                        if (window.renderMap) window.renderMap();
-                        if (window.updateShownFilesList) window.updateShownFilesList();
+                        // UI update deferred until after all files are processed
                     } else {
                         showNotification("File already loaded", `${file.name} is already shown on the map`, "warning");
                     }
@@ -55,7 +57,7 @@ export async function _loadOverlayFiles(files) {
 
                 loaded++;
             } catch (error) {
-                console.error("[mapActionButtons] Error loading overlay file:", file.name, error);
+                console.error("[_loadOverlayFiles] Error loading overlay file:", file.name, error);
                 invalidFiles.push(file.name);
                 loaded++;
             }
@@ -63,15 +65,28 @@ export async function _loadOverlayFiles(files) {
 
         LoadingOverlay.hide();
 
+        // Batch update UI after all files are processed
+        if (window.renderMap) window.renderMap();
+        if (window.updateShownFilesList) window.updateShownFilesList();
+
         // Show summary notification
-        if (invalidFiles.length > 0) {
+        if (invalidFiles.length === files.length) {
+            // All files failed
+            showNotification(
+                "Load failed",
+                `Failed to load any of the ${files.length} files.`,
+                "error"
+            );
+        } else if (invalidFiles.length > 0) {
+            // Some files failed
             const message = `${files.length - invalidFiles.length} files loaded successfully. ${invalidFiles.length} files failed.`;
             showNotification("Load complete with errors", message, "warning");
         } else {
+            // All files succeeded
             showNotification("Load complete", `Successfully loaded ${files.length} files`, "success");
         }
     } catch (error) {
-        console.error("[mapActionButtons] Error in _loadOverlayFiles:", error);
+        console.error("[_loadOverlayFiles] Error in _loadOverlayFiles:", error);
         LoadingOverlay.hide();
         showNotification("Load failed", "Failed to load overlay files", "error");
     }

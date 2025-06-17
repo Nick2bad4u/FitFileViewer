@@ -49,7 +49,7 @@ import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { convertValueToUserUnits } from "./convertValueToUserUnits.js";
 import { setupZoneData } from "./setupZoneData.js";
-import { fieldLabels } from "./chartFields.js";
+import { fieldLabels, chartFields } from "./chartFields.js";
 import { ensureChartSettingsDropdowns } from "./ensureChartSettingsDropdowns.js";
 import { getCurrentSettings } from "./getCurrentSettings.js";
 import { loadSharedConfiguration } from "./loadSharedConfiguration.js";
@@ -285,12 +285,18 @@ export function renderChartJS(targetContainer) {
 					margin: 20px 0;
 				">
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${themeConfig.colors.error});">Chart Rendering Error</h3>
-					<p style="margin-bottom: 8px; color: var(--color-fg, ${themeConfig.colors.text});">An error occurred while rendering the charts.</p>
+					<p style="margin-bottom: 8px; color: var(--color-fg, ${
+                        themeConfig.colors.text
+                    });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
-						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${themeConfig.colors.text});">Error Details</summary>
-						<pre style="background: var(--color-glass, ${themeConfig.colors.backgroundAlt}); color: var(--color-fg, ${themeConfig.colors.text}); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${themeConfig.colors.border});">${
-                            error.stack || error.message
-                        }</pre>
+						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
+                            themeConfig.colors.text
+                        });">Error Details</summary>
+						<pre style="background: var(--color-glass, ${themeConfig.colors.backgroundAlt}); color: var(--color-fg, ${
+                themeConfig.colors.text
+            }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                themeConfig.colors.border
+            });">${error.stack || error.message}</pre>
 					</details>
 				</div>
 			`;
@@ -436,29 +442,16 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         }
         return i; // fallback to index
     }); // Define fields to process for charts - updated to match actual FIT file field names
-    const chartFields = [
-        "speed",
-        "heartRate",
-        "altitude",
-        "power",
-        "cadence",
-        "temperature",
-        "distance",
-        "enhancedSpeed",
-        "enhancedAltitude",
-        "resistance",
-        "flow",
-        "grit",
-        "positionLat",
-        "positionLong",
-    ];
+    // Use chartFields imported from chartFields.js for consistency
+    // (imported at the top: import { chartFields } from "./chartFields.js";)
     let visibleFieldCount = 0; // Process each field
     chartFields.forEach((field) => {
         // Check field visibility
         const visibility = localStorage.getItem(`chartjs_field_${field}`);
         if (visibility === "hidden") {
             return; // Skip this field
-        } // Extract numeric data with unit conversion and better debugging
+        }
+        // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
             if (row[field] !== undefined && row[field] !== null) {
                 let value = parseFloat(row[field]);
@@ -471,7 +464,9 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                 if (index < 3) {
                     // Debug first few rows
                     console.log(
-                        `[ChartJS] Field ${field}, row ${index}: raw=${row[field]}, converted=${value} ${getUnitSymbol(field)}`
+                        `[ChartJS] Field ${field}, row ${index}: raw=${row[field]}, converted=${value} ${getUnitSymbol(
+                            field
+                        )}`
                     );
                 }
                 return isNaN(value) ? null : value;
@@ -490,7 +485,9 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         visibleFieldCount++;
         const canvas = createChartCanvas(field, visibleFieldCount);
-        chartContainer.appendChild(canvas); // Prepare chart data for enhanced chart with comprehensive unit conversion
+        chartContainer.appendChild(canvas);
+
+        // Prepare chart data for enhanced chart with comprehensive unit conversion
         let chartData = data
             .map((row, i) => {
                 let value = row[field] ?? null;
@@ -536,7 +533,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         if (chart) {
             window._chartjsInstances.push(chart);
         }
-    }); // Render additional chart types
+    });
     renderEventMessagesChart(
         chartContainer,
         {
