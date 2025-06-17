@@ -19,7 +19,7 @@
 import { formatSensorName } from "./formatSensorName.js";
 import { formatManufacturer } from "./formatManufacturer.js";
 import { formatProduct } from "./formatProduct.js";
-import { getManufacturerName, getProductName } from "./manufacturerIds.js";
+import { getManufacturerName, getProductName } from "./formatAntNames.js";
 
 /**
  * Extracts and displays detailed sensor information from global data
@@ -178,13 +178,13 @@ export function debugSensorInfo() {
             if (resolvedProduct !== productField) {
                 console.log(`    📦 Resolved product ID ${productField} → "${resolvedProduct}"`);
             }
-        }
-
-        // Test formatting
+        } // Test formatting
         const formattedName = formatSensorName(sensor);
         const formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer);
         const formattedProduct =
-            manufacturerId && productField ? formatProduct(manufacturerId, productField) : productField;
+            (manufacturerId || sensor.manufacturer) && productField
+                ? formatProduct(manufacturerId || sensor.manufacturer, productField)
+                : productField;
 
         console.log(`    🎨 Formatted Name: "${formattedName}"`);
         console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);

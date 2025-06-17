@@ -490,7 +490,9 @@ if (isDevelopmentMode()) {
                 showDataKeys,
                 checkDataAvailability,
             } = await import("./utils/debugSensorInfo.js");
-            const { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import("./utils/testFormatting.js");
+            const { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
+                "./utils/testFormatting.js"
+            );
 
             // Expose sensor debug utilities globally
             window.__sensorDebug = {

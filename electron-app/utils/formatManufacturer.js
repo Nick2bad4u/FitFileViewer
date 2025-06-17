@@ -1,4 +1,4 @@
-import { getManufacturerName } from "./manufacturerIds.js";
+import { getManufacturerName } from "./formatAntNames.js";
 
 /**
  * Formats manufacturer names for display
