@@ -293,10 +293,10 @@ export function renderChartJS(targetContainer) {
                             themeConfig.colors.text
                         });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${themeConfig.colors.backgroundAlt}); color: var(--color-fg, ${
-                themeConfig.colors.text
-            }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
-                themeConfig.colors.border
-            });">${error.stack || error.message}</pre>
+                            themeConfig.colors.text
+                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                            themeConfig.colors.border
+                        });">${error.stack || error.message}</pre>
 					</details>
 				</div>
 			`;
@@ -534,17 +534,22 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             window._chartjsInstances.push(chart);
         }
     });
-    renderEventMessagesChart(
-        chartContainer,
-        {
-            showGrid: boolSettings.showGrid,
-            showLegend: boolSettings.showLegend,
-            showTitle: boolSettings.showTitle,
-            zoomPluginConfig,
-            theme: currentTheme,
-        },
-        startTime
-    );
+
+    // Event messages chart (respect visibility setting)
+    const eventMessagesVisibility = localStorage.getItem("chartjs_field_event_messages");
+    if (eventMessagesVisibility !== "hidden") {
+        renderEventMessagesChart(
+            chartContainer,
+            {
+                showGrid: boolSettings.showGrid,
+                showLegend: boolSettings.showLegend,
+                showTitle: boolSettings.showTitle,
+                zoomPluginConfig,
+                theme: currentTheme,
+            },
+            startTime
+        );
+    }
 
     renderTimeInZoneCharts(chartContainer, {
         showGrid: boolSettings.showGrid,
@@ -552,16 +557,34 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         showTitle: boolSettings.showTitle,
         zoomPluginConfig,
         theme: currentTheme,
-    });
+    }); // Render lap zone charts (respect visibility settings)
+    const hrLapZoneStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked");
+    const hrLapZoneIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual");
+    const powerLapZoneStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked");
+    const powerLapZoneIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual");
 
-    // Render lap zone charts
-    renderLapZoneCharts(chartContainer, {
-        showGrid: boolSettings.showGrid,
-        showLegend: boolSettings.showLegend,
-        showTitle: boolSettings.showTitle,
-        zoomPluginConfig,
-        theme: currentTheme,
-    }); // Render GPS track chart if position data is available
+    // Only render if at least one lap zone chart type is visible
+    if (
+        hrLapZoneStackedVisibility !== "hidden" ||
+        hrLapZoneIndividualVisibility !== "hidden" ||
+        powerLapZoneStackedVisibility !== "hidden" ||
+        powerLapZoneIndividualVisibility !== "hidden"
+    ) {
+        renderLapZoneCharts(chartContainer, {
+            showGrid: boolSettings.showGrid,
+            showLegend: boolSettings.showLegend,
+            showTitle: boolSettings.showTitle,
+            zoomPluginConfig,
+            theme: currentTheme,
+            // Pass visibility settings to the renderer
+            visibilitySettings: {
+                hrStackedVisible: hrLapZoneStackedVisibility !== "hidden",
+                hrIndividualVisible: hrLapZoneIndividualVisibility !== "hidden",
+                powerStackedVisible: powerLapZoneStackedVisibility !== "hidden",
+                powerIndividualVisible: powerLapZoneIndividualVisibility !== "hidden",
+            },
+        });
+    } // Render GPS track chart if position data is available
     renderGPSTrackChart(chartContainer, data, {
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,
@@ -623,9 +646,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         console.log(
             `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
         );
-    }
-
-    // Add hover effects to all rendered charts
+    } // Add hover effects to all rendered charts
     if (totalChartsRendered > 0) {
         // Get theme configuration for hover effects
         let themeConfig;
@@ -639,6 +660,15 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Add hover effects to charts
         addChartHoverEffects(chartContainer, themeConfig);
     }
+
+    // Emit custom event for chart status updates
+    const chartsRenderedEvent = new CustomEvent("chartsRendered", {
+        detail: {
+            totalRendered: totalChartsRendered,
+            visibleFields: visibleFieldCount,
+        },
+    });
+    document.dispatchEvent(chartsRenderedEvent);
 
     return true;
 }

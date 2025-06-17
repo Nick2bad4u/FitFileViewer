@@ -776,6 +776,50 @@ table.dataTable.display > tbody > tr:hover td {
     height: auto !important;
 }
 
+/* Chart Status Indicators */
+.chart-status-indicator {
+    background: var(--color-glass) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 12px !important;
+    backdrop-filter: var(--backdrop-blur) !important;
+    transition: var(--transition-smooth) !important;
+}
+
+.chart-status-indicator:hover {
+    background: var(--color-glass-border) !important;
+    transform: translateY(-1px) !important;
+}
+
+.status-breakdown {
+    z-index: 999999 !important;
+}
+
+.chart-status-indicator .status-breakdown {
+    z-index: 999999 !important;
+}
+
+/* Ensure tooltips appear above all chart controls and other elements */
+.settings-header .chart-status-indicator .status-breakdown {
+    z-index: 999999 !important;
+    position: fixed !important;
+}
+
+.global-chart-status {
+    background: var(--color-bg-alt) !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    backdrop-filter: var(--backdrop-blur) !important;
+    box-shadow: 0 2px 4px var(--color-shadow) !important;
+}
+
+.global-chart-status button {
+    transition: var(--transition-smooth) !important;
+}
+
+.global-chart-status button:hover {
+    background: var(--color-accent-hover) !important;
+    transform: translateY(-1px) !important;
+}
+
 .tab-card #content-chart {
     display: flex;
     flex-direction: column;

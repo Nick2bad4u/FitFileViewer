@@ -1,4 +1,4 @@
 {
-	"default": true,
-	"MD013/line-length": false
+    "default": true,
+    "MD013/line-length": false
 }

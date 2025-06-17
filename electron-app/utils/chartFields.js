@@ -33,8 +33,8 @@ export const chartFields = [
     "resistance",
     "flow",
     "grit",
-    "position_lat",
-    "position_long",
+    "positionLat",
+    "positionLong",
 ];
 /**
  * Maps FIT file field keys to human-readable chart labels.
@@ -59,8 +59,8 @@ export const fieldLabels = {
     resistance: "Resistance",
     flow: "Flow",
     grit: "Grit",
-    position_lat: "Latitude",
-    position_long: "Longitude",
+    positionLat: "Latitude",
+    positionLong: "Longitude",
     gps_track: "GPS Track",
     speed_vs_distance: "Speed vs Distance",
     power_vs_hr: "Power vs Heart Rate",
@@ -69,6 +69,11 @@ export const fieldLabels = {
     hr_zone_bar: "HR Zone Time",
     power_zone_doughnut: "Power Zone Distribution",
     power_zone_bar: "Power Zone Time",
+    event_messages: "Event Messages",
+    hr_lap_zone_stacked: "HR Lap Zone Stacked",
+    hr_lap_zone_individual: "HR Lap Zone Individual",
+    power_lap_zone_stacked: "Power Lap Zone Stacked",
+    power_lap_zone_individual: "Power Lap Zone Individual",
 };
 // Enhanced color scheme with better accessibility - match actual field names
 export const fieldColors = {
@@ -84,8 +89,8 @@ export const fieldColors = {
     resistance: "#795548",
     flow: "#c42196",
     grit: "#6e1cbb",
-    position_lat: "#ff5722",
-    position_long: "#3f51b5",
+    positionLat: "#ff5722",
+    positionLong: "#3f51b5",
     gps_track: "#4caf50",
     speed_vs_distance: "#2196f3",
     power_vs_hr: "#ff5722",
@@ -94,4 +99,9 @@ export const fieldColors = {
     hr_zone_bar: "#d32f2f",
     power_zone_doughnut: "#ff9800",
     power_zone_bar: "#f57c00",
+    event_messages: "#9c27b0",
+    hr_lap_zone_stacked: "#f44336",
+    hr_lap_zone_individual: "#e91e63",
+    power_lap_zone_stacked: "#ff5722",
+    power_lap_zone_individual: "#ff9800",
 };

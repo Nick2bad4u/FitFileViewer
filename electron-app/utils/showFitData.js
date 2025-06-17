@@ -1,6 +1,8 @@
 /* global */
 // utils/showFitData.js
 
+import { createGlobalChartStatusIndicator } from "./chartStatusIndicator.js";
+
 /**
  * Show FIT data in the UI. Used by Electron main process.
  * @param {Object} data - Parsed FIT file data.
@@ -54,4 +56,9 @@ export function showFitData(data, filePath) {
     if (window.renderSummary && window.globalData) {
         window.renderSummary(window.globalData);
     }
+
+    // Create/update the global chart status indicator when data is loaded
+    setTimeout(() => {
+        createGlobalChartStatusIndicator();
+    }, 100);
 }

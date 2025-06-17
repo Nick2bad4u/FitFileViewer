@@ -42,7 +42,7 @@ footer = """
 ## Contributors
 Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE.md)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*
 """
 # Remove leading and trailing whitespace from the changelog content

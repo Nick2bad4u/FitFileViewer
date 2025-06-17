@@ -8,6 +8,7 @@ import { openZoneColorPicker } from "./openZoneColorPicker.js";
 import { resetAllSettings } from "./getCurrentSettings.js";
 import { showNotification } from "./showNotification.js";
 import { getThemeConfig } from "./theme.js";
+import { createChartStatusIndicator, updateAllChartStatusIndicators } from "./chartStatusIndicator.js";
 
 /**
  * Creates the settings header with title and global actions
@@ -18,7 +19,6 @@ export function createSettingsHeader(wrapper) {
     if (wrapper.querySelector(".settings-header")) {
         return;
     }
-
     const header = document.createElement("div");
     header.className = "settings-header";
     header.style.cssText = `
@@ -28,6 +28,17 @@ export function createSettingsHeader(wrapper) {
 		margin-bottom: 20px;
 		position: relative;
 		z-index: 1;
+		flex-wrap: wrap;
+		gap: 12px;
+	`;
+
+    const leftSection = document.createElement("div");
+    leftSection.style.cssText = `
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		flex: 1;
+		min-width: 200px;
 	`;
 
     const title = document.createElement("h3");
@@ -38,16 +49,21 @@ export function createSettingsHeader(wrapper) {
 		font-size: 20px;
 		font-weight: 600;
 		text-shadow: 0 2px 4px var(--color-shadow);
+		white-space: nowrap;
 	`;
+
+    // Add chart status indicator
+    const statusIndicator = createChartStatusIndicator();
+
+    leftSection.appendChild(title);
+    leftSection.appendChild(statusIndicator);
 
     const globalActions = document.createElement("div");
     globalActions.className = "global-actions";
     globalActions.style.cssText = `
 		display: flex;
 		gap: 8px;
-	`;
-
-    // Reset to defaults button
+	`; // Reset to defaults button
     const resetBtn = createActionButton("↻ Reset", "Reset all settings to defaults", () => {
         resetAllSettings();
         // Force re-render all charts after reset with proper cleanup
@@ -65,11 +81,12 @@ export function createSettingsHeader(wrapper) {
                     }
                 });
                 window._chartjsInstances = [];
-            }
-
-            // Force complete re-render
+            } // Force complete re-render
             setTimeout(() => {
-                renderChartJS(chartsContainer);
+                renderChartJS(chartsContainer); // Update status indicators after charts are rendered
+                setTimeout(() => {
+                    updateAllChartStatusIndicators();
+                }, 100);
             }, 50);
         }
         showNotification("Settings reset to defaults", "success");
@@ -82,7 +99,7 @@ export function createSettingsHeader(wrapper) {
 
     globalActions.appendChild(resetBtn);
     globalActions.appendChild(exportAllBtn);
-    header.appendChild(title);
+    header.appendChild(leftSection);
     header.appendChild(globalActions);
     wrapper.appendChild(header);
 }
@@ -810,15 +827,89 @@ export function createFieldTogglesSection(wrapper) {
 		z-index: 1;
 		backdrop-filter: var(--backdrop-blur);
 	`;
-
-    const fieldsTitle = document.createElement("h4");
-    fieldsTitle.textContent = "Visible Metrics";
+    const fieldsTitle = document.createElement("div");
     fieldsTitle.style.cssText = `
-		margin: 0 0 12px 0;
-		color: var(--color-accent-secondary);
-		font-size: 16px;
-		font-weight: 600;
-	`;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 0 12px 0;
+    `;
+
+    const titleText = document.createElement("h4");
+    titleText.textContent = "Visible Metrics";
+    titleText.style.cssText = `
+        margin: 0;
+        color: var(--color-accent-secondary);
+        font-size: 16px;
+        font-weight: 600;
+    `;
+
+    const toggleAllContainer = document.createElement("div");
+    toggleAllContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+
+    const enableAllBtn = document.createElement("button");
+    enableAllBtn.textContent = "Enable All";
+    enableAllBtn.style.cssText = `
+        padding: 4px 8px;
+        border: 1px solid var(--color-success);
+        border-radius: 4px;
+        background: var(--color-success);
+        color: white;
+        font-size: 11px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+    `;
+
+    const disableAllBtn = document.createElement("button");
+    disableAllBtn.textContent = "Disable All";
+    disableAllBtn.style.cssText = `
+        padding: 4px 8px;
+        border: 1px solid var(--color-error);
+        border-radius: 4px;
+        background: var(--color-error);
+        color: white;
+        font-size: 11px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+    `;
+
+    // Add hover effects
+    enableAllBtn.addEventListener("mouseenter", () => {
+        enableAllBtn.style.opacity = "0.8";
+        enableAllBtn.style.transform = "translateY(-1px)";
+    });
+    enableAllBtn.addEventListener("mouseleave", () => {
+        enableAllBtn.style.opacity = "1";
+        enableAllBtn.style.transform = "translateY(0)";
+    });
+
+    disableAllBtn.addEventListener("mouseenter", () => {
+        disableAllBtn.style.opacity = "0.8";
+        disableAllBtn.style.transform = "translateY(-1px)";
+    });
+    disableAllBtn.addEventListener("mouseleave", () => {
+        disableAllBtn.style.opacity = "1";
+        disableAllBtn.style.transform = "translateY(0)";
+    });
+
+    // Add click handlers
+    enableAllBtn.addEventListener("click", () => {
+        toggleAllFields(true);
+    });
+
+    disableAllBtn.addEventListener("click", () => {
+        toggleAllFields(false);
+    });
+
+    toggleAllContainer.appendChild(enableAllBtn);
+    toggleAllContainer.appendChild(disableAllBtn);
+
+    fieldsTitle.appendChild(titleText);
+    fieldsTitle.appendChild(toggleAllContainer);
 
     const fieldsGrid = document.createElement("div");
     fieldsGrid.style.cssText = `
@@ -850,9 +941,46 @@ export function createFieldTogglesSection(wrapper) {
 
     const powerZoneDoughnutToggle = createFieldToggle("power_zone_doughnut");
     fieldsGrid.appendChild(powerZoneDoughnutToggle);
-
     const powerZoneBarToggle = createFieldToggle("power_zone_bar");
     fieldsGrid.appendChild(powerZoneBarToggle);
+
+    // Add lap zone chart toggles if data exists
+    if (window.globalData?.timeInZoneMesgs) {
+        const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
+        const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
+
+        if (lapZoneMsgs.length > 0) {
+            // Check for HR lap zone data
+            const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
+            if (hrLapZones.length > 0) {
+                const hrLapStackedToggle = createFieldToggle("hr_lap_zone_stacked");
+                fieldsGrid.appendChild(hrLapStackedToggle);
+
+                const hrLapIndividualToggle = createFieldToggle("hr_lap_zone_individual");
+                fieldsGrid.appendChild(hrLapIndividualToggle);
+            }
+
+            // Check for Power lap zone data
+            const powerLapZones = lapZoneMsgs.filter((msg) => msg.timeInPowerZone);
+            if (powerLapZones.length > 0) {
+                const powerLapStackedToggle = createFieldToggle("power_lap_zone_stacked");
+                fieldsGrid.appendChild(powerLapStackedToggle);
+
+                const powerLapIndividualToggle = createFieldToggle("power_lap_zone_individual");
+                fieldsGrid.appendChild(powerLapIndividualToggle);
+            }
+        }
+    }
+
+    // Add event messages toggle if data exists
+    if (
+        window.globalData?.eventMesgs &&
+        Array.isArray(window.globalData.eventMesgs) &&
+        window.globalData.eventMesgs.length > 0
+    ) {
+        const eventMessagesToggle = createFieldToggle("event_messages");
+        fieldsGrid.appendChild(eventMessagesToggle);
+    }
 
     // Add developer fields toggles if data exists
     if (window.globalData && window.globalData.recordMesgs) {
@@ -874,6 +1002,100 @@ function createFieldToggle(field) {
     const themeConfig = getThemeConfig();
     const container = document.createElement("div");
     container.className = "field-toggle";
+
+    // Check if this field has valid data
+    let hasValidData = false;
+    if (window.globalData && window.globalData.recordMesgs && window.globalData.recordMesgs.length > 0) {
+        const data = window.globalData.recordMesgs;
+
+        if (field === "gps_track") {
+            hasValidData = data.some((row) => {
+                const lat = row.positionLat;
+                const long = row.positionLong;
+                return (
+                    (lat !== undefined && lat !== null && !isNaN(parseFloat(lat))) ||
+                    (long !== undefined && long !== null && !isNaN(parseFloat(long)))
+                );
+            });
+        } else if (field === "event_messages") {
+            hasValidData =
+                window.globalData?.eventMesgs &&
+                Array.isArray(window.globalData.eventMesgs) &&
+                window.globalData.eventMesgs.length > 0;
+        } else if (field === "speed_vs_distance") {
+            const hasSpeed = data.some((row) => {
+                const speed = row.enhancedSpeed || row.speed;
+                return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
+            });
+            const hasDistance = data.some((row) => {
+                const distance = row.distance;
+                return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
+            });
+            hasValidData = hasSpeed && hasDistance;
+        } else if (field === "power_vs_hr") {
+            const hasPower = data.some((row) => {
+                const power = row.power;
+                return power !== undefined && power !== null && !isNaN(parseFloat(power));
+            });
+            const hasHeartRate = data.some((row) => {
+                const hr = row.heartRate;
+                return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
+            });
+            hasValidData = hasPower && hasHeartRate;
+        } else if (field === "altitude_profile") {
+            hasValidData = data.some((row) => {
+                const altitude = row.altitude || row.enhancedAltitude;
+                return altitude !== undefined && altitude !== null && !isNaN(parseFloat(altitude));
+            });
+        } else if (field === "hr_lap_zone_stacked" || field === "hr_lap_zone_individual") {
+            // Check for HR lap zone data
+            if (window.globalData?.timeInZoneMesgs) {
+                const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
+                const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
+                const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
+                hasValidData = hrLapZones.length > 0;
+            }
+        } else if (field === "power_lap_zone_stacked" || field === "power_lap_zone_individual") {
+            // Check for Power lap zone data
+            if (window.globalData?.timeInZoneMesgs) {
+                const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
+                const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
+                const powerLapZones = lapZoneMsgs.filter((msg) => msg.timeInPowerZone);
+                hasValidData = powerLapZones.length > 0;
+            }
+        } else if (field.includes("hr_zone")) {
+            hasValidData = data.some((row) => {
+                const hr = row.heartRate;
+                return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
+            });
+        } else if (field.includes("power_zone")) {
+            hasValidData = data.some((row) => {
+                const power = row.power;
+                return power !== undefined && power !== null && !isNaN(parseFloat(power));
+            });
+        } else if (chartFields.includes(field)) {
+            // Regular chart field
+            const numericData = data.map((row) => {
+                if (row[field] !== undefined && row[field] !== null) {
+                    const value = parseFloat(row[field]);
+                    return isNaN(value) ? null : value;
+                }
+                return null;
+            });
+            hasValidData = !numericData.every((val) => val === null);
+        } else {
+            // Developer field
+            const numericData = data.map((row) => {
+                if (row[field] !== undefined && row[field] !== null) {
+                    const value = parseFloat(row[field]);
+                    return isNaN(value) ? null : value;
+                }
+                return null;
+            });
+            hasValidData = !numericData.every((val) => val === null);
+        }
+    }
+
     container.style.cssText = `
 		display: flex;
 		align-items: center;
@@ -884,6 +1106,7 @@ function createFieldToggle(field) {
 		border: 1px solid var(--color-border);
 		transition: var(--transition-smooth);
 		backdrop-filter: var(--backdrop-blur);
+		${!hasValidData ? "opacity: 0.5; filter: grayscale(0.7);" : ""}
 	`;
 
     // Toggle switch
@@ -906,9 +1129,9 @@ function createFieldToggle(field) {
 		color: var(--color-fg);
 		font-size: 14px;
 		cursor: pointer;
-	`;
-    // Check if this is a zone chart - but only show zone color button for the first of each type
+	`; // Check if this is a zone chart - but only show zone color button for the first of each type
     const isHRZoneChart = field.includes("hr_zone");
+    const isLapZoneChart = field.includes("lap_zone");
     const showZoneColorButton = field === "hr_zone_doughnut" || field === "power_zone_doughnut"; // Only show on doughnut charts
 
     if (showZoneColorButton) {
@@ -947,6 +1170,10 @@ function createFieldToggle(field) {
         container.appendChild(toggle);
         container.appendChild(label);
         container.appendChild(zoneColorBtn);
+    } else if (isLapZoneChart) {
+        // Lap zone charts only get toggle, no color picker (they use the same zone colors)
+        container.appendChild(toggle);
+        container.appendChild(label);
     } else {
         // Regular color picker for non-zone charts
         const colorPicker = document.createElement("input");
@@ -960,24 +1187,40 @@ function createFieldToggle(field) {
 			border-radius: 6px;
 			cursor: pointer;
 			background: none;
-		`;
-
-        // Event listeners for color picker
+		`; // Event listeners for color picker
         colorPicker.addEventListener("change", () => {
             localStorage.setItem(`chartjs_color_${field}`, colorPicker.value);
+
+            // Dispatch custom event for color change
+            window.dispatchEvent(
+                new CustomEvent("fieldToggleChanged", {
+                    detail: { field, type: "color", value: colorPicker.value },
+                })
+            );
+
             renderChartJS();
         });
 
         container.appendChild(toggle);
         container.appendChild(label);
         container.appendChild(colorPicker);
-    }
-
-    // Event listeners for toggle
+    } // Event listeners for toggle
     toggle.addEventListener("change", () => {
         const visibility = toggle.checked ? "visible" : "hidden";
         localStorage.setItem(`chartjs_field_${field}`, visibility);
+
+        // Dispatch custom event for field toggle change (for real-time updates)
+        window.dispatchEvent(
+            new CustomEvent("fieldToggleChanged", {
+                detail: { field, visibility },
+            })
+        );
+
         renderChartJS();
+        // Update status indicators after a short delay to allow charts to render
+        setTimeout(() => {
+            updateAllChartStatusIndicators();
+        }, 100);
     });
     // Hover effects
     container.addEventListener("mouseenter", () => {
@@ -1061,4 +1304,65 @@ export function applySettingsPanelStyles(wrapper) {
 		z-index: 0;
 	`;
     wrapper.appendChild(bgEffect);
+}
+
+/**
+ * Toggles all field visibility at once
+ * @param {boolean} enable - Whether to enable or disable all fields
+ */
+function toggleAllFields(enable) {
+    try {
+        const visibility = enable ? "visible" : "hidden";
+
+        // Get all possible field keys
+        const allFields = [
+            ...chartFields,
+            "gps_track",
+            "speed_vs_distance",
+            "power_vs_hr",
+            "altitude_profile",
+            "hr_zone_doughnut",
+            "hr_zone_bar",
+            "power_zone_doughnut",
+            "power_zone_bar",
+            "event_messages",
+            "hr_lap_zone_stacked",
+            "hr_lap_zone_individual",
+            "power_lap_zone_stacked",
+            "power_lap_zone_individual",
+        ];
+
+        // Add developer fields if they exist
+        if (window.globalData && window.globalData.recordMesgs) {
+            const devFields = extractDeveloperFieldsList(window.globalData.recordMesgs);
+            allFields.push(...devFields);
+        } // Update localStorage for all fields
+        allFields.forEach((field) => {
+            localStorage.setItem(`chartjs_field_${field}`, visibility);
+        });
+
+        // Dispatch custom event for bulk field toggle change
+        window.dispatchEvent(
+            new CustomEvent("fieldToggleChanged", {
+                detail: { fields: allFields, visibility },
+            })
+        );
+
+        // Update all toggle checkboxes in the UI
+        const toggles = document.querySelectorAll('.field-toggle input[type="checkbox"]');
+        toggles.forEach((toggle) => {
+            toggle.checked = enable;
+        });
+
+        // Show notification
+        const action = enable ? "enabled" : "disabled";
+        showNotification(`All charts ${action}`, "success"); // Re-render charts and update status indicators
+        renderChartJS();
+        setTimeout(() => {
+            updateAllChartStatusIndicators();
+        }, 100);
+    } catch (error) {
+        console.error("[Settings] Error toggling all fields:", error);
+        showNotification("Error updating chart visibility", "error");
+    }
 }

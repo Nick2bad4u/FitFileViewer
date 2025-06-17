@@ -363,9 +363,9 @@ This project uses the following libraries and tools:
 - [Node.js](https://nodejs.org/) ([MIT License](https://github.com/nodejs/node/blob/main/LICENSE)) 🖥️
 - [Electron Builder](https://www.electron.build/) ([MIT License](https://github.com/electron-userland/electron-builder/blob/master/LICENSE)) 🏗️
 - [GitHub Actions](https://github.com/features/actions) ([MIT License](https://github.com/actions/runner/blob/main/LICENSE)) 🔧
-- [GitHub Pages](https://pages.github.com/) ([MIT License](https://github.com/github/pages-gem/blob/master/LICENSE.txt)) 🌐
-- [GitHub API](https://docs.github.com/en/rest) ([MIT License](https://github.com/octokit/octokit.rb/blob/master/LICENSE.txt)) 🔌
-- [GitHub Copilot](https://github.com/features/copilot) ([MIT License](https://github.com/github/copilot-docs/blob/main/LICENSE)) 🤖
+- [GitHub Pages](https://pages.github.com/) ([MIT License](https://pages.github.com/)) 🌐
+- [GitHub API](https://docs.github.com/en/rest) ([MIT License](https://github.com/octokit/octokit.rb/blob/main/LICENSE.md)) 🔌
+- [GitHub Copilot](https://github.com/features/copilot) ([MIT License](https://github.com/github/copilot-docs/blob/main/LICENSE.txt)) 🤖
 
 ---
 

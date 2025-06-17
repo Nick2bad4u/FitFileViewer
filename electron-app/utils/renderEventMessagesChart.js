@@ -15,6 +15,10 @@ export function renderEventMessagesChart(container, options, startTime) {
 
         // Get theme configuration
         const themeConfig = getThemeConfig();
+
+        // Get user-defined color for event messages
+        const eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0"; // Purple default
+
         const canvas = createChartCanvas("events", "events");
 
         // Apply theme-aware canvas styling (background handled by plugin)
@@ -68,8 +72,8 @@ export function renderEventMessagesChart(container, options, startTime) {
                     {
                         label: "Events",
                         data: eventData,
-                        backgroundColor: "rgba(255, 99, 132, 0.8)",
-                        borderColor: "rgba(255, 99, 132, 1)",
+                        backgroundColor: eventColor + "CC", // Add transparency
+                        borderColor: eventColor,
                         pointRadius: 6,
                         pointHoverRadius: 8,
                     },

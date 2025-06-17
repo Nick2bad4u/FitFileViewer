@@ -5,7 +5,7 @@ import { renderSinglePowerZoneBar } from "./renderSinglePowerZoneBar.js";
 import { getZoneColor } from "./zoneColorUtils.js";
 
 // Lap zone charts renderer - renders 4 different lap zone visualizations
-export function renderLapZoneCharts(container) {
+export function renderLapZoneCharts(container, options = {}) {
     try {
         console.log("[ChartJS] renderLapZoneCharts called");
 
@@ -16,14 +16,26 @@ export function renderLapZoneCharts(container) {
 
         const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
         const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
+
         // Get theme configuration
         const themeConfig = getThemeConfig();
         console.log("[renderLapZoneCharts] Using theme config:", themeConfig.name);
+        console.log("[ChartJS] Found timeInZoneMesgs:", timeInZoneMesgs.length);
 
         if (lapZoneMsgs.length === 0) {
             console.log("[ChartJS] No lap-specific zone data found");
             return;
         }
+
+        // Get visibility settings from options
+        const visibility = options.visibilitySettings || {
+            hrStackedVisible: true,
+            hrIndividualVisible: true,
+            powerStackedVisible: true,
+            powerIndividualVisible: true,
+        };
+
+        console.log("[ChartJS] Found lap zone data:", lapZoneMsgs);
 
         console.log("[ChartJS] Found lap zone data:", lapZoneMsgs);
 
@@ -124,8 +136,7 @@ export function renderLapZoneCharts(container) {
 
         console.log("[ChartJS] Power Zone filtering - meaningfulPowerZones:", meaningfulPowerZones);
         console.log("[ChartJS] Power Zone data after filtering:", pwrZoneData); // Chart 1: Lap HR Zone Distribution (Stacked Bar)
-        const hrBarVisible = localStorage.getItem("chartjs_field_hr_zone_bar") !== "hidden";
-        if (hrBarVisible && hrZoneData.length > 0) {
+        if (visibility.hrStackedVisible && hrZoneData.length > 0) {
             const canvas1 = document.createElement("canvas");
             canvas1.id = "chartjs-canvas-lap-hr-zones";
             canvas1.style.marginBottom = "32px";
@@ -141,9 +152,9 @@ export function renderLapZoneCharts(container) {
             });
             if (hrChart) window._chartjsInstances.push(hrChart);
         }
+
         // Chart 2: Lap Power Zone Distribution (Stacked Bar)
-        const powerBarVisible = localStorage.getItem("chartjs_field_power_zone_bar") !== "hidden";
-        if (powerBarVisible && pwrZoneData.length > 0) {
+        if (visibility.powerStackedVisible && pwrZoneData.length > 0) {
             const canvas2 = document.createElement("canvas");
             canvas2.id = "chartjs-canvas-lap-power-zones";
             canvas2.style.marginBottom = "32px";
@@ -159,8 +170,9 @@ export function renderLapZoneCharts(container) {
             });
             if (pwrChart) window._chartjsInstances.push(pwrChart);
         }
+
         // Chart 3: Single HR Zone Bar (entire ride data)
-        if (hrBarVisible) {
+        if (visibility.hrIndividualVisible) {
             console.log("[ChartJS] Chart 3 - HR zone data check:", {
                 windowHeartRateZones: window.heartRateZones,
                 hrZoneDataLength: hrZoneData.length,
@@ -222,7 +234,7 @@ export function renderLapZoneCharts(container) {
         }
 
         // Chart 4: Single Power Zone Bar (entire ride data)
-        if (powerBarVisible) {
+        if (visibility.powerIndividualVisible) {
             console.log("[ChartJS] Chart 4 - Power zone data check:", {
                 windowPowerZones: window.powerZones,
                 pwrZoneDataLength: pwrZoneData.length,

@@ -1,0 +1,5 @@
+{
+    "ignore": [
+        "electron-app/index.html"
+    ]
+}

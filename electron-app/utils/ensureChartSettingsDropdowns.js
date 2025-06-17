@@ -8,6 +8,7 @@ import {
     createExportSection,
     createFieldTogglesSection,
 } from "./createSettingsHeader.js";
+import { setupChartStatusUpdates } from "./chartStatusIndicator.js";
 
 /**
  * Toggles the visibility of the chart controls panel
@@ -123,13 +124,15 @@ export function ensureChartSettingsDropdowns(targetContainer) {
             toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
         } else {
             chartContainer.parentNode.insertBefore(wrapper, chartContainer);
-        }
-
-        // Initialize settings sections only once
+        } // Initialize settings sections only once
         createSettingsHeader(wrapper);
         createControlsSection(wrapper);
         createExportSection(wrapper);
         createFieldTogglesSection(wrapper);
+
+        // Setup chart status indicator automatic updates
+        setupChartStatusUpdates();
+
         chartControlsState.isInitialized = true;
         chartControlsState.wrapper = wrapper;
         console.log("[ChartJS] Controls panel created and hidden by default");

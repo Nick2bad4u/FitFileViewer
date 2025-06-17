@@ -2,18 +2,22 @@ body.theme-dark {
     background: #181a1b;
     color: #eee;
 }
+
 .theme-dark body {
     background: #181a1b;
     color: #eee;
 }
+
 body.theme-light {
     background: #fff;
     color: #222;
 }
+
 .theme-light body {
     background: #fff;
     color: #222;
 }
+
 #elevChart {
     display: block;
     margin: 32px auto;
@@ -23,9 +27,11 @@ body.theme-light {
     width: 100%;
     height: 100%;
 }
+
 body.theme-dark #elevChart {
     background: #23272e;
 }
+
 body.theme-light #elevChart {
     background: #fff;
 }

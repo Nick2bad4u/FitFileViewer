@@ -72,11 +72,7 @@ export async function _loadOverlayFiles(files) {
         // Show summary notification
         if (invalidFiles.length === files.length) {
             // All files failed
-            showNotification(
-                "Load failed",
-                `Failed to load any of the ${files.length} files.`,
-                "error"
-            );
+            showNotification("Load failed", `Failed to load any of the ${files.length} files.`, "error");
         } else if (invalidFiles.length > 0) {
             // Some files failed
             const message = `${files.length - invalidFiles.length} files loaded successfully. ${invalidFiles.length} files failed.`;
