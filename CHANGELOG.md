@@ -6,7 +6,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[27359c3](https://github.com/Nick2bad4u/FitFileViewer/commit/27359c397994c9ac50d6aecde627f1f56b5ace75)...[c3fba24](https://github.com/Nick2bad4u/FitFileViewer/commit/c3fba24f34be01986d94fda8984dac3898409f9a)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/27359c397994c9ac50d6aecde627f1f56b5ace75...c3fba24f34be01986d94fda8984dac3898409f9a))
+[[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)...[d780ba3](https://github.com/Nick2bad4u/FitFileViewer/commit/d780ba35d22ffff3881ad95bfd45d8ac4ca02c8b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/e84588e7c6e1ae1e4d5408c550b5997488eb3e28...d780ba35d22ffff3881ad95bfd45d8ac4ca02c8b))
+
+### 📦 Dependencies
+
+- [dependency] Update version 23.6.0 [`(d780ba3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d780ba35d22ffff3881ad95bfd45d8ac4ca02c8b)
+
+
+## [23.6.0] - 2025-06-17
+
+[[27359c3](https://github.com/Nick2bad4u/FitFileViewer/commit/27359c397994c9ac50d6aecde627f1f56b5ace75)...[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/27359c397994c9ac50d6aecde627f1f56b5ace75...e84588e7c6e1ae1e4d5408c550b5997488eb3e28))
+
+### 💼 Other
+
+- Refactor sensor and manufacturer handling in chart rendering
+
+- Removed extensive hardcoded manufacturer and product mappings from formatAntNames.js, replacing them with imports from separate files for better modularity and maintainability.
+- Updated formatSensorName.js to prioritize manufacturer and product names when both are available, improving sensor name formatting logic.
+- Enhanced renderChartJS.js by importing chartFields for consistency, improving error handling display, and cleaning up chart data processing logic for better readability and maintainability. [`(e84588e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.5.0 [skip ci] [`(96eb498)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96eb4987d22c0d654efebb0e546147aada4d6f84)
+
 
 ### 📦 Dependencies
 
