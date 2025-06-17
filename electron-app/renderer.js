@@ -13,7 +13,12 @@
 /**
  * @typedef {Object} RendererDependencies
  * @property {HTMLElement} openFileBtn - Open file button element
- * @property {{value: boolean}} isOpeningFileRef - Reference to track file opening state
+ * @property {{value: boolean}} isOpeningFileRef - Reference to             // Expose formatting test utilities globally
+            window.__testFormatting = {
+                testNewFormatting,
+                testFaveroCase,
+                testFaveroStringCase
+            }; file opening state
  * @property {Function} setLoading - Function to show/hide loading state
  * @property {Function} showNotification - Function to display notifications
  * @property {Function} handleOpenFile - Function to handle file opening
@@ -473,6 +478,55 @@ if (isDevelopmentMode()) {
         validateDOM: validateDOMElements,
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
     };
+
+    // Load debug utilities asynchronously
+    (async () => {
+        try {
+            const {
+                debugSensorInfo,
+                showSensorNames,
+                testManufacturerId,
+                testProductId,
+                showDataKeys,
+                checkDataAvailability,
+            } = await import("./utils/debugSensorInfo.js");
+            const { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import("./utils/testFormatting.js");
+
+            // Expose sensor debug utilities globally
+            window.__sensorDebug = {
+                debugSensorInfo,
+                showSensorNames,
+                testManufacturerId,
+                testProductId,
+                showDataKeys,
+                checkDataAvailability,
+            };
+
+            // Expose formatting test utilities globally
+            window.__testFormatting = {
+                testNewFormatting,
+                testFaveroCase,
+                testFaveroStringCase,
+            };
+
+            console.log("🛠️  Debug utilities loaded!");
+            console.log("📊 Sensor Debug Commands:");
+            console.log("  __sensorDebug.checkDataAvailability()     - Check if FIT data is loaded");
+            console.log("  __sensorDebug.debugSensorInfo()           - Full sensor analysis");
+            console.log("  __sensorDebug.debugSensorInfo(true)       - Verbose sensor analysis");
+            console.log("  __sensorDebug.showSensorNames()           - Quick sensor name list");
+            console.log("  __sensorDebug.testManufacturerId(269)     - Test manufacturer ID (e.g., Favero)");
+            console.log("  __sensorDebug.testProductId(269, 12)      - Test product ID (e.g., Favero assioma_duo)");
+            console.log("  __sensorDebug.showDataKeys()              - Show all available data keys");
+            console.log("");
+            console.log("🧪 Format Testing Commands:");
+            console.log("  __testFormatting.testNewFormatting()      - Test all formatting scenarios");
+            console.log("  __testFormatting.testFaveroCase()         - Test the specific Favero case");
+            console.log("  __testFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name");
+        } catch (error) {
+            console.warn("[Renderer] Debug utilities failed to load:", error.message);
+        }
+    })();
 
     console.log("[Renderer] Development utilities available at window.__renderer_dev");
     console.log("[Renderer] Performance metrics:", PerformanceMonitor.getMetrics());

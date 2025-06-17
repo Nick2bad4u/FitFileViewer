@@ -1,5 +1,7 @@
 /* global L */
 // Simple point-to-point measurement tool for Leaflet
+import { getThemeColors } from "./getThemeColors.js";
+
 export function addSimpleMeasureTool(map, controlsDiv) {
     let measurePoints = [];
     let measureLine = null;
@@ -97,10 +99,19 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     }
 
+    // Get theme colors for button styling
+    const themeColors = getThemeColors();
     const measureBtn = document.createElement("button");
     measureBtn.className = "map-action-btn";
-    measureBtn.innerHTML =
-        '<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="9" width="16" height="2" rx="1" fill="#1976d2"/><rect x="2" y="5" width="2" height="10" rx="1" fill="#1976d2"/><rect x="16" y="5" width="2" height="10" rx="1" fill="#1976d2"/></svg> <span>Measure</span>';
+    measureBtn.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
+            <circle cx="5" cy="19" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
+            <circle cx="19" cy="5" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
+            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors.primary}">↔</text>
+        </svg>
+        <span>Measure</span>
+    `;
     measureBtn.title = "Click, then click two points on the map to measure distance";
     let measureBtnRef = measureBtn;
     measureBtn.onclick = () => {

@@ -241,35 +241,102 @@ function injectThemeTransitionCSS() {
 export function getThemeConfig() {
     const effectiveTheme = getEffectiveTheme();
 
+    // Map CSS variable names to JS color keys for both dark and light themes
+    const cssVars = [
+        // Backgrounds
+        "color-bg",
+        "color-bg-solid",
+        "color-bg-alt",
+        "color-bg-alt-solid",
+        // Foregrounds
+        "color-fg",
+        "color-fg-alt",
+        // Accents
+        "color-accent",
+        "color-accent-secondary",
+        "color-accent-hover",
+        // Shadows
+        "color-shadow",
+        "color-box-shadow",
+        "color-box-shadow-light",
+        // Headers, tables, titles
+        "color-header",
+        "color-table-header",
+        "color-table-row-even",
+        "color-table-row-odd",
+        "color-table-hover",
+        "color-title",
+        // Borders
+        "color-border",
+        "color-border-light",
+        "color-glass-border",
+        // Buttons, modals
+        "color-btn-bg",
+        "color-btn-bg-solid",
+        "color-btn-hover",
+        "color-modal-bg",
+        "color-modal-fg",
+        // Misc
+        "color-svg-icon-stroke",
+        "color-credits",
+        "color-filename",
+        "color-glass",
+        "color-overlay-bg",
+        // Status
+        "color-error",
+        "color-success",
+        "color-warning",
+        "color-info",
+        // Effects
+        "backdrop-blur",
+        "border-radius",
+        "border-radius-small",
+        "transition-smooth",
+        "transition-bounce",
+    ];
+
+    // Helper to get CSS variable value
+    const getVar = (name) => getComputedStyle(document.body).getPropertyValue(`--${name}`)?.trim();
+
+    // Build color map from CSS variables
+    const cssColors = {};
+    cssVars.forEach((key) => {
+        cssColors[key.replace(/^color-/, "")] = getVar(key);
+    });
+
     return {
         theme: effectiveTheme,
         isDark: effectiveTheme === "dark",
         isLight: effectiveTheme === "light",
         colors: {
+            // Core palette (from CSS variables)
+            ...cssColors,
+            // Legacy/explicit keys for compatibility
             primary: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
             primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
-            background: effectiveTheme === "dark" ? "#181a20" : "#f8fafc",
-            backgroundAlt: effectiveTheme === "dark" ? "#23263a" : "#ffffff",
+            background: cssColors.bg || (effectiveTheme === "dark" ? "#181a20" : "#f8fafc"),
+            backgroundAlt: cssColors.bgAlt || (effectiveTheme === "dark" ? "#23263a" : "#ffffff"),
             surface: effectiveTheme === "dark" ? "#2d2d2d50" : "#f8f9fa",
             surfaceSecondary: effectiveTheme === "dark" ? "#4a5568" : "#e9ecef",
-            text: effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b",
+            text: cssColors.fg || (effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b"),
             textPrimary: effectiveTheme === "dark" ? "#ffffff" : "#0f172a",
             textSecondary: effectiveTheme === "dark" ? "#a0a0a0" : "#6b7280",
-            border: effectiveTheme === "dark" ? "#404040" : "#e5e7eb",
-            borderLight: effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)",
-            accent: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
-            accentHover: effectiveTheme === "dark" ? "#667eea33" : "#3b82f633",
-            shadow: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)",
-            shadowLight: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)",
+            border: cssColors.border || (effectiveTheme === "dark" ? "#404040" : "#e5e7eb"),
+            borderLight: cssColors.borderLight || (effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)"),
+            accent: cssColors.accent || (effectiveTheme === "dark" ? "#667eea" : "#3b82f665"),
+            accentHover: cssColors.accentHover || (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
+            shadow: cssColors.shadow || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)"),
+            shadowLight:
+                cssColors.boxShadowLight || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
             shadowMedium: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.1)",
             shadowHeavy: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.15)",
             primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
             primaryShadowLight: effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
             primaryShadowHeavy: effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
-            error: "#ef4444",
-            success: "#10b981",
-            warning: "#f59e0b",
-            info: "#3b82f665",
+            error: cssColors.error || "#ef4444",
+            success: cssColors.success || "#10b981",
+            warning: cssColors.warning || "#f59e0b",
+            info: cssColors.info || "#3b82f665",
             // Chart-specific colors
             chartBackground: effectiveTheme === "dark" ? "#181c24" : "#ffffff",
             chartSurface: effectiveTheme === "dark" ? "#222" : "#fff",

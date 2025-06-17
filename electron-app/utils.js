@@ -29,6 +29,7 @@ import { setActiveTab } from "./utils/setActiveTab.js";
 import { toggleTabVisibility } from "./utils/toggleTabVisibility.js";
 import { showFitData } from "./utils/showFitData.js";
 import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
+import { updateMapTheme } from "./utils/updateMapTheme.js";
 import { showNotification, setLoading } from "./utils/rendererUtils.js";
 import { formatArray } from "./utils/formatUtils.js";
 import { setTabButtonsEnabled } from "./utils/enableTabButtons.js";
@@ -131,6 +132,7 @@ const utils = {
     applyTheme,
     loadTheme,
     listenForThemeChange,
+    updateMapTheme,
 
     // Notification utilities
     showNotification,

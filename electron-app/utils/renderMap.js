@@ -20,7 +20,9 @@ import { drawMapForLap } from "./drawMapForLap.js";
 import { updateMapTheme } from "./updateMapTheme.js";
 import { createStartIcon, createEndIcon } from "./mapIcons.js";
 import { baseLayers } from "./mapBaseLayers.js";
-import { createMarkerCountSelector, createShownFilesList } from "./mapActionButtons.js";
+import { createMapThemeToggle } from "./mapActionButtons.js";
+import { createMarkerCountSelector } from "./createMarkerCountSelector.js";
+import { createShownFilesList } from "./createShownFilesList.js";
 import { createAddFitFileToMapButton } from "./createAddFitFileToMapButton.js";
 import { createExportGPXButton } from "./createExportGPXButton.js";
 import { createPrintButton } from "./createPrintButton.js";
@@ -186,6 +188,7 @@ export function renderMap() {
     // --- Print/export button ---
     const controlsDiv = document.getElementById("map-controls");
     controlsDiv.appendChild(createPrintButton());
+    controlsDiv.appendChild(createMapThemeToggle());
     controlsDiv.appendChild(createExportGPXButton());
     controlsDiv.appendChild(createElevationProfileButton());
     controlsDiv.appendChild(

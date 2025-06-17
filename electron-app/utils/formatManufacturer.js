@@ -1,10 +1,21 @@
+import { getManufacturerName } from "./manufacturerIds.js";
+
 /**
  * Formats manufacturer names for display
- * @param {string} manufacturer - Raw manufacturer name
+ * @param {string|number} manufacturer - Raw manufacturer name or ID
  * @returns {string} Formatted manufacturer name
  */
 
 export function formatManufacturer(manufacturer) {
+    // If it's a number, try to get the name from the ID mapping first
+    if (typeof manufacturer === "number" || !isNaN(manufacturer)) {
+        const nameFromId = getManufacturerName(manufacturer);
+        if (nameFromId !== manufacturer) {
+            // Found a match in ID mapping, now format it
+            manufacturer = nameFromId;
+        }
+    }
+
     const manufacturerMap = {
         garmin: "Garmin",
         faveroElectronics: "Favero Electronics",

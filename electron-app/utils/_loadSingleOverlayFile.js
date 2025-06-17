@@ -1,0 +1,56 @@
+/**
+ * Internal function to load a single FIT file as overlay
+ * @param {File} file - File to load
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>} Load result
+ * @private
+ */
+export async function _loadSingleOverlayFile(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+
+        reader.onload = async function (event) {
+            try {
+                const arrayBuffer = event.target.result;
+
+                if (!arrayBuffer || !window.electronAPI?.decodeFitFile) {
+                    resolve({ success: false, error: "No file data or decoder not available" });
+                    return;
+                }
+
+                const fitData = await window.electronAPI.decodeFitFile(arrayBuffer);
+
+                if (!fitData || fitData.error) {
+                    resolve({ success: false, error: fitData?.error || "Failed to parse FIT file" });
+                    return;
+                }
+
+                // Validate that file has location data
+                const validLocationCount = Array.isArray(fitData.recordMesgs)
+                    ? fitData.recordMesgs.filter(
+                          (r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
+                      ).length
+                    : 0;
+
+                if (
+                    !Array.isArray(fitData.recordMesgs) ||
+                    fitData.recordMesgs.length === 0 ||
+                    validLocationCount === 0
+                ) {
+                    resolve({ success: false, error: "No valid location data found in file" });
+                    return;
+                }
+
+                resolve({ success: true, data: fitData });
+            } catch (error) {
+                console.error("[mapActionButtons] Error processing file:", file.name, error);
+                resolve({ success: false, error: error.message || "Unknown error processing file" });
+            }
+        };
+
+        reader.onerror = () => {
+            resolve({ success: false, error: "Failed to read file" });
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+}

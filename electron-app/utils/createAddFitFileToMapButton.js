@@ -1,5 +1,5 @@
 import { getThemeColors } from "./getThemeColors.js";
-import { _openFileSelector } from "./mapActionButtons.js";
+import { _openFileSelector } from "./_openFileSelector.js";
 import { showNotification } from "./showNotification.js";
 
 /**

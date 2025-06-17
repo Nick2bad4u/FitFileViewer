@@ -1,4 +1,4 @@
-import { getOverlayFileName } from "./mapActionButtons.js";
+import { getOverlayFileName } from "./getOverlayFileName.js";
 import { overlayColorPalette } from "./overlayColorPalette.js";
 
 /* global L */
