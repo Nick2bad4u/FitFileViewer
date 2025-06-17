@@ -6,7 +6,31 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)...[d780ba3](https://github.com/Nick2bad4u/FitFileViewer/commit/d780ba35d22ffff3881ad95bfd45d8ac4ca02c8b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/e84588e7c6e1ae1e4d5408c550b5997488eb3e28...d780ba35d22ffff3881ad95bfd45d8ac4ca02c8b))
+[[1ad9b4d](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)...[8aeef08](https://github.com/Nick2bad4u/FitFileViewer/commit/8aeef08949d50d82064e9820af375041e8e8fc73)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1ad9b4dacc16e73ce3bb54b6113f4132de49446a...8aeef08949d50d82064e9820af375041e8e8fc73))
+
+### 📦 Dependencies
+
+- [dependency] Update version 23.7.0 [`(8aeef08)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8aeef08949d50d82064e9820af375041e8e8fc73)
+
+
+## [23.7.0] - 2025-06-17
+
+[[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)...[1ad9b4d](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/e84588e7c6e1ae1e4d5408c550b5997488eb3e28...1ad9b4dacc16e73ce3bb54b6113f4132de49446a))
+
+### 🚀 Features
+
+- Enhance settings header with chart status indicators and field toggles [`(851a688)`](https://github.com/Nick2bad4u/FitFileViewer/commit/851a688d8887756645fd3519897260e367e6f922)
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(1ad9b4d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.6.0 [skip ci] [`(194da7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/194da7f014a19a2fdf066d32ee9299f80bb3e604)
+
 
 ### 📦 Dependencies
 
@@ -5720,5 +5744,5 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(5b5d013)`](https://gith
 ## Contributors
 Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE.md)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*
