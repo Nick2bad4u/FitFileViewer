@@ -6,9 +6,40 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[09898cd](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)...[b091e3e](https://github.com/Nick2bad4u/FitFileViewer/commit/b091e3e8c05aa56b704da778e87f131064c7a5ee)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/09898cd59263e4987cff89af00d8caaf2abe9372...b091e3e8c05aa56b704da778e87f131064c7a5ee))
+[[27359c3](https://github.com/Nick2bad4u/FitFileViewer/commit/27359c397994c9ac50d6aecde627f1f56b5ace75)...[c3fba24](https://github.com/Nick2bad4u/FitFileViewer/commit/c3fba24f34be01986d94fda8984dac3898409f9a)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/27359c397994c9ac50d6aecde627f1f56b5ace75...c3fba24f34be01986d94fda8984dac3898409f9a))
 
 ### 📦 Dependencies
+
+- [dependency] Update version 23.5.0 [`(c3fba24)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c3fba24f34be01986d94fda8984dac3898409f9a)
+
+
+## [23.5.0] - 2025-06-17
+
+[[09898cd](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)...[27359c3](https://github.com/Nick2bad4u/FitFileViewer/commit/27359c397994c9ac50d6aecde627f1f56b5ace75)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/09898cd59263e4987cff89af00d8caaf2abe9372...27359c397994c9ac50d6aecde627f1f56b5ace75))
+
+### 💼 Other
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(816bd07)`](https://github.com/Nick2bad4u/FitFileViewer/commit/816bd0757decf0976c3516e0163a839e93f46765)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.4.0 [skip ci] [`(5b31a99)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b31a99bd62a71259074791d1b290e3640f1f807)
+
+
+### 📦 Dependencies
+
+- Merge pull request #125 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-8c4c535cb3
+
+test(deps): [dependency] Update the npm-all group in /electron-app with 17 updates [`(27359c3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/27359c397994c9ac50d6aecde627f1f56b5ace75)
+
+- *(deps)* [dependency] Update the npm-all group [`(4360397)`](https://github.com/Nick2bad4u/FitFileViewer/commit/43603970b7718cb34d5408087e274286d44e3f5a)
+
+- Merge pull request #124 from Nick2bad4u/dependabot/github_actions/github-actions-c18845ae7f
+
+[ci](deps): [dependency] Update dependency group [`(fc8dd01)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fc8dd015068176f1e372a2afc800530aaabd2ead)
+
+- *(deps)* [dependency] Update dependency group [`(848edf4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/848edf44b552bbde528073f02fa864b5f13b8653)
 
 - [dependency] Update version 23.4.0 [`(b091e3e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b091e3e8c05aa56b704da778e87f131064c7a5ee)
 
