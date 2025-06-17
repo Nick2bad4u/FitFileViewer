@@ -6,7 +6,42 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[f3d97bc](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)...[b74a072](https://github.com/Nick2bad4u/FitFileViewer/commit/b74a07258e1585a40e95662144201fc3d2d921d7)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f3d97bc16c56ff8079d22237bba9c488d9a10395...b74a07258e1585a40e95662144201fc3d2d921d7))
+[[9e9c0df](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)...[dc1d050](https://github.com/Nick2bad4u/FitFileViewer/commit/dc1d0504340465d50727583f218f3ddead169dd5)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9e9c0df47bafc78c5d447b6c60081eab90677ac6...dc1d0504340465d50727583f218f3ddead169dd5))
+
+### 🛠️ GitHub Actions
+
+- Update .checkov.yml [`(dc1d050)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dc1d0504340465d50727583f218f3ddead169dd5)
+
+
+### 📦 Dependencies
+
+- Update dependabot.yml [`(1d0a556)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1d0a55673eece43fa2afe4018fba4b486a9b2f73)
+
+- [dependency] Update version 23.3.0 [`(3b2ec78)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3b2ec783aff5ca70c488087076fdca3309a49ea3)
+
+
+## [23.3.0] - 2025-06-17
+
+[[f3d97bc](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)...[9e9c0df](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f3d97bc16c56ff8079d22237bba9c488d9a10395...9e9c0df47bafc78c5d447b6c60081eab90677ac6))
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(9e9c0df)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)
+
+
+### 💼 Other
+
+- Adds independent map theme toggle and sensor formatting fixes
+
+Enables users to switch map theme between light and dark modes independently of the app theme, improving visibility and user preference handling. Introduces a new toggle button with persistent preference, immediate UI feedback, and updated CSS for consistent appearance. Refactors marker count selector and overlay management for modularity and theme-awareness. Implements robust manufacturer and product ID mappings with formatting utilities, fixing legacy and edge cases for sensor naming. Improves test/debug utilities for sensor data and formatting.
+
+Enhances user control, accessibility, and code maintainability, while resolving previous issues with sensor name formatting and color contrast. [`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.2.0 [skip ci] [`(6b28fa8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b28fa833aa5b700eaf3b61ec6471cb402b31044)
+
 
 ### 📦 Dependencies
 
