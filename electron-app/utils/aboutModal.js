@@ -21,7 +21,7 @@ export function getAboutModalContent() {
 						<img src="icons/favicon-96x96.png" alt="App Icon" class="app-icon" />
 					</div>
 					<button id="about-modal-close" class="modal-close" tabindex="0" aria-label="Close About dialog">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
 							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 					</button>
@@ -234,7 +234,7 @@ function toggleInfoSection() {
     // Add transition effect
     toggleSection.style.opacity = "0.5";
 
-    setTimeout(() => {
+    setTimeout(function () {
         if (showingFeatures) {
             // Show features
             toggleSection.innerHTML = createFeaturesContent();
@@ -267,7 +267,7 @@ function hideAboutModal() {
         modal.classList.remove("show");
 
         // Wait for animation to complete before hiding
-        setTimeout(() => {
+        setTimeout(function () {
             modal.style.display = "none";
 
             // Reset to system info state when closing
@@ -406,7 +406,7 @@ export function showAboutModal(html = "") {
             }
 
             // Focus management - focus close button after animation
-            setTimeout(() => {
+            setTimeout(function () {
                 closeBtn.focus();
             }, modalAnimationDuration);
             // Sound functionality removed as requested

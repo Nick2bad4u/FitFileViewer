@@ -1,46 +1,46 @@
 name: Scheduled repo analysis with git-sizer
 
 on:
-  schedule:
-    - cron: '44 2 * * 0' # Runs on Sundays at 2:44 AM UTC; https://crontab.guru/#44_2_*_*_0
-  push:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  pull_request:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  workflow_dispatch:
+    schedule:
+        - cron: "44 2 * * 0" # Runs on Sundays at 2:44 AM UTC; https://crontab.guru/#44_2_*_*_0
+    push:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    pull_request:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    workflow_dispatch:
 
 jobs:
-  run-git-sizer:
-    name: git-sizer - ${{ github.repository }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    run-git-sizer:
+        name: git-sizer - ${{ github.repository }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Run git-sizer
-        id: sizer
-        uses: ChrisCarini/github-git-sizer-action@09eaa4ae73038a5f0bbdc7e7b964f1bf6114c277 # latest
-        with:
-          flags: '--threshold=0'
+            - name: Run git-sizer
+              id: sizer
+              uses: ChrisCarini/github-git-sizer-action@09eaa4ae73038a5f0bbdc7e7b964f1bf6114c277 # latest
+              with:
+                  flags: "--threshold=0"
 
-      - name: Print git-sizer output
-        run: |
-          printf "%s\n" "${{ steps.sizer.outputs.result }}"
+            - name: Print git-sizer output
+              run: |
+                  printf "%s\n" "${{ steps.sizer.outputs.result }}"

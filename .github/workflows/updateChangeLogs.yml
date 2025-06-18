@@ -1,146 +1,146 @@
 name: Update ChangeLogs
 
 on:
-  workflow_dispatch:
+    workflow_dispatch:
 
 concurrency:
-  group: update-changelogs-${{ github.ref }}
-  cancel-in-progress: true
+    group: update-changelogs-${{ github.ref }}
+    cancel-in-progress: true
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
-  checks: write
-  issues: write
-  statuses: write
+    contents: write
+    pull-requests: write
+    actions: write
+    checks: write
+    issues: write
+    statuses: write
 
 jobs:
-  update_changelogs:
-    runs-on: windows-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    update_changelogs:
+        runs-on: windows-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Checkout repository (Full history)
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          fetch-depth: 0
+            - name: Checkout repository (Full history)
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+              with:
+                  fetch-depth: 0
 
-      - name: Create Check Run
-        id: create_check
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $checkId = gh api -X POST -H "Accept: application/vnd.github+json" `
-            -H "X-GitHub-Api-Version: 2022-11-28" `
-            -f name='Update ChangeLogs' `
-            -f head_sha='${{ github.sha }}' `
-            -f status='in_progress' `
-            -f 'output[title]=Update ChangeLogs' `
-            -f 'output[summary]=Changelog update in progress' `
-            --jq '.id' `
-            /repos/${{ github.repository }}/check-runs
-          echo "CHECKID=$checkId" | Out-File -FilePath $env:GITHUB_ENV -Append
+            - name: Create Check Run
+              id: create_check
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              shell: pwsh
+              run: |
+                  $checkId = gh api -X POST -H "Accept: application/vnd.github+json" `
+                    -H "X-GitHub-Api-Version: 2022-11-28" `
+                    -f name='Update ChangeLogs' `
+                    -f head_sha='${{ github.sha }}' `
+                    -f status='in_progress' `
+                    -f 'output[title]=Update ChangeLogs' `
+                    -f 'output[summary]=Changelog update in progress' `
+                    --jq '.id' `
+                    /repos/${{ github.repository }}/check-runs
+                  echo "CHECKID=$checkId" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '20'
+            - name: Set up Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+              with:
+                  node-version: "20"
 
-      - name: Install git-cliff
-        shell: pwsh
-        run: npm install -g git-cliff
+            - name: Install git-cliff
+              shell: pwsh
+              run: npm install -g git-cliff
 
-      - name: Generate CHANGELOG.md files (With verbose logging)
-        shell: pwsh
-        run: |
-          echo "Generating changelogs with git-cliff..."
-          npx git-cliff --config cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Push-Location electron-app
-          npx git-cliff --config ../cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Pop-Location
-          Push-Location electron-app/icons
-          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Pop-Location
-          Push-Location electron-app/libs
-          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Pop-Location
-          Push-Location electron-app/screenshots
-          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Pop-Location
-          Push-Location electron-app/tests
-          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Pop-Location
-          Push-Location electron-app/utils
-          npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-          Get-ChildItem -Name
-          Pop-Location
+            - name: Generate CHANGELOG.md files (With verbose logging)
+              shell: pwsh
+              run: |
+                  echo "Generating changelogs with git-cliff..."
+                  npx git-cliff --config cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Push-Location electron-app
+                  npx git-cliff --config ../cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Pop-Location
+                  Push-Location electron-app/icons
+                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Pop-Location
+                  Push-Location electron-app/libs
+                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Pop-Location
+                  Push-Location electron-app/screenshots
+                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Pop-Location
+                  Push-Location electron-app/tests
+                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Pop-Location
+                  Push-Location electron-app/utils
+                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
+                  Get-ChildItem -Name
+                  Pop-Location
 
-      - name: Create Pull Request for changelogs
-        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
-        with:
-          commit-message: 'chore: update changelogs [skip ci]'
-          title: 'chore: update changelogs'
-          body: "Automated changelog update via GitHub Actions.\n\nThis PR was created automatically and will not be merged automatically."
-          branch: 'chore/update-changelogs'
-          add-paths: '**/CHANGELOG.md'
-          delete-branch: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create Pull Request for changelogs
+              uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+              with:
+                  commit-message: "chore: update changelogs [skip ci]"
+                  title: "chore: update changelogs"
+                  body: "Automated changelog update via GitHub Actions.\n\nThis PR was created automatically and will not be merged automatically."
+                  branch: "chore/update-changelogs"
+                  add-paths: "**/CHANGELOG.md"
+                  delete-branch: false
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Check Run - Changelogs Generated
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $body = @'
-          {
-            "status": "in_progress",
-            "output": {
-              "title": "Update ChangeLogs",
-              "summary": "Changelogs generated. Creating PR..."
-            }
-          }
-          '@
-          $body | gh api -X PATCH -H "Accept: application/vnd.github+json" `
-            -H "X-GitHub-Api-Version: 2022-11-28" `
-            /repos/${{ github.repository }}/check-runs/$env:CHECKID --input -
+            - name: Update Check Run - Changelogs Generated
+              if: success()
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              shell: pwsh
+              run: |
+                  $body = @'
+                  {
+                    "status": "in_progress",
+                    "output": {
+                      "title": "Update ChangeLogs",
+                      "summary": "Changelogs generated. Creating PR..."
+                    }
+                  }
+                  '@
+                  $body | gh api -X PATCH -H "Accept: application/vnd.github+json" `
+                    -H "X-GitHub-Api-Version: 2022-11-28" `
+                    /repos/${{ github.repository }}/check-runs/$env:CHECKID --input -
 
-      - name: Complete Check Run
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $body = @'
-          {
-            "conclusion": "success",
-            "output": {
-              "title": "Update ChangeLogs",
-              "summary": "Changelog update workflow completed successfully."
-            }
-          }
-          '@
-          $body | gh api -X PATCH -H "Accept: application/vnd.github+json" `
-            -H "X-GitHub-Api-Version: 2022-11-28" `
-            /repos/${{ github.repository }}/check-runs/$env:CHECKID --input -
+            - name: Complete Check Run
+              if: always()
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              shell: pwsh
+              run: |
+                  $body = @'
+                  {
+                    "conclusion": "success",
+                    "output": {
+                      "title": "Update ChangeLogs",
+                      "summary": "Changelog update workflow completed successfully."
+                    }
+                  }
+                  '@
+                  $body | gh api -X PATCH -H "Accept: application/vnd.github+json" `
+                    -H "X-GitHub-Api-Version: 2022-11-28" `
+                    /repos/${{ github.repository }}/check-runs/$env:CHECKID --input -
 
-      - name: Add Job Summary
-        if: always()
-        shell: pwsh
-        run: |
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY "## 📝 Changelog Update Workflow Summary"
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY "- CHANGELOG.md files were generated or updated in the repository and subfolders."
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY "- A pull request was created or updated with the new changelogs."
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Check runs were updated to reflect the workflow status."
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Workflow completed with status: ${{ job.status }}".
+            - name: Add Job Summary
+              if: always()
+              shell: pwsh
+              run: |
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "## 📝 Changelog Update Workflow Summary"
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "- CHANGELOG.md files were generated or updated in the repository and subfolders."
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "- A pull request was created or updated with the new changelogs."
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Check runs were updated to reflect the workflow status."
+                  Add-Content -Path $env:GITHUB_STEP_SUMMARY "- Workflow completed with status: ${{ job.status }}".

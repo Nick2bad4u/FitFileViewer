@@ -1,15 +1,15 @@
 remote_theme: pages-themes/hacker@v0.2.0
 title: FitFileViewer
 description: FitFileViewer made by Typpi / Nick2bad4u
-url: 'https://FitFileViewer.typpi.online' # the base hostname & protocol for your site
+url: "https://FitFileViewer.typpi.online" # the base hostname & protocol for your site
 plugins:
-  - jekyll-sitemap
-  - jekyll-seo-tag
-  - jekyll-paginate
-  - jekyll-feed
-  - jekyll-archives
-  - jekyll-language-plugin
-  - jekyll-algolia
-  - jekyll-mentions
-  - jekyll-admin
-  - jekyll-loading-lazy
+    - jekyll-sitemap
+    - jekyll-seo-tag
+    - jekyll-paginate
+    - jekyll-feed
+    - jekyll-archives
+    - jekyll-language-plugin
+    - jekyll-algolia
+    - jekyll-mentions
+    - jekyll-admin
+    - jekyll-loading-lazy

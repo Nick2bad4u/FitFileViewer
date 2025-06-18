@@ -68,14 +68,15 @@ visibility and personal preference.
 ### Button States
 
 1. **Dark Map Theme**:
-   - Icon: Moon/crescent icon
-   - State: Active (highlighted)
-   - Tooltip: "Map: Dark theme (click for light theme)"
+
+    - Icon: Moon/crescent icon
+    - State: Active (highlighted)
+    - Tooltip: "Map: Dark theme (click for light theme)"
 
 2. **Light Map Theme**:
-   - Icon: Sun/brightness icon
-   - State: Normal
-   - Tooltip: "Map: Light theme (click for dark theme)"
+    - Icon: Sun/brightness icon
+    - State: Normal
+    - Tooltip: "Map: Light theme (click for dark theme)"
 
 **Note**: Button is available in both light and dark UI modes
 
@@ -84,7 +85,7 @@ visibility and personal preference.
 The toggle button appears as the first control in the map controls area alongside:
 
 - Export GPX button
-- Elevation Profile button  
+- Elevation Profile button
 - Marker Count selector
 
 ## User Workflow
@@ -101,7 +102,7 @@ The toggle button appears as the first control in the map controls area alongsid
 ### Event Flow
 
 ```text
-User clicks toggle → setMapThemeInverted() → localStorage update → 
+User clicks toggle → setMapThemeInverted() → localStorage update →
 mapThemeChanged event → updateMapTheme() → CSS filter applied
 ```
 
@@ -116,7 +117,7 @@ Custom event dispatch → updateMapTheme() → CSS filter applied/removed
 ### CSS Filter Applied
 
 ```css
-filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)
+filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);
 ```
 
 ## Benefits

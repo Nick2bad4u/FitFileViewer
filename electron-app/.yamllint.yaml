@@ -4,10 +4,10 @@ extends: default
 rules:
     braces:
         level: warning
-        max-spaces-inside: 1
+        max-spaces-inside: 5
     brackets:
         level: warning
-        max-spaces-inside: 10
+        max-spaces-inside: 20
     colons:
         level: warning
     commas:

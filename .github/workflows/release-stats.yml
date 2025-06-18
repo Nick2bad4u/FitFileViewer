@@ -1,72 +1,72 @@
 name: Show Release Stats
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '47 4 * * 0' # weekly
-  workflow_run:
-    workflows: ['Build and Release Electron App']
-    types:
-      - completed
+    workflow_dispatch:
+    schedule:
+        - cron: "47 4 * * 0" # weekly
+    workflow_run:
+        workflows: ["Build and Release Electron App"]
+        types:
+            - completed
 
 jobs:
-  release-stats:
-    runs-on: ubuntu-latest
+    release-stats:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Fetch release info and output summary
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get latest release info
-          latest_json=$(gh release view --json tagName,name,publishedAt,assets,url)
-          latest_tag=$(echo "$latest_json" | jq -r .tagName)
-          latest_name=$(echo "$latest_json" | jq -r .name)
-          latest_date=$(echo "$latest_json" | jq -r .publishedAt)
-          latest_url=$(echo "$latest_json" | jq -r .url)
-          asset_count=$(echo "$latest_json" | jq '.assets | length')
-          asset_total_size=0
-          if [ "$asset_count" -gt 0 ]; then
-            for s in $(echo "$latest_json" | jq -r '.assets[].size'); do
-              asset_total_size=$((asset_total_size + s))
-            done
-          fi
-          asset_total_mb=$(echo "scale=2; $asset_total_size/1024/1024" | bc)
+            - name: Fetch release info and output summary
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  # Get latest release info
+                  latest_json=$(gh release view --json tagName,name,publishedAt,assets,url)
+                  latest_tag=$(echo "$latest_json" | jq -r .tagName)
+                  latest_name=$(echo "$latest_json" | jq -r .name)
+                  latest_date=$(echo "$latest_json" | jq -r .publishedAt)
+                  latest_url=$(echo "$latest_json" | jq -r .url)
+                  asset_count=$(echo "$latest_json" | jq '.assets | length')
+                  asset_total_size=0
+                  if [ "$asset_count" -gt 0 ]; then
+                    for s in $(echo "$latest_json" | jq -r '.assets[].size'); do
+                      asset_total_size=$((asset_total_size + s))
+                    done
+                  fi
+                  asset_total_mb=$(echo "scale=2; $asset_total_size/1024/1024" | bc)
 
-          # Get total number of releases
-          total_releases=$(gh release list --limit 1000 | wc -l)
+                  # Get total number of releases
+                  total_releases=$(gh release list --limit 1000 | wc -l)
 
-          # Get total asset size for ALL releases
-          all_asset_total=0
-          for tag in $(gh release list --limit 1000 --json tagName -q '.[].tagName'); do
-            for s in $(gh release view "$tag" --json assets -q '.assets[].size'); do
-              all_asset_total=$((all_asset_total + s))
-            done
-          done
-          all_asset_total_mb=$(echo "scale=2; $all_asset_total/1024/1024" | bc)
+                  # Get total asset size for ALL releases
+                  all_asset_total=0
+                  for tag in $(gh release list --limit 1000 --json tagName -q '.[].tagName'); do
+                    for s in $(gh release view "$tag" --json assets -q '.assets[].size'); do
+                      all_asset_total=$((all_asset_total + s))
+                    done
+                  done
+                  all_asset_total_mb=$(echo "scale=2; $all_asset_total/1024/1024" | bc)
 
-          # Output summary markdown (fancy!)
-          {
-            echo "## 🚀 Release Stats"
-            echo ""
-            echo "#### 🏷️ **Current Release:**"
-            echo "- Tag: [\`$latest_tag\`]($latest_url)"
-            echo "- Name: **$latest_name**"
-            echo "- Published: $(date -d "$latest_date" "+%Y-%m-%d %H:%M:%S") UTC"
-            echo "- Asset count: $asset_count"
-            echo "- Asset total size: $asset_total_mb MB"
-            echo ""
-            echo "#### 📊 **Totals**"
-            echo "- Total releases: **$total_releases**"
-            echo "- Total release asset size: **$all_asset_total_mb MB**"
-          } >> "$GITHUB_STEP_SUMMARY"
+                  # Output summary markdown (fancy!)
+                  {
+                    echo "## 🚀 Release Stats"
+                    echo ""
+                    echo "#### 🏷️ **Current Release:**"
+                    echo "- Tag: [\`$latest_tag\`]($latest_url)"
+                    echo "- Name: **$latest_name**"
+                    echo "- Published: $(date -d "$latest_date" "+%Y-%m-%d %H:%M:%S") UTC"
+                    echo "- Asset count: $asset_count"
+                    echo "- Asset total size: $asset_total_mb MB"
+                    echo ""
+                    echo "#### 📊 **Totals**"
+                    echo "- Total releases: **$total_releases**"
+                    echo "- Total release asset size: **$all_asset_total_mb MB**"
+                  } >> "$GITHUB_STEP_SUMMARY"
 
-          cat "$GITHUB_STEP_SUMMARY"
+                  cat "$GITHUB_STEP_SUMMARY"

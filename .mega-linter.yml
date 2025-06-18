@@ -1,8 +1,8 @@
 DISABLE_LINTERS:
-- REPOSITORY_GIT_DIFF
-- SPELL_CSPELL
+    - REPOSITORY_GIT_DIFF
+    - SPELL_CSPELL
 
-EXCLUDED_DIRECTORIES: [ libs, tests, screenshots, node_modules, icons, docs ]
+EXCLUDED_DIRECTORIES: [libs, tests, screenshots, node_modules, icons, docs]
 SHOW_ELAPSED_TIME: true
 GITHUB_STATUS_REPORTER: true
 FILEIO_REPORTER: true
@@ -26,3 +26,4 @@ SPELL_LYCHEE_CONFIG_FILE: lychee.toml
 JSON_PRETTIER_CONFIG_FILE: .prettierrc.json
 YAML_YAMLLINT_CONFIG_FILE: .yamllint.yaml
 CSS_STYLELINT_CONFIG_FILE: stylelint.config.js
+REPOSITORY_DEVSKIM_CONFIG_FILE: .devskim.json

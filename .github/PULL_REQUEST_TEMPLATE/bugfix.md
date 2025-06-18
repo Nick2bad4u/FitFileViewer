@@ -1,8 +1,8 @@
 ---
 name: Bug Fix
 about: Fix a bug or issue
-title: '[BUG FIX] '
-labels: ['bug', 'fix']
+title: "[BUG FIX] "
+labels: ["bug", "fix"]
 ---
 
 ## Bug Description

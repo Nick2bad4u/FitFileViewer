@@ -18,7 +18,7 @@ enable direct chart uploads to Gyazo.
 
 - **Application Name**: `FitFileViewer` (or your preferred name)
 - **Description**: `Desktop application for viewing and analyzing FIT files
-  from fitness devices`
+from fitness devices`
 - **Website**: `https://github.com/your-username/FitFileViewer` (optional)
 - **Redirect URI**: `http://localhost:3000/gyazo/callback`
 
@@ -162,15 +162,15 @@ gyazoConfig: {
 ```javascript
 // Check authentication status
 if (ExportUtils.isGyazoAuthenticated()) {
-    console.log('User is connected to Gyazo');
+    console.log("User is connected to Gyazo");
 }
 
 // Upload a chart
 try {
     const gyazoUrl = await ExportUtils.uploadToGyazo(base64ImageData);
-    console.log('Chart uploaded:', gyazoUrl);
+    console.log("Chart uploaded:", gyazoUrl);
 } catch (error) {
-    console.error('Upload failed:', error.message);
+    console.error("Upload failed:", error.message);
 }
 
 // Show account manager

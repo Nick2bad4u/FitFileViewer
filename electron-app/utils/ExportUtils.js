@@ -1224,7 +1224,7 @@ export const ExportUtils = {
 
             printWindow.document.close();
             printWindow.focus();
-            setTimeout(() => {
+            setTimeout(function () {
                 printWindow.print();
                 printWindow.close();
             }, 250);
@@ -1314,7 +1314,7 @@ export const ExportUtils = {
             printWindow.document.write(htmlContent);
             printWindow.document.close();
             printWindow.focus();
-            setTimeout(() => {
+            setTimeout(function () {
                 printWindow.print();
                 printWindow.close();
             }, 500);

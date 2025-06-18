@@ -1,8 +1,8 @@
 ---
 name: Quick Fix
 about: Simple changes, typos, or minor improvements
-title: '[QUICK] '
-labels: ['quick-fix']
+title: "[QUICK] "
+labels: ["quick-fix"]
 ---
 
 ## Quick Fix Description

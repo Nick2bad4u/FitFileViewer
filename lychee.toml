@@ -104,7 +104,11 @@ exclude = [
     '^https://api\.github\.com',
     '^https://docs\.github\.com',
     '^https://help\.github\.com',
-    '^https://github\.io'
+    '^https://github\.io',
+    '^mailto:20943337\+Nick2bad4u@users\.noreply\.github\.com',
+    '^mailto:support@github\.com',
+    '^mailto:bot@stepsecurity\.io',
+    '^mailto:github-actions@github\.com',
 ]
 
 # Exclude these filesystem paths from getting checked.

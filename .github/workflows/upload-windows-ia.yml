@@ -1,72 +1,72 @@
 name: Upload Windows Distributables to Archive.org
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ['Build and Release Electron App']
-    types:
-      - completed
-  schedule:
-    - cron: '33 3 1 * *' # Every month at 3:33 AM UTC
+    workflow_dispatch:
+    workflow_run:
+        workflows: ["Build and Release Electron App"]
+        types:
+            - completed
+    schedule:
+        - cron: "33 3 1 * *" # Every month at 3:33 AM UTC
 
 concurrency:
-  group: IAWINDOWS-${{ github.ref }}
-  cancel-in-progress: true
+    group: IAWINDOWS-${{ github.ref }}
+    cancel-in-progress: true
 
 permissions:
-  contents: read
+    contents: read
 jobs:
-  upload-windows:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    upload-windows:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Download Windows release assets (msi-)
-        id: download_msi
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
-        with:
-          latest: true
-          fileName: 'Fit-File-Viewer-msi-*'
-          out-file-path: release-dist
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Download Windows release assets (msi-)
+              id: download_msi
+              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              with:
+                  latest: true
+                  fileName: "Fit-File-Viewer-msi-*"
+                  out-file-path: release-dist
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Windows release assets (nsis-)
-        id: download_nsis
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
-        with:
-          latest: true
-          fileName: 'Fit-File-Viewer-nsis-*'
-          out-file-path: release-dist
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Download Windows release assets (nsis-)
+              id: download_nsis
+              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              with:
+                  latest: true
+                  fileName: "Fit-File-Viewer-nsis-*"
+                  out-file-path: release-dist
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Windows release assets (portable-)
-        id: download_portable
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
-        with:
-          latest: true
-          fileName: 'Fit-File-Viewer-portable-*'
-          out-file-path: release-dist
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Download Windows release assets (portable-)
+              id: download_portable
+              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              with:
+                  latest: true
+                  fileName: "Fit-File-Viewer-portable-*"
+                  out-file-path: release-dist
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Windows release assets (latest.yml)
-        id: download_latest
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
-        with:
-          latest: true
-          fileName: 'latest.yml'
-          out-file-path: release-dist
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Download Windows release assets (latest.yml)
+              id: download_latest
+              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              with:
+                  latest: true
+                  fileName: "latest.yml"
+                  out-file-path: release-dist
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Windows distributables to archive.org
-        uses: Nick2bad4u/internet-archive-upload@947bc6bdf79d0bcf816b576082fd7b503d33ddc9 # v1.6
-        with:
-          access-key: ${{ secrets.IA_ACCESS_KEY }}
-          secret-key: ${{ secrets.IA_SECRET_KEY }}
-          identifier: fitfileviewer-windows-${{ steps.download_msi.outputs.tag_name }}
-          files: release-dist/
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Upload Windows distributables to archive.org
+              uses: Nick2bad4u/internet-archive-upload@947bc6bdf79d0bcf816b576082fd7b503d33ddc9 # v1.6
+              with:
+                  access-key: ${{ secrets.IA_ACCESS_KEY }}
+                  secret-key: ${{ secrets.IA_SECRET_KEY }}
+                  identifier: fitfileviewer-windows-${{ steps.download_msi.outputs.tag_name }}
+                  files: release-dist/
+              continue-on-error: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

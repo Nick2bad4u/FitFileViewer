@@ -6,6 +6,39 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+[[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)...[2b0861a](https://github.com/Nick2bad4u/FitFileViewer/commit/2b0861a292fe114b5c84ff8ce0e061ddc5c04b79)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7ffb095d12f23e64e8ddd674d6fae21666535496...2b0861a292fe114b5c84ff8ce0e061ddc5c04b79))
+
+### 💼 Other
+
+- Updates issue comment step to use correct response variable
+
+Ensures the workflow uses the intended environment variable for the comment body,
+potentially resolving issues with incorrect or missing comment content on GitHub issues. [`(2b0861a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2b0861a292fe114b5c84ff8ce0e061ddc5c04b79)
+
+- Refactor and improve code readability across multiple utility files
+
+- Updated various functions in `patchSummaryFields.js` to enhance readability by formatting conditional statements.
+- Improved the structure of `renderAltitudeProfileChart.js`, `renderChartJS.js`, `renderGPSTrackChart.js`, `renderPowerVsHeartRateChart.js`, and `renderSpeedVsDistanceChart.js` for better clarity.
+- Enhanced logging messages in `renderChartsWithData` and `shouldShowRenderNotification` for improved debugging.
+- Cleaned up import statements in `renderMap.js` and `setupWindow.js` for consistency.
+- Removed sensitive data from `gitleaks-report.json` and added configuration files for various tools including Checkov, Markdown Link Check, and Lychee.
+- Updated `setupZoneData.js` to improve the extraction of heart rate zones.
+- General code formatting and style improvements across multiple files to adhere to best practices. [`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+
+### 📦 Dependencies
+
+- Merge pull request #124 from Nick2bad4u/dependabot/github_actions/github-actions-c18845ae7f
+
+[ci](deps): [dependency] Update dependency group [`(fc8dd01)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fc8dd015068176f1e372a2afc800530aaabd2ead)
+
+- *(deps)* [dependency] Update dependency group [`(848edf4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/848edf44b552bbde528073f02fa864b5f13b8653)
+
+- Update dependabot.yml [`(1d0a556)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1d0a55673eece43fa2afe4018fba4b486a9b2f73)
+
+
+## [23.1.0] - 2025-06-16
+
 [[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)...[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0931bbd36523cdc74818b12147c6434c6866ce4e...7ffb095d12f23e64e8ddd674d6fae21666535496))
 
 ### 🔀 Merge Commits
@@ -1384,5 +1417,5 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(5b5d013)`](https://gith
 ## Contributors
 Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE.md)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*

@@ -1,51 +1,51 @@
 name: Microsoft Security DevOps
 
 on:
-  push:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  pull_request:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  workflow_dispatch:
-  schedule:
-    - cron: '23 9 * * *' # Every day at 9:23 AM UTC
+    push:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    pull_request:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    workflow_dispatch:
+    schedule:
+        - cron: "23 9 * * *" # Every day at 9:23 AM UTC
 
 permissions:
-  security-events: write
+    security-events: write
 
 concurrency:
-  group: msdo-${{ github.ref }}
-  cancel-in-progress: false
+    group: msdo-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  msdo:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    msdo:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run Microsoft Security DevOps
-        uses: microsoft/security-devops-action@d0736c546281e0632667b8e0046ae3d7bba0bf67 # latest
-        id: msdo
-      - name: Upload results to Security tab
-        uses: github/codeql-action/upload-sarif@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
-        with:
-          sarif_file: ${{ steps.msdo.outputs.sarifFile }}
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Run Microsoft Security DevOps
+              uses: microsoft/security-devops-action@d0736c546281e0632667b8e0046ae3d7bba0bf67 # latest
+              id: msdo
+            - name: Upload results to Security tab
+              uses: github/codeql-action/upload-sarif@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
+              with:
+                  sarif_file: ${{ steps.msdo.outputs.sarifFile }}

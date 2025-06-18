@@ -4,42 +4,42 @@
 name: VirusTotal Scan
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ['Build and Release Electron App']
-    types:
-      - completed
-  schedule:
-    - cron: '33 3 1 * *' # Every month at 3:33 AM UTC
+    workflow_dispatch:
+    workflow_run:
+        workflows: ["Build and Release Electron App"]
+        types:
+            - completed
+    schedule:
+        - cron: "33 3 1 * *" # Every month at 3:33 AM UTC
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: virustotal-${{ github.ref }}
-  cancel-in-progress: false
+    group: virustotal-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  virustotal:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    virustotal:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Download latest release assets
-        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
-        with:
-          latest: true
-          fileName: '*'
-          out-file-path: release-dist
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@d34968c958ae283fe976efed637081b9f9dcf74f # v4.2.0
-        with:
-          vt_api_key: ${{ secrets.VT_API_KEY }}
-          files: |
-            release-dist/*
-            release-dist/**/*
-        continue-on-error: true
+            - name: Download latest release assets
+              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              with:
+                  latest: true
+                  fileName: "*"
+                  out-file-path: release-dist
+                  token: ${{ secrets.GITHUB_TOKEN }}
+            - name: VirusTotal Scan
+              uses: crazy-max/ghaction-virustotal@d34968c958ae283fe976efed637081b9f9dcf74f # v4.2.0
+              with:
+                  vt_api_key: ${{ secrets.VT_API_KEY }}
+                  files: |
+                      release-dist/*
+                      release-dist/**/*
+              continue-on-error: true

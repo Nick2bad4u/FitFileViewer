@@ -1,0 +1,53 @@
+{
+    "LanguageRuleIgnoreMap": {},
+    "OutputFile": "",
+    "Rules": [],
+    "RuleIds": [],
+    "IgnoreRuleIds": [],
+    "LanguagesPath": "",
+    "CommentsPath": "",
+    "OutputTextFormat": "",
+    "OutputFileFormat": "",
+    "Severities": ["Critical", "Important", "Moderate", "BestPractice", "ManualReview"],
+    "Confidences": ["High", "Medium"],
+    "Globs": ["**/.git/**", "**/megalinter-reports/**", "**/libs/**"],
+    "Suppressions": [
+        {
+            "Justification": "False positive: localhost redirect URI is required for OAuth dev flow (only present in development builds, not production)",
+            "FilePattern": "electron-app/utils/ExportUtils.js",
+            "LineNumber": 359,
+            "RuleId": "DS162092"
+        },
+        {
+            "Justification": "Development-only: Binding server to localhost is required for secure local OAuth testing. This code is not present in production builds, and does not expose any security risk in release artifacts.",
+            "FilePattern": "electron-app/main.js",
+            "LineNumber": 801,
+            "RuleId": "DS162092"
+        },
+        {
+            "Justification": "Development-only: Checking for localhost is required for dev/debug logic. This code is not present in production builds.",
+            "FilePattern": "electron-app/renderer.js",
+            "LineNumber": 58,
+            "RuleId": "DS162092"
+        },
+        {
+            "Justification": "Development-only: Checking for 127.0.0.1 is required for dev/debug logic. This code is not present in production builds.",
+            "FilePattern": "electron-app/renderer.js",
+            "LineNumber": 59,
+            "RuleId": "DS162092"
+        }
+    ],
+    "DisableSuppression": false,
+    "DisableParallel": false,
+    "IgnoreDefaultRules": false,
+    "CrawlArchives": false,
+    "ExitCodeIsNumIssues": false,
+    "BasePath": "",
+    "AbsolutePaths": false,
+    "RespectGitIgnore": false,
+    "SkipExcerpts": false,
+    "ConsoleVerbosityLevel": "Information",
+    "DisableConsoleOutput": false,
+    "LogFileLevel": "Error",
+    "LogFilePath": null
+}

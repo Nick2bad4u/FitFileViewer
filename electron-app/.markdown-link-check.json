@@ -1,0 +1,26 @@
+{
+    "ignorePatterns": [
+        { "pattern": "^.*CHANGELOG.*$" },
+        { "pattern": "^.*changelog.*$" },
+        { "pattern": "^.*Changelog.*$" },
+        { "pattern": "^mailto:bot@stepsecurity\\.io$" },
+        { "pattern": "^mailto:support@github\\.com$" },
+        { "pattern": "^mailto:20943337\\+Nick2bad4u@users\\.noreply\\.github\\.com$" },
+        { "pattern": "^https://nick2bad4u\\.github\\.io/fitfileviewer/$" },
+        { "pattern": "^#-overview$" },
+        { "pattern": "^#-screenshots$" },
+        { "pattern": "^#%EF%B8%8F-installation$" },
+        { "pattern": "^#-usage$" },
+        { "pattern": "^#%EF%B8%8F-supported-builds$" },
+        { "pattern": "^#-windows-builds$" },
+        { "pattern": "^#-mac-builds$" },
+        { "pattern": "^#-linux-builds$" },
+        { "pattern": "^#-development$" },
+        { "pattern": "^#-credits$" },
+        { "pattern": "^#-license$" }
+    ],
+    "timeout": "10s",
+    "retryOn429": true,
+    "retryCount": 2,
+    "aliveStatusCodes": [200, 206, 301, 302, 307, 308]
+}

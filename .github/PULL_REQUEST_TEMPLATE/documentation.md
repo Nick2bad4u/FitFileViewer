@@ -1,8 +1,8 @@
 ---
 name: Documentation
 about: Improve or add documentation
-title: '[DOCS] '
-labels: ['documentation']
+title: "[DOCS] "
+labels: ["documentation"]
 ---
 
 ## Documentation Changes

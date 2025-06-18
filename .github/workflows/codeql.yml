@@ -9,110 +9,110 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
-name: 'CodeQL'
+name: "CodeQL"
 
 on:
-  push:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  pull_request:
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  workflow_dispatch:
-  schedule:
-    - cron: '44 2 * * 4' # run once a week on Thursday at 2:44 AM UTC
+    push:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    pull_request:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    workflow_dispatch:
+    schedule:
+        - cron: "44 2 * * 4" # run once a week on Thursday at 2:44 AM UTC
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
+    analyze:
+        name: Analyze
+        runs-on: ubuntu-latest
+        permissions:
+            actions: read
+            contents: read
+            security-events: write
 
-    concurrency:
-      group: codeql-${{ github.ref }}
-      cancel-in-progress: false
+        concurrency:
+            group: codeql-${{ github.ref }}
+            cancel-in-progress: false
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['javascript', 'typescript']
-        # CodeQL supports [ $supported-codeql-languages ]
-        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
+        strategy:
+            fail-fast: false
+            matrix:
+                language: ["javascript", "typescript"]
+                # CodeQL supports [ $supported-codeql-languages ]
+                # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      # Initializes the CodeQL tools for scanning.
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
-        with:
-          languages: ${{ matrix.language }}
-          # If you wish to specify custom queries, you can do so here or in a config file.
-          # By default, queries listed here will override any specified in a config file.
-          # Prefix the list here with "+" to use these queries and those in the config file.
-          source-root: electron-app
+            # Initializes the CodeQL tools for scanning.
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
+              with:
+                  languages: ${{ matrix.language }}
+                  # If you wish to specify custom queries, you can do so here or in a config file.
+                  # By default, queries listed here will override any specified in a config file.
+                  # Prefix the list here with "+" to use these queries and those in the config file.
+                  source-root: electron-app
 
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '20'
+            - name: Set up Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+              with:
+                  node-version: "20"
 
-      - name: Cache node modules
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: electron-app/node_modules
-          key: ${{ runner.os }}-electron-app-node-modules-${{ hashFiles('electron-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-app-node-modules-
+            - name: Cache node modules
+              uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+              with:
+                  path: electron-app/node_modules
+                  key: ${{ runner.os }}-electron-app-node-modules-${{ hashFiles('electron-app/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-electron-app-node-modules-
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: electron-app
+            - name: Install dependencies
+              run: npm install
+              working-directory: electron-app
 
-      # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-      # If this step fails, then you should remove it and run the build manually (see below)
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
-        with:
-          working-directory: electron-app
+            # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+            # If this step fails, then you should remove it and run the build manually (see below)
+            - name: Autobuild
+              uses: github/codeql-action/autobuild@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
+              with:
+                  working-directory: electron-app
 
-      # ℹ️ Command-line programs to run using the OS shell.
-      # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+            # ℹ️ Command-line programs to run using the OS shell.
+            # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
 
-      #   If the Autobuild fails above, remove it and uncomment the following three lines.
-      #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
+            #   If the Autobuild fails above, remove it and uncomment the following three lines.
+            #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
 
-      # - run: |
-      #   echo "Run, Build Application using script"
-      #   ./location_of_script_within_repo/buildscript.sh
+            # - run: |
+            #   echo "Run, Build Application using script"
+            #   ./location_of_script_within_repo/buildscript.sh
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
-        with:
-          category: '/language:${{matrix.language}}'
+            - name: Perform CodeQL Analysis
+              uses: github/codeql-action/analyze@ce28f5bb42b7a9f2c824e633a3f6ee835bab6858 # v3.29.0
+              with:
+                  category: "/language:${{matrix.language}}"

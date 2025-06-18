@@ -6,6 +6,24 @@
 import { getThemeConfig } from "./theme.js";
 
 /**
+ * Predefined color schemes for zones
+ */
+const COLOR_SCHEMES = {
+    classic: {
+        hr: ["#4facfe", "#00b7ff", "#00a6ff", "#0095ff", "#0084ff"],
+        power: ["#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#e53935", "#c62828", "#b71c1c"],
+    },
+    vibrant: {
+        hr: ["#ff6b6b", "#ffa726", "#ffee58", "#66bb6a", "#42a5f5"],
+        power: ["#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50"],
+    },
+    monochrome: {
+        hr: ["#bdbdbd", "#9e9e9e", "#757575", "#616161", "#424242"],
+        power: ["#f5f5f5", "#eeeeee", "#e0e0e0", "#bdbdbd", "#9e9e9e", "#757575", "#616161"],
+    },
+};
+
+/**
  * Gets default zone colors from theme configuration
  * @param {string} zoneType - "hr" or "power"
  * @returns {Array} Array of color strings
@@ -89,7 +107,7 @@ export function resetZoneColors(zoneType, zoneCount) {
 
 /**
  * Determines zone type from field name
- * @param {string} field - Field name (e.g., "hr_zone_doughnut", "power_zone_bar")
+ * @param {string} field - Field name (e.g., zone chart identifiers)
  * @returns {string|null} "hr", "power", or null if not a zone field
  */
 export function getZoneTypeFromField(field) {
@@ -125,11 +143,47 @@ export function applyZoneColors(zoneData, zoneType) {
 }
 
 /**
- * Gets zone colors for chart rendering
+ * Gets zone colors for chart rendering based on color scheme
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneCount - Number of zones
+ * @param {string} colorScheme - "classic", "vibrant", "monochrome", or "custom"
  * @returns {string[]} Array of colors for chart use
  */
-export function getChartZoneColors(zoneType, zoneCount) {
+export function getChartZoneColors(zoneType, zoneCount, colorScheme = "custom") {
+    if (colorScheme === "custom") {
+        // Use custom colors from localStorage or defaults
+        return getZoneColors(zoneType, zoneCount);
+    }
+
+    // Use predefined color scheme
+    if (COLOR_SCHEMES[colorScheme] && COLOR_SCHEMES[colorScheme][zoneType]) {
+        const schemeColors = COLOR_SCHEMES[colorScheme][zoneType];
+        const colors = [];
+        for (let i = 0; i < zoneCount; i++) {
+            colors.push(schemeColors[i] || schemeColors[i % schemeColors.length]);
+        }
+        return colors;
+    }
+
+    // Fallback to custom colors
     return getZoneColors(zoneType, zoneCount);
+}
+
+/**
+ * Gets colors for display in the color picker UI based on the selected scheme
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneCount - Number of zones
+ * @param {string} colorScheme - "classic", "vibrant", "monochrome", or "custom"
+ * @returns {string[]} Array of colors for UI display
+ */
+export function getDisplayZoneColors(zoneType, zoneCount, colorScheme = "custom") {
+    return getChartZoneColors(zoneType, zoneCount, colorScheme);
+}
+
+/**
+ * Gets all predefined color schemes
+ * @returns {Object} Object containing all color schemes
+ */
+export function getColorSchemes() {
+    return COLOR_SCHEMES;
 }

@@ -1,2 +1,2 @@
 exclude-paths:
-- ".github/workflows/superlinter.yml"
+    - ".github/workflows/superlinter.yml"

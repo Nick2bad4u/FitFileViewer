@@ -1,8 +1,8 @@
 ---
 name: Maintenance/Refactoring
 about: Code maintenance, refactoring, or technical improvements
-title: '[MAINT] '
-labels: ['maintenance', 'refactoring']
+title: "[MAINT] "
+labels: ["maintenance", "refactoring"]
 ---
 
 ## Maintenance Type

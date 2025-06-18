@@ -4,20 +4,178 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+[[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)...[851a688](https://github.com/Nick2bad4u/FitFileViewer/commit/851a688d8887756645fd3519897260e367e6f922)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/e84588e7c6e1ae1e4d5408c550b5997488eb3e28...851a688d8887756645fd3519897260e367e6f922))
+
+### 🚀 Features
+
+- Enhance settings header with chart status indicators and field toggles [`(851a688)`](https://github.com/Nick2bad4u/FitFileViewer/commit/851a688d8887756645fd3519897260e367e6f922)
+
+
+## [23.6.0] - 2025-06-17
+
+[[09898cd](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)...[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/09898cd59263e4987cff89af00d8caaf2abe9372...e84588e7c6e1ae1e4d5408c550b5997488eb3e28))
+
+### 💼 Other
+
+- Refactor sensor and manufacturer handling in chart rendering
+
+- Removed extensive hardcoded manufacturer and product mappings from formatAntNames.js, replacing them with imports from separate files for better modularity and maintainability.
+- Updated formatSensorName.js to prioritize manufacturer and product names when both are available, improving sensor name formatting logic.
+- Enhanced renderChartJS.js by importing chartFields for consistency, improving error handling display, and cleaning up chart data processing logic for better readability and maintainability. [`(e84588e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)
+
+
+## [23.4.0] - 2025-06-17
+
+[[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)...[09898cd](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0931bbd36523cdc74818b12147c6434c6866ce4e...09898cd59263e4987cff89af00d8caaf2abe9372))
+
+### 🐛 Bug Fixes
+
+- Update theme colors in marker count selector for improved UI consistency [`(97fbe38)`](https://github.com/Nick2bad4u/FitFileViewer/commit/97fbe38163151bc6a9e2f1a1d139e71aa97f661a)
+
+
+### 💼 Other
+
+- Refactor manufacturer and product formatting utilities
+
+- Updated import paths to use new formatAntNames.js module instead of manufacturerIds.js for manufacturer and product name retrieval.
+- Enhanced formatProduct function to handle edge cases for manufacturer and product IDs, ensuring robust error handling and improved user feedback.
+- Modified formatSensorName to ensure garminProduct is formatted correctly as a string.
+- Removed manufacturerIds.js file as its functionality has been integrated into formatAntNames.js.
+- Updated testFormatting.js to reflect changes in import paths and validate new formatting logic. [`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- Adds independent map theme toggle and sensor formatting fixes
+
+Enables users to switch map theme between light and dark modes independently of the app theme, improving visibility and user preference handling. Introduces a new toggle button with persistent preference, immediate UI feedback, and updated CSS for consistent appearance. Refactors marker count selector and overlay management for modularity and theme-awareness. Implements robust manufacturer and product ID mappings with formatting utilities, fixing legacy and edge cases for sensor naming. Improves test/debug utilities for sensor data and formatting.
+
+Enhances user control, accessibility, and code maintainability, while resolving previous issues with sensor name formatting and color contrast. [`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
+
+- Refactor and improve code readability across multiple utility files
+
+- Updated various functions in `patchSummaryFields.js` to enhance readability by formatting conditional statements.
+- Improved the structure of `renderAltitudeProfileChart.js`, `renderChartJS.js`, `renderGPSTrackChart.js`, `renderPowerVsHeartRateChart.js`, and `renderSpeedVsDistanceChart.js` for better clarity.
+- Enhanced logging messages in `renderChartsWithData` and `shouldShowRenderNotification` for improved debugging.
+- Cleaned up import statements in `renderMap.js` and `setupWindow.js` for consistency.
+- Removed sensitive data from `gitleaks-report.json` and added configuration files for various tools including Checkov, Markdown Link Check, and Lychee.
+- Updated `setupZoneData.js` to improve the extraction of heart rate zones.
+- General code formatting and style improvements across multiple files to adhere to best practices. [`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+
+## [22.9.0] - 2025-06-15
+
+[[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)...[0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/403063838cdda2c7a496838806b54909461420f3...0931bbd36523cdc74818b12147c6434c6866ce4e))
+
+### 💼 Other
+
+- Modularizes map actions and adds themed UI utilities
+
+Refactors map action button logic into dedicated modules for better maintainability and separation of concerns. Introduces new utility classes and theme-aware helper functions to ensure consistent styling across interactive map controls. Adds robust error handling and notification feedback for overlay file operations. Enhances user experience by improving overlay loading, theming, and map centering logic, and updates workflow and linter configurations for improved CI/CD feedback. [`(0931bbd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)
+
+- Refactor chart utilities and enhance theme handling
+
+- Removed the chart specification generation code from chartSpec.js, streamlining the chart rendering process.
+- Improved the chart theme listener in chartThemeListener.js for better event handling and performance.
+- Updated ensureAboutModal.js to enhance modal initialization and styling.
+- Cleaned up exportAllCharts.js by removing unnecessary whitespace.
+- Refined modal styles injection in injectModalStyles.js to prevent duplicate style applications.
+- Enhanced animation logging utility in lastAnimLog.js for better performance tracking during development.
+- Improved version information loading in loadVersionInfo.js for dynamic updates.
+- Updated system information display logic in updateSystemInfo.js for better clarity.
+- Added gitleaks-report.json to track potential API key exposure in the codebase. [`(07f01c6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/07f01c601ecc9c3c5e720de2231ecebd734fa321)
+
+- Refactor and enhance modal functionality; remove unused chart tab, optimize notification delay, and improve theme configurations
+
+- Removed the "chart" tab functionality from the setupWindow.js file.
+- Reduced the notification processing delay from 200ms to 50ms in showNotification.js.
+- Updated theme.js to adjust surface color opacity and added new color zones for various functionalities.
+- Modified toggleTabVisibility.js to exclude the "content-chart" from the tab content IDs.
+- Fixed import path for throttledAnimLog in updateChartAnimations.js.
+- Added new utility functions for about modal management, including ensureAboutModal.js, loadVersionInfo.js, updateSystemInfo.js, and injectModalStyles.js.
+- Implemented a throttled animation logging utility in lastAnimLog.js for better performance during development.
+- Created exportAllCharts.js to handle exporting multiple charts with notifications for success or failure. [`(d5c18e4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d5c18e4b82598d1df4a24aca265504a0bbf52af3)
+
+
+## [22.7.0] - 2025-06-15
+
+[[5d82f2e](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)...[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf...403063838cdda2c7a496838806b54909461420f3))
+
+### 🚜 Refactor
+
+- Update Gyazo configuration data with new obfuscation method [`(4030638)`](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)
+
+
+### 🛡️ Security
+
+- Improves obfuscation for default Gyazo credentials
+
+Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience. [`(7bbab40)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82)
+
+- Obfuscate default Gyazo credentials for improved security [`(4064001)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4064001df17fce67d9fde5eb04a9b5743464476c)
+
+
+## [22.4.0] - 2025-06-15
+
+[[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)...[5d82f2e](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/25c3b5e09fc01799a354e00c97ea827a48a5dfc8...5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf))
+
+### 💼 Other
+
+- Adds Gyazo integration with OAuth upload and theming
+
+Implements direct Gyazo chart upload using a secure OAuth flow, including automatic local callback server management and user credential configuration via new settings UI. Updates export utilities, modal flows, and introduces account management and onboarding guides for Gyazo. Refactors chart and UI theming to use a robust, centralized theme configuration, improving color consistency and dark mode support. Enhances chart selection modals, hover effects, and settings controls for better UX and maintainability. [`(5d82f2e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)
+
+- Unifies styling with CSS variables and refactors theme logic
+
+Migrates hardcoded colors to CSS variables for consistent theming and easier maintenance across dark and light modes. Refactors chart re-rendering on theme change to ensure proper cleanup and real-time updates. Removes duplicated or redundant style logic, adds and adjusts hover/focus effects, and updates color opacities for modern, accessible visuals. Deletes the separate developer fields chart renderer, integrating its logic for better maintainability. Improves visual consistency and user experience in modals, dropdowns, and controls. [`(2790ed7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2790ed7f694fac0348c7986840950e0c88f548eb)
+
+- Adds Gyazo integration with OAuth upload and theming
+
+Implements direct Gyazo chart upload using a secure OAuth flow, including automatic local callback server management and user credential configuration via new settings UI. Updates export utilities, modal flows, and introduces account management and onboarding guides for Gyazo. Refactors chart and UI theming to use a robust, centralized theme configuration, improving color consistency and dark mode support. Enhances chart selection modals, hover effects, and settings controls for better UX and maintainability. [`(c75cddb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c75cddb9f3239ff300c4259ba665a0bf526b47e0)
+
+- Unifies styling with CSS variables and refactors theme logic
+
+Migrates hardcoded colors to CSS variables for consistent theming and easier maintenance across dark and light modes. Refactors chart re-rendering on theme change to ensure proper cleanup and real-time updates. Removes duplicated or redundant style logic, adds and adjusts hover/focus effects, and updates color opacities for modern, accessible visuals. Deletes the separate developer fields chart renderer, integrating its logic for better maintainability. Improves visual consistency and user experience in modals, dropdowns, and controls. [`(4c52de5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c52de52f856fd4bd6670b1e04c2e01044982cf1)
+
+
+### 🛡️ Security
+
+- Obfuscate default Gyazo credentials for improved security
+
+[dependency] Update version 22.4.0
+
+Improves obfuscation for default Gyazo credentials
+
+Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience. [`(b048580)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0485801c3ba885a6a585c429c9063be2ea64eef)
+
+
+## [22.1.0] - 2025-06-14
+
+[[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)...[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034...25c3b5e09fc01799a354e00c97ea827a48a5dfc8))
+
+### 💼 Other
+
+- Standardizes YAML, JSON, and config formatting across repo
+
+Improves consistency by normalizing quotes, indentation, and
+key/value styles in all GitHub Actions workflows, project config,
+and markdown files. Adds Prettier ignore rules, updates settings,
+and syncs formatting to reduce lint noise and tooling friction.
+
+Prepares for cleaner future diffs and better cross-platform collaboration. [`(25c3b5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)
+
+
 ## [22.0.0] - 2025-06-14
 
-[[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
+[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
+
+### 🚀 Features
+
+- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
+
 
 ### 💼 Other
 
 - Run Prettier on all Files. [`(21bf6c1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)
-
-
-## [21.9.0] - 2025-06-14
-
-[[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)...[6e6ec92](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fad6333373c7a154c878deb90dafa81c6366faac...6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62))
-
-### 💼 Other
 
 - Modularizes chart rendering and improves data/unit handling
 
@@ -26,13 +184,6 @@ Refactors chart rendering logic into smaller, focused modules to enhance maintai
 Modularizes chart rendering and improves unit handling
 
 Splits chart rendering logic into focused modules for better maintainability and scalability. Enhances support for developer fields and applies user-specific unit conversions per metric. Streamlines imports, reduces code duplication, and improves debugging/logging to aid troubleshooting and ensure chart data quality. [`(6e6ec92)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e6ec9239bc393c804d8acb45ed7c0b6b8e78e62)
-
-
-## [21.8.0] - 2025-06-13
-
-[[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)...[fad6333](https://github.com/Nick2bad4u/FitFileViewer/commit/fad6333373c7a154c878deb90dafa81c6366faac)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a082640df2aeae666efa952d526efc6c54065154...fad6333373c7a154c878deb90dafa81c6366faac))
-
-### 💼 Other
 
 - Improves Chart.js theming with robust dark/light detection
 
@@ -47,13 +198,6 @@ Cleans up legacy code, removes redundant theme logic, and enhances UI component 
 Overhauls the chart rendering system to add a modern, toggleable controls panel, advanced export and sharing options (PNG, CSV, JSON, ZIP, clipboard, Imgur), and improved accessibility and error handling. Introduces support for zone data visualization, lap analysis charts, and professional styling with theme-aware design. Optimizes performance, code structure, and user feedback for a richer FIT file data experience.
 
 Fixes chart layout, enhances maintainability, and prepares for future extensibility. [`(f852b00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)
-
-
-## [21.4.0] - 2025-06-12
-
-[[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)...[a082640](https://github.com/Nick2bad4u/FitFileViewer/commit/a082640df2aeae666efa952d526efc6c54065154)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9411374418655f6be63e2d0c2c11b9e520d9541b...a082640df2aeae666efa952d526efc6c54065154))
-
-### 💼 Other
 
 - Enhances UI polish, modals, and notification system
 
@@ -70,22 +214,6 @@ Refactors code for better modularity, state management, and error handling, incl
 Improves maintainability and performance with utility function organization, window state management, and development helpers.
 
 Relates to UI/UX modernization and maintainability goals. [`(99bca90)`](https://github.com/Nick2bad4u/FitFileViewer/commit/99bca9067403a202d647d7942da8fd2df71ec662)
-
-
-## [21.2.0] - 2025-06-11
-
-[[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)...[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aae539eeb94eef693613b973fcac471d1b78690b...9411374418655f6be63e2d0c2c11b9e520d9541b))
-
-### 🚀 Features
-
-- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
-
-
-## [20.6.0] - 2025-06-10
-
-[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...aae539eeb94eef693613b973fcac471d1b78690b))
-
-### 💼 Other
 
 - Improves Linux menu handling and adds menu injection support
 
@@ -511,5 +639,5 @@ fix: add logic to renderTable for destroying existing DataTable instances before
 ## Contributors
 Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE.md)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*

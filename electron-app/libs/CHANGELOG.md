@@ -4,9 +4,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+[[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)...[d5c18e4](https://github.com/Nick2bad4u/FitFileViewer/commit/d5c18e4b82598d1df4a24aca265504a0bbf52af3)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/25c3b5e09fc01799a354e00c97ea827a48a5dfc8...d5c18e4b82598d1df4a24aca265504a0bbf52af3))
+
+### 💼 Other
+
+- Refactor and enhance modal functionality; remove unused chart tab, optimize notification delay, and improve theme configurations
+
+- Removed the "chart" tab functionality from the setupWindow.js file.
+- Reduced the notification processing delay from 200ms to 50ms in showNotification.js.
+- Updated theme.js to adjust surface color opacity and added new color zones for various functionalities.
+- Modified toggleTabVisibility.js to exclude the "content-chart" from the tab content IDs.
+- Fixed import path for throttledAnimLog in updateChartAnimations.js.
+- Added new utility functions for about modal management, including ensureAboutModal.js, loadVersionInfo.js, updateSystemInfo.js, and injectModalStyles.js.
+- Implemented a throttled animation logging utility in lastAnimLog.js for better performance during development.
+- Created exportAllCharts.js to handle exporting multiple charts with notifications for success or failure. [`(d5c18e4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d5c18e4b82598d1df4a24aca265504a0bbf52af3)
+
+
+## [22.1.0] - 2025-06-14
+
+[[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)...[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034...25c3b5e09fc01799a354e00c97ea827a48a5dfc8))
+
+### 💼 Other
+
+- Standardizes YAML, JSON, and config formatting across repo
+
+Improves consistency by normalizing quotes, indentation, and
+key/value styles in all GitHub Actions workflows, project config,
+and markdown files. Adds Prettier ignore rules, updates settings,
+and syncs formatting to reduce lint noise and tooling friction.
+
+Prepares for cleaner future diffs and better cross-platform collaboration. [`(25c3b5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)
+
+
 ## [22.0.0] - 2025-06-14
 
-[[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9411374418655f6be63e2d0c2c11b9e520d9541b...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
+[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
+
+### 🚀 Features
+
+- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
+
 
 ### 💼 Other
 
@@ -17,22 +56,6 @@ All notable changes to this project will be documented in this file.
 Overhauls the chart rendering system to add a modern, toggleable controls panel, advanced export and sharing options (PNG, CSV, JSON, ZIP, clipboard, Imgur), and improved accessibility and error handling. Introduces support for zone data visualization, lap analysis charts, and professional styling with theme-aware design. Optimizes performance, code structure, and user feedback for a richer FIT file data experience.
 
 Fixes chart layout, enhances maintainability, and prepares for future extensibility. [`(f852b00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f852b00b5b566dd1b1126cf0dfa108b96a425a46)
-
-
-## [21.2.0] - 2025-06-11
-
-[[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)...[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aae539eeb94eef693613b973fcac471d1b78690b...9411374418655f6be63e2d0c2c11b9e520d9541b))
-
-### 🚀 Features
-
-- *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
-
-
-## [20.6.0] - 2025-06-10
-
-[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...aae539eeb94eef693613b973fcac471d1b78690b))
-
-### 💼 Other
 
 - Improves Linux menu handling and adds menu injection support
 
@@ -1145,5 +1168,5 @@ build(deps): bump react-dom and @types/react-dom in /electron-app/libs/zwiftmap-
 ## Contributors
 Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE.md)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*

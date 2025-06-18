@@ -214,7 +214,7 @@ if (
                 window._chartjsInstances = [];
 
                 // Re-render charts with new theme
-                setTimeout(() => {
+                setTimeout(function () {
                     if (typeof renderChartJS === "function") {
                         renderChartJS("chartjs-chart-container");
                     }

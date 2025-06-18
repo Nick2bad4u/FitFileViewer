@@ -1,8 +1,8 @@
 ---
 name: Feature Request
 about: Submit a new feature or enhancement
-title: '[FEATURE] '
-labels: ['enhancement', 'feature']
+title: "[FEATURE] "
+labels: ["enhancement", "feature"]
 ---
 
 ## Feature Description

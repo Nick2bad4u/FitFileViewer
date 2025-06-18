@@ -1,41 +1,34 @@
 # Use Push-Location/Pop-Location for safe directory changes and error handling
 
+# Determine repo root (parent of .github)
+$repoRoot = Resolve-Path "$PSScriptRoot\.."
+
 $folders = @(
-    "..",
-    "electron-app",
-    "icons",
-    "..\libs",
-    "..\screenshots",
-    "..\tests",
-    "..\utils"
+    "$repoRoot",
+    "$repoRoot\.github",
+    "$repoRoot\electron-app",
+    "$repoRoot\electron-app\icons",
+    "$repoRoot\electron-app\libs",
+    "$repoRoot\electron-app\screenshots",
+    "$repoRoot\electron-app\tests",
+    "$repoRoot\electron-app\utils"
 )
 
 foreach ($folder in $folders) {
-    Push-Location $folder
-    try {
-        npx git-cliff --output CHANGELOG.md
-    }
-    catch {
-        Write-Error "Failed to update CHANGELOG.md in ${folder}: $_"
-    }
-    finally {
-        Pop-Location
+    if (Test-Path $folder) {
+        Push-Location $folder
+        try {
+            npx git-cliff --output CHANGELOG.md
+        }
+        catch {
+            Write-Error "Failed to update CHANGELOG.md in ${folder}: $_"
+        }
+        finally {
+            Pop-Location
+        }
+    } else {
+        Write-Warning "Skipping missing folder: $folder"
     }
 }
-npx git-cliff --output CHANGELOG.md
 
-# Update libs CHANGELOG.md
-Set-Location ..\libs
-npx git-cliff --output CHANGELOG.md
-
-# Update screenshots CHANGELOG.md
-Set-Location ..\screenshots
-npx git-cliff --output CHANGELOG.md
-
-# Update tests CHANGELOG.md
-Set-Location ..\tests
-npx git-cliff --output CHANGELOG.md
-
-# Update utils CHANGELOG.md
-Set-Location ..\utils
-npx git-cliff --output CHANGELOG.md
+# (No longer needed: handled by the loop above)

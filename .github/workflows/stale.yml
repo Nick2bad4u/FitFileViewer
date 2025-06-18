@@ -25,37 +25,37 @@
 name: Mark stale issues and pull requests
 
 on:
-  schedule:
-    - cron: '38 7 * * *'
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-  issues:
-    types: [opened, reopened, edited]
-  workflow_dispatch:
+    schedule:
+        - cron: "38 7 * * *"
+    pull_request_target:
+        types: [opened, reopened, synchronize]
+    issues:
+        types: [opened, reopened, edited]
+    workflow_dispatch:
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  stale:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-    concurrency:
-      group: stale-${{ github.ref }}
-      cancel-in-progress: false
+    stale:
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            pull-requests: write
+        concurrency:
+            group: stale-${{ github.ref }}
+            cancel-in-progress: false
 
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: 'Stale issue'
-          stale-pr-message: 'Stale pull request'
-          stale-issue-label: 'no-issue-activity'
-          stale-pr-label: 'no-pr-activity'
+            - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
+              with:
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+                  stale-issue-message: "Stale issue"
+                  stale-pr-message: "Stale pull request"
+                  stale-issue-label: "no-issue-activity"
+                  stale-pr-label: "no-pr-activity"

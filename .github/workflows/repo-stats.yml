@@ -1,78 +1,78 @@
 name: Metrics - Repository Stats
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '53 4 * * *' # Runs daily at 4:53 AM (UTC)
-  push:
-    branches: [repo-stats]
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
-  pull_request:
-    branches: [repo-stats]
-    paths-ignore:
-      - '*'
-      - '*/**'
-      - '!electron-app/icons/**'
-      - '!electron-app/icons'
-      - '!electron-app/**'
-      - '!electron-app'
-      - '**/CHANGELOG.md'
-      - 'CHANGELOG.md'
+    workflow_dispatch:
+    schedule:
+        - cron: "53 4 * * *" # Runs daily at 4:53 AM (UTC)
+    push:
+        branches: [repo-stats]
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    pull_request:
+        branches: [repo-stats]
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/icons/**"
+            - "!electron-app/icons"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
 
 jobs:
-  metrics:
-    runs-on: ubuntu-latest
-    concurrency:
-      group: repo-stats-${{ github.ref }}
-      cancel-in-progress: false
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    metrics:
+        runs-on: ubuntu-latest
+        concurrency:
+            group: repo-stats-${{ github.ref }}
+            cancel-in-progress: false
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Generate repository metrics
-        uses: lowlighter/metrics@65836723097537a54cd8eb90f61839426b4266b6 # latest
-        with:
-          template: repository
-          filename: metrics.repository.svg
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # user: nick2bad4u
-          repo: FitFileViewer
-          # The 'repo' input is not supported in this context and causes 'Unsupported context repository' error. Remove or comment out this line.
-          base: header, activity, community, repositories, metadata
-          base_indepth: yes
-          commits_authoring: nick2bad4u
-          config_display: large
-          config_octicon: yes
-          config_timezone: America/Detroit
-          config_twemoji: yes
-          plugin_followup: yes
-          plugin_lines: yes
-          plugin_languages: yes
-          plugin_languages_analysis_timeout: 30
-          plugin_languages_analysis_timeout_repositories: 40
-          plugin_languages_categories: markup, programming
-          plugin_languages_colors: github
-          plugin_languages_indepth: yes
-          plugin_languages_limit: 30
-          plugin_languages_recent_categories: markup, programming
-          plugin_languages_recent_days: 30
-          plugin_languages_recent_load: 600
-          plugin_languages_sections: most-used
-          plugin_languages_threshold: 0%
-          plugin_lines_history_limit: 40
-          plugin_lines_repositories_limit: 8
-          plugin_lines_sections: base
-          plugin_repositories: yes
-          plugin_repositories_order: featured, pinned, starred, random
-          repositories_forks: yes
-          users_ignored: none
+            - name: Generate repository metrics
+              uses: lowlighter/metrics@65836723097537a54cd8eb90f61839426b4266b6 # latest
+              with:
+                  template: repository
+                  filename: metrics.repository.svg
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  # user: nick2bad4u
+                  repo: FitFileViewer
+                  # The 'repo' input is not supported in this context and causes 'Unsupported context repository' error. Remove or comment out this line.
+                  base: header, activity, community, repositories, metadata
+                  base_indepth: yes
+                  commits_authoring: nick2bad4u
+                  config_display: large
+                  config_octicon: yes
+                  config_timezone: America/Detroit
+                  config_twemoji: yes
+                  plugin_followup: yes
+                  plugin_lines: yes
+                  plugin_languages: yes
+                  plugin_languages_analysis_timeout: 30
+                  plugin_languages_analysis_timeout_repositories: 40
+                  plugin_languages_categories: markup, programming
+                  plugin_languages_colors: github
+                  plugin_languages_indepth: yes
+                  plugin_languages_limit: 30
+                  plugin_languages_recent_categories: markup, programming
+                  plugin_languages_recent_days: 30
+                  plugin_languages_recent_load: 600
+                  plugin_languages_sections: most-used
+                  plugin_languages_threshold: 0%
+                  plugin_lines_history_limit: 40
+                  plugin_lines_repositories_limit: 8
+                  plugin_lines_sections: base
+                  plugin_repositories: yes
+                  plugin_repositories_order: featured, pinned, starred, random
+                  repositories_forks: yes
+                  users_ignored: none

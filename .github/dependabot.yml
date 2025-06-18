@@ -9,54 +9,54 @@
 
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: daily
-      time: '05:30'
-      timezone: 'America/Detroit'
-    assignees: ['Nick2bad4u']
-    allow:
-      # Allow both direct and indirect updates for all packages
-      - dependency-type: 'all'
-    labels:
-      - 'github-actions'
-      - 'dependabot'
-      - 'dependencies'
-    commit-message:
-      prefix: '[ci]'
-      prefix-development: '[ci]'
-      include: 'scope'
-    groups:
-      github-actions:
-        applies-to: version-updates
-        patterns:
-          - '*'
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: daily
+          time: "05:30"
+          timezone: "America/Detroit"
+      assignees: ["Nick2bad4u"]
+      allow:
+          # Allow both direct and indirect updates for all packages
+          - dependency-type: "all"
+      labels:
+          - "github-actions"
+          - "dependabot"
+          - "dependencies"
+      commit-message:
+          prefix: "[ci]"
+          prefix-development: "[ci]"
+          include: "scope"
+      groups:
+          github-actions:
+              applies-to: version-updates
+              patterns:
+                  - "*"
 
-  - package-ecosystem: npm
-    directory: /electron-app
-    schedule:
-      interval: daily
-    assignees: ['Nick2bad4u']
-    versioning-strategy: increase
-    allow:
-      # Allow both direct and indirect updates for all packages
-      - dependency-type: 'all'
-    ignore:
-      - dependency-name: 'electron-builder'
-        versions: ['< 26.0.18']
-      - dependency-name: 'electron-builder-squirrel-windows'
-        versions: ['< 26.0.18']
-    labels:
-      - 'npm'
-      - 'dependabot'
-      - 'dependencies'
-    commit-message:
-      prefix: '[dependency]'
-      prefix-development: '[dev-dependency]'
-      include: 'scope'
-    groups:
-      npm-all:
-        applies-to: version-updates
-        patterns:
-          - '*'
+    - package-ecosystem: npm
+      directory: /electron-app
+      schedule:
+          interval: daily
+      assignees: ["Nick2bad4u"]
+      versioning-strategy: increase
+      allow:
+          # Allow both direct and indirect updates for all packages
+          - dependency-type: "all"
+      ignore:
+          - dependency-name: "electron-builder"
+            versions: ["< 26.0.18"]
+          - dependency-name: "electron-builder-squirrel-windows"
+            versions: ["< 26.0.18"]
+      labels:
+          - "npm"
+          - "dependabot"
+          - "dependencies"
+      commit-message:
+          prefix: "[dependency]"
+          prefix-development: "[dev-dependency]"
+          include: "scope"
+      groups:
+          npm-all:
+              applies-to: version-updates
+              patterns:
+                  - "*"

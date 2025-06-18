@@ -4,119 +4,119 @@
 name: Build Flatpak
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ['Build and Release Electron App']
-    types:
-      - completed
+    workflow_dispatch:
+    workflow_run:
+        workflows: ["Build and Release Electron App"]
+        types:
+            - completed
 
 concurrency:
-  group: flatpak-build-${{ github.ref }}
-  cancel-in-progress: false
+    group: flatpak-build-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  build-flatpak:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+    build-flatpak:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Cache node modules (non-Windows)
-        id: cache_node_modules_non_windows
-        if: runner.os != 'Windows'
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: electron-app/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-          enableCrossOsArchive: true
-        continue-on-error: true
+            - name: Cache node modules (non-Windows)
+              id: cache_node_modules_non_windows
+              if: runner.os != 'Windows'
+              uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+              with:
+                  path: electron-app/node_modules
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-
+                  enableCrossOsArchive: true
+              continue-on-error: true
 
-      - name: Install Flatpak and flatpak-builder
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder elfutils
-          flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install -y --user flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08
-          flatpak update -y --user
+            - name: Install Flatpak and flatpak-builder
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y flatpak flatpak-builder elfutils
+                  flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+                  flatpak install -y --user flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08
+                  flatpak update -y --user
 
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '20'
+            - name: Set up Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+              with:
+                  node-version: "20"
 
-      - name: Install dependencies
-        run: |
-          cd electron-app
-          npm install
+            - name: Install dependencies
+              run: |
+                  cd electron-app
+                  npm install
 
-      - name: Build Flatpak
-        run: |
-          cd electron-app
-          ls -l
-          # Always build the dist repo to ensure it exists and is up-to-date
-          flatpak-builder --repo=dist --force-clean build-dir flatpak-build.yml
-          ls -l
-          ls -l dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CI: true
-          DEBUG: '@malept/flatpak-bundler'
+            - name: Build Flatpak
+              run: |
+                  cd electron-app
+                  ls -l
+                  # Always build the dist repo to ensure it exists and is up-to-date
+                  flatpak-builder --repo=dist --force-clean build-dir flatpak-build.yml
+                  ls -l
+                  ls -l dist
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  CI: true
+                  DEBUG: "@malept/flatpak-bundler"
 
-      - name: Create FlatPak bundle
-        run: |
-          cd electron-app
-          ls -l
-          ls -l dist
-          flatpak build-bundle dist FitFileViewer.flatpak com.nick2bad4u.fitfileviewer
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CI: true
-          DEBUG: '@malept/flatpak-bundler'
+            - name: Create FlatPak bundle
+              run: |
+                  cd electron-app
+                  ls -l
+                  ls -l dist
+                  flatpak build-bundle dist FitFileViewer.flatpak com.nick2bad4u.fitfileviewer
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  CI: true
+                  DEBUG: "@malept/flatpak-bundler"
 
-      # Optionally, upload the FlatPak bundle as an artifact
-      - name: Upload FlatPak bundle
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: flatpak-bundle
-          path: electron-app/FitFileViewer.flatpak
+            # Optionally, upload the FlatPak bundle as an artifact
+            - name: Upload FlatPak bundle
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              with:
+                  name: flatpak-bundle
+                  path: electron-app/FitFileViewer.flatpak
 
-      - name: Zip Flatpak bundle
-        run: |
-          cd electron-app
-          ls -l
-          zip FitFileViewer.flatpak.zip FitFileViewer.flatpak
+            - name: Zip Flatpak bundle
+              run: |
+                  cd electron-app
+                  ls -l
+                  zip FitFileViewer.flatpak.zip FitFileViewer.flatpak
 
-      - name: Get latest release tag
-        id: get_release
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          script: |
-            const releases = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            if (releases.data.length === 0) {
-              throw new Error('No releases found');
-            }
-            return releases.data[0].tag_name;
-          result-encoding: string
+            - name: Get latest release tag
+              id: get_release
+              uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+              with:
+                  script: |
+                      const releases = await github.rest.repos.listReleases({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                      });
+                      if (releases.data.length === 0) {
+                        throw new Error('No releases found');
+                      }
+                      return releases.data[0].tag_name;
+                  result-encoding: string
 
-      - name: Rename Flatpak and zip with version
-        run: |
-          cd electron-app
-          mv FitFileViewer.flatpak FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
-          mv FitFileViewer.flatpak.zip FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
+            - name: Rename Flatpak and zip with version
+              run: |
+                  cd electron-app
+                  mv FitFileViewer.flatpak FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak
+                  mv FitFileViewer.flatpak.zip FitFileViewer-${{ steps.get_release.outputs.result }}.flatpak.zip
 
-      - name: Upload .flatpak and .zip to latest release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ steps.get_release.outputs.result }}
-        run: |
-          gh release upload "$RELEASE_TAG" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak.zip" --clobber
+            - name: Upload .flatpak and .zip to latest release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RELEASE_TAG: ${{ steps.get_release.outputs.result }}
+              run: |
+                  gh release upload "$RELEASE_TAG" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak" "electron-app/FitFileViewer-${RELEASE_TAG}.flatpak.zip" --clobber

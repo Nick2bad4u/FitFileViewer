@@ -67,13 +67,13 @@ function getKeyboardShortcutsModalContent() {
 			<div class="modal-content">
 				<div class="modal-header">
 					<div class="modal-icon">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="keyboard-icon">
+						<svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg" class="keyboard-icon">
 							<rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
 							<path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 						</svg>
 					</div>
 					<button id="shortcuts-modal-close" class="modal-close" tabindex="0" aria-label="Close Keyboard Shortcuts dialog">
-						<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
 							<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 					</button>

@@ -4,29 +4,53 @@
 
 All notable changes to this project will be documented in this file.
 
-## [22.0.0] - 2025-06-14
+## [Unreleased]
 
-[[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9411374418655f6be63e2d0c2c11b9e520d9541b...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
+[[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)...[07f01c6](https://github.com/Nick2bad4u/FitFileViewer/commit/07f01c601ecc9c3c5e720de2231ecebd734fa321)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/25c3b5e09fc01799a354e00c97ea827a48a5dfc8...07f01c601ecc9c3c5e720de2231ecebd734fa321))
 
 ### 💼 Other
 
-- Run Prettier on all Files. [`(21bf6c1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)
+- Refactor chart utilities and enhance theme handling
+
+- Removed the chart specification generation code from chartSpec.js, streamlining the chart rendering process.
+- Improved the chart theme listener in chartThemeListener.js for better event handling and performance.
+- Updated ensureAboutModal.js to enhance modal initialization and styling.
+- Cleaned up exportAllCharts.js by removing unnecessary whitespace.
+- Refined modal styles injection in injectModalStyles.js to prevent duplicate style applications.
+- Enhanced animation logging utility in lastAnimLog.js for better performance tracking during development.
+- Improved version information loading in loadVersionInfo.js for dynamic updates.
+- Updated system information display logic in updateSystemInfo.js for better clarity.
+- Added gitleaks-report.json to track potential API key exposure in the codebase. [`(07f01c6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/07f01c601ecc9c3c5e720de2231ecebd734fa321)
 
 
-## [21.2.0] - 2025-06-11
+## [22.1.0] - 2025-06-14
 
-[[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)...[9411374](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aae539eeb94eef693613b973fcac471d1b78690b...9411374418655f6be63e2d0c2c11b9e520d9541b))
+[[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)...[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034...25c3b5e09fc01799a354e00c97ea827a48a5dfc8))
+
+### 💼 Other
+
+- Standardizes YAML, JSON, and config formatting across repo
+
+Improves consistency by normalizing quotes, indentation, and
+key/value styles in all GitHub Actions workflows, project config,
+and markdown files. Adds Prettier ignore rules, updates settings,
+and syncs formatting to reduce lint noise and tooling friction.
+
+Prepares for cleaner future diffs and better cross-platform collaboration. [`(25c3b5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)
+
+
+## [22.0.0] - 2025-06-14
+
+[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[21bf6c1](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034))
 
 ### 🚀 Features
 
 - *(theme)* Enhance theme management with auto mode and smooth transitions [`(9411374)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9411374418655f6be63e2d0c2c11b9e520d9541b)
 
 
-## [20.6.0] - 2025-06-10
-
-[[5debf80](https://github.com/Nick2bad4u/FitFileViewer/commit/5debf805345db114c8a0ff6749ae0be9c5818ee5)...[aae539e](https://github.com/Nick2bad4u/FitFileViewer/commit/aae539eeb94eef693613b973fcac471d1b78690b)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5debf805345db114c8a0ff6749ae0be9c5818ee5...aae539eeb94eef693613b973fcac471d1b78690b))
-
 ### 💼 Other
+
+- Run Prettier on all Files. [`(21bf6c1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/21bf6c1ec76885c59ff8d531cf5a5ac0a9ffb034)
 
 - Improves Linux menu handling and adds menu injection support
 
@@ -107,5 +131,5 @@ dependencies. [`(62e5f5e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6
 ## Contributors
 Thanks to all the [contributors](https://github.com/Nick2bad4u/FitFileViewer/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE)
+This project is licensed under the [MIT License](https://github.com/Nick2bad4u/FitFileViewer/blob/main/LICENSE.md)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*

@@ -1,82 +1,82 @@
 name: Print Release Asset Sizes
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '32 4 * * *'
-  release:
-    types:
-      - edited
-  workflow_run:
-    workflows: ['Build and Release Electron App']
-    types:
-      - completed
+    workflow_dispatch:
+    schedule:
+        - cron: "32 4 * * *"
+    release:
+        types:
+            - edited
+    workflow_run:
+        workflows: ["Build and Release Electron App"]
+        types:
+            - completed
 concurrency:
-  group: assetsizes-${{ github.ref }}
-  cancel-in-progress: false
+    group: assetsizes-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  print-release-asset-sizes:
-    runs-on: ubuntu-latest
+    print-release-asset-sizes:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate and print release asset sizes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          bash: bash
-        run: |-
-          printf '| Release Tag | Size (MB) | Size (GB) | Downloads |\n' > sizes.md
-          printf '|------------|-----------|-----------|-----------|\n' >> sizes.md
-          total_size=0
-          total_downloads=0
-          for tag in $(gh release list --limit 1000 --json tagName -q '.[].tagName'); do
-            assets_json=$(gh release view "$tag" --json assets)
-            release_size=0
-            release_downloads=0
-            for size in $(echo "$assets_json" | jq -r '.assets[].size'); do
-              release_size=$((release_size + size))
-              total_size=$((total_size + size))
-            done
-            for count in $(echo "$assets_json" | jq -r '.assets[].downloadCount'); do
-              release_downloads=$((release_downloads + count))
-              total_downloads=$((total_downloads + count))
-            done
-            release_size_mb=$(awk "BEGIN {printf \"%.2f\", $release_size/1024/1024}")
-            release_size_gb=$(awk "BEGIN {printf \"%.3f\", $release_size/1024/1024/1024}")
-            printf '| %s | %s | %s | %s |\n' "$tag" "$release_size_mb" "$release_size_gb" "$release_downloads" >> sizes.md
-          done
-          total_size_mb=$(awk "BEGIN {printf \"%.2f\", $total_size/1024/1024}")
-          total_size_gb=$(awk "BEGIN {printf \"%.3f\", $total_size/1024/1024/1024}")
-          printf '\n**Total asset size across all releases:** %s bytes (%s MB, %s GB)\n' "$total_size" "$total_size_mb" "$total_size_gb" >> sizes.md
-          printf '**Total downloads across all releases:** %s\n' "$total_downloads" >> sizes.md
-      - name: Print summary table to GitHub Actions summary
-        run: |
-          {
-            echo "## 🚀 Release Asset Size Report"
-            echo ""
-            echo "| Release Tag | Size (MB) | Size (GB) | Downloads |"
-            echo "|------------|-----------|-----------|-----------|"
-            tail -n +3 sizes.md | grep -v '^\*\*Total'
-            echo ""
-            total_size=$(grep -oP '(?<=Total asset size across all releases:\*\*)[0-9]+' sizes.md | head -1)
-            total_size_mb=$(grep -oP '(?<=\()[0-9.]+ MB' sizes.md | head -1)
-            total_size_gb=$(grep -oP '(?<=, )[0-9.]+ GB' sizes.md | head -1)
-            total_downloads=$(grep -oP '(?<=Total downloads across all releases:\*\*)[0-9]+' sizes.md | head -1)
-            echo "---"
-            echo "### 📊 Totals"
-            echo "- **Total asset size:** $total_size bytes ($total_size_mb, $total_size_gb)"
-            echo "- **Total downloads:** $total_downloads"
-          } >> "$GITHUB_STEP_SUMMARY"
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Calculate and print release asset sizes
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  bash: bash
+              run: |-
+                  printf '| Release Tag | Size (MB) | Size (GB) | Downloads |\n' > sizes.md
+                  printf '|------------|-----------|-----------|-----------|\n' >> sizes.md
+                  total_size=0
+                  total_downloads=0
+                  for tag in $(gh release list --limit 1000 --json tagName -q '.[].tagName'); do
+                    assets_json=$(gh release view "$tag" --json assets)
+                    release_size=0
+                    release_downloads=0
+                    for size in $(echo "$assets_json" | jq -r '.assets[].size'); do
+                      release_size=$((release_size + size))
+                      total_size=$((total_size + size))
+                    done
+                    for count in $(echo "$assets_json" | jq -r '.assets[].downloadCount'); do
+                      release_downloads=$((release_downloads + count))
+                      total_downloads=$((total_downloads + count))
+                    done
+                    release_size_mb=$(awk "BEGIN {printf \"%.2f\", $release_size/1024/1024}")
+                    release_size_gb=$(awk "BEGIN {printf \"%.3f\", $release_size/1024/1024/1024}")
+                    printf '| %s | %s | %s | %s |\n' "$tag" "$release_size_mb" "$release_size_gb" "$release_downloads" >> sizes.md
+                  done
+                  total_size_mb=$(awk "BEGIN {printf \"%.2f\", $total_size/1024/1024}")
+                  total_size_gb=$(awk "BEGIN {printf \"%.3f\", $total_size/1024/1024/1024}")
+                  printf '\n**Total asset size across all releases:** %s bytes (%s MB, %s GB)\n' "$total_size" "$total_size_mb" "$total_size_gb" >> sizes.md
+                  printf '**Total downloads across all releases:** %s\n' "$total_downloads" >> sizes.md
+            - name: Print summary table to GitHub Actions summary
+              run: |
+                  {
+                    echo "## 🚀 Release Asset Size Report"
+                    echo ""
+                    echo "| Release Tag | Size (MB) | Size (GB) | Downloads |"
+                    echo "|------------|-----------|-----------|-----------|"
+                    tail -n +3 sizes.md | grep -v '^\*\*Total'
+                    echo ""
+                    total_size=$(grep -oP '(?<=Total asset size across all releases:\*\*)[0-9]+' sizes.md | head -1)
+                    total_size_mb=$(grep -oP '(?<=\()[0-9.]+ MB' sizes.md | head -1)
+                    total_size_gb=$(grep -oP '(?<=, )[0-9.]+ GB' sizes.md | head -1)
+                    total_downloads=$(grep -oP '(?<=Total downloads across all releases:\*\*)[0-9]+' sizes.md | head -1)
+                    echo "---"
+                    echo "### 📊 Totals"
+                    echo "- **Total asset size:** $total_size bytes ($total_size_mb, $total_size_gb)"
+                    echo "- **Total downloads:** $total_downloads"
+                  } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload sizes.md as artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: release-asset-sizes
-          path: sizes.md
+            - name: Upload sizes.md as artifact
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              with:
+                  name: release-asset-sizes
+                  path: sizes.md

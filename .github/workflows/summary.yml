@@ -1,45 +1,53 @@
-name: Summarize new issues
+name: Summarize new issues and pull requests
 
 on:
-  issues:
-    types: [opened, edited]
+    issues:
+        types: [opened, edited]
+    pull_request:
+        types: [opened, edited, synchronize]
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  summary:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
-      models: read
-    concurrency:
-      group: summary-${{ github.ref }}
-      cancel-in-progress: false
+    summary:
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            pull-requests: write
+            contents: read
+            models: read
+        concurrency:
+            group: summary-${{ github.ref }}
+            cancel-in-progress: false
 
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
-        with:
-          egress-policy: audit
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@002fdce3c6a235733a90a27c80493a3241e56863 # v2.12.1
+              with:
+                  egress-policy: audit
 
-      - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Run AI inference
-        id: inference
-        uses: actions/ai-inference@d645f067d89ee1d5d736a5990e327e504d1c5a4a # v1.1.0
-        with:
-          prompt: |
-            Summarize the following GitHub issue in order to explain it to the project owner:
-            Title: ${{ github.event.issue.title }}
-            Body: ${{ github.event.issue.body }}
+            - name: Run AI inference
+              id: inference
+              uses: actions/ai-inference@d645f067d89ee1d5d736a5990e327e504d1c5a4a # v1.1.0
+              with:
+                  prompt: |
+                      Summarize the following GitHub ${{ github.event_name == 'pull_request' && 'pull request' || 'issue' }} in order to explain it to the project owner:
+                      Title: ${{ github.event.pull_request.title || github.event.issue.title }}
+                      Body: ${{ github.event.pull_request.body || github.event.issue.body }}
 
-      - name: Comment with AI summary
-        run: |
-          gh issue comment "$ISSUE_NUMBER" --body "$RESPONSE"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          RESPONSE: ${{ steps.inference.outputs.response }}
+            - name: Comment with AI summary
+              run: |
+                  if [ "${{ github.event_name }}" = "pull_request" ]; then
+                    gh pr comment "$PR_NUMBER" --body "$RESPONSE"
+                  else
+                    gh issue comment "$ISSUE_NUMBER" --body "$RESPONSE"
+                  fi
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  ISSUE_NUMBER: ${{ github.event.issue.number }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  RESPONSE: ${{ steps.inference.outputs.response }}

@@ -21,7 +21,7 @@ Thank you for your interest in contributing to our project! Read our [Code of Co
 
 Getting started
 
-- The idea for this template is taken from the [GitHub docs CONTRIBUTING.md](https://github.com/github/docs/blob/main/CONTRIBUTING.md)
+- The idea for this was taken from [GitHub docs](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors)
 
 ### Issues
 
