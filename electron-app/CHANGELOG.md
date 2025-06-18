@@ -6,9 +6,29 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[624cf7f](https://github.com/Nick2bad4u/FitFileViewer/commit/624cf7f4076ea1f04ceed1398e085f0031e9f8cc)...[defee85](https://github.com/Nick2bad4u/FitFileViewer/commit/defee85b65cd52e1884fc14e2d3dbcb1bd4c6d5c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/624cf7f4076ea1f04ceed1398e085f0031e9f8cc...defee85b65cd52e1884fc14e2d3dbcb1bd4c6d5c))
+[[fb59c29](https://github.com/Nick2bad4u/FitFileViewer/commit/fb59c292683d21ec6d4c6d86c1493376f9ce2e26)...[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fb59c292683d21ec6d4c6d86c1493376f9ce2e26...9daf5a37408caa8804b78cfa02430b01d019eeec))
 
 ### 📦 Dependencies
+
+- [dependency] Update version 24.0.0 [`(9daf5a3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)
+
+
+## [24.0.0] - 2025-06-18
+
+[[624cf7f](https://github.com/Nick2bad4u/FitFileViewer/commit/624cf7f4076ea1f04ceed1398e085f0031e9f8cc)...[fb59c29](https://github.com/Nick2bad4u/FitFileViewer/commit/fb59c292683d21ec6d4c6d86c1493376f9ce2e26)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/624cf7f4076ea1f04ceed1398e085f0031e9f8cc...fb59c292683d21ec6d4c6d86c1493376f9ce2e26))
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.9.0 [skip ci] [`(a4accd4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a4accd4dea537fc241964cefa2f67cc8aa83f5f7)
+
+
+### 📦 Dependencies
+
+- Merge pull request #126 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-272b3e5b9b
+
+test(deps): [dependency] Update the npm-all group in /electron-app with 9 updates [`(fb59c29)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fb59c292683d21ec6d4c6d86c1493376f9ce2e26)
+
+- *(deps)* [dependency] Update the npm-all group [`(932cd35)`](https://github.com/Nick2bad4u/FitFileViewer/commit/932cd357de0fedc11a4f42c0778453a28a019bfb)
 
 - [dependency] Update version 23.9.0 [`(defee85)`](https://github.com/Nick2bad4u/FitFileViewer/commit/defee85b65cd52e1884fc14e2d3dbcb1bd4c6d5c)
 
