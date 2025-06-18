@@ -169,7 +169,7 @@
       ],
       "category": "Utility",
       "synopsis": "A cross-platform viewer for .fit activity files.",
-      "maintainer": "Nick2bad4u <nick2bad4u@users.noreply.github.com>",
+      "maintainer": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com>",
       "desktop": {
         "entry": {
           "Name": "Fit File Viewer",

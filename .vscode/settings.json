@@ -26,5 +26,20 @@
     "typescript.preferences.includePackageJsonAutoImports": "on",
     "javascript.preferences.includePackageJsonAutoImports": "on",
     "javascript.suggest.autoImports": true,
-    "typescript.suggest.autoImports": true
+    "typescript.suggest.autoImports": true,
+    "cSpell.words": [
+        "appimage",
+        "asamuzakjp",
+        "asar",
+        "chartable",
+        "chartjs",
+        "Mesg",
+        "Mesgs",
+        "modelcontextprotocol",
+        "msvc",
+        "nsis",
+        "ossf",
+        "softprops",
+        "Zwift"
+    ]
 }

@@ -721,7 +721,7 @@ async function startGyazoOAuthServer(port = 3000) {
                                         .auto-close { font-size: 14px; color: #888; margin-top: 20px; }
                                     </style>
                                     <script>
-                                        setTimeout(() => {
+                                        setTimeout(function () {
                                             window.close();
                                         }, 3000);
                                     </script>

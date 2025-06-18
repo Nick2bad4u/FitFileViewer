@@ -8,6 +8,8 @@ import {
     createExportSection,
     createFieldTogglesSection,
 } from "./createSettingsHeader.js";
+import { createPowerZoneControls, movePowerZoneControlsToSection } from "./createPowerZoneControls.js";
+import { createHRZoneControls, moveHRZoneControlsToSection } from "./createHRZoneControls.js";
 import { setupChartStatusUpdates } from "./chartStatusIndicator.js";
 
 /**
@@ -129,6 +131,17 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         createControlsSection(wrapper);
         createExportSection(wrapper);
         createFieldTogglesSection(wrapper);
+        // Create power zone controls section and move existing controls to it
+        createPowerZoneControls(wrapper);
+
+        // Create heart rate zone controls section and move existing controls to it
+        createHRZoneControls(wrapper);
+
+        // Move zone controls after a short delay to ensure field toggles are rendered
+        setTimeout(function () {
+            movePowerZoneControlsToSection();
+            moveHRZoneControlsToSection();
+        }, 100);
 
         // Setup chart status indicator automatic updates
         setupChartStatusUpdates();

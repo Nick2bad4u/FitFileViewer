@@ -7,27 +7,41 @@ import {
     getZoneColor,
     saveZoneColor,
     resetZoneColors,
+    getChartSpecificZoneColor,
+    saveChartSpecificZoneColor,
+    resetChartSpecificZoneColors,
 } from "./zoneColorUtils.js";
 
 export function openZoneColorPicker(field) {
     try {
         console.log(`[ChartJS] Opening zone color picker for field: ${field}`);
 
-        // Determine zone type and data source
+        // Determine zone type, data source, and chart-specific details
         let zoneData = null;
         let zoneType = "";
+        let chartType = "";
         let defaultColors = [];
 
-        if (field.includes("hr_zone")) {
+        if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
             zoneType = "Heart Rate";
             zoneData = window.heartRateZones;
-            // HR zone colors (red spectrum)
             defaultColors = DEFAULT_HR_ZONE_COLORS;
-        } else if (field.includes("power_zone")) {
+
+            // Determine specific chart type for HR zones
+            if (field === "hr_zone_doughnut") chartType = "Doughnut Chart";
+            else if (field === "hr_lap_zone_stacked") chartType = "Lap Stacked Chart";
+            else if (field === "hr_lap_zone_individual") chartType = "Lap Individual Chart";
+            else chartType = "Zone Charts";
+        } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
             zoneType = "Power";
             zoneData = window.powerZones;
-            // Power zone colors (orange/yellow spectrum)
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
+
+            // Determine specific chart type for Power zones
+            if (field === "power_zone_doughnut") chartType = "Doughnut Chart";
+            else if (field === "power_lap_zone_stacked") chartType = "Lap Stacked Chart";
+            else if (field === "power_lap_zone_individual") chartType = "Lap Individual Chart";
+            else chartType = "Zone Charts";
         } else {
             console.warn(`[ChartJS] Unknown zone field type: ${field}`);
             showNotification("Unknown zone type", "error");
@@ -84,7 +98,7 @@ export function openZoneColorPicker(field) {
 					`;
 
         const title = document.createElement("h3");
-        title.textContent = `${zoneType} Zone Colors`;
+        title.textContent = `${zoneType} Zone Colors - ${chartType}`;
         title.style.cssText = `
 						margin: 0;
 						color: #ffffff;
@@ -177,9 +191,8 @@ export function openZoneColorPicker(field) {
 
             // Color preview
             const colorPreview = document.createElement("div");
-            const zoneTypeStorage = field.includes("hr_zone") ? "hr" : "power";
             const zoneIndex = (zone.zone || index + 1) - 1; // Convert to 0-based index
-            const currentColor = getZoneColor(zoneTypeStorage, zoneIndex);
+            const currentColor = getChartSpecificZoneColor(field, zoneIndex);
 
             colorPreview.style.cssText = `
 							width: 32px;
@@ -207,7 +220,7 @@ export function openZoneColorPicker(field) {
             colorPicker.addEventListener("change", (e) => {
                 const newColor = e.target.value;
                 colorPreview.style.background = newColor;
-                saveZoneColor(zoneTypeStorage, zoneIndex, newColor);
+                saveChartSpecificZoneColor(field, zoneIndex, newColor);
 
                 // Update preview in real-time if possible
                 updateZoneColorPreview(field, zoneIndex, newColor);
@@ -251,7 +264,7 @@ export function openZoneColorPicker(field) {
                 const defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
                 colorPicker.value = defaultColor;
                 colorPreview.style.background = defaultColor;
-                saveZoneColor(zoneTypeStorage, zoneIndex, defaultColor);
+                saveChartSpecificZoneColor(field, zoneIndex, defaultColor);
                 updateZoneColorPreview(field, zoneIndex, defaultColor);
             });
 

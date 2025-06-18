@@ -119,7 +119,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             clearMeasure();
             enableSimpleMeasure(measureBtn);
             measureBtn.disabled = true;
-            setTimeout(() => {
+            setTimeout(function () {
                 measureBtn.disabled = false;
             }, 2000);
         } else {

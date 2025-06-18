@@ -6,6 +6,7 @@ import { getUnitSymbol } from "./getUnitSymbol.js";
 import { hexToRgba } from "./renderChartJS.js";
 import { getFieldColor } from "./getFieldColor.js";
 import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
 import { showNotification } from "./showNotification.js";
 import { updateChartAnimations } from "./updateChartAnimations.js";
 
@@ -219,7 +220,7 @@ export function createEnhancedChart(canvas, options) {
                     easing: interpolation,
                 },
             },
-            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, backgroundColorPlugin],
         };
 
         // Apply theme-aware canvas styling (background handled by plugin)

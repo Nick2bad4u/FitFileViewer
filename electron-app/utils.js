@@ -336,7 +336,7 @@ const FitFileViewerUtils = {
 
 // Attach utilities to window after imports are loaded
 let attachmentResults;
-setTimeout(() => {
+setTimeout(function () {
     attachmentResults = attachUtilitiesToWindow();
 }, 0);
 

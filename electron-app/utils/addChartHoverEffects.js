@@ -158,7 +158,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             wrapper.appendChild(ripple);
 
             // Remove ripple after animation
-            setTimeout(() => {
+            setTimeout(function () {
                 if (ripple.parentNode) {
                     ripple.parentNode.removeChild(ripple);
                 }

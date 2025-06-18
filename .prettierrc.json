@@ -1,7 +1,7 @@
 {
     "overrides": [
         {
-            "files": ["package.json", "package-lock.json"],
+            "files": ["**/package.json", "**/package-lock.json"],
             "options": {
                 "requirePragma": true
             }

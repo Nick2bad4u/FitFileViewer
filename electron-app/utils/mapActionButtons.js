@@ -69,7 +69,7 @@ function setupActiveFileNameMapActions() {
                 }
 
                 // Center on main file with a slight delay to ensure tab switch completes
-                setTimeout(() => {
+                setTimeout(function () {
                     _centerMapOnMainFile();
                 }, 100);
             } catch (error) {
@@ -158,7 +158,7 @@ function _centerMapOnMainFile() {
             polyElem.style.transition = "filter 0.2s";
             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
 
-            setTimeout(() => {
+            setTimeout(function () {
                 if (window._highlightedOverlayIdx === idx) {
                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                 }
@@ -185,7 +185,7 @@ function _centerMapOnMainFile() {
                 console.log("[mapActionButtons] Fitting map to bounds");
                 window._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
 
-                setTimeout(() => {
+                setTimeout(function () {
                     try {
                         const center = window._leafletMapInstance.getCenter();
                         const zoom = window._leafletMapInstance.getZoom();

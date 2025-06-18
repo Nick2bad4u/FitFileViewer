@@ -58,7 +58,7 @@ export function showFitData(data, filePath) {
     }
 
     // Create/update the global chart status indicator when data is loaded
-    setTimeout(() => {
+    setTimeout(function () {
         createGlobalChartStatusIndicator();
     }, 100);
 }

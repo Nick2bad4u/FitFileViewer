@@ -1,14 +1,20 @@
+import { applyZoneColors } from "./zoneColorUtils.js";
+import { updatePowerZoneControlsVisibility } from "./createPowerZoneControls.js";
+import { updateHRZoneControlsVisibility } from "./createHRZoneControls.js";
+
 /**
  * Extracts and sets up heart rate and power zone data from FIT file
  * @param {Object} globalData - FIT file data object
  */
-import { applyZoneColors } from "./zoneColorUtils.js";
 
 export function setupZoneData(globalData) {
     try {
         if (!globalData) return;
 
         console.log("[ChartJS] Setting up zone data from globalData:", globalData);
+
+        let hasPowerZoneData = false;
+        let hasHRZoneData = false;
 
         // Extract heart rate and power zones from timeInZoneMesgs
         if (globalData.timeInZoneMesgs && Array.isArray(globalData.timeInZoneMesgs)) {
@@ -39,6 +45,7 @@ export function setupZoneData(globalData) {
                     if (hrZoneData.length > 0) {
                         window.heartRateZones = applyZoneColors(hrZoneData, "hr");
                         console.log("[ChartJS] Heart rate zones data set:", window.heartRateZones);
+                        hasHRZoneData = true;
                     }
                 } else {
                     console.log("[ChartJS] No HR zone data found in session timeInZoneMesgs");
@@ -59,6 +66,7 @@ export function setupZoneData(globalData) {
                     if (powerZoneData.length > 0) {
                         window.powerZones = applyZoneColors(powerZoneData, "power");
                         console.log("[ChartJS] Power zones data set:", window.powerZones);
+                        hasPowerZoneData = true;
                     }
                 } else {
                     console.log("[ChartJS] No power zone data found in session timeInZoneMesgs");
@@ -91,6 +99,7 @@ export function setupZoneData(globalData) {
                 if (hrZoneData.length > 0) {
                     window.heartRateZones = applyZoneColors(hrZoneData, "hr");
                     console.log("[ChartJS] Heart rate zones data set from session:", window.heartRateZones);
+                    hasHRZoneData = true;
                 }
             }
         }
@@ -116,6 +125,7 @@ export function setupZoneData(globalData) {
                 if (powerZoneData.length > 0) {
                     window.powerZones = applyZoneColors(powerZoneData, "power");
                     console.log("[ChartJS] Power zones data set from session:", window.powerZones);
+                    hasPowerZoneData = true;
                 }
             }
         }
@@ -176,6 +186,18 @@ export function setupZoneData(globalData) {
                 }
             }
         }
+
+        // Update visibility of zone controls based on available data
+        updatePowerZoneControlsVisibility(hasPowerZoneData);
+        updateHRZoneControlsVisibility(hasHRZoneData);
+
+        // Optionally, return some status or processed data if needed
+        return {
+            heartRateZones: window.heartRateZones || [],
+            powerZones: window.powerZones || [],
+            hasHRZoneData,
+            hasPowerZoneData,
+        };
     } catch (error) {
         console.error("[ChartJS] Error setting up zone data:", error);
     }

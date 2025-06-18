@@ -26,7 +26,7 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
             clearTimeout(handler.timeout);
         }
 
-        handler.timeout = setTimeout(() => {
+        handler.timeout = setTimeout(function () {
             // Re-render all charts with new theme
             if (chartsContainer && window.globalData) {
                 console.log("[ChartThemeListener] Re-rendering charts for theme change");

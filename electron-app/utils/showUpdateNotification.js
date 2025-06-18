@@ -40,7 +40,7 @@ export function showUpdateNotification(message, type = "info", duration = 6000, 
         notification.appendChild(btn);
     }
     if (!withAction || withAction === true) {
-        setTimeout(() => {
+        setTimeout(function () {
             notification.style.display = "none";
         }, duration);
     }

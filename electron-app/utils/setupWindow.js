@@ -78,7 +78,7 @@ export function setupWindowOnload({
                             JSON.stringify(window.previousGlobalData) !== JSON.stringify(window.globalData)
                         ) {
                             window.previousGlobalData = JSON.parse(JSON.stringify(window.globalData));
-                            setTimeout(() => {
+                            setTimeout(function () {
                                 window.renderSummary(window.globalData);
                             }, 0);
                         }

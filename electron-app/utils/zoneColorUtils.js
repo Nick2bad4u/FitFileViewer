@@ -187,3 +187,78 @@ export function getDisplayZoneColors(zoneType, zoneCount, colorScheme = "custom"
 export function getColorSchemes() {
     return COLOR_SCHEMES;
 }
+
+/**
+ * Gets the saved color for a specific zone and chart type or returns default
+ * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
+ * @param {number} zoneIndex - 0-based zone index
+ * @returns {string} Hex color code
+ */
+export function getChartSpecificZoneColor(chartField, zoneIndex) {
+    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
+    const savedColor = localStorage.getItem(storageKey);
+
+    if (savedColor) {
+        return savedColor;
+    }
+
+    // Fallback to generic zone color if chart-specific color doesn't exist
+    const zoneType = chartField.includes("hr") ? "hr" : "power";
+    return getZoneColor(zoneType, zoneIndex);
+}
+
+/**
+ * Saves a zone color for a specific chart type to localStorage
+ * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
+ * @param {number} zoneIndex - 0-based zone index
+ * @param {string} color - Hex color code
+ */
+export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
+    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
+    localStorage.setItem(storageKey, color);
+}
+
+/**
+ * Gets an array of colors for all zones of a specific chart type
+ * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
+ * @param {number} zoneCount - Number of zones
+ * @returns {string[]} Array of hex color codes
+ */
+export function getChartSpecificZoneColors(chartField, zoneCount) {
+    const colors = [];
+    for (let i = 0; i < zoneCount; i++) {
+        colors.push(getChartSpecificZoneColor(chartField, i));
+    }
+    return colors;
+}
+
+/**
+ * Resets all zone colors for a specific chart type to defaults
+ * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
+ * @param {number} zoneCount - Number of zones to reset
+ */
+export function resetChartSpecificZoneColors(chartField, zoneCount) {
+    const zoneType = chartField.includes("hr") ? "hr" : "power";
+    const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
+
+    for (let i = 0; i < zoneCount; i++) {
+        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length];
+        saveChartSpecificZoneColor(chartField, i, defaultColor);
+    }
+}
+
+/**
+ * Checks if a chart field has custom colors set
+ * @param {string} chartField - Full chart field name
+ * @param {number} zoneCount - Number of zones
+ * @returns {boolean} True if any custom colors are set
+ */
+export function hasChartSpecificColors(chartField, zoneCount) {
+    for (let i = 0; i < zoneCount; i++) {
+        const storageKey = `chartjs_${chartField}_zone_${i + 1}_color`;
+        if (localStorage.getItem(storageKey)) {
+            return true;
+        }
+    }
+    return false;
+}

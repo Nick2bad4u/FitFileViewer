@@ -26,7 +26,7 @@ export function loadSharedConfiguration() {
             showNotification("Chart configuration loaded from URL", "success");
 
             // Refresh the charts with new settings
-            setTimeout(() => {
+            setTimeout(function () {
                 renderChartJS();
             }, 100);
         }

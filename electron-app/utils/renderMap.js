@@ -299,7 +299,7 @@ export function renderMap() {
             console.log(`[renderMap] Overlay idx=${idx} bounds:`, bounds);
         });
         // --- Bring overlay markers to front so they appear above all polylines ---
-        setTimeout(() => {
+        setTimeout(function () {
             if (window._overlayPolylines) {
                 Object.entries(window._overlayPolylines).forEach(([idx, polyline]) => {
                     console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);

@@ -21,7 +21,7 @@ export function showNotification(message, type = "error", timeout = 5000) {
     notif.className = `notification ${type}`;
     notif.style.display = "block";
     if (timeout > 0) {
-        setTimeout(() => {
+        setTimeout(function () {
             notif.style.display = "none";
         }, timeout);
     }

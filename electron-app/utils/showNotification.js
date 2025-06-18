@@ -125,7 +125,7 @@ async function displayNotification(notification) {
 
     // Set up auto-hide if not persistent
     if (notification.duration) {
-        notificationElement.hideTimeout = setTimeout(() => {
+        notificationElement.hideTimeout = setTimeout(function () {
             hideNotification(notificationElement);
         }, notification.duration);
     }
@@ -133,7 +133,7 @@ async function displayNotification(notification) {
     // Return a promise that resolves after the display duration + animation time
     const totalTime = notification.duration ? notification.duration + 500 : 1000; // Extra time for animations
     return new Promise((resolve) => {
-        setTimeout(() => {
+        setTimeout(function () {
             resolve();
         }, totalTime);
     });
@@ -248,7 +248,7 @@ function hideNotification(element) {
     element.classList.remove("show");
 
     // Hide element after animation completes
-    setTimeout(() => {
+    setTimeout(function () {
         element.style.display = "none";
         element.onclick = null;
         element.style.cursor = "default";

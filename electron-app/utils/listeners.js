@@ -137,7 +137,7 @@ export function setupListeners({
     window.addEventListener("resize", () => {
         if (document.getElementById("tab-chart")?.classList.contains("active")) {
             clearTimeout(chartRenderTimeout);
-            chartRenderTimeout = setTimeout(() => {
+            chartRenderTimeout = setTimeout(function () {
                 if (window.renderChart) window.renderChart();
             }, 200);
         }
@@ -208,7 +208,7 @@ export function setupListeners({
                     a.download = filePath.split(/[\\/]/).pop();
                     document.body.appendChild(a);
                     a.click();
-                    setTimeout(() => {
+                    setTimeout(function () {
                         URL.revokeObjectURL(a.href);
                         document.body.removeChild(a);
                     }, 100);
@@ -238,7 +238,7 @@ export function setupListeners({
                         a.download = filePath.split(/[\\/]/).pop();
                         document.body.appendChild(a);
                         a.click();
-                        setTimeout(() => {
+                        setTimeout(function () {
                             URL.revokeObjectURL(a.href);
                             document.body.removeChild(a);
                         }, 100);

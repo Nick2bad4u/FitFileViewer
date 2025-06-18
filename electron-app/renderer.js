@@ -267,7 +267,7 @@ async function initializeAsyncComponents() {
         // Check for updates if in production
         if (window.electronAPI?.checkForUpdates && !isDevelopmentMode()) {
             try {
-                setTimeout(() => {
+                setTimeout(function () {
                     window.electronAPI.checkForUpdates();
                 }, 5000); // Delay to avoid blocking startup
             } catch (error) {

@@ -57,18 +57,18 @@ export function resetAllSettings() {
     chartFields.forEach((field) => {
         localStorage.removeItem(`chartjs_color_${field}`);
         localStorage.removeItem(`chartjs_field_${field}`);
-    });
-
-    // Clear additional field settings for analysis charts
+    }); // Clear additional field settings for analysis charts
     [
         "gps_track",
         "speed_vs_distance",
         "power_vs_hr",
         "altitude_profile",
         "hr_zone_doughnut",
-        "hr_zone_bar",
         "power_zone_doughnut",
-        "power_zone_bar",
+        "hr_lap_zone_stacked",
+        "hr_lap_zone_individual",
+        "power_lap_zone_stacked",
+        "power_lap_zone_individual",
     ].forEach((field) => {
         localStorage.removeItem(`chartjs_field_${field}`);
     });

@@ -135,7 +135,7 @@ export function renderLapZoneCharts(container, options = {}) {
             .filter((lap) => lap.zones.length > 0);
 
         console.log("[ChartJS] Power Zone filtering - meaningfulPowerZones:", meaningfulPowerZones);
-        console.log("[ChartJS] Power Zone data after filtering:", pwrZoneData); // Chart 1: Lap HR Zone Distribution (Stacked Bar)
+        console.log("[ChartJS] Power Zone data after filtering:", pwrZoneData); // Chart 1: Lap Heart Rate Zone Lap Bar Stacked
         if (visibility.hrStackedVisible && hrZoneData.length > 0) {
             const canvas1 = document.createElement("canvas");
             canvas1.id = "chartjs-canvas-lap-hr-zones";
@@ -147,7 +147,7 @@ export function renderLapZoneCharts(container, options = {}) {
             container.appendChild(canvas1);
 
             const hrChart = renderLapZoneChart(canvas1, hrZoneData, {
-                title: "Heart Rate Zone Distribution by Lap",
+                title: "HR Zone by Lap (Stacked)",
                 theme: themeConfig.name,
             });
             if (hrChart) window._chartjsInstances.push(hrChart);
@@ -163,9 +163,8 @@ export function renderLapZoneCharts(container, options = {}) {
             canvas2.style.borderRadius = "12px";
             canvas2.style.boxShadow = themeConfig.colors.shadow;
             container.appendChild(canvas2);
-
             const pwrChart = renderLapZoneChart(canvas2, pwrZoneData, {
-                title: "Power Zone Distribution by Lap",
+                title: "Power Zone by Lap (Stacked)",
                 theme: themeConfig.name,
             });
             if (pwrChart) window._chartjsInstances.push(pwrChart);
@@ -224,7 +223,7 @@ export function renderLapZoneCharts(container, options = {}) {
                 container.appendChild(canvas3);
 
                 const singleHRChart = renderSingleHRZoneBar(canvas3, sessionHRZones, {
-                    title: "Heart Rate Zones - Entire Ride",
+                    title: "HR Zone by Lap (Individual)",
                     theme: themeConfig.name,
                 });
                 if (singleHRChart) window._chartjsInstances.push(singleHRChart);
@@ -286,7 +285,7 @@ export function renderLapZoneCharts(container, options = {}) {
                 container.appendChild(canvas4);
 
                 const singlePwrChart = renderSinglePowerZoneBar(canvas4, sessionPowerZones, {
-                    title: "Power Zones - Entire Ride",
+                    title: "Power Zone by Lap (Individual)",
                     theme: themeConfig.name,
                 });
                 if (singlePwrChart) window._chartjsInstances.push(singlePwrChart);

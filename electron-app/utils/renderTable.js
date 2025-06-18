@@ -57,7 +57,7 @@ export function renderTable(container, title, table, index) {
     container.appendChild(section);
     if (window.jQuery) {
         $(document).ready(function () {
-            setTimeout(() => {
+            setTimeout(function () {
                 try {
                     if ($.fn.DataTable) {
                         const tableSelector = "#" + tableId;
@@ -88,7 +88,7 @@ export function renderTable(container, title, table, index) {
         });
     } else {
         console.warn("[WARNING] jQuery is not available. Falling back to native DOM methods.");
-        setTimeout(() => {
+        setTimeout(function () {
             const tableElement = document.getElementById(tableId);
             if (tableElement) {
                 console.log(`[DEBUG] DataTable initialization skipped for #${tableId}`);

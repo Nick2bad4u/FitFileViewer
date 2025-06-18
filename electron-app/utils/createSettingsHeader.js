@@ -4,7 +4,6 @@ import { ExportUtils } from "./ExportUtils.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { exportAllCharts } from "./exportAllCharts.js";
 import { extractDeveloperFieldsList } from "./extractDeveloperFieldsList.js";
-import { openZoneColorPicker } from "./openZoneColorPicker.js";
 import { resetAllSettings } from "./getCurrentSettings.js";
 import { showNotification } from "./showNotification.js";
 import { getThemeConfig } from "./theme.js";
@@ -82,9 +81,9 @@ export function createSettingsHeader(wrapper) {
                 });
                 window._chartjsInstances = [];
             } // Force complete re-render
-            setTimeout(() => {
+            setTimeout(function () {
                 renderChartJS(chartsContainer); // Update status indicators after charts are rendered
-                setTimeout(() => {
+                setTimeout(function () {
                     updateAllChartStatusIndicators();
                 }, 100);
             }, 50);
@@ -270,7 +269,7 @@ function createRangeControl(option) {
 
         // Debounced re-render
         clearTimeout(slider.timeout);
-        slider.timeout = setTimeout(() => {
+        slider.timeout = setTimeout(function () {
             renderChartJS();
         }, 300);
     });
@@ -930,19 +929,14 @@ export function createFieldTogglesSection(wrapper) {
 
     const powerVsHRToggle = createFieldToggle("power_vs_hr");
     fieldsGrid.appendChild(powerVsHRToggle);
-
     const altitudeProfileToggle = createFieldToggle("altitude_profile");
-    fieldsGrid.appendChild(altitudeProfileToggle); // Add zone chart toggles
+    fieldsGrid.appendChild(altitudeProfileToggle); // HR zone toggles will be moved to the HR zone controls section
     const hrZoneDoughnutToggle = createFieldToggle("hr_zone_doughnut");
     fieldsGrid.appendChild(hrZoneDoughnutToggle);
 
-    const hrZoneBarToggle = createFieldToggle("hr_zone_bar");
-    fieldsGrid.appendChild(hrZoneBarToggle);
-
+    // Power zone toggles are created separately and moved to the dedicated power zone section
     const powerZoneDoughnutToggle = createFieldToggle("power_zone_doughnut");
     fieldsGrid.appendChild(powerZoneDoughnutToggle);
-    const powerZoneBarToggle = createFieldToggle("power_zone_bar");
-    fieldsGrid.appendChild(powerZoneBarToggle);
 
     // Add lap zone chart toggles if data exists
     if (window.globalData?.timeInZoneMesgs) {
@@ -1128,48 +1122,16 @@ function createFieldToggle(field) {
 		flex: 1;
 		color: var(--color-fg);
 		font-size: 14px;
-		cursor: pointer;
-	`; // Check if this is a zone chart - but only show zone color button for the first of each type
+		cursor: pointer;	`; // Check if this is a zone chart - zone charts no longer get individual color pickers
     const isHRZoneChart = field.includes("hr_zone");
+    const isPowerZoneChart = field.includes("power_zone");
+    const isZoneChart = isHRZoneChart || isPowerZoneChart;
     const isLapZoneChart = field.includes("lap_zone");
-    const showZoneColorButton = field === "hr_zone_doughnut" || field === "power_zone_doughnut"; // Only show on doughnut charts
 
-    if (showZoneColorButton) {
-        // Create zone color picker button for zone charts
-        const zoneColorBtn = document.createElement("button");
-        const zoneType = isHRZoneChart ? "HR" : "Power";
-        zoneColorBtn.textContent = `🎨 ${zoneType} Zones`;
-        zoneColorBtn.style.cssText = `
-			padding: 6px 12px;
-			background: var(--color-btn-bg);
-			color: var(--color-fg-alt);
-			border: none;
-			border-radius: 6px;
-			cursor: pointer;
-			font-size: 12px;
-			font-weight: 600;
-			transition: var(--transition-smooth);
-		`;
-
-        zoneColorBtn.addEventListener("click", () => {
-            // Use a generic field name for the zone color picker
-            const genericField = isHRZoneChart ? "hr_zone" : "power_zone";
-            openZoneColorPicker(genericField);
-        });
-
-        zoneColorBtn.addEventListener("mouseenter", () => {
-            zoneColorBtn.style.transform = "scale(1.05)";
-            zoneColorBtn.style.boxShadow = "var(--color-box-shadow)";
-        });
-
-        zoneColorBtn.addEventListener("mouseleave", () => {
-            zoneColorBtn.style.transform = "scale(1)";
-            zoneColorBtn.style.boxShadow = "none";
-        });
-
+    if (isZoneChart) {
+        // Zone charts now only get toggle and label - unified color picker is in their dedicated sections
         container.appendChild(toggle);
         container.appendChild(label);
-        container.appendChild(zoneColorBtn);
     } else if (isLapZoneChart) {
         // Lap zone charts only get toggle, no color picker (they use the same zone colors)
         container.appendChild(toggle);
@@ -1218,7 +1180,7 @@ function createFieldToggle(field) {
 
         renderChartJS();
         // Update status indicators after a short delay to allow charts to render
-        setTimeout(() => {
+        setTimeout(function () {
             updateAllChartStatusIndicators();
         }, 100);
     });
@@ -1322,9 +1284,7 @@ function toggleAllFields(enable) {
             "power_vs_hr",
             "altitude_profile",
             "hr_zone_doughnut",
-            "hr_zone_bar",
             "power_zone_doughnut",
-            "power_zone_bar",
             "event_messages",
             "hr_lap_zone_stacked",
             "hr_lap_zone_individual",
@@ -1358,7 +1318,7 @@ function toggleAllFields(enable) {
         const action = enable ? "enabled" : "disabled";
         showNotification(`All charts ${action}`, "success"); // Re-render charts and update status indicators
         renderChartJS();
-        setTimeout(() => {
+        setTimeout(function () {
             updateAllChartStatusIndicators();
         }, 100);
     } catch (error) {

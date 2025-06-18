@@ -248,7 +248,7 @@ if (window.electronAPI && window.electronAPI.onIpc) {
             }
 
             // Wait for renderSummary to finish, then open the column selector
-            setTimeout(() => {
+            setTimeout(function () {
                 const gearBtn = document.querySelector(CONSTANTS.SELECTORS.SUMMARY_GEAR_BTN);
                 if (gearBtn) {
                     gearBtn.click();

@@ -114,13 +114,13 @@ if (!window._fitFileViewerChartListener) {
     fileInputs.forEach((input) => {
         input.addEventListener("change", function () {
             console.log("[ChartJS] File input changed, re-rendering charts");
-            setTimeout(() => {
+            setTimeout(function () {
                 window.dispatchEvent(new Event("fitfile-loaded"));
             }, 100); // slight delay to allow file to load
         });
     });
     // Warn if event is not dispatched after file load
-    setTimeout(() => {
+    setTimeout(function () {
         if (!_fitfileLoadedFired && (!window._chartjsInstances || window._chartjsInstances.length === 0)) {
             console.warn(
                 '[ChartJS] fitfile-loaded event was not dispatched after file load. Charts will not update until you call window.dispatchEvent(new Event("fitfile-loaded")) after loading a new file.'
@@ -639,7 +639,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         console.log(`[ChartJS] Showing success notification: "${message}"`);
 
         // Use setTimeout to ensure notification shows after any DOM changes
-        setTimeout(() => {
+        setTimeout(function () {
             showNotification(message, "success", 3000);
         }, 100);
     } else {

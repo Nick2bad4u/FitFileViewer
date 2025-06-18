@@ -28,11 +28,20 @@ export const backgroundColorPlugin = {
      */
     beforeDraw: (chart, options) => {
         // Precedence: use backgroundColor from plugin options if provided, otherwise fallback to chart config
-        const backgroundColor =
-            options?.backgroundColor || chart.options?.plugins?.backgroundColorPlugin?.backgroundColor;
-        if (!backgroundColor) return;
-
+        // Use plugin option, then chart config, then fallback to CSS variable or white
+        let backgroundColor =
+            options?.backgroundColor ||
+            chart.options?.plugins?.backgroundColorPlugin?.backgroundColor ||
+            getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim() ||
+            "#23263a";
+        if (!backgroundColor) {
+            console.warn("[backgroundColorPlugin] No backgroundColor set, using default #23263a");
+            backgroundColor = "#23263a";
+        }
         const { ctx, width, height } = chart;
+        console.log(
+            `[backgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
+        );
         ctx.save();
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, width, height);

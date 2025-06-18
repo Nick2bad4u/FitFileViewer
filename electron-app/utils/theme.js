@@ -51,7 +51,7 @@ export function applyTheme(theme, withTransition = true) {
 
     // Remove transition class after animation completes
     if (withTransition) {
-        setTimeout(() => {
+        setTimeout(function () {
             document.body.classList.remove(THEME_TRANSITION_CLASS);
         }, 300);
     }

@@ -106,9 +106,14 @@ exclude = [
     '^https://help\.github\.com',
     '^https://github\.io',
     '^mailto:20943337\+Nick2bad4u@users\.noreply\.github\.com',
+    '^mailto:nick2bad4u@users\.noreply\.github\.com',
     '^mailto:support@github\.com',
     '^mailto:bot@stepsecurity\.io',
     '^mailto:github-actions@github\.com',
+    '^https://nick2bad4u/',
+    '^https://views\.igorkowalczyk\.dev/api/badge/fitfileviewer\?style=flat',
+    '^https://registry\.npmjs\.org',
+    '^https://www\.patreon\.com/feross',
 ]
 
 # Exclude these filesystem paths from getting checked.

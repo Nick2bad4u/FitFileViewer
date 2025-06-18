@@ -67,58 +67,9 @@ export function getChartCounts() {
                 (lat !== undefined && lat !== null && !isNaN(parseFloat(lat))) ||
                 (long !== undefined && long !== null && !isNaN(parseFloat(long)))
             );
-        });
-
-        // Only count GPS track as 1 chart, not the individual lat/long
+        }); // Add GPS track chart in addition to individual lat/long charts
+        // (Both are rendered in the current implementation)
         if (hasGPSData) {
-            // Remove individual lat/long from metrics and add GPS track
-            // First check if lat/long had valid data and were counted
-            const latNumericData = data.map((row) => {
-                if (row.positionLat !== undefined && row.positionLat !== null) {
-                    const value = parseFloat(row.positionLat);
-                    return isNaN(value) ? null : value;
-                }
-                return null;
-            });
-            const longNumericData = data.map((row) => {
-                if (row.positionLong !== undefined && row.positionLong !== null) {
-                    const value = parseFloat(row.positionLong);
-                    return isNaN(value) ? null : value;
-                }
-                return null;
-            });
-
-            const hasValidLat = !latNumericData.every((val) => val === null);
-            const hasValidLong = !longNumericData.every((val) => val === null);
-
-            // Remove counted lat/long from metrics
-            if (hasValidLat) {
-                counts.total -= 1;
-                counts.categories.metrics.total -= 1;
-                counts.available -= 1;
-                counts.categories.metrics.available -= 1;
-
-                const latVisibility = localStorage.getItem("chartjs_field_positionLat");
-                if (latVisibility !== "hidden") {
-                    counts.visible -= 1;
-                    counts.categories.metrics.visible -= 1;
-                }
-            }
-
-            if (hasValidLong) {
-                counts.total -= 1;
-                counts.categories.metrics.total -= 1;
-                counts.available -= 1;
-                counts.categories.metrics.available -= 1;
-
-                const longVisibility = localStorage.getItem("chartjs_field_positionLong");
-                if (longVisibility !== "hidden") {
-                    counts.visible -= 1;
-                    counts.categories.metrics.visible -= 1;
-                }
-            }
-
-            // Add GPS track chart
             counts.total++;
             counts.available++;
             counts.categories.gps.total++;
@@ -179,8 +130,8 @@ export function getChartCounts() {
                     counts.categories.analysis.visible++;
                 }
             }
-        }); // Zone charts (these are field-based toggles for doughnut/bar charts)
-        const zoneCharts = ["hr_zone_doughnut", "hr_zone_bar", "power_zone_doughnut", "power_zone_bar"];
+        }); // Zone charts (these are field-based toggles for doughnut charts only)
+        const zoneCharts = ["hr_zone_doughnut", "power_zone_doughnut"];
         zoneCharts.forEach((chartType) => {
             counts.total++;
             counts.categories.zones.total++;
@@ -318,6 +269,21 @@ export function getChartCounts() {
         console.error("[ChartStatus] Error counting charts:", error);
         // Don't rethrow - just log and return current counts
         // This prevents the error from propagating to renderChartJS
+    }
+
+    // Debug logging to help identify discrepancies
+    console.log("[ChartStatus] Chart count breakdown:", {
+        total: counts.total,
+        available: counts.available,
+        visible: counts.visible,
+        categories: counts.categories,
+        actualRendered: window._chartjsInstances ? window._chartjsInstances.length : 0,
+    });
+
+    // Debug: Show what charts are actually rendered
+    if (window._chartjsInstances && window._chartjsInstances.length > 0) {
+        const renderedChartIds = window._chartjsInstances.map((chart) => chart.canvas.id);
+        console.log("[ChartStatus] Actually rendered charts:", renderedChartIds);
     }
 
     return counts;
@@ -464,7 +430,7 @@ export function createChartStatusIndicator() {
                 // Add a brief highlight effect
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
-                setTimeout(() => {
+                setTimeout(function () {
                     fieldsSection.style.outline = "none";
                     fieldsSection.style.outlineOffset = "0";
                 }, 2000);
@@ -674,7 +640,7 @@ function createChartStatusIndicatorFromCounts(counts) {
                 // Add a brief highlight effect
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
-                setTimeout(() => {
+                setTimeout(function () {
                     fieldsSection.style.outline = "none";
                     fieldsSection.style.outlineOffset = "0";
                 }, 2000);
@@ -805,7 +771,7 @@ function createGlobalChartStatusIndicatorFromCounts(counts) {
                     // Scroll to field toggles
                     const fieldsSection = document.querySelector(".fields-section");
                     if (fieldsSection) {
-                        setTimeout(() => {
+                        setTimeout(function () {
                             fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                         }, 100);
                     }
@@ -943,7 +909,7 @@ export function setupChartStatusUpdates() {
         // Listen for storage changes (field toggles)
         window.addEventListener("storage", (e) => {
             if (e.key && e.key.startsWith("chartjs_field_")) {
-                setTimeout(() => {
+                setTimeout(function () {
                     try {
                         updateAllChartStatusIndicators();
                     } catch (error) {
@@ -955,7 +921,7 @@ export function setupChartStatusUpdates() {
 
         // Listen for custom field toggle events (real-time updates in same window)
         window.addEventListener("fieldToggleChanged", () => {
-            setTimeout(() => {
+            setTimeout(function () {
                 try {
                     updateAllChartStatusIndicators();
                 } catch (error) {
@@ -965,7 +931,7 @@ export function setupChartStatusUpdates() {
         }); // Listen for custom events when charts are rendered
         document.addEventListener("chartsRendered", () => {
             // Use setTimeout to ensure DOM updates don't interfere with chart rendering
-            setTimeout(() => {
+            setTimeout(function () {
                 try {
                     updateAllChartStatusIndicators();
                 } catch (error) {
@@ -987,7 +953,7 @@ export function setupChartStatusUpdates() {
                     },
                     set(value) {
                         window._globalData = value;
-                        setTimeout(() => {
+                        setTimeout(function () {
                             try {
                                 updateAllChartStatusIndicators();
                             } catch (error) {
@@ -1011,7 +977,7 @@ export function setupChartStatusUpdates() {
                 // Fallback: just monitor for manual updates
             }
         } // Create global indicator on initial setup
-        setTimeout(() => {
+        setTimeout(function () {
             try {
                 createGlobalChartStatusIndicator();
             } catch (error) {
@@ -1138,7 +1104,7 @@ export function createGlobalChartStatusIndicator() {
                     // Scroll to field toggles
                     const fieldsSection = document.querySelector(".fields-section");
                     if (fieldsSection) {
-                        setTimeout(() => {
+                        setTimeout(function () {
                             fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                         }, 100);
                     }

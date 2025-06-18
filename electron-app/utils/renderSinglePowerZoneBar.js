@@ -3,6 +3,7 @@ import { getChartZoneColors } from "./zoneColorUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { formatTime } from "./formatTime.js";
 import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
 
 /**
  * Renders a single power zone bar (e.g., for a summary or lap)
@@ -136,7 +137,7 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, backgroundColorPlugin],
         });
         return chart;
     } catch (error) {

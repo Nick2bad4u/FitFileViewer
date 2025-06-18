@@ -1,6 +1,7 @@
 import { getThemeConfig } from "./theme.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
 
 // Power vs Heart Rate chart
 export function renderPowerVsHeartRateChart(container, data, options) {
@@ -159,7 +160,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, backgroundColorPlugin],
         };
 
         const chart = new window.Chart(canvas, config);

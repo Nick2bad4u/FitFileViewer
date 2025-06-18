@@ -148,7 +148,7 @@ export function createShownFilesList() {
                         if (window.renderMap) window.renderMap();
                         if (window.updateShownFilesList) window.updateShownFilesList();
                         // Remove any lingering tooltips from the DOM after overlays are cleared
-                        setTimeout(() => {
+                        setTimeout(function () {
                             const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
                             tooltips.forEach((t) => t.parentNode && t.parentNode.removeChild(t));
                         }, 10);
@@ -182,7 +182,7 @@ export function createShownFilesList() {
                             polyElem.style.transition = "filter 0.2s";
                             polyElem.style.filter =
                                 "drop-shadow(0 0 16px " + (polyline.options.color || "#1976d2") + ")";
-                            setTimeout(() => {
+                            setTimeout(function () {
                                 if (window._highlightedOverlayIdx === idx) {
                                     polyElem.style.filter =
                                         "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")";
@@ -212,7 +212,7 @@ export function createShownFilesList() {
                     oldTooltips.forEach((t) => t.parentNode && t.parentNode.removeChild(t));
                     if (li._tooltipRemover) li._tooltipRemover();
 
-                    window._overlayTooltipTimeout = setTimeout(() => {
+                    window._overlayTooltipTimeout = setTimeout(function () {
                         // Only show if still hovered
                         if (window._highlightedOverlayIdx !== idx) return;
                         let tooltip = document.createElement("div");
@@ -263,7 +263,7 @@ export function createShownFilesList() {
                     }
                     if (li._tooltipRemover) li._tooltipRemover();
                     // Remove any lingering tooltips from the DOM
-                    setTimeout(() => {
+                    setTimeout(function () {
                         const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
                         tooltips.forEach((t) => t.parentNode && t.parentNode.removeChild(t));
                     }, 10);
@@ -292,7 +292,7 @@ export function createShownFilesList() {
                         if (window.renderMap) window.renderMap();
                         if (window.updateShownFilesList) window.updateShownFilesList();
                         // Remove any lingering tooltips from the DOM after overlays are cleared
-                        setTimeout(() => {
+                        setTimeout(function () {
                             const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
                             tooltips.forEach((t) => t.parentNode && t.parentNode.removeChild(t));
                         }, 10);

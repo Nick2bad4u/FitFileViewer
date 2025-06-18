@@ -3,6 +3,7 @@ import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
 
 // Altitude profile with gradient visualization
 export function renderAltitudeProfileChart(container, data, labels, options) {
@@ -172,7 +173,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
+            plugins: [zoomResetPlugin, backgroundColorPlugin],
         };
 
         const chart = new window.Chart(canvas, config);

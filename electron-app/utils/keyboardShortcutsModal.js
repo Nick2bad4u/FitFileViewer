@@ -551,7 +551,7 @@ function closeKeyboardShortcutsModal() {
     modal.classList.remove("show");
 
     // Wait for animation to complete before hiding
-    setTimeout(() => {
+    setTimeout(function () {
         modal.style.display = "none";
 
         // Restore focus

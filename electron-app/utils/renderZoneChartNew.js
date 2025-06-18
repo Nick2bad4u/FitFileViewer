@@ -22,8 +22,12 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     canvas.style.borderRadius = "12px";
     canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadowLight}`;
 
-    container.appendChild(canvas); // Determine zone type and get user-selected colors from theme
-    let colors = themeConfig.colors.zoneColors; // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
+    container.appendChild(canvas);
+
+    // Determine zone type and get user-selected colors from theme
+    let colors = themeConfig.colors.zoneColors;
+
+    // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
     if (zoneData.length > 0 && zoneData[0].color) {
         // Use colors from the zone data objects
         colors = zoneData.map((zone) => zone.color);
@@ -33,7 +37,9 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         if (zoneType) {
             colors = getChartZoneColors(zoneType, zoneData.length);
         }
-    } // Create chart configuration based on type
+    }
+
+    // Create chart configuration based on type
     const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
     console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
@@ -122,16 +128,6 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                 legend: {
                     display: options.showLegend !== false,
                     position: "right",
-                    onClick: function (event, legendItem, legend) {
-                        // Get the chart instance and dataset meta
-                        const chart = legend.chart;
-                        const index = legendItem.index;
-                        const meta = chart.getDatasetMeta(0);
-
-                        // Toggle visibility
-                        meta.data[index].hidden = !meta.data[index].hidden;
-                        chart.update();
-                    },
                     labels: {
                         display: true,
                         font: {
@@ -155,12 +151,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                     return {
                                         text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
                                         fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
-                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
-                                        fontColor: hidden
-                                            ? "rgba(128, 128, 128, 0.7)"
-                                            : currentTheme === "dark"
-                                              ? "#ffffff"
-                                              : "#333333",
+                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.borderColor,
                                         lineWidth: 1,
                                         hidden: hidden,
                                         index: i,
