@@ -5,7 +5,7 @@ file:///*
 data:*
 https://github.com/*
 github/CHANGELOG.md
-*/CHANGELOG.md
+(.*/)?CHANGELOG\\.md
 .github/workflows/*
 electron-app/package-lock.json
 electron-app/package.jsonjson
