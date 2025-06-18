@@ -29,11 +29,12 @@ body = """
     {% endif %}\
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
-  ### {{ group | striptags | trim | upper_first }}
-  {% for commit in commits %}
+  ### {{ group | striptags | trim | upper_first }}  {% for commit in commits %}
     - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
       {% if commit.breaking %}[**breaking**] {% endif %}\
-      {{ commit.message | upper_first | replace(from="\n", to="\n    ") }} [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
+      {{ commit.message | upper_first }}{% if commit.body %}
+        {{ commit.body | replace(from="\n", to="\n        ") }}{% endif %}
+      [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
   {% endfor %}
 {% endfor %}\n
 """
