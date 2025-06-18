@@ -387,7 +387,7 @@
     "makensis": "^2.0.8",
     "screenfull": "^6.0.2",
     "stylelint-config-standard": "^38.0.0",
-    "vitest": "3.2.3"
+    "vitest": "3.2.4"
   },
   "dependencies": {
     "@garmin/fitsdk": "^21.171.0",
