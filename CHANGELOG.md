@@ -6,7 +6,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-[[19ba8e6](https://github.com/Nick2bad4u/FitFileViewer/commit/19ba8e60f80467e8b8531eaad257c5d95f875ad4)...[02c7057](https://github.com/Nick2bad4u/FitFileViewer/commit/02c70573e84093c89aec427353b7fb2b412ca143)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/19ba8e60f80467e8b8531eaad257c5d95f875ad4...02c70573e84093c89aec427353b7fb2b412ca143))
+[[624cf7f](https://github.com/Nick2bad4u/FitFileViewer/commit/624cf7f4076ea1f04ceed1398e085f0031e9f8cc)...[defee85](https://github.com/Nick2bad4u/FitFileViewer/commit/defee85b65cd52e1884fc14e2d3dbcb1bd4c6d5c)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/624cf7f4076ea1f04ceed1398e085f0031e9f8cc...defee85b65cd52e1884fc14e2d3dbcb1bd4c6d5c))
+
+### 📦 Dependencies
+
+- [dependency] Update version 23.9.0 [`(defee85)`](https://github.com/Nick2bad4u/FitFileViewer/commit/defee85b65cd52e1884fc14e2d3dbcb1bd4c6d5c)
+
+
+## [23.9.0] - 2025-06-18
+
+[[19ba8e6](https://github.com/Nick2bad4u/FitFileViewer/commit/19ba8e60f80467e8b8531eaad257c5d95f875ad4)...[624cf7f](https://github.com/Nick2bad4u/FitFileViewer/commit/624cf7f4076ea1f04ceed1398e085f0031e9f8cc)] ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/19ba8e60f80467e8b8531eaad257c5d95f875ad4...624cf7f4076ea1f04ceed1398e085f0031e9f8cc))
+
+### 💼 Other
+
+- Update .lycheeignore [`(624cf7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/624cf7f4076ea1f04ceed1398e085f0031e9f8cc)
+
+- Update .lycheeignore [`(6e38fd1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e38fd135858819ba3fc6a1b3e82929104bfb779)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v23.8.0 [skip ci] [`(8be4d5c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8be4d5c3da6ff3635bd20f974d047d42bb14e7b3)
+
 
 ### 📦 Dependencies
 
