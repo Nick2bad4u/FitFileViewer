@@ -16,27 +16,28 @@ All notable changes to this project will be documented in this file.\n
 # template for the changelog body
 # https://keats.github.io/tera/docs/#introduction
 body = """
-{% if version %}\
+{% if version %}
   ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
-{% else %}\
+{% else %}
   ## [Unreleased]
-{% endif %}\
-{% if previous %}\
+{% endif %}
+{% if previous %}
     {% if previous.commit_id and commit_id %}
-        [[{{ previous.commit_id | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ previous.commit_id }})...\
-        [{{ commit_id | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit_id }})] \
+        [[{{ previous.commit_id | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ previous.commit_id }})...
+        [{{ commit_id | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit_id }})]
         ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/{{ previous.commit_id }}...{{ commit_id }}))
-    {% endif %}\
-{% endif %}\
+    {% endif %}
+{% endif %}
 {% for group, commits in commits | group_by(attribute="group") %}
-  ### {{ group | striptags | trim | upper_first }}  {% for commit in commits %}
-    - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
-      {% if commit.breaking %}[**breaking**] {% endif %}\
+  ### {{ group | striptags | trim | upper_first }}
+  {% for commit in commits %}
+    - {% if commit.scope %}*({{ commit.scope }})* {% endif %}
+      {% if commit.breaking %}[**breaking**] {% endif %}
       {{ commit.message | upper_first }}{% if commit.body %}
         {{ commit.body | replace(from="\n", to="\n        ") }}{% endif %}
       [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
   {% endfor %}
-{% endfor %}\n
+{% endfor %}
 """
 # template for the changelog footer
 footer = """
@@ -82,7 +83,7 @@ conventional_commits = true
 # filter out the commits that are not conventional
 filter_unconventional = false
 # process each line of a commit as an individual commit
-split_commits = false
+split_commits = true
 # regex for preprocessing the commit messages
 use_branch_tags = false
 # use branch tags to group commits

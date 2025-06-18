@@ -820,6 +820,194 @@ table.dataTable.display > tbody > tr:hover td {
     transform: translateY(-1px) !important;
 }
 
+/* Zone Color Selector Styles */
+.inline-zone-color-selector {
+    background: var(--color-glass);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    margin: 8px 0;
+    backdrop-filter: var(--backdrop-blur);
+    transition: var(--transition-smooth);
+}
+
+.inline-zone-color-selector:hover {
+    border-color: var(--color-border-light);
+    box-shadow: var(--color-box-shadow-light);
+}
+
+.zone-colors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.zone-color-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-small);
+    transition: var(--transition-smooth);
+    cursor: pointer;
+}
+
+.zone-color-item:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-border-light);
+    transform: translateY(-1px);
+    box-shadow: var(--color-box-shadow-light);
+}
+
+/* Disabled state for zone color items */
+.zone-color-item[style*="opacity: 0.6"] {
+    pointer-events: none;
+}
+
+.zone-color-item[style*="opacity: 0.6"]:hover {
+    background: var(--color-bg-alt);
+    border-color: var(--color-border);
+    transform: none;
+    box-shadow: none;
+}
+
+.zone-color-item .zone-label {
+    flex: 1;
+    font-size: 12px;
+    color: var(--color-fg);
+    font-weight: 500;
+}
+
+.zone-color-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 2px solid var(--color-border);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.zone-color-preview:hover {
+    transform: scale(1.1);
+    box-shadow: var(--color-box-shadow-light);
+    border-color: var(--color-border-light);
+}
+
+.zone-color-preview[style*="cursor: not-allowed"]:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--color-border);
+}
+
+.zone-color-preview::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.zone-color-preview:hover::before {
+    opacity: 1;
+}
+
+.zone-color-preview[style*="cursor: not-allowed"]::before {
+    opacity: 0;
+}
+
+/* Zone color selector header */
+.inline-zone-color-selector h4 {
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-fg);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Color scheme selector styling */
+.inline-zone-color-selector select {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-small);
+    background: var(--color-bg-solid);
+    color: var(--color-fg);
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.inline-zone-color-selector select:hover {
+    border-color: var(--color-border-light);
+    background: var(--color-bg-alt);
+}
+
+.inline-zone-color-selector select:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Action buttons in zone selector */
+.inline-zone-color-selector button {
+    padding: 6px 12px;
+    background: var(--color-btn-bg);
+    color: var(--color-fg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-small);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.inline-zone-color-selector button:hover {
+    background: var(--color-btn-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--color-box-shadow-light);
+}
+
+.inline-zone-color-selector button:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Light theme adjustments for zone color selector */
+body.theme-light .inline-zone-color-selector {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.theme-light .zone-color-item {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.theme-light .zone-color-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+body.theme-light .zone-color-preview {
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+body.theme-light .zone-color-preview:hover {
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
 .tab-card #content-chart {
     display: flex;
     flex-direction: column;

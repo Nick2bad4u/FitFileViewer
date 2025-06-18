@@ -4,12 +4,9 @@ import { showNotification } from "./showNotification.js";
 import {
     DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS,
-    getZoneColor,
-    saveZoneColor,
-    resetZoneColors,
     getChartSpecificZoneColor,
     saveChartSpecificZoneColor,
-    resetChartSpecificZoneColors,
+    applyZoneColors,
 } from "./zoneColorUtils.js";
 
 export function openZoneColorPicker(field) {
@@ -53,6 +50,9 @@ export function openZoneColorPicker(field) {
             showNotification(`No ${zoneType.toLowerCase()} zone data available`, "warning");
             return;
         }
+
+        // Apply saved zone colors to the zone data
+        zoneData = applyZoneColors(zoneData, zoneType.toLowerCase());
 
         // Create modal overlay
         const overlay = document.createElement("div");
@@ -296,38 +296,88 @@ export function openZoneColorPicker(field) {
         // Reset all button
         const resetAllButton = document.createElement("button");
         resetAllButton.textContent = "Reset All";
+        resetAllButton.title = "Reset all zone colors, set scheme to custom, and enable all charts";
+        resetAllButton.className = "reset-all-btn";
         resetAllButton.style.cssText = `
-						padding: 10px 16px;
-						background: rgba(255, 255, 255, 0.1);
-						border: 1px solid rgba(255, 255, 255, 0.2);
-						border-radius: 8px;
-						color: #ffffff;
-						font-size: 14px;
-						font-weight: 600;
-						cursor: pointer;
-						transition: all 0.3s ease;
-					`;
-
-        resetAllButton.addEventListener("click", () => {
-            // Reset all zone colors to defaults using utility function
-            const zoneTypeStorage = field.includes("hr_zone") ? "hr" : "power";
-            resetZoneColors(zoneTypeStorage, zoneData.length);
-
-            // Update UI
-            zoneData.forEach((zone, index) => {
-                const zoneIndex = (zone.zone || index + 1) - 1; // Convert to 0-based index
-                const defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
-                const colorPicker = zoneControls.children[index].querySelector('input[type="color"]');
-                const colorPreview = zoneControls.children[index].querySelector('div[style*="width: 32px"]');
-                if (colorPicker && colorPreview) {
-                    colorPicker.value = defaultColor;
-                    colorPreview.style.background = defaultColor;
-                }
-            });
-
-            showNotification(`${zoneType} zone colors reset to defaults`, "success");
-            renderChartJS(); // Re-render charts with new colors
+            background: var(--accent-color, #3b82f6);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        resetAllButton.addEventListener("mouseenter", () => {
+            resetAllButton.style.background = "#2563eb";
         });
+        resetAllButton.addEventListener("mouseleave", () => {
+            resetAllButton.style.background = "var(--accent-color, #3b82f6)";
+        });
+        resetAllButton.addEventListener("click", () => {
+            try {
+                // Set color scheme to custom for all relevant zone fields
+                const zoneFields = [
+                    "hr_zone",
+                    "power_zone",
+                    "hr_lap_zone",
+                    "power_lap_zone",
+                    "hr_zone_doughnut",
+                    "power_zone_doughnut",
+                    "hr_lap_zone_stacked",
+                    "hr_lap_zone_individual",
+                    "power_lap_zone_stacked",
+                    "power_lap_zone_individual",
+                ];
+                zoneFields.forEach((f) => {
+                    localStorage.setItem(`chartjs_${f}_color_scheme`, "custom");
+                });
+                // Also set for the current field in case it's not in the above list
+                localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+
+                // Clear all saved zone color data for this field
+                if (window.clearZoneColorData) {
+                    window.clearZoneColorData(field, zoneData.length);
+                } else {
+                    // fallback: remove per-zone color keys
+                    for (let i = 0; i < zoneData.length; i++) {
+                        localStorage.removeItem(`chartjs_${field}_zone_${i + 1}_color`);
+                    }
+                }
+
+                // Enable all chart fields (set all toggles to visible)
+                const settingsWrapper = document.getElementById("chartjs-settings-wrapper");
+                if (settingsWrapper) {
+                    const fieldToggles = settingsWrapper.querySelectorAll('.field-toggle input[type="checkbox"]');
+                    fieldToggles.forEach((toggle) => {
+                        toggle.checked = true;
+                    });
+                }
+
+                // Call global resetAllSettings if available (for full reset)
+                if (typeof window.resetAllSettings === "function") {
+                    window.resetAllSettings();
+                }
+
+                // Update UI and chart to reflect reset state
+                if (typeof window.updateInlineZoneColorSelectors === "function") {
+                    window.updateInlineZoneColorSelectors(document.body);
+                }
+                if (typeof window.renderChartJS === "function") {
+                    window.renderChartJS();
+                }
+                if (typeof window.showNotification === "function") {
+                    window.showNotification("Zone colors and settings reset to defaults", "success");
+                }
+            } catch (err) {
+                if (typeof window.showNotification === "function") {
+                    window.showNotification("Failed to reset zone colors: " + err.message, "error");
+                }
+                console.error("[ZoneColorPicker] Reset all failed:", err);
+            }
+        });
+        actions.appendChild(resetAllButton);
 
         // Apply button
         const applyButton = document.createElement("button");

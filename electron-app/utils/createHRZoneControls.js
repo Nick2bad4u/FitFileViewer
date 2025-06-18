@@ -3,7 +3,7 @@
  * @fileoverview Dedicated heart rate zone chart controls section
  */
 
-import { openZoneColorPicker } from "./openZoneColorPicker.js";
+import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 
 /**
  * Creates the heart rate zone controls section by extracting existing controls
@@ -184,52 +184,19 @@ function addUnifiedHRZoneColorPicker(container) {
         opacity: 0.5;
     `;
 
-    // Create color picker button container
-    const colorPickerContainer = document.createElement("div");
-    colorPickerContainer.style.cssText = `
-        display: flex;
-        justify-content: center;
+    // Create inline zone color selector
+    const colorSelectorContainer = document.createElement("div");
+    colorSelectorContainer.style.cssText = `
         margin-top: 8px;
     `;
 
-    // Create unified color picker button
-    const colorPickerBtn = document.createElement("button");
-    colorPickerBtn.textContent = "🎨 Customize Zone Colors";
-    colorPickerBtn.style.cssText = `
-        padding: 10px 16px;
-        background: var(--color-accent);
-        color: var(--color-fg-alt);
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 600;
-        transition: var(--transition-smooth);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    `;
+    // Create the inline selector
+    const inlineSelector = createInlineZoneColorSelector("hr_zone", colorSelectorContainer);
 
-    colorPickerBtn.addEventListener("click", () => {
-        // Use hr_zone as the generic field for HR zones
-        openZoneColorPicker("hr_zone");
-    });
-
-    colorPickerBtn.addEventListener("mouseenter", () => {
-        colorPickerBtn.style.transform = "scale(1.05)";
-        colorPickerBtn.style.boxShadow = "var(--color-box-shadow)";
-        colorPickerBtn.style.background = "var(--color-accent-hover)";
-    });
-
-    colorPickerBtn.addEventListener("mouseleave", () => {
-        colorPickerBtn.style.transform = "scale(1)";
-        colorPickerBtn.style.boxShadow = "none";
-        colorPickerBtn.style.background = "var(--color-accent)";
-    });
-
-    colorPickerContainer.appendChild(colorPickerBtn);
-    container.appendChild(separator);
-    container.appendChild(colorPickerContainer);
+    if (inlineSelector) {
+        container.appendChild(separator);
+        container.appendChild(colorSelectorContainer);
+    }
 }
 
 /**
