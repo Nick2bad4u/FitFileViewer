@@ -14,5 +14,6 @@ coverage/
 # Ignore Change Logs
 **/CHANGELOG.md
 
-# Ignore package.json in electron-app
+# Ignore package in electron-app
 electron-app/package.json
+electron-app/package-lock.json
