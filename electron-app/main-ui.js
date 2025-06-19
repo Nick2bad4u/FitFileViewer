@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Main UI Controller with State Management Integration
+ * @description Handles UI interactions, file operations, and state management for the FitFileViewer application
+ * @author FitFileViewer Development Team
+ * @version 2.0.0
+ */
+
 // This file is part of the Electron app that interacts with the main process and the UI.
 import { createTables } from "./utils/createTables.js";
 import { renderMap } from "./utils/renderMap.js";
@@ -12,6 +19,14 @@ import { setupTabButton } from "./utils/setupTabButton.js";
 import { setupFullscreenListeners, setupDOMContentLoaded } from "./utils/addFullScreenButton.js";
 import { setupWindowOnload } from "./utils/setupWindow.js";
 import { renderChartJS } from "./utils/renderChartJS.js";
+
+// State Management Integration
+import { getState, setState } from "./utils/stateManager.js";
+import { UIActions } from "./utils/uiStateManager.js";
+import { AppActions } from "./utils/appActions.js";
+import { fitFileStateManager } from "./utils/fitFileState.js";
+import { performanceMonitor } from "./utils/stateDevTools.js";
+import { showNotification } from "./utils/showNotification.js";
 
 // Constants
 const CONSTANTS = {
@@ -37,45 +52,40 @@ const CONSTANTS = {
     },
 };
 
-// Centralized Application State
-const AppState = {
-    globalData: {},
-    isChartRendered: false,
-    dragCounter: 0,
-    eventListeners: new Map(),
-};
+// Event listener management with state integration
+const eventListeners = new Map();
 
 // Make globalData available on window for backwards compatibility
 Object.defineProperty(window, "globalData", {
     get() {
-        return AppState.globalData;
+        return getState("globalData");
     },
     set(value) {
-        AppState.globalData = value;
+        setState("globalData", value, { source: "main-ui.js" });
     },
 });
 
-// Event listener management
+// Event listener management with state integration
 function addEventListenerWithCleanup(element, event, handler, options = {}) {
     if (!element) return;
 
     element.addEventListener(event, handler, options);
     const key = `${element.constructor.name}-${event}`;
-    if (!AppState.eventListeners.has(key)) {
-        AppState.eventListeners.set(key, []);
+    if (!eventListeners.has(key)) {
+        eventListeners.set(key, []);
     }
-    AppState.eventListeners.get(key).push({ element, event, handler });
+    eventListeners.get(key).push({ element, event, handler });
 }
 
 function cleanupEventListeners() {
-    AppState.eventListeners.forEach((listeners) => {
+    eventListeners.forEach((listeners) => {
         listeners.forEach(({ element, event, handler }) => {
             if (element && element.removeEventListener) {
                 element.removeEventListener(event, handler);
             }
         });
     });
-    AppState.eventListeners.clear();
+    eventListeners.clear();
 }
 
 // Validation functions
@@ -123,30 +133,58 @@ function clearContentAreas() {
 }
 
 function unloadFitFile() {
-    // Clear global data
-    AppState.globalData = {};
-
-    // Clear UI
-    clearFileDisplay();
-    clearContentAreas();
-
-    // Hide unload button
-    const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
-    if (unloadBtn) {
-        unloadBtn.style.display = "none";
+    const operationId = `unload_file_${Date.now()}`;
+    
+    // Start performance monitoring
+    if (performanceMonitor?.isEnabled()) {
+        performanceMonitor.startTimer(operationId);
     }
 
-    // Switch to map tab
-    updateActiveTab("tab-map");
+    try {
+        // Clear global data using state management
+        AppActions.clearGlobalData();
+        
+        // Update file state
+        if (fitFileStateManager) {
+            fitFileStateManager.handleFileLoaded(null);
+        }
 
-    // Notify main process to update menu
-    if (window.electronAPI && window.electronAPI.send) {
-        window.electronAPI.send("fit-file-loaded", null);
-    }
+        // Clear UI
+        clearFileDisplay();
+        clearContentAreas();
 
-    // Disable tab buttons when no file is loaded
-    if (window.setTabButtonsEnabled) {
-        window.setTabButtonsEnabled(false);
+        // Hide unload button
+        const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
+        if (unloadBtn) {
+            unloadBtn.style.display = "none";
+        }
+
+        // Switch to map tab using UI actions
+        UIActions.showTab("tab-map");
+
+        // Notify main process to update menu
+        if (window.electronAPI && window.electronAPI.send) {
+            window.electronAPI.send("fit-file-loaded", null);
+        }
+
+        // Disable tab buttons when no file is loaded
+        if (window.setTabButtonsEnabled) {
+            window.setTabButtonsEnabled(false);
+        }
+
+        // Show success notification
+        showNotification("File unloaded successfully", "info");
+        
+        console.log("[main-ui] File unloaded successfully");
+        
+    } catch (error) {
+        console.error("[main-ui] Error unloading file:", error);
+        showNotification("Error unloading file", "error");
+    } finally {
+        // End performance monitoring
+        if (performanceMonitor?.isEnabled()) {
+            performanceMonitor.endTimer(operationId);
+        }
     }
 }
 
@@ -185,7 +223,7 @@ window.sendFitFileToAltFitReader = async function (arrayBuffer) {
     }
 };
 
-// Enhanced theme change handling
+// Enhanced theme change handling with state management integration
 if (
     window.electronAPI &&
     typeof window.electronAPI.onSetTheme === "function" &&
@@ -195,8 +233,12 @@ if (
     listenForThemeChange((theme) => {
         applyTheme(theme);
 
+        // Update theme in state management
+        UIActions.setTheme(theme);
+
         // Always re-render ChartJS charts if data exists and charts container is present
-        if (window.globalData && window.globalData.recordMesgs) {
+        const globalData = getState("globalData");
+        if (globalData && globalData.recordMesgs) {
             const chartsContainer = document.getElementById("chartjs-chart-container");
             if (chartsContainer && window._chartjsInstances && window._chartjsInstances.length > 0) {
                 console.log("[main-ui] Re-rendering ChartJS charts for theme change from app menu");
@@ -280,10 +322,12 @@ addEventListenerWithCleanup(window, "DOMContentLoaded", () => {
     }
 });
 
-// Enhanced Drag and Drop UI and Global Handling
+// Enhanced Drag and Drop UI and Global Handling with State Management
 class DragDropHandler {
     constructor() {
         this.setupEventListeners();
+        // Initialize drag counter in state
+        setState("ui.dragCounter", 0, { source: "DragDropHandler" });
     }
 
     showDropOverlay() {
@@ -309,17 +353,36 @@ class DragDropHandler {
     }
 
     async processDroppedFile(file) {
+        const operationId = `process_dropped_file_${Date.now()}`;
+        
+        // Start performance monitoring
+        if (performanceMonitor?.isEnabled()) {
+            performanceMonitor.startTimer(operationId);
+        }
+
         if (!file || !file.name.toLowerCase().endsWith(".fit")) {
-            alert("Only .fit files are supported. Please drop a valid .fit file.");
+            const message = "Only .fit files are supported. Please drop a valid .fit file.";
+            alert(message);
+            showNotification(message, "warning");
             return;
         }
 
         try {
+            // Update loading state
+            AppActions.setFileOpening(true);
+            
+            // Start file loading in state manager
+            if (fitFileStateManager) {
+                fitFileStateManager.startFileLoading(file.name);
+            }
+
             const arrayBuffer = await this.readFileAsArrayBuffer(file);
             if (!arrayBuffer) return;
 
             if (!validateElectronAPI()) {
-                alert("FIT file decoding is not supported in this environment.");
+                const message = "FIT file decoding is not supported in this environment.";
+                alert(message);
+                showNotification(message, "error");
                 return;
             }
 
@@ -327,15 +390,36 @@ class DragDropHandler {
             if (fitData && !fitData.error) {
                 showFitData(fitData, file.name);
                 window.sendFitFileToAltFitReader(arrayBuffer);
+                showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
-                alert(
-                    "Unable to process the FIT file. Please try again or check the file format. Details: " +
-                        (fitData.error || "Unknown error")
-                );
+                const errorMessage = "Unable to process the FIT file. Please try again or check the file format. Details: " +
+                    (fitData.error || "Unknown error");
+                alert(errorMessage);
+                showNotification("Failed to load FIT file", "error");
+                
+                // Handle error in state manager
+                if (fitFileStateManager) {
+                    fitFileStateManager.handleFileLoadingError(new Error(fitData.error || "Unknown error"));
+                }
             }
         } catch (error) {
-            console.error("Error processing dropped file:", error);
-            alert("An unexpected error occurred while processing the FIT file.");
+            console.error("[main-ui] Error processing dropped file:", error);
+            const message = "An unexpected error occurred while processing the FIT file.";
+            alert(message);
+            showNotification(message, "error");
+            
+            // Handle error in state manager
+            if (fitFileStateManager) {
+                fitFileStateManager.handleFileLoadingError(error);
+            }
+        } finally {
+            // Clear loading state
+            AppActions.setFileOpening(false);
+            
+            // End performance monitoring
+            if (performanceMonitor?.isEnabled()) {
+                performanceMonitor.endTimer(operationId);
+            }
         }
     }
 
@@ -346,23 +430,24 @@ class DragDropHandler {
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
         });
-    }
-
-    setupEventListeners() {
+    }    setupEventListeners() {
         // Show overlay on dragenter, hide on dragleave/drop
         addEventListenerWithCleanup(window, "dragenter", (e) => {
             if (e.target === document || e.target === document.body) {
-                AppState.dragCounter++;
+                const currentCounter = getState("ui.dragCounter") || 0;
+                setState("ui.dragCounter", currentCounter + 1, { source: "DragDropHandler" });
                 this.showDropOverlay();
             }
         });
 
         addEventListenerWithCleanup(window, "dragleave", (e) => {
             if (e.target === document || e.target === document.body) {
-                AppState.dragCounter--;
-                if (AppState.dragCounter <= 0) {
+                const currentCounter = getState("ui.dragCounter") || 0;
+                const newCounter = currentCounter - 1;
+                setState("ui.dragCounter", newCounter, { source: "DragDropHandler" });
+                if (newCounter <= 0) {
                     this.hideDropOverlay();
-                    AppState.dragCounter = 0;
+                    setState("ui.dragCounter", 0, { source: "DragDropHandler" });
                 }
             }
         });
@@ -374,12 +459,14 @@ class DragDropHandler {
         });
 
         addEventListenerWithCleanup(window, "drop", async (e) => {
-            AppState.dragCounter = 0;
+            setState("ui.dragCounter", 0, { source: "DragDropHandler" });
             this.hideDropOverlay();
             e.preventDefault();
 
             if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) {
-                alert("No valid files detected. Please drop a .fit file.");
+                const message = "No valid files detected. Please drop a .fit file.";
+                alert(message);
+                showNotification(message, "warning");
                 return;
             }
 
@@ -515,12 +602,15 @@ window.injectMenu = function (theme = null, fitFilePath = null) {
     }
 };
 
-// Add cleanup function to development helpers
+// Add cleanup function to development helpers with state management integration
 window.devCleanup = function () {
     cleanupEventListeners();
-    AppState.globalData = {};
-    AppState.isChartRendered = false;
-    AppState.dragCounter = 0;
+    
+    // Clear state using the new system
+    AppActions.clearGlobalData();
+    setState("charts.isRendered", false, { source: "devCleanup" });
+    setState("ui.dragCounter", 0, { source: "devCleanup" });
+    
     console.log("[devCleanup] Application state and event listeners cleaned up");
 };
 
