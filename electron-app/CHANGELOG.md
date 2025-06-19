@@ -7,9 +7,40 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[623988a](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)...
+[623988a](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/623988a1ee577c6555f1c6347de319f1ce41c008...623988a1ee577c6555f1c6347de319f1ce41c008))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 24.7.0 [`(623988a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)
+
+
+
+
+
+
+## [24.7.0] - 2025-06-19
+
+
 [[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)...
-[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...6ee65d7a25377dcf8b2211cf566c5d2d6450dd61))
+[cee6f43](https://github.com/Nick2bad4u/FitFileViewer/commit/cee6f4381dcced2b65ace0921affb992bb2f7e60)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...cee6f4381dcced2b65ace0921affb992bb2f7e60))
+
+
+### 💼 Other
+
+- Improves system info handling and update notifications
+
+Enhances reliability and user feedback for version and system info display by introducing dynamic loading placeholders, robust logging, and fallback mechanisms. Refactors update notification logic for better error handling, accessibility, and clearer action buttons. Updates code structure for maintainability, modularity, and resilience to missing APIs or DOM elements. [`(cee6f43)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cee6f4381dcced2b65ace0921affb992bb2f7e60)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v24.6.0 [skip ci] [`(cef7a42)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cef7a427316644983f6752928f6cec3463e3d0f1)
+
 
 
 ### 📦 Dependencies
