@@ -77,6 +77,5 @@ jobs:
                       It applies code formatting changes using Prettier and your project's configuration.
                   branch: "chore/prettier-fix"
                   base: main
-                  add-paths: electron-app/**/*.{js,md,css,html}
                   delete-branch: true
                   token: ${{ secrets.GITHUB_TOKEN }}
