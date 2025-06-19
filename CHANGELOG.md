@@ -7,9 +7,71 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[19d16ea](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)...
-[19d16ea](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/19d16ea4242a4e19285f49b1c27b0ff35933c5ce...19d16ea4242a4e19285f49b1c27b0ff35933c5ce))
+[[30cb44e](https://github.com/Nick2bad4u/FitFileViewer/commit/30cb44eec763d0a197ec34adeb215ec56279f288)...
+[30cb44e](https://github.com/Nick2bad4u/FitFileViewer/commit/30cb44eec763d0a197ec34adeb215ec56279f288)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/30cb44eec763d0a197ec34adeb215ec56279f288...30cb44eec763d0a197ec34adeb215ec56279f288))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 24.9.0 [`(30cb44e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/30cb44eec763d0a197ec34adeb215ec56279f288)
+
+
+
+
+
+
+## [24.9.0] - 2025-06-19
+
+
+[[233de74](https://github.com/Nick2bad4u/FitFileViewer/commit/233de74d1ca83ebd84c42b020e654bd736d3e57c)...
+[31786a7](https://github.com/Nick2bad4u/FitFileViewer/commit/31786a751cb6a46bf61e3c6d9930da66ce2f6d79)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/233de74d1ca83ebd84c42b020e654bd736d3e57c...31786a751cb6a46bf61e3c6d9930da66ce2f6d79))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(31786a7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31786a751cb6a46bf61e3c6d9930da66ce2f6d79)
+
+
+
+### 💼 Other
+
+- Cleans up code style and improves readability
+
+Removes trailing whitespace, aligns indentation, and refactors long
+arrays and expressions for better readability across utility modules.
+Changes focus on formatting and maintainability without altering logic
+or behavior. [`(e74cc4c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e74cc4c5ab7f626491274f0818a40540787e4163)
+
+
+- Improves file open logic with robust error handling
+
+Refactors file open utility to enhance maintainability and reliability
+by centralizing error handling, validating Electron APIs, adding
+structured logging, and integrating better UI state management.
+Improves feedback to users and prepares the codebase for future
+extensions by making core operations more modular and configurable. [`(fc19d30)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fc19d30ddaaac9f936f3fd7d148649d319d6a45f)
+
+
+- Refactors utilities for modularity, consistency, and state sync
+
+Modernizes utility modules to improve maintainability and consistency by introducing centralized constants, modular formatting helpers, and better error handling. Integrates state management and robust logging across theme, summary, tooltip, and data display logic. Enhances extensibility for future features and ensures UI and state remain in sync when FIT files are loaded or themes are changed. [`(0ce2613)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0ce2613f6c0a213ee677d4793a6f990ea10bca82)
+
+
+- Refactors utility functions for consistency and robustness
+
+Improves code clarity, input validation, and error handling across utility modules.
+Unifies configuration patterns, adds constant definitions, and enhances documentation for maintainability.
+Introduces safer fallbacks, better logging, and modularizes formatting and conversion logic.
+Prepares utilities for easier extension and consistent UI/UX in data display and export. [`(233de74)`](https://github.com/Nick2bad4u/FitFileViewer/commit/233de74d1ca83ebd84c42b020e654bd736d3e57c)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v24.8.0 [skip ci] [`(b88fee5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b88fee55b59feb90bcec62bd5d0b50af1c5204ec)
+
 
 
 ### 📦 Dependencies
