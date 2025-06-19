@@ -16,9 +16,9 @@ All notable changes to this project will be documented in this file.\n
 # template for the changelog body
 # https://keats.github.io/tera/docs/#introduction
 body = """
-{% if version %}
+{% if version %}\
   ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
-{% else %}
+{% else %}\
   ## [Unreleased]
 {% endif %}
 {% if commit_range and commit_range.from and commit_range.to %}
@@ -29,18 +29,12 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
   ### {{ group | striptags | trim | upper_first }}
   {% for commit in commits %}
-    {%- set msg = commit.message | upper_first -%}
-    {%- if not msg | trim | starts_with(pat="-") -%}
-      - {% if commit.scope %}*({{ commit.scope }})* {% endif %}{% if commit.breaking %}[**breaking**] {% endif %}{{ msg }}{% if commit.body %}
-{{ commit.body | trim | indent(width=8) }}{% endif %}
-      [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
-    {%- else -%}
-      {{ msg }}{% if commit.body %}
-{{ commit.body | trim | indent(width=8) }}{% endif %}
-      [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
-    {%- endif %}
+    - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
+      {% if commit.breaking %}[**breaking**] {% endif %}\
+      {{ commit.message | upper_first | replace(from="\n", to="\n    ") }} [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
+
   {% endfor %}
-{% endfor %}
+{% endfor %}\n
 {% if commit.footer %}
   <!-- Use the footer directly -->
   {{ commit.footer | trim | indent(width=8) }}
