@@ -62,16 +62,24 @@ function isWindowUsable(win) {
     return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
 }
 
-function validateWindow(win) {
+function validateWindow(win, context = "unknown operation") {
     if (!isWindowUsable(win)) {
-        console.warn("[main.js] Window is not usable or destroyed");
+        // Only log warning if window should exist but doesn't (avoid noise during normal shutdown)
+        if (!getAppState("appIsQuitting")) {
+            logWithContext("warn", `Window validation failed during ${context}`, {
+                hasWindow: !!win,
+                isDestroyed: win?.isDestroyed(),
+                hasWebContents: !!win?.webContents,
+                webContentsDestroyed: win?.webContents?.isDestroyed(),
+            });
+        }
         return false;
     }
     return true;
 }
 
 async function getThemeFromRenderer(win) {
-    if (!validateWindow(win)) return CONSTANTS.DEFAULT_THEME;
+    if (!validateWindow(win, "theme retrieval")) return CONSTANTS.DEFAULT_THEME;
 
     try {
         const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
@@ -83,7 +91,7 @@ async function getThemeFromRenderer(win) {
 }
 
 function sendToRenderer(win, channel, ...args) {
-    if (validateWindow(win)) {
+    if (validateWindow(win, `IPC send to ${channel}`)) {
         win.webContents.send(channel, ...args);
     }
 }
@@ -111,7 +119,7 @@ function createErrorHandler(operation) {
 
 // Enhanced Auto-Updater Setup with better error handling
 function setupAutoUpdater(mainWindow) {
-    if (!validateWindow(mainWindow)) {
+    if (!validateWindow(mainWindow, "auto-updater setup")) {
         logWithContext("warn", "Cannot setup auto-updater: main window is not usable");
         return;
     }
@@ -245,7 +253,7 @@ function setupIPCHandlers(mainWindow) {
     ipcMain.on("fit-file-loaded", async (event, filePath) => {
         setAppState("loadedFitFilePath", filePath);
         const win = BrowserWindow.fromWebContents(event.sender);
-        if (validateWindow(win)) {
+        if (validateWindow(win, "fit-file-loaded event")) {
             try {
                 const theme = await getThemeFromRenderer(win);
                 createAppMenu(win, theme, getAppState("loadedFitFilePath"));
@@ -383,7 +391,7 @@ function setupMenuAndEventHandlers() {
     // Theme change handler
     ipcMain.on("theme-changed", async (event, theme) => {
         const win = BrowserWindow.fromWebContents(event.sender);
-        if (validateWindow(win)) {
+        if (validateWindow(win, "theme-changed event")) {
             createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
         }
     });
@@ -484,7 +492,7 @@ function setupMenuAndEventHandlers() {
     // Fullscreen handler
     ipcMain.on("set-fullscreen", (event, flag) => {
         const win = BrowserWindow.getFocusedWindow();
-        if (validateWindow(win)) {
+        if (validateWindow(win, "set-fullscreen event")) {
             win.setFullScreen(!!flag);
         }
     });
@@ -509,7 +517,7 @@ function setupApplicationEventHandlers() {
             createAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
         } else {
             const win = BrowserWindow.getFocusedWindow() || getAppState("mainWindow");
-            if (validateWindow(win)) {
+            if (validateWindow(win, "app activate event")) {
                 createAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
             }
         }
@@ -529,6 +537,7 @@ function setupApplicationEventHandlers() {
 
     // Window all closed handler
     app.on("window-all-closed", function () {
+        setAppState("appIsQuitting", true);
         if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
             app.quit();
         }
@@ -536,6 +545,7 @@ function setupApplicationEventHandlers() {
 
     // Cleanup Gyazo server when app is quitting
     app.on("before-quit", async (event) => {
+        setAppState("appIsQuitting", true);
         const gyazoServer = getAppState("gyazoServer");
         if (gyazoServer) {
             event.preventDefault();
@@ -589,7 +599,7 @@ function exposeDevHelpers() {
         cleanupEventHandlers,
         rebuildMenu: (theme, filePath) => {
             const win = BrowserWindow.getFocusedWindow();
-            if (validateWindow(win)) {
+            if (validateWindow(win, "dev helper rebuild menu")) {
                 createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, filePath || getAppState("loadedFitFilePath"));
             }
         },
@@ -735,7 +745,7 @@ async function startGyazoOAuthServer(port = 3000) {
                             </html>
                         `); // Send the code to the renderer process
                         const mainWindow = getAppState("mainWindow");
-                        if (mainWindow && !mainWindow.isDestroyed()) {
+                        if (validateWindow(mainWindow, "gyazo-oauth-callback")) {
                             mainWindow.webContents.send("gyazo-oauth-callback", { code, state });
                         }
                     } else {

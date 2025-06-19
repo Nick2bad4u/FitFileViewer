@@ -90,9 +90,9 @@ function getPlatformAppMenu(mainWindow) {
 function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
     const theme = currentTheme || getTheme();
     const recentFiles = loadRecentFiles();
-    if (!app.isPackaged) {
-        console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
-    }
+    // if (!app.isPackaged) {
+    //     console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
+    // }
 
     const recentMenuItems =
         recentFiles.length > 0
