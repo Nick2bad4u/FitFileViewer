@@ -17,7 +17,7 @@ import {
     resetZoneColors,
     applyZoneColors,
     getZoneTypeFromField,
-} from "./zoneColorUtils.js";
+} from "./chartZoneColorUtils.js";
 
 /**
  * Creates an inline zone color selector

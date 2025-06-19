@@ -317,12 +317,12 @@ Utils list:
 electron-app\utils\aboutModal.js
 electron-app\utils\addExitFullscreenOverlay.js
 electron-app\utils\addFullScreenButton.js
-electron-app\utils\arrayBufferToBase64.js
-electron-app\utils\buildAppMenu.js
+electron-app\utils\convertArrayBufferToBase64.js
+electron-app\utils\createAppMenu.js
 electron-app\utils\CHANGELOG.md
 electron-app\utils\chartSpec.js
 electron-app\utils\copyTableAsCSV.js
-electron-app\utils\displayTables.js
+electron-app\utils\createTables.js
 electron-app\utils\drawMapForLap.js
 electron-app\utils\enableTabButtons.js
 electron-app\utils\formatDistance.js
@@ -352,7 +352,7 @@ electron-app\utils\renderMap.js
 electron-app\utils\renderSummary.js
 electron-app\utils\renderSummaryHelpers.js
 electron-app\utils\renderTable.js
-electron-app\utils\setActiveTab.js
+electron-app\utils\updateActiveTab.js
 electron-app\utils\setupTabButton.js
 electron-app\utils\setupTheme.js
 electron-app\utils\setupWindow.js
@@ -360,6 +360,6 @@ electron-app\utils\showFitData.js
 electron-app\utils\showNotification.js
 electron-app\utils\showUpdateNotification.js
 electron-app\utils\theme.js
-electron-app\utils\toggleTabVisibility.js
+electron-app\utils\updateTabVisibility.js
 electron-app\utils\updateMapTheme.js
 ```

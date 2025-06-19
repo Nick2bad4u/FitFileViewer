@@ -49,19 +49,19 @@ import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { convertValueToUserUnits } from "./convertValueToUserUnits.js";
 import { setupZoneData } from "./setupZoneData.js";
-import { fieldLabels, chartFields } from "./chartFields.js";
+import { fieldLabels, formatChartFields } from "./formatChartFields.js";
 import { ensureChartSettingsDropdowns } from "./ensureChartSettingsDropdowns.js";
 import { getCurrentSettings } from "./getCurrentSettings.js";
 import { loadSharedConfiguration } from "./loadSharedConfiguration.js";
 import { createEnhancedChart } from "./createEnhancedChart.js";
-import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
+import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { renderEventMessagesChart } from "./renderEventMessagesChart.js";
 import { renderTimeInZoneCharts } from "./renderTimeInZoneCharts.js";
 import { renderPerformanceAnalysisCharts } from "./renderPerformanceAnalysisCharts.js";
 import { renderGPSTrackChart } from "./renderGPSTrackChart.js";
 import { renderLapZoneCharts } from "./renderLapZoneCharts.js";
-import { shouldShowRenderNotification } from "./shouldShowRenderNotification.js";
+import { showRenderNotification } from "./showRenderNotification.js";
 import { createUserDeviceInfoBox } from "./createUserDeviceInfoBox.js";
 import {
     addChartHoverEffects,
@@ -149,9 +149,9 @@ if (typeof window !== "undefined") {
 }
 
 // Register the background color plugin globally
-if (window.Chart && !window.Chart.registry.plugins.get("backgroundColorPlugin")) {
-    window.Chart.register(backgroundColorPlugin);
-    console.log("[ChartJS] backgroundColorPlugin registered");
+if (window.Chart && !window.Chart.registry.plugins.get("chartBackgroundColorPlugin")) {
+    window.Chart.register(chartBackgroundColorPlugin);
+    console.log("[ChartJS] chartBackgroundColorPlugin registered");
 }
 
 // Utility function to convert hex to rgba
@@ -442,10 +442,10 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         }
         return i; // fallback to index
     }); // Define fields to process for charts - updated to match actual FIT file field names
-    // Use chartFields imported from chartFields.js for consistency
-    // (imported at the top: import { chartFields } from "./chartFields.js";)
+    // Use formatChartFields imported from formatChartFields.js for consistency
+    // (imported at the top: import { formatChartFields } from "./formatChartFields.js";)
     let visibleFieldCount = 0; // Process each field
-    chartFields.forEach((field) => {
+    formatChartFields.forEach((field) => {
         // Check field visibility
         const visibility = localStorage.getItem(`chartjs_field_${field}`);
         if (visibility === "hidden") {
@@ -628,7 +628,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${(endTime - startTime).toFixed(2)}ms`);
 
     // Check if this is a meaningful render that warrants a notification
-    const shouldShowNotification = shouldShowRenderNotification(totalChartsRendered, visibleFieldCount);
+    const shouldShowNotification = showRenderNotification(totalChartsRendered, visibleFieldCount);
 
     if (shouldShowNotification && totalChartsRendered > 0) {
         const message =

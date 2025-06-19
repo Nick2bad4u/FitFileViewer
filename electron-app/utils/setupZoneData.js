@@ -1,4 +1,4 @@
-import { applyZoneColors } from "./zoneColorUtils.js";
+import { applyZoneColors } from "./chartZoneColorUtils.js";
 import { updatePowerZoneControlsVisibility } from "./createPowerZoneControls.js";
 import { updateHRZoneControlsVisibility } from "./createHRZoneControls.js";
 

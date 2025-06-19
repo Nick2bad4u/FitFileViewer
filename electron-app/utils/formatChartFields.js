@@ -5,8 +5,8 @@
  *
  * @type {string[]}
  * @example
- * import { chartFields } from './chartFields.js';
- * if (chartFields.includes(fieldName)) { ... }
+ * import { formatChartFields } from './formatChartFields.js';
+ * if (formatChartFields.includes(fieldName)) { ... }
  */
 
 // Enhanced chart fields with better categorization - match actual FIT file field names
@@ -17,10 +17,10 @@
  *
  * @type {Object.<string, string>}
  * @example
- * import { fieldColors } from './chartFields.js';
+ * import { fieldColors } from './formatChartFields.js';
  * const color = fieldColors['speed']; // "#1976d2"
  */
-export const chartFields = [
+export const formatChartFields = [
     "speed",
     "heartRate",
     "altitude",
@@ -43,7 +43,7 @@ export const chartFields = [
  *
  * @type {Object.<string, string>}
  * @example
- * import { fieldLabels } from './chartFields.js';
+ * import { fieldLabels } from './formatChartFields.js';
  * const label = fieldLabels[fieldKey] || fieldKey;
  */
 export const fieldLabels = {

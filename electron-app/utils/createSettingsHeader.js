@@ -1,6 +1,6 @@
-import { chartFields, fieldLabels, fieldColors } from "./chartFields.js";
+import { formatChartFields, fieldLabels, fieldColors } from "./formatChartFields.js";
 import { chartOptionsConfig } from "./chartOptionsConfig.js";
-import { ExportUtils } from "./ExportUtils.js";
+import { exportUtils } from "./exportUtils.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { exportAllCharts } from "./exportAllCharts.js";
 import { extractDeveloperFieldsList } from "./extractDeveloperFieldsList.js";
@@ -454,8 +454,8 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
         return;
     }
 
-    // Filter out invalid charts using ExportUtils validation
-    const validCharts = charts.filter((chart) => ExportUtils.isValidChart(chart));
+    // Filter out invalid charts using exportUtils validation
+    const validCharts = charts.filter((chart) => exportUtils.isValidChart(chart));
 
     if (validCharts.length === 0) {
         showNotification("No valid charts available", "warning");
@@ -673,9 +673,9 @@ export function createExportSection(wrapper) {
                         const dataset = chart.data.datasets[0];
                         const fieldName = dataset?.label || "chart";
                         const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
-                        ExportUtils.downloadChartAsPNG(chart, filename);
+                        exportUtils.downloadChartAsPNG(chart, filename);
                     },
-                    (charts) => ExportUtils.createCombinedChartsImage(charts, "combined-charts.png")
+                    (charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
                 ),
         },
         {
@@ -684,8 +684,8 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Copy to Clipboard",
-                    (chart) => ExportUtils.copyChartToClipboard(chart),
-                    (charts) => ExportUtils.copyCombinedChartsToClipboard(charts)
+                    (chart) => exportUtils.copyChartToClipboard(chart),
+                    (charts) => exportUtils.copyCombinedChartsToClipboard(charts)
                 ),
         },
         {
@@ -699,10 +699,10 @@ export function createExportSection(wrapper) {
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart";
                             const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.csv`;
-                            ExportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
+                            exportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
                         }
                     },
-                    (charts) => ExportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
+                    (charts) => exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
                 ),
         },
         {
@@ -716,7 +716,7 @@ export function createExportSection(wrapper) {
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart";
                             const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.json`;
-                            ExportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
+                            exportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
                         }
                     },
                     (charts) => {
@@ -751,8 +751,8 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Print",
-                    (chart) => ExportUtils.printChart(chart),
-                    (charts) => ExportUtils.printCombinedCharts(charts)
+                    (chart) => exportUtils.printChart(chart),
+                    (charts) => exportUtils.printCombinedCharts(charts)
                 ),
         },
         {
@@ -764,30 +764,30 @@ export function createExportSection(wrapper) {
                     showNotification("No charts available to export", "warning");
                     return;
                 }
-                ExportUtils.exportAllAsZip(charts);
+                exportUtils.exportAllAsZip(charts);
             },
         },
         {
             icon: "🔗",
             text: "Share URL",
-            action: () => ExportUtils.shareChartsAsURL(),
+            action: () => exportUtils.shareChartsAsURL(),
         },
         {
             icon: "📸",
             text: "Share Gyazo",
             action: () => {
-                if (!ExportUtils.isGyazoAuthenticated()) {
+                if (!exportUtils.isGyazoAuthenticated()) {
                     showNotification("Please connect your Gyazo account first", "warning");
-                    ExportUtils.showGyazoAccountManager();
+                    exportUtils.showGyazoAccountManager();
                     return;
                 }
-                ExportUtils.shareChartsToGyazo();
+                exportUtils.shareChartsToGyazo();
             },
         },
         {
             icon: "⚙️",
             text: "Gyazo Settings",
-            action: () => ExportUtils.showGyazoAccountManager(),
+            action: () => exportUtils.showGyazoAccountManager(),
         },
     ];
 
@@ -916,7 +916,7 @@ export function createFieldTogglesSection(wrapper) {
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 12px;
 	`; // Add field toggles
-    chartFields.forEach((field) => {
+    formatChartFields.forEach((field) => {
         const fieldToggle = createFieldToggle(field);
         fieldsGrid.appendChild(fieldToggle);
     }); // Add GPS track toggle
@@ -1067,7 +1067,7 @@ function createFieldToggle(field) {
                 const power = row.power;
                 return power !== undefined && power !== null && !isNaN(parseFloat(power));
             });
-        } else if (chartFields.includes(field)) {
+        } else if (formatChartFields.includes(field)) {
             // Regular chart field
             const numericData = data.map((row) => {
                 if (row[field] !== undefined && row[field] !== null) {
@@ -1278,7 +1278,7 @@ function toggleAllFields(enable) {
 
         // Get all possible field keys
         const allFields = [
-            ...chartFields,
+            ...formatChartFields,
             "gps_track",
             "speed_vs_distance",
             "power_vs_hr",

@@ -1,5 +1,5 @@
 import { getOverlayFileName } from "./getOverlayFileName.js";
-import { overlayColorPalette } from "./overlayColorPalette.js";
+import { chartOverlayColorPalette } from "./chartOverlayColorPalette.js";
 
 /* global L */
 // Helper to find the index in recordMesgs closest to a given lat/lon
@@ -234,7 +234,7 @@ export function drawMapForLap(
         }
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (window.loadedFitFiles && Array.isArray(window.loadedFitFiles) && window.loadedFitFiles.length > 1) {
-            const colorPalette = overlayColorPalette;
+            const colorPalette = chartOverlayColorPalette;
             let overlayIdx = 0;
             let lastOverlayBounds = null;
             for (let i = 1; i < window.loadedFitFiles.length; ++i) {
@@ -387,7 +387,7 @@ export function drawMapForLap(
             }
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
             if (window.loadedFitFiles && Array.isArray(window.loadedFitFiles) && window.loadedFitFiles.length > 1) {
-                const colorPalette = overlayColorPalette;
+                const colorPalette = chartOverlayColorPalette;
                 let overlayIdx = 0;
                 let lastOverlayBounds = null;
                 for (let i = 1; i < window.loadedFitFiles.length; ++i) {
@@ -539,7 +539,7 @@ export function drawMapForLap(
         if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (window.loadedFitFiles && Array.isArray(window.loadedFitFiles) && window.loadedFitFiles.length > 1) {
-            const colorPalette = overlayColorPalette;
+            const colorPalette = chartOverlayColorPalette;
             let overlayIdx = 0;
             let lastOverlayBounds = null;
             for (let i = 1; i < window.loadedFitFiles.length; ++i) {
@@ -722,7 +722,7 @@ export function drawMapForLap(
         }
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (window.loadedFitFiles && Array.isArray(window.loadedFitFiles) && window.loadedFitFiles.length > 1) {
-            const colorPalette = overlayColorPalette;
+            const colorPalette = chartOverlayColorPalette;
             let overlayIdx = 0;
             let lastOverlayBounds = null;
             for (let i = 1; i < window.loadedFitFiles.length; ++i) {
@@ -825,8 +825,10 @@ export function drawOverlayForFitFile({
         const isHighlighted = typeof overlayIdx === "number" && window._highlightedOverlayIdx === overlayIdx;
 
         const paletteColor =
-            Array.isArray(overlayColorPalette) && overlayColorPalette.length > 0 && typeof overlayIdx === "number"
-                ? overlayColorPalette[overlayIdx % overlayColorPalette.length]
+            Array.isArray(chartOverlayColorPalette) &&
+            chartOverlayColorPalette.length > 0 &&
+            typeof overlayIdx === "number"
+                ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
                 : "#1976d2"; // Default fallback color
         const polyline = L.polyline(
             coords.map((c) => [c[0], c[1]]),

@@ -57,7 +57,7 @@
             "endTime": 1746647752623,
             "status": "failed",
             "message": "describe is not defined",
-            "name": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tests/arrayBufferToBase64.test.js"
+            "name": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tests/convertArrayBufferToBase64.test.js"
         },
         {
             "assertionResults": [],
@@ -153,7 +153,7 @@
             "endTime": 1746647752623,
             "status": "failed",
             "message": "describe is not defined",
-            "name": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tests/setActiveTab.test.js"
+            "name": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tests/updateActiveTab.test.js"
         },
         {
             "assertionResults": [],
@@ -217,7 +217,7 @@
             "endTime": 1746647752623,
             "status": "failed",
             "message": "describe is not defined",
-            "name": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tests/toggleTabVisibility.test.js"
+            "name": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/FitFileViewer/electron-app/tests/updateTabVisibility.test.js"
         },
         {
             "assertionResults": [],

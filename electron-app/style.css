@@ -1,6 +1,5 @@
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable selector-class-pattern */
-/* stylelint-disable selector-id-pattern */
 /* stylelint-disable selector-no-vendor-prefix -- electron app */
 
 /* =====================================================
@@ -907,11 +906,8 @@ table.dataTable.display > tbody > tr:hover td {
 .zone-color-preview::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    inset: 0;
+    background: linear-gradient(45deg, transparent 30%, rgb(255 255 255 / 10%) 50%, transparent 70%);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -926,7 +922,7 @@ table.dataTable.display > tbody > tr:hover td {
 
 /* Zone color selector header */
 .inline-zone-color-selector h4 {
-    margin: 0 0 12px 0;
+    margin: 0 0 12px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-fg);
@@ -954,7 +950,7 @@ table.dataTable.display > tbody > tr:hover td {
 
 .inline-zone-color-selector select:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 0 0 2px rgb(102 126 234 / 20%);
 }
 
 /* Action buttons in zone selector */
@@ -981,31 +977,31 @@ table.dataTable.display > tbody > tr:hover td {
 
 .inline-zone-color-selector button:active {
     transform: translateY(0);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 20%);
 }
 
 /* Light theme adjustments for zone color selector */
 body.theme-light .inline-zone-color-selector {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(0, 0, 0, 0.1);
+    background: rgb(255 255 255 / 80%);
+    border-color: rgb(0 0 0 / 10%);
 }
 
 body.theme-light .zone-color-item {
-    background: rgba(255, 255, 255, 0.5);
-    border-color: rgba(0, 0, 0, 0.1);
+    background: rgb(255 255 255 / 50%);
+    border-color: rgb(0 0 0 / 10%);
 }
 
 body.theme-light .zone-color-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgb(102 126 234 / 10%);
+    border-color: rgb(102 126 234 / 30%);
 }
 
 body.theme-light .zone-color-preview {
-    border-color: rgba(0, 0, 0, 0.2);
+    border-color: rgb(0 0 0 / 20%);
 }
 
 body.theme-light .zone-color-preview:hover {
-    border-color: rgba(102, 126, 234, 0.5);
+    border-color: rgb(102 126 234 / 50%);
 }
 
 .tab-card #content-chart {

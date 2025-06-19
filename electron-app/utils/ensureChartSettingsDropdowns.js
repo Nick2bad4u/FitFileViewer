@@ -1,5 +1,5 @@
 import { chartControlsState } from "./renderChartJS.js";
-import { syncControlsState } from "./syncControlsState.js";
+import { updateControlsState } from "./updateControlsState.js";
 import { getDefaultSettings, getCurrentSettings } from "./getCurrentSettings.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
 import {
@@ -24,7 +24,7 @@ function toggleChartControls() {
     }
 
     // First sync to ensure we're starting from the correct state
-    syncControlsState();
+    updateControlsState();
 
     // Then toggle the state
     chartControlsState.isVisible = !chartControlsState.isVisible;
@@ -152,7 +152,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
     }
 
     // Ensure state synchronization - sync internal state with actual DOM state
-    syncControlsState();
+    updateControlsState();
 
     return getCurrentSettings();
 }

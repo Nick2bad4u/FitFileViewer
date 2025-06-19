@@ -1,12 +1,12 @@
 // This file is part of the Electron app that interacts with the main process and the UI.
-import { displayTables } from "./utils/displayTables.js";
+import { createTables } from "./utils/createTables.js";
 import { renderMap } from "./utils/renderMap.js";
 import { renderSummary } from "./utils/renderSummary.js";
-import { setActiveTab } from "./utils/setActiveTab.js";
-import { toggleTabVisibility } from "./utils/toggleTabVisibility.js";
+import { updateActiveTab } from "./utils/updateActiveTab.js";
+import { updateTabVisibility } from "./utils/updateTabVisibility.js";
 import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
 import { showFitData } from "./utils/showFitData.js";
-import { arrayBufferToBase64 } from "./utils/arrayBufferToBase64.js";
+import { convertArrayBufferToBase64 } from "./utils/convertArrayBufferToBase64.js";
 import { getActiveTabContent } from "./utils/getActiveTabContent.js";
 import { setupTabButton } from "./utils/setupTabButton.js";
 import { setupFullscreenListeners, setupDOMContentLoaded } from "./utils/addFullScreenButton.js";
@@ -137,7 +137,7 @@ function unloadFitFile() {
     }
 
     // Switch to map tab
-    setActiveTab("tab-map");
+    updateActiveTab("tab-map");
 
     // Notify main process to update menu
     if (window.electronAPI && window.electronAPI.send) {
@@ -167,7 +167,7 @@ window.sendFitFileToAltFitReader = async function (arrayBuffer) {
     const postToIframe = () => {
         try {
             if (iframe.contentWindow) {
-                const base64 = arrayBufferToBase64(arrayBuffer);
+                const base64 = convertArrayBufferToBase64(arrayBuffer);
                 iframe.contentWindow.postMessage({ type: "fit-file", base64 }, "*");
             }
         } catch (error) {
@@ -435,20 +435,20 @@ setupFullscreenListeners();
 setupDOMContentLoaded();
 // Define smaller chunks for better readability and maintainability
 const tabFunctions = {
-    toggleTabVisibility,
-    setActiveTab,
+    updateTabVisibility,
+    updateActiveTab,
     setupTabButton,
 };
 
 const renderFunctions = {
-    displayTables,
+    createTables,
     renderMap,
     renderSummary,
 };
 
 const utilityFunctions = {
     getActiveTabContent,
-    arrayBufferToBase64,
+    convertArrayBufferToBase64,
     showFitData,
 };
 

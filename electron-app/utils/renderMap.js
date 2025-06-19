@@ -26,7 +26,7 @@ import { createShownFilesList } from "./createShownFilesList.js";
 import { createAddFitFileToMapButton } from "./createAddFitFileToMapButton.js";
 import { createExportGPXButton } from "./createExportGPXButton.js";
 import { createPrintButton } from "./createPrintButton.js";
-import { overlayColorPalette } from "./overlayColorPalette.js";
+import { chartOverlayColorPalette } from "./chartOverlayColorPalette.js";
 import { createElevationProfileButton } from "./createElevationProfileButton.js";
 import { addFullscreenControl } from "./mapFullscreenControl.js";
 import { drawOverlayForFitFile } from "./drawMapForLap.js";
@@ -281,7 +281,7 @@ export function renderMap() {
         window._overlayPolylines = {};
         window.loadedFitFiles.forEach((fitFile, idx) => {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
-            const color = overlayColorPalette[idx % overlayColorPalette.length];
+            const color = chartOverlayColorPalette[idx % chartOverlayColorPalette.length];
             const fileName = (fitFile.filePath || "").split(/[\\/]/).pop();
             const bounds = drawOverlayForFitFile({
                 fitData: fitFile.data,

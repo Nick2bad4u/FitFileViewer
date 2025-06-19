@@ -1,9 +1,9 @@
 import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
-import { getZoneTypeFromField, getChartZoneColors } from "./zoneColorUtils.js";
+import { getZoneTypeFromField, getChartZoneColors } from "./chartZoneColorUtils.js";
 import { getThemeConfig } from "./theme.js";
-import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
+import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
 
 // Helper function to render individual zone chart
 
@@ -200,7 +200,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         },
                     },
                 },
-                backgroundColorPlugin: {
+                chartBackgroundColorPlugin: {
                     backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                 },
             },
@@ -222,7 +222,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                 },
             },
         },
-        plugins: [backgroundColorPlugin],
+        plugins: [chartBackgroundColorPlugin],
     };
 }
 
@@ -294,7 +294,7 @@ function createBarChartConfig(zoneData, colors, title, options, currentTheme, ba
                         },
                     },
                 },
-                backgroundColorPlugin: {
+                chartBackgroundColorPlugin: {
                     backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                 },
             },
@@ -356,6 +356,6 @@ function createBarChartConfig(zoneData, colors, title, options, currentTheme, ba
                 mode: "index",
             },
         },
-        plugins: [backgroundColorPlugin],
+        plugins: [chartBackgroundColorPlugin],
     };
 }

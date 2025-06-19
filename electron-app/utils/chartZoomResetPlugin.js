@@ -3,8 +3,8 @@ import { getThemeConfig } from "./theme.js";
 
 // Enhanced zoom reset plugin
 
-export const zoomResetPlugin = {
-    id: "zoomResetPlugin",
+export const chartZoomResetPlugin = {
+    id: "chartZoomResetPlugin",
     afterDraw(chart) {
         if (!chart.isZoomedOrPanned || !chart.isZoomedOrPanned()) return;
         const ctx = chart.ctx;

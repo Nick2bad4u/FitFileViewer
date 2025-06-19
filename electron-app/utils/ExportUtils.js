@@ -5,7 +5,7 @@ import { detectCurrentTheme } from "./chartThemeUtils.js";
 /* global JSZip */
 
 // Export utilities
-export const ExportUtils = {
+export const exportUtils = {
     /**
      * Validates a Chart.js instance
      * @param {Object} chart - Chart.js instance to validate
@@ -13,17 +13,17 @@ export const ExportUtils = {
      */
     isValidChart(chart) {
         if (!chart) {
-            console.warn("[ExportUtils] Chart is null or undefined");
+            console.warn("[exportUtils] Chart is null or undefined");
             return false;
         }
 
         if (!chart.canvas) {
-            console.warn("[ExportUtils] Chart canvas is not available");
+            console.warn("[exportUtils] Chart canvas is not available");
             return false;
         }
 
         if (!chart.canvas.width || !chart.canvas.height) {
-            console.warn("[ExportUtils] Chart canvas has invalid dimensions:", {
+            console.warn("[exportUtils] Chart canvas has invalid dimensions:", {
                 width: chart.canvas.width,
                 height: chart.canvas.height,
             });
@@ -41,7 +41,7 @@ export const ExportUtils = {
         const exportTheme = localStorage.getItem("chartjs_exportTheme");
 
         // Debug logging
-        console.log("[ExportUtils] exportTheme from localStorage:", exportTheme);
+        console.log("[exportUtils] exportTheme from localStorage:", exportTheme);
 
         // If no export theme is set, fall back to the current app theme
         let theme;
@@ -49,18 +49,18 @@ export const ExportUtils = {
             // Handle "auto" theme by detecting current theme
             if (exportTheme === "auto") {
                 const currentTheme = detectCurrentTheme();
-                console.log("[ExportUtils] Auto theme detected as:", currentTheme);
+                console.log("[exportUtils] Auto theme detected as:", currentTheme);
                 theme = currentTheme || "light";
             } else {
                 theme = exportTheme;
-                console.log("[ExportUtils] Using explicit export theme:", theme);
+                console.log("[exportUtils] Using explicit export theme:", theme);
             }
         } else {
             // Use current app theme as fallback, or default to "light"
             const currentTheme = detectCurrentTheme();
-            console.log("[ExportUtils] detectCurrentTheme() returned:", currentTheme);
+            console.log("[exportUtils] detectCurrentTheme() returned:", currentTheme);
             theme = currentTheme || "light";
-            console.log("[ExportUtils] Final fallback theme:", theme);
+            console.log("[exportUtils] Final fallback theme:", theme);
         }
 
         let backgroundColor;
@@ -77,7 +77,7 @@ export const ExportUtils = {
                 break;
         }
 
-        console.log("[ExportUtils] Final background color:", backgroundColor);
+        console.log("[exportUtils] Final background color:", backgroundColor);
         return backgroundColor;
     },
 
@@ -87,7 +87,7 @@ export const ExportUtils = {
      * @param {string} filename - Download filename
      */ async downloadChartAsPNG(chart, filename = "chart.png") {
         try {
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
             const link = document.createElement("a");
             link.download = filename;
             link.href = chart.toBase64Image("image/png", 1.0, backgroundColor);
@@ -111,7 +111,7 @@ export const ExportUtils = {
                 throw new Error("No charts provided");
             }
 
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
             const combinedCanvas = document.createElement("canvas");
             const ctx = combinedCanvas.getContext("2d");
 
@@ -177,11 +177,11 @@ export const ExportUtils = {
      */ async copyChartToClipboard(chart) {
         try {
             // Validate chart using utility function
-            if (!ExportUtils.isValidChart(chart)) {
+            if (!exportUtils.isValidChart(chart)) {
                 throw new Error("Invalid chart instance provided");
             }
 
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
 
             // Create canvas with theme background
             const canvas = document.createElement("canvas");
@@ -225,7 +225,7 @@ export const ExportUtils = {
                 throw new Error("No charts provided");
             }
 
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
             const combinedCanvas = document.createElement("canvas");
             const ctx = combinedCanvas.getContext("2d");
 
@@ -292,7 +292,7 @@ export const ExportUtils = {
 
         if (clientId === "YOUR_IMGUR_CLIENT_ID") {
             throw new Error(
-                "Imgur client ID not configured. Please add your Imgur client ID to the ExportUtils.uploadToImgur function."
+                "Imgur client ID not configured. Please add your Imgur client ID to the exportUtils.uploadToImgur function."
             );
         }
 
@@ -432,10 +432,10 @@ export const ExportUtils = {
      * @returns {Promise<string>} Access token
      */
     async authenticateWithGyazo() {
-        const config = ExportUtils.getGyazoConfig();
+        const config = exportUtils.getGyazoConfig();
 
         if (!config.clientId || !config.clientSecret) {
-            ExportUtils.showGyazoSetupGuide();
+            exportUtils.showGyazoSetupGuide();
             throw new Error("Gyazo credentials not configured. Please complete the setup first.");
         }
 
@@ -478,15 +478,15 @@ export const ExportUtils = {
                         await window.electronAPI.stopGyazoServer();
 
                         // Exchange code for token
-                        const tokenData = await ExportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
+                        const tokenData = await exportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
 
                         // Store the access token
-                        ExportUtils.setGyazoAccessToken(tokenData.access_token);
+                        exportUtils.setGyazoAccessToken(tokenData.access_token);
 
                         // Update status in any open account manager modal
                         const accountManagerModal = document.querySelector(".gyazo-account-manager-modal");
                         if (accountManagerModal) {
-                            ExportUtils.updateGyazoAuthStatus(accountManagerModal);
+                            exportUtils.updateGyazoAuthStatus(accountManagerModal);
                         }
 
                         // Close any open auth modal
@@ -514,7 +514,7 @@ export const ExportUtils = {
                 window.electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
 
                 // Create a modal with OAuth instructions and link
-                const modal = ExportUtils.createGyazoAuthModal(authUrl, state, resolve, reject, true);
+                const modal = exportUtils.createGyazoAuthModal(authUrl, state, resolve, reject, true);
                 document.body.appendChild(modal);
             });
         } catch (error) {
@@ -714,11 +714,11 @@ export const ExportUtils = {
 
                 try {
                     showNotification("Exchanging code for access token...", "info");
-                    const tokenData = await ExportUtils.exchangeGyazoCodeForToken(
+                    const tokenData = await exportUtils.exchangeGyazoCodeForToken(
                         code,
-                        ExportUtils.getGyazoConfig().redirectUri
+                        exportUtils.getGyazoConfig().redirectUri
                     );
-                    ExportUtils.setGyazoAccessToken(tokenData.access_token);
+                    exportUtils.setGyazoAccessToken(tokenData.access_token);
 
                     document.body.removeChild(overlay);
                     showNotification("Gyazo authentication successful!", "success");
@@ -793,7 +793,7 @@ export const ExportUtils = {
      * @returns {Promise<Object>} Token data with access_token
      */
     async exchangeGyazoCodeForToken(code, redirectUri) {
-        const config = ExportUtils.getGyazoConfig();
+        const config = exportUtils.getGyazoConfig();
 
         const tokenParams = new URLSearchParams({
             client_id: config.clientId,
@@ -835,12 +835,12 @@ export const ExportUtils = {
      * @returns {Promise<string>} Gyazo URL
      */
     async uploadToGyazo(base64Image) {
-        let accessToken = ExportUtils.getGyazoAccessToken();
+        let accessToken = exportUtils.getGyazoAccessToken();
 
         // If no access token, try to authenticate
         if (!accessToken) {
             try {
-                accessToken = await ExportUtils.authenticateWithGyazo();
+                accessToken = await exportUtils.authenticateWithGyazo();
             } catch (error) {
                 throw new Error(`Gyazo authentication required: ${error.message}`);
             }
@@ -856,7 +856,7 @@ export const ExportUtils = {
             formData.append("access_token", accessToken);
             formData.append("imagedata", blob, "chart.png");
 
-            const uploadResponse = await fetch(ExportUtils.getGyazoConfig().uploadUrl, {
+            const uploadResponse = await fetch(exportUtils.getGyazoConfig().uploadUrl, {
                 method: "POST",
                 body: formData,
             });
@@ -864,7 +864,7 @@ export const ExportUtils = {
             if (!uploadResponse.ok) {
                 // If unauthorized, clear the token and try to re-authenticate
                 if (uploadResponse.status === 401) {
-                    ExportUtils.clearGyazoAccessToken();
+                    exportUtils.clearGyazoAccessToken();
                     throw new Error("Gyazo access token expired. Please re-authenticate.");
                 }
 
@@ -885,7 +885,7 @@ export const ExportUtils = {
 
             // If it's an authentication error, clear the stored token
             if (error.message.includes("expired") || error.message.includes("unauthorized")) {
-                ExportUtils.clearGyazoAccessToken();
+                exportUtils.clearGyazoAccessToken();
             }
 
             throw error;
@@ -1018,7 +1018,7 @@ export const ExportUtils = {
             }
 
             const zip = new JSZip(); // JSZip is loaded globally via script tag
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
 
             // Add individual chart images
             for (let i = 0; i < charts.length; i++) {
@@ -1190,7 +1190,7 @@ export const ExportUtils = {
      * @param {Chart} chart - Chart.js instance
      */ async printChart(chart) {
         try {
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
             const printWindow = window.open("", "_blank");
 
             // Create canvas with theme background
@@ -1247,7 +1247,7 @@ export const ExportUtils = {
                 return;
             }
 
-            const backgroundColor = ExportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground();
             const printWindow = window.open("", "_blank");
             let htmlContent = `
 				<html>
@@ -1334,14 +1334,14 @@ export const ExportUtils = {
             // Single chart callback
             async (chart) => {
                 try {
-                    if (!ExportUtils.isValidChart(chart)) {
+                    if (!exportUtils.isValidChart(chart)) {
                         showNotification("Invalid chart provided", "error");
                         return;
                     }
 
                     showNotification("Uploading chart to Gyazo...", "info");
 
-                    const backgroundColor = ExportUtils.getExportThemeBackground();
+                    const backgroundColor = exportUtils.getExportThemeBackground();
 
                     const canvas = document.createElement("canvas");
                     canvas.width = chart.canvas.width;
@@ -1356,7 +1356,7 @@ export const ExportUtils = {
                     ctx.drawImage(chart.canvas, 0, 0);
                     const base64Image = canvas.toDataURL("image/png", 1.0);
 
-                    const gyazoUrl = await ExportUtils.uploadToGyazo(base64Image);
+                    const gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(gyazoUrl);
@@ -1365,7 +1365,7 @@ export const ExportUtils = {
                     console.error("Error sharing single chart to Gyazo:", error);
                     if (error.message.includes("Gyazo access token not configured")) {
                         showNotification(
-                            "Gyazo access token not configured. Please update the ExportUtils.uploadToGyazo function with your Gyazo access token.",
+                            "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
                         );
                     } else {
@@ -1383,7 +1383,7 @@ export const ExportUtils = {
 
                     showNotification("Uploading combined charts to Gyazo...", "info");
 
-                    const backgroundColor = ExportUtils.getExportThemeBackground();
+                    const backgroundColor = exportUtils.getExportThemeBackground();
                     const combinedCanvas = document.createElement("canvas");
                     const ctx = combinedCanvas.getContext("2d");
 
@@ -1422,7 +1422,7 @@ export const ExportUtils = {
                     });
 
                     const base64Image = combinedCanvas.toDataURL("image/png", 1.0);
-                    const gyazoUrl = await ExportUtils.uploadToGyazo(base64Image);
+                    const gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(gyazoUrl);
@@ -1431,7 +1431,7 @@ export const ExportUtils = {
                     console.error("Error sharing combined charts to Gyazo:", error);
                     if (error.message.includes("Gyazo access token not configured")) {
                         showNotification(
-                            "Gyazo access token not configured. Please update the ExportUtils.uploadToGyazo function with your Gyazo access token.",
+                            "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
                         );
                     } else {
@@ -1451,14 +1451,14 @@ export const ExportUtils = {
             // Single chart callback
             async (chart) => {
                 try {
-                    if (!ExportUtils.isValidChart(chart)) {
+                    if (!exportUtils.isValidChart(chart)) {
                         showNotification("Invalid chart provided", "error");
                         return;
                     }
 
                     showNotification("Uploading chart to Imgur...", "info");
 
-                    const backgroundColor = ExportUtils.getExportThemeBackground();
+                    const backgroundColor = exportUtils.getExportThemeBackground();
 
                     const canvas = document.createElement("canvas");
                     canvas.width = chart.canvas.width;
@@ -1473,7 +1473,7 @@ export const ExportUtils = {
                     ctx.drawImage(chart.canvas, 0, 0);
                     const base64Image = canvas.toDataURL("image/png", 1.0);
 
-                    const imgurUrl = await ExportUtils.uploadToImgur(base64Image);
+                    const imgurUrl = await exportUtils.uploadToImgur(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(imgurUrl);
@@ -1482,7 +1482,7 @@ export const ExportUtils = {
                     console.error("Error sharing single chart as URL:", error);
                     if (error.message.includes("Imgur client ID not configured")) {
                         showNotification(
-                            "Imgur client ID not configured. Please update the ExportUtils.uploadToImgur function with your Imgur client ID.",
+                            "Imgur client ID not configured. Please update the exportUtils.uploadToImgur function with your Imgur client ID.",
                             "error"
                         );
                     } else {
@@ -1500,7 +1500,7 @@ export const ExportUtils = {
 
                     showNotification("Uploading combined charts to Imgur...", "info");
 
-                    const backgroundColor = ExportUtils.getExportThemeBackground();
+                    const backgroundColor = exportUtils.getExportThemeBackground();
                     const combinedCanvas = document.createElement("canvas");
                     const ctx = combinedCanvas.getContext("2d");
 
@@ -1539,7 +1539,7 @@ export const ExportUtils = {
                     });
 
                     const base64Image = combinedCanvas.toDataURL("image/png", 1.0);
-                    const imgurUrl = await ExportUtils.uploadToImgur(base64Image);
+                    const imgurUrl = await exportUtils.uploadToImgur(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(imgurUrl);
@@ -1548,7 +1548,7 @@ export const ExportUtils = {
                     console.error("Error sharing combined charts as URL:", error);
                     if (error.message.includes("Imgur client ID not configured")) {
                         showNotification(
-                            "Imgur client ID not configured. Please update the ExportUtils.uploadToImgur function with your Imgur client ID.",
+                            "Imgur client ID not configured. Please update the exportUtils.uploadToImgur function with your Imgur client ID.",
                             "error"
                         );
                     } else {
@@ -1564,7 +1564,7 @@ export const ExportUtils = {
      * @returns {boolean} True if authenticated, false otherwise
      */
     isGyazoAuthenticated() {
-        const token = ExportUtils.getGyazoAccessToken();
+        const token = exportUtils.getGyazoAccessToken();
         console.log("[Gyazo] Checking authentication status. Token exists:", !!token);
         return !!token;
     },
@@ -1573,8 +1573,8 @@ export const ExportUtils = {
      * Shows Gyazo account management modal with credentials setup
      */
     showGyazoAccountManager() {
-        const isAuthenticated = ExportUtils.isGyazoAuthenticated();
-        const config = ExportUtils.getGyazoConfig();
+        const isAuthenticated = exportUtils.isGyazoAuthenticated();
+        const config = exportUtils.getGyazoConfig();
         const hasCredentials = !!(config.clientId && config.clientSecret);
 
         // Create modal overlay
@@ -1810,20 +1810,20 @@ export const ExportUtils = {
                 return;
             }
 
-            ExportUtils.setGyazoConfig(clientId, clientSecret);
+            exportUtils.setGyazoConfig(clientId, clientSecret);
             showNotification("Gyazo credentials saved successfully!", "success");
 
             // Update the status in the current modal
-            ExportUtils.updateGyazoAuthStatus(modal);
+            exportUtils.updateGyazoAuthStatus(modal);
         });
 
         // Connect to Gyazo
         if (connectBtn) {
             connectBtn.addEventListener("click", async () => {
                 try {
-                    await ExportUtils.authenticateWithGyazo();
+                    await exportUtils.authenticateWithGyazo();
                     // Update the status in the current modal
-                    ExportUtils.updateGyazoAuthStatus(modal);
+                    exportUtils.updateGyazoAuthStatus(modal);
                     showNotification("Gyazo account connected successfully!", "success");
                 } catch (error) {
                     showNotification(`Failed to connect Gyazo account: ${error.message}`, "error");
@@ -1834,9 +1834,9 @@ export const ExportUtils = {
         // Disconnect from Gyazo
         if (disconnectBtn) {
             disconnectBtn.addEventListener("click", () => {
-                ExportUtils.clearGyazoAccessToken();
+                exportUtils.clearGyazoAccessToken();
                 // Update the status in the current modal
-                ExportUtils.updateGyazoAuthStatus(modal);
+                exportUtils.updateGyazoAuthStatus(modal);
                 showNotification("Gyazo account disconnected", "info");
             });
         }
@@ -1848,7 +1848,7 @@ export const ExportUtils = {
                     "Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account."
                 )
             ) {
-                ExportUtils.clearGyazoConfig();
+                exportUtils.clearGyazoConfig();
                 document.body.removeChild(overlay);
                 showNotification("All Gyazo data cleared", "info");
             }
@@ -1926,7 +1926,7 @@ export const ExportUtils = {
                         </ul>
                     </li>
                     <li>Copy your <strong>Client ID</strong> and <strong>Client Secret</strong></li>
-                    <li>Update the ExportUtils.gyazoConfig in the source code:
+                    <li>Update the exportUtils.gyazoConfig in the source code:
                         <pre style="
                             background: var(--color-glass);
                             padding: 12px;
@@ -1999,8 +1999,8 @@ export const ExportUtils = {
      * @param {HTMLElement} modal - The modal element containing status indicators
      */
     updateGyazoAuthStatus(modal) {
-        const isAuthenticated = ExportUtils.isGyazoAuthenticated();
-        const config = ExportUtils.getGyazoConfig();
+        const isAuthenticated = exportUtils.isGyazoAuthenticated();
+        const config = exportUtils.getGyazoConfig();
         const hasCredentials = !!(config.clientId && config.clientSecret);
 
         // Update auth status

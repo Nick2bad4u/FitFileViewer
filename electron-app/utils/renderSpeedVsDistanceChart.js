@@ -3,8 +3,8 @@ import { convertValueToUserUnits } from "./convertValueToUserUnits.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTooltipWithUnits } from "./formatTooltipWithUnits.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
-import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
+import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
 
 // Speed vs Distance chart
 export function renderSpeedVsDistanceChart(container, data, options) {
@@ -152,7 +152,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             },
                         },
                     },
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: themeConfig.colors.chartBackground,
                     },
                 },
@@ -187,7 +187,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, backgroundColorPlugin],
+            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
         };
 
         const chart = new window.Chart(canvas, config);

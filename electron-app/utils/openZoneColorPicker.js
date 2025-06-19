@@ -7,7 +7,7 @@ import {
     getChartSpecificZoneColor,
     saveChartSpecificZoneColor,
     applyZoneColors,
-} from "./zoneColorUtils.js";
+} from "./chartZoneColorUtils.js";
 
 export function openZoneColorPicker(field) {
     try {

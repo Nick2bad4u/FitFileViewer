@@ -12,8 +12,8 @@ import { renderTable } from "./renderTable.js";
  *
  * Note: The `renderTable` function receives an additional `index` parameter, which represents the order of the table being rendered.
  */
-export function displayTables(dataFrames, containerOverride) {
-    console.log("[DEBUG] displayTables called", dataFrames);
+export function createTables(dataFrames, containerOverride) {
+    console.log("[DEBUG] createTables called", dataFrames);
 
     const aq = window.aq;
     if (!aq) {

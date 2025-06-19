@@ -4,7 +4,7 @@
  * out of the total available charts, helping users understand their chart selection status
  */
 
-import { chartFields } from "./chartFields.js";
+import { formatChartFields } from "./formatChartFields.js";
 
 /**
  * Gets the count of available chart types based on current data
@@ -33,7 +33,7 @@ export function getChartCounts() {
 
     try {
         // Basic metric fields
-        chartFields.forEach((field) => {
+        formatChartFields.forEach((field) => {
             counts.total++;
             counts.categories.metrics.total++;
 
@@ -229,13 +229,13 @@ export function getChartCounts() {
                 }
             }
         } // Developer fields (dynamic based on actual data)
-        // Only count fields that are not already in chartFields and have meaningful data
+        // Only count fields that are not already in formatChartFields and have meaningful data
         if (window.globalData?.recordMesgs && window.globalData.recordMesgs.length > 0) {
             const sampleRecord = window.globalData.recordMesgs[0];
             const excludedFields = ["timestamp", "distance", "fractional_cadence", "positionLat", "positionLong"];
             const developerFields = Object.keys(sampleRecord).filter(
                 (key) =>
-                    !chartFields.includes(key) &&
+                    !formatChartFields.includes(key) &&
                     !excludedFields.includes(key) &&
                     (key.startsWith("developer_") || key.includes("_"))
             );

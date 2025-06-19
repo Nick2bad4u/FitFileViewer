@@ -1,6 +1,6 @@
 import { getThemeConfig } from "./theme.js";
 import { createChartCanvas } from "./createChartCanvas.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
 
 // GPS track chart renderer
 export function renderGPSTrackChart(container, data, options) {
@@ -151,7 +151,7 @@ export function renderGPSTrackChart(container, data, options) {
                             },
                         },
                     },
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: themeConfig.colors.bgPrimary,
                     },
                 },
@@ -196,7 +196,7 @@ export function renderGPSTrackChart(container, data, options) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
+            plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
         };
 
         const chart = new window.Chart(canvas, config);

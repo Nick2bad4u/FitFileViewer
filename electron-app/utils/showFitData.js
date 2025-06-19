@@ -44,8 +44,8 @@ export function showFitData(data, filePath) {
     }
 
     // Optionally, update UI with data (tables, charts, etc.)
-    if (window.displayTables && window.globalData) {
-        window.displayTables(window.globalData);
+    if (window.createTables && window.globalData) {
+        window.createTables(window.globalData);
     }
     if (window.renderChart && window.globalData) {
         window.renderChart();

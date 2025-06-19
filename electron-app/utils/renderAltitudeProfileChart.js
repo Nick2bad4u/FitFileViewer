@@ -2,8 +2,8 @@ import { getThemeConfig } from "./theme.js";
 import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
-import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
+import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
 
 // Altitude profile with gradient visualization
 export function renderAltitudeProfileChart(container, data, labels, options) {
@@ -133,7 +133,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             },
                         },
                     },
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: themeConfig.colors.chartBackground,
                     },
                 },
@@ -173,7 +173,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, backgroundColorPlugin],
+            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
         };
 
         const chart = new window.Chart(canvas, config);

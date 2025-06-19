@@ -6,7 +6,7 @@ import { previousChartState, updatePreviousChartState } from "./renderChartJS.js
  * @param {number} currentVisibleFields - Number of visible fields
  * @returns {boolean} Whether to show notification
  */
-export function shouldShowRenderNotification(currentChartCount, currentVisibleFields) {
+export function showRenderNotification(currentChartCount, currentVisibleFields) {
     const now = Date.now();
 
     // Always show notification if it's been more than 10 seconds since last render

@@ -3,8 +3,8 @@
  * Based on the Garmin FIT SDK and community-maintained lists
  */
 
-import { MANUFACTURER_IDS } from "./MANUFACTURER_IDS.js";
-import { PRODUCT_IDS } from "./PRODUCT_IDS.js";
+import { dataAntManufacturerIDs } from "./dataAntManufacturerIDs.js";
+import { dataAntProductIds } from "./dataAntProductIds.js";
 
 /**
  * Get manufacturer name from ID
@@ -13,7 +13,7 @@ import { PRODUCT_IDS } from "./PRODUCT_IDS.js";
  */
 export function getManufacturerName(manufacturerId) {
     const id = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId;
-    return MANUFACTURER_IDS[id] || manufacturerId;
+    return dataAntManufacturerIDs[id] || manufacturerId;
 }
 
 /**
@@ -26,7 +26,7 @@ export function getProductName(manufacturerId, productId) {
     const mfgId = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId;
     const prodId = typeof productId === "string" ? parseInt(productId, 10) : productId;
 
-    const manufacturerProducts = PRODUCT_IDS[mfgId];
+    const manufacturerProducts = dataAntProductIds[mfgId];
     if (manufacturerProducts && manufacturerProducts[prodId]) {
         return manufacturerProducts[prodId];
     }
@@ -73,7 +73,7 @@ export function getManufacturerIdFromName(manufacturerName) {
     ];
 
     // Search through all manufacturer IDs to find a match
-    for (const [id, name] of Object.entries(MANUFACTURER_IDS)) {
+    for (const [id, name] of Object.entries(dataAntManufacturerIDs)) {
         const normalizedName = name.toLowerCase();
 
         // Check if any variation matches

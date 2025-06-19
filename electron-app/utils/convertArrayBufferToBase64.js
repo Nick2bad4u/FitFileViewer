@@ -7,9 +7,9 @@
  * @throws {TypeError} If buffer is not an ArrayBuffer
  * @example
  * // Convert FIT file buffer to base64
- * const base64String = arrayBufferToBase64(fitFileBuffer);
+ * const base64String = convertArrayBufferToBase64(fitFileBuffer);
  */
-export function arrayBufferToBase64(buffer) {
+export function convertArrayBufferToBase64(buffer) {
     // Input validation
     if (!(buffer instanceof ArrayBuffer)) {
         throw new TypeError("Expected ArrayBuffer, received " + typeof buffer);

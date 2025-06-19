@@ -4,7 +4,7 @@
  * @returns {Promise<{success: boolean, data?: Object, error?: string}>} Load result
  * @private
  */
-export async function _loadSingleOverlayFile(file) {
+export async function loadSingleOverlayFile(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
 

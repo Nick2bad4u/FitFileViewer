@@ -8,7 +8,7 @@ const url = require("url");
 const { autoUpdater } = require("electron-updater");
 
 const { loadRecentFiles, addRecentFile } = require("./utils/recentFiles");
-const { buildAppMenu } = require("./utils/buildAppMenu");
+const { createAppMenu } = require("./utils/createAppMenu");
 
 // Constants
 const CONSTANTS = {
@@ -190,8 +190,8 @@ async function initializeApplication() {
     AppState.mainWindow = mainWindow;
 
     // Set the custom menu immediately after window creation to avoid menu flash/disappearance
-    logWithContext("info", "Calling buildAppMenu after window creation");
-    buildAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+    logWithContext("info", "Calling createAppMenu after window creation");
+    createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
 
     // Setup auto-updater with error handling
     try {
@@ -207,11 +207,11 @@ async function initializeApplication() {
         try {
             const theme = await getThemeFromRenderer(mainWindow);
             logWithContext("info", "Retrieved theme from renderer", { theme });
-            buildAppMenu(mainWindow, theme, AppState.loadedFitFilePath);
+            createAppMenu(mainWindow, theme, AppState.loadedFitFilePath);
             sendToRenderer(mainWindow, "set-theme", theme);
         } catch (error) {
             logWithContext("warn", "Failed to get theme from renderer, using fallback", { error: error.message });
-            buildAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+            createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
             sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
         }
     });
@@ -237,7 +237,7 @@ function setupIPCHandlers(mainWindow) {
             // Fetch current theme from renderer before rebuilding menu
             const win = BrowserWindow.getFocusedWindow() || mainWindow;
             const theme = await getThemeFromRenderer(win);
-            buildAppMenu(win, theme, AppState.loadedFitFilePath);
+            createAppMenu(win, theme, AppState.loadedFitFilePath);
 
             return filePaths[0];
         })
@@ -250,7 +250,7 @@ function setupIPCHandlers(mainWindow) {
         if (validateWindow(win)) {
             try {
                 const theme = await getThemeFromRenderer(win);
-                buildAppMenu(win, theme, AppState.loadedFitFilePath);
+                createAppMenu(win, theme, AppState.loadedFitFilePath);
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", { error: error.message });
             }
@@ -271,7 +271,7 @@ function setupIPCHandlers(mainWindow) {
             addRecentFile(filePath);
             const win = BrowserWindow.getFocusedWindow() || mainWindow;
             const theme = await getThemeFromRenderer(win);
-            buildAppMenu(win, theme, AppState.loadedFitFilePath);
+            createAppMenu(win, theme, AppState.loadedFitFilePath);
             return loadRecentFiles();
         })
     );
@@ -387,7 +387,7 @@ function setupMenuAndEventHandlers() {
     ipcMain.on("theme-changed", async (event, theme) => {
         const win = BrowserWindow.fromWebContents(event.sender);
         if (validateWindow(win)) {
-            buildAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+            createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
         }
     });
 
@@ -498,7 +498,7 @@ function setupMenuAndEventHandlers() {
         const t = theme || CONSTANTS.DEFAULT_THEME;
         const f = fitFilePath || null;
         logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
-        buildAppMenu(win, t, f);
+        createAppMenu(win, t, f);
         return true;
     });
 }
@@ -509,11 +509,11 @@ function setupApplicationEventHandlers() {
     app.on("activate", function () {
         if (BrowserWindow.getAllWindows().length === 0) {
             const win = createWindow();
-            buildAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+            createAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
         } else {
             const win = BrowserWindow.getFocusedWindow() || AppState.mainWindow;
             if (validateWindow(win)) {
-                buildAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+                createAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
             }
         }
     });
@@ -523,7 +523,7 @@ function setupApplicationEventHandlers() {
         if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
             try {
                 const theme = await getThemeFromRenderer(win);
-                buildAppMenu(win, theme, AppState.loadedFitFilePath);
+                createAppMenu(win, theme, AppState.loadedFitFilePath);
             } catch (err) {
                 logWithContext("error", "Error setting menu on browser-window-focus:", { error: err.message });
             }
@@ -595,7 +595,7 @@ function exposeDevHelpers() {
         rebuildMenu: (theme, filePath) => {
             const win = BrowserWindow.getFocusedWindow();
             if (validateWindow(win)) {
-                buildAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, filePath || AppState.loadedFitFilePath);
+                createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, filePath || AppState.loadedFitFilePath);
             }
         },
         logState: () => {

@@ -1,9 +1,9 @@
 import { detectCurrentTheme } from "./chartThemeUtils.js";
-import { getChartZoneColors } from "./zoneColorUtils.js";
+import { getChartZoneColors } from "./chartZoneColorUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { formatTime } from "./formatTime.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
-import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
+import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
 
 /**
  * Renders a single heart rate zone bar (e.g., for a summary or lap)
@@ -100,7 +100,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                             },
                         },
                     },
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
                     },
                 },
@@ -137,7 +137,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, backgroundColorPlugin],
+            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
         });
         return chart;
     } catch (error) {

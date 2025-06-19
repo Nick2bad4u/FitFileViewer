@@ -3,7 +3,7 @@
  * @type {string[]}
  */
 
-export const overlayColorPalette = (function shuffleAndFilter(array) {
+export const chartOverlayColorPalette = (function shuffleAndFilter(array) {
     // Remove duplicates
     let unique = Array.from(new Set(array));
 

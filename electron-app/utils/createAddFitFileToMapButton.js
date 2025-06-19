@@ -1,5 +1,5 @@
 import { getThemeColors } from "./getThemeColors.js";
-import { _openFileSelector } from "./_openFileSelector.js";
+import { openFileSelector } from "./openFileSelector.js";
 import { showNotification } from "./showNotification.js";
 
 /**
@@ -25,7 +25,7 @@ export function createAddFitFileToMapButton() {
 
         addOverlayBtn.addEventListener("click", () => {
             try {
-                _openFileSelector();
+                openFileSelector();
             } catch (error) {
                 console.error("[MapActions] Failed to open file selector:", error);
                 showNotification("Failed to open file selector", "error");

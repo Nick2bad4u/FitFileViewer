@@ -489,7 +489,7 @@
 <lastmod>2025-05-07T18:15:58-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/tests/arrayBufferToBase64.test.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/tests/convertArrayBufferToBase64.test.js</loc>
 <lastmod>2025-05-07T18:15:58-04:00</lastmod>
 </url>
 <url>
@@ -537,7 +537,7 @@
 <lastmod>2025-05-07T18:15:58-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/tests/setActiveTab.test.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/tests/updateActiveTab.test.js</loc>
 <lastmod>2025-05-07T18:15:58-04:00</lastmod>
 </url>
 <url>
@@ -573,7 +573,7 @@
 <lastmod>2025-05-07T18:15:58-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/tests/toggleTabVisibility.test.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/tests/updateTabVisibility.test.js</loc>
 <lastmod>2025-05-07T18:15:58-04:00</lastmod>
 </url>
 <url>
@@ -593,11 +593,11 @@
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/utils/arrayBufferToBase64.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/utils/convertArrayBufferToBase64.js</loc>
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/utils/buildAppMenu.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/utils/createAppMenu.js</loc>
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>
@@ -609,7 +609,7 @@
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/utils/displayTables.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/utils/createTables.js</loc>
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>
@@ -725,7 +725,7 @@
 <lastmod>2025-04-20T12:36:06-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/utils/setActiveTab.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/utils/updateActiveTab.js</loc>
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>
@@ -757,7 +757,7 @@
 <lastmod>2025-05-14T15:58:50-04:00</lastmod>
 </url>
 <url>
-<loc>https://fitfileviewer.typpi.online/electron-app/utils/toggleTabVisibility.js</loc>
+<loc>https://fitfileviewer.typpi.online/electron-app/utils/updateTabVisibility.js</loc>
 <lastmod>2025-05-20T15:56:09-04:00</lastmod>
 </url>
 <url>

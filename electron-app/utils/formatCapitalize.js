@@ -10,12 +10,12 @@
  * @returns {string} Capitalized string
  *
  * @example
- * capitalize("hello world"); // "Hello world"
- * capitalize("FIT"); // "Fit"
- * capitalize("mcdonald", { lowercaseRest: false }); // "Mcdonald"
+ * formatCapitalize("hello world"); // "Hello world"
+ * formatCapitalize("FIT"); // "Fit"
+ * formatCapitalize("mcdonald", { lowercaseRest: false }); // "Mcdonald"
  */
 
-export function capitalize(str, options = {}) {
+export function formatCapitalize(str, options = {}) {
     if (!str || typeof str !== "string") return str;
     const { lowercaseRest = true } = options;
     if (lowercaseRest) {

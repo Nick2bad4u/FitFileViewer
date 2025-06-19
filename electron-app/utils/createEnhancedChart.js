@@ -5,8 +5,8 @@ import { formatTooltipWithUnits } from "./formatTooltipWithUnits.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { hexToRgba } from "./renderChartJS.js";
 import { getFieldColor } from "./getFieldColor.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
-import { backgroundColorPlugin } from "./backgroundColorPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
+import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
 import { showNotification } from "./showNotification.js";
 import { updateChartAnimations } from "./updateChartAnimations.js";
 
@@ -148,7 +148,7 @@ export function createEnhancedChart(canvas, options) {
                         },
                     },
                     zoom: zoomPluginConfig,
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                     },
                 },
@@ -220,7 +220,7 @@ export function createEnhancedChart(canvas, options) {
                     easing: interpolation,
                 },
             },
-            plugins: [zoomResetPlugin, backgroundColorPlugin],
+            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
         };
 
         // Apply theme-aware canvas styling (background handled by plugin)

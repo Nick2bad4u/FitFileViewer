@@ -3,6 +3,6 @@
  * @param {number} mps - Speed in meters per second
  * @returns {number} Speed in kilometers per hour
  */
-export function mpsToKmh(mps) {
+export function convertMpsToKmh(mps) {
     return mps * 3.6;
 }

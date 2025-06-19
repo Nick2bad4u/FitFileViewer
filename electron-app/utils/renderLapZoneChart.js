@@ -1,8 +1,8 @@
 import { getThemeConfig } from "./theme.js";
-import { getZoneColor } from "./zoneColorUtils.js";
+import { getZoneColor } from "./chartZoneColorUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { formatTime } from "./formatTime.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
 
 // Helper function to render lap-by-lap zone analysis bar chart
 export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
@@ -152,7 +152,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                             },
                         },
                     },
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: themeConfig.colors.chartBackground,
                     },
                 },
@@ -195,9 +195,9 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 },
             },
             plugins: [
-                zoomResetPlugin,
+                chartZoomResetPlugin,
                 {
-                    id: "backgroundColorPlugin",
+                    id: "chartBackgroundColorPlugin",
                     backgroundColor: themeConfig.colors.chartBackground,
                 },
             ],

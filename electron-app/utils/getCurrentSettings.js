@@ -1,4 +1,4 @@
-import { fieldColors, chartFields } from "./chartFields.js";
+import { fieldColors, formatChartFields } from "./formatChartFields.js";
 import { chartOptionsConfig } from "./chartOptionsConfig.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { showNotification } from "./showNotification.js";
@@ -36,7 +36,7 @@ export function getCurrentSettings() {
 
     // Get color settings
     settings.colors = {};
-    chartFields.forEach((field) => {
+    formatChartFields.forEach((field) => {
         const stored = localStorage.getItem(`chartjs_color_${field}`);
         settings.colors[field] = stored || fieldColors[field] || themeConfig.colors.primaryAlpha;
     });
@@ -54,7 +54,7 @@ export function resetAllSettings() {
     });
 
     // Clear field visibility and color settings
-    chartFields.forEach((field) => {
+    formatChartFields.forEach((field) => {
         localStorage.removeItem(`chartjs_color_${field}`);
         localStorage.removeItem(`chartjs_field_${field}`);
     }); // Clear additional field settings for analysis charts

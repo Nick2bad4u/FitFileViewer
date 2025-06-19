@@ -87,11 +87,11 @@ function getPlatformAppMenu(mainWindow) {
  * @param {string} [currentTheme=null] - The current theme of the application, used to set the checked state of theme radio buttons.
  * @param {string|null} [loadedFitFilePath=null] - The path of the loaded FIT file, used to enable/disable the Summary Columns menu item.
  */
-function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
+function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
     const theme = currentTheme || getTheme();
     const recentFiles = loadRecentFiles();
     if (!app.isPackaged) {
-        console.log("[buildAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
+        console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
     }
 
     const recentMenuItems =
@@ -183,7 +183,7 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
                                     win.webContents.send("show-notification", "Recent files cleared.", "info");
                                     win.webContents.send("unload-fit-file");
                                 }
-                                buildAppMenu(win, getTheme(), null);
+                                createAppMenu(win, getTheme(), null);
                             },
                         },
                     ],
@@ -483,22 +483,22 @@ function buildAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null)
     if (!app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
         const menuLabels = template.map((item) => item.label);
-        console.log("[buildAppMenu] Setting application menu. Menu labels:", menuLabels);
+        console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
     }
     if (!Array.isArray(template) || template.length === 0) {
         console.warn(
-            "[buildAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu."
+            "[createAppMenu] WARNING: Attempted to set an empty or invalid menu template. Skipping Menu.setApplicationMenu."
         );
         return;
     }
     try {
         mainMenu = Menu.buildFromTemplate(template);
-        console.log("[buildAppMenu] Menu built and assigned to mainMenu:", !!mainMenu);
+        console.log("[createAppMenu] Menu built and assigned to mainMenu:", !!mainMenu);
         Menu.setApplicationMenu(mainMenu);
-        console.log("[buildAppMenu] Menu set successfully.");
+        console.log("[createAppMenu] Menu set successfully.");
     } catch (err) {
-        console.error("[buildAppMenu] ERROR: Failed to set application menu:", err);
+        console.error("[createAppMenu] ERROR: Failed to set application menu:", err);
     }
 }
 
-module.exports = { buildAppMenu };
+module.exports = { createAppMenu };

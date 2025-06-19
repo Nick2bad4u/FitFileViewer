@@ -31,7 +31,7 @@ After creating the application, you'll receive:
 
 ### 3\. Configure the Application
 
-Open `electron-app/utils/ExportUtils.js` and update the `gyazoConfig` object:
+Open `electron-app/utils/exportUtils.js` and update the `gyazoConfig` object:
 
 ```javascript
 gyazoConfig: {
@@ -151,28 +151,28 @@ gyazoConfig: {
 
 ### Available Functions
 
-- `ExportUtils.isGyazoAuthenticated()` - Check if user is logged in
-- `ExportUtils.authenticateWithGyazo()` - Start OAuth flow
-- `ExportUtils.showGyazoAccountManager()` - Open account settings
-- `ExportUtils.uploadToGyazo(base64Image)` - Upload image to Gyazo
-- `ExportUtils.shareChartsToGyazo()` - Share charts with modal selection
+- `exportUtils.isGyazoAuthenticated()` - Check if user is logged in
+- `exportUtils.authenticateWithGyazo()` - Start OAuth flow
+- `exportUtils.showGyazoAccountManager()` - Open account settings
+- `exportUtils.uploadToGyazo(base64Image)` - Upload image to Gyazo
+- `exportUtils.shareChartsToGyazo()` - Share charts with modal selection
 
 ### Usage Examples
 
 ```javascript
 // Check authentication status
-if (ExportUtils.isGyazoAuthenticated()) {
+if (exportUtils.isGyazoAuthenticated()) {
     console.log("User is connected to Gyazo");
 }
 
 // Upload a chart
 try {
-    const gyazoUrl = await ExportUtils.uploadToGyazo(base64ImageData);
+    const gyazoUrl = await exportUtils.uploadToGyazo(base64ImageData);
     console.log("Chart uploaded:", gyazoUrl);
 } catch (error) {
     console.error("Upload failed:", error.message);
 }
 
 // Show account manager
-ExportUtils.showGyazoAccountManager();
+exportUtils.showGyazoAccountManager();
 ```

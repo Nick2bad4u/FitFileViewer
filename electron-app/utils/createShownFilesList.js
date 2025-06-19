@@ -1,5 +1,5 @@
 import { getThemeColors } from "./getThemeColors.js";
-import { overlayColorPalette } from "./overlayColorPalette.js";
+import { chartOverlayColorPalette } from "./chartOverlayColorPalette.js";
 
 /**
  * Creates a list container for showing loaded FIT files on the map
@@ -89,8 +89,8 @@ export function createShownFilesList() {
                 const li = document.createElement("li");
                 li.style.position = "relative";
                 li.textContent = "File: " + (f.filePath || "(unknown)");
-                const colorIdx = idx % overlayColorPalette.length;
-                const color = overlayColorPalette[colorIdx];
+                const colorIdx = idx % chartOverlayColorPalette.length;
+                const color = chartOverlayColorPalette[colorIdx];
                 const isDark = document.body.classList.contains("theme-dark");
                 let filter = "";
                 if (isDark) {

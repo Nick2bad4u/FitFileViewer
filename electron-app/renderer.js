@@ -1,6 +1,21 @@
 /**
  * @fileoverview Main renderer process entry point for FIT File Viewer
  * Handles application initialization, module loading, and event setup
+ *
+ * STATE MANAGEMENT MIGRATION:
+ * This file has been updated to use the new centralized state management system.
+ * The legacy appState object is maintained for backward compatibility but now
+ * proxies to the new state manager. Key changes:
+ *
+ * 1. Imports masterStateManager, appActions, and uiStateManager
+ * 2. Initializes state management system before other components
+ * 3. Uses appActions.setInitialized() instead of direct state mutation
+ * 4. Uses showNotification() for consistent UI notifications
+ * 5. Exposes state debugging utilities in development mode
+ *
+ * Legacy components will continue to work through the appState proxy and
+ * isOpeningFileRef, but new code should use the state manager directly.
+ *
  * @version 21.1.0
  */
 
@@ -14,7 +29,7 @@
  * @typedef {Object} RendererDependencies
  * @property {HTMLElement} openFileBtn - Open file button element
  * @property {{value: boolean}} isOpeningFileRef - Reference to             // Expose formatting test utilities globally
-            window.__testFormatting = {
+            window.__debugChartFormatting = {
                 testNewFormatting,
                 testFaveroCase,
                 testFaveroStringCase
@@ -41,6 +56,10 @@ import { showAboutModal } from "./utils/aboutModal.js";
 import { createExportGPXButton } from "./utils/createExportGPXButton.js";
 import { applyTheme, listenForThemeChange } from "./utils/theme.js";
 import { setLoading } from "./utils/rendererUtils.js";
+import { masterStateManager } from "./utils/masterStateManager.js";
+import { AppActions } from "./utils/appActions.js";
+import { getState, subscribe } from "./utils/stateManager.js";
+import { uiStateManager } from "./utils/uiStateManager.js";
 
 // ==========================================
 // Environment Detection
@@ -82,25 +101,71 @@ function getEnvironment() {
 }
 
 // ==========================================
-// Application State
+// Application State Management
 // ==========================================
 
 /**
- * Application state management
+ * Legacy state reference for backward compatibility
+ * @deprecated Use masterStateManager instead
  * @type {{isInitialized: boolean, isOpeningFile: boolean, startTime: number}}
  */
-const appState = {
-    isInitialized: false,
-    isOpeningFile: false,
-    startTime: performance.now(),
-};
+let appState = null;
 
 /**
- * Reference object for tracking file opening state
- * Used by various components to prevent concurrent file operations
+ * Reference object for tracking file opening state (legacy compatibility)
+ * @deprecated Use state manager instead
  * @type {{value: boolean}}
  */
 const isOpeningFileRef = { value: false };
+
+/**
+ * Initialize the centralized state management system
+ * @returns {Promise<void>}
+ */
+async function initializeStateManager() {
+    try {
+        console.log("[Renderer] Initializing state management system...");
+
+        // Initialize the master state manager
+        await masterStateManager.initialize();
+
+        // Create legacy compatibility object
+        appState = {
+            get isInitialized() {
+                return masterStateManager.getState().app.initialized;
+            },
+            set isInitialized(value) {
+                AppActions.setInitialized(value);
+            },
+            get isOpeningFile() {
+                return masterStateManager.getState().app.isOpeningFile;
+            },
+            set isOpeningFile(value) {
+                AppActions.setFileOpening(value);
+                isOpeningFileRef.value = value;
+            },
+            get startTime() {
+                return getState().app.startTime;
+            },
+        };
+
+        // Subscribe to state changes to update legacy reference
+        subscribe("app.isOpeningFile", (isOpening) => {
+            isOpeningFileRef.value = isOpening;
+        });
+
+        console.log("[Renderer] State management system initialized");
+    } catch (error) {
+        console.error("[Renderer] Failed to initialize state manager:", error);
+        // Fallback to legacy state object
+        appState = {
+            isInitialized: false,
+            isOpeningFile: false,
+            startTime: performance.now(),
+        };
+        throw error;
+    }
+}
 
 // ==========================================
 // Error Handling
@@ -112,7 +177,17 @@ const isOpeningFileRef = { value: false };
  */
 function handleUnhandledRejection(event) {
     console.error("[Renderer] Unhandled promise rejection:", event.reason);
-    showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
+
+    try {
+        // Use state manager if available, fallback to direct notification
+        if (masterStateManager && masterStateManager.isInitialized) {
+            showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
+        } else {
+            showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
+        }
+    } catch (notifyError) {
+        console.error("[Renderer] Failed to show error notification:", notifyError);
+    }
 
     // Prevent default browser behavior
     event.preventDefault();
@@ -124,7 +199,17 @@ function handleUnhandledRejection(event) {
  */
 function handleUncaughtError(event) {
     console.error("[Renderer] Uncaught error:", event.error);
-    showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
+
+    try {
+        // Use state manager if available, fallback to direct notification
+        if (masterStateManager && masterStateManager.isInitialized) {
+            showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
+        } else {
+            showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
+        }
+    } catch (notifyError) {
+        console.error("[Renderer] Failed to show error notification:", notifyError);
+    }
 }
 
 // ==========================================
@@ -170,7 +255,10 @@ async function initializeApplication() {
     try {
         console.log("[Renderer] Starting application initialization...");
 
-        // Validate DOM elements first
+        // Initialize state management system first
+        await initializeStateManager();
+
+        // Validate DOM elements
         if (!validateDOMElements()) {
             throw new Error("Required DOM elements are missing");
         }
@@ -198,8 +286,8 @@ async function initializeApplication() {
         // Initialize core components
         await initializeComponents(dependencies);
 
-        // Mark application as initialized
-        appState.isInitialized = true;
+        // Mark application as initialized using new state system
+        AppActions.setInitialized(true);
 
         const initTime = PerformanceMonitor.end("app_initialization");
         console.log(`[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`);
@@ -211,7 +299,10 @@ async function initializeApplication() {
     } catch (error) {
         PerformanceMonitor.end("app_initialization");
         console.error("[Renderer] Failed to initialize application:", error);
+
+        // Use state manager for error notification
         showNotification(`Initialization failed: ${error.message}`, "error", 10000);
+
         throw error;
     }
 }
@@ -433,10 +524,19 @@ function cleanup() {
         window.removeEventListener("unhandledrejection", handleUnhandledRejection);
         window.removeEventListener("error", handleUncaughtError);
 
-        // Reset application state
-        appState.isInitialized = false;
-        appState.isOpeningFile = false;
-        isOpeningFileRef.value = false;
+        // Reset application state using state manager
+        if (masterStateManager.isInitialized) {
+            AppActions.setInitialized(false);
+            AppActions.setFileOpening(false);
+            masterStateManager.cleanup();
+        } else {
+            // Fallback to legacy state reset
+            if (appState) {
+                appState.isInitialized = false;
+                appState.isOpeningFile = false;
+            }
+            isOpeningFileRef.value = false;
+        }
 
         console.log("[Renderer] Cleanup completed");
     } catch (error) {
@@ -469,14 +569,31 @@ if (isDevelopmentMode()) {
      * @global
      */
     window.__renderer_dev = {
+        // Legacy state for compatibility
         appState,
         isOpeningFileRef,
+
+        // New state management system
+        stateManager: masterStateManager,
+        AppActions,
+        uiStateManager,
+
+        // Performance and debugging
         PerformanceMonitor,
         APP_INFO,
         reinitialize: initializeApplication,
         cleanup,
         validateDOM: validateDOMElements,
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
+
+        // State debugging helpers
+        getState: () => masterStateManager.getState(),
+        getStateHistory: () => masterStateManager.getHistory(),
+        debugState: () => {
+            console.log("Current State:", masterStateManager.getState());
+            console.log("State History:", masterStateManager.getHistory());
+            console.log("Active Subscriptions:", masterStateManager.getSubscriptions());
+        },
     };
 
     // Load debug utilities asynchronously
@@ -491,7 +608,7 @@ if (isDevelopmentMode()) {
                 checkDataAvailability,
             } = await import("./utils/debugSensorInfo.js");
             const { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
-                "./utils/testFormatting.js"
+                "./utils/debugChartFormatting.js"
             );
 
             // Expose sensor debug utilities globally
@@ -505,7 +622,7 @@ if (isDevelopmentMode()) {
             };
 
             // Expose formatting test utilities globally
-            window.__testFormatting = {
+            window.__debugChartFormatting = {
                 testNewFormatting,
                 testFaveroCase,
                 testFaveroStringCase,
@@ -522,9 +639,19 @@ if (isDevelopmentMode()) {
             console.log("  __sensorDebug.showDataKeys()              - Show all available data keys");
             console.log("");
             console.log("🧪 Format Testing Commands:");
-            console.log("  __testFormatting.testNewFormatting()      - Test all formatting scenarios");
-            console.log("  __testFormatting.testFaveroCase()         - Test the specific Favero case");
-            console.log("  __testFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name");
+            console.log("  __debugChartFormatting.testNewFormatting()      - Test all formatting scenarios");
+            console.log("  __debugChartFormatting.testFaveroCase()         - Test the specific Favero case");
+            console.log(
+                "  __debugChartFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name"
+            );
+            console.log("");
+            console.log("🏗️  State Management Debug Commands:");
+            console.log("  __renderer_dev.debugState()               - Show current state and history");
+            console.log("  __renderer_dev.getState()                 - Get current application state");
+            console.log("  __renderer_dev.getStateHistory()          - Get state change history");
+            console.log("  __renderer_dev.stateManager               - Access state manager directly");
+            console.log("  __renderer_dev.AppActions                 - Access app actions");
+            console.log("  __renderer_dev.uiStateManager             - Access UI state manager");
         } catch (error) {
             console.warn("[Renderer] Debug utilities failed to load:", error.message);
         }

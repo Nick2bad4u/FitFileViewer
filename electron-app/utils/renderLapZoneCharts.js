@@ -2,7 +2,7 @@ import { getThemeConfig } from "./theme.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 import { renderSingleHRZoneBar } from "./renderSingleHRZoneBar.js";
 import { renderSinglePowerZoneBar } from "./renderSinglePowerZoneBar.js";
-import { getZoneColor } from "./zoneColorUtils.js";
+import { getZoneColor } from "./chartZoneColorUtils.js";
 
 // Lap zone charts renderer - renders 4 different lap zone visualizations
 export function renderLapZoneCharts(container, options = {}) {

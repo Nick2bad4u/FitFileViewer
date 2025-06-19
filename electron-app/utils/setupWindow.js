@@ -2,17 +2,17 @@
 const ZWIFT_MAP_URL = "https://zwiftmap.com/";
 
 export function setupWindowOnload({
-    toggleTabVisibility,
-    setActiveTab,
+    updateTabVisibility,
+    updateActiveTab,
     setupTabButton,
-    displayTables,
+    createTables,
     renderChart,
     renderMap,
     renderSummary,
 }) {
     window.onload = () => {
         // Default: show the Map tab
-        toggleTabVisibility("content-map");
+        updateTabVisibility("content-map");
 
         // Tab button click handlers (refactored to loop)
         const tabConfig = [
@@ -21,8 +21,8 @@ export function setupWindowOnload({
                 content: "content-data",
                 handler: () => {
                     if (document.getElementById("tab-data").classList.contains("active")) return;
-                    toggleTabVisibility("content-data");
-                    setActiveTab("tab-data");
+                    updateTabVisibility("content-data");
+                    updateActiveTab("tab-data");
                     // If data is pre-rendered in background, move it to visible container
                     const bg = document.getElementById("background-data-container");
                     const visible = document.getElementById("content-data");
@@ -35,7 +35,7 @@ export function setupWindowOnload({
                             window.globalData !== null &&
                             Object.keys(window.globalData).length > 0
                         ) {
-                            window.displayTables(window.globalData);
+                            window.createTables(window.globalData);
                         }
                     }
                 },
@@ -45,8 +45,8 @@ export function setupWindowOnload({
                 content: "content-chartjs",
                 handler: () => {
                     if (document.getElementById("tab-chartjs").classList.contains("active")) return;
-                    toggleTabVisibility("content-chartjs");
-                    setActiveTab("tab-chartjs");
+                    updateTabVisibility("content-chartjs");
+                    updateActiveTab("tab-chartjs");
                     if (typeof window.renderChartJS === "function") {
                         window.renderChartJS("chartjs-chart-container");
                     }
@@ -57,8 +57,8 @@ export function setupWindowOnload({
                 content: "content-map",
                 handler: () => {
                     if (document.getElementById("tab-map").classList.contains("active")) return;
-                    toggleTabVisibility("content-map");
-                    setActiveTab("tab-map");
+                    updateTabVisibility("content-map");
+                    updateActiveTab("tab-map");
                     if (!window.isMapRendered) {
                         window.renderMap();
                         window.isMapRendered = true;
@@ -70,8 +70,8 @@ export function setupWindowOnload({
                 content: "content-summary",
                 handler: () => {
                     if (document.getElementById("tab-summary").classList.contains("active")) return;
-                    toggleTabVisibility("content-summary");
-                    setActiveTab("tab-summary");
+                    updateTabVisibility("content-summary");
+                    updateActiveTab("tab-summary");
                     if (window.globalData && Object.keys(window.globalData).length > 0) {
                         if (
                             !window.previousGlobalData ||
@@ -90,8 +90,8 @@ export function setupWindowOnload({
                 content: "content-altfit",
                 handler: () => {
                     if (document.getElementById("tab-altfit").classList.contains("active")) return;
-                    toggleTabVisibility("content-altfit");
-                    setActiveTab("tab-altfit");
+                    updateTabVisibility("content-altfit");
+                    updateActiveTab("tab-altfit");
                     // Dynamically set iframe src when tab is activated
                     const iframe = document.getElementById("altfit-iframe");
                     if (iframe && !iframe.src.includes("libs/ffv/index.html")) {
@@ -112,10 +112,10 @@ export function setupWindowOnload({
                         console.debug("[Zwift Tab] Already active, returning");
                         return;
                     }
-                    toggleTabVisibility("content-zwift");
-                    console.debug("[Zwift Tab] Called toggleTabVisibility");
-                    setActiveTab("tab-zwift");
-                    console.debug("[Zwift Tab] Called setActiveTab");
+                    updateTabVisibility("content-zwift");
+                    console.debug("[Zwift Tab] Called updateTabVisibility");
+                    updateActiveTab("tab-zwift");
+                    console.debug("[Zwift Tab] Called updateActiveTab");
                     const zwiftIframe = document.getElementById("zwift-iframe");
                     console.debug("[Zwift Tab] zwiftIframe:", zwiftIframe);
                     if (zwiftIframe && zwiftIframe.src !== ZWIFT_MAP_URL) {
@@ -178,7 +178,7 @@ export function setupWindowOnload({
                 typeof message.data === "object"
             ) {
                 window.globalData = message.data;
-                displayTables(window.globalData);
+                createTables(window.globalData);
                 const tabChart = document.getElementById("tab-chart");
                 const tabMap = document.getElementById("tab-map");
                 const tabSummary = document.getElementById("tab-summary");

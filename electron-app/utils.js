@@ -20,13 +20,13 @@
 import { formatDistance } from "./utils/formatDistance.js";
 import { formatDuration } from "./utils/formatDuration.js";
 import { patchSummaryFields } from "./utils/patchSummaryFields.js";
-import { displayTables } from "./utils/displayTables.js";
+import { createTables } from "./utils/createTables.js";
 import { renderTable } from "./utils/renderTable.js";
 import { copyTableAsCSV } from "./utils/copyTableAsCSV.js";
 import { renderMap } from "./utils/renderMap.js";
 import { renderSummary } from "./utils/renderSummary.js";
-import { setActiveTab } from "./utils/setActiveTab.js";
-import { toggleTabVisibility } from "./utils/toggleTabVisibility.js";
+import { updateActiveTab } from "./utils/updateActiveTab.js";
+import { updateTabVisibility } from "./utils/updateTabVisibility.js";
 import { showFitData } from "./utils/showFitData.js";
 import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
 import { updateMapTheme } from "./utils/updateMapTheme.js";
@@ -114,7 +114,7 @@ const utils = {
 
     // Data processing utilities
     patchSummaryFields,
-    displayTables,
+    createTables,
     renderTable,
     copyTableAsCSV,
 
@@ -123,8 +123,8 @@ const utils = {
     renderSummary,
 
     // UI management utilities
-    setActiveTab,
-    toggleTabVisibility,
+    updateActiveTab,
+    updateTabVisibility,
     showFitData,
     setTabButtonsEnabled,
 

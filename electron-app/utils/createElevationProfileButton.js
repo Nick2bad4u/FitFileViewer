@@ -137,8 +137,10 @@ export function createElevationProfileButton() {
                                       .map((r, i) => ({ x: i, y: r.altitude }))
                                 : [],
                         color:
-                            window.opener && window.opener.overlayColorPalette
-                                ? window.opener.overlayColorPalette[idx % window.opener.overlayColorPalette.length]
+                            window.opener && window.opener.chartOverlayColorPalette
+                                ? window.opener.chartOverlayColorPalette[
+                                      idx % window.opener.chartOverlayColorPalette.length
+                                  ]
                                 : "#1976d2",
                     }))
                 )};

@@ -3,7 +3,7 @@ import { createChartCanvas } from "./createChartCanvas.js";
 import { formatTime } from "./formatTime.js";
 import { updateChartAnimations } from "./updateChartAnimations.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
-import { zoomResetPlugin } from "./zoomResetPlugin.js";
+import { chartZoomResetPlugin } from "./chartZoomResetPlugin.js";
 
 // Event messages chart renderer
 export function renderEventMessagesChart(container, options, startTime) {
@@ -109,7 +109,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                         },
                     },
                     zoom: options.zoomPluginConfig,
-                    backgroundColorPlugin: {
+                    chartBackgroundColorPlugin: {
                         backgroundColor: themeConfig.colors.bgPrimary,
                     },
                 },
@@ -139,7 +139,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                     },
                 },
             },
-            plugins: [zoomResetPlugin, "backgroundColorPlugin"],
+            plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
         };
 
         const chart = new window.Chart(canvas, config);

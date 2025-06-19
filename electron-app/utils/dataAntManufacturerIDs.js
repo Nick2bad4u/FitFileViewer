@@ -1,6 +1,6 @@
 // Manufacturer ID to Name mapping
 
-export const MANUFACTURER_IDS = {
+export const dataAntManufacturerIDs = {
     1: "garmin",
     2: "garmin_fr405_antfs",
     3: "zephyr",

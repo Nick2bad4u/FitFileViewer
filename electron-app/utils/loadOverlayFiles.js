@@ -1,4 +1,4 @@
-import { _loadSingleOverlayFile } from "./_loadSingleOverlayFile.js";
+import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
 import { LoadingOverlay } from "./LoadingOverlay.js";
 import { showNotification } from "./showNotification.js";
 
@@ -7,7 +7,7 @@ import { showNotification } from "./showNotification.js";
  * @param {File[]} files - Array of files to load
  * @returns {Promise<void>} Resolves when all files have been processed
  */
-export async function _loadOverlayFiles(files) {
+export async function loadOverlayFiles(files) {
     try {
         LoadingOverlay.show(`Loading 0 / ${files.length} files...`);
 
@@ -33,7 +33,7 @@ export async function _loadOverlayFiles(files) {
             try {
                 LoadingOverlay.show(`Loading ${loaded + 1} / ${files.length} files...`, file.name);
 
-                const result = await _loadSingleOverlayFile(file);
+                const result = await loadSingleOverlayFile(file);
                 if (result.success) {
                     if (
                         !window.loadedFitFiles.some((f) => {
@@ -57,7 +57,7 @@ export async function _loadOverlayFiles(files) {
 
                 loaded++;
             } catch (error) {
-                console.error("[_loadOverlayFiles] Error loading overlay file:", file.name, error);
+                console.error("[loadOverlayFiles] Error loading overlay file:", file.name, error);
                 invalidFiles.push(file.name);
                 loaded++;
             }
@@ -82,7 +82,7 @@ export async function _loadOverlayFiles(files) {
             showNotification("Load complete", `Successfully loaded ${files.length} files`, "success");
         }
     } catch (error) {
-        console.error("[_loadOverlayFiles] Error in _loadOverlayFiles:", error);
+        console.error("[loadOverlayFiles] Error in loadOverlayFiles:", error);
         LoadingOverlay.hide();
         showNotification("Load failed", "Failed to load overlay files", "error");
     }

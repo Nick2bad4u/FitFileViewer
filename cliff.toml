@@ -21,23 +21,30 @@ body = """
 {% else %}
   ## [Unreleased]
 {% endif %}
-{% if previous %}
-    {% if previous.commit_id and commit_id %}
-        [[{{ previous.commit_id | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ previous.commit_id }})...
-        [{{ commit_id | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit_id }})]
-        ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/{{ previous.commit_id }}...{{ commit_id }}))
-    {% endif %}
+{% if commit_range and commit_range.from and commit_range.to %}
+  [[{{ commit_range.from | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit_range.from }})...
+  [{{ commit_range.to | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit_range.to }})]
+  ([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/{{ commit_range.from }}...{{ commit_range.to }}))
 {% endif %}
 {% for group, commits in commits | group_by(attribute="group") %}
   ### {{ group | striptags | trim | upper_first }}
   {% for commit in commits %}
-    - {% if commit.scope %}*({{ commit.scope }})* {% endif %}
-      {% if commit.breaking %}[**breaking**] {% endif %}
-      {{ commit.message | upper_first }}{% if commit.body %}
-        {{ commit.body | replace(from="\n", to="\n        ") }}{% endif %}
+    {%- set msg = commit.message | upper_first -%}
+    {%- if not msg | trim | starts_with(pat="-") -%}
+      - {% if commit.scope %}*({{ commit.scope }})* {% endif %}{% if commit.breaking %}[**breaking**] {% endif %}{{ msg }}{% if commit.body %}
+{{ commit.body | trim | indent(width=8) }}{% endif %}
       [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
+    {%- else -%}
+      {{ msg }}{% if commit.body %}
+{{ commit.body | trim | indent(width=8) }}{% endif %}
+      [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/FitFileViewer/commit/{{ commit.id }})
+    {%- endif %}
   {% endfor %}
 {% endfor %}
+{% if commit.footer %}
+  <!-- Use the footer directly -->
+  {{ commit.footer | trim | indent(width=8) }}
+{% endif %}
 """
 # template for the changelog footer
 footer = """
@@ -83,7 +90,7 @@ conventional_commits = true
 # filter out the commits that are not conventional
 filter_unconventional = false
 # process each line of a commit as an individual commit
-split_commits = true
+split_commits = false
 # regex for preprocessing the commit messages
 use_branch_tags = false
 # use branch tags to group commits

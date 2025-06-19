@@ -1,5 +1,5 @@
 import { LoadingOverlay } from "./LoadingOverlay.js";
-import { _loadOverlayFiles } from "./_loadOverlayFiles.js";
+import { loadOverlayFiles } from "./loadOverlayFiles.js";
 import { showNotification } from "./showNotification.js";
 
 /**
@@ -7,7 +7,7 @@ import { showNotification } from "./showNotification.js";
  * @private
  */
 
-export function _openFileSelector() {
+export function openFileSelector() {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".fit";
@@ -19,7 +19,7 @@ export function _openFileSelector() {
             if (!e.target.files?.length) return;
 
             const files = Array.from(e.target.files);
-            await _loadOverlayFiles(files);
+            await loadOverlayFiles(files);
         } catch (error) {
             console.error("[MapActions] File loading failed:", error);
             showNotification("Failed to load FIT files", "error");

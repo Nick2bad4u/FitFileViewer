@@ -1,4 +1,4 @@
-import { ExportUtils } from "./ExportUtils.js";
+import { exportUtils } from "./exportUtils.js";
 import { showNotification } from "./showNotification.js";
 
 export function exportAllCharts() {
@@ -11,7 +11,7 @@ export function exportAllCharts() {
         window._chartjsInstances.forEach((chart, index) => {
             const field = chart.data.datasets[0]?.label || `chart-${index}`;
             const filename = `${field.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
-            ExportUtils.downloadChartAsPNG(chart, filename);
+            exportUtils.downloadChartAsPNG(chart, filename);
         });
         showNotification(`Exported ${window._chartjsInstances.length} charts`, "success");
     } catch (error) {

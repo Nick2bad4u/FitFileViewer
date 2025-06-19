@@ -14,7 +14,7 @@
     "Suppressions": [
         {
             "Justification": "False positive: localhost redirect URI is required for OAuth dev flow (only present in development builds, not production)",
-            "FilePattern": "**/ExportUtils.js",
+            "FilePattern": "**/exportUtils.js",
             "LineNumber": 359,
             "RuleId": "DS162092"
         },

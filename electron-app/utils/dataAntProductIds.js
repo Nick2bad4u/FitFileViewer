@@ -1,6 +1,6 @@
 // Product ID mappings by manufacturer
 
-export const PRODUCT_IDS = {
+export const dataAntProductIds = {
     // Favero Electronics products
     263: {
         12: "assioma_duo",
