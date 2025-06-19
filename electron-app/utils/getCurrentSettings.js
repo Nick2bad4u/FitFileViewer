@@ -89,9 +89,16 @@ function updateUIControl(control, option, value) {
     try {
         switch (option.type) {
             case "select": {
-                const select = control.querySelector("select") || control;
+                // Find the actual select element - could be the control itself or a child
+                let select = control;
+                if (control.tagName !== "SELECT") {
+                    select = control.querySelector("select") || 
+                            document.querySelector(`#chartjs-${option.id}-dropdown`);
+                }
+                
                 if (select && select.tagName === "SELECT") {
                     select.value = value;
+                    console.log(`${LOG_PREFIX} Updated select ${option.id} to: ${value}`);
                 }
                 break;
             }
@@ -113,21 +120,25 @@ function updateUIControl(control, option, value) {
                 break;
 
             case "range": {
-                const slider = control.querySelector("input[type='range']") || control;
+                // Find the actual slider element - could be the control itself or a child
+                let slider = control;
+                if (control.type !== "range") {
+                    slider = control.querySelector("input[type='range']") || 
+                            document.querySelector(`#chartjs-${option.id}-slider`);
+                }
+                
                 if (slider && slider.type === "range") {
                     slider.value = value;
-                    // Update value display if it exists (look for both old and new patterns)
-                    const valueDisplay =
-                        slider.parentElement?.querySelector(`#chartjs-${option.id}-value`) ||
-                        slider.parentElement?.querySelector("span");
-                    if (
-                        valueDisplay &&
-                        (valueDisplay.style.position === "absolute" || valueDisplay.id.includes("value"))
-                    ) {
+                    
+                    // Update value display - look for the span in the container
+                    const valueDisplay = slider.parentElement?.querySelector("span");
+                    if (valueDisplay && valueDisplay.style.position === "absolute") {
                         valueDisplay.textContent = value;
                     }
+                    
                     // Update range slider visual styling
                     updateRangeSliderStyling(slider, option, value);
+                    console.log(`${LOG_PREFIX} Updated range ${option.id} to: ${value}`);
                 }
                 break;
             }
@@ -146,11 +157,11 @@ function updateUIControl(control, option, value) {
 function updateRangeSliderStyling(control, option, value) {
     try {
         const themeConfig = getThemeConfig();
-        const accentColor = themeConfig.colors.accent;
-        const borderLight = themeConfig.colors.borderLight;
+        const accentColor = themeConfig?.colors?.accent || "var(--color-accent, #3b82f6)";
+        const borderLight = themeConfig?.colors?.borderLight || "var(--color-border, #e5e7eb)";
         const min = option.min || 0;
         const max = option.max || 1;
-        const percentage = ((value - min) / (max - min)) * 100;
+        const percentage = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
 
         control.style.background = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${percentage}%, ${borderLight} ${percentage}%, ${borderLight} 100%)`;
     } catch (error) {
@@ -207,25 +218,52 @@ function resetUIControlsToDefaults(wrapper) {
     }
 
     try {
+        console.log(`${LOG_PREFIX} Resetting ${chartOptionsConfig.length} chart option controls`);
+        
         // Reset all chart option controls to default values
         chartOptionsConfig.forEach((opt) => {
-            const control = wrapper.querySelector(`#chartjs-${opt.id}`);
+            // Try multiple ways to find the control
+            let control = wrapper.querySelector(`#chartjs-${opt.id}`) ||
+                         wrapper.querySelector(`#chartjs-${opt.id}-dropdown`) ||
+                         wrapper.querySelector(`#chartjs-${opt.id}-slider`) ||
+                         wrapper.querySelector(`#chartjs-${opt.id}-container`) ||
+                         wrapper.querySelector(`[data-option-id="${opt.id}"]`);
+            
             if (control) {
                 updateUIControl(control, opt, opt.default);
+                console.log(`${LOG_PREFIX} Reset control ${opt.id} to default: ${opt.default}`);
+            } else {
+                // Try to find by searching all elements that might contain the option
+                const allControls = wrapper.querySelectorAll('select, input[type="range"], .toggle-switch');
+                allControls.forEach(element => {
+                    if (element.id && element.id.includes(opt.id)) {
+                        updateUIControl(element, opt, opt.default);
+                        console.log(`${LOG_PREFIX} Reset control ${opt.id} via fallback search to: ${opt.default}`);
+                    }
+                });
             }
-
+            
             // Handle custom toggle controls with _updateFromReset method
             if (opt.type === "toggle") {
-                const toggleContainer = wrapper.querySelector(`#chartjs-${opt.id}`);
+                const toggleContainer = wrapper.querySelector(`#chartjs-${opt.id}`) ||
+                                      wrapper.querySelector(`[data-option-id="${opt.id}"]`);
                 if (toggleContainer && typeof toggleContainer._updateFromReset === "function") {
                     toggleContainer._updateFromReset();
                 } else {
-                    // Find toggle container by checking parent elements
-                    const possibleContainers = wrapper.querySelectorAll(`[data-option-id="${opt.id}"], .toggle-switch`);
-                    possibleContainers.forEach((container) => {
-                        const parent = container.parentElement;
+                    // Find toggle container by checking for toggle-switch elements
+                    const toggleSwitches = wrapper.querySelectorAll('.toggle-switch');
+                    toggleSwitches.forEach(toggleSwitch => {
+                        const parent = toggleSwitch.parentElement;
                         if (parent && typeof parent._updateFromReset === "function") {
-                            parent._updateFromReset();
+                            // Check if this toggle is for our option by looking at surrounding context
+                            const settingRow = parent.closest('.setting-row');
+                            if (settingRow) {
+                                const label = settingRow.querySelector('.setting-label');
+                                if (label && label.textContent.toLowerCase().includes(opt.label.toLowerCase())) {
+                                    parent._updateFromReset();
+                                    console.log(`${LOG_PREFIX} Updated toggle ${opt.id} via context matching`);
+                                }
+                            }
                         }
                     });
                 }
@@ -237,6 +275,9 @@ function resetUIControlsToDefaults(wrapper) {
         fieldToggles.forEach((toggle) => {
             toggle.checked = true; // Default to visible
         });
+        if (fieldToggles.length > 0) {
+            console.log(`${LOG_PREFIX} Reset ${fieldToggles.length} field toggles to visible`);
+        }
 
         // Reset all color pickers to default colors
         const colorPickers = wrapper.querySelectorAll('input[type="color"]');
@@ -246,11 +287,17 @@ function resetUIControlsToDefaults(wrapper) {
                 picker.value = fieldColors[fieldName];
             }
         });
+        if (colorPickers.length > 0) {
+            console.log(`${LOG_PREFIX} Reset ${colorPickers.length} color pickers to defaults`);
+        }
 
         // Find and update any custom controls with _updateFromReset method
         updateCustomControlsFromReset(wrapper);
 
-        console.log(`${LOG_PREFIX} UI controls reset to defaults`);
+        // Perform direct control updates as additional fallback
+        performDirectControlUpdates();
+
+        console.log(`${LOG_PREFIX} UI controls reset to defaults completed`);
     } catch (error) {
         console.error(`${LOG_PREFIX} Error resetting UI controls:`, error);
     }
@@ -278,6 +325,71 @@ function updateCustomControlsFromReset(wrapper) {
         }
     } catch (error) {
         console.error(`${LOG_PREFIX} Error updating custom controls from reset:`, error);
+    }
+}
+
+/**
+ * Performs direct control updates by specific selectors as fallback
+ */
+function performDirectControlUpdates() {
+    try {
+        let updatedCount = 0;
+        
+        // Direct updates for known control types
+        chartOptionsConfig.forEach((opt) => {
+            let updated = false;
+            
+            switch (opt.type) {
+                case "select": {
+                    const select = document.querySelector(`#chartjs-${opt.id}-dropdown`);
+                    if (select && select.tagName === "SELECT") {
+                        select.value = opt.default;
+                        updated = true;
+                    }
+                    break;
+                }
+                
+                case "range": {
+                    const slider = document.querySelector(`#chartjs-${opt.id}-slider`);
+                    if (slider && slider.type === "range") {
+                        slider.value = opt.default;
+                        
+                        // Update value display
+                        const valueDisplay = slider.parentElement?.querySelector("span");
+                        if (valueDisplay && valueDisplay.style.position === "absolute") {
+                            valueDisplay.textContent = opt.default;
+                        }
+                        
+                        // Update visual styling
+                        updateRangeSliderStyling(slider, opt, opt.default);
+                        updated = true;
+                    }
+                    break;
+                }
+                
+                case "toggle": {
+                    // Custom toggles are handled by _updateFromReset method
+                    const containers = document.querySelectorAll('.toggle-switch');
+                    containers.forEach(toggle => {
+                        const parent = toggle.parentElement;
+                        if (parent && typeof parent._updateFromReset === "function") {
+                            parent._updateFromReset();
+                            updated = true;
+                        }
+                    });
+                    break;
+                }
+            }
+            
+            if (updated) {
+                updatedCount++;
+                console.log(`${LOG_PREFIX} Direct update: ${opt.id} = ${opt.default}`);
+            }
+        });
+        
+        console.log(`${LOG_PREFIX} Performed ${updatedCount} direct control updates`);
+    } catch (error) {
+        console.error(`${LOG_PREFIX} Error in direct control updates:`, error);
     }
 }
 
@@ -394,17 +506,21 @@ export function resetAllSettings() {
         console.log(`${LOG_PREFIX} Resetting all settings to defaults`);
 
         // Clear all stored settings
-        clearAllStorageItems();
-
-        // Reset UI controls with a small delay to ensure DOM is ready
+        clearAllStorageItems();        // Reset UI controls with a small delay to ensure DOM is ready
         setTimeout(() => {
             const wrapper = document.getElementById("chartjs-settings-wrapper");
             resetUIControlsToDefaults(wrapper);
-
+            
+            // Second pass for any controls that might not have been found initially
+            setTimeout(() => {
+                console.log(`${LOG_PREFIX} Performing second pass UI control updates`);
+                performDirectControlUpdates();
+            }, 100);
+            
             // Update chart status indicators after UI reset
             setTimeout(() => {
                 updateAllChartStatusIndicators();
-            }, 100);
+            }, 150);
         }, 50);
 
         // Re-render charts with default settings
