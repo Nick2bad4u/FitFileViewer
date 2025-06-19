@@ -128,30 +128,30 @@
 
 ## 📑 Table of Contents
 
-- [Overview](#-overview) 📖
-- [Screenshots](#-screenshots) 🖼️
-- [Installation](#%EF%B8%8F-installation) 🛠️
-- [Usage](#-usage) 🚀
-- [Changelog](#-changelog) 📝
-- [Supported Builds](#%EF%B8%8F-supported-builds) 🏗️
-    - [Windows Builds](#-windows-builds) 🪟
-    - [Mac Builds](#-mac-builds) 🍏
-    - [Linux Builds](#-linux-builds) 🐧
-- [Development](#-development) 👨‍💻
-- [Credits](#-credits) 🙏
-- [License](#-license) 📄
+-   [Overview](#-overview) 📖
+-   [Screenshots](#-screenshots) 🖼️
+-   [Installation](#%EF%B8%8F-installation) 🛠️
+-   [Usage](#-usage) 🚀
+-   [Changelog](#-changelog) 📝
+-   [Supported Builds](#%EF%B8%8F-supported-builds) 🏗️
+    -   [Windows Builds](#-windows-builds) 🪟
+    -   [Mac Builds](#-mac-builds) 🍏
+    -   [Linux Builds](#-linux-builds) 🐧
+-   [Development](#-development) 👨‍💻
+-   [Credits](#-credits) 🙏
+-   [License](#-license) 📄
 
 ## 📜 Overview
 
 Open `.fit` files, the popular file format used for recording activity data from fitness devices such as GPS watches and cycling computers, and explore their data with ease. This standalone application offers:
 
-- Interactive maps for visualizing activity routes. 🗺️
-- Data tables for detailed insights. 📋
-- Charts for analyzing trends and performance. 📈
-- Ability to export data and charts in various formats and to Imgur. 📤
-- Chart customization options for personalized views. 🎨
-- Full integration with [FitFileViewer.com](https://www.FitFileViewer.com/) 🌐
-- Support for multiple platforms: Windows, macOS, and Linux. 🖥
+-   Interactive maps for visualizing activity routes. 🗺️
+-   Data tables for detailed insights. 📋
+-   Charts for analyzing trends and performance. 📈
+-   Ability to export data and charts in various formats and to Imgur. 📤
+-   Chart customization options for personalized views. 🎨
+-   Full integration with [FitFileViewer.com](https://www.FitFileViewer.com/) 🌐
+-   Support for multiple platforms: Windows, macOS, and Linux. 🖥
 
 Enjoy an intuitive interface designed for seamless `.fit` file exploration.
 
@@ -199,9 +199,9 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 <!-- markdownlint-disable MD001 -->
 
-- The following builds are available for download. Each build is tailored for specific platforms and architectures, ensuring compatibility and optimal performance.
+-   The following builds are available for download. Each build is tailored for specific platforms and architectures, ensuring compatibility and optimal performance.
 
-- The filenames follow a consistent naming convention to indicate the platform, architecture, format, and version. Replace `X.X.X` with the actual release version (e.g., `14.8.0`).
+-   The filenames follow a consistent naming convention to indicate the platform, architecture, format, and version. Replace `X.X.X` with the actual release version (e.g., `14.8.0`).
 
 [➡️ **Go to the Latest Release**](https://github.com/Nick2bad4u/FitFileViewer/releases/latest)
 
@@ -251,9 +251,9 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 **Note:**
 
-- Most users should download the "Installer EXE", "MSI" or "Portable" for a standard installation experience.
-- "Portable" builds do not require installation--just extract and run.
-- "Squirrel Nupkg/RELEASES" and "Blockmap" files are used for automatic updates and are not intended for manual installation.
+-   Most users should download the "Installer EXE", "MSI" or "Portable" for a standard installation experience.
+-   "Portable" builds do not require installation--just extract and run.
+-   "Squirrel Nupkg/RELEASES" and "Blockmap" files are used for automatic updates and are not intended for manual installation.
 
 ### 🍏 Mac Builds
 
@@ -295,9 +295,9 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 **Note:**
 
-- "Blockmap" files are used for differential updates and are not intended for manual installation.
-- Most users should download the "DMG" or "PKG" for a standard installation experience.
-- "ZIP" and "TAR" archives are provided for advanced users or manual extraction.
+-   "Blockmap" files are used for differential updates and are not intended for manual installation.
+-   Most users should download the "DMG" or "PKG" for a standard installation experience.
+-   "ZIP" and "TAR" archives are provided for advanced users or manual extraction.
 
 ### 🐧 Linux Builds
 
@@ -322,7 +322,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 **Note:**
 
-- The "APK" file is NOT an Android APK, but rather an Alpine Linux package.
+-   The "APK" file is NOT an Android APK, but rather an Alpine Linux package.
 
 <sub>- Replace `X.X.X` with the actual release version (e.g., `14.8.0`)</sub>
 
@@ -351,28 +351,28 @@ npm start
 npm run build
 ```
 
-- For more details, see the [GitHub repository](https://github.com/Nick2bad4u/FitFileViewer).
-- Issues and feature requests: [GitHub Issues](https://github.com/Nick2bad4u/FitFileViewer/issues)
+-   For more details, see the [GitHub repository](https://github.com/Nick2bad4u/FitFileViewer).
+-   Issues and feature requests: [GitHub Issues](https://github.com/Nick2bad4u/FitFileViewer/issues)
 
 ## 🙏 Credits
 
 This project uses the following libraries and tools:
 
-- [**FitFileViewer.com**](https://www.FitFileViewer.com/) [![FitFileViewer.com logo](electron-app/icons/harry.png)](https://www.FitFileViewer.com/)
-- [**HarryOnline**](https://www.harryonline.net/) [![HarryOnline logo](electron-app/icons/harry.png)](https://www.harryonline.net/)
-- [Garmin FIT JavaScript SDK](https://github.com/garmin/fit-javascript-sdk) ([FIT Protocol License Agreement](https://developer.garmin.com/fit/download/)) ⌚
-- [Leaflet.js](https://leafletjs.com) ([BSD-2-Clause License](https://github.com/Leaflet/Leaflet/blob/main/LICENSE)) 🗺️
-- [Vega-Lite](https://vega.github.io/vega-lite/) ([BSD-3-Clause License](https://github.com/vega/vega-lite/blob/main/LICENSE)) 📊
-- [Vega-Embed](https://github.com/vega/vega-embed) ([BSD-3-Clause License](https://github.com/vega/vega-embed/blob/main/LICENSE)) 📈
-- [Chart.js](https://www.chartjs.org/) ([MIT License](https://github.com/chartjs/Chart.js/blob/master/LICENSE.md)) 📉
-- [jQuery](https://jquery.com/) ([MIT License](https://jquery.org/license/)) 🧑‍💻
-- [Electron](https://www.electronjs.org/) ([MIT License](https://github.com/electron/electron/blob/main/LICENSE)) ⚡
-- [Node.js](https://nodejs.org/) ([MIT License](https://github.com/nodejs/node/blob/main/LICENSE)) 🖥️
-- [Electron Builder](https://www.electron.build/) ([MIT License](https://github.com/electron-userland/electron-builder/blob/master/LICENSE)) 🏗️
-- [GitHub Actions](https://github.com/features/actions) ([MIT License](https://github.com/actions/runner/blob/main/LICENSE)) 🔧
-- [GitHub Pages](https://pages.github.com/) ([MIT License](https://pages.github.com/)) 🌐
-- [GitHub API](https://docs.github.com/en/rest) ([MIT License](https://github.com/octokit/octokit.rb/blob/main/LICENSE.md)) 🔌
-- [GitHub Copilot](https://github.com/features/copilot) ([MIT License](https://github.com/github/copilot-docs/blob/main/LICENSE.txt)) 🤖
+-   [**FitFileViewer.com**](https://www.FitFileViewer.com/) [![FitFileViewer.com logo](electron-app/icons/harry.png)](https://www.FitFileViewer.com/)
+-   [**HarryOnline**](https://www.harryonline.net/) [![HarryOnline logo](electron-app/icons/harry.png)](https://www.harryonline.net/)
+-   [Garmin FIT JavaScript SDK](https://github.com/garmin/fit-javascript-sdk) ([FIT Protocol License Agreement](https://developer.garmin.com/fit/download/)) ⌚
+-   [Leaflet.js](https://leafletjs.com) ([BSD-2-Clause License](https://github.com/Leaflet/Leaflet/blob/main/LICENSE)) 🗺️
+-   [Vega-Lite](https://vega.github.io/vega-lite/) ([BSD-3-Clause License](https://github.com/vega/vega-lite/blob/main/LICENSE)) 📊
+-   [Vega-Embed](https://github.com/vega/vega-embed) ([BSD-3-Clause License](https://github.com/vega/vega-embed/blob/main/LICENSE)) 📈
+-   [Chart.js](https://www.chartjs.org/) ([MIT License](https://github.com/chartjs/Chart.js/blob/master/LICENSE.md)) 📉
+-   [jQuery](https://jquery.com/) ([MIT License](https://jquery.org/license/)) 🧑‍💻
+-   [Electron](https://www.electronjs.org/) ([MIT License](https://github.com/electron/electron/blob/main/LICENSE)) ⚡
+-   [Node.js](https://nodejs.org/) ([MIT License](https://github.com/nodejs/node/blob/main/LICENSE)) 🖥️
+-   [Electron Builder](https://www.electron.build/) ([MIT License](https://github.com/electron-userland/electron-builder/blob/master/LICENSE)) 🏗️
+-   [GitHub Actions](https://github.com/features/actions) ([MIT License](https://github.com/actions/runner/blob/main/LICENSE)) 🔧
+-   [GitHub Pages](https://pages.github.com/) ([MIT License](https://pages.github.com/)) 🌐
+-   [GitHub API](https://docs.github.com/en/rest) ([MIT License](https://github.com/octokit/octokit.rb/blob/main/LICENSE.md)) 🔌
+-   [GitHub Copilot](https://github.com/features/copilot) ([MIT License](https://github.com/github/copilot-docs/blob/main/LICENSE.txt)) 🤖
 
 ---
 
