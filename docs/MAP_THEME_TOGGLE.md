@@ -9,14 +9,14 @@ visibility and personal preference.
 
 ## Features
 
-- **Independent Control**: Map theme can be toggled independently from the
-  overall application theme
-- **Universal Availability**: Works in both light and dark UI modes
-- **Persistent Preferences**: User's map theme preference is saved in localStorage
-- **Theme-Aware Button**: The toggle button shows different icons based on
-  current map theme
-- **Automatic Updates**: Map theme updates immediately when toggled
-- **Clear Visual Feedback**: Sun icon for light maps, moon icon for dark maps
+-   **Independent Control**: Map theme can be toggled independently from the
+    overall application theme
+-   **Universal Availability**: Works in both light and dark UI modes
+-   **Persistent Preferences**: User's map theme preference is saved in localStorage
+-   **Theme-Aware Button**: The toggle button shows different icons based on
+    current map theme
+-   **Automatic Updates**: Map theme updates immediately when toggled
+-   **Clear Visual Feedback**: Sun icon for light maps, moon icon for dark maps
 
 ## Components
 
@@ -26,10 +26,10 @@ visibility and personal preference.
 
 **Key Functions**:
 
-- `getMapThemeInverted()`: Gets current map theme preference  
-  (true = dark map, false = light map)
-- `setMapThemeInverted(inverted)`: Sets map theme preference and triggers updates
-- `createMapThemeToggle()`: Creates the interactive toggle button
+-   `getMapThemeInverted()`: Gets current map theme preference  
+    (true = dark map, false = light map)
+-   `setMapThemeInverted(inverted)`: Sets map theme preference and triggers updates
+-   `createMapThemeToggle()`: Creates the interactive toggle button
 
 **Storage**: Uses `ffv-map-theme-inverted` localStorage key  
 (true = dark map, false = light map)
@@ -40,8 +40,8 @@ visibility and personal preference.
 
 **Behavior**:
 
-- **Dark Map Preference**: Applies CSS filter inversion regardless of UI theme
-- **Light Map Preference**: No filter applied, standard map colors
+-   **Dark Map Preference**: Applies CSS filter inversion regardless of UI theme
+-   **Light Map Preference**: No filter applied, standard map colors
 
 ### 3. CSS Styling
 
@@ -84,9 +84,9 @@ visibility and personal preference.
 
 The toggle button appears as the first control in the map controls area alongside:
 
-- Export GPX button
-- Elevation Profile button
-- Marker Count selector
+-   Export GPX button
+-   Elevation Profile button
+-   Marker Count selector
 
 ## User Workflow
 
@@ -110,9 +110,9 @@ Custom event dispatch → updateMapTheme() → CSS filter applied/removed
 
 ### Integration Points
 
-- **Map Rendering**: Added to `renderMap.js` controls
-- **Global Utilities**: Exported through `utils.js`
-- **Theme System**: Integrates with existing theme change events
+-   **Map Rendering**: Added to `renderMap.js` controls
+-   **Global Utilities**: Exported through `utils.js`
+-   **Theme System**: Integrates with existing theme change events
 
 ### CSS Filter Applied
 
@@ -131,7 +131,7 @@ filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);
 
 Potential improvements could include:
 
-- Additional map theme options (high contrast, custom filters)
-- Per-file map theme preferences
-- Automatic theme detection based on map content
-- Integration with system accessibility preferences
+-   Additional map theme options (high contrast, custom filters)
+-   Per-file map theme preferences
+-   Automatic theme detection based on map content
+-   Integration with system accessibility preferences

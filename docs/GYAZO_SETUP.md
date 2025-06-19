@@ -5,8 +5,8 @@ enable direct chart uploads to Gyazo.
 
 ## Prerequisites
 
-- A Gyazo account (free at [gyazo.com](https://gyazo.com))
-- Developer access to create Gyazo applications
+-   A Gyazo account (free at [gyazo.com](https://gyazo.com))
+-   Developer access to create Gyazo applications
 
 ## Setup Steps
 
@@ -16,18 +16,18 @@ enable direct chart uploads to Gyazo.
 2. Click "Create New Application" or "Register New Application"
 3. Fill in the application details:
 
-- **Application Name**: `FitFileViewer` (or your preferred name)
-- **Description**: `Desktop application for viewing and analyzing FIT files
+-   **Application Name**: `FitFileViewer` (or your preferred name)
+-   **Description**: `Desktop application for viewing and analyzing FIT files
 from fitness devices`
-- **Website**: `https://github.com/your-username/FitFileViewer` (optional)
-- **Redirect URI**: `http://localhost:3000/gyazo/callback`
+-   **Website**: `https://github.com/your-username/FitFileViewer` (optional)
+-   **Redirect URI**: `http://localhost:3000/gyazo/callback`
 
 ### 2\. Get Your Credentials
 
 After creating the application, you'll receive:
 
-- **Client ID**: A public identifier for your app
-- **Client Secret**: A private key for your app (keep this secure!)
+-   **Client ID**: A public identifier for your app
+-   **Client Secret**: A private key for your app (keep this secure!)
 
 ### 3\. Configure the Application
 
@@ -46,17 +46,17 @@ gyazoConfig: {
 
 Replace:
 
-- `YOUR_ACTUAL_CLIENT_ID_HERE` with your actual Client ID
-- `YOUR_ACTUAL_CLIENT_SECRET_HERE` with your actual Client Secret
+-   `YOUR_ACTUAL_CLIENT_ID_HERE` with your actual Client ID
+-   `YOUR_ACTUAL_CLIENT_SECRET_HERE` with your actual Client Secret
 
 ### 4\. Security Considerations
 
 ⚠️ **Important Security Notes:**
 
-- **Never commit your Client Secret to public repositories**
-- Consider using environment variables for production deployments
-- The Client Secret should only be used in secure, server-side environments
-- For distributed applications, consider implementing a backend proxy for OAuth flows
+-   **Never commit your Client Secret to public repositories**
+-   Consider using environment variables for production deployments
+-   The Client Secret should only be used in secure, server-side environments
+-   For distributed applications, consider implementing a backend proxy for OAuth flows
 
 ### 5\. Test the Integration
 
@@ -80,15 +80,15 @@ Replace:
 
 ### API Endpoints Used
 
-- **Authorization**: `https://gyazo.com/oauth/authorize`
-- **Token Exchange**: `https://gyazo.com/oauth/token`
-- **Image Upload**: `https://upload.gyazo.com/api/upload`
+-   **Authorization**: `https://gyazo.com/oauth/authorize`
+-   **Token Exchange**: `https://gyazo.com/oauth/token`
+-   **Image Upload**: `https://upload.gyazo.com/api/upload`
 
 ### Data Storage
 
-- Access tokens are stored in browser localStorage
-- Tokens persist until user manually disconnects or they expire
-- No sensitive data is stored permanently
+-   Access tokens are stored in browser localStorage
+-   Tokens persist until user manually disconnects or they expire
+-   No sensitive data is stored permanently
 
 ## Troubleshooting
 
@@ -96,25 +96,25 @@ Replace:
 
 **"Client ID not configured"**
 
-- Make sure you've updated the `gyazoConfig` with your actual credentials
-- Restart the application after making changes
+-   Make sure you've updated the `gyazoConfig` with your actual credentials
+-   Restart the application after making changes
 
 **"Authentication failed"**
 
-- Check that your redirect URI matches exactly: `http://localhost:3000/gyazo/callback`
-- Verify your Client ID and Client Secret are correct
-- Make sure your Gyazo application is active
+-   Check that your redirect URI matches exactly: `http://localhost:3000/gyazo/callback`
+-   Verify your Client ID and Client Secret are correct
+-   Make sure your Gyazo application is active
 
 **"Upload failed"**
 
-- Check your internet connection
-- Verify the access token hasn't expired (try disconnecting and reconnecting)
-- Check browser console for detailed error messages
+-   Check your internet connection
+-   Verify the access token hasn't expired (try disconnecting and reconnecting)
+-   Check browser console for detailed error messages
 
 **"Invalid redirect URI"**
 
-- The redirect URI in your Gyazo app settings must exactly match: `http://localhost:3000/gyazo/callback`
-- Check for typos or extra/missing characters
+-   The redirect URI in your Gyazo app settings must exactly match: `http://localhost:3000/gyazo/callback`
+-   Check for typos or extra/missing characters
 
 ### Getting Help
 
@@ -151,11 +151,11 @@ gyazoConfig: {
 
 ### Available Functions
 
-- `exportUtils.isGyazoAuthenticated()` - Check if user is logged in
-- `exportUtils.authenticateWithGyazo()` - Start OAuth flow
-- `exportUtils.showGyazoAccountManager()` - Open account settings
-- `exportUtils.uploadToGyazo(base64Image)` - Upload image to Gyazo
-- `exportUtils.shareChartsToGyazo()` - Share charts with modal selection
+-   `exportUtils.isGyazoAuthenticated()` - Check if user is logged in
+-   `exportUtils.authenticateWithGyazo()` - Start OAuth flow
+-   `exportUtils.showGyazoAccountManager()` - Open account settings
+-   `exportUtils.uploadToGyazo(base64Image)` - Upload image to Gyazo
+-   `exportUtils.shareChartsToGyazo()` - Share charts with modal selection
 
 ### Usage Examples
 
