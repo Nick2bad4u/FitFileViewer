@@ -1,10 +1,25 @@
 /**
- * Gets the unit symbol for display
- * @param {string} field - Field name
- * @param {string} unitType - Unit type (timeUnits, distanceUnits, temperatureUnits)
+ * Gets the unit symbol for display.
+ * @param {string} field - Field name (e.g., "distance", "temperature", "speed", etc.)
+ * @param {string} [unitType] - Axis unit context (currently only supports "time" for time axis units; ignored for other fields)
  * @returns {string} Unit symbol
  */
+// Fallback to original field labels (moved above function for clarity and to avoid hoisting confusion)
+const originalLabels = {
+    heartRate: "bpm",
+    power: "W",
+    cadence: "rpm",
+    resistance: "",
+    flow: "#",
+    grit: "#",
+    positionLat: "°",
+    positionLong: "°",
+};
+
 export function getUnitSymbol(field, unitType) {
+    // NOTE: The following localStorage keys use the "chartjs_" prefix for historical reasons.
+    // This function is generic, but currently depends on these keys for user unit preferences.
+    // Consider refactoring or documenting if decoupling from Chart.js is desired.
     const timeUnits = localStorage.getItem("chartjs_timeUnits") || "seconds";
     const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
     const temperatureUnits = localStorage.getItem("chartjs_temperatureUnits") || "celsius";
@@ -48,16 +63,5 @@ export function getUnitSymbol(field, unitType) {
     }
 
     // Fallback to original field labels
-    const originalLabels = {
-        heartRate: "bpm",
-        power: "W",
-        cadence: "rpm",
-        resistance: "",
-        flow: "",
-        grit: "",
-        positionLat: "°",
-        positionLong: "°",
-    };
-
     return originalLabels[field] || "";
 }

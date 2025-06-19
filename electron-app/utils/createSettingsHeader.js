@@ -7,7 +7,8 @@ import { extractDeveloperFieldsList } from "./extractDeveloperFieldsList.js";
 import { resetAllSettings } from "./getCurrentSettings.js";
 import { showNotification } from "./showNotification.js";
 import { getThemeConfig } from "./theme.js";
-import { createChartStatusIndicator, updateAllChartStatusIndicators } from "./chartStatusIndicator.js";
+import { updateAllChartStatusIndicators } from "./chartStatusIndicator.js";
+import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 
 /**
  * Creates the settings header with title and global actions

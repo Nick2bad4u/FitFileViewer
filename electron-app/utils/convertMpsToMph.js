@@ -4,5 +4,5 @@
  * @returns {number} Speed in miles per hour
  */
 export function convertMpsToMph(mps) {
-    return mps * 2.237;
+    return mps * 2.236936;
 }

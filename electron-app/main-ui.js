@@ -134,7 +134,7 @@ function clearContentAreas() {
 
 function unloadFitFile() {
     const operationId = `unload_file_${Date.now()}`;
-    
+
     // Start performance monitoring
     if (performanceMonitor?.isEnabled()) {
         performanceMonitor.startTimer(operationId);
@@ -143,7 +143,7 @@ function unloadFitFile() {
     try {
         // Clear global data using state management
         AppActions.clearGlobalData();
-        
+
         // Update file state
         if (fitFileStateManager) {
             fitFileStateManager.handleFileLoaded(null);
@@ -174,9 +174,8 @@ function unloadFitFile() {
 
         // Show success notification
         showNotification("File unloaded successfully", "info");
-        
+
         console.log("[main-ui] File unloaded successfully");
-        
     } catch (error) {
         console.error("[main-ui] Error unloading file:", error);
         showNotification("Error unloading file", "error");
@@ -354,7 +353,7 @@ class DragDropHandler {
 
     async processDroppedFile(file) {
         const operationId = `process_dropped_file_${Date.now()}`;
-        
+
         // Start performance monitoring
         if (performanceMonitor?.isEnabled()) {
             performanceMonitor.startTimer(operationId);
@@ -370,7 +369,7 @@ class DragDropHandler {
         try {
             // Update loading state
             AppActions.setFileOpening(true);
-            
+
             // Start file loading in state manager
             if (fitFileStateManager) {
                 fitFileStateManager.startFileLoading(file.name);
@@ -392,11 +391,12 @@ class DragDropHandler {
                 window.sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
-                const errorMessage = "Unable to process the FIT file. Please try again or check the file format. Details: " +
+                const errorMessage =
+                    "Unable to process the FIT file. Please try again or check the file format. Details: " +
                     (fitData.error || "Unknown error");
                 alert(errorMessage);
                 showNotification("Failed to load FIT file", "error");
-                
+
                 // Handle error in state manager
                 if (fitFileStateManager) {
                     fitFileStateManager.handleFileLoadingError(new Error(fitData.error || "Unknown error"));
@@ -407,7 +407,7 @@ class DragDropHandler {
             const message = "An unexpected error occurred while processing the FIT file.";
             alert(message);
             showNotification(message, "error");
-            
+
             // Handle error in state manager
             if (fitFileStateManager) {
                 fitFileStateManager.handleFileLoadingError(error);
@@ -415,7 +415,7 @@ class DragDropHandler {
         } finally {
             // Clear loading state
             AppActions.setFileOpening(false);
-            
+
             // End performance monitoring
             if (performanceMonitor?.isEnabled()) {
                 performanceMonitor.endTimer(operationId);
@@ -430,7 +430,8 @@ class DragDropHandler {
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
         });
-    }    setupEventListeners() {
+    }
+    setupEventListeners() {
         // Show overlay on dragenter, hide on dragleave/drop
         addEventListenerWithCleanup(window, "dragenter", (e) => {
             if (e.target === document || e.target === document.body) {
@@ -605,12 +606,12 @@ window.injectMenu = function (theme = null, fitFilePath = null) {
 // Add cleanup function to development helpers with state management integration
 window.devCleanup = function () {
     cleanupEventListeners();
-    
+
     // Clear state using the new system
     AppActions.clearGlobalData();
     setState("charts.isRendered", false, { source: "devCleanup" });
     setState("ui.dragCounter", 0, { source: "devCleanup" });
-    
+
     console.log("[devCleanup] Application state and event listeners cleaned up");
 };
 

@@ -469,7 +469,7 @@
     "./utils/patchSummaryFields.js": "./utils/patchSummaryFields.js",
     "./utils/recentFiles.js": "./utils/recentFiles.js",
     "./utils/removeExitFullscreenOverlay.js": "./utils/removeExitFullscreenOverlay.js",
-    "./utils/renderChart.js": "./utils/renderChart.js",
+    "./utils/renderChartJS.js": "./utils/renderChartJS.js",
     "./utils/renderChartJS.js": "./utils/renderChartJS.js",
     "./utils/rendererUtils.js": "./utils/rendererUtils.js",
     "./utils/renderMap.js": "./utils/renderMap.js",

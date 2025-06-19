@@ -1,12 +1,19 @@
 // Enhanced configuration for chart customization
-const DEFAULT_MAX_POINTS = 250;
+export const DEFAULT_MAX_POINTS = 250;
 /**
  * Allowed options for maximum number of chart points.
  * Numeric values specify the limit; the string "all" means no limit.
  * Consumers should handle both number and string types.
  * @type {(number|string)[]}
  */
-const maxPointsOptions = [
+/**
+ * Allowed options for maximum number of chart points.
+ * Numeric values specify the limit; the string "all" means no limit.
+ * WARNING: Selecting very high values (e.g., 100,000 or above, or "all") may cause significant performance issues or browser crashes, especially with large datasets.
+ * UI components should consider enforcing a reasonable upper limit (e.g., 10,000) or display a warning to users when selecting large values.
+ * @type {(number|string)[]}
+ */
+export const maxPointsOptions = [
     1,
     10,
     25,
@@ -21,10 +28,10 @@ const maxPointsOptions = [
     3000,
     5000,
     10000,
-    50000,
-    100000,
-    1000000,
-    "all",
+    50000, // Performance warning: values above 10,000 may be slow
+    100000, // Performance warning: very slow for most users
+    1000000, // Not recommended except for testing
+    "all", // No limit; use with extreme caution
 ];
 /**
  * Array of chart configuration option objects for customizing chart rendering.
@@ -40,9 +47,9 @@ const maxPointsOptions = [
  * @property {number} [min] - Minimum value (for "range" type).
  * @property {number} [max] - Maximum value (for "range" type).
  * @property {number} [step] - Step size (for "range" type).
-        options: ["line", "bar", "scatter"],
-        default: "line",
-        description: "Type of chart visualization (use 'line' with fill for area charts)",
+ */
+/**
+ * Example usage:
  * import { chartOptionsConfig } from './chartOptionsConfig.js';
  * // Iterate over options to build a settings UI
  * chartOptionsConfig.forEach(opt => { ... });
@@ -63,7 +70,8 @@ export const chartOptionsConfig = [
         type: "select",
         options: ["line", "bar", "scatter", "area"],
         default: "line",
-        description: "Type of chart visualization",
+        description:
+            'Type of chart visualization ("area" displays a filled area under the line, distinct from "line" which may optionally use the Fill Area toggle)',
     },
     {
         id: "interpolation",
@@ -93,40 +101,40 @@ export const chartOptionsConfig = [
         id: "showGrid",
         label: "Grid",
         type: "toggle",
-        options: ["on", "off"],
-        default: "on",
+        options: [true, false],
+        default: true,
         description: "Show/hide chart grid lines",
     },
     {
         id: "showLegend",
         label: "Legend",
         type: "toggle",
-        options: ["on", "off"],
-        default: "on",
+        options: [true, false],
+        default: true,
         description: "Show/hide chart legend",
     },
     {
         id: "showTitle",
         label: "Title",
         type: "toggle",
-        options: ["on", "off"],
-        default: "on",
+        options: [true, false],
+        default: true,
         description: "Show/hide chart titles",
     },
     {
         id: "showPoints",
         label: "Data Points",
         type: "toggle",
-        options: ["on", "off"],
-        default: "off",
+        options: [true, false],
+        default: false,
         description: "Show/hide individual data points",
     },
     {
         id: "showFill",
         label: "Fill Area",
         type: "toggle",
-        options: ["on", "off"],
-        default: "on",
+        options: [true, false],
+        default: true,
         description: "Fill area under the line",
     },
     {
@@ -137,7 +145,8 @@ export const chartOptionsConfig = [
         max: 1,
         step: 0.1,
         default: 0.4,
-        description: "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing)",
+        description:
+            "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing). Applies only to 'line' and 'area' chart types with 'monotone' or 'linear' interpolation.",
     },
     {
         id: "timeUnits",

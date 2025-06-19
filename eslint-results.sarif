@@ -249,7 +249,7 @@
         },
         {
           "location": {
-            "uri": "file:///C:/Users/Nick/Dropbox/PC%20(2)/Documents/GitHub/FitFileViewer/electron-app/utils/renderChart.js"
+            "uri": "file:///C:/Users/Nick/Dropbox/PC%20(2)/Documents/GitHub/FitFileViewer/electron-app/utils/renderChartJS.js"
           }
         },
         {
@@ -442,7 +442,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "file:///C:/Users/Nick/Dropbox/PC%20(2)/Documents/GitHub/FitFileViewer/electron-app/utils/renderChart.js",
+                  "uri": "file:///C:/Users/Nick/Dropbox/PC%20(2)/Documents/GitHub/FitFileViewer/electron-app/utils/renderChartJS.js",
                   "index": 42
                 },
                 "region": {

@@ -37,7 +37,7 @@ export async function showNotification(message, type = "info", duration, options
     }
 
     const config = NOTIFICATION_TYPES[type];
-    const finalDuration = options.persistent ? null : duration ?? config.duration;
+    const finalDuration = options.persistent ? null : (duration ?? config.duration);
 
     // Create notification object
     const notification = {

@@ -174,7 +174,7 @@ function setupAutoUpdater(mainWindow) {
                 }
             }
         },
-    };    // Register all update event handlers
+    }; // Register all update event handlers
     Object.entries(updateEventHandlers).forEach(([event, handler]) => {
         autoUpdater.on(event, handler);
         mainProcessState.registerEventHandler(autoUpdater, event, handler, `autoUpdater:${event}`);
@@ -192,8 +192,8 @@ async function initializeApplication() {
 
     // Enhanced theme synchronization
     mainWindow.webContents.on("did-finish-load", async () => {
-        logWithContext("info", "did-finish-load event fired, syncing theme");        
-        
+        logWithContext("info", "did-finish-load event fired, syncing theme");
+
         // Setup auto-updater after window is fully loaded to avoid "window not usable" warning
         if (!getAppState("autoUpdaterInitialized")) {
             try {
@@ -204,7 +204,7 @@ async function initializeApplication() {
                 logWithContext("error", "Failed to setup auto-updater:", { error: error.message });
             }
         }
-        
+
         try {
             const theme = await getThemeFromRenderer(mainWindow);
             logWithContext("info", "Retrieved theme from renderer", { theme });
@@ -228,7 +228,8 @@ function setupIPCHandlers(mainWindow) {
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                 properties: ["openFile"],
-            });            if (canceled || filePaths.length === 0) return null;
+            });
+            if (canceled || filePaths.length === 0) return null;
 
             addRecentFile(filePaths[0]);
             setAppState("loadedFitFilePath", filePaths[0]);
@@ -240,7 +241,7 @@ function setupIPCHandlers(mainWindow) {
 
             return filePaths[0];
         })
-    );    // FIT file loaded handler
+    ); // FIT file loaded handler
     ipcMain.on("fit-file-loaded", async (event, filePath) => {
         setAppState("loadedFitFilePath", filePath);
         const win = BrowserWindow.fromWebContents(event.sender);
@@ -260,7 +261,8 @@ function setupIPCHandlers(mainWindow) {
         createErrorHandler(async () => {
             return loadRecentFiles();
         })
-    );    ipcMain.handle(
+    );
+    ipcMain.handle(
         "recentFiles:add",
         createErrorHandler(async (event, filePath) => {
             addRecentFile(filePath);
@@ -377,7 +379,8 @@ function setupIPCHandlers(mainWindow) {
     );
 }
 // Enhanced menu and event handlers
-function setupMenuAndEventHandlers() {    // Theme change handler
+function setupMenuAndEventHandlers() {
+    // Theme change handler
     ipcMain.on("theme-changed", async (event, theme) => {
         const win = BrowserWindow.fromWebContents(event.sender);
         if (validateWindow(win)) {
@@ -429,7 +432,7 @@ function setupMenuAndEventHandlers() {    // Theme change handler
     // Register update handlers
     Object.entries(updateHandlers).forEach(([event, handler]) => {
         ipcMain.on(event, handler);
-    });    // File menu action handlers
+    }); // File menu action handlers
     const fileMenuHandlers = {
         "menu-save-as": async (event) => {
             const win = BrowserWindow.fromWebContents(event.sender);
@@ -730,7 +733,7 @@ async function startGyazoOAuthServer(port = 3000) {
                                     </div>
                                 </body>
                             </html>
-                        `);                        // Send the code to the renderer process
+                        `); // Send the code to the renderer process
                         const mainWindow = getAppState("mainWindow");
                         if (mainWindow && !mainWindow.isDestroyed()) {
                             mainWindow.webContents.send("gyazo-oauth-callback", { code, state });
@@ -788,7 +791,8 @@ async function startGyazoOAuthServer(port = 3000) {
                 } else {
                     reject(err);
                 }
-            });            server.listen(port, "localhost", () => {
+            });
+            server.listen(port, "localhost", () => {
                 setAppState("gyazoServer", server);
                 setAppState("gyazoServerPort", port);
                 logWithContext("info", `Gyazo OAuth callback server started on http://localhost:${port}`);

@@ -1,4 +1,16 @@
 // Utility to set up all event listeners for the app
+/**
+ * Sets up all event listeners for the FitFileViewer application UI and IPC.
+ *
+ * @param {Object} params - The parameters object.
+ * @param {HTMLButtonElement} params.openFileBtn - The "Open File" button element.
+ * @param {Object} params.isOpeningFileRef - Reference object to track file opening state.
+ * @param {Function} params.setLoading - Function to show/hide loading overlay.
+ * @param {Function} params.showNotification - Function to display notifications to the user.
+ * @param {Function} params.handleOpenFile - Function to handle file opening logic.
+ * @param {Function} params.showUpdateNotification - Function to display update notifications.
+ * @param {Function} params.showAboutModal - Function to display the About modal dialog.
+ */
 export function setupListeners({
     openFileBtn,
     isOpeningFileRef,
@@ -124,10 +136,35 @@ export function setupListeners({
         });
         setTimeout(() => focusItem(0), 0);
         const removeMenu = (e) => {
-            if (!menu.contains(e.target) && e.target !== menu) menu.remove();
-            document.removeEventListener("mousedown", removeMenu);
+            if (!menu.contains(e.target) && e.target !== menu) {
+                menu.remove();
+                document.removeEventListener("mousedown", removeMenu);
+            }
         };
         document.addEventListener("mousedown", removeMenu);
+
+        // Helper to remove menu and cleanup event listener
+        function cleanupMenu() {
+            if (document.body.contains(menu)) menu.remove();
+            document.removeEventListener("mousedown", removeMenu);
+        }
+
+        // Remove menu and cleanup on Escape or Enter
+        menu.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                cleanupMenu();
+            }
+        });
+        // Remove menu and cleanup on item click
+        items.forEach((item) => {
+            const origOnClick = item.onclick;
+            item.onclick = async () => {
+                cleanupMenu();
+                await origOnClick();
+            };
+        });
+
         document.body.appendChild(menu);
         menu.focus();
     });

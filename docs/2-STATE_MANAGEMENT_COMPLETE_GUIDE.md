@@ -10,111 +10,111 @@ The FitFileViewer application now features a comprehensive, modular, and reactiv
 
 The foundation of the state system providing:
 
--   **Centralized State**: Single source of truth for all application state
--   **Reactive Subscriptions**: Automatic updates when state changes
--   **State History**: Track all state changes for debugging and undo functionality
--   **Persistence**: Automatic saving to localStorage
--   **Validation**: Type checking and value validation
+- **Centralized State**: Single source of truth for all application state
+- **Reactive Subscriptions**: Automatic updates when state changes
+- **State History**: Track all state changes for debugging and undo functionality
+- **Persistence**: Automatic saving to localStorage
+- **Validation**: Type checking and value validation
 
 ### 2. Settings State Manager (`settingsStateManager.js`)
 
 Specialized state management for application settings:
 
--   **Schema-based Validation**: Ensures settings conform to expected types
--   **Categories**: Organizes settings into logical groups (theme, chart, ui, export, units)
--   **Migration Support**: Handles upgrading settings between app versions
--   **Import/Export**: Backup and restore settings
--   **Cross-tab Sync**: Settings changes sync across browser tabs
+- **Schema-based Validation**: Ensures settings conform to expected types
+- **Categories**: Organizes settings into logical groups (theme, chart, ui, export, units)
+- **Migration Support**: Handles upgrading settings between app versions
+- **Import/Export**: Backup and restore settings
+- **Cross-tab Sync**: Settings changes sync across browser tabs
 
 ### 3. Computed State Manager (`computedStateManager.js`)
 
 Provides derived state values that automatically update:
 
--   **Reactive Computations**: Values update when dependencies change
--   **Dependency Tracking**: Automatic detection of what state each computed value needs
--   **Performance Monitoring**: Tracks slow computations
--   **Circular Dependency Detection**: Prevents infinite update loops
--   **Common Computed Values**: Pre-built computations for file loading, app readiness, etc.
+- **Reactive Computations**: Values update when dependencies change
+- **Dependency Tracking**: Automatic detection of what state each computed value needs
+- **Performance Monitoring**: Tracks slow computations
+- **Circular Dependency Detection**: Prevents infinite update loops
+- **Common Computed Values**: Pre-built computations for file loading, app readiness, etc.
 
 ### 4. State Middleware System (`stateMiddleware.js`)
 
 Extensible middleware for state operations:
 
--   **Lifecycle Hooks**: beforeSet, afterSet, onSubscribe, onError phases
--   **Built-in Middleware**: Logging, validation, performance monitoring, persistence, notifications
--   **Custom Middleware**: Easy to add application-specific behaviors
--   **Priority System**: Control execution order of middleware
--   **Error Handling**: Graceful error recovery and reporting
+- **Lifecycle Hooks**: beforeSet, afterSet, onSubscribe, onError phases
+- **Built-in Middleware**: Logging, validation, performance monitoring, persistence, notifications
+- **Custom Middleware**: Easy to add application-specific behaviors
+- **Priority System**: Control execution order of middleware
+- **Error Handling**: Graceful error recovery and reporting
 
 ### 5. Development Tools (`stateDevTools.js`)
 
 Debugging and performance monitoring utilities:
 
--   **Performance Monitoring**: Track state operation timing and memory usage
--   **Debug Console**: Global debugging functions exposed on `window.__stateDebug`
--   **State Validation**: Integrity checking and structure validation
--   **Snapshots**: Create and compare state snapshots
--   **Error Tracking**: Centralized error logging and reporting
+- **Performance Monitoring**: Track state operation timing and memory usage
+- **Debug Console**: Global debugging functions exposed on `window.__stateDebug`
+- **State Validation**: Integrity checking and structure validation
+- **Snapshots**: Create and compare state snapshots
+- **Error Tracking**: Centralized error logging and reporting
 
 ### 6. Action & Selector Systems
 
 High-level APIs for common operations:
 
--   **App Actions** (`appActions.js`): Application lifecycle operations
--   **UI Actions** (`uiStateManager.js`): User interface state management
--   **FIT File State** (`fitFileState.js`): File-specific operations and validation
+- **App Actions** (`appActions.js`): Application lifecycle operations
+- **UI Actions** (`uiStateManager.js`): User interface state management
+- **FIT File State** (`fitFileState.js`): File-specific operations and validation
 
 ### 7. Master State Manager (`masterStateManager.js`)
 
 Orchestrates initialization and coordination:
 
--   **Dependency Order**: Ensures components initialize in correct sequence
--   **Error Recovery**: Handles initialization failures gracefully
--   **Component Coordination**: Sets up interactions between state modules
--   **Development Detection**: Automatically enables debug tools in development
+- **Dependency Order**: Ensures components initialize in correct sequence
+- **Error Recovery**: Handles initialization failures gracefully
+- **Component Coordination**: Sets up interactions between state modules
+- **Development Detection**: Automatically enables debug tools in development
 
 ## Key Features
 
 ### ✅ Reactivity
 
--   Automatic UI updates when state changes
--   Subscription system for components to listen to specific state paths
--   Computed values that auto-update when dependencies change
+- Automatic UI updates when state changes
+- Subscription system for components to listen to specific state paths
+- Computed values that auto-update when dependencies change
 
 ### ✅ Performance
 
--   Performance monitoring for slow operations
--   Memory usage tracking
--   Batched state updates to prevent excessive re-renders
--   Efficient subscription management
+- Performance monitoring for slow operations
+- Memory usage tracking
+- Batched state updates to prevent excessive re-renders
+- Efficient subscription management
 
 ### ✅ Developer Experience
 
--   Rich debugging tools and console utilities
--   State history and change tracking
--   Validation with clear error messages
--   Comprehensive logging and monitoring
+- Rich debugging tools and console utilities
+- State history and change tracking
+- Validation with clear error messages
+- Comprehensive logging and monitoring
 
 ### ✅ Extensibility
 
--   Middleware system for custom behaviors
--   Plugin-style architecture for adding new features
--   Schema-based validation that can be extended
--   Computed values can be added dynamically
+- Middleware system for custom behaviors
+- Plugin-style architecture for adding new features
+- Schema-based validation that can be extended
+- Computed values can be added dynamically
 
 ### ✅ Persistence
 
--   Automatic localStorage persistence for settings
--   State migration between app versions
--   Import/export functionality for user settings
--   Cross-tab synchronization
+- Automatic localStorage persistence for settings
+- State migration between app versions
+- Import/export functionality for user settings
+- Cross-tab synchronization
 
 ### ✅ Error Handling
 
--   Graceful degradation when components fail
--   Comprehensive error logging and reporting
--   Recovery mechanisms for corrupted state
--   User-friendly error notifications
+- Graceful degradation when components fail
+- Comprehensive error logging and reporting
+- Recovery mechanisms for corrupted state
+- User-friendly error notifications
 
 ## Usage Examples
 
@@ -236,10 +236,10 @@ window.__stateDebug.enableMonitoring();
 
 The new state system maintains backward compatibility with existing code:
 
--   Legacy `appState` object still works (proxied to new state)
--   Existing `isOpeningFileRef` continues to function
--   All current UI components work without modification
--   Gradual migration path for updating components
+- Legacy `appState` object still works (proxied to new state)
+- Existing `isOpeningFileRef` continues to function
+- All current UI components work without modification
+- Gradual migration path for updating components
 
 ### Migration Strategy
 
@@ -254,10 +254,10 @@ The new state system maintains backward compatibility with existing code:
 
 Automatically detected based on:
 
--   `localhost` or `127.0.0.1` hostname
--   `file://` protocol
--   `debug` in URL hash
--   Development build indicators
+- `localhost` or `127.0.0.1` hostname
+- `file://` protocol
+- `debug` in URL hash
+- Development build indicators
 
 ### Performance Monitoring
 
@@ -285,38 +285,38 @@ const PERFORMANCE_CONFIG = {
 
 ### 1. State Structure
 
--   Keep state flat when possible
--   Use consistent naming conventions
--   Group related state under logical paths
--   Avoid deeply nested objects
+- Keep state flat when possible
+- Use consistent naming conventions
+- Group related state under logical paths
+- Avoid deeply nested objects
 
 ### 2. Subscriptions
 
--   Always clean up subscriptions
--   Subscribe to specific paths, not entire state
--   Use computed values for derived data
--   Avoid subscribing to frequently changing values
+- Always clean up subscriptions
+- Subscribe to specific paths, not entire state
+- Use computed values for derived data
+- Avoid subscribing to frequently changing values
 
 ### 3. Performance
 
--   Use batch updates for multiple state changes
--   Prefer computed values over manual state watching
--   Monitor performance in development
--   Clean up resources properly
+- Use batch updates for multiple state changes
+- Prefer computed values over manual state watching
+- Monitor performance in development
+- Clean up resources properly
 
 ### 4. Error Handling
 
--   Validate state inputs
--   Use middleware for consistent error handling
--   Provide fallback values for missing state
--   Log errors with sufficient context
+- Validate state inputs
+- Use middleware for consistent error handling
+- Provide fallback values for missing state
+- Log errors with sufficient context
 
 ### 5. Testing
 
--   Test state operations in isolation
--   Mock the state system for unit tests
--   Use snapshots for regression testing
--   Test error conditions and edge cases
+- Test state operations in isolation
+- Mock the state system for unit tests
+- Use snapshots for regression testing
+- Test error conditions and edge cases
 
 ## Troubleshooting
 
@@ -324,30 +324,30 @@ const PERFORMANCE_CONFIG = {
 
 **State not updating in UI:**
 
--   Check if component is subscribed to correct state path
--   Verify subscription cleanup is working
--   Check browser console for subscription errors
+- Check if component is subscribed to correct state path
+- Verify subscription cleanup is working
+- Check browser console for subscription errors
 
 **Performance issues:**
 
--   Enable performance monitoring
--   Check for slow computations
--   Look for excessive subscriptions
--   Monitor memory usage
+- Enable performance monitoring
+- Check for slow computations
+- Look for excessive subscriptions
+- Monitor memory usage
 
 **Settings not persisting:**
 
--   Check localStorage permissions
--   Verify settings schema validation
--   Check middleware execution order
--   Look for persistence errors in console
+- Check localStorage permissions
+- Verify settings schema validation
+- Check middleware execution order
+- Look for persistence errors in console
 
 **Development tools not available:**
 
--   Ensure running in development mode
--   Check `window.__stateDebug` availability
--   Verify initializeStateDevTools was called
--   Check console for initialization errors
+- Ensure running in development mode
+- Check `window.__stateDebug` availability
+- Verify initializeStateDevTools was called
+- Check console for initialization errors
 
 ### Debug Commands
 
@@ -379,11 +379,11 @@ window.__stateDebug.resetMetrics();
 
 ### Extension Points
 
--   Custom middleware for specific business logic
--   Additional computed value patterns
--   Enhanced validation schemas
--   Custom persistence strategies
--   Integration with external state systems
+- Custom middleware for specific business logic
+- Additional computed value patterns
+- Enhanced validation schemas
+- Custom persistence strategies
+- Integration with external state systems
 
 ## Summary
 

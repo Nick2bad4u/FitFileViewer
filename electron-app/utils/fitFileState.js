@@ -155,7 +155,7 @@ export class FitFileStateManager {
             console.error("[FitFileState] Error processing data:", error);
             setState("fitFile.processingError", error.message, { source: "FitFileStateManager.processFileData" });
         }
-    }    /**
+    } /**
      * Get record count from file data
      * @param {Object} data - File data
      * @returns {number} Number of records
@@ -169,7 +169,7 @@ export class FitFileStateManager {
      * Extract session information
      * @param {Object} data - File data
      * @returns {Object} Session information
-     */    extractSessionInfo(data) {
+     */ extractSessionInfo(data) {
         if (!data || !data.sessionMesgs || !Array.isArray(data.sessionMesgs) || data.sessionMesgs.length === 0) {
             return null;
         }
@@ -238,7 +238,8 @@ export class FitFileStateManager {
             hasAltitude: false,
             completeness: 0,
             issues: [],
-        };        if (!data || !data.recordMesgs || !Array.isArray(data.recordMesgs)) {
+        };
+        if (!data || !data.recordMesgs || !Array.isArray(data.recordMesgs)) {
             quality.issues.push("No record data found");
             return quality;
         }
@@ -315,7 +316,7 @@ export class FitFileStateManager {
             isValid: true,
             errors: [],
             warnings: [],
-        };        // Basic structure validation
+        }; // Basic structure validation
         if (!data) {
             validation.isValid = false;
             validation.errors.push("No data provided");

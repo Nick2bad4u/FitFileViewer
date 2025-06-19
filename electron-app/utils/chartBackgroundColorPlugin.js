@@ -17,7 +17,11 @@
  *   }
  * }
  */
-// Background color plugin for theme-aware chart backgrounds
+/**
+ * Chart.js plugin for setting a theme-aware background color on chart canvases.
+ * @type {import('chart.js').Plugin}
+ * @exports chartBackgroundColorPlugin
+ */
 export const chartBackgroundColorPlugin = {
     id: "chartBackgroundColorPlugin",
     /**
@@ -32,16 +36,26 @@ export const chartBackgroundColorPlugin = {
         let backgroundColor =
             options?.backgroundColor ||
             chart.options?.plugins?.chartBackgroundColorPlugin?.backgroundColor ||
-            getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim() ||
+            (() => {
+                const cssBg = getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim();
+                return cssBg && cssBg !== "" ? cssBg : undefined;
+            })() ||
             "#23263a";
         if (!backgroundColor) {
             console.warn("[chartBackgroundColorPlugin] No backgroundColor set, using default #23263a");
             backgroundColor = "#23263a";
         }
         const { ctx, width, height } = chart;
-        console.log(
-            `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
-        );
+        if (!ctx) {
+            console.warn("[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw.");
+            return;
+        }
+        // Only log in development mode to avoid noisy output in production
+        if (window?.__renderer_dev?.debug) {
+            console.log(
+                `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
+            );
+        }
         ctx.save();
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, width, height);

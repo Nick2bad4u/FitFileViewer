@@ -9,39 +9,39 @@ appropriate information.
 
 ### 1. **General Pull Request** (`pull_request_template.md`)
 
--   **Default template** for all pull requests
--   Use when none of the specific templates fit your changes
--   Comprehensive template covering most common scenarios
+- **Default template** for all pull requests
+- Use when none of the specific templates fit your changes
+- Comprehensive template covering most common scenarios
 
 ### 2. **Feature Request** (`feature.md`)
 
--   For new features and enhancements
--   Includes sections for implementation details, testing, and performance impact
--   Use for: New functionality, UI improvements, visualization enhancements
+- For new features and enhancements
+- Includes sections for implementation details, testing, and performance impact
+- Use for: New functionality, UI improvements, visualization enhancements
 
 ### 3. **Bug Fix** (`bugfix.md`)
 
--   For fixing bugs and issues
--   Includes root cause analysis and risk assessment
--   Use for: Fixing crashes, incorrect behavior, data processing issues
+- For fixing bugs and issues
+- Includes root cause analysis and risk assessment
+- Use for: Fixing crashes, incorrect behavior, data processing issues
 
 ### 4. **Documentation** (`documentation.md`)
 
--   For documentation-only changes
--   Covers README updates, code comments, user guides, etc.
--   Use for: README updates, JSDoc improvements, user documentation
+- For documentation-only changes
+- Covers README updates, code comments, user guides, etc.
+- Use for: README updates, JSDoc improvements, user documentation
 
 ### 5. **Maintenance/Refactoring** (`maintenance.md`)
 
--   For code maintenance and refactoring
--   Includes dependency updates, performance optimizations, code cleanup
--   Use for: Dependency updates, code restructuring, performance improvements
+- For code maintenance and refactoring
+- Includes dependency updates, performance optimizations, code cleanup
+- Use for: Dependency updates, code restructuring, performance improvements
 
 ### 6. **Quick Fix** (`quick-fix.md`)
 
--   For simple, low-risk changes
--   Minimal template for typos, small UI fixes, minor improvements
--   Use for: Typo fixes, small configuration changes, minor style updates
+- For simple, low-risk changes
+- Minimal template for typos, small UI fixes, minor improvements
+- Use for: Typo fixes, small configuration changes, minor style updates
 
 ## How to Use
 
@@ -54,17 +54,17 @@ appropriate information.
 
 ### For Contributors
 
--   **Choose the right template** - this helps reviewers understand your changes
--   **Fill out all applicable sections** - don't leave empty sections
--   **Be specific** - provide clear descriptions and test steps
--   **Include context** - link to related issues and provide background
+- **Choose the right template** - this helps reviewers understand your changes
+- **Fill out all applicable sections** - don't leave empty sections
+- **Be specific** - provide clear descriptions and test steps
+- **Include context** - link to related issues and provide background
 
 ### For Reviewers
 
--   **Check template completeness** - ensure all relevant sections are filled
--   **Verify testing coverage** - confirm appropriate testing was done
--   **Review compatibility** - ensure cross-platform and theme compatibility
--   **Assess risk** - pay attention to risk assessment sections
+- **Check template completeness** - ensure all relevant sections are filled
+- **Verify testing coverage** - confirm appropriate testing was done
+- **Review compatibility** - ensure cross-platform and theme compatibility
+- **Assess risk** - pay attention to risk assessment sections
 
 ## Contributing to Templates
 
@@ -78,12 +78,12 @@ If you find these templates could be improved:
 
 When using these templates, keep in mind FitFileViewer's specific requirements:
 
--   **Cross-platform compatibility** (Windows, macOS, Linux)
--   **Theme support** (light and dark themes)
--   **FIT file format compatibility**
--   **Performance with large files** (>100MB)
--   **Electron security model** (sandboxing, IPC)
--   **Modular architecture** (utils directory structure)
+- **Cross-platform compatibility** (Windows, macOS, Linux)
+- **Theme support** (light and dark themes)
+- **FIT file format compatibility**
+- **Performance with large files** (>100MB)
+- **Electron security model** (sandboxing, IPC)
+- **Modular architecture** (utils directory structure)
 
 <!-- markdownlint-disable MD013 -->
 

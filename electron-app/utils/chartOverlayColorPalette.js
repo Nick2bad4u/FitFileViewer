@@ -3,14 +3,19 @@
  * @type {string[]}
  */
 
-export const chartOverlayColorPalette = (function shuffleAndFilter(array) {
+/**
+ * Returns a shuffled and filtered color palette with good visual separation.
+ * @param {string[]} array - Array of color hex strings.
+ * @returns {string[]} Filtered and shuffled palette.
+ */
+export function getChartOverlayColorPalette(array) {
     // Remove duplicates
     let unique = Array.from(new Set(array));
 
     // Helper to compute color distance in RGB space
     function colorDistance(c1, c2) {
         function hexToRgb(hex) {
-            hex = hex.replace("#", "");
+            hex = hex.replace(/^#/, "");
             if (hex.length === 3) {
                 hex = hex
                     .split("")
@@ -33,13 +38,29 @@ export const chartOverlayColorPalette = (function shuffleAndFilter(array) {
         }
     });
 
-    // Shuffle for randomness
-    for (let i = filtered.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    // Deterministic shuffle using a seeded algorithm for reproducibility
+    function seededShuffle(array, seed = 42) {
+        // Simple LCG (Linear Congruential Generator)
+        let a = 1664525,
+            c = 1013904223,
+            m = 2 ** 32;
+        let state = seed;
+        const arr = array.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            state = (a * state + c) % m;
+            const j = state % (i + 1);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
     }
-    return filtered;
-})([
+    return seededShuffle(filtered);
+}
+
+/**
+ * Base color list for chart overlays, chosen for visual separation.
+ * @type {string[]}
+ */
+export const baseChartOverlayColors = [
     "#00adad",
     "#bf3b00",
     "#0028bf",
@@ -66,4 +87,11 @@ export const chartOverlayColorPalette = (function shuffleAndFilter(array) {
     "#006efb",
     "#e21649",
     "#00c2ff",
-]);
+];
+
+/**
+ * Chart overlay color palette with visually distinct colors for overlaying multiple data series.
+ * Intended for use in chart visualizations to ensure overlays are easily distinguishable.
+ * @type {string[]}
+ */
+export const chartOverlayColorPalette = getChartOverlayColorPalette(baseChartOverlayColors);

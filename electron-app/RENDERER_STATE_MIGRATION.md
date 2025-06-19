@@ -17,15 +17,15 @@ import { uiStateManager } from "./utils/uiStateManager.js";
 
 ### 2. State Management Initialization
 
--   **Before**: Simple object `const appState = { ... }`
--   **After**: Reactive state management with `initializeStateManager()`
+- **Before**: Simple object `const appState = { ... }`
+- **After**: Reactive state management with `initializeStateManager()`
 
 The new system:
 
--   Initializes the master state manager first
--   Creates a legacy compatibility proxy for `appState`
--   Maintains `isOpeningFileRef` synchronization
--   Provides fallback to legacy state if initialization fails
+- Initializes the master state manager first
+- Creates a legacy compatibility proxy for `appState`
+- Maintains `isOpeningFileRef` synchronization
+- Provides fallback to legacy state if initialization fails
 
 ### 3. Application Lifecycle Updates
 
@@ -65,9 +65,9 @@ if (masterStateManager.isInitialized()) {
 
 Global error handlers now:
 
--   Try to use the state manager for notifications
--   Fallback to direct notifications if state manager isn't available
--   Provide better error recovery and logging
+- Try to use the state manager for notifications
+- Fallback to direct notifications if state manager isn't available
+- Provide better error recovery and logging
 
 ### 5. Development Tools Enhancement
 
@@ -97,10 +97,10 @@ window.__renderer_dev = {
 
 ### Legacy Components Still Work
 
--   `appState.isInitialized` - proxies to state manager
--   `appState.isOpeningFile` - proxies to state manager
--   `isOpeningFileRef.value` - synchronized with state manager
--   All existing utilities continue to function
+- `appState.isInitialized` - proxies to state manager
+- `appState.isOpeningFile` - proxies to state manager
+- `isOpeningFileRef.value` - synchronized with state manager
+- All existing utilities continue to function
 
 ### Migration Path for Other Components
 
@@ -189,20 +189,20 @@ The system automatically falls back to legacy state management, ensuring the app
 
 Use `__renderer_dev.debugState()` in the console to see:
 
--   Current state values
--   State change history
--   Active subscriptions
--   Performance metrics
+- Current state values
+- State change history
+- Active subscriptions
+- Performance metrics
 
 ### Check Component Integration
 
 Verify other components are using the updated utilities:
 
--   `updateControlsState.js`
--   `enableTabButtons.js`
--   `updateActiveTab.js`
--   `updateTabVisibility.js`
--   `rendererUtils.js`
+- `updateControlsState.js`
+- `enableTabButtons.js`
+- `updateActiveTab.js`
+- `updateTabVisibility.js`
+- `rendererUtils.js`
 
 ## Migration Status
 

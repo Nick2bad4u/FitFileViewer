@@ -17,29 +17,29 @@ Describe the problem this feature addresses or the use case it enables.
 
 **Changes Made:**
 
--   [ ] Core functionality implemented
--   [ ] UI/UX components added/modified
--   [ ] Data processing logic updated
--   [ ] Visualization/charting enhancements
--   [ ] Map functionality improvements
--   [ ] Theme system updates
+- [ ] Core functionality implemented
+- [ ] UI/UX components added/modified
+- [ ] Data processing logic updated
+- [ ] Visualization/charting enhancements
+- [ ] Map functionality improvements
+- [ ] Theme system updates
 
 **Files Modified:**
 
 List the main files that were changed:
 
--   `electron-app/`
--   `utils/`
--   Other files...
+- `electron-app/`
+- `utils/`
+- Other files...
 
 ## Testing
 
 **How has this been tested?**
 
--   [ ] Manual testing performed
--   [ ] Unit tests added/updated
--   [ ] Integration tests verified
--   [ ] Cross-platform testing (Windows/macOS/Linux)
+- [ ] Manual testing performed
+- [ ] Unit tests added/updated
+- [ ] Integration tests verified
+- [ ] Cross-platform testing (Windows/macOS/Linux)
 
 **Test Cases:**
 
@@ -57,28 +57,28 @@ If applicable, add screenshots or GIFs demonstrating the new feature:
 
 **Performance Considerations:**
 
--   [ ] No significant performance impact
--   [ ] Performance improvements included
--   [ ] Large files tested (>100MB)
--   [ ] Memory usage verified
--   [ ] Startup time impact assessed
+- [ ] No significant performance impact
+- [ ] Performance improvements included
+- [ ] Large files tested (>100MB)
+- [ ] Memory usage verified
+- [ ] Startup time impact assessed
 
 ## Documentation
 
--   [ ] Code comments added/updated
--   [ ] JSDoc documentation updated
--   [ ] README.md updated (if needed)
--   [ ] CHANGELOG.md updated
+- [ ] Code comments added/updated
+- [ ] JSDoc documentation updated
+- [ ] README.md updated (if needed)
+- [ ] CHANGELOG.md updated
 
 ## Compatibility
 
 **Browser/Platform Compatibility:**
 
--   [ ] Windows tested
--   [ ] macOS tested
--   [ ] Linux tested
--   [ ] Theme compatibility (light/dark)
--   [ ] FIT file format compatibility maintained
+- [ ] Windows tested
+- [ ] macOS tested
+- [ ] Linux tested
+- [ ] Theme compatibility (light/dark)
+- [ ] FIT file format compatibility maintained
 
 ## Additional Context
 
@@ -86,11 +86,11 @@ Add any other context about the feature request here.
 
 ## Checklist
 
--   [ ] My code follows the project's coding standards
--   [ ] I have performed a self-review of my code
--   [ ] I have commented my code, particularly in hard-to-understand areas
--   [ ] I have made corresponding changes to the documentation
--   [ ] My changes generate no new warnings or errors
--   [ ] I have added tests that prove my fix is effective or that my feature works
--   [ ] New and existing unit tests pass locally with my changes
--   [ ] Any dependent changes have been merged and published
+- [ ] My code follows the project's coding standards
+- [ ] I have performed a self-review of my code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings or errors
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
