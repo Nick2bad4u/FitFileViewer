@@ -56,15 +56,15 @@ function isValidNumber(value) {
  * @param {boolean} [options.strictValidation=true] - Whether to throw on invalid numbers
  * @returns {string | any} The formatted string of numbers, or the original value if not processable
  * @throws {Error} If strictValidation is true and any value cannot be converted to a number
- * 
+ *
  * @example
  * // Format array of numbers
  * formatArray([1.234, 2.567, 3.891]) // "1.23, 2.57, 3.89"
- * 
+ *
  * @example
  * // Format comma-separated string
  * formatArray("1.234,2.567,3.891", 1) // "1.2, 2.6, 3.9"
- * 
+ *
  * @example
  * // With custom options
  * formatArray([1.234, 2.567], 3, { separator: " | " }) // "1.234 | 2.567"

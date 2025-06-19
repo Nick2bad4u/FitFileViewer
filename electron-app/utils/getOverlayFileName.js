@@ -1,7 +1,7 @@
 /**
  * Gets the filename for a loaded FIT file overlay by index
  * Provides safe access to overlay file paths with comprehensive validation
- * 
+ *
  * @param {number} idx - Index of the overlay file
  * @returns {string} The filename or empty string if not found
  */
@@ -20,7 +20,7 @@ const ERROR_MESSAGES = {
 
 /**
  * Gets the filename for a loaded FIT file overlay by index
- * 
+ *
  * Safely retrieves the file path from the loaded FIT files state with proper validation.
  * Returns an empty string if the index is out of bounds or file data is unavailable.
  *
@@ -30,7 +30,7 @@ const ERROR_MESSAGES = {
  * @example
  * // Get filename for the first overlay file
  * const filename = getOverlayFileName(0);
- * 
+ *
  * // Handle case where file doesn't exist
  * const filename = getOverlayFileName(999); // Returns ""
  */
@@ -42,7 +42,7 @@ export function getOverlayFileName(idx) {
 
     try {
         const loadedFitFiles = getState("globalData.loadedFitFiles");
-        
+
         // Validate state data
         if (!Array.isArray(loadedFitFiles)) {
             console.warn(`[getOverlayFileName] ${ERROR_MESSAGES.INVALID_LOADED_FILES}`);
@@ -57,7 +57,6 @@ export function getOverlayFileName(idx) {
 
         // Return empty string for missing or invalid file data
         return "";
-        
     } catch (error) {
         console.error(`[getOverlayFileName] ${ERROR_MESSAGES.STATE_ACCESS_ERROR}`, error);
         return "";

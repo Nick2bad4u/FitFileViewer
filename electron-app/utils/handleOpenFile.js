@@ -50,21 +50,21 @@ function logWithContext(message, level = "info") {
  */
 function validateElectronAPI() {
     const { ELECTRON_API_METHODS } = FILE_OPEN_CONSTANTS;
-    
+
     if (!window.electronAPI) {
         logWithContext("Electron API not available", "error");
         return false;
     }
-    
+
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        method => typeof window.electronAPI[method] !== "function"
+        (method) => typeof window.electronAPI[method] !== "function"
     );
-    
+
     if (missingMethods.length > 0) {
         logWithContext(`Missing Electron API methods: ${missingMethods.join(", ")}`, "error");
         return false;
     }
-    
+
     return true;
 }
 
@@ -78,23 +78,22 @@ function validateElectronAPI() {
 function updateUIState(uiElements, isLoading, isOpening) {
     try {
         const { openFileBtn, setLoading, isOpeningFileRef } = uiElements;
-        
+
         if (openFileBtn) {
             openFileBtn.disabled = isLoading;
         }
-        
+
         if (typeof setLoading === "function") {
             setLoading(isLoading);
         }
-        
+
         if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
             isOpeningFileRef.value = isOpening;
         }
-        
+
         // Update state management
         setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
         setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
-        
     } catch (error) {
         logWithContext(`Error updating UI state: ${error.message}`, "error");
     }
@@ -102,7 +101,7 @@ function updateUIState(uiElements, isLoading, isOpening) {
 
 /**
  * Handles file opening logic with comprehensive error handling and state management
- * 
+ *
  * @param {Object} params - Configuration object for file opening
  * @param {Object} params.isOpeningFileRef - Reference object to track opening state
  * @param {HTMLElement} params.openFileBtn - Open file button element
@@ -112,7 +111,7 @@ function updateUIState(uiElements, isLoading, isOpening) {
  * @param {number} [options.timeout=30000] - Timeout for file operations in milliseconds
  * @param {boolean} [options.validateFileSize=true] - Whether to validate file size
  * @returns {Promise<boolean>} True if file was successfully opened and processed
- * 
+ *
  * @example
  * // Basic usage
  * const success = await handleOpenFile({
@@ -121,7 +120,7 @@ function updateUIState(uiElements, isLoading, isOpening) {
  *   setLoading: (loading) => showLoadingSpinner(loading),
  *   showNotification: (msg, type) => displayMessage(msg, type)
  * });
- * 
+ *
  * @public
  */
 export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification }, options = {}) {

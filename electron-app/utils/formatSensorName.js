@@ -18,7 +18,7 @@ const SENSOR_FORMAT_CONFIG = {
 
 /**
  * Formats sensor names for consistent display across the application
- * 
+ *
  * Uses multiple formatting strategies depending on available sensor data:
  * 1. Manufacturer + Product combination (preferred)
  * 2. Garmin product name formatting
@@ -33,19 +33,19 @@ const SENSOR_FORMAT_CONFIG = {
  * @throws {TypeError} If sensor is not an object
  * @example
  * // Format with manufacturer and product
- * const sensor1 = formatSensorName({ 
- *   manufacturer: "garmin", 
- *   product: 1735 
+ * const sensor1 = formatSensorName({
+ *   manufacturer: "garmin",
+ *   product: 1735
  * }); // "Garmin Edge 520"
- * 
+ *
  * // Format with Garmin product only
- * const sensor2 = formatSensorName({ 
- *   garminProduct: "edge_520_plus" 
+ * const sensor2 = formatSensorName({
+ *   garminProduct: "edge_520_plus"
  * }); // "Edge 520 Plus"
- * 
+ *
  * // Format with manufacturer only
- * const sensor3 = formatSensorName({ 
- *   manufacturer: "wahoo" 
+ * const sensor3 = formatSensorName({
+ *   manufacturer: "wahoo"
  * }); // "Wahoo"
  */
 export function formatSensorName(sensor) {
@@ -73,7 +73,6 @@ export function formatSensorName(sensor) {
 
         // Strategy 4: Fallback
         return SENSOR_FORMAT_CONFIG.FALLBACK_NAME;
-        
     } catch (error) {
         console.error(`[formatSensorName] ${SENSOR_FORMAT_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
         return SENSOR_FORMAT_CONFIG.FALLBACK_NAME;
@@ -88,9 +87,9 @@ export function formatSensorName(sensor) {
  */
 function hasManufacturerAndProduct(sensor) {
     return (
-        sensor.manufacturer !== null && 
-        sensor.manufacturer !== undefined && 
-        sensor.product !== null && 
+        sensor.manufacturer !== null &&
+        sensor.manufacturer !== undefined &&
+        sensor.product !== null &&
         sensor.product !== undefined
     );
 }
@@ -104,12 +103,12 @@ function hasManufacturerAndProduct(sensor) {
 function formatManufacturerProduct(sensor) {
     const manufacturerName = formatManufacturer(sensor.manufacturer);
     const productName = formatProduct(sensor.manufacturer, sensor.product);
-    
+
     // Avoid duplication if product name already includes manufacturer
     if (productName.toLowerCase().includes(manufacturerName.toLowerCase())) {
         return productName;
     }
-    
+
     return `${manufacturerName}${SENSOR_FORMAT_CONFIG.NAME_SEPARATOR}${productName}`;
 }
 
@@ -122,9 +121,9 @@ function formatManufacturerProduct(sensor) {
 function formatGarminProduct(garminProduct) {
     // Ensure garminProduct is a string before formatting
     const garminProductStr = String(garminProduct);
-    
+
     return garminProductStr
         .split(SENSOR_FORMAT_CONFIG.WORD_SEPARATOR)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(SENSOR_FORMAT_CONFIG.FORMATTED_SEPARATOR);
 }

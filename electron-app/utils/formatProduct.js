@@ -17,7 +17,7 @@ const PRODUCT_FORMAT_CONFIG = {
 
 /**
  * Formats product names for consistent display across the application
- * 
+ *
  * Handles manufacturer ID/name conversion, product name lookup from ANT+ database,
  * and formatting of product names from snake_case to human-readable format.
  * Provides graceful fallback handling for missing or invalid data.
@@ -28,10 +28,10 @@ const PRODUCT_FORMAT_CONFIG = {
  * @example
  * // Format with manufacturer ID and product ID
  * const product1 = formatProduct(1, 1735); // "Edge 520"
- * 
- * // Format with manufacturer name and product ID  
+ *
+ * // Format with manufacturer name and product ID
  * const product2 = formatProduct("garmin", 1735); // "Edge 520"
- * 
+ *
  * // Handle unknown product
  * const product3 = formatProduct(999, 999); // "999"
  */
@@ -54,7 +54,6 @@ export function formatProduct(manufacturer, productId) {
 
         // Get formatted product name
         return getFormattedProductName(manufacturerId, productId);
-        
     } catch (error) {
         console.error(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
         return formatFallbackProduct(productId);
@@ -97,7 +96,7 @@ function resolveManufacturerId(manufacturer) {
         // If string (non-numeric), try to get ID from name
         if (typeof manufacturer === "string") {
             const manufacturerId = getManufacturerIdFromName(manufacturer);
-            return (manufacturerId !== null && manufacturerId !== undefined) ? manufacturerId : null;
+            return manufacturerId !== null && manufacturerId !== undefined ? manufacturerId : null;
         }
 
         return null;
@@ -126,7 +125,6 @@ function getFormattedProductName(manufacturerId, productId) {
 
         // If no mapping found, return the original product ID as string
         return formatFallbackProduct(productId);
-        
     } catch (error) {
         console.warn(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.PRODUCT_LOOKUP_ERROR}`, error);
         return formatFallbackProduct(productId);
@@ -142,7 +140,7 @@ function getFormattedProductName(manufacturerId, productId) {
 function formatProductNameString(productName) {
     return productName
         .split(PRODUCT_FORMAT_CONFIG.WORD_SEPARATOR)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(PRODUCT_FORMAT_CONFIG.FORMATTED_SEPARATOR);
 }
 

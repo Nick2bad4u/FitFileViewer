@@ -28,7 +28,7 @@ const FIELD_CATEGORIES = {
  * @example
  * // Convert distance from meters to user preference (e.g., kilometers)
  * const convertedDistance = convertValueToUserUnits(1000, "distance");
- * 
+ *
  * // Convert temperature from Celsius to user preference (e.g., Fahrenheit)
  * const convertedTemp = convertValueToUserUnits(25, "temperature");
  */

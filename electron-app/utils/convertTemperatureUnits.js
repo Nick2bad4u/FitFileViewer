@@ -35,7 +35,10 @@ export function convertTemperatureUnits(celsius, targetUnit) {
     try {
         switch (targetUnit) {
             case TEMPERATURE_UNITS.FAHRENHEIT:
-                return celsius * TEMPERATURE_CONVERSIONS.CELSIUS_TO_FAHRENHEIT_MULTIPLIER + TEMPERATURE_CONVERSIONS.FAHRENHEIT_OFFSET;
+                return (
+                    celsius * TEMPERATURE_CONVERSIONS.CELSIUS_TO_FAHRENHEIT_MULTIPLIER +
+                    TEMPERATURE_CONVERSIONS.FAHRENHEIT_OFFSET
+                );
             case TEMPERATURE_UNITS.CELSIUS:
                 return celsius;
             default:

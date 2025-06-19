@@ -24,7 +24,7 @@ const FULLSCREEN_CONFIG = {
 
 /**
  * Adds an exit fullscreen overlay button to the specified container
- * 
+ *
  * The button allows users to exit fullscreen mode and is styled according to the app's theme.
  * Uses CSS classes for consistent styling and handles fullscreen API errors gracefully.
  *
@@ -63,20 +63,20 @@ export function addExitFullscreenOverlay(container) {
  */
 function createExitButton() {
     const button = document.createElement("button");
-    
+
     // Apply CSS classes for styling
     button.className = [
         FULLSCREEN_CONFIG.CSS_CLASSES.OVERLAY,
         FULLSCREEN_CONFIG.CSS_CLASSES.THEMED_BTN,
         FULLSCREEN_CONFIG.CSS_CLASSES.EXIT_BTN,
     ].join(" ");
-    
+
     button.title = FULLSCREEN_CONFIG.BUTTON_TITLE;
     button.innerHTML = createButtonHTML();
-    
+
     // Add click event handler
     button.onclick = handleExitFullscreen;
-    
+
     return button;
 }
 
@@ -87,7 +87,7 @@ function createExitButton() {
  */
 function createButtonHTML() {
     const { WIDTH, HEIGHT, STROKE_WIDTH } = FULLSCREEN_CONFIG.ICON_SIZE;
-    
+
     return `
         <span class="${FULLSCREEN_CONFIG.CSS_CLASSES.ICON}" aria-hidden="true">
             <!-- Material Design Exit Fullscreen Icon -->
@@ -109,7 +109,7 @@ function createButtonHTML() {
  */
 function handleExitFullscreen(event) {
     event.stopPropagation();
-    
+
     try {
         if (document.fullscreenElement) {
             document.exitFullscreen().catch((error) => {

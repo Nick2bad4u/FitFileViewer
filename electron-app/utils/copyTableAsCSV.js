@@ -20,7 +20,7 @@ const CSV_CONFIG = {
 
 /**
  * Copies the contents of a table as a CSV string to the clipboard
- * 
+ *
  * This function serializes each row of the table, handling nested objects by stringifying them.
  * It attempts to use the modern Clipboard API and falls back to the legacy method if necessary.
  *
@@ -40,14 +40,13 @@ export async function copyTableAsCSV(table) {
     try {
         // Serialize table data with object handling
         const processedRows = processTableRows(table.objects());
-        
+
         // Convert to CSV format
         const flattenedTable = window.aq.from(processedRows);
         const csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });
 
         // Attempt clipboard copy
         await copyToClipboard(csvString);
-        
     } catch (error) {
         console.error("[copyTableAsCSV] Failed to copy table:", error);
         throw error;
@@ -62,13 +61,13 @@ export async function copyTableAsCSV(table) {
  */
 function processTableRows(rows) {
     const cache = new Map();
-    
+
     return rows.map((row) => {
         const processedRow = {};
-        
+
         Object.keys(row).forEach((key) => {
             const cell = row[key];
-            
+
             if (typeof cell === "object" && cell !== null) {
                 // Use cache to avoid re-serializing identical objects
                 if (cache.has(cell)) {
@@ -82,7 +81,7 @@ function processTableRows(rows) {
                 processedRow[key] = cell;
             }
         });
-        
+
         return processedRow;
     });
 }
@@ -119,14 +118,14 @@ async function copyToClipboard(text) {
 function copyToClipboardFallback(text) {
     const textarea = document.createElement("textarea");
     textarea.value = text;
-    
+
     // Apply styles to prevent visual disruption
     Object.assign(textarea.style, CSV_CONFIG.TEXTAREA_STYLES);
-    
+
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
-    
+
     try {
         const successful = document.execCommand("copy");
         if (successful) {

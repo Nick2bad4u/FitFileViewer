@@ -14,7 +14,7 @@ const DISTANCE_CONVERSIONS = {
  */
 export const DISTANCE_UNITS = {
     METERS: "meters",
-    KILOMETERS: "kilometers", 
+    KILOMETERS: "kilometers",
     FEET: "feet",
     MILES: "miles",
 };

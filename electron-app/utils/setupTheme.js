@@ -57,7 +57,7 @@ function isValidTheme(theme) {
  */
 async function fetchThemeFromMainProcess() {
     const { DEFAULT_THEME, TIMEOUT } = THEME_CONSTANTS;
-    
+
     if (!window.electronAPI?.getTheme) {
         logWithContext("ElectronAPI getTheme not available, using default theme", "warn");
         return DEFAULT_THEME;
@@ -71,12 +71,12 @@ async function fetchThemeFromMainProcess() {
         });
 
         const theme = await Promise.race([themePromise, timeoutPromise]);
-        
+
         if (!isValidTheme(theme)) {
             logWithContext(`Invalid theme received: ${theme}, using default`, "warn");
             return DEFAULT_THEME;
         }
-        
+
         logWithContext(`Theme fetched from main process: ${theme}`);
         return theme;
     } catch (error) {
@@ -109,7 +109,7 @@ function applyAndTrackTheme(theme, applyTheme) {
 
         // Update state
         setState("ui.theme", theme, { source: "setupTheme" });
-        
+
         // Store in localStorage for persistence
         try {
             localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
@@ -142,7 +142,7 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
             if (newTheme && newTheme !== getState("ui.previousTheme")) {
                 logWithContext(`State-driven theme change: ${newTheme}`);
                 setState("ui.previousTheme", newTheme, { source: "setupTheme" });
-                
+
                 if (typeof applyTheme === "function") {
                     applyTheme(newTheme);
                 }
@@ -165,20 +165,20 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
  * @param {string} [options.fallbackTheme] - Theme to use if main process is unavailable
  * @param {boolean} [options.useLocalStorage=true] - Whether to use localStorage for persistence
  * @returns {Promise<string>} Resolves with the applied theme name
- * 
+ *
  * @example
  * // Basic theme setup
  * await setupTheme((theme) => {
  *   document.documentElement.setAttribute('data-theme', theme);
  * });
- * 
+ *
  * @example
  * // Theme setup with change listener
  * await setupTheme(
  *   (theme) => applyThemeToUI(theme),
  *   (callback) => window.electronAPI.onThemeChange(callback)
  * );
- * 
+ *
  * @public
  */
 export async function setupTheme(applyTheme, listenForThemeChange, options = {}) {
@@ -198,7 +198,7 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
 
         // Try to get theme from various sources in order of preference
         let theme = await fetchThemeFromMainProcess();
-        
+
         // Fallback to localStorage if main process fails
         if (theme === THEME_CONSTANTS.DEFAULT_THEME && config.useLocalStorage) {
             try {
@@ -226,10 +226,9 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
 
         logWithContext(`Theme setup completed successfully with theme: ${theme}`);
         return theme;
-
     } catch (error) {
         logWithContext(`Error during theme setup: ${error.message}`, "error");
-        
+
         // Emergency fallback
         const emergencyTheme = THEME_CONSTANTS.DEFAULT_THEME;
         try {
@@ -238,7 +237,7 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
         } catch (emergencyError) {
             logWithContext(`Emergency theme application failed: ${emergencyError.message}`, "error");
         }
-        
+
         return emergencyTheme;
     }
 }

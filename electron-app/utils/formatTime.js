@@ -21,7 +21,7 @@ const TIME_FORMAT_CONSTANTS = {
  * @example
  * // Format time in MM:SS format
  * const timeStr = formatTime(3661); // "1:01:01"
- * 
+ *
  * // Format with user units
  * const timeUnits = formatTime(3600, true); // "1.0h" (if user prefers hours)
  */
@@ -79,7 +79,9 @@ function formatWithUserUnits(seconds) {
  */
 function formatAsTimeString(seconds) {
     const hours = Math.floor(seconds / TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR);
-    const minutes = Math.floor((seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR) / TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE);
+    const minutes = Math.floor(
+        (seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR) / TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE
+    );
     const secs = Math.floor(seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE);
 
     if (hours > 0) {

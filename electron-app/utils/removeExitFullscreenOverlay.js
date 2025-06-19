@@ -20,7 +20,7 @@ const overlayCache = new WeakMap();
 
 /**
  * Removes the exit fullscreen overlay button from the specified container
- * 
+ *
  * Uses caching for improved performance and supports both modern and legacy removal methods.
  * Automatically cleans up cache entries when overlays are removed.
  *
@@ -38,7 +38,7 @@ export function removeExitFullscreenOverlay(container) {
 
     try {
         const overlay = findOverlay(container);
-        
+
         if (overlay) {
             removeOverlayElement(overlay);
             overlayCache.delete(container);
@@ -60,16 +60,16 @@ export function removeExitFullscreenOverlay(container) {
 function findOverlay(container) {
     // Check cache first for performance
     let overlay = overlayCache.get(container);
-    
+
     if (!overlay) {
         // Search DOM if not in cache
         overlay = container.querySelector(`.${OVERLAY_CONFIG.CSS_CLASS}`);
-        
+
         if (overlay) {
             overlayCache.set(container, overlay);
         }
     }
-    
+
     return overlay;
 }
 

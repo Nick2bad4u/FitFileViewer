@@ -70,7 +70,7 @@ function extractFileName(filePath) {
 function updateFileDisplay(fileName) {
     try {
         const { SELECTORS, CSS_CLASSES } = DISPLAY_CONSTANTS;
-        
+
         // Update file name container
         const fileNameContainer = document.getElementById(SELECTORS.FILE_NAME_CONTAINER);
         if (fileNameContainer) {
@@ -93,9 +93,7 @@ function updateFileDisplay(fileName) {
         }
 
         // Update document title
-        document.title = fileName ? 
-            `${DISPLAY_CONSTANTS.TITLE_PREFIX} - ${fileName}` : 
-            DISPLAY_CONSTANTS.TITLE_PREFIX;
+        document.title = fileName ? `${DISPLAY_CONSTANTS.TITLE_PREFIX} - ${fileName}` : DISPLAY_CONSTANTS.TITLE_PREFIX;
 
         logWithContext(`File display updated: ${fileName}`);
     } catch (error) {
@@ -141,11 +139,11 @@ function resetRenderingStates() {
         // Reset rendering flags
         window.isMapRendered = false;
         window.isChartRendered = false;
-        
+
         // Update state management
         setState("ui.isMapRendered", false, { source: "showFitData" });
         setState("ui.isChartRendered", false, { source: "showFitData" });
-        
+
         logWithContext("Rendering states reset");
     } catch (error) {
         logWithContext(`Error resetting rendering states: ${error.message}`, "error");
@@ -170,7 +168,7 @@ function getCachedFileName(data, filePath) {
         const fileName = extractFileName(filePath);
         data.cachedFileName = fileName;
         data.cachedFilePath = filePath;
-        
+
         return fileName;
     } catch (error) {
         logWithContext(`Error managing file name cache: ${error.message}`, "error");
@@ -187,15 +185,15 @@ function getCachedFileName(data, filePath) {
  * @param {Object} [options={}] - Display options
  * @param {boolean} [options.resetRenderStates=true] - Whether to reset rendering states
  * @param {boolean} [options.updateUI=true] - Whether to update UI elements
- * 
+ *
  * @example
  * // Show FIT data with default options
  * showFitData(parsedData, "/path/to/file.fit");
- * 
+ *
  * @example
  * // Show data without resetting render states
  * showFitData(parsedData, "/path/to/file.fit", { resetRenderStates: false });
- * 
+ *
  * @public
  */
 export function showFitData(data, filePath, options = {}) {
@@ -225,19 +223,23 @@ export function showFitData(data, filePath, options = {}) {
         // Handle file path and UI updates
         if (filePath && config.updateUI) {
             const fileName = getCachedFileName(data, filePath);
-            
+
             // Update file display elements
             updateFileDisplay(fileName);
-            
+
             // Enable tabs and send notifications
             enableTabsAndNotify(filePath);
-            
+
             // Update state with file information
-            setState("fileInfo", {
-                name: fileName,
-                path: filePath,
-                loadedAt: Date.now(),
-            }, { source: "showFitData" });
+            setState(
+                "fileInfo",
+                {
+                    name: fileName,
+                    path: filePath,
+                    loadedAt: Date.now(),
+                },
+                { source: "showFitData" }
+            );
         }
 
         // Create global chart status indicator if available
@@ -250,17 +252,20 @@ export function showFitData(data, filePath, options = {}) {
         }
 
         logWithContext(`FIT data displayed successfully${filePath ? ` for file: ${extractFileName(filePath)}` : ""}`);
-
     } catch (error) {
         logWithContext(`Error showing FIT data: ${error.message}`, "error");
-        
+
         // Update state with error information
-        setState("error", {
-            message: error.message,
-            timestamp: Date.now(),
-            source: "showFitData",
-        }, { source: "showFitData" });
-        
+        setState(
+            "error",
+            {
+                message: error.message,
+                timestamp: Date.now(),
+                source: "showFitData",
+            },
+            { source: "showFitData" }
+        );
+
         throw error;
     }
 
@@ -290,4 +295,3 @@ export function showFitData(data, filePath, options = {}) {
         }
     }, 0);
 }
-
