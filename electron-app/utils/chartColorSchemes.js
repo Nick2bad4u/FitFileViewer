@@ -1,7 +1,7 @@
 /**
  * Predefined color schemes for zones
  */
-export const COLOR_SCHEMES = {
+export const chartColorSchemes = {
     classic: {
         hr: ["#4facfe", "#00b7ff", "#00a6ff", "#0095ff", "#0084ff"],
         power: ["#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#e53935", "#c62828", "#b71c1c"],

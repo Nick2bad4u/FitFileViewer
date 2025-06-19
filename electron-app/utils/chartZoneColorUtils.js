@@ -3,7 +3,7 @@
  * Handles saving, loading, and applying zone color preferences for HR and Power zones
  */
 
-import { COLOR_SCHEMES } from "./COLOR_SCHEMES.js";
+import { chartColorSchemes } from "./chartColorSchemes.js";
 import { getThemeConfig } from "./theme.js";
 
 /**
@@ -139,8 +139,8 @@ export function getChartZoneColors(zoneType, zoneCount, colorScheme = "custom") 
     }
 
     // Use predefined color scheme
-    if (COLOR_SCHEMES[colorScheme] && COLOR_SCHEMES[colorScheme][zoneType]) {
-        const schemeColors = COLOR_SCHEMES[colorScheme][zoneType];
+    if (chartColorSchemes[colorScheme] && chartColorSchemes[colorScheme][zoneType]) {
+        const schemeColors = chartColorSchemes[colorScheme][zoneType];
         const colors = [];
         for (let i = 0; i < zoneCount; i++) {
             colors.push(schemeColors[i] || schemeColors[i % schemeColors.length]);
@@ -168,7 +168,7 @@ export function getDisplayZoneColors(zoneType, zoneCount, colorScheme = "custom"
  * @returns {Object} Object containing all color schemes
  */
 export function getColorSchemes() {
-    return COLOR_SCHEMES;
+    return chartColorSchemes;
 }
 
 /**
