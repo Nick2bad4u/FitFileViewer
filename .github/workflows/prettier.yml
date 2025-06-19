@@ -74,6 +74,7 @@ jobs:
                       This PR was created automatically by the Prettier workflow.
                       It applies code formatting changes using Prettier and your project's configuration.
                   branch: "chore/prettier-fix"
+                  base: main
                   add-paths: electron-app/**/*.{js,md,css,html}
                   delete-branch: false
                   token: ${{ secrets.GITHUB_TOKEN }}
