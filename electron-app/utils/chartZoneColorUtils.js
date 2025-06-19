@@ -224,6 +224,9 @@ export function resetChartSpecificZoneColors(chartField, zoneCount) {
     const zoneType = chartField.includes("hr") ? "hr" : "power";
     const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
 
+    // Set color scheme to custom when resetting zone colors
+    localStorage.setItem(`chartjs_${chartField}_color_scheme`, "custom");
+
     for (let i = 0; i < zoneCount; i++) {
         const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length];
         saveChartSpecificZoneColor(chartField, i, defaultColor);

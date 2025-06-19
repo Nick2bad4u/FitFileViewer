@@ -452,7 +452,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
 
         // CRITICAL: Clear cached settings from state management
         // This ensures the chart rendering will read fresh settings from localStorage
-        if (typeof setState === 'function') {
+        if (typeof setState === "function") {
             setState("settings.charts", null, { source: "reRenderChartsAfterSettingChange" });
             console.log(`${LOG_PREFIX} Cleared cached chart settings from state`);
         }
@@ -491,9 +491,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             container = document.getElementById("chart-container");
         }
 
-        console.log(`${LOG_PREFIX} Using container: ${container ? container.id : 'none found'}`);
-
-        // Force re-render
+        console.log(`${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`); // Force re-render
         if (container) {
             renderChartJS(container);
         } else {
@@ -502,16 +500,10 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             renderChartJS();
         }
 
-        // Show a success notification to confirm the re-render
-        setTimeout(() => {
-            if (typeof showNotification === 'function') {
-                showNotification(`Chart setting "${settingName}" updated`, "success");
-            }
-        }, 100);
-
+        console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change`);
     } catch (error) {
         console.error(`${LOG_PREFIX} Error re-rendering charts after ${settingName} change:`, error);
-        if (typeof showNotification === 'function') {
+        if (typeof showNotification === "function") {
             showNotification(`Failed to update chart setting: ${error.message}`, "error");
         }
     }

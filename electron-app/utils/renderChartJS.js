@@ -108,20 +108,20 @@ if (window.Chart && window.Chart.register && window.Chart.Zoom) {
 if (!window._fitFileViewerChartListener) {
     window._fitFileViewerChartListener = true;
     let _fitfileLoadedFired = false;
-    
+
     window.addEventListener("fitfile-loaded", function (event) {
         _fitfileLoadedFired = true;
         console.log("[ChartJS] fitfile-loaded event received, updating state and re-rendering charts");
-        
+
         // Reset notification state for new file
         resetChartNotificationState();
-        
+
         // Update file loading state
         AppActions.setFileOpening(false);
-        
+
         // Clear any existing charts first
         chartActions.clearCharts();
-        
+
         // Re-render charts when a new file is loaded
         const container = document.getElementById("content-chart");
         if (container) {
@@ -130,13 +130,13 @@ if (!window._fitFileViewerChartListener) {
             // Fallback to default rendering
             renderChartJS();
         }
-        
+
         // Update UI state for new file - use state management directly
         setState("ui.currentFile", event.detail, { source: "chartInit.fileLoaded" });
     });
 
     // Enhanced state management subscriptions for reactive chart updates
-    
+
     // Subscribe to theme changes for automatic chart re-theming
     subscribe("ui.theme", (newTheme) => {
         console.log("[ChartJS] Theme changed to:", newTheme);
@@ -152,7 +152,7 @@ if (!window._fitFileViewerChartListener) {
         // Update chart configuration through computed state
         computedStateManager.invalidateComputed("charts.currentConfig");
     });
-    
+
     // Subscribe to chart field visibility changes
     subscribe("settings.charts.fieldVisibility", (visibilitySettings) => {
         console.log("[ChartJS] Chart field visibility updated:", visibilitySettings);
@@ -160,7 +160,7 @@ if (!window._fitFileViewerChartListener) {
             chartActions.requestRerender("Field visibility changed");
         }
     });
-    
+
     // Subscribe to chart display settings
     subscribe("settings.charts.display", (displaySettings) => {
         console.log("[ChartJS] Chart display settings updated:", displaySettings);
@@ -180,7 +180,7 @@ if (!window._fitFileViewerChartListener) {
             chartActions.clearCharts();
         }
     });
-    
+
     // Subscribe to performance settings that affect charts
     subscribe("settings.performance.maxDataPoints", (maxPoints) => {
         console.log("[ChartJS] Max data points setting changed to:", maxPoints);
@@ -188,7 +188,7 @@ if (!window._fitFileViewerChartListener) {
             chartActions.requestRerender("Data point limit changed");
         }
     });
-    
+
     // Subscribe to loading state to show/hide loading indicators
     subscribe("isLoading", (isLoading) => {
         // Update UI loading state directly via state management
@@ -228,41 +228,41 @@ export const chartState = {
     get isRendered() {
         return getState("charts.isRendered") || false;
     },
-    
+
     get isRendering() {
         return getState("charts.isRendering") || false;
     },
-    
+
     get controlsVisible() {
         return getState("charts.controlsVisible") !== false; // Default to true
     },
-    
+
     get selectedChart() {
         return getState("charts.selectedChart") || "elevation";
     },
-    
+
     get chartData() {
         return getState("charts.chartData");
     },
-    
+
     get chartOptions() {
         return getState("charts.chartOptions") || {};
     },
-    
+
     // Computed properties using the computed state manager
     get hasValidData() {
         const data = getState("globalData");
         return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
     },
-    
+
     get renderableFields() {
         if (!this.hasValidData) return [];
-        
-        return formatChartFields.filter(field => {
+
+        return formatChartFields.filter((field) => {
             const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
             return visibility !== "hidden";
         });
-    }
+    },
 };
 
 /**
@@ -277,7 +277,7 @@ export const chartActions = {
         setState("charts.isRendering", true, { source: "chartActions.startRendering" });
         setState("isLoading", true, { source: "chartActions.startRendering" });
     },
-    
+
     /**
      * Complete chart rendering process
      * @param {boolean} success - Whether rendering succeeded
@@ -286,40 +286,48 @@ export const chartActions = {
      */
     completeRendering(success, chartCount = 0, renderTime = 0) {
         // Use updateState for efficient nested updates
-        updateState("charts", {
-            isRendered: success,
-            isRendering: false,
-            ...(success && {
-                lastRenderTime: Date.now(),
-                renderedCount: chartCount
-            })
-        }, { source: "chartActions.completeRendering" });
-        
+        updateState(
+            "charts",
+            {
+                isRendered: success,
+                isRendering: false,
+                ...(success && {
+                    lastRenderTime: Date.now(),
+                    renderedCount: chartCount,
+                }),
+            },
+            { source: "chartActions.completeRendering" }
+        );
+
         setState("isLoading", false, { source: "chartActions.completeRendering" });
-        
+
         if (success) {
-            updateState("performance.renderTimes", {
-                chart: renderTime
-            }, { source: "chartActions.completeRendering" });
-            
+            updateState(
+                "performance.renderTimes",
+                {
+                    chart: renderTime,
+                },
+                { source: "chartActions.completeRendering" }
+            );
+
             // Notify other components of successful render
             AppActions.notifyChartRenderComplete?.(chartCount);
         }
     },
-    
+
     /**
      * Update chart selection
      * @param {string} chartType - New chart type selection
      */
     selectChart(chartType) {
         setState("charts.selectedChart", chartType, { source: "chartActions.selectChart" });
-        
+
         // Trigger re-render if charts are currently displayed
         if (chartState.isRendered) {
             this.requestRerender("Chart selection changed");
         }
     },
-    
+
     /**
      * Toggle chart controls visibility
      */
@@ -328,14 +336,14 @@ export const chartActions = {
         setState("charts.controlsVisible", newVisibility, { source: "chartActions.toggleControls" });
         uiStateManager.updatePanelVisibility("chart-controls", newVisibility);
     },
-    
+
     /**
      * Request chart re-render with debouncing
      * @param {string} reason - Reason for re-render
      */
     requestRerender(reason = "State change") {
         console.log(`[ChartJS] Re-render requested: ${reason}`);
-        
+
         // Use debounce to handle limiting frequent re-renders
         debounce(() => {
             const container = document.getElementById("content-chart");
@@ -344,7 +352,7 @@ export const chartActions = {
             }
         }, RENDER_DEBOUNCE_MS)();
     },
-    
+
     /**
      * Clear all chart data and reset state
      */
@@ -362,14 +370,18 @@ export const chartActions = {
             });
             window._chartjsInstances = [];
         }
-        
+
         // Reset chart state using updateState for efficiency
-        updateState("charts", {
-            isRendered: false,
-            chartData: null,
-            renderedCount: 0
-        }, { source: "chartActions.clearCharts" });
-    }
+        updateState(
+            "charts",
+            {
+                isRendered: false,
+                chartData: null,
+                renderedCount: 0,
+            },
+            { source: "chartActions.clearCharts" }
+        );
+    },
 };
 
 // Load shared configuration on page load
@@ -411,9 +423,9 @@ export async function renderChartJS(targetContainer) {
         const now = Date.now();
         if (now - lastRenderTime < RENDER_DEBOUNCE_MS) {
             console.log("[ChartJS] Debouncing rapid render calls");
-            
+
             // Use debounce for proper rate limiting
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 debounce(async () => {
                     const result = await renderChartJS(targetContainer);
                     resolve(result);
@@ -451,7 +463,7 @@ export async function renderChartJS(targetContainer) {
 
         // Get validated data through state
         const globalData = getState("globalData");
-        
+
         // Setup zone data from FIT file
         setupZoneData(globalData);
 
@@ -495,11 +507,15 @@ export async function renderChartJS(targetContainer) {
         }
 
         // Store chart data in state for other components
-        setState("charts.chartData", {
-            recordMesgs,
-            activityStartTime,
-            totalDataPoints: recordMesgs.length
-        }, { source: "renderChartJS" });
+        setState(
+            "charts.chartData",
+            {
+                recordMesgs,
+                activityStartTime,
+                totalDataPoints: recordMesgs.length,
+            },
+            { source: "renderChartJS" }
+        );
 
         const result = renderChartsWithData(targetContainer, recordMesgs, activityStartTime);
 
@@ -530,7 +546,7 @@ export async function renderChartJS(targetContainer) {
                 container = targetContainer;
             }
         }
-        
+
         if (container) {
             const themeConfig = getThemeConfig();
             container.innerHTML = `
@@ -637,11 +653,15 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     };
 
     // Store processed settings in state for other components
-    setState("charts.chartOptions", {
-        ...settings,
-        boolSettings,
-        processedAt: Date.now()
-    }, { source: "renderChartsWithData" });
+    setState(
+        "charts.chartOptions",
+        {
+            ...settings,
+            boolSettings,
+            processedAt: Date.now(),
+        },
+        { source: "renderChartsWithData" }
+    );
 
     // Prepare zoom plugin config
     const zoomPluginConfig = {
@@ -713,9 +733,11 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Process each field using state-managed visibility settings
     let visibleFieldCount = 0;
     const renderableFields = chartState.renderableFields;
-    
-    console.log(`[ChartJS] Processing ${renderableFields.length} visible fields out of ${formatChartFields.length} total`);
-    
+
+    console.log(
+        `[ChartJS] Processing ${renderableFields.length} visible fields out of ${formatChartFields.length} total`
+    );
+
     renderableFields.forEach((field) => {
         // Double-check field visibility through enhanced settings state manager
         const visibility = chartSettingsManager.getFieldVisibility(field);
@@ -723,9 +745,9 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             console.log(`[ChartJS] Skipping hidden field: ${field}`);
             return; // Skip this field
         }
-        
+
         console.log(`[ChartJS] Processing field: ${field} (visibility: ${visibility})`);
-        
+
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
             if (row[field] !== undefined && row[field] !== null) {
@@ -844,7 +866,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     };
 
     // Only render if at least one lap zone chart type is visible
-    if (Object.values(lapZoneVisibility).some(visible => visible)) {
+    if (Object.values(lapZoneVisibility).some((visible) => visible)) {
         renderLapZoneCharts(chartContainer, {
             showGrid: boolSettings.showGrid,
             showLegend: boolSettings.showLegend,
@@ -898,13 +920,17 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${renderTime.toFixed(2)}ms`);
 
     // Update performance metrics in state using updateState for efficiency
-    updateState("performance", {
-        renderTimes: {
-            ...getState("performance.renderTimes"),
-            lastChartRender: renderTime
+    updateState(
+        "performance",
+        {
+            renderTimes: {
+                ...getState("performance.renderTimes"),
+                lastChartRender: renderTime,
+            },
+            chartsRendered: totalChartsRendered,
         },
-        chartsRendered: totalChartsRendered
-    }, { source: "renderChartsWithData", merge: true });
+        { source: "renderChartsWithData", merge: true }
+    );
 
     // Check if this is a meaningful render that warrants a notification
     const shouldShowNotification = showRenderNotification(totalChartsRendered, visibleFieldCount);
@@ -921,15 +947,19 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         setTimeout(function () {
             showNotification(message, "success", 3000);
         }, 100);
-        
+
         // Update notification state using updateState
-        updateState("ui", {
-            lastNotification: {
-                message,
-                type: "success",
-                timestamp: Date.now()
-            }
-        }, { source: "renderChartsWithData", merge: true });
+        updateState(
+            "ui",
+            {
+                lastNotification: {
+                    message,
+                    type: "success",
+                    timestamp: Date.now(),
+                },
+            },
+            { source: "renderChartsWithData", merge: true }
+        );
     } else {
         console.log(
             `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
@@ -949,7 +979,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Add hover effects to charts
         addChartHoverEffects(chartContainer, themeConfig);
-        
+
         // Update UI state for chart interactions using existing method
         uiStateManager.updateChartControlsUI(true);
     }
@@ -965,7 +995,7 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             renderTime,
             settings: getState("charts.chartOptions"),
             hasData: chartState.hasValidData,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         },
     });
     document.dispatchEvent(chartsRenderedEvent);
@@ -986,13 +1016,17 @@ export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     previousChartState.chartCount = chartCount;
     previousChartState.fieldsRendered = new Array(visibleFields).fill(true);
     previousChartState.lastRenderTimestamp = timestamp;
-    
+
     // Update state for other components using updateState
-    updateState("charts.previousState", {
-        chartCount,
-        visibleFields,
-        timestamp
-    }, { source: "updatePreviousChartState" });
+    updateState(
+        "charts.previousState",
+        {
+            chartCount,
+            visibleFields,
+            timestamp,
+        },
+        { source: "updatePreviousChartState" }
+    );
 }
 
 /**
@@ -1003,14 +1037,18 @@ export function resetChartNotificationState() {
     previousChartState.chartCount = 0;
     previousChartState.fieldsRendered = [];
     previousChartState.lastRenderTimestamp = 0;
-    
+
     // Reset state-managed notification tracking using updateState
-    updateState("charts.previousState", {
-        chartCount: 0,
-        visibleFields: 0,
-        timestamp: 0
-    }, { source: "resetChartNotificationState" });
-    
+    updateState(
+        "charts.previousState",
+        {
+            chartCount: 0,
+            visibleFields: 0,
+            timestamp: 0,
+        },
+        { source: "resetChartNotificationState" }
+    );
+
     console.log("[ChartJS] Chart notification state reset for new file");
 }
 
@@ -1041,7 +1079,7 @@ export function getChartStatus() {
         lastRenderTime: getState("charts.lastRenderTime"),
         performance: getState("performance.renderTimes.chart"),
         renderableFields: chartState.renderableFields,
-        chartOptions: getState("charts.chartOptions")
+        chartOptions: getState("charts.chartOptions"),
     };
 }
 
@@ -1055,13 +1093,13 @@ export async function exportChartsWithState(format = "png") {
         showNotification("No charts available for export", "warning");
         return false;
     }
-    
+
     try {
         setState("ui.isExporting", true, { source: "exportChartsWithState" });
-        
+
         // Implementation would go here based on format
         // This is a placeholder for the full export implementation
-        
+
         showNotification(`Charts exported as ${format.toUpperCase()}`, "success");
         setState("ui.isExporting", false, { source: "exportChartsWithState" });
         return true;
@@ -1080,45 +1118,49 @@ export async function exportChartsWithState(format = "png") {
  */
 export function initializeChartStateManagement() {
     console.log("[ChartJS] Initializing chart state management...");
-    
+
     // Initialize chart state in the global state using updateState for better merge handling
-    updateState("charts", {
-        isRendered: false,
-        isRendering: false,
-        controlsVisible: true,
-        selectedChart: "elevation",
-        zoomLevel: 1,
-        chartData: null,
-        chartOptions: {},
-        renderedCount: 0,
-        lastRenderTime: null,
-        previousState: {
-            chartCount: 0,
-            visibleFields: 0,
-            timestamp: 0
-        }
-    }, { source: "initializeChartStateManagement", merge: true });
-    
+    updateState(
+        "charts",
+        {
+            isRendered: false,
+            isRendering: false,
+            controlsVisible: true,
+            selectedChart: "elevation",
+            zoomLevel: 1,
+            chartData: null,
+            chartOptions: {},
+            renderedCount: 0,
+            lastRenderTime: null,
+            previousState: {
+                chartCount: 0,
+                visibleFields: 0,
+                timestamp: 0,
+            },
+        },
+        { source: "initializeChartStateManagement", merge: true }
+    );
+
     // Set up computed state dependencies
     computedStateManager.define("charts.hasData", () => {
         const data = getState("globalData");
         return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
     });
-    
+
     computedStateManager.define("charts.renderableFieldCount", () => {
         return chartState.renderableFields.length;
     });
-    
+
     computedStateManager.define("charts.summary", () => {
         return {
             isRendered: chartState.isRendered,
             hasData: chartState.hasValidData,
             fieldCount: chartState.renderableFields.length,
             chartCount: getState("charts.renderedCount") || 0,
-            lastRender: getState("charts.lastRenderTime")
+            lastRender: getState("charts.lastRenderTime"),
         };
     });
-    
+
     // Set up state middleware for chart operations
     middlewareManager.register("chart-render", {
         beforeSet: (context) => {
@@ -1133,9 +1175,9 @@ export function initializeChartStateManagement() {
             console.error("[ChartJS] Chart render action failed:", context);
             showNotification("Chart rendering failed", "error");
             return context;
-        }
+        },
     });
-    
+
     console.log("[ChartJS] Chart state management initialized successfully");
 }
 
@@ -1151,14 +1193,14 @@ export const chartSettingsManager = {
     getSettings() {
         // First try to get from state
         let settings = getState("settings.charts");
-        
+
         // Fallback to settings state manager if not available
         if (!settings) {
             settings = settingsStateManager.getChartSettings();
             // Cache in state for faster access
             setState("settings.charts", settings, { source: "chartSettingsManager.getSettings" });
         }
-        
+
         return {
             maxpoints: settings.maxpoints || "all",
             chartType: settings.chartType || "line",
@@ -1171,10 +1213,10 @@ export const chartSettingsManager = {
             showFill: settings.showFill === true,
             smoothing: settings.smoothing || 0.1,
             colors: settings.colors || [],
-            ...settings
+            ...settings,
         };
     },
-    
+
     /**
      * Update chart settings and trigger reactive updates
      * @param {Object} newSettings - Settings to update
@@ -1182,19 +1224,19 @@ export const chartSettingsManager = {
     updateSettings(newSettings) {
         const currentSettings = this.getSettings();
         const updatedSettings = { ...currentSettings, ...newSettings };
-        
+
         // Update through settings state manager for persistence
         settingsStateManager.updateChartSettings?.(updatedSettings);
-        
+
         // Update in global state for reactive access using updateState
         updateState("settings.charts", updatedSettings, { source: "chartSettingsManager.updateSettings" });
-        
+
         // Trigger chart re-render if charts are currently displayed
         if (chartState.isRendered) {
             chartActions.requestRerender("Settings updated");
         }
     },
-    
+
     /**
      * Get field visibility setting with state management
      * @param {string} field - Field name
@@ -1203,15 +1245,15 @@ export const chartSettingsManager = {
     getFieldVisibility(field) {
         // Use localStorage directly for field visibility (existing pattern)
         const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
-        
+
         // Update field visibility state for reactive access
-        setState(`settings.charts.fieldVisibility.${field}`, visibility, { 
-            source: "chartSettingsManager.getFieldVisibility" 
+        setState(`settings.charts.fieldVisibility.${field}`, visibility, {
+            source: "chartSettingsManager.getFieldVisibility",
         });
-        
+
         return visibility;
     },
-    
+
     /**
      * Set field visibility and trigger updates
      * @param {string} field - Field name
@@ -1220,20 +1262,20 @@ export const chartSettingsManager = {
     setFieldVisibility(field, visibility) {
         // Use localStorage directly for field visibility (existing pattern)
         localStorage.setItem(`chartjs_field_${field}`, visibility);
-        
+
         // Update state for reactive access
-        setState(`settings.charts.fieldVisibility.${field}`, visibility, { 
-            source: "chartSettingsManager.setFieldVisibility" 
+        setState(`settings.charts.fieldVisibility.${field}`, visibility, {
+            source: "chartSettingsManager.setFieldVisibility",
         });
-        
+
         // Invalidate computed state that depends on field visibility
         computedStateManager.invalidateComputed("charts.renderableFieldCount");
-        
+
         // Trigger re-render if needed
         if (chartState.isRendered) {
             chartActions.requestRerender(`Field ${field} visibility changed to ${visibility}`);
         }
-    }
+    },
 };
 
 /**
@@ -1249,19 +1291,23 @@ export const chartPerformanceMonitor = {
     startTracking(operation) {
         const trackingId = `chart-${operation}-${Date.now()}`;
         const startTime = performance.now();
-        
+
         // Use updateState to efficiently add tracking data
-        updateState(`performance.tracking`, {
-            [trackingId]: {
-                operation,
-                startTime,
-                status: "running"
-            }
-        }, { source: "chartPerformanceMonitor.startTracking", merge: true });
-        
+        updateState(
+            `performance.tracking`,
+            {
+                [trackingId]: {
+                    operation,
+                    startTime,
+                    status: "running",
+                },
+            },
+            { source: "chartPerformanceMonitor.startTracking", merge: true }
+        );
+
         return trackingId;
     },
-    
+
     /**
      * End performance tracking and record metrics
      * @param {string} trackingId - Tracking ID from startTracking
@@ -1270,39 +1316,43 @@ export const chartPerformanceMonitor = {
     endTracking(trackingId, additionalData = {}) {
         const trackingData = getState(`performance.tracking.${trackingId}`);
         if (!trackingData) return;
-        
+
         const endTime = performance.now();
         const duration = endTime - trackingData.startTime;
-        
+
         const performanceRecord = {
             ...trackingData,
             endTime,
             duration,
             status: "completed",
-            ...additionalData
+            ...additionalData,
         };
-        
+
         // Update tracking record using updateState
-        updateState(`performance.tracking`, {
-            [trackingId]: performanceRecord
-        }, { source: "chartPerformanceMonitor.endTracking", merge: true });
-        
+        updateState(
+            `performance.tracking`,
+            {
+                [trackingId]: performanceRecord,
+            },
+            { source: "chartPerformanceMonitor.endTracking", merge: true }
+        );
+
         // Add to performance history
         const history = getState("performance.chartHistory") || [];
         history.push(performanceRecord);
-        
+
         // Keep only last 50 records
         if (history.length > 50) {
             history.splice(0, history.length - 50);
         }
-        
-        setState("performance.chartHistory", history, { 
-            source: "chartPerformanceMonitor.endTracking" 
+
+        setState("performance.chartHistory", history, {
+            source: "chartPerformanceMonitor.endTracking",
         });
-        
+
         console.log(`[ChartJS Performance] ${trackingData.operation} completed in ${duration.toFixed(2)}ms`);
     },
-    
+
     /**
      * Get performance summary for charts
      * @returns {Object} Performance metrics summary
@@ -1310,109 +1360,109 @@ export const chartPerformanceMonitor = {
     getSummary() {
         const history = getState("performance.chartHistory") || [];
         if (history.length === 0) return null;
-        
-        const durations = history.map(record => record.duration);
+
+        const durations = history.map((record) => record.duration);
         const avgDuration = durations.reduce((sum, duration) => sum + duration, 0) / durations.length;
         const maxDuration = Math.max(...durations);
         const minDuration = Math.min(...durations);
-        
+
         return {
             totalOperations: history.length,
             averageDuration: avgDuration,
             maxDuration,
             minDuration,
             recentOperations: history.slice(-10),
-            lastOperation: history[history.length - 1]
+            lastOperation: history[history.length - 1],
         };
-    }
+    },
 };
 
 // Expose comprehensive state-aware development tools and functions to window
 if (typeof window !== "undefined") {
     window.addHoverEffectsToExistingCharts = addHoverEffectsToExistingCharts;
-    
+
     // Enhanced development tools with complete state integration
     if (!window.__chartjs_dev) {
         window.__chartjs_dev = {
             // Core state access
             getChartState: () => chartState,
             getChartStatus,
-            
+
             // Actions and state management
             actions: chartActions,
             settings: chartSettingsManager,
             performance: chartPerformanceMonitor,
-            
+
             // Chart operations
             refreshCharts: refreshChartsIfNeeded,
             clearCharts: chartActions.clearCharts,
             requestRerender: chartActions.requestRerender,
-            
+
             // State debugging and manipulation
             getState: (path) => getState(path),
             setState: (path, value) => setState(path, value, { source: "dev-tools" }),
             subscribe: (path, callback) => subscribe(path, callback),
-            
+
             // Chart instance management
             getChartInstances: () => window._chartjsInstances || [],
             getChartSettings: () => chartSettingsManager.getSettings(),
-            
+
             // Export and import functions
             exportCharts: exportChartsWithState,
-            
+
             // State reset and initialization
             resetNotificationState: resetChartNotificationState,
             initializeStateManagement: initializeChartStateManagement,
-            
+
             // Performance monitoring and debugging
             getPerformanceMetrics: () => getState("performance"),
             getPerformanceSummary: () => chartPerformanceMonitor.getSummary(),
-            
+
             // Debounce testing utility
             testDebounce: (delay = 1000) => {
                 debounce(() => {
                     console.log("[ChartJS Dev] Debounce test executed");
                 }, delay)();
             },
-            
+
             // Computed state management
             computed: {
                 invalidate: (key) => computedStateManager.invalidate(key),
                 get: (key) => computedStateManager.get(key),
-                list: () => computedStateManager.list()
+                list: () => computedStateManager.list(),
             },
-            
+
             // State history and debugging
             getStateHistory: () => getState("__stateHistory") || [],
-            
+
             // Field visibility management
             fieldVisibility: {
                 get: (field) => chartSettingsManager.getFieldVisibility(field),
                 set: (field, visibility) => chartSettingsManager.setFieldVisibility(field, visibility),
                 getAll: () => {
                     const result = {};
-                    formatChartFields.forEach(field => {
+                    formatChartFields.forEach((field) => {
                         result[field] = chartSettingsManager.getFieldVisibility(field);
                     });
                     return result;
-                }
+                },
             },
-            
+
             // State synchronization testing
             testStateSynchronization: () => {
                 console.log("[ChartJS Dev] Testing state synchronization...");
-                
+
                 // Test theme change
                 const currentTheme = getState("ui.theme");
                 const newTheme = currentTheme === "dark" ? "light" : "dark";
                 setState("ui.theme", newTheme, { source: "dev-test" });
-                
+
                 setTimeout(() => {
                     setState("ui.theme", currentTheme, { source: "dev-test" });
                     console.log("[ChartJS Dev] State synchronization test completed");
                 }, 1000);
             },
-            
+
             // Comprehensive state dump for debugging
             dumpState: () => {
                 return {
@@ -1421,11 +1471,11 @@ if (typeof window !== "undefined") {
                     performance: getState("performance"),
                     ui: getState("ui"),
                     globalData: !!getState("globalData"),
-                    chartInstances: window._chartjsInstances?.length || 0
+                    chartInstances: window._chartjsInstances?.length || 0,
                 };
-            }
+            },
         };
-        
+
         console.log("[ChartJS] Enhanced development tools available at window.__chartjs_dev");
         console.log("[ChartJS] Available commands:", Object.keys(window.__chartjs_dev));
     }

@@ -96,6 +96,17 @@ export function createInlineZoneColorSelector(field, container) {
             margin-bottom: 12px;
         `; // Define update functions early (before they're used in callbacks)
         function updateZoneColorDisplay() {
+            // Get current color scheme from storage
+            const storedScheme = localStorage.getItem(`chartjs_${field}_color_scheme`) || "custom";
+
+            // Update the scheme selector if it exists and doesn't match
+            const schemeSelector = selectorContainer.querySelector("select");
+            if (schemeSelector && schemeSelector.value !== storedScheme) {
+                schemeSelector.value = storedScheme;
+                currentScheme = storedScheme;
+                console.log(`[ZoneColorSelector] Updated scheme selector to '${storedScheme}' for ${field}`);
+            }
+
             // Update all zone color items
             const zoneItems = zoneGrid.querySelectorAll(".zone-color-item");
             zoneItems.forEach((item, index) => {
@@ -351,6 +362,10 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         console.log(`[ZoneColorSelector] Color changed for ${field} zone ${zoneIndex + 1}: ${newColor}`);
 
         colorPreview.style.backgroundColor = newColor;
+
+        // Set color scheme to custom when manually changing a zone color
+        localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+
         // Save color to both chart-specific and generic zone storage
         // Chart-specific storage (for the inline selector consistency)
         saveChartSpecificZoneColor(field, zoneIndex, newColor);
@@ -361,6 +376,9 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         saveZoneColor(zoneType, zoneIndex, newColor);
 
         updateZoneColorPreview(field, zoneIndex, newColor);
+
+        // Update all inline zone color selector UIs to reflect the scheme change to custom
+        updateInlineZoneColorSelectors(document.body);
 
         // Use the exact same mechanism as metrics color changes
         try {
@@ -585,6 +603,9 @@ function createResetButton(field, zoneType, zoneData, defaultColors, onReset) {
 
         onReset();
         showNotification(`${zoneType.toUpperCase()} zone colors reset to defaults`, "success");
+
+        // Update all inline zone color selector UIs to reflect the scheme change to custom
+        updateInlineZoneColorSelectors(document.body);
 
         // Use the exact same mechanism as metrics color changes
         try {

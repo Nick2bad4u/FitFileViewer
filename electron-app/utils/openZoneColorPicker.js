@@ -220,10 +220,19 @@ export function openZoneColorPicker(field) {
             colorPicker.addEventListener("change", (e) => {
                 const newColor = e.target.value;
                 colorPreview.style.background = newColor;
+
+                // Set color scheme to custom when manually changing a zone color
+                localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+
                 saveChartSpecificZoneColor(field, zoneIndex, newColor);
 
                 // Update preview in real-time if possible
                 updateZoneColorPreview(field, zoneIndex, newColor);
+
+                // Update the inline zone color selector UIs to show the scheme changed to custom
+                if (typeof window.updateInlineZoneColorSelectors === "function") {
+                    window.updateInlineZoneColorSelectors(document.body);
+                }
             });
 
             // Click handler for color preview
@@ -264,8 +273,17 @@ export function openZoneColorPicker(field) {
                 const defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
                 colorPicker.value = defaultColor;
                 colorPreview.style.background = defaultColor;
+
+                // Set color scheme to custom when manually resetting a zone color
+                localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+
                 saveChartSpecificZoneColor(field, zoneIndex, defaultColor);
                 updateZoneColorPreview(field, zoneIndex, defaultColor);
+
+                // Update the inline zone color selector UIs to show the scheme changed to custom
+                if (typeof window.updateInlineZoneColorSelectors === "function") {
+                    window.updateInlineZoneColorSelectors(document.body);
+                }
             });
 
             resetButton.addEventListener("mouseenter", () => {

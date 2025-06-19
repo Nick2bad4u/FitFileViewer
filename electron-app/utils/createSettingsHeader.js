@@ -1159,7 +1159,7 @@ function createFieldToggle(field) {
 			border-radius: 6px;
 			cursor: pointer;
 			background: none;
-		`;        // Event listeners for color picker
+		`; // Event listeners for color picker
         colorPicker.addEventListener("change", () => {
             localStorage.setItem(`chartjs_color_${field}`, colorPicker.value);
 

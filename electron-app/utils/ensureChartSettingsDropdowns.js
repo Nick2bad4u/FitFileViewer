@@ -29,7 +29,7 @@ function toggleChartControls() {
     // Use state management system to toggle controls visibility
     const currentVisibility = getState("charts.controlsVisible");
     const newVisibility = !currentVisibility;
-    
+
     setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
     wrapper.style.display = newVisibility ? "block" : "none";
 
@@ -54,7 +54,7 @@ function createControlsToggleButton(container) {
     toggleBtn = document.createElement("button");
     toggleBtn.id = "chart-controls-toggle";
     toggleBtn.className = "chart-controls-toggle-btn";
-    
+
     // Set initial text based on current state
     const controlsVisible = getState("charts.controlsVisible") !== false; // Default to true
     toggleBtn.textContent = controlsVisible ? "▼ Hide Controls" : "▶ Show Controls";
@@ -109,7 +109,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
     if (getState("charts.controlsVisible") === undefined) {
         setState("charts.controlsVisible", true, { source: "ensureChartSettingsDropdowns.init" });
     }
-    
+
     let chartContainer = targetContainer
         ? typeof targetContainer === "string"
             ? document.getElementById(targetContainer)
@@ -158,11 +158,15 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         setupChartStatusUpdates();
 
         // Update state management system instead of chartControlsState
-        updateState("charts", {
-            controlsInitialized: true,
-            controlsWrapper: wrapper.id // Store wrapper ID instead of DOM reference
-        }, { source: "ensureChartSettingsDropdowns", merge: true });
-        
+        updateState(
+            "charts",
+            {
+                controlsInitialized: true,
+                controlsWrapper: wrapper.id, // Store wrapper ID instead of DOM reference
+            },
+            { source: "ensureChartSettingsDropdowns", merge: true }
+        );
+
         console.log("[ChartJS] Controls panel created and hidden by default");
     }
 
