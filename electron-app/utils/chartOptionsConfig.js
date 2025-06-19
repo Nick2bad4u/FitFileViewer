@@ -78,7 +78,7 @@ export const chartOptionsConfig = [
         label: "Interpolation",
         type: "select",
         options: ["linear", "monotone", "step"],
-        default: "monotone",
+        default: "linear",
         description: "Line interpolation method",
     },
     {

@@ -1,39 +1,140 @@
 /**
- * Formats a duration given in seconds into a human-readable string.
- *
- * - If the input is null or undefined, returns an empty string.
- * - If the input is not a finite number, throws an error.
- * - For durations less than 60 seconds, returns "X sec".
- * - For durations less than 1 hour, returns "Y min Z sec".
- * - For durations of 1 hour or more, returns "H hr(s) M min".
- *
- * @param {number|string} seconds - The duration in seconds.
- * @returns {string} The formatted duration string.
- * @throws {Error} If the input is not a finite number.
+ * @fileoverview Duration formatting utility for FitFileViewer
+ * 
+ * Provides functions for formatting durations from seconds into human-readable
+ * strings with appropriate time units (seconds, minutes, hours).
+ * 
+ * @author FitFileViewer Team
+ * @since 1.0.0
  */
-export function formatDuration(seconds) {
-    // Return an empty string if the input is null or undefined.
-    if (seconds === null || seconds === undefined) return "";
 
-    // Convert to integer if possible
-    if (typeof seconds === "string" && seconds.trim() !== "") {
-        seconds = Number(seconds);
+// Time conversion constants
+const TIME_CONSTANTS = {
+    SECONDS_PER_MINUTE: 60,
+    SECONDS_PER_HOUR: 3600,
+};
+
+// Formatting thresholds
+const THRESHOLDS = {
+    SECONDS_ONLY: TIME_CONSTANTS.SECONDS_PER_MINUTE,
+    MINUTES_ONLY: TIME_CONSTANTS.SECONDS_PER_HOUR,
+};
+
+/**
+ * Validates and normalizes duration input
+ * @param {number|string|null|undefined} seconds - Duration input to validate
+ * @returns {{isValid: boolean, value: number, error?: string}} Validation result
+ */
+function validateAndNormalizeDuration(seconds) {
+    // Handle null/undefined inputs
+    if (seconds === null || seconds === undefined) {
+        return { isValid: true, value: 0 };
     }
+
+    // Convert string to number if possible
+    if (typeof seconds === "string") {
+        const trimmed = seconds.trim();
+        if (trimmed === "") {
+            return { isValid: false, error: "Empty string input" };
+        }
+        seconds = Number(trimmed);
+    }
+
+    // Round to integer if it's a decimal number
     if (typeof seconds === "number" && !Number.isInteger(seconds)) {
         seconds = Math.round(seconds);
     }
 
-    // Throw an error if the input is not a finite number
-    if (!Number.isFinite(seconds)) throw new Error("Input seconds must be a finite number.");
+    // Validate that it's a finite number
+    if (!Number.isFinite(seconds)) {
+        return { isValid: false, error: "Input must be a finite number" };
+    }
 
-    // If the duration is less than 60 seconds, return it in seconds format.
-    if (seconds < 60) return `${seconds} sec`;
+    // Ensure non-negative
+    if (seconds < 0) {
+        return { isValid: false, error: "Duration cannot be negative" };
+    }
 
-    // If the duration is less than 1 hour, return it in minutes and seconds format.
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`;
+    return { isValid: true, value: seconds };
+}
 
-    // If the duration is 1 hour or more, calculate hours and minutes and return the formatted string.
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours} hr${hours > 1 ? "s" : ""} ${minutes} min`;
+/**
+ * Formats duration in seconds only
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} Formatted string like "30 sec"
+ */
+function formatSecondsOnly(seconds) {
+    return `${seconds} sec`;
+}
+
+/**
+ * Formats duration in minutes and seconds
+ * @param {number} seconds - Duration in seconds  
+ * @returns {string} Formatted string like "5 min 30 sec"
+ */
+function formatMinutesAndSeconds(seconds) {
+    const minutes = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+    return `${minutes} min ${remainingSeconds} sec`;
+}
+
+/**
+ * Formats duration in hours and minutes
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} Formatted string like "2 hrs 30 min"
+ */
+function formatHoursAndMinutes(seconds) {
+    const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR);
+    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR;
+    const minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+    
+    const hourText = hours === 1 ? "hr" : "hrs";
+    return `${hours} ${hourText} ${minutes} min`;
+}
+
+/**
+ * Formats a duration given in seconds into a human-readable string
+ * 
+ * Handles various input types and formats appropriately:
+ * - Null/undefined inputs return empty string
+ * - Invalid inputs throw descriptive errors
+ * - Less than 60 seconds: "X sec"
+ * - Less than 1 hour: "Y min Z sec"
+ * - 1 hour or more: "H hr(s) M min"
+ * 
+ * @param {number|string|null|undefined} seconds - The duration in seconds
+ * @returns {string} The formatted duration string
+ * @throws {Error} If the input is not a finite number or is negative
+ * 
+ * @example
+ * formatDuration(30);        // "30 sec"
+ * formatDuration(90);        // "1 min 30 sec"
+ * formatDuration(3661);      // "1 hr 1 min"
+ * formatDuration(7320);      // "2 hrs 2 min"
+ * formatDuration(null);      // ""
+ * formatDuration(-10);       // throws Error
+ */
+export function formatDuration(seconds) {
+    // Validate and normalize input
+    const validation = validateAndNormalizeDuration(seconds);
+    
+    if (!validation.isValid) {
+        throw new Error(`Invalid duration input: ${validation.error}`);
+    }
+
+    // Handle null/undefined case (returns empty string)
+    if (seconds === null || seconds === undefined) {
+        return "";
+    }
+
+    const normalizedSeconds = validation.value;
+
+    // Format based on duration length
+    if (normalizedSeconds < THRESHOLDS.SECONDS_ONLY) {
+        return formatSecondsOnly(normalizedSeconds);
+    } else if (normalizedSeconds < THRESHOLDS.MINUTES_ONLY) {
+        return formatMinutesAndSeconds(normalizedSeconds);
+    } else {
+        return formatHoursAndMinutes(normalizedSeconds);
+    }
 }
