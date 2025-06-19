@@ -1,10 +1,10 @@
 /**
  * @fileoverview Chart settings management utility for FitFileViewer
- * 
+ *
  * Provides functions for getting, setting, and resetting chart configuration
  * settings. Handles localStorage persistence and UI synchronization for
  * chart options including toggles, selects, ranges, and color settings.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -13,6 +13,7 @@ import { fieldColors, formatChartFields } from "./formatChartFields.js";
 import { chartOptionsConfig } from "./chartOptionsConfig.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { showNotification } from "./showNotification.js";
+import { updateAllChartStatusIndicators } from "./chartStatusIndicator.js";
 import { getThemeConfig } from "./theme.js";
 
 // Storage key prefixes
@@ -27,7 +28,7 @@ const STORAGE_PREFIXES = {
 // Special field types for zone charts
 const ZONE_CHART_FIELDS = [
     "gps_track",
-    "speed_vs_distance", 
+    "speed_vs_distance",
     "power_vs_hr",
     "altitude_profile",
     "hr_zone_doughnut",
@@ -57,20 +58,20 @@ function parseStoredValue(stored, option) {
     switch (option.type) {
         case "range":
             return parseFloat(stored);
-        
+
         case "toggle":
             // Handle both boolean and string representations
-            if (typeof stored === 'boolean') {
+            if (typeof stored === "boolean") {
                 return stored;
             }
-            return stored === 'true' || stored === 'on';
-        
+            return stored === "true" || stored === "on";
+
         case "select":
             if (option.id === "maxpoints") {
                 return stored === "all" ? "all" : parseInt(stored, 10);
             }
             return stored;
-        
+
         default:
             return stored;
     }
@@ -87,23 +88,47 @@ function updateUIControl(control, option, value) {
 
     try {
         switch (option.type) {
-            case "select":
-                control.value = value;
-                break;
-            
-            case "toggle":
-                control.checked = Boolean(value);
-                break;
-            
-            case "range": {
-                control.value = value;
-                // Update value display if it exists
-                const valueDisplay = control.parentElement?.querySelector(`#chartjs-${option.id}-value`);
-                if (valueDisplay) {
-                    valueDisplay.textContent = value;
+            case "select": {
+                const select = control.querySelector("select") || control;
+                if (select && select.tagName === "SELECT") {
+                    select.value = value;
                 }
-                // Update range slider visual styling
-                updateRangeSliderStyling(control, option, value);
+                break;
+            }
+
+            case "toggle":
+                // Handle both regular checkbox toggles and custom toggle controls
+                if (control.type === "checkbox") {
+                    control.checked = Boolean(value);
+                } else if (typeof control._updateFromReset === "function") {
+                    // For custom toggle controls, use their update method
+                    control._updateFromReset();
+                } else {
+                    // Try to find the parent container with the update method
+                    const parent = control.closest("[data-option-id]") || control.parentElement;
+                    if (parent && typeof parent._updateFromReset === "function") {
+                        parent._updateFromReset();
+                    }
+                }
+                break;
+
+            case "range": {
+                const slider = control.querySelector("input[type='range']") || control;
+                if (slider && slider.type === "range") {
+                    slider.value = value;
+                    // Update value display if it exists (look for both old and new patterns)
+                    const valueDisplay =
+                        slider.parentElement?.querySelector(`#chartjs-${option.id}-value`) ||
+                        slider.parentElement?.querySelector("span");
+                    if (
+                        valueDisplay &&
+                        (valueDisplay.style.position === "absolute" || valueDisplay.id.includes("value"))
+                    ) {
+                        valueDisplay.textContent = value;
+                    }
+                    // Update range slider visual styling
+                    updateRangeSliderStyling(slider, option, value);
+                }
                 break;
             }
         }
@@ -115,7 +140,7 @@ function updateUIControl(control, option, value) {
 /**
  * Updates range slider visual styling
  * @param {Element} control - Range input element
- * @param {Object} option - Chart option configuration  
+ * @param {Object} option - Chart option configuration
  * @param {number} value - Current value
  */
 function updateRangeSliderStyling(control, option, value) {
@@ -126,7 +151,7 @@ function updateRangeSliderStyling(control, option, value) {
         const min = option.min || 0;
         const max = option.max || 1;
         const percentage = ((value - min) / (max - min)) * 100;
-        
+
         control.style.background = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${percentage}%, ${borderLight} ${percentage}%, ${borderLight} 100%)`;
     } catch (error) {
         console.warn(`${LOG_PREFIX} Error updating range slider styling:`, error);
@@ -188,6 +213,23 @@ function resetUIControlsToDefaults(wrapper) {
             if (control) {
                 updateUIControl(control, opt, opt.default);
             }
+
+            // Handle custom toggle controls with _updateFromReset method
+            if (opt.type === "toggle") {
+                const toggleContainer = wrapper.querySelector(`#chartjs-${opt.id}`);
+                if (toggleContainer && typeof toggleContainer._updateFromReset === "function") {
+                    toggleContainer._updateFromReset();
+                } else {
+                    // Find toggle container by checking parent elements
+                    const possibleContainers = wrapper.querySelectorAll(`[data-option-id="${opt.id}"], .toggle-switch`);
+                    possibleContainers.forEach((container) => {
+                        const parent = container.parentElement;
+                        if (parent && typeof parent._updateFromReset === "function") {
+                            parent._updateFromReset();
+                        }
+                    });
+                }
+            }
         });
 
         // Reset all field toggles to visible (default state)
@@ -205,9 +247,37 @@ function resetUIControlsToDefaults(wrapper) {
             }
         });
 
+        // Find and update any custom controls with _updateFromReset method
+        updateCustomControlsFromReset(wrapper);
+
         console.log(`${LOG_PREFIX} UI controls reset to defaults`);
     } catch (error) {
         console.error(`${LOG_PREFIX} Error resetting UI controls:`, error);
+    }
+}
+
+/**
+ * Updates custom controls that have _updateFromReset methods
+ * @param {Element} wrapper - Settings wrapper element
+ */
+function updateCustomControlsFromReset(wrapper) {
+    try {
+        // Find all elements with _updateFromReset method and call them
+        const allElements = wrapper.querySelectorAll("*");
+        let updatedCount = 0;
+
+        allElements.forEach((element) => {
+            if (typeof element._updateFromReset === "function") {
+                element._updateFromReset();
+                updatedCount++;
+            }
+        });
+
+        if (updatedCount > 0) {
+            console.log(`${LOG_PREFIX} Updated ${updatedCount} custom controls from reset`);
+        }
+    } catch (error) {
+        console.error(`${LOG_PREFIX} Error updating custom controls from reset:`, error);
     }
 }
 
@@ -223,10 +293,10 @@ function reRenderChartsAfterReset() {
         }
 
         console.log(`${LOG_PREFIX} Re-rendering charts after settings reset`);
-        
+
         // Get the charts container
         const chartsContainer = document.getElementById("chart-container");
-        
+
         // Clear existing chart instances
         if (window._chartjsInstances && Array.isArray(window._chartjsInstances)) {
             window._chartjsInstances.forEach((chart) => {
@@ -251,24 +321,24 @@ function reRenderChartsAfterReset() {
 
 /**
  * Gets default settings object based on chart configuration
- * 
+ *
  * Creates a settings object with all default values from the chart
  * options configuration and default field colors.
- * 
+ *
  * @returns {Object} Default settings object
  */
 export function getDefaultSettings() {
     try {
         const settings = {};
-        
+
         // Get default values from chart options config
         chartOptionsConfig.forEach((opt) => {
             settings[opt.id] = opt.default;
         });
-        
+
         // Add default field colors
         settings.colors = { ...fieldColors };
-        
+
         return settings;
     } catch (error) {
         console.error(`${LOG_PREFIX} Error getting default settings:`, error);
@@ -278,18 +348,18 @@ export function getDefaultSettings() {
 
 /**
  * Gets current settings from localStorage and DOM
- * 
+ *
  * Retrieves all chart settings from localStorage with fallbacks to
  * default values. Handles type conversion and validation for different
  * setting types (select, toggle, range, colors).
- * 
+ *
  * @returns {Object} Current settings object
  */
 export function getCurrentSettings() {
     try {
         const themeConfig = getThemeConfig();
         const settings = {};
-        
+
         // Get chart option settings
         chartOptionsConfig.forEach((opt) => {
             const stored = localStorage.getItem(`${STORAGE_PREFIXES.CHART_OPTION}${opt.id}`);
@@ -312,11 +382,11 @@ export function getCurrentSettings() {
 
 /**
  * Resets all chart settings to their default values
- * 
+ *
  * Clears all chart-related settings from localStorage, resets UI controls
  * to default values, and re-renders charts with the default configuration.
  * Shows a success notification when complete.
- * 
+ *
  * @returns {boolean} True if reset was successful, false otherwise
  */
 export function resetAllSettings() {
@@ -326,19 +396,25 @@ export function resetAllSettings() {
         // Clear all stored settings
         clearAllStorageItems();
 
-        // Reset UI controls
-        const wrapper = document.getElementById("chartjs-settings-wrapper");
-        resetUIControlsToDefaults(wrapper);
+        // Reset UI controls with a small delay to ensure DOM is ready
+        setTimeout(() => {
+            const wrapper = document.getElementById("chartjs-settings-wrapper");
+            resetUIControlsToDefaults(wrapper);
+
+            // Update chart status indicators after UI reset
+            setTimeout(() => {
+                updateAllChartStatusIndicators();
+            }, 100);
+        }, 50);
 
         // Re-render charts with default settings
         reRenderChartsAfterReset();
 
         // Show success notification
         showNotification("Settings reset to defaults", "success");
-        
+
         console.log(`${LOG_PREFIX} Settings reset completed successfully`);
         return true;
-
     } catch (error) {
         console.error(`${LOG_PREFIX} Error resetting settings:`, error);
         showNotification("Failed to reset settings", "error");

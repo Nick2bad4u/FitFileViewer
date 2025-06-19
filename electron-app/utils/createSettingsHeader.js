@@ -61,35 +61,27 @@ export function createSettingsHeader(wrapper) {
     const globalActions = document.createElement("div");
     globalActions.className = "global-actions";
     globalActions.style.cssText = `
-		display: flex;
-		gap: 8px;
-	`; // Reset to defaults button
+		display: flex;		gap: 8px;
+	`;
+
+    // Reset to defaults button
     const resetBtn = createActionButton("↻ Reset", "Reset all settings to defaults", () => {
-        resetAllSettings();
-        // Force re-render all charts after reset with proper cleanup
-        const chartsContainer = document.getElementById("chart-container");
-        if (chartsContainer && window.globalData) {
-            // Clear existing chart instances
-            if (window._chartjsInstances) {
-                window._chartjsInstances.forEach((chart) => {
-                    if (chart && typeof chart.destroy === "function") {
-                        try {
-                            chart.destroy();
-                        } catch (error) {
-                            console.warn("[ResetBtn] Error destroying chart:", error);
-                        }
-                    }
-                });
-                window._chartjsInstances = [];
-            } // Force complete re-render
-            setTimeout(function () {
-                renderChartJS(chartsContainer); // Update status indicators after charts are rendered
-                setTimeout(function () {
-                    updateAllChartStatusIndicators();
-                }, 100);
-            }, 50);
+        // Provide immediate visual feedback
+        resetBtn.style.opacity = "0.6";
+        resetBtn.disabled = true;
+        
+        // Perform the reset
+        const success = resetAllSettings();
+        
+        // Re-enable button after reset completes
+        setTimeout(() => {
+            resetBtn.style.opacity = "1";
+            resetBtn.disabled = false;
+        }, 200);
+        
+        if (!success) {
+            console.error("[ResetBtn] Reset failed");
         }
-        showNotification("Settings reset to defaults", "success");
     });
 
     // Export all charts button
