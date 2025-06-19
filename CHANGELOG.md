@@ -7,9 +7,78 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[623988a](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)...
-[623988a](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/623988a1ee577c6555f1c6347de319f1ce41c008...623988a1ee577c6555f1c6347de319f1ce41c008))
+[[19d16ea](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)...
+[19d16ea](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/19d16ea4242a4e19285f49b1c27b0ff35933c5ce...19d16ea4242a4e19285f49b1c27b0ff35933c5ce))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 24.8.0 [`(19d16ea)`](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)
+
+
+
+
+
+
+## [24.8.0] - 2025-06-19
+
+
+[[7712a03](https://github.com/Nick2bad4u/FitFileViewer/commit/7712a0346df1c05c97a47e6988dc6ce109f58297)...
+[cf1c487](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7712a0346df1c05c97a47e6988dc6ce109f58297...cf1c487d88eb195d388ac2b0acb851c4855210ac))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(cf1c487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)
+
+
+
+### 💼 Other
+
+- Unifies indentation for Markdown and improves code formatting
+
+Standardizes Markdown indentation to 2 spaces across docs, templates, and configuration to ensure consistency and readability. Adjusts Prettier config to enforce the new style for Markdown files. Cleans up code formatting in documentation and source files, reducing unnecessary whitespace and aligning with the updated formatting rules. No functional changes are introduced. [`(5ac828c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5ac828ca9969d31fa24db7e200030a52305c274d)
+
+
+- Ensures Open File button remains enabled during loading
+
+Prevents the Open File button from being disabled when updating UI or toggling tab buttons, allowing users to open new files at any time. Improves usability by ensuring file import is always accessible, even during loading states. [`(d31fcbe)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d31fcbefba52b45d0762a79c102167b39e7e860a)
+
+
+- Improves robustness of UI control resets and logging
+
+Enhances the detection and resetting of UI controls by adding fallback strategies and direct update passes, ensuring all chart option controls reliably revert to their defaults. Adds detailed logging for better traceability and diagnostics. Improves visual consistency for slider controls and updates range value handling to prevent out-of-bounds errors. [`(9ea6efd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9ea6efdd8b7ee29508573bf79baf6bcc9480a152)
+
+
+- Improves settings reset reliability and UI feedback
+
+Refactors the settings reset process to provide immediate button feedback, ensure proper re-rendering of charts, and reliably update custom and toggle UI controls. Adds mechanisms to update all chart status indicators after a reset, enhancing user experience and preventing stale UI states. [`(c82eff4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c82eff42a0b8d394868fa1198f9f4ef8389b0974)
+
+
+- Refactors chart settings for consistency and reliability
+
+Improves chart settings logic by standardizing storage key usage, type parsing, and UI synchronization. Adds utility functions for option validation, default retrieval, and performance warnings. Refactors toggle controls to use explicit boolean values, preventing inconsistent states. Enhances reset behavior to reliably clear user settings, reset UI controls, and re-render charts with defaults. Updates and clarifies documentation for better maintainability and developer clarity. [`(272a550)`](https://github.com/Nick2bad4u/FitFileViewer/commit/272a5504ea49c0a92eded9d5df2a63d2598c9545)
+
+
+- Refactors and documents utility functions for clarity
+
+Improves maintainability and readability of utility modules by adding detailed JSDoc comments, input validation, and consistent logging conventions.
+Refactors logic for formatting, DOM manipulation, and user preference handling across several utilities.
+Enhances error handling and provides explicit structure for UI updates and chart configuration, making future development and debugging easier. [`(c804a89)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c804a891a5937d332e4ff8170e35ff766ced6259)
+
+
+- Renames color scheme files and improves naming consistency
+
+Aligns color scheme utility file and export names for clarity and consistency across the codebase. Updates imports accordingly to prevent confusion. Removes fixed canvas height to allow improved chart responsiveness. [`(7712a03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7712a0346df1c05c97a47e6988dc6ce109f58297)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v24.7.0 [skip ci] [`(5bdccc0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5bdccc0d565378263a941f2205c746aa87ca2e1f)
+
 
 
 ### 📦 Dependencies
