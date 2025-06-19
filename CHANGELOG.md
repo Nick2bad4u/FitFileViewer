@@ -7,14 +7,79 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)...
+[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...6ee65d7a25377dcf8b2211cf566c5d2d6450dd61))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 24.6.0 [`(6ee65d7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)
+
+
+
+
+
+
+## [24.6.0] - 2025-06-19
+
+
 [[1babc4c](https://github.com/Nick2bad4u/FitFileViewer/commit/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798)...
-[1babc4c](https://github.com/Nick2bad4u/FitFileViewer/commit/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798...1babc4c4e038c7ed444ad1d6f7c7039d8ed01798))
+[1381b2f](https://github.com/Nick2bad4u/FitFileViewer/commit/1381b2fc79c8f66797b3788b8b886f459bbc207a)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798...1381b2fc79c8f66797b3788b8b886f459bbc207a))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(1381b2f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1381b2fc79c8f66797b3788b8b886f459bbc207a)
+
+
+
+### 💼 Other
+
+- Refactor and enhance utility functions in electron-app
+
+- Updated getOverlayFileName to use state management and added error handling for invalid index and loaded FIT files.
+- Improved getThemeColors to return a copy of the theme colors object.
+- Enhanced getUnitSymbol with clearer documentation and fallback labels for unit symbols.
+- Refined setupListeners to improve menu handling and cleanup on user interactions.
+- Cleaned up mainProcessStateManager for better readability and consistency in state management.
+- Removed unused renderChart.js file and replaced references with renderChartJS.js.
+- Updated setupTheme to handle theme retrieval and application more robustly.
+- Fixed import path in showFitData for createGlobalChartStatusIndicator.
+- Adjusted showNotification to ensure consistent duration handling.
+- Deleted stateSystemGuide.js as it was no longer needed.
+- Added updateGlobalChartStatusIndicator utility for managing chart status indicators. [`(579dde5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/579dde55e8715be5a51926b783ca731c1665b05b)
+
+
+- Refactors app state and FIT file data handling
+
+Migrates application state to a centralized state manager for improved consistency, modularity, and maintainability across the main process. Updates FIT file utilities to use correct field names matching the FIT SDK structure, enhancing reliability of record and session detection. Fixes UI regression by ensuring rendering flags are reset and maps/charts re-render correctly when new data is loaded, providing a smoother user experience. [`(f332e9f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f332e9fb85392febe54c951fc525371962ef81a9)
+
+
+- Migrates UI logic to robust state management system
+
+Replaces legacy application state with a modular, reactive state management
+approach to enhance maintainability and performance. Integrates
+centralized handling for UI events, error reporting, notifications, and
+file operations, including progress tracking and drag-and-drop. Improves
+theme synchronization and error resilience while enabling performance
+monitoring for key workflows. Simplifies state cleanup and lays the
+foundation for more scalable UI updates. [`(ca8fa82)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca8fa82e740a886a4f9a0f27dac0c8f54376e7fb)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v24.5.0 [skip ci] [`(ac4dfb4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ac4dfb4a4c6d28a9ec7b5d482d2790185d76af6b)
+
 
 
 ### 📦 Dependencies
 
 - [dependency] Update version 24.5.0 [`(1babc4c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798)
+
+
 
 
 
@@ -69,6 +134,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 
 
 
+
+
 ## [24.4.0] - 2025-06-19
 
 
@@ -114,6 +181,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 
 
 
+
+
 ## [24.3.0] - 2025-06-19
 
 
@@ -147,6 +216,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 
 
 
+
+
 ## [24.2.0] - 2025-06-18
 
 
@@ -176,6 +247,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 ### 📦 Dependencies
 
 - [dependency] Update version 24.1.0 [`(0485992)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0485992e46e3a3712d7f29165caceef0c2e0bb46)
+
+
 
 
 
@@ -216,6 +289,8 @@ Improves accessibility and maintainability of chart settings, while removing red
 ### 📦 Dependencies
 
 - [dependency] Update version 24.0.0 [`(9daf5a3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)
+
+
 
 
 
@@ -418,6 +493,8 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 17 updat
 
 
 
+
+
 ## [23.0.0] - 2025-06-15
 
 
@@ -441,6 +518,8 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 17 updat
 ### 📦 Dependencies
 
 - [dependency] Update version 22.9.0 [`(ecd3814)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ecd3814d87ed2311b4619bb45897b50ebeac35af)
+
+
 
 
 
@@ -543,6 +622,8 @@ Adds extra encoding and transformation layers to default credential obfuscation,
 
 
 
+
+
 ## [22.5.0] - 2025-06-15
 
 
@@ -566,6 +647,8 @@ Adds extra encoding and transformation layers to default credential obfuscation,
 ### 🛡️ Security
 
 - Obfuscate default Gyazo credentials for improved security [`(4064001)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4064001df17fce67d9fde5eb04a9b5743464476c)
+
+
 
 
 
@@ -693,6 +776,8 @@ Adds extra encoding and transformation layers to default credential obfuscation,
 - [StepSecurity] ci: Harden GitHub Actions
 
 Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(c23f422)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c23f422373f159ed64451bab3c9cfd2fc18d4281)
+
+
 
 
 
@@ -929,6 +1014,8 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 10 updat
 
 
 - [dependency] Update version 21.0.0 [`(8c0d3b2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8c0d3b292394b9c30cd2563de16f11617a9fefdf)
+
+
 
 
 
@@ -1588,6 +1675,8 @@ Also bumps version to 20.5.0 and updates npm dependencies, including a major Jes
 
 
 
+
+
 ## [20.0.0] - 2025-06-10
 
 
@@ -1817,6 +1906,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(2aee308)`](https://gith
 
 
 
+
+
 ## [19.0.0] - 2025-06-07
 
 
@@ -1930,6 +2021,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(2aee308)`](https://gith
 
 
 - [dependency] Update version 18.4.0 [`(6320f9f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6320f9fc75a76538d9219a80d611370dd355d6d4)
+
+
 
 
 
@@ -2135,6 +2228,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(2aee308)`](https://gith
 
 
 
+
+
 ## [17.0.0] - 2025-06-05
 
 
@@ -2278,6 +2373,8 @@ Enhances the release cleanup script with parameters to control the number of rel
 
 
 
+
+
 ## [16.0.0] - 2025-06-05
 
 
@@ -2395,6 +2492,8 @@ Enhances the release cleanup script with parameters to control the number of rel
 
 
 
+
+
 ## [15.0.0] - 2025-06-04
 
 
@@ -2495,6 +2594,8 @@ adds win32 versions to the CI pipeline [`(04fc871)`](https://github.com/Nick2bad
 
 
 - [dependency] Update version 14.0.0 [`(2d9a33a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2d9a33ad7b83e037eb157b0b71d64a470b4f109f)
+
+
 
 
 
@@ -4513,6 +4614,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(8f87833)`](https://gith
 
 
 
+
+
 ## [13.0.0] - 2025-05-22
 
 
@@ -4721,6 +4824,8 @@ Refines workflows to ignore all paths except those related to the electron-app d
 
 
 
+
+
 ## [12.0.0] - 2025-05-17
 
 
@@ -4851,6 +4956,8 @@ Relates to #456 [`(6a3864f)`](https://github.com/Nick2bad4u/FitFileViewer/commit
 
 
 
+
+
 ## [11.0.0] - 2025-05-14
 
 
@@ -4971,6 +5078,8 @@ Relates to improved user experience in map visualization. [`(2316116)`](https://
 
 
 - [dependency] Update version 10.0.0 [`(24e310c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/24e310c5ad7bcbd5b7bdb189a5dd254d655a0983)
+
+
 
 
 
@@ -5231,6 +5340,8 @@ Signed-off-by: dependabot[bot] <support@github.com> [`(2fdd378)`](https://github
 
 
 
+
+
 ## [9.0.0] - 2025-05-09
 
 
@@ -5399,6 +5510,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(72b041f)`](https://gith
 
 
 
+
+
 ## [8.0.0] - 2025-05-07
 
 
@@ -5490,6 +5603,8 @@ Automated sitemap update [`(583af3d)`](https://github.com/Nick2bad4u/FitFileView
 - Introduced GitHub Actions workflows for automated greetings, security scanning with Sobelow, style linting, and code linting with Super Linter.
 - Added screenfull.min.js library for fullscreen functionality.
 - Implemented setupWindow.js to manage window load events and tab interactions more efficiently. [`(a27cf89)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a27cf8946699acf9c65a5799041abce0c653bc3e)
+
+
 
 
 
@@ -5599,6 +5714,8 @@ Automated sitemap update [`(583af3d)`](https://github.com/Nick2bad4u/FitFileView
 
 
 
+
+
 ## [6.0.0] - 2025-05-05
 
 
@@ -5689,6 +5806,8 @@ Automated sitemap update [`(583af3d)`](https://github.com/Nick2bad4u/FitFileView
 
 
 
+
+
 ## [5.0.0] - 2025-05-05
 
 
@@ -5769,6 +5888,8 @@ Automated sitemap update [`(583af3d)`](https://github.com/Nick2bad4u/FitFileView
 
 
 - [dependency] Update version 4.0.0 [`(19ec9d2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/19ec9d2f0318a7fc53b70bb93090b42120c06938)
+
+
 
 
 
@@ -5868,6 +5989,8 @@ Automated sitemap update [`(583af3d)`](https://github.com/Nick2bad4u/FitFileView
 
 
 - [dependency] Update version 2.9.0 and enhance auto-update notifications [`(efbee5c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/efbee5cb2a0556d9807383009b231b7e139a41ae)
+
+
 
 
 
@@ -6087,6 +6210,8 @@ build(deps-dev): bump @types/chrome from 0.0.317 to 0.0.318 in /electron-app/lib
 
 
 - [dependency] Update version 2.1.0 [`(3343773)`](https://github.com/Nick2bad4u/FitFileViewer/commit/334377369bfc1e6ac2abca010ca32a396313986a)
+
+
 
 
 
@@ -7033,6 +7158,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(5b5d013)`](https://gith
 
 
 
+
+
 ## [1.0.1] - 2025-04-20
 
 
@@ -7183,6 +7310,8 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(5b5d013)`](https://gith
 ### 📦 Dependencies
 
 - Create dependabot.yml [`(142f71d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/142f71d8b2859e0a5706aff756b0fabd51fc2940)
+
+
 
 
 
