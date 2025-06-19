@@ -1,7 +1,7 @@
 {
   "name": "fitfileviewer",
   "packageManager": "npm@11.4.2",
-  "version": "24.5.0",
+  "version": "24.6.0",
   "main": "main.js",
   "appid": "com.example.fitfileviewer",
   "displayName": "Fit File Viewer",
@@ -469,7 +469,6 @@
     "./utils/patchSummaryFields.js": "./utils/patchSummaryFields.js",
     "./utils/recentFiles.js": "./utils/recentFiles.js",
     "./utils/removeExitFullscreenOverlay.js": "./utils/removeExitFullscreenOverlay.js",
-    "./utils/renderChartJS.js": "./utils/renderChartJS.js",
     "./utils/renderChartJS.js": "./utils/renderChartJS.js",
     "./utils/rendererUtils.js": "./utils/rendererUtils.js",
     "./utils/renderMap.js": "./utils/renderMap.js",
