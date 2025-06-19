@@ -62,8 +62,7 @@ jobs:
               run: npm install --no-save prettier@3.2.5
 
             - name: Run Prettier (fix)
-              working-directory: electron-app
-              run: npx prettier --write "**/*.{js,md,css,html}"
+              run: npx prettier --loglevel debug --write "**/*.{js,md,css,html}"
 
             - name: Commit & create pull request
               uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
@@ -76,5 +75,5 @@ jobs:
                   branch: "chore/prettier-fix"
                   base: main
                   add-paths: electron-app/**/*.{js,md,css,html}
-                  delete-branch: false
+                  delete-branch: true
                   token: ${{ secrets.GITHUB_TOKEN }}
