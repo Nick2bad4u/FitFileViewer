@@ -1,15 +1,35 @@
-// Enhanced About modal dialog utility with modern design and animations
+/**
+ * Enhanced About Modal Dialog Utility
+ * Provides modern design and animations with dynamic version l								<span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>ading
+ */
 
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 import { loadVersionInfo } from "./loadVersionInfo.js";
 
+// Constants for better maintainability
+const CONSTANTS = {
+    MODAL_ANIMATION_DURATION: 300,
+    DEFAULT_VALUES: {
+        VERSION: "Loading...",
+        ELECTRON: "Loading...",
+        NODE: "Loading...",
+        CHROME: "Loading...",
+        PLATFORM: "Loading...",
+        AUTHOR: "Nick2bad4u",
+        LICENSE: "Unlicense",
+    },
+    LOG_PREFIX: "[AboutModal]",
+};
+
+// Module state
 let lastFocusedElement = null;
-export let modalAnimationDuration = 300; // Animation duration in milliseconds
+export let modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 let showingFeatures = false; // Track whether features or system info is currently displayed
 
 /**
  * Creates the enhanced modal content with modern styling and branding
+ * Uses dynamic loading values that will be replaced by loadVersionInfo()
  * @returns {string} HTML content for the modal
  */
 export function getAboutModalContent() {
@@ -29,7 +49,7 @@ export function getAboutModalContent() {
 						<span class="title-gradient">Fit File Viewer</span>
 						<span class="version-badge">
 							<span class="version-prefix">v</span>
-							<span class="version-number" id="version-number">21.1.0</span>
+							<span class="version-number" id="version-number">${CONSTANTS.DEFAULT_VALUES.VERSION}</span>
 						</span>
 					</h1>
 					<p class="modal-subtitle">Advanced FIT file analysis and visualization tool</p>
@@ -60,11 +80,11 @@ export function getAboutModalContent() {
 						<div class="system-info-grid">
 							<div class="system-info-item">
 								<span class="system-info-label">Version</span>
-								<span class="system-info-value version-highlight">21.3.0</span>
+								<span class="system-info-value version-highlight">${CONSTANTS.DEFAULT_VALUES.VERSION}</span>
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Electron</span>
-								<span class="system-info-value electron-highlight">36.4.0</span>
+								<span class="system-info-value electron-highlight">${CONSTANTS.DEFAULT_VALUES.ELECTRON}</span>
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Node.js</span>
@@ -72,19 +92,19 @@ export function getAboutModalContent() {
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Chrome</span>
-								<span class="system-info-value chrome-highlight">136.0.7103.149</span>
+								<span class="system-info-value chrome-highlight">${CONSTANTS.DEFAULT_VALUES.CHROME}</span>
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Platform</span>
-								<span class="system-info-value platform-highlight">win32 (x64)</span>
+								<span class="system-info-value platform-highlight">${CONSTANTS.DEFAULT_VALUES.PLATFORM}</span>
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Author</span>
-								<span class="system-info-value author-highlight">Nick2bad4u</span>
+								<span class="system-info-value author-highlight">${CONSTANTS.DEFAULT_VALUES.AUTHOR}</span>
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">License</span>
-								<span class="system-info-value license-highlight">Unlicense</span>
+								<span class="system-info-value license-highlight">${CONSTANTS.DEFAULT_VALUES.LICENSE}</span>
 							</div>
 						</div>
 					</div>
@@ -181,38 +201,39 @@ function createFeaturesContent() {
 }
 
 /**
- * Creates and returns the system info content HTML
+ * Creates and returns the system info content HTML with dynamic loading values
+ * @returns {string} HTML content for system information grid
  */
 function createSystemInfoContent() {
     return `
 		<div class="system-info-grid">
 			<div class="system-info-item">
 				<span class="system-info-label">Version</span>
-				<span class="system-info-value version-highlight">21.3.0</span>
+				<span class="system-info-value version-highlight">${CONSTANTS.DEFAULT_VALUES.VERSION}</span>
 			</div>
 			<div class="system-info-item">
 				<span class="system-info-label">Electron</span>
-				<span class="system-info-value electron-highlight">36.4.0</span>
+				<span class="system-info-value electron-highlight">${CONSTANTS.DEFAULT_VALUES.ELECTRON}</span>
 			</div>
 			<div class="system-info-item">
 				<span class="system-info-label">Node.js</span>
-				<span class="system-info-value node-highlight">22.15.1</span>
+				<span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>
 			</div>
 			<div class="system-info-item">
 				<span class="system-info-label">Chrome</span>
-				<span class="system-info-value chrome-highlight">136.0.7103.149</span>
+				<span class="system-info-value chrome-highlight">${CONSTANTS.DEFAULT_VALUES.CHROME}</span>
 			</div>
 			<div class="system-info-item">
 				<span class="system-info-label">Platform</span>
-				<span class="system-info-value platform-highlight">win32 (x64)</span>
+				<span class="system-info-value platform-highlight">${CONSTANTS.DEFAULT_VALUES.PLATFORM}</span>
 			</div>
 			<div class="system-info-item">
 				<span class="system-info-label">Author</span>
-				<span class="system-info-value author-highlight">Nick2bad4u</span>
+				<span class="system-info-value author-highlight">${CONSTANTS.DEFAULT_VALUES.AUTHOR}</span>
 			</div>
 			<div class="system-info-item">
 				<span class="system-info-label">License</span>
-				<span class="system-info-value license-highlight">Unlicense</span>
+				<span class="system-info-value license-highlight">${CONSTANTS.DEFAULT_VALUES.LICENSE}</span>
 			</div>
 		</div>
 	`;
@@ -249,7 +270,11 @@ function toggleInfoSection() {
             toggleButton.setAttribute("aria-label", "View detailed features");
 
             // Reload system info data after switching back
-            loadVersionInfo();
+            try {
+                loadVersionInfo();
+            } catch (error) {
+                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to reload version info:`, error);
+            }
         }
 
         // Restore opacity
@@ -282,7 +307,11 @@ function hideAboutModal() {
                 if (buttonText) buttonText.textContent = "Features";
                 toggleButton.setAttribute("aria-label", "View detailed features");
                 // Reload system info
-                loadVersionInfo();
+                try {
+                    loadVersionInfo();
+                } catch (error) {
+                    console.warn(`${CONSTANTS.LOG_PREFIX} Failed to reload version info:`, error);
+                }
             }
 
             // Restore focus to last focused element
@@ -409,6 +438,13 @@ export function showAboutModal(html = "") {
             setTimeout(function () {
                 closeBtn.focus();
             }, modalAnimationDuration);
+
+            // Load version information after modal is displayed
+            try {
+                loadVersionInfo();
+            } catch (error) {
+                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`, error);
+            }
             // Sound functionality removed as requested
         }
     }
