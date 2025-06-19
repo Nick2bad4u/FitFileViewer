@@ -62,7 +62,7 @@ jobs:
               run: npm install --no-save prettier@3.2.5
 
             - name: Run Prettier (fix)
-              run: npx prettier --loglevel debug --write "**/*.{js,md,css,html}"
+              run: npx prettier --log-level debug --write "**/*.{js,md,css,html}"
 
             - name: Commit & create pull request
               uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
