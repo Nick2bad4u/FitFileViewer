@@ -5,7 +5,7 @@ import { setState, getState, subscribe } from "./stateManager.js";
 
 /**
  * Enable or disable all tab buttons (with class 'tab-button'), except the "Open FIT File" button.
- * The "Open FIT File" button (ID: openFileBtn) is excluded from being disabled regardless 
+ * The "Open FIT File" button (ID: openFileBtn) is excluded from being disabled regardless
  * of the value of the `enabled` parameter, allowing users to always open new files.
  * @param {boolean} enabled - true to enable, false to disable
  */

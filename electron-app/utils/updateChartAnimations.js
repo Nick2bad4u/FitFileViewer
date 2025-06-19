@@ -1,10 +1,10 @@
 /**
  * @fileoverview Chart animation configuration utility for FitFileViewer
- * 
+ *
  * Updates chart animation configurations based on chart type with smooth easing
  * and progress tracking. Supports line, bar, and doughnut chart types with
  * type-specific animation settings.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -44,10 +44,7 @@ const LOG_PREFIX = "[ChartAnimations]";
  */
 function createProgressCallback(type) {
     return function (context) {
-        if (context && 
-            context.currentStep !== undefined && 
-            context.numSteps !== undefined && 
-            context.numSteps > 0) {
+        if (context && context.currentStep !== undefined && context.numSteps !== undefined && context.numSteps > 0) {
             const percentage = Math.round((100 * context.currentStep) / context.numSteps);
             throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
         }
@@ -105,10 +102,10 @@ function configureTypeSpecificAnimations(chart, chartType) {
 
 /**
  * Updates animation configurations for Chart.js charts
- * 
+ *
  * Configures smooth animations with progress tracking and type-specific
  * animation settings. Returns the modified chart instance.
- * 
+ *
  * @param {Object} chart - Chart.js chart instance to configure
  * @param {string} type - Chart type identifier for logging
  * @returns {Object|null} Modified chart instance or null if invalid input
@@ -116,17 +113,17 @@ function configureTypeSpecificAnimations(chart, chartType) {
 export function updateChartAnimations(chart, type) {
     try {
         // Validate inputs
-        if (!chart || typeof chart !== 'object') {
+        if (!chart || typeof chart !== "object") {
             console.warn(`${LOG_PREFIX} Invalid chart instance provided`);
             return null;
         }
 
-        if (!chart.options || typeof chart.options !== 'object') {
+        if (!chart.options || typeof chart.options !== "object") {
             console.warn(`${LOG_PREFIX} Chart instance missing options object`);
             return null;
         }
 
-        if (!type || typeof type !== 'string') {
+        if (!type || typeof type !== "string") {
             console.warn(`${LOG_PREFIX} Invalid chart type provided:`, type);
             return chart;
         }
@@ -155,7 +152,6 @@ export function updateChartAnimations(chart, type) {
 
         console.log(`${LOG_PREFIX} Animation configuration updated for ${type} chart`);
         return chart;
-
     } catch (error) {
         console.error(`${LOG_PREFIX} Error updating chart animations:`, error);
         return chart; // Return original chart to avoid breaking functionality

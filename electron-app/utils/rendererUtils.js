@@ -90,11 +90,11 @@ export function initializeRendererUtils() {
 
 /**
  * Update loading UI based on state
- * 
+ *
  * Shows/hides loading overlay and disables/enables interactive elements.
- * The Open File button (openFileBtn) is intentionally excluded from 
+ * The Open File button (openFileBtn) is intentionally excluded from
  * being disabled to allow users to open new files at any time.
- * 
+ *
  * @private
  * @param {boolean} isLoading - Loading state
  */
@@ -115,7 +115,7 @@ function updateLoadingUI(isLoading) {
         if (element.id === "openFileBtn") {
             return;
         }
-        
+
         if (isLoading) {
             element.setAttribute("data-was-disabled", element.disabled.toString());
             element.disabled = true;

@@ -1,9 +1,9 @@
 /**
  * @fileoverview Distance formatting utility for FitFileViewer
- * 
+ *
  * Provides functions for converting and formatting distances from meters
  * to human-readable strings with both metric and imperial units.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -26,10 +26,12 @@ const VALIDATION = {
  * @returns {boolean} True if valid, false otherwise
  */
 function isValidDistance(meters) {
-    return typeof meters === 'number' && 
-           Number.isFinite(meters) && 
-           !Number.isNaN(meters) && 
-           meters > VALIDATION.MIN_DISTANCE;
+    return (
+        typeof meters === "number" &&
+        Number.isFinite(meters) &&
+        !Number.isNaN(meters) &&
+        meters > VALIDATION.MIN_DISTANCE
+    );
 }
 
 /**
@@ -52,14 +54,14 @@ function metersToMiles(meters) {
 
 /**
  * Formats a distance in meters to a string showing both kilometers and miles
- * 
+ *
  * Converts the input distance to both metric (kilometers) and imperial (miles)
  * units and returns a formatted string. Invalid inputs (negative, zero, NaN,
  * or non-finite numbers) return an empty string.
- * 
+ *
  * @param {number} meters - The distance in meters to format. Must be a finite positive number.
  * @returns {string} The formatted distance as "X.XX km / Y.YY mi", or an empty string if invalid
- * 
+ *
  * @example
  * formatDistance(1000);     // "1.00 km / 0.62 mi"
  * formatDistance(5000);     // "5.00 km / 3.11 mi"

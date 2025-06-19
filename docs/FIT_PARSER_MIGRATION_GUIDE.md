@@ -20,16 +20,16 @@ The FIT parser now integrates with:
 ```javascript
 // New FitDecodeError with metadata for state management
 class FitDecodeError extends Error {
-    constructor(message, details, metadata = {}) {
-        super(message);
-        this.name = "FitDecodeError";
-        this.details = details;
-        this.metadata = {
-            timestamp: new Date().toISOString(),
-            category: "fit_parsing",
-            ...metadata,
-        };
-    }
+ constructor(message, details, metadata = {}) {
+  super(message);
+  this.name = "FitDecodeError";
+  this.details = details;
+  this.metadata = {
+   timestamp: new Date().toISOString(),
+   category: "fit_parsing",
+   ...metadata,
+  };
+ }
 }
 ```
 
@@ -38,13 +38,13 @@ class FitDecodeError extends Error {
 ```javascript
 // New decoder options schema with validation
 const DECODER_OPTIONS_SCHEMA = {
-    applyScaleAndOffset: { type: "boolean", default: true, description: "Apply scale and offset transformations" },
-    expandSubFields: { type: "boolean", default: true, description: "Expand sub-fields in messages" },
-    expandComponents: { type: "boolean", default: true, description: "Expand component fields" },
-    convertTypesToStrings: { type: "boolean", default: true, description: "Convert enum types to strings" },
-    convertDateTimesToDates: { type: "boolean", default: true, description: "Convert timestamps to Date objects" },
-    includeUnknownData: { type: "boolean", default: true, description: "Include unknown message types" },
-    mergeHeartRates: { type: "boolean", default: true, description: "Merge heart rate data from multiple sources" },
+ applyScaleAndOffset: { type: "boolean", default: true, description: "Apply scale and offset transformations" },
+ expandSubFields: { type: "boolean", default: true, description: "Expand sub-fields in messages" },
+ expandComponents: { type: "boolean", default: true, description: "Expand component fields" },
+ convertTypesToStrings: { type: "boolean", default: true, description: "Convert enum types to strings" },
+ convertDateTimesToDates: { type: "boolean", default: true, description: "Convert timestamps to Date objects" },
+ includeUnknownData: { type: "boolean", default: true, description: "Include unknown message types" },
+ mergeHeartRates: { type: "boolean", default: true, description: "Merge heart rate data from multiple sources" },
 };
 ```
 
@@ -100,8 +100,8 @@ const result = await window.fitParser.decodeFitFile(fileBuffer);
 
 // Update decoder options with validation
 const updateResult = await window.fitParser.updateDecoderOptions({
-    applyScaleAndOffset: false,
-    includeUnknownData: true,
+ applyScaleAndOffset: false,
+ includeUnknownData: true,
 });
 
 // Get current options
@@ -120,9 +120,9 @@ const fitParser = require("./fitParser.js");
 
 // Initialize with state managers
 fitParser.initializeStateManagement({
-    settingsStateManager,
-    fitFileStateManager,
-    performanceMonitor,
+ settingsStateManager,
+ fitFileStateManager,
+ performanceMonitor,
 });
 
 // Decode with state integration
@@ -143,12 +143,12 @@ const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 
 ```javascript
 import {
-    initializeFitParserIntegration,
-    decodeFitFileWithState,
-    updateDecoderOptionsWithState,
-    getCurrentDecoderOptionsWithState,
-    setupFitParserIPC,
-    setupFitParserPreload,
+ initializeFitParserIntegration,
+ decodeFitFileWithState,
+ updateDecoderOptionsWithState,
+ getCurrentDecoderOptionsWithState,
+ setupFitParserIPC,
+ setupFitParserPreload,
 } from "./utils/fitParserIntegration.js";
 ```
 
@@ -191,20 +191,20 @@ The migration maintains full backwards compatibility:
 ```javascript
 // Enhanced error with metadata
 try {
-    const result = await fitParser.decodeFitFile(buffer);
+ const result = await fitParser.decodeFitFile(buffer);
 } catch (error) {
-    if (error instanceof fitParser.FitDecodeError) {
-        console.log("Decode error:", error.message);
-        console.log("Details:", error.details);
-        console.log("Metadata:", error.metadata);
-        console.log("JSON:", error.toJSON());
-    }
+ if (error instanceof fitParser.FitDecodeError) {
+  console.log("Decode error:", error.message);
+  console.log("Details:", error.details);
+  console.log("Metadata:", error.metadata);
+  console.log("JSON:", error.toJSON());
+ }
 }
 
 // Validation errors
 const updateResult = fitParser.updateDecoderOptions({ invalidOption: "invalid" });
 if (!updateResult.success) {
-    console.log("Validation errors:", updateResult.errors);
+ console.log("Validation errors:", updateResult.errors);
 }
 ```
 
@@ -216,8 +216,8 @@ const result = await fitParser.decodeFitFile(buffer);
 
 // Check performance metrics
 if (performanceMonitor.isEnabled()) {
-    const metrics = performanceMonitor.getMetrics();
-    console.log("Decode time:", metrics.operationTimes["fitFile_decode_*"]);
+ const metrics = performanceMonitor.getMetrics();
+ console.log("Decode time:", metrics.operationTimes["fitFile_decode_*"]);
 }
 ```
 

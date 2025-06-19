@@ -16,15 +16,15 @@ FitFileViewer is a desktop Electron application for viewing and analyzing FIT fi
 
 - **Root directory**: Main project configuration and documentation
 - **electron-app/**: Core Electron application code
-    - `main.js` - Main Electron process with IPC handlers and app lifecycle
-    - `renderer.js` - Renderer process entry point and initialization
-    - `preload.js` - Security bridge between main and renderer processes
-    - `main-ui.js` - UI management and tab interactions
-    - `utils/` - Modular utility functions (50+ modules)
-    - `windowStateUtils.js` - Window state persistence
-    - `fitParser.js` - FIT file parsing logic
-    - `index.html` - Main application HTML template
-    - `style.css` - Application styling and theme system
+  - `main.js` - Main Electron process with IPC handlers and app lifecycle
+  - `renderer.js` - Renderer process entry point and initialization
+  - `preload.js` - Security bridge between main and renderer processes
+  - `main-ui.js` - UI management and tab interactions
+  - `utils/` - Modular utility functions (50+ modules)
+  - `windowStateUtils.js` - Window state persistence
+  - `fitParser.js` - FIT file parsing logic
+  - `index.html` - Main application HTML template
+  - `style.css` - Application styling and theme system
 
 ### **Ignore Completely**
 
@@ -97,11 +97,11 @@ const result = await asyncFunction();
 
 // Error handling with try-catch
 try {
-    const data = await processFile(filePath);
-    return { success: true, data };
+ const data = await processFile(filePath);
+ return { success: true, data };
 } catch (error) {
-    console.error("[Component] Operation failed:", error);
-    return { success: false, error: error.message };
+ console.error("[Component] Operation failed:", error);
+ return { success: false, error: error.message };
 }
 
 // Use JSDoc for documentation
@@ -112,7 +112,7 @@ try {
  * @returns {Promise<Object>} Processed data with metrics
  */
 async function processFitFile(fileBuffer, options = {}) {
-    // Implementation
+ // Implementation
 }
 ```
 
@@ -128,19 +128,19 @@ async function processFitFile(fileBuffer, options = {}) {
 ```javascript
 // Centralized state pattern
 const AppState = {
-    globalData: {},
-    isChartRendered: false,
-    eventListeners: new Map(),
+ globalData: {},
+ isChartRendered: false,
+ eventListeners: new Map(),
 };
 
 // Reactive updates with property descriptors
 Object.defineProperty(window, "globalData", {
-    get() {
-        return AppState.globalData;
-    },
-    set(value) {
-        AppState.globalData = value;
-    },
+ get() {
+  return AppState.globalData;
+ },
+ set(value) {
+  AppState.globalData = value;
+ },
 });
 ```
 
@@ -218,16 +218,16 @@ Object.defineProperty(window, "globalData", {
 ```css
 /* Dark theme example */
 :root[data-theme="dark"] {
-    --bg-primary: #1a1a1a;
-    --text-primary: #ffffff;
-    --accent-color: #3b82f6;
+ --bg-primary: #1a1a1a;
+ --text-primary: #ffffff;
+ --accent-color: #3b82f6;
 }
 
 /* Light theme example */
 :root[data-theme="light"] {
-    --bg-primary: #ffffff;
-    --text-primary: #000000;
-    --accent-color: #2563eb;
+ --bg-primary: #ffffff;
+ --text-primary: #000000;
+ --accent-color: #2563eb;
 }
 ```
 

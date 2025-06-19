@@ -51,15 +51,15 @@ visibility and personal preference.
 
 ```css
 .map-theme-toggle {
-    /* Consistent sizing with other map action buttons */
-    min-height: 38px;
-    font-size: 15px;
-    font-weight: 600;
+ /* Consistent sizing with other map action buttons */
+ min-height: 38px;
+ font-size: 15px;
+ font-weight: 600;
 }
 
 .map-theme-toggle .icon svg {
-    stroke: currentcolor;
-    transition: stroke 0.2s ease;
+ stroke: currentcolor;
+ transition: stroke 0.2s ease;
 }
 ```
 
@@ -69,14 +69,14 @@ visibility and personal preference.
 
 1. **Dark Map Theme**:
 
-    - Icon: Moon/crescent icon
-    - State: Active (highlighted)
-    - Tooltip: "Map: Dark theme (click for light theme)"
+   - Icon: Moon/crescent icon
+   - State: Active (highlighted)
+   - Tooltip: "Map: Dark theme (click for light theme)"
 
 2. **Light Map Theme**:
-    - Icon: Sun/brightness icon
-    - State: Normal
-    - Tooltip: "Map: Light theme (click for dark theme)"
+   - Icon: Sun/brightness icon
+   - State: Normal
+   - Tooltip: "Map: Light theme (click for dark theme)"
 
 **Note**: Button is available in both light and dark UI modes
 

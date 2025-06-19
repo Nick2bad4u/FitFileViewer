@@ -69,16 +69,16 @@ export function createSettingsHeader(wrapper) {
         // Provide immediate visual feedback
         resetBtn.style.opacity = "0.6";
         resetBtn.disabled = true;
-        
+
         // Perform the reset
         const success = resetAllSettings();
-        
+
         // Re-enable button after reset completes
         setTimeout(() => {
             resetBtn.style.opacity = "1";
             resetBtn.disabled = false;
         }, 200);
-        
+
         if (!success) {
             console.error("[ResetBtn] Reset failed");
         }
@@ -319,7 +319,7 @@ function createToggleControl(option) {
             return option.default; // Use default from config (boolean)
         }
         // Handle both string and boolean representations
-        return stored === 'true' || stored === 'on' || stored === true;
+        return stored === "true" || stored === "on" || stored === true;
     }
 
     // Set visual state based on boolean value
@@ -356,10 +356,10 @@ function createToggleControl(option) {
     toggle.addEventListener("click", () => {
         // Toggle the current state
         isOn = !isOn;
-        
+
         // Store as string for consistency with existing system
-        localStorage.setItem(`chartjs_${option.id}`, isOn ? 'true' : 'false');
-        
+        localStorage.setItem(`chartjs_${option.id}`, isOn ? "true" : "false");
+
         // Update visual state
         updateVisualState(isOn);
 
@@ -368,7 +368,7 @@ function createToggleControl(option) {
     });
 
     // Add method to update from external reset
-    container._updateFromReset = function() {
+    container._updateFromReset = function () {
         isOn = getCurrentValue();
         updateVisualState(isOn);
     };

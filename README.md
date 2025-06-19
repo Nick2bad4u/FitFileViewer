@@ -134,9 +134,9 @@
 - [Usage](#-usage) 🚀
 - [Changelog](#-changelog) 📝
 - [Supported Builds](#%EF%B8%8F-supported-builds) 🏗️
-    - [Windows Builds](#-windows-builds) 🪟
-    - [Mac Builds](#-mac-builds) 🍏
-    - [Linux Builds](#-linux-builds) 🐧
+  - [Windows Builds](#-windows-builds) 🪟
+  - [Mac Builds](#-mac-builds) 🍏
+  - [Linux Builds](#-linux-builds) 🐧
 - [Development](#-development) 👨‍💻
 - [Credits](#-credits) 🙏
 - [License](#-license) 📄

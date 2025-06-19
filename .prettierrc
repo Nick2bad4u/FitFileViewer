@@ -48,6 +48,12 @@
             "options": {
                 "printWidth": 120
             }
+        },
+        {
+            "files": "*.md",
+            "options": {
+                "tabWidth": 1
+            }
         }
     ]
 }

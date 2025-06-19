@@ -1,9 +1,9 @@
 /**
  * @fileoverview Lap number lookup utility for FitFileViewer
- * 
+ *
  * Provides functions for determining which lap a specific data point index
  * belongs to within FIT file lap message data.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -17,12 +17,12 @@ const LOG_PREFIX = "[LapLookup]";
  * @returns {boolean} True if lap has valid structure
  */
 function isValidLap(lap, lapIndex) {
-    if (!lap || typeof lap !== 'object') {
+    if (!lap || typeof lap !== "object") {
         console.warn(`${LOG_PREFIX} Invalid lap object at index ${lapIndex}:`, lap);
         return false;
     }
 
-    if (typeof lap.start_index !== 'number' || typeof lap.end_index !== 'number') {
+    if (typeof lap.start_index !== "number" || typeof lap.end_index !== "number") {
         console.warn(`${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`, lap);
         return false;
     }
@@ -47,24 +47,24 @@ function isValidLap(lap, lapIndex) {
  * @returns {{isValid: boolean, error?: string}} Validation result
  */
 function validateInputs(idx, lapMesgs) {
-    if (typeof idx !== 'number' || !Number.isFinite(idx) || idx < 0) {
-        return { 
-            isValid: false, 
-            error: `Invalid index: must be a non-negative finite number, got ${idx}` 
+    if (typeof idx !== "number" || !Number.isFinite(idx) || idx < 0) {
+        return {
+            isValid: false,
+            error: `Invalid index: must be a non-negative finite number, got ${idx}`,
         };
     }
 
     if (!Array.isArray(lapMesgs)) {
-        return { 
-            isValid: false, 
-            error: `Invalid lapMesgs: must be an array, got ${typeof lapMesgs}` 
+        return {
+            isValid: false,
+            error: `Invalid lapMesgs: must be an array, got ${typeof lapMesgs}`,
         };
     }
 
     if (lapMesgs.length === 0) {
-        return { 
-            isValid: false, 
-            error: "lapMesgs array is empty" 
+        return {
+            isValid: false,
+            error: "lapMesgs array is empty",
         };
     }
 
@@ -73,10 +73,10 @@ function validateInputs(idx, lapMesgs) {
 
 /**
  * Determines the lap number for a given point index
- * 
+ *
  * Searches through lap message objects to find which lap contains the
  * specified data point index. Lap numbers are 1-based for user display.
- * 
+ *
  * @param {number} idx - The index of the point to check (must be non-negative)
  * @param {Array<Object>} lapMesgs - Array of lap message objects with structure:
  *   {
@@ -84,7 +84,7 @@ function validateInputs(idx, lapMesgs) {
  *     end_index: number    // Ending index of the lap (inclusive)
  *   }
  * @returns {number|null} The lap number (1-based) if found, or null if not found/invalid input
- * 
+ *
  * @example
  * const lapMesgs = [
  *   { start_index: 0, end_index: 99 },
@@ -106,7 +106,7 @@ export function getLapNumForIdx(idx, lapMesgs) {
         // Search through laps to find matching index
         for (let i = 0; i < lapMesgs.length; i++) {
             const lap = lapMesgs[i];
-            
+
             // Validate lap structure
             if (!isValidLap(lap, i)) {
                 continue; // Skip invalid laps
@@ -120,7 +120,6 @@ export function getLapNumForIdx(idx, lapMesgs) {
 
         // Index not found in any lap
         return null;
-
     } catch (error) {
         console.error(`${LOG_PREFIX} Error determining lap number for index ${idx}:`, error);
         return null;

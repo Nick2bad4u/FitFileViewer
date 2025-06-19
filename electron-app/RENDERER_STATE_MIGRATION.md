@@ -39,9 +39,9 @@ showNotification(`App initialized in ${initTime.toFixed(0)}ms`, "success", 3000)
 // After
 appActions.setInitialized(true);
 uiStateManager.showNotification({
-    message: `App initialized in ${initTime.toFixed(0)}ms`,
-    type: "success",
-    duration: 3000,
+ message: `App initialized in ${initTime.toFixed(0)}ms`,
+ type: "success",
+ duration: 3000,
 });
 ```
 
@@ -55,9 +55,9 @@ isOpeningFileRef.value = false;
 
 // After
 if (masterStateManager.isInitialized()) {
-    appActions.setInitialized(false);
-    appActions.setFileOpening(false);
-    masterStateManager.cleanup();
+ appActions.setInitialized(false);
+ appActions.setFileOpening(false);
+ masterStateManager.cleanup();
 }
 ```
 
@@ -75,21 +75,21 @@ Added comprehensive debugging utilities:
 
 ```javascript
 window.__renderer_dev = {
-    // Legacy compatibility
-    appState,
-    isOpeningFileRef,
+ // Legacy compatibility
+ appState,
+ isOpeningFileRef,
 
-    // New state management
-    stateManager: masterStateManager,
-    appActions,
-    uiStateManager,
+ // New state management
+ stateManager: masterStateManager,
+ appActions,
+ uiStateManager,
 
-    // Debug helpers
-    getState: () => masterStateManager.getState(),
-    debugState: () => {
-        /* logs current state */
-    },
-    // ... other utilities
+ // Debug helpers
+ getState: () => masterStateManager.getState(),
+ debugState: () => {
+  /* logs current state */
+ },
+ // ... other utilities
 };
 ```
 
@@ -127,9 +127,9 @@ appActions.setFileOpening(false);
 ```javascript
 // Show notifications
 uiStateManager.showNotification({
-    message: "Operation completed",
-    type: "success",
-    duration: 3000,
+ message: "Operation completed",
+ type: "success",
+ duration: 3000,
 });
 
 // Manage loading states
@@ -142,7 +142,7 @@ uiStateManager.setLoading(false);
 ```javascript
 // Subscribe to specific state changes
 masterStateManager.subscribe("app.initialized", (initialized) => {
-    console.log("App initialized:", initialized);
+ console.log("App initialized:", initialized);
 });
 ```
 

@@ -52,7 +52,7 @@ const CONSTANTS = {
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString();
     const logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
-    
+
     if (context && Object.keys(context).length > 0) {
         console[level](logMessage, context);
     } else {
@@ -83,7 +83,7 @@ function calculateChartStatus(counts) {
     const isAllVisible = counts.visible === counts.available;
     const hasHiddenCharts = counts.available > counts.visible;
     const hasNoCharts = counts.available === 0;
-    
+
     return {
         isAllVisible,
         hasHiddenCharts,
@@ -100,7 +100,7 @@ function calculateChartStatus(counts) {
 function createStatusIcon(status) {
     const statusIcon = document.createElement("span");
     statusIcon.style.fontSize = "18px";
-    
+
     if (status.isAllVisible) {
         statusIcon.textContent = CONSTANTS.ICONS.ALL_VISIBLE;
         statusIcon.title = CONSTANTS.TOOLTIPS.ALL_VISIBLE;
@@ -111,7 +111,7 @@ function createStatusIcon(status) {
         statusIcon.textContent = CONSTANTS.ICONS.NONE_VISIBLE;
         statusIcon.title = CONSTANTS.TOOLTIPS.NONE_VISIBLE;
     }
-    
+
     return statusIcon;
 }
 
@@ -131,12 +131,12 @@ function createStatusText(status) {
         statusText.textContent = "No chart data available in this FIT file";
         statusText.style.color = "var(--color-fg-muted)";
     } else {
-        const colorClass = status.isAllVisible 
-            ? "var(--color-success)" 
-            : status.hasHiddenCharts 
-                ? "var(--color-warning)" 
-                : "var(--color-error)";
-                
+        const colorClass = status.isAllVisible
+            ? "var(--color-success)"
+            : status.hasHiddenCharts
+              ? "var(--color-warning)"
+              : "var(--color-error)";
+
         statusText.innerHTML = `
             Showing 
             <span style="color: ${colorClass};">
@@ -146,7 +146,7 @@ function createStatusText(status) {
         `;
         statusText.style.color = "var(--color-fg)";
     }
-    
+
     return statusText;
 }
 
@@ -155,15 +155,9 @@ function createStatusText(status) {
  */
 function handleSettingsToggle() {
     try {
-        const wrapper = getElementSafely(
-            CONSTANTS.IDS.SETTINGS_WRAPPER, 
-            "Settings wrapper"
-        );
-        const toggleBtn = getElementSafely(
-            CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, 
-            "Chart controls toggle button"
-        );
-        
+        const wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper");
+        const toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button");
+
         if (wrapper && toggleBtn) {
             wrapper.style.display = "block";
             toggleBtn.textContent = CONSTANTS.TEXTS.HIDE_CONTROLS;
@@ -173,18 +167,18 @@ function handleSettingsToggle() {
             const fieldsSection = document.querySelector(`.${CONSTANTS.CLASSES.FIELDS_SECTION}`);
             if (fieldsSection) {
                 setTimeout(() => {
-                    fieldsSection.scrollIntoView({ 
-                        behavior: "smooth", 
-                        block: "start" 
+                    fieldsSection.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
                     });
                 }, 100);
             }
-            
+
             logWithContext("info", "Settings panel opened");
         }
     } catch (error) {
-        logWithContext("error", "Failed to toggle settings panel", { 
-            error: error.message 
+        logWithContext("error", "Failed to toggle settings panel", {
+            error: error.message,
         });
     }
 }
@@ -211,7 +205,7 @@ function createQuickActionButton(status) {
         quickAction.textContent = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;
         quickAction.title = CONSTANTS.TOOLTIPS.SHOW_SETTINGS;
         quickAction.addEventListener("click", handleSettingsToggle);
-        
+
         // Add hover effects for interactive button
         quickAction.addEventListener("mouseenter", () => {
             quickAction.style.background = "var(--color-accent-hover)";
@@ -233,7 +227,7 @@ function createQuickActionButton(status) {
         quickAction.style.opacity = "0.7";
         quickAction.style.cursor = "default";
     }
-    
+
     return quickAction;
 }
 
@@ -266,21 +260,18 @@ function applyIndicatorStyles(globalIndicator) {
  */
 function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
     try {
-        const chartContainer = getElementSafely(
-            CONSTANTS.IDS.CHART_CONTAINER, 
-            "Chart container"
-        );
-        
+        const chartContainer = getElementSafely(CONSTANTS.IDS.CHART_CONTAINER, "Chart container");
+
         if (chartContainer) {
             chartTabContent.insertBefore(globalIndicator, chartContainer);
         } else {
             chartTabContent.appendChild(globalIndicator);
         }
-        
+
         logWithContext("info", "Global chart status indicator inserted into DOM");
     } catch (error) {
-        logWithContext("error", "Failed to insert indicator into DOM", { 
-            error: error.message 
+        logWithContext("error", "Failed to insert indicator into DOM", {
+            error: error.message,
         });
     }
 }
@@ -288,12 +279,12 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
 /**
  * Creates a persistent global chart status indicator that's always visible
  * at the top of the chart tab, regardless of settings panel visibility
- * 
+ *
  * Provides visual feedback about chart availability and visibility status,
  * with quick access to settings for enabling hidden charts.
- * 
+ *
  * @returns {HTMLElement|null} The created indicator element or null on failure
- * 
+ *
  * @example
  * // Create or update the global chart status indicator
  * const indicator = createGlobalChartStatusIndicator();
@@ -305,11 +296,8 @@ export function createGlobalChartStatusIndicator() {
     try {
         logWithContext("info", "Creating global chart status indicator");
 
-        const chartTabContent = getElementSafely(
-            CONSTANTS.IDS.CHART_TAB_CONTENT, 
-            "Chart tab content"
-        );
-        
+        const chartTabContent = getElementSafely(CONSTANTS.IDS.CHART_TAB_CONTENT, "Chart tab content");
+
         if (!chartTabContent) {
             return null;
         }
@@ -324,7 +312,7 @@ export function createGlobalChartStatusIndicator() {
         // Get chart counts and calculate status
         const counts = getChartCounts();
         const status = calculateChartStatus(counts);
-        
+
         logWithContext("info", "Chart status calculated", { status });
 
         // Create the main indicator container
@@ -363,9 +351,8 @@ export function createGlobalChartStatusIndicator() {
         });
 
         return globalIndicator;
-
     } catch (error) {
-        logWithContext("error", "Failed to create global chart status indicator", { 
+        logWithContext("error", "Failed to create global chart status indicator", {
             error: error.message,
             stack: error.stack,
         });

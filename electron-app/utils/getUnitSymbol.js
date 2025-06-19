@@ -1,10 +1,10 @@
 /**
  * @fileoverview Unit symbol utility for FitFileViewer
- * 
+ *
  * Provides functions for getting appropriate unit symbols for display based on
  * field types and user preferences stored in localStorage. Supports distance,
  * temperature, speed, time, and various fitness metrics.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -13,14 +13,14 @@
 // NOTE: Uses "chartjs_" prefix for historical reasons - consider refactoring if decoupling from Chart.js
 const STORAGE_KEYS = {
     TIME_UNITS: "chartjs_timeUnits",
-    DISTANCE_UNITS: "chartjs_distanceUnits", 
+    DISTANCE_UNITS: "chartjs_distanceUnits",
     TEMPERATURE_UNITS: "chartjs_temperatureUnits",
 };
 
 // Default unit preferences
 const DEFAULT_UNITS = {
     TIME: "seconds",
-    DISTANCE: "kilometers", 
+    DISTANCE: "kilometers",
     TEMPERATURE: "celsius",
 };
 
@@ -38,7 +38,7 @@ const UNIT_SYMBOLS = {
     },
     TIME: {
         seconds: "s",
-        minutes: "min", 
+        minutes: "min",
         hours: "h",
     },
     SPEED: {
@@ -56,7 +56,7 @@ const FIELD_TYPES = {
 // Fallback symbols for fitness metrics and other fields
 const ORIGINAL_FIELD_LABELS = {
     heartRate: "bpm",
-    power: "W", 
+    power: "W",
     cadence: "rpm",
     resistance: "",
     flow: "#",
@@ -91,7 +91,7 @@ function isDistanceField(field) {
 
 /**
  * Determines if field is a temperature field
- * @param {string} field - Field name to check  
+ * @param {string} field - Field name to check
  * @returns {boolean} True if field is temperature-related
  */
 function isTemperatureField(field) {
@@ -136,16 +136,16 @@ function getTimeUnitSymbol() {
 
 /**
  * Gets the appropriate unit symbol for display based on field type and user preferences
- * 
+ *
  * Determines the correct unit symbol to display for various data fields based on:
  * - Field type (distance, temperature, speed, time, fitness metrics)
  * - User unit preferences stored in localStorage
  * - Unit context (e.g., time axis vs. time field)
- * 
+ *
  * @param {string} field - Field name (e.g., "distance", "temperature", "speed", "heartRate")
  * @param {string} [unitType] - Axis unit context (currently only supports "time" for time axis units)
  * @returns {string} Appropriate unit symbol for the field
- * 
+ *
  * @example
  * getUnitSymbol("distance");           // "km" (if user prefers kilometers)
  * getUnitSymbol("temperature");        // "°C" (if user prefers celsius)
@@ -156,7 +156,7 @@ function getTimeUnitSymbol() {
 export function getUnitSymbol(field, unitType) {
     try {
         // Validate input
-        if (!field || typeof field !== 'string') {
+        if (!field || typeof field !== "string") {
             console.warn(`[UnitSymbol] Invalid field parameter:`, field);
             return "";
         }
@@ -183,7 +183,6 @@ export function getUnitSymbol(field, unitType) {
 
         // Fallback to predefined field labels for fitness metrics
         return ORIGINAL_FIELD_LABELS[field] || "";
-
     } catch (error) {
         console.error(`[UnitSymbol] Error getting unit symbol for field "${field}":`, error);
         return "";

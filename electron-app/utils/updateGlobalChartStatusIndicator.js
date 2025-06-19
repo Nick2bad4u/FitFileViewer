@@ -1,10 +1,10 @@
 /**
  * @fileoverview Global chart status indicator updater for FitFileViewer
- * 
- * Updates the global chart status indicator in the UI by creating a new 
+ *
+ * Updates the global chart status indicator in the UI by creating a new
  * indicator and replacing the existing one. Handles DOM manipulation
  * with error handling and fallback container logic.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -65,11 +65,11 @@ function appendNewIndicator(newIndicator, container) {
 
 /**
  * Updates the global chart status indicator in the UI
- * 
+ *
  * Creates a new chart status indicator and either replaces an existing
  * indicator or appends it to the appropriate container. Handles DOM
  * manipulation errors gracefully.
- * 
+ *
  * @returns {boolean} True if update was successful, false otherwise
  */
 export function updateGlobalChartStatusIndicator() {
@@ -83,7 +83,7 @@ export function updateGlobalChartStatusIndicator() {
 
         // Check for existing indicator
         const existingIndicator = document.getElementById(ELEMENT_IDS.STATUS_INDICATOR);
-        
+
         if (existingIndicator) {
             // Replace existing indicator
             const replaced = replaceExistingIndicator(newIndicator, existingIndicator);
@@ -99,7 +99,6 @@ export function updateGlobalChartStatusIndicator() {
         }
 
         return true;
-
     } catch (error) {
         console.error(`${LOG_PREFIX} Error updating global chart status indicator:`, error);
         return false;

@@ -131,7 +131,7 @@ setState("ui.activeTab", "chart", { source: "MyComponent" });
 
 // Subscribe to changes
 const unsubscribe = subscribe("ui.activeTab", (newTab) => {
-    console.log("Active tab changed to:", newTab);
+ console.log("Active tab changed to:", newTab);
 });
 
 // Cleanup subscription
@@ -175,16 +175,16 @@ import { addComputed, getComputed } from "./utils/computedStateManager.js";
 
 // Add custom computed value
 const cleanup = addComputed(
-    "hasValidData",
-    (state) => {
-        return state.globalData && state.globalData.recordMesgs && state.globalData.recordMesgs.length > 0;
-    },
-    ["globalData.recordMesgs"]
+ "hasValidData",
+ (state) => {
+  return state.globalData && state.globalData.recordMesgs && state.globalData.recordMesgs.length > 0;
+ },
+ ["globalData.recordMesgs"]
 );
 
 // Use computed value
 if (getComputed("hasValidData")) {
-    // Render charts
+ // Render charts
 }
 
 // Cleanup when done
@@ -197,13 +197,13 @@ cleanup();
 import { registerMiddleware } from "./utils/stateMiddleware.js";
 
 const auditMiddleware = {
-    metadata: { description: "Audit all state changes" },
+ metadata: { description: "Audit all state changes" },
 
-    afterSet(context) {
-        // Log to audit system
-        console.log(`Audit: ${context.path} changed to`, context.value);
-        return context;
-    },
+ afterSet(context) {
+  // Log to audit system
+  console.log(`Audit: ${context.path} changed to`, context.value);
+  return context;
+ },
 };
 
 registerMiddleware("audit", auditMiddleware, 15);
@@ -264,9 +264,9 @@ Automatically detected based on:
 ```javascript
 // Enable in development
 const PERFORMANCE_CONFIG = {
-    enableMonitoring: true,
-    slowOperationThreshold: 10, // ms
-    maxHistorySize: 100,
+ enableMonitoring: true,
+ slowOperationThreshold: 10, // ms
+ maxHistorySize: 100,
 };
 ```
 

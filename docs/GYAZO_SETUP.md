@@ -162,15 +162,15 @@ gyazoConfig: {
 ```javascript
 // Check authentication status
 if (exportUtils.isGyazoAuthenticated()) {
-    console.log("User is connected to Gyazo");
+ console.log("User is connected to Gyazo");
 }
 
 // Upload a chart
 try {
-    const gyazoUrl = await exportUtils.uploadToGyazo(base64ImageData);
-    console.log("Chart uploaded:", gyazoUrl);
+ const gyazoUrl = await exportUtils.uploadToGyazo(base64ImageData);
+ console.log("Chart uploaded:", gyazoUrl);
 } catch (error) {
-    console.error("Upload failed:", error.message);
+ console.error("Upload failed:", error.message);
 }
 
 // Show account manager

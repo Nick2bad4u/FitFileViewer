@@ -1,10 +1,10 @@
 /**
  * @fileoverview Chart configuration options for FitFileViewer
- * 
+ *
  * Defines the comprehensive configuration schema for chart customization
  * including data point limits, visualization types, styling options,
  * and unit preferences. Used by settings UI and chart rendering.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -21,11 +21,11 @@ const PERFORMANCE_THRESHOLDS = {
 
 /**
  * Allowed options for maximum number of chart points
- * 
- * WARNING: Selecting very high values may cause significant performance 
- * issues or browser crashes, especially with large datasets. UI components 
+ *
+ * WARNING: Selecting very high values may cause significant performance
+ * issues or browser crashes, especially with large datasets. UI components
  * should enforce reasonable limits or display warnings for large values.
- * 
+ *
  * @type {(number|string)[]}
  */
 export const maxPointsOptions = [
@@ -42,11 +42,11 @@ export const maxPointsOptions = [
     2000,
     3000,
     5000,
-    PERFORMANCE_THRESHOLDS.SLOW_WARNING,         // 10,000 - Performance warning
-    50000,                                       // Performance warning  
-    PERFORMANCE_THRESHOLDS.VERY_SLOW_WARNING,   // 100,000 - Very slow for most users
-    PERFORMANCE_THRESHOLDS.NOT_RECOMMENDED,     // 1,000,000 - Not recommended except for testing
-    "all",                                       // No limit; use with extreme caution
+    PERFORMANCE_THRESHOLDS.SLOW_WARNING, // 10,000 - Performance warning
+    50000, // Performance warning
+    PERFORMANCE_THRESHOLDS.VERY_SLOW_WARNING, // 100,000 - Very slow for most users
+    PERFORMANCE_THRESHOLDS.NOT_RECOMMENDED, // 1,000,000 - Not recommended except for testing
+    "all", // No limit; use with extreme caution
 ];
 
 /**
@@ -65,13 +65,13 @@ export const maxPointsOptions = [
 
 /**
  * Comprehensive chart configuration options
- * 
+ *
  * Defines all available chart customization options including data limits,
  * visualization types, styling preferences, and unit settings. Each option
  * specifies its type, allowed values, default, and description.
- * 
+ *
  * @type {ChartOption[]}
- * 
+ *
  * @example
  * import { chartOptionsConfig } from './chartOptionsConfig.js';
  * // Iterate over options to build a settings UI
@@ -94,7 +94,8 @@ export const chartOptionsConfig = [
         type: "select",
         options: ["line", "bar", "scatter", "area"],
         default: "line",
-        description: 'Type of chart visualization ("area" displays filled area under line, distinct from "line" with optional Fill Area toggle)',
+        description:
+            'Type of chart visualization ("area" displays filled area under line, distinct from "line" with optional Fill Area toggle)',
     },
     {
         id: "interpolation",
@@ -168,7 +169,8 @@ export const chartOptionsConfig = [
         max: 1,
         step: 0.1,
         default: 0.4,
-        description: "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing). Applies to 'line' and 'area' charts with 'monotone' or 'linear' interpolation.",
+        description:
+            "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing). Applies to 'line' and 'area' charts with 'monotone' or 'linear' interpolation.",
     },
     {
         id: "timeUnits",
@@ -202,7 +204,7 @@ export const chartOptionsConfig = [
  * @returns {*} Default value for the option, or undefined if not found
  */
 export function getDefaultValue(optionId) {
-    const option = chartOptionsConfig.find(opt => opt.id === optionId);
+    const option = chartOptionsConfig.find((opt) => opt.id === optionId);
     return option ? option.default : undefined;
 }
 
@@ -212,7 +214,7 @@ export function getDefaultValue(optionId) {
  * @returns {ChartOption|undefined} Chart option configuration or undefined if not found
  */
 export function getOptionConfig(optionId) {
-    return chartOptionsConfig.find(opt => opt.id === optionId);
+    return chartOptionsConfig.find((opt) => opt.id === optionId);
 }
 
 /**
@@ -228,15 +230,13 @@ export function isValidOptionValue(optionId, value) {
     switch (option.type) {
         case "select":
             return option.options.includes(value);
-        
+
         case "toggle":
-            return typeof value === 'boolean';
-        
+            return typeof value === "boolean";
+
         case "range":
-            return typeof value === 'number' && 
-                   value >= (option.min || 0) && 
-                   value <= (option.max || 1);
-        
+            return typeof value === "number" && value >= (option.min || 0) && value <= (option.max || 1);
+
         default:
             return true;
     }
@@ -251,7 +251,7 @@ export function getMaxPointsWarningLevel(maxPoints) {
     if (maxPoints === "all") {
         return "not-recommended";
     }
-    
+
     const numPoints = Number(maxPoints);
     if (numPoints >= PERFORMANCE_THRESHOLDS.NOT_RECOMMENDED) {
         return "not-recommended";
@@ -260,6 +260,6 @@ export function getMaxPointsWarningLevel(maxPoints) {
     } else if (numPoints >= PERFORMANCE_THRESHOLDS.SLOW_WARNING) {
         return "slow";
     }
-    
+
     return null;
 }

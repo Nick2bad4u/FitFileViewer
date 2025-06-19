@@ -1,9 +1,9 @@
 /**
  * @fileoverview Duration formatting utility for FitFileViewer
- * 
+ *
  * Provides functions for formatting durations from seconds into human-readable
  * strings with appropriate time units (seconds, minutes, hours).
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -69,7 +69,7 @@ function formatSecondsOnly(seconds) {
 
 /**
  * Formats duration in minutes and seconds
- * @param {number} seconds - Duration in seconds  
+ * @param {number} seconds - Duration in seconds
  * @returns {string} Formatted string like "5 min 30 sec"
  */
 function formatMinutesAndSeconds(seconds) {
@@ -87,25 +87,25 @@ function formatHoursAndMinutes(seconds) {
     const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR);
     const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR;
     const minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
-    
+
     const hourText = hours === 1 ? "hr" : "hrs";
     return `${hours} ${hourText} ${minutes} min`;
 }
 
 /**
  * Formats a duration given in seconds into a human-readable string
- * 
+ *
  * Handles various input types and formats appropriately:
  * - Null/undefined inputs return empty string
  * - Invalid inputs throw descriptive errors
  * - Less than 60 seconds: "X sec"
  * - Less than 1 hour: "Y min Z sec"
  * - 1 hour or more: "H hr(s) M min"
- * 
+ *
  * @param {number|string|null|undefined} seconds - The duration in seconds
  * @returns {string} The formatted duration string
  * @throws {Error} If the input is not a finite number or is negative
- * 
+ *
  * @example
  * formatDuration(30);        // "30 sec"
  * formatDuration(90);        // "1 min 30 sec"
@@ -117,7 +117,7 @@ function formatHoursAndMinutes(seconds) {
 export function formatDuration(seconds) {
     // Validate and normalize input
     const validation = validateAndNormalizeDuration(seconds);
-    
+
     if (!validation.isValid) {
         throw new Error(`Invalid duration input: ${validation.error}`);
     }
