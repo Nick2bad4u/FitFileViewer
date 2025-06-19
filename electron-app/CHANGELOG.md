@@ -7,9 +7,36 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[1babc4c](https://github.com/Nick2bad4u/FitFileViewer/commit/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798)...
+[1babc4c](https://github.com/Nick2bad4u/FitFileViewer/commit/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798...1babc4c4e038c7ed444ad1d6f7c7039d8ed01798))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 24.5.0 [`(1babc4c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1babc4c4e038c7ed444ad1d6f7c7039d8ed01798)
+
+
+
+
+## [24.5.0] - 2025-06-19
+
+
 [[01892ef](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)...
-[546358e](https://github.com/Nick2bad4u/FitFileViewer/commit/546358e5099acbe78692c466583f8e5deae74b42)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/01892ef2918ad4562942d8e66d5ea7cdaa6f562e...546358e5099acbe78692c466583f8e5deae74b42))
+[62be314](https://github.com/Nick2bad4u/FitFileViewer/commit/62be31491debf127bc896f9495b25abbd06fb363)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/01892ef2918ad4562942d8e66d5ea7cdaa6f562e...62be31491debf127bc896f9495b25abbd06fb363))
+
+
+### 💼 Other
+
+- Integrates state management into FIT file parsing
+
+Adds robust state management integration for FIT file parsing, enabling progress tracking, error reporting, and decoder settings persistence via both a new state system and fallback to electron-conf for backward compatibility.
+
+Introduces validation of decoder options, improved error metadata, and performance monitoring hooks. Enhances user experience with real-time state updates and easier settings management.
+
+No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFileViewer/commit/62be31491debf127bc896f9495b25abbd06fb363)
+
 
 
 ### ⚙️ Miscellaneous Tasks
@@ -155,9 +182,30 @@ Improves accessibility and maintainability of chart settings, while removing red
 ## [24.0.0] - 2025-06-18
 
 
-[[8aeef08](https://github.com/Nick2bad4u/FitFileViewer/commit/8aeef08949d50d82064e9820af375041e8e8fc73)...
+[[3ca4928](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)...
 [fb59c29](https://github.com/Nick2bad4u/FitFileViewer/commit/fb59c292683d21ec6d4c6d86c1493376f9ce2e26)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/8aeef08949d50d82064e9820af375041e8e8fc73...fb59c292683d21ec6d4c6d86c1493376f9ce2e26))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3ca4928d6e1fdc26311ccc43192777d0486c59d7...fb59c292683d21ec6d4c6d86c1493376f9ce2e26))
+
+
+### 🚀 Features
+
+- Enhance settings header with chart status indicators and field toggles [`(851a688)`](https://github.com/Nick2bad4u/FitFileViewer/commit/851a688d8887756645fd3519897260e367e6f922)
+
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(1ad9b4d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)
+
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(9e9c0df)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)
+
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(f3d97bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)
+
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(7ffb095)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)
+
 
 
 ### 💼 Other
@@ -166,6 +214,43 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 
 - Update setTimeout callbacks to use function expressions for consistency [`(19ba8e6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/19ba8e60f80467e8b8531eaad257c5d95f875ad4)
+
+
+- Refactor sensor and manufacturer handling in chart rendering
+
+- Removed extensive hardcoded manufacturer and product mappings from formatAntNames.js, replacing them with imports from separate files for better modularity and maintainability.
+- Updated formatSensorName.js to prioritize manufacturer and product names when both are available, improving sensor name formatting logic.
+- Enhanced renderChartJS.js by importing chartFields for consistency, improving error handling display, and cleaning up chart data processing logic for better readability and maintainability. [`(e84588e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)
+
+
+- Refactor manufacturer and product formatting utilities
+
+- Updated import paths to use new formatAntNames.js module instead of manufacturerIds.js for manufacturer and product name retrieval.
+- Enhanced formatProduct function to handle edge cases for manufacturer and product IDs, ensuring robust error handling and improved user feedback.
+- Modified formatSensorName to ensure garminProduct is formatted correctly as a string.
+- Removed manufacturerIds.js file as its functionality has been integrated into formatAntNames.js.
+- Updated testFormatting.js to reflect changes in import paths and validate new formatting logic. [`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+
+- Adds independent map theme toggle and sensor formatting fixes
+
+Enables users to switch map theme between light and dark modes independently of the app theme, improving visibility and user preference handling. Introduces a new toggle button with persistent preference, immediate UI feedback, and updated CSS for consistent appearance. Refactors marker count selector and overlay management for modularity and theme-awareness. Implements robust manufacturer and product ID mappings with formatting utilities, fixing legacy and edge cases for sensor naming. Improves test/debug utilities for sensor data and formatting.
+
+Enhances user control, accessibility, and code maintainability, while resolving previous issues with sensor name formatting and color contrast. [`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
+
+
+- Refactor and improve code readability across multiple utility files
+
+- Updated various functions in `patchSummaryFields.js` to enhance readability by formatting conditional statements.
+- Improved the structure of `renderAltitudeProfileChart.js`, `renderChartJS.js`, `renderGPSTrackChart.js`, `renderPowerVsHeartRateChart.js`, and `renderSpeedVsDistanceChart.js` for better clarity.
+- Enhanced logging messages in `renderChartsWithData` and `shouldShowRenderNotification` for improved debugging.
+- Cleaned up import statements in `renderMap.js` and `setupWindow.js` for consistency.
+- Removed sensitive data from `gitleaks-report.json` and added configuration files for various tools including Checkov, Markdown Link Check, and Lychee.
+- Updated `setupZoneData.js` to improve the extraction of heart rate zones.
+- General code formatting and style improvements across multiple files to adhere to best practices. [`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+
+- Megalinter FIX [`(3ca4928)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)
 
 
 
@@ -178,6 +263,27 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 
 - Update changelogs for v23.7.0 [skip ci] [`(d9d3f21)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d9d3f21ab2a4a34132c8551441974a06f7058dae)
+
+
+- Update changelogs for v23.6.0 [skip ci] [`(194da7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/194da7f014a19a2fdf066d32ee9299f80bb3e604)
+
+
+- Update changelogs for v23.5.0 [skip ci] [`(96eb498)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96eb4987d22c0d654efebb0e546147aada4d6f84)
+
+
+- Update changelogs for v23.4.0 [skip ci] [`(5b31a99)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b31a99bd62a71259074791d1b290e3640f1f807)
+
+
+- Update changelogs for v23.3.0 [skip ci] [`(63efdef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/63efdef243bafbe34f6aeb06f6c77acc7fa0d5c1)
+
+
+- Update changelogs for v23.2.0 [skip ci] [`(6b28fa8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b28fa833aa5b700eaf3b61ec6471cb402b31044)
+
+
+- Update changelogs for v23.1.0 [skip ci] [`(4fbecd8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4fbecd855b00cf5fc2fd1e2bdd0d8f333efcd67f)
+
+
+- Update changelogs for v23.0.0 [skip ci] [`(4c18c7c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c18c7c52ecf8a1cb93b9e0b11ea5c58d6aa6051)
 
 
 
@@ -200,87 +306,11 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 9 update
 - [dependency] Update version 23.7.0 [`(8aeef08)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8aeef08949d50d82064e9820af375041e8e8fc73)
 
 
-
-
-## [23.7.0] - 2025-06-17
-
-
-[[851a688](https://github.com/Nick2bad4u/FitFileViewer/commit/851a688d8887756645fd3519897260e367e6f922)...
-[1ad9b4d](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/851a688d8887756645fd3519897260e367e6f922...1ad9b4dacc16e73ce3bb54b6113f4132de49446a))
-
-
-### 🚀 Features
-
-- Enhance settings header with chart status indicators and field toggles [`(851a688)`](https://github.com/Nick2bad4u/FitFileViewer/commit/851a688d8887756645fd3519897260e367e6f922)
-
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(1ad9b4d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ad9b4dacc16e73ce3bb54b6113f4132de49446a)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.6.0 [skip ci] [`(194da7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/194da7f014a19a2fdf066d32ee9299f80bb3e604)
-
-
-
-### 📦 Dependencies
-
 - [dependency] Update version 23.6.0 [`(d780ba3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d780ba35d22ffff3881ad95bfd45d8ac4ca02c8b)
 
 
-
-
-## [23.6.0] - 2025-06-17
-
-
-[[c3fba24](https://github.com/Nick2bad4u/FitFileViewer/commit/c3fba24f34be01986d94fda8984dac3898409f9a)...
-[e84588e](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/c3fba24f34be01986d94fda8984dac3898409f9a...e84588e7c6e1ae1e4d5408c550b5997488eb3e28))
-
-
-### 💼 Other
-
-- Refactor sensor and manufacturer handling in chart rendering
-
-- Removed extensive hardcoded manufacturer and product mappings from formatAntNames.js, replacing them with imports from separate files for better modularity and maintainability.
-- Updated formatSensorName.js to prioritize manufacturer and product names when both are available, improving sensor name formatting logic.
-- Enhanced renderChartJS.js by importing chartFields for consistency, improving error handling display, and cleaning up chart data processing logic for better readability and maintainability. [`(e84588e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e84588e7c6e1ae1e4d5408c550b5997488eb3e28)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.5.0 [skip ci] [`(96eb498)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96eb4987d22c0d654efebb0e546147aada4d6f84)
-
-
-
-### 📦 Dependencies
-
 - [dependency] Update version 23.5.0 [`(c3fba24)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c3fba24f34be01986d94fda8984dac3898409f9a)
 
-
-
-
-## [23.5.0] - 2025-06-17
-
-
-[[b091e3e](https://github.com/Nick2bad4u/FitFileViewer/commit/b091e3e8c05aa56b704da778e87f131064c7a5ee)...
-[27359c3](https://github.com/Nick2bad4u/FitFileViewer/commit/27359c397994c9ac50d6aecde627f1f56b5ace75)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/b091e3e8c05aa56b704da778e87f131064c7a5ee...27359c397994c9ac50d6aecde627f1f56b5ace75))
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.4.0 [skip ci] [`(5b31a99)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b31a99bd62a71259074791d1b290e3640f1f807)
-
-
-
-### 📦 Dependencies
 
 - Merge pull request #125 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-8c4c535cb3
 
@@ -293,146 +323,14 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 17 updat
 - [dependency] Update version 23.4.0 [`(b091e3e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b091e3e8c05aa56b704da778e87f131064c7a5ee)
 
 
-
-
-## [23.4.0] - 2025-06-17
-
-
-[[3b2ec78](https://github.com/Nick2bad4u/FitFileViewer/commit/3b2ec783aff5ca70c488087076fdca3309a49ea3)...
-[09898cd](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3b2ec783aff5ca70c488087076fdca3309a49ea3...09898cd59263e4987cff89af00d8caaf2abe9372))
-
-
-### 💼 Other
-
-- Refactor manufacturer and product formatting utilities
-
-- Updated import paths to use new formatAntNames.js module instead of manufacturerIds.js for manufacturer and product name retrieval.
-- Enhanced formatProduct function to handle edge cases for manufacturer and product IDs, ensuring robust error handling and improved user feedback.
-- Modified formatSensorName to ensure garminProduct is formatted correctly as a string.
-- Removed manufacturerIds.js file as its functionality has been integrated into formatAntNames.js.
-- Updated testFormatting.js to reflect changes in import paths and validate new formatting logic. [`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.3.0 [skip ci] [`(63efdef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/63efdef243bafbe34f6aeb06f6c77acc7fa0d5c1)
-
-
-
-### 📦 Dependencies
-
 - [dependency] Update version 23.3.0 [`(3b2ec78)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3b2ec783aff5ca70c488087076fdca3309a49ea3)
 
-
-
-
-## [23.3.0] - 2025-06-17
-
-
-[[80b2e44](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)...
-[9e9c0df](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/80b2e44b1c969a47ae740dbac675eda3a7c39931...9e9c0df47bafc78c5d447b6c60081eab90677ac6))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(9e9c0df)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e9c0df47bafc78c5d447b6c60081eab90677ac6)
-
-
-
-### 💼 Other
-
-- Adds independent map theme toggle and sensor formatting fixes
-
-Enables users to switch map theme between light and dark modes independently of the app theme, improving visibility and user preference handling. Introduces a new toggle button with persistent preference, immediate UI feedback, and updated CSS for consistent appearance. Refactors marker count selector and overlay management for modularity and theme-awareness. Implements robust manufacturer and product ID mappings with formatting utilities, fixing legacy and edge cases for sensor naming. Improves test/debug utilities for sensor data and formatting.
-
-Enhances user control, accessibility, and code maintainability, while resolving previous issues with sensor name formatting and color contrast. [`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.2.0 [skip ci] [`(6b28fa8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b28fa833aa5b700eaf3b61ec6471cb402b31044)
-
-
-
-### 📦 Dependencies
 
 - [dependency] Update version 23.2.0 [`(b74a072)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b74a07258e1585a40e95662144201fc3d2d921d7)
 
 
-
-
-## [23.2.0] - 2025-06-16
-
-
-[[2128d98](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)...
-[f3d97bc](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/2128d98c47634f38e04784341efb2ce36492a205...f3d97bc16c56ff8079d22237bba9c488d9a10395))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(f3d97bc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f3d97bc16c56ff8079d22237bba9c488d9a10395)
-
-
-
-### 💼 Other
-
-- Refactor and improve code readability across multiple utility files
-
-- Updated various functions in `patchSummaryFields.js` to enhance readability by formatting conditional statements.
-- Improved the structure of `renderAltitudeProfileChart.js`, `renderChartJS.js`, `renderGPSTrackChart.js`, `renderPowerVsHeartRateChart.js`, and `renderSpeedVsDistanceChart.js` for better clarity.
-- Enhanced logging messages in `renderChartsWithData` and `shouldShowRenderNotification` for improved debugging.
-- Cleaned up import statements in `renderMap.js` and `setupWindow.js` for consistency.
-- Removed sensitive data from `gitleaks-report.json` and added configuration files for various tools including Checkov, Markdown Link Check, and Lychee.
-- Updated `setupZoneData.js` to improve the extraction of heart rate zones.
-- General code formatting and style improvements across multiple files to adhere to best practices. [`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.1.0 [skip ci] [`(4fbecd8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4fbecd855b00cf5fc2fd1e2bdd0d8f333efcd67f)
-
-
-
-### 📦 Dependencies
-
 - [dependency] Update version 23.1.0 [`(cb736ed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb736ed801ee8a388b4dee248473437482ffde5c)
 
-
-
-
-## [23.1.0] - 2025-06-16
-
-
-[[3ca4928](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)...
-[7ffb095](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3ca4928d6e1fdc26311ccc43192777d0486c59d7...7ffb095d12f23e64e8ddd674d6fae21666535496))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(7ffb095)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7ffb095d12f23e64e8ddd674d6fae21666535496)
-
-
-
-### 💼 Other
-
-- Megalinter FIX [`(3ca4928)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v23.0.0 [skip ci] [`(4c18c7c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c18c7c52ecf8a1cb93b9e0b11ea5c58d6aa6051)
-
-
-
-### 📦 Dependencies
 
 - [dependency] Update version 23.0.0 [`(c6e3694)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c6e3694ae4c5e25817c6c3338b48f38779f690c2)
 
@@ -469,9 +367,21 @@ Enhances user control, accessibility, and code maintainability, while resolving 
 ## [22.9.0] - 2025-06-15
 
 
-[[61ed3ab](https://github.com/Nick2bad4u/FitFileViewer/commit/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de)...
+[[7bbab40](https://github.com/Nick2bad4u/FitFileViewer/commit/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82)...
 [0931bbd](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de...0931bbd36523cdc74818b12147c6434c6866ce4e))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82...0931bbd36523cdc74818b12147c6434c6866ce4e))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(3cbd5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)
+
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(df90c13)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)
+
+
+- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(482d49d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)
+
 
 
 ### 💼 Other
@@ -480,36 +390,6 @@ Enhances user control, accessibility, and code maintainability, while resolving 
 
 Refactors map action button logic into dedicated modules for better maintainability and separation of concerns. Introduces new utility classes and theme-aware helper functions to ensure consistent styling across interactive map controls. Adds robust error handling and notification feedback for overlay file operations. Enhances user experience by improving overlay loading, theming, and map centering logic, and updates workflow and linter configurations for improved CI/CD feedback. [`(0931bbd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0931bbd36523cdc74818b12147c6434c6866ce4e)
 
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v22.8.0 [skip ci] [`(824c249)`](https://github.com/Nick2bad4u/FitFileViewer/commit/824c249a896325bf875b69e6ad8e2b88e9b750d4)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 22.8.0 [`(61ed3ab)`](https://github.com/Nick2bad4u/FitFileViewer/commit/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de)
-
-
-
-
-## [22.8.0] - 2025-06-15
-
-
-[[d5c18e4](https://github.com/Nick2bad4u/FitFileViewer/commit/d5c18e4b82598d1df4a24aca265504a0bbf52af3)...
-[3cbd5ec](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d5c18e4b82598d1df4a24aca265504a0bbf52af3...3cbd5ec5033e12f89143d5874fbf98765058c314))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(3cbd5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cbd5ec5033e12f89143d5874fbf98765058c314)
-
-
-
-### 💼 Other
 
 - Refactor chart utilities and enhance theme handling
 
@@ -537,33 +417,6 @@ Refactors map action button logic into dedicated modules for better maintainabil
 
 
 
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v22.7.0 [skip ci] [`(e7f9594)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e7f9594ed308f37204961a516470e5c593a12527)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 22.7.0 [`(17ad448)`](https://github.com/Nick2bad4u/FitFileViewer/commit/17ad44891c45d5db786707c5646d1bcebb83a7ec)
-
-
-
-
-## [22.7.0] - 2025-06-15
-
-
-[[7f7dc61](https://github.com/Nick2bad4u/FitFileViewer/commit/7f7dc6127a1f969c015f3cc583e4d1d49256379d)...
-[4030638](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7f7dc6127a1f969c015f3cc583e4d1d49256379d...403063838cdda2c7a496838806b54909461420f3))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(df90c13)`](https://github.com/Nick2bad4u/FitFileViewer/commit/df90c13d66328dc7a0481dd81db1f989a3905499)
-
-
-
 ### 🚜 Refactor
 
 - Update Gyazo configuration data with new obfuscation method [`(4030638)`](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)
@@ -572,32 +425,26 @@ Refactors map action button logic into dedicated modules for better maintainabil
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v22.8.0 [skip ci] [`(824c249)`](https://github.com/Nick2bad4u/FitFileViewer/commit/824c249a896325bf875b69e6ad8e2b88e9b750d4)
+
+
+- Update changelogs for v22.7.0 [skip ci] [`(e7f9594)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e7f9594ed308f37204961a516470e5c593a12527)
+
+
 - Update changelogs for v22.6.0 [skip ci] [`(c338233)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c338233fa5c3967da61a4bc282b6ea60ca9ccc41)
 
 
 
 ### 📦 Dependencies
 
+- [dependency] Update version 22.8.0 [`(61ed3ab)`](https://github.com/Nick2bad4u/FitFileViewer/commit/61ed3ab45c1ba8800047c7a3313989d3cd4cd5de)
+
+
+- [dependency] Update version 22.7.0 [`(17ad448)`](https://github.com/Nick2bad4u/FitFileViewer/commit/17ad44891c45d5db786707c5646d1bcebb83a7ec)
+
+
 - [dependency] Update version 22.6.0 [`(7f7dc61)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7f7dc6127a1f969c015f3cc583e4d1d49256379d)
 
-
-
-
-## [22.6.0] - 2025-06-15
-
-
-[[7bbab40](https://github.com/Nick2bad4u/FitFileViewer/commit/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82)...
-[482d49d](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82...482d49d682a81fee19fa3411cdec3ac41473ea29))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/Nick2bad4u/FitFileViewer [`(482d49d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482d49d682a81fee19fa3411cdec3ac41473ea29)
-
-
-
-### 📦 Dependencies
 
 - [dependency] Update version 22.5.0 [`(9b5e402)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9b5e402b61de560e3ee14cf90c3a9dc68d7c2ae5)
 
@@ -642,38 +489,9 @@ Adds extra encoding and transformation layers to default credential obfuscation,
 ## [22.4.0] - 2025-06-15
 
 
-[[0548393](https://github.com/Nick2bad4u/FitFileViewer/commit/0548393d534f6973f2290c4989a611ae549b7ba8)...
+[[798df16](https://github.com/Nick2bad4u/FitFileViewer/commit/798df16170f08b3a8cd4f236f868eafcee7f7ff6)...
 [5d82f2e](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0548393d534f6973f2290c4989a611ae549b7ba8...5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf))
-
-
-### 💼 Other
-
-- Adds Gyazo integration with OAuth upload and theming
-
-Implements direct Gyazo chart upload using a secure OAuth flow, including automatic local callback server management and user credential configuration via new settings UI. Updates export utilities, modal flows, and introduces account management and onboarding guides for Gyazo. Refactors chart and UI theming to use a robust, centralized theme configuration, improving color consistency and dark mode support. Enhances chart selection modals, hover effects, and settings controls for better UX and maintainability. [`(5d82f2e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v22.3.0 [skip ci] [`(7447f7a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7447f7a853025778a184afe72eda268429743a85)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 22.3.0 [`(0548393)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0548393d534f6973f2290c4989a611ae549b7ba8)
-
-
-
-
-## [22.3.0] - 2025-06-14
-
-
-[[f72fb53](https://github.com/Nick2bad4u/FitFileViewer/commit/f72fb538a639f8ae73db092315e64c39dc59d5e1)...
-[3613ca1](https://github.com/Nick2bad4u/FitFileViewer/commit/3613ca13eda8e8668684632843f9fc98f94726cd)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f72fb538a639f8ae73db092315e64c39dc59d5e1...3613ca13eda8e8668684632843f9fc98f94726cd))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/798df16170f08b3a8cd4f236f868eafcee7f7ff6...5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf))
 
 
 ### 🔀 Merge Commits
@@ -683,6 +501,11 @@ Implements direct Gyazo chart upload using a secure OAuth flow, including automa
 
 
 ### 💼 Other
+
+- Adds Gyazo integration with OAuth upload and theming
+
+Implements direct Gyazo chart upload using a secure OAuth flow, including automatic local callback server management and user credential configuration via new settings UI. Updates export utilities, modal flows, and introduces account management and onboarding guides for Gyazo. Refactors chart and UI theming to use a robust, centralized theme configuration, improving color consistency and dark mode support. Enhances chart selection modals, hover effects, and settings controls for better UX and maintainability. [`(5d82f2e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d82f2efe8b8c44eb0ff0a882a70606ac66d28bf)
+
 
 - Unifies styling with CSS variables and refactors theme logic
 
@@ -699,81 +522,6 @@ Implements direct Gyazo chart upload using a secure OAuth flow, including automa
 Migrates hardcoded colors to CSS variables for consistent theming and easier maintenance across dark and light modes. Refactors chart re-rendering on theme change to ensure proper cleanup and real-time updates. Removes duplicated or redundant style logic, adds and adjusts hover/focus effects, and updates color opacities for modern, accessible visuals. Deletes the separate developer fields chart renderer, integrating its logic for better maintainability. Improves visual consistency and user experience in modals, dropdowns, and controls. [`(4c52de5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c52de52f856fd4bd6670b1e04c2e01044982cf1)
 
 
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v22.2.0 [skip ci] [`(7364733)`](https://github.com/Nick2bad4u/FitFileViewer/commit/736473395e09d12a030a46f581d27504a1d19836)
-
-
-- Update changelogs for v22.3.0 [skip ci] [`(efee3da)`](https://github.com/Nick2bad4u/FitFileViewer/commit/efee3da7ea4e512eacc75aab5673ecc1a896b496)
-
-
-- Update changelogs for v22.2.0 [skip ci] [`(98cfa5b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/98cfa5bafc16b0af7ca1ada3558d989b583e6983)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 22.5.0 [`(0f26639)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f266391551d999979719bce6883a3caded0ec30)
-
-
-- [dependency] Update version 22.3.0 [`(0f67f26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f67f2669e956ddd8529c3d3b3d62f7deb2846c4)
-
-
-- [dependency] Update version 22.2.0 [`(f72fb53)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f72fb538a639f8ae73db092315e64c39dc59d5e1)
-
-
-
-### 🛡️ Security
-
-- Obfuscate default Gyazo credentials for improved security
-
-[dependency] Update version 22.4.0
-
-Improves obfuscation for default Gyazo credentials
-
-Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience. [`(b048580)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0485801c3ba885a6a585c429c9063be2ea64eef)
-
-
-
-
-## [22.2.0] - 2025-06-14
-
-
-[[cf056fb](https://github.com/Nick2bad4u/FitFileViewer/commit/cf056fb67d902c3657cb8059db81cdd21623e31f)...
-[96e18ba](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/cf056fb67d902c3657cb8059db81cdd21623e31f...96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c))
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v22.1.0 [skip ci] [`(ffce99a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ffce99aef7dcf5b97ac6e68083c5700034fa673c)
-
-
-
-### 📦 Dependencies
-
-- Merge pull request #120 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-2933a2d61b [`(96e18ba)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)
-
-
-- *(deps-dev)* [dependency] Update the npm-all group across 1 directory with 4 updates [`(fe1d608)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fe1d60880059598e3d3c7932fc100646688e74b9)
-
-
-- [dependency] Update version 22.1.0 [`(cf056fb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf056fb67d902c3657cb8059db81cdd21623e31f)
-
-
-
-
-## [22.1.0] - 2025-06-14
-
-
-[[798df16](https://github.com/Nick2bad4u/FitFileViewer/commit/798df16170f08b3a8cd4f236f868eafcee7f7ff6)...
-[25c3b5e](https://github.com/Nick2bad4u/FitFileViewer/commit/25c3b5e09fc01799a354e00c97ea827a48a5dfc8)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/798df16170f08b3a8cd4f236f868eafcee7f7ff6...25c3b5e09fc01799a354e00c97ea827a48a5dfc8))
-
-
-### 💼 Other
-
 - Standardizes YAML, JSON, and config formatting across repo
 
 Improves consistency by normalizing quotes, indentation, and
@@ -787,13 +535,61 @@ Prepares for cleaner future diffs and better cross-platform collaboration. [`(25
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v22.3.0 [skip ci] [`(7447f7a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7447f7a853025778a184afe72eda268429743a85)
+
+
+- Update changelogs for v22.2.0 [skip ci] [`(7364733)`](https://github.com/Nick2bad4u/FitFileViewer/commit/736473395e09d12a030a46f581d27504a1d19836)
+
+
+- Update changelogs for v22.3.0 [skip ci] [`(efee3da)`](https://github.com/Nick2bad4u/FitFileViewer/commit/efee3da7ea4e512eacc75aab5673ecc1a896b496)
+
+
+- Update changelogs for v22.2.0 [skip ci] [`(98cfa5b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/98cfa5bafc16b0af7ca1ada3558d989b583e6983)
+
+
+- Update changelogs for v22.1.0 [skip ci] [`(ffce99a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ffce99aef7dcf5b97ac6e68083c5700034fa673c)
+
+
 - Update changelogs for v22.0.0 [skip ci] [`(4c0a006)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c0a006d769600af198c6c677fab7c7ef17fe29d)
 
 
 
 ### 📦 Dependencies
 
+- [dependency] Update version 22.3.0 [`(0548393)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0548393d534f6973f2290c4989a611ae549b7ba8)
+
+
+- [dependency] Update version 22.5.0 [`(0f26639)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f266391551d999979719bce6883a3caded0ec30)
+
+
+- [dependency] Update version 22.3.0 [`(0f67f26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0f67f2669e956ddd8529c3d3b3d62f7deb2846c4)
+
+
+- [dependency] Update version 22.2.0 [`(f72fb53)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f72fb538a639f8ae73db092315e64c39dc59d5e1)
+
+
+- Merge pull request #120 from Nick2bad4u/dependabot/npm_and_yarn/electron-app/npm-all-2933a2d61b [`(96e18ba)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96e18bab56f2c0a006a1a7fbf8fa679ef0b1fa8c)
+
+
+- *(deps-dev)* [dependency] Update the npm-all group across 1 directory with 4 updates [`(fe1d608)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fe1d60880059598e3d3c7932fc100646688e74b9)
+
+
+- [dependency] Update version 22.1.0 [`(cf056fb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf056fb67d902c3657cb8059db81cdd21623e31f)
+
+
 - [dependency] Update version 22.0.0 [`(798df16)`](https://github.com/Nick2bad4u/FitFileViewer/commit/798df16170f08b3a8cd4f236f868eafcee7f7ff6)
+
+
+
+### 🛡️ Security
+
+- Obfuscate default Gyazo credentials for improved security
+
+[dependency] Update version 22.4.0
+
+Improves obfuscation for default Gyazo credentials
+
+Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience. [`(b048580)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0485801c3ba885a6a585c429c9063be2ea64eef)
 
 
 
