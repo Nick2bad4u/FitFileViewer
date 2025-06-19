@@ -35,6 +35,15 @@ body = """
 
   {% endfor %}
 {% endfor %}\n
+{% for submodule_path, commits in submodule_commits %}
+    ### {{ submodule_path | upper_first }}
+    {% for group, commits in commits | group_by(attribute="group") %}
+        #### {{ group | upper_first }}
+        {% for commit in commits %}
+            - {{ commit.message | upper_first }}\
+        {% endfor %}
+    {% endfor %}
+{% endfor %}\n
 {% if commit.footer %}
   <!-- Use the footer directly -->
   {{ commit.footer | trim | indent(width=8) }}

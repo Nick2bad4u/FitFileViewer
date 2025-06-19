@@ -9,6 +9,7 @@ const { autoUpdater } = require("electron-updater");
 
 const { loadRecentFiles, addRecentFile } = require("./utils/recentFiles");
 const { createAppMenu } = require("./utils/createAppMenu");
+const { mainProcessState } = require("./utils/mainProcessStateManager");
 
 // Constants
 const CONSTANTS = {
@@ -47,16 +48,14 @@ const CONSTANTS = {
     },
 };
 
-// Application State
-const AppState = {
-    loadedFitFilePath: null,
-    // Gyazo OAuth server state
-    gyazoServer: null,
-    gyazoServerPort: null,
-    pendingOAuthResolvers: new Map(),
-    mainWindow: null,
-    eventHandlers: new Map(),
-};
+// State getters and setters using the new state management system
+function getAppState(path) {
+    return mainProcessState.get(path);
+}
+
+function setAppState(path, value, options = {}) {
+    return mainProcessState.set(path, value, options);
+}
 
 // Utility functions
 function isWindowUsable(win) {
@@ -175,43 +174,45 @@ function setupAutoUpdater(mainWindow) {
                 }
             }
         },
-    };
-
-    // Register all update event handlers
+    };    // Register all update event handlers
     Object.entries(updateEventHandlers).forEach(([event, handler]) => {
         autoUpdater.on(event, handler);
-        AppState.eventHandlers.set(`autoUpdater:${event}`, handler);
+        mainProcessState.registerEventHandler(autoUpdater, event, handler, `autoUpdater:${event}`);
     });
 }
 
 // Enhanced application initialization
 async function initializeApplication() {
     const mainWindow = createWindow();
-    AppState.mainWindow = mainWindow;
+    setAppState("mainWindow", mainWindow);
 
     // Set the custom menu immediately after window creation to avoid menu flash/disappearance
     logWithContext("info", "Calling createAppMenu after window creation");
-    createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
-
-    // Setup auto-updater with error handling
-    try {
-        setupAutoUpdater(mainWindow);
-        await autoUpdater.checkForUpdatesAndNotify();
-    } catch (error) {
-        logWithContext("error", "Failed to setup auto-updater:", { error: error.message });
-    }
+    createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
 
     // Enhanced theme synchronization
     mainWindow.webContents.on("did-finish-load", async () => {
-        logWithContext("info", "did-finish-load event fired, syncing theme");
+        logWithContext("info", "did-finish-load event fired, syncing theme");        
+        
+        // Setup auto-updater after window is fully loaded to avoid "window not usable" warning
+        if (!getAppState("autoUpdaterInitialized")) {
+            try {
+                setupAutoUpdater(mainWindow);
+                await autoUpdater.checkForUpdatesAndNotify();
+                setAppState("autoUpdaterInitialized", true);
+            } catch (error) {
+                logWithContext("error", "Failed to setup auto-updater:", { error: error.message });
+            }
+        }
+        
         try {
             const theme = await getThemeFromRenderer(mainWindow);
             logWithContext("info", "Retrieved theme from renderer", { theme });
-            createAppMenu(mainWindow, theme, AppState.loadedFitFilePath);
+            createAppMenu(mainWindow, theme, getAppState("loadedFitFilePath"));
             sendToRenderer(mainWindow, "set-theme", theme);
         } catch (error) {
             logWithContext("warn", "Failed to get theme from renderer, using fallback", { error: error.message });
-            createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+            createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
             sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
         }
     });
@@ -227,30 +228,26 @@ function setupIPCHandlers(mainWindow) {
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                 properties: ["openFile"],
-            });
-
-            if (canceled || filePaths.length === 0) return null;
+            });            if (canceled || filePaths.length === 0) return null;
 
             addRecentFile(filePaths[0]);
-            AppState.loadedFitFilePath = filePaths[0];
+            setAppState("loadedFitFilePath", filePaths[0]);
 
             // Fetch current theme from renderer before rebuilding menu
             const win = BrowserWindow.getFocusedWindow() || mainWindow;
             const theme = await getThemeFromRenderer(win);
-            createAppMenu(win, theme, AppState.loadedFitFilePath);
+            createAppMenu(win, theme, getAppState("loadedFitFilePath"));
 
             return filePaths[0];
         })
-    );
-
-    // FIT file loaded handler
+    );    // FIT file loaded handler
     ipcMain.on("fit-file-loaded", async (event, filePath) => {
-        AppState.loadedFitFilePath = filePath;
+        setAppState("loadedFitFilePath", filePath);
         const win = BrowserWindow.fromWebContents(event.sender);
         if (validateWindow(win)) {
             try {
                 const theme = await getThemeFromRenderer(win);
-                createAppMenu(win, theme, AppState.loadedFitFilePath);
+                createAppMenu(win, theme, getAppState("loadedFitFilePath"));
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", { error: error.message });
             }
@@ -263,15 +260,13 @@ function setupIPCHandlers(mainWindow) {
         createErrorHandler(async () => {
             return loadRecentFiles();
         })
-    );
-
-    ipcMain.handle(
+    );    ipcMain.handle(
         "recentFiles:add",
         createErrorHandler(async (event, filePath) => {
             addRecentFile(filePath);
             const win = BrowserWindow.getFocusedWindow() || mainWindow;
             const theme = await getThemeFromRenderer(win);
-            createAppMenu(win, theme, AppState.loadedFitFilePath);
+            createAppMenu(win, theme, getAppState("loadedFitFilePath"));
             return loadRecentFiles();
         })
     );
@@ -382,12 +377,11 @@ function setupIPCHandlers(mainWindow) {
     );
 }
 // Enhanced menu and event handlers
-function setupMenuAndEventHandlers() {
-    // Theme change handler
+function setupMenuAndEventHandlers() {    // Theme change handler
     ipcMain.on("theme-changed", async (event, theme) => {
         const win = BrowserWindow.fromWebContents(event.sender);
         if (validateWindow(win)) {
-            createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+            createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
         }
     });
 
@@ -435,23 +429,22 @@ function setupMenuAndEventHandlers() {
     // Register update handlers
     Object.entries(updateHandlers).forEach(([event, handler]) => {
         ipcMain.on(event, handler);
-    });
-
-    // File menu action handlers
+    });    // File menu action handlers
     const fileMenuHandlers = {
         "menu-save-as": async (event) => {
             const win = BrowserWindow.fromWebContents(event.sender);
-            if (!AppState.loadedFitFilePath) return;
+            const loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath) return;
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(win, {
                     title: "Save As",
-                    defaultPath: AppState.loadedFitFilePath,
+                    defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                 });
 
                 if (!canceled && filePath) {
-                    fs.copyFileSync(AppState.loadedFitFilePath, filePath);
+                    fs.copyFileSync(loadedFilePath, filePath);
                     sendToRenderer(win, "show-notification", "File saved successfully.", "success");
                 }
             } catch (err) {
@@ -461,12 +454,13 @@ function setupMenuAndEventHandlers() {
         },
         "menu-export": async (event) => {
             const win = BrowserWindow.fromWebContents(event.sender);
-            if (!AppState.loadedFitFilePath) return;
+            const loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath) return;
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(win, {
                     title: "Export As",
-                    defaultPath: AppState.loadedFitFilePath.replace(/\.fit$/i, ".csv"),
+                    defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
                     filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                 });
 
@@ -509,11 +503,11 @@ function setupApplicationEventHandlers() {
     app.on("activate", function () {
         if (BrowserWindow.getAllWindows().length === 0) {
             const win = createWindow();
-            createAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+            createAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
         } else {
-            const win = BrowserWindow.getFocusedWindow() || AppState.mainWindow;
+            const win = BrowserWindow.getFocusedWindow() || getAppState("mainWindow");
             if (validateWindow(win)) {
-                createAppMenu(win, CONSTANTS.DEFAULT_THEME, AppState.loadedFitFilePath);
+                createAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
             }
         }
     });
@@ -523,7 +517,7 @@ function setupApplicationEventHandlers() {
         if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
             try {
                 const theme = await getThemeFromRenderer(win);
-                createAppMenu(win, theme, AppState.loadedFitFilePath);
+                createAppMenu(win, theme, getAppState("loadedFitFilePath"));
             } catch (err) {
                 logWithContext("error", "Error setting menu on browser-window-focus:", { error: err.message });
             }
@@ -539,7 +533,8 @@ function setupApplicationEventHandlers() {
 
     // Cleanup Gyazo server when app is quitting
     app.on("before-quit", async (event) => {
-        if (AppState.gyazoServer) {
+        const gyazoServer = getAppState("gyazoServer");
+        if (gyazoServer) {
             event.preventDefault();
             try {
                 await stopGyazoOAuthServer();
@@ -581,28 +576,25 @@ function setupApplicationEventHandlers() {
 
 // Cleanup functions
 function cleanupEventHandlers() {
-    AppState.eventHandlers.forEach((handler, key) => {
-        logWithContext("info", "Cleaning up event handler:", { key });
-    });
-    AppState.eventHandlers.clear();
+    mainProcessState.cleanupEventHandlers();
 }
 
 // Development helpers
 function exposeDevHelpers() {
     global.devHelpers = {
-        getAppState: () => AppState,
+        getAppState: () => mainProcessState.data,
         cleanupEventHandlers,
         rebuildMenu: (theme, filePath) => {
             const win = BrowserWindow.getFocusedWindow();
             if (validateWindow(win)) {
-                createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, filePath || AppState.loadedFitFilePath);
+                createAppMenu(win, theme || CONSTANTS.DEFAULT_THEME, filePath || getAppState("loadedFitFilePath"));
             }
         },
         logState: () => {
             logWithContext("info", "Current application state:", {
-                loadedFitFilePath: AppState.loadedFitFilePath,
-                hasMainWindow: !!AppState.mainWindow,
-                eventHandlersCount: AppState.eventHandlers.size,
+                loadedFitFilePath: getAppState("loadedFitFilePath"),
+                hasMainWindow: !!getAppState("mainWindow"),
+                eventHandlersCount: mainProcessState.data.eventHandlers.size,
             });
         },
     };
@@ -637,7 +629,8 @@ app.whenReady().then(async () => {
 // Gyazo OAuth Server Functions
 async function startGyazoOAuthServer(port = 3000) {
     // Stop existing server if running
-    if (AppState.gyazoServer) {
+    const existingServer = getAppState("gyazoServer");
+    if (existingServer) {
         await stopGyazoOAuthServer();
     }
 
@@ -737,11 +730,10 @@ async function startGyazoOAuthServer(port = 3000) {
                                     </div>
                                 </body>
                             </html>
-                        `);
-
-                        // Send the code to the renderer process
-                        if (AppState.mainWindow && !AppState.mainWindow.isDestroyed()) {
-                            AppState.mainWindow.webContents.send("gyazo-oauth-callback", { code, state });
+                        `);                        // Send the code to the renderer process
+                        const mainWindow = getAppState("mainWindow");
+                        if (mainWindow && !mainWindow.isDestroyed()) {
+                            mainWindow.webContents.send("gyazo-oauth-callback", { code, state });
                         }
                     } else {
                         res.writeHead(400, { "Content-Type": "text/html" });
@@ -796,11 +788,9 @@ async function startGyazoOAuthServer(port = 3000) {
                 } else {
                     reject(err);
                 }
-            });
-
-            server.listen(port, "localhost", () => {
-                AppState.gyazoServer = server;
-                AppState.gyazoServerPort = port;
+            });            server.listen(port, "localhost", () => {
+                setAppState("gyazoServer", server);
+                setAppState("gyazoServerPort", port);
                 logWithContext("info", `Gyazo OAuth callback server started on http://localhost:${port}`);
                 resolve({
                     success: true,
@@ -817,11 +807,12 @@ async function startGyazoOAuthServer(port = 3000) {
 
 async function stopGyazoOAuthServer() {
     return new Promise((resolve) => {
-        if (AppState.gyazoServer) {
-            AppState.gyazoServer.close(() => {
+        const gyazoServer = getAppState("gyazoServer");
+        if (gyazoServer) {
+            gyazoServer.close(() => {
                 logWithContext("info", "Gyazo OAuth callback server stopped");
-                AppState.gyazoServer = null;
-                AppState.gyazoServerPort = null;
+                setAppState("gyazoServer", null);
+                setAppState("gyazoServerPort", null);
                 resolve({
                     success: true,
                     message: "OAuth callback server stopped",

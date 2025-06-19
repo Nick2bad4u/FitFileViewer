@@ -10,6 +10,12 @@ import { createGlobalChartStatusIndicator } from "./chartStatusIndicator.js";
  */
 export function showFitData(data, filePath) {
     window.globalData = data;
+    
+    // Reset rendering states when new data is loaded to ensure proper re-rendering
+    // This fixes a regression where map/chart tabs wouldn't update with new FIT data
+    // because the isRendered flags prevented re-rendering after the first render
+    window.isMapRendered = false;
+    window.isChartRendered = false;
     if (filePath) {
         // Show just the filename, not the full path
         let fileName = window.globalData.cachedFileName;
@@ -41,21 +47,31 @@ export function showFitData(data, filePath) {
         }
         // Dispatch event for Chart.js and other listeners
         window.dispatchEvent(new Event("fitfile-loaded"));
-    }
-
-    // Optionally, update UI with data (tables, charts, etc.)
+    }    // Optionally, update UI with data (tables, charts, etc.)
     if (window.createTables && window.globalData) {
         window.createTables(window.globalData);
     }
-    if (window.renderChart && window.globalData) {
-        window.renderChart();
-    }
-    if (window.renderMap && window.globalData) {
-        window.renderMap();
-    }
+    
+    // Pre-render summary data so it's ready when user switches to summary tab
+    // This ensures all tabs have their data ready, even though we default to map
     if (window.renderSummary && window.globalData) {
         window.renderSummary(window.globalData);
     }
+    
+    // Switch to map tab as default when file is loaded
+    // Use setTimeout to ensure this happens after DOM updates and tab handlers are ready
+    setTimeout(() => {
+        if (window.updateTabVisibility && window.updateActiveTab) {
+            window.updateTabVisibility("content-map");
+            window.updateActiveTab("tab-map");
+            
+            // Manually trigger map rendering since we're programmatically switching tabs
+            if (window.renderMap && !window.isMapRendered) {
+                window.renderMap();
+                window.isMapRendered = true;
+            }
+        }
+    }, 50);
 
     // Create/update the global chart status indicator when data is loaded
     setTimeout(function () {

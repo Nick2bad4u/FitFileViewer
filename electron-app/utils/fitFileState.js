@@ -155,29 +155,26 @@ export class FitFileStateManager {
             console.error("[FitFileState] Error processing data:", error);
             setState("fitFile.processingError", error.message, { source: "FitFileStateManager.processFileData" });
         }
-    }
-
-    /**
+    }    /**
      * Get record count from file data
      * @param {Object} data - File data
      * @returns {number} Number of records
      */
     getRecordCount(data) {
-        if (!data || !data.records) return 0;
-        return Array.isArray(data.records) ? data.records.length : 0;
+        if (!data || !data.recordMesgs) return 0;
+        return Array.isArray(data.recordMesgs) ? data.recordMesgs.length : 0;
     }
 
     /**
      * Extract session information
      * @param {Object} data - File data
      * @returns {Object} Session information
-     */
-    extractSessionInfo(data) {
-        if (!data || !data.sessions || !Array.isArray(data.sessions) || data.sessions.length === 0) {
+     */    extractSessionInfo(data) {
+        if (!data || !data.sessionMesgs || !Array.isArray(data.sessionMesgs) || data.sessionMesgs.length === 0) {
             return null;
         }
 
-        const session = data.sessions[0];
+        const session = data.sessionMesgs[0];
         return {
             startTime: session.start_time,
             totalElapsedTime: session.total_elapsed_time,
@@ -241,14 +238,12 @@ export class FitFileStateManager {
             hasAltitude: false,
             completeness: 0,
             issues: [],
-        };
-
-        if (!data || !data.records || !Array.isArray(data.records)) {
+        };        if (!data || !data.recordMesgs || !Array.isArray(data.recordMesgs)) {
             quality.issues.push("No record data found");
             return quality;
         }
 
-        const records = data.records;
+        const records = data.recordMesgs;
         const totalRecords = records.length;
 
         if (totalRecords === 0) {
@@ -320,30 +315,28 @@ export class FitFileStateManager {
             isValid: true,
             errors: [],
             warnings: [],
-        };
-
-        // Basic structure validation
+        };        // Basic structure validation
         if (!data) {
             validation.isValid = false;
             validation.errors.push("No data provided");
         } else {
-            // Check for required fields
-            if (!data.records) {
+            // Check for required fields (using correct FIT file structure)
+            if (!data.recordMesgs) {
                 validation.errors.push("No records found in file");
                 validation.isValid = false;
             }
 
-            if (!data.sessions) {
+            if (!data.sessionMesgs) {
                 validation.warnings.push("No session data found");
             }
 
-            if (!data.file_id) {
+            if (!data.fileIdMesgs) {
                 validation.warnings.push("No file ID information");
             }
 
             // Check data consistency
-            if (data.records && Array.isArray(data.records)) {
-                if (data.records.length === 0) {
+            if (data.recordMesgs && Array.isArray(data.recordMesgs)) {
+                if (data.recordMesgs.length === 0) {
                     validation.errors.push("File contains no activity records");
                     validation.isValid = false;
                 }
