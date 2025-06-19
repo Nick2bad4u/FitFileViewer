@@ -1,22 +1,49 @@
 /**
- * Converts temperature to user's preferred units
+ * Temperature conversion constants
+ * @readonly
+ */
+const TEMPERATURE_CONVERSIONS = {
+    CELSIUS_TO_FAHRENHEIT_MULTIPLIER: 9 / 5,
+    FAHRENHEIT_OFFSET: 32,
+};
+
+/**
+ * Supported temperature units
+ * @readonly
+ */
+export const TEMPERATURE_UNITS = {
+    CELSIUS: "celsius",
+    FAHRENHEIT: "fahrenheit",
+};
+
+/**
+ * Converts temperature from Celsius to user's preferred units
  * @param {number} celsius - Temperature in Celsius
  * @param {string} targetUnit - Target unit (celsius, fahrenheit)
  * @returns {number} Converted temperature value
  * @throws {TypeError} If celsius is not a number
  * @example
  * // Convert 25°C to Fahrenheit
- * const tempF = convertTemperatureUnits(25, "fahrenheit"); // 77
+ * const tempF = convertTemperatureUnits(25, TEMPERATURE_UNITS.FAHRENHEIT); // 77
  */
 export function convertTemperatureUnits(celsius, targetUnit) {
+    // Input validation
     if (typeof celsius !== "number" || Number.isNaN(celsius)) {
-        throw new TypeError("celsius must be a valid number");
+        throw new TypeError(`Expected celsius to be a number, received ${typeof celsius}`);
     }
-    switch (targetUnit) {
-        case "fahrenheit":
-            return (celsius * 9) / 5 + 32;
-        case "celsius":
-        default:
-            return celsius;
+
+    try {
+        switch (targetUnit) {
+            case TEMPERATURE_UNITS.FAHRENHEIT:
+                return celsius * TEMPERATURE_CONVERSIONS.CELSIUS_TO_FAHRENHEIT_MULTIPLIER + TEMPERATURE_CONVERSIONS.FAHRENHEIT_OFFSET;
+            case TEMPERATURE_UNITS.CELSIUS:
+                return celsius;
+            default:
+                console.warn(`[convertTemperatureUnits] Unknown unit '${targetUnit}', defaulting to celsius`);
+                return celsius;
+        }
+    } catch (error) {
+        console.error("[convertTemperatureUnits] Conversion failed:", error);
+        throw new Error(`Failed to convert temperature: ${error.message}`);
     }
 }

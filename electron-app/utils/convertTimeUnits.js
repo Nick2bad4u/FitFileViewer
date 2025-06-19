@@ -1,17 +1,56 @@
 /**
- * Converts time to user's preferred units
+ * Time conversion constants
+ * @readonly
+ */
+const TIME_CONVERSIONS = {
+    SECONDS_TO_MINUTES: 60,
+    SECONDS_TO_HOURS: 3600,
+};
+
+/**
+ * Supported time units
+ * @readonly
+ */
+export const TIME_UNITS = {
+    SECONDS: "seconds",
+    MINUTES: "minutes",
+    HOURS: "hours",
+};
+
+/**
+ * Converts time from seconds to user's preferred units
  * @param {number} seconds - Time in seconds
  * @param {string} targetUnit - Target unit (seconds, minutes, hours)
  * @returns {number} Converted time value
+ * @throws {TypeError} If seconds is not a number
+ * @example
+ * // Convert 3600 seconds to hours
+ * const hours = convertTimeUnits(3600, TIME_UNITS.HOURS); // 1
  */
 export function convertTimeUnits(seconds, targetUnit) {
-    switch (targetUnit) {
-        case "minutes":
-            return seconds / 60;
-        case "hours":
-            return seconds / 3600;
-        case "seconds":
-        default:
-            return seconds;
+    // Input validation
+    if (typeof seconds !== "number" || isNaN(seconds)) {
+        throw new TypeError(`Expected seconds to be a number, received ${typeof seconds}`);
+    }
+
+    if (seconds < 0) {
+        console.warn("[convertTimeUnits] Negative time value:", seconds);
+    }
+
+    try {
+        switch (targetUnit) {
+            case TIME_UNITS.MINUTES:
+                return seconds / TIME_CONVERSIONS.SECONDS_TO_MINUTES;
+            case TIME_UNITS.HOURS:
+                return seconds / TIME_CONVERSIONS.SECONDS_TO_HOURS;
+            case TIME_UNITS.SECONDS:
+                return seconds;
+            default:
+                console.warn(`[convertTimeUnits] Unknown unit '${targetUnit}', defaulting to seconds`);
+                return seconds;
+        }
+    } catch (error) {
+        console.error("[convertTimeUnits] Conversion failed:", error);
+        throw new Error(`Failed to convert time: ${error.message}`);
     }
 }
