@@ -320,33 +320,18 @@ function createToggleControl(option) {
 		box-shadow: var(--color-box-shadow-light);
 	`;
 
-    const currentValue = localStorage.getItem(`chartjs_${option.id}`) || option.default;
-    const isOn = currentValue === "on";
-
-    if (isOn) {
-        toggle.style.background = "var(--color-success)";
-        toggleThumb.style.left = "26px";
+    // Get current value with proper boolean conversion
+    function getCurrentValue() {
+        const stored = localStorage.getItem(`chartjs_${option.id}`);
+        if (stored === null) {
+            return option.default; // Use default from config (boolean)
+        }
+        // Handle both string and boolean representations
+        return stored === 'true' || stored === 'on' || stored === true;
     }
 
-    const statusText = document.createElement("span");
-    statusText.textContent = isOn ? "On" : "Off";
-    statusText.style.cssText = `
-		color: ${isOn ? "var(--color-success)" : "var(--color-fg)"};
-		font-weight: 600;
-		font-size: 14px;
-		min-width: 24px;
-		opacity: ${isOn ? "1" : "0.7"};
-	`;
-
-    toggle.appendChild(toggleThumb);
-
-    toggle.addEventListener("click", () => {
-        const currentValue = localStorage.getItem(`chartjs_${option.id}`) || option.default;
-        const newValue = currentValue === "on" ? "off" : "on";
-        const isOn = newValue === "on";
-
-        localStorage.setItem(`chartjs_${option.id}`, newValue);
-
+    // Set visual state based on boolean value
+    function updateVisualState(isOn) {
         if (isOn) {
             toggle.style.background = "var(--color-success)";
             toggleThumb.style.left = "26px";
@@ -360,9 +345,41 @@ function createToggleControl(option) {
             statusText.style.color = "var(--color-fg)";
             statusText.style.opacity = "0.7";
         }
+    }
 
+    const statusText = document.createElement("span");
+    statusText.style.cssText = `
+		font-weight: 600;
+		font-size: 14px;
+		min-width: 24px;
+		transition: all 0.3s ease;
+	`;
+
+    // Initialize with current value
+    let isOn = getCurrentValue();
+    updateVisualState(isOn);
+
+    toggle.appendChild(toggleThumb);
+
+    toggle.addEventListener("click", () => {
+        // Toggle the current state
+        isOn = !isOn;
+        
+        // Store as string for consistency with existing system
+        localStorage.setItem(`chartjs_${option.id}`, isOn ? 'true' : 'false');
+        
+        // Update visual state
+        updateVisualState(isOn);
+
+        // Re-render charts
         renderChartJS();
     });
+
+    // Add method to update from external reset
+    container._updateFromReset = function() {
+        isOn = getCurrentValue();
+        updateVisualState(isOn);
+    };
 
     container.appendChild(toggle);
     container.appendChild(statusText);
