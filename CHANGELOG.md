@@ -273,10 +273,135 @@ updated-dependencies:
 - Update metrics.repository.svg - [Skip GitHub Action]
 [`(816bd07)`](https://github.com/Nick2bad4u/FitFileViewer/commit/816bd0757decf0976c3516e0163a839e93f46765)
 
+- 
+
+Refactor manufacturer and product formatting utilities
+[`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- 
+
+- Updated import paths to use new formatAntNames.js module instead of manufacturerIds.js for manufacturer and product name retrieval.
+[`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- 
+
+- Enhanced formatProduct function to handle edge cases for manufacturer and product IDs, ensuring robust error handling and improved user feedback.
+[`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- 
+
+- Modified formatSensorName to ensure garminProduct is formatted correctly as a string.
+[`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- 
+
+- Removed manufacturerIds.js file as its functionality has been integrated into formatAntNames.js.
+[`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- 
+
+- Updated testFormatting.js to reflect changes in import paths and validate new formatting logic.
+[`(09898cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/09898cd59263e4987cff89af00d8caaf2abe9372)
+
+- 
+
+Adds independent map theme toggle and sensor formatting fixes
+[`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
+
+- 
+
+Enables users to switch map theme between light and dark modes independently of the app theme, improving visibility and user preference handling. Introduces a new toggle button with persistent preference, immediate UI feedback, and updated CSS for consistent appearance. Refactors marker count selector and overlay management for modularity and theme-awareness. Implements robust manufacturer and product ID mappings with formatting utilities, fixing legacy and edge cases for sensor naming. Improves test/debug utilities for sensor data and formatting.
+[`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
+
+- 
+
+Enhances user control, accessibility, and code maintainability, while resolving previous issues with sensor name formatting and color contrast.
+[`(80b2e44)`](https://github.com/Nick2bad4u/FitFileViewer/commit/80b2e44b1c969a47ae740dbac675eda3a7c39931)
+
+- 
+
+Refactor and improve code readability across multiple utility files
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- Updated various functions in `patchSummaryFields.js` to enhance readability by formatting conditional statements.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- Improved the structure of `renderAltitudeProfileChart.js`, `renderChartJS.js`, `renderGPSTrackChart.js`, `renderPowerVsHeartRateChart.js`, and `renderSpeedVsDistanceChart.js` for better clarity.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- Enhanced logging messages in `renderChartsWithData` and `shouldShowRenderNotification` for improved debugging.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- Cleaned up import statements in `renderMap.js` and `setupWindow.js` for consistency.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- Removed sensitive data from `gitleaks-report.json` and added configuration files for various tools including Checkov, Markdown Link Check, and Lychee.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- Updated `setupZoneData.js` to improve the extraction of heart rate zones.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- 
+
+- General code formatting and style improvements across multiple files to adhere to best practices.
+[`(2128d98)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2128d98c47634f38e04784341efb2ce36492a205)
+
+- *(deps)* 
+
+[dependency] Update dependency group
+[`(147b94b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/147b94be7fde9d2d1bb0c33d21e28a4cfbff7f9c)
+
+- *(deps)* 
+
+[dependency] Update dependency group
+[`(6dba014)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6dba0142500a7d6915b704a349883bca5a1f5dd6)
+
+- 
+
+Update metrics.repository.svg - [Skip GitHub Action]
+[`(e75b087)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e75b0878de43cc2a67c3d0777f4e1c2786223be5)
+
+- 
+
+Megalinter FIX
+[`(3ca4928)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3ca4928d6e1fdc26311ccc43192777d0486c59d7)
+
 
 ### ⚙️ Miscellaneous Tasks  
 - update changelogs for v23.4.0 [skip ci]
 [`(5b31a99)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b31a99bd62a71259074791d1b290e3640f1f807)
+
+- 
+
+Update changelogs for v23.3.0 [skip ci]
+[`(63efdef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/63efdef243bafbe34f6aeb06f6c77acc7fa0d5c1)
+
+- 
+
+Update changelogs for v23.2.0 [skip ci]
+[`(6b28fa8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b28fa833aa5b700eaf3b61ec6471cb402b31044)
+
+- 
+
+Update changelogs for v23.1.0 [skip ci]
+[`(4fbecd8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4fbecd855b00cf5fc2fd1e2bdd0d8f333efcd67f)
+
+- 
+
+Update changelogs for v23.0.0 [skip ci]
+[`(4c18c7c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c18c7c52ecf8a1cb93b9e0b11ea5c58d6aa6051)
 
 
 ### 📦 Dependencies  
@@ -797,6 +922,20 @@ Refactors map action button logic into dedicated modules for better maintainabil
 ### 🛡️ Security  
 - Improves obfuscation for default Gyazo credentials
 
+Update Gyazo configuration data with new obfuscation method
+- Replaced encoded default credentials with new obfuscated data arrays (GyazoAppData1 and GyazoAppData2).
+- Adjusted transformation logic to decode the new data while maintaining security through ROT13-like obfuscation.
+[`(4030638)`](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)
+
+- 
+
+Update Gyazo configuration data with new obfuscation method
+- Replaced encoded default credentials with new obfuscated data arrays (GyazoAppData1 and GyazoAppData2).
+- Adjusted transformation logic to decode the new data while maintaining security through ROT13-like obfuscation.
+[`(4030638)`](https://github.com/Nick2bad4u/FitFileViewer/commit/403063838cdda2c7a496838806b54909461420f3)
+
+- 
+
 Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience.
 [`(7bbab40)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7bbab4003ff4d9186b5c0b1e8690cd10a08e0f82)
 
@@ -876,6 +1015,16 @@ Migrates hardcoded colors to CSS variables for consistent theming and easier mai
 
 - update changelogs for v22.2.0 [skip ci]
 [`(98cfa5b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/98cfa5bafc16b0af7ca1ada3558d989b583e6983)
+
+- 
+
+Update changelogs for v22.1.0 [skip ci]
+[`(ffce99a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ffce99aef7dcf5b97ac6e68083c5700034fa673c)
+
+- 
+
+Update changelogs for v22.0.0 [skip ci]
+[`(4c0a006)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4c0a006d769600af198c6c677fab7c7ef17fe29d)
 
 
 ### 📦 Dependencies  
@@ -1007,6 +1156,29 @@ Prepares for cleaner future diffs and better cross-platform collaboration.
 ### 📦 Dependencies  
 - [dependency] Update version 22.0.0
 [`(798df16)`](https://github.com/Nick2bad4u/FitFileViewer/commit/798df16170f08b3a8cd4f236f868eafcee7f7ff6)
+
+
+### 🛡️ Security
+
+- 
+
+Merge pull request #121 from step-security-bot/chore/GHA-141913-stepsecurity-remediation
+[`(e27f886)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e27f886c860f8822c17d578aae319e0f4a389167)
+
+- 
+
+Obfuscate default Gyazo credentials for improved security
+[`(b048580)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0485801c3ba885a6a585c429c9063be2ea64eef)
+
+- 
+
+Adds extra encoding and transformation layers to default credential obfuscation, making demo credentials less easily extracted from the code. Enhances onboarding security without impacting user experience.
+[`(b048580)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b0485801c3ba885a6a585c429c9063be2ea64eef)
+
+- 
+
+StepSecurity Bot <bot@stepsecurity.io>
+[`(c23f422)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c23f422373f159ed64451bab3c9cfd2fc18d4281)
 
 
 ## [22.0.0] - 2025-06-14
