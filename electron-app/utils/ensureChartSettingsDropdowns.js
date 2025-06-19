@@ -1,4 +1,4 @@
-import { chartControlsState } from "./renderChartJS.js";
+import { getState, setState, updateState } from "./stateManager.js";
 import { updateControlsState } from "./updateControlsState.js";
 import { getDefaultSettings, getCurrentSettings } from "./getCurrentSettings.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
@@ -26,18 +26,21 @@ function toggleChartControls() {
     // First sync to ensure we're starting from the correct state
     updateControlsState();
 
-    // Then toggle the state
-    chartControlsState.isVisible = !chartControlsState.isVisible;
-    wrapper.style.display = chartControlsState.isVisible ? "block" : "none";
+    // Use state management system to toggle controls visibility
+    const currentVisibility = getState("charts.controlsVisible");
+    const newVisibility = !currentVisibility;
+    
+    setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
+    wrapper.style.display = newVisibility ? "block" : "none";
 
     // Update toggle button text if it exists
     const toggleBtn = document.getElementById("chart-controls-toggle");
     if (toggleBtn) {
-        toggleBtn.textContent = chartControlsState.isVisible ? "▼ Hide Controls" : "▶ Show Controls";
-        toggleBtn.setAttribute("aria-expanded", chartControlsState.isVisible.toString());
+        toggleBtn.textContent = newVisibility ? "▼ Hide Controls" : "▶ Show Controls";
+        toggleBtn.setAttribute("aria-expanded", newVisibility.toString());
     }
 
-    console.log(`[ChartJS] Controls panel ${chartControlsState.isVisible ? "shown" : "hidden"}`);
+    console.log(`[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`);
 }
 /**
  * Creates a toggle button for the chart controls panel
@@ -51,8 +54,11 @@ function createControlsToggleButton(container) {
     toggleBtn = document.createElement("button");
     toggleBtn.id = "chart-controls-toggle";
     toggleBtn.className = "chart-controls-toggle-btn";
-    toggleBtn.textContent = "▶ Show Controls";
-    toggleBtn.setAttribute("aria-expanded", "false");
+    
+    // Set initial text based on current state
+    const controlsVisible = getState("charts.controlsVisible") !== false; // Default to true
+    toggleBtn.textContent = controlsVisible ? "▼ Hide Controls" : "▶ Show Controls";
+    toggleBtn.setAttribute("aria-expanded", controlsVisible.toString());
     toggleBtn.setAttribute("aria-controls", "chartjs-settings-wrapper");
     toggleBtn.style.cssText = `
 		background: linear-gradient(145deg, #3b82f665 0%, #2563eb 100%);
@@ -99,6 +105,11 @@ function createControlsToggleButton(container) {
  * @returns {Object} Current settings object
  */
 export function ensureChartSettingsDropdowns(targetContainer) {
+    // Initialize chart controls state if not already set
+    if (getState("charts.controlsVisible") === undefined) {
+        setState("charts.controlsVisible", true, { source: "ensureChartSettingsDropdowns.init" });
+    }
+    
     let chartContainer = targetContainer
         ? typeof targetContainer === "string"
             ? document.getElementById(targetContainer)
@@ -146,8 +157,12 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         // Setup chart status indicator automatic updates
         setupChartStatusUpdates();
 
-        chartControlsState.isInitialized = true;
-        chartControlsState.wrapper = wrapper;
+        // Update state management system instead of chartControlsState
+        updateState("charts", {
+            controlsInitialized: true,
+            controlsWrapper: wrapper.id // Store wrapper ID instead of DOM reference
+        }, { source: "ensureChartSettingsDropdowns", merge: true });
+        
         console.log("[ChartJS] Controls panel created and hidden by default");
     }
 

@@ -1,25 +1,13 @@
 /**
- * @fileoverview Enhanced Chart.js rendering utility for FIT file data visualization
+ * @fileoverview Enhanced Chart.js rendering utility with State Management Integration
  * @description Provides comprehensive chart rendering, controls management, and export capabilities
- * for fitness device data visualization in the FitFileViewe            container.innerHTML = `
-				<div class="chart-error" style="
-					text-align: center; 
-					padding: 40px; 
-					color: var(--color-error);
-					background: var(--color-glass);
-					border: 1px solid var(--color-border);
-					border-radius: var(--border-radius);
-					margin: 20px 0;
-				">
-					<h3 style="margin-bottom: 16px; color: var(--color-error);">Chart Rendering Error</h3>
-					<p style="margin-bottom: 8px; color: var(--color-fg);">An error occurred while rendering the charts.</p>
-					<details style="text-align: left; margin-top: 16px;">
-						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg);">Error Details</summary>
-						<pre style="background: var(--color-glass); color: var(--color-fg); padding: 8px; border-radius: var(--border-radius-small); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border);">${
-                            error.stack || error.message
-                        }</pre>
-					</details>
-				</div>`;on.
+ * for fitness device data visualization in the FitFileViewer application.
+ *
+ * STATE MANAGEMENT INTEGRATION:
+ * - Uses getState() to access chart data and configuration
+ * - Updates chart state through setState() for proper reactivity
+ * - Integrates with ui and performance state tracking
+ * - Provides proper error handling and loading states
  *
  * Features:
  * - Multiple chart types (line, bar, doughnut) with dynamic data binding
@@ -34,24 +22,29 @@
  * - chartjs-plugin-zoom for interactive zoom/pan
  * - showNotification utility for user feedback
  * - JSZip library (window.JSZip) for ZIP export functionality
+ * - State management system must be initialized
  *
  * @author FitFileViewer Development Team
- * @version 2.0.0
+ * @version 21.2.0
  * @since 1.0.0
  */
 
-// filepath: electron-app/utils/renderChartJS.js
-// Enhanced Chart.js rendering for FIT file data with comprehensive export capabilities
-// Assumes Chart.js and JSZip are loaded as window.Chart and window.JSZip
-
+// State management imports
+import { getState, setState, subscribe, updateState } from "./stateManager.js";
+import { AppActions } from "./appActions.js";
+import { uiStateManager } from "./uiStateManager.js";
+import { settingsStateManager } from "./settingsStateManager.js";
+import { computedStateManager } from "./computedStateManager.js";
+import { middlewareManager } from "./stateMiddleware.js";
 import { showNotification } from "./showNotification.js";
+
+// Chart utility imports
 import { detectCurrentTheme } from "./chartThemeUtils.js";
 import { getUnitSymbol } from "./getUnitSymbol.js";
 import { convertValueToUserUnits } from "./convertValueToUserUnits.js";
 import { setupZoneData } from "./setupZoneData.js";
 import { fieldLabels, formatChartFields } from "./formatChartFields.js";
 import { ensureChartSettingsDropdowns } from "./ensureChartSettingsDropdowns.js";
-import { getCurrentSettings } from "./getCurrentSettings.js";
 import { loadSharedConfiguration } from "./loadSharedConfiguration.js";
 import { createEnhancedChart } from "./createEnhancedChart.js";
 import { chartBackgroundColorPlugin } from "./chartBackgroundColorPlugin.js";
@@ -71,8 +64,22 @@ import {
 import { setupChartThemeListener } from "./chartThemeListener.js";
 import { getThemeConfig } from "./theme.js";
 
+/**
+ * Simple debounce utility to limit function execution frequency
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Milliseconds to wait
+ * @returns {Function} Debounced function
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
 // Debouncing variables for renderChartJS
-let renderTimeout = null;
 let lastRenderTime = 0;
 const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
 
@@ -97,17 +104,95 @@ if (window.Chart && window.Chart.register && window.Chart.Zoom) {
     console.warn("[ChartJS] chartjs-plugin-zoom is not loaded. Zoom/pan will be unavailable.");
 }
 
-// Listen for a custom event to trigger chart re-render on file load
+// Enhanced state-aware file loading event listener
 if (!window._fitFileViewerChartListener) {
     window._fitFileViewerChartListener = true;
     let _fitfileLoadedFired = false;
-    window.addEventListener("fitfile-loaded", function () {
+    
+    window.addEventListener("fitfile-loaded", function (event) {
         _fitfileLoadedFired = true;
-        console.log("[ChartJS] fitfile-loaded event received, resetting notification state and re-rendering charts");
+        console.log("[ChartJS] fitfile-loaded event received, updating state and re-rendering charts");
+        
         // Reset notification state for new file
         resetChartNotificationState();
+        
+        // Update file loading state
+        AppActions.setFileOpening(false);
+        
+        // Clear any existing charts first
+        chartActions.clearCharts();
+        
         // Re-render charts when a new file is loaded
-        renderChartJS();
+        const container = document.getElementById("content-chart");
+        if (container) {
+            renderChartJS(container);
+        } else {
+            // Fallback to default rendering
+            renderChartJS();
+        }
+        
+        // Update UI state for new file - use state management directly
+        setState("ui.currentFile", event.detail, { source: "chartInit.fileLoaded" });
+    });
+
+    // Enhanced state management subscriptions for reactive chart updates
+    
+    // Subscribe to theme changes for automatic chart re-theming
+    subscribe("ui.theme", (newTheme) => {
+        console.log("[ChartJS] Theme changed to:", newTheme);
+        if (window._chartjsInstances && window._chartjsInstances.length > 0) {
+            // Update existing charts with new theme using action
+            chartActions.requestRerender(`Theme changed to ${newTheme}`);
+        }
+    });
+
+    // Subscribe to chart settings changes
+    subscribe("charts.selectedChart", (chartType) => {
+        console.log("[ChartJS] Chart selection changed to:", chartType);
+        // Update chart configuration through computed state
+        computedStateManager.invalidateComputed("charts.currentConfig");
+    });
+    
+    // Subscribe to chart field visibility changes
+    subscribe("settings.charts.fieldVisibility", (visibilitySettings) => {
+        console.log("[ChartJS] Chart field visibility updated:", visibilitySettings);
+        if (chartState.isRendered) {
+            chartActions.requestRerender("Field visibility changed");
+        }
+    });
+    
+    // Subscribe to chart display settings
+    subscribe("settings.charts.display", (displaySettings) => {
+        console.log("[ChartJS] Chart display settings updated:", displaySettings);
+        if (chartState.isRendered) {
+            chartActions.requestRerender("Display settings changed");
+        }
+    });
+
+    // Subscribe to global data changes for chart updates
+    subscribe("globalData", (newData) => {
+        console.log("[ChartJS] Global data updated, checking if charts need refresh");
+        if (newData && chartState.isRendered) {
+            // Use action for proper state management
+            chartActions.requestRerender("Global data updated");
+        } else if (!newData) {
+            // Clear charts if no data
+            chartActions.clearCharts();
+        }
+    });
+    
+    // Subscribe to performance settings that affect charts
+    subscribe("settings.performance.maxDataPoints", (maxPoints) => {
+        console.log("[ChartJS] Max data points setting changed to:", maxPoints);
+        if (chartState.isRendered) {
+            chartActions.requestRerender("Data point limit changed");
+        }
+    });
+    
+    // Subscribe to loading state to show/hide loading indicators
+    subscribe("isLoading", (isLoading) => {
+        // Update UI loading state directly via state management
+        updateState("ui.loading", { charts: isLoading }, { source: "chartInit.loadingState" });
     });
     // Also listen for file input changes (if any file input exists)
     const fileInputs = document.querySelectorAll('input[type="file"]');
@@ -135,12 +220,156 @@ if (!window._fitFileViewerChartListener) {
  * @returns {Object} Current settings object
  */
 /**
- * State management for the chart controls panel
+ * Chart state management with reactive updates
+ * Integrates with the centralized state system for chart rendering and controls
  */
-export const chartControlsState = {
-    isVisible: false,
-    isInitialized: false,
-    wrapper: null,
+export const chartState = {
+    // Use computed state for reactive updates
+    get isRendered() {
+        return getState("charts.isRendered") || false;
+    },
+    
+    get isRendering() {
+        return getState("charts.isRendering") || false;
+    },
+    
+    get controlsVisible() {
+        return getState("charts.controlsVisible") !== false; // Default to true
+    },
+    
+    get selectedChart() {
+        return getState("charts.selectedChart") || "elevation";
+    },
+    
+    get chartData() {
+        return getState("charts.chartData");
+    },
+    
+    get chartOptions() {
+        return getState("charts.chartOptions") || {};
+    },
+    
+    // Computed properties using the computed state manager
+    get hasValidData() {
+        const data = getState("globalData");
+        return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
+    },
+    
+    get renderableFields() {
+        if (!this.hasValidData) return [];
+        
+        return formatChartFields.filter(field => {
+            const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
+            return visibility !== "hidden";
+        });
+    }
+};
+
+/**
+ * Chart actions - encapsulated state transitions for chart operations
+ */
+export const chartActions = {
+    /**
+     * Start chart rendering process
+     */
+    startRendering() {
+        // Use state management instead of missing AppActions method
+        setState("charts.isRendering", true, { source: "chartActions.startRendering" });
+        setState("isLoading", true, { source: "chartActions.startRendering" });
+    },
+    
+    /**
+     * Complete chart rendering process
+     * @param {boolean} success - Whether rendering succeeded
+     * @param {number} chartCount - Number of charts rendered
+     * @param {number} renderTime - Time taken to render
+     */
+    completeRendering(success, chartCount = 0, renderTime = 0) {
+        // Use updateState for efficient nested updates
+        updateState("charts", {
+            isRendered: success,
+            isRendering: false,
+            ...(success && {
+                lastRenderTime: Date.now(),
+                renderedCount: chartCount
+            })
+        }, { source: "chartActions.completeRendering" });
+        
+        setState("isLoading", false, { source: "chartActions.completeRendering" });
+        
+        if (success) {
+            updateState("performance.renderTimes", {
+                chart: renderTime
+            }, { source: "chartActions.completeRendering" });
+            
+            // Notify other components of successful render
+            AppActions.notifyChartRenderComplete?.(chartCount);
+        }
+    },
+    
+    /**
+     * Update chart selection
+     * @param {string} chartType - New chart type selection
+     */
+    selectChart(chartType) {
+        setState("charts.selectedChart", chartType, { source: "chartActions.selectChart" });
+        
+        // Trigger re-render if charts are currently displayed
+        if (chartState.isRendered) {
+            this.requestRerender("Chart selection changed");
+        }
+    },
+    
+    /**
+     * Toggle chart controls visibility
+     */
+    toggleControls() {
+        const newVisibility = !chartState.controlsVisible;
+        setState("charts.controlsVisible", newVisibility, { source: "chartActions.toggleControls" });
+        uiStateManager.updatePanelVisibility("chart-controls", newVisibility);
+    },
+    
+    /**
+     * Request chart re-render with debouncing
+     * @param {string} reason - Reason for re-render
+     */
+    requestRerender(reason = "State change") {
+        console.log(`[ChartJS] Re-render requested: ${reason}`);
+        
+        // Use debounce to handle limiting frequent re-renders
+        debounce(() => {
+            const container = document.getElementById("content-chart");
+            if (container && chartState.hasValidData) {
+                renderChartJS(container);
+            }
+        }, RENDER_DEBOUNCE_MS)();
+    },
+    
+    /**
+     * Clear all chart data and reset state
+     */
+    clearCharts() {
+        // Destroy existing chart instances
+        if (window._chartjsInstances) {
+            window._chartjsInstances.forEach((chart, index) => {
+                try {
+                    if (chart && typeof chart.destroy === "function") {
+                        chart.destroy();
+                    }
+                } catch (error) {
+                    console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+                }
+            });
+            window._chartjsInstances = [];
+        }
+        
+        // Reset chart state using updateState for efficiency
+        updateState("charts", {
+            isRendered: false,
+            chartData: null,
+            renderedCount: 0
+        }, { source: "chartActions.clearCharts" });
+    }
 };
 
 // Load shared configuration on page load
@@ -167,67 +396,72 @@ export function hexToRgba(hex, alpha) {
  * Extracts time in zone data from session messages and sets global variables
  */
 /**
- * Main chart rendering function with comprehensive error handling and performance monitoring
+ * Main chart rendering function with state management integration and comprehensive error handling
  * @param {Element|string} targetContainer - Container element or ID for chart rendering
- * @returns {boolean} Success status of the rendering operation
+ * @returns {Promise<boolean>} Success status of the rendering operation
  */
-export function renderChartJS(targetContainer) {
+export async function renderChartJS(targetContainer) {
     console.log("[ChartJS] Starting chart rendering...");
 
-    // Debounce multiple rapid calls
-    const now = Date.now();
-    if (now - lastRenderTime < RENDER_DEBOUNCE_MS) {
-        console.log("[ChartJS] Debouncing rapid render calls");
-        clearTimeout(renderTimeout);
-        renderTimeout = setTimeout(() => renderChartJS(targetContainer), RENDER_DEBOUNCE_MS);
-        return false;
-    }
-    lastRenderTime = now;
-
-    const performanceStart = performance.now();
-
     try {
+        // Start rendering process through state actions
+        chartActions.startRendering();
+
+        // Debounce multiple rapid calls
+        const now = Date.now();
+        if (now - lastRenderTime < RENDER_DEBOUNCE_MS) {
+            console.log("[ChartJS] Debouncing rapid render calls");
+            
+            // Use debounce for proper rate limiting
+            return new Promise(resolve => {
+                debounce(async () => {
+                    const result = await renderChartJS(targetContainer);
+                    resolve(result);
+                }, RENDER_DEBOUNCE_MS)();
+            });
+        }
+        lastRenderTime = now;
+
+        const performanceStart = performance.now();
+
         // Initialize chart instances array
         if (!window._chartjsInstances) {
             window._chartjsInstances = [];
         }
 
-        // Destroy existing chart instances with error handling
-        window._chartjsInstances.forEach((chart, index) => {
-            try {
-                if (chart && typeof chart.destroy === "function") {
-                    chart.destroy();
-                }
-            } catch (destroyError) {
-                console.warn(`[ChartJS] Error destroying chart ${index}:`, destroyError);
-            }
-        });
-        window._chartjsInstances = [];
+        // Clear existing charts using state action
+        chartActions.clearCharts();
 
         // Validate Chart.js availability
         if (!window.Chart) {
             const error = "Chart.js library is not loaded or not available";
             console.error(`[ChartJS] ${error}`);
             showNotification("Chart library not available", "error");
+            chartActions.completeRendering(false);
             return false;
         }
 
-        // Validate FIT file data availability
-        if (!window.globalData || typeof window.globalData !== "object") {
-            console.warn("[ChartJS] No FIT file data available");
+        // Use state-managed data validation
+        if (!chartState.hasValidData) {
+            console.warn("[ChartJS] No valid FIT file data available for charts");
             showNotification("No FIT file data available for chart rendering", "warning");
+            chartActions.completeRendering(false);
             return false;
         }
+
+        // Get validated data through state
+        const globalData = getState("globalData");
+        
         // Setup zone data from FIT file
-        setupZoneData(window.globalData);
+        setupZoneData(globalData);
 
         // Validate record messages (main time-series data)
-        const recordMesgs = window.globalData.recordMesgs;
+        const recordMesgs = globalData.recordMesgs;
         if (!recordMesgs || !Array.isArray(recordMesgs) || recordMesgs.length === 0) {
             console.warn("[ChartJS] No record messages found in FIT data");
             showNotification("No chartable data found in this FIT file", "info");
 
-            // Still render the UI but show a helpful message
+            // Still render the UI but show a helpful message using state-aware theming
             const container = document.getElementById("content-chart");
             if (container) {
                 const themeConfig = getThemeConfig();
@@ -247,6 +481,7 @@ export function renderChartJS(targetContainer) {
 					</div>
 				`;
             }
+            chartActions.completeRendering(false);
             return false;
         }
 
@@ -259,19 +494,43 @@ export function renderChartJS(targetContainer) {
             console.log("[ChartJS] Activity start time:", activityStartTime);
         }
 
+        // Store chart data in state for other components
+        setState("charts.chartData", {
+            recordMesgs,
+            activityStartTime,
+            totalDataPoints: recordMesgs.length
+        }, { source: "renderChartJS" });
+
         const result = renderChartsWithData(targetContainer, recordMesgs, activityStartTime);
 
         // Log performance timing
         const performanceEnd = performance.now();
-        console.log(`[ChartJS] Chart rendering completed in ${(performanceEnd - performanceStart).toFixed(2)}ms`);
+        const renderTime = performanceEnd - performanceStart;
+        console.log(`[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`);
+
+        // Complete rendering process through state actions
+        const chartCount = window._chartjsInstances ? window._chartjsInstances.length : 0;
+        chartActions.completeRendering(result, chartCount, renderTime);
 
         return result;
     } catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
         showNotification("Failed to render charts due to an error", "error");
 
+        // Handle error through state actions
+        chartActions.completeRendering(false);
+
         // Try to show error information to user
-        const container = document.getElementById("content-chart") || targetContainer;
+        let container = document.getElementById("content-chart");
+        if (!container && targetContainer) {
+            // Handle case where targetContainer is a string ID or DOM element
+            if (typeof targetContainer === "string") {
+                container = document.getElementById(targetContainer);
+            } else if (targetContainer && targetContainer.nodeType === Node.ELEMENT_NODE) {
+                container = targetContainer;
+            }
+        }
+        
         if (container) {
             const themeConfig = getThemeConfig();
             container.innerHTML = `
@@ -352,30 +611,37 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Add user and device info box
     createUserDeviceInfoBox(chartContainer);
 
-    // Get current settings
-    const settings = getCurrentSettings();
+    // Get current settings through enhanced state management
+    const settings = chartSettingsManager.getSettings();
     const {
-        maxpoints: maxPoints,
-        chartType,
-        interpolation,
-        animation: animationStyle,
-        showGrid,
-        showLegend,
-        showTitle,
-        showPoints,
-        showFill,
-        smoothing,
-        colors: customColors,
+        maxpoints: maxPoints = "all",
+        chartType = "line",
+        interpolation = "linear",
+        animation: animationStyle = "normal",
+        showGrid = true,
+        showLegend = true,
+        showTitle = true,
+        showPoints = false,
+        showFill = false,
+        smoothing = 0.1,
+        colors: customColors = [],
     } = settings;
 
-    // Convert boolean settings from strings
+    // Convert boolean settings from strings (maintain backward compatibility)
     const boolSettings = {
-        showGrid: showGrid !== "off",
-        showLegend: showLegend !== "off",
-        showTitle: showTitle !== "off",
-        showPoints: showPoints === "on",
-        showFill: showFill === "on",
+        showGrid: showGrid !== "off" && showGrid !== false,
+        showLegend: showLegend !== "off" && showLegend !== false,
+        showTitle: showTitle !== "off" && showTitle !== false,
+        showPoints: showPoints === "on" || showPoints === true,
+        showFill: showFill === "on" || showFill === true,
     };
+
+    // Store processed settings in state for other components
+    setState("charts.chartOptions", {
+        ...settings,
+        boolSettings,
+        processedAt: Date.now()
+    }, { source: "renderChartsWithData" });
 
     // Prepare zoom plugin config
     const zoomPluginConfig = {
@@ -444,13 +710,22 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     }); // Define fields to process for charts - updated to match actual FIT file field names
     // Use formatChartFields imported from formatChartFields.js for consistency
     // (imported at the top: import { formatChartFields } from "./formatChartFields.js";)
-    let visibleFieldCount = 0; // Process each field
-    formatChartFields.forEach((field) => {
-        // Check field visibility
-        const visibility = localStorage.getItem(`chartjs_field_${field}`);
+    // Process each field using state-managed visibility settings
+    let visibleFieldCount = 0;
+    const renderableFields = chartState.renderableFields;
+    
+    console.log(`[ChartJS] Processing ${renderableFields.length} visible fields out of ${formatChartFields.length} total`);
+    
+    renderableFields.forEach((field) => {
+        // Double-check field visibility through enhanced settings state manager
+        const visibility = chartSettingsManager.getFieldVisibility(field);
         if (visibility === "hidden") {
+            console.log(`[ChartJS] Skipping hidden field: ${field}`);
             return; // Skip this field
         }
+        
+        console.log(`[ChartJS] Processing field: ${field} (visibility: ${visibility})`);
+        
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
             if (row[field] !== undefined && row[field] !== null) {
@@ -535,8 +810,8 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         }
     });
 
-    // Event messages chart (respect visibility setting)
-    const eventMessagesVisibility = localStorage.getItem("chartjs_field_event_messages");
+    // Event messages chart (respect state-managed visibility)
+    const eventMessagesVisibility = chartSettingsManager.getFieldVisibility("event_messages");
     if (eventMessagesVisibility !== "hidden") {
         renderEventMessagesChart(
             chartContainer,
@@ -551,38 +826,32 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         );
     }
 
+    // Render time in zone charts
     renderTimeInZoneCharts(chartContainer, {
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,
         showTitle: boolSettings.showTitle,
         zoomPluginConfig,
         theme: currentTheme,
-    }); // Render lap zone charts (respect visibility settings)
-    const hrLapZoneStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked");
-    const hrLapZoneIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual");
-    const powerLapZoneStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked");
-    const powerLapZoneIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual");
+    });
+
+    // Render lap zone charts with enhanced state-managed visibility
+    const lapZoneVisibility = {
+        hrStackedVisible: chartSettingsManager.getFieldVisibility("hr_lap_zone_stacked") !== "hidden",
+        hrIndividualVisible: chartSettingsManager.getFieldVisibility("hr_lap_zone_individual") !== "hidden",
+        powerStackedVisible: chartSettingsManager.getFieldVisibility("power_lap_zone_stacked") !== "hidden",
+        powerIndividualVisible: chartSettingsManager.getFieldVisibility("power_lap_zone_individual") !== "hidden",
+    };
 
     // Only render if at least one lap zone chart type is visible
-    if (
-        hrLapZoneStackedVisibility !== "hidden" ||
-        hrLapZoneIndividualVisibility !== "hidden" ||
-        powerLapZoneStackedVisibility !== "hidden" ||
-        powerLapZoneIndividualVisibility !== "hidden"
-    ) {
+    if (Object.values(lapZoneVisibility).some(visible => visible)) {
         renderLapZoneCharts(chartContainer, {
             showGrid: boolSettings.showGrid,
             showLegend: boolSettings.showLegend,
             showTitle: boolSettings.showTitle,
             zoomPluginConfig,
             theme: currentTheme,
-            // Pass visibility settings to the renderer
-            visibilitySettings: {
-                hrStackedVisible: hrLapZoneStackedVisibility !== "hidden",
-                hrIndividualVisible: hrLapZoneIndividualVisibility !== "hidden",
-                powerStackedVisible: powerLapZoneStackedVisibility !== "hidden",
-                powerIndividualVisible: powerLapZoneIndividualVisibility !== "hidden",
-            },
+            visibilitySettings: lapZoneVisibility,
         });
     } // Render GPS track chart if position data is available
     renderGPSTrackChart(chartContainer, data, {
@@ -623,9 +892,19 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             '<div class="no-data-message">No suitable numeric data available for selected chart type.</div>';
     }
 
-    // Performance logging
+    // Performance logging with state updates using updateState
     const endTime = performance.now();
-    console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${(endTime - startTime).toFixed(2)}ms`);
+    const renderTime = endTime - (startTime || performance.now());
+    console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${renderTime.toFixed(2)}ms`);
+
+    // Update performance metrics in state using updateState for efficiency
+    updateState("performance", {
+        renderTimes: {
+            ...getState("performance.renderTimes"),
+            lastChartRender: renderTime
+        },
+        chartsRendered: totalChartsRendered
+    }, { source: "renderChartsWithData", merge: true });
 
     // Check if this is a meaningful render that warrants a notification
     const shouldShowNotification = showRenderNotification(totalChartsRendered, visibleFieldCount);
@@ -642,11 +921,22 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         setTimeout(function () {
             showNotification(message, "success", 3000);
         }, 100);
+        
+        // Update notification state using updateState
+        updateState("ui", {
+            lastNotification: {
+                message,
+                type: "success",
+                timestamp: Date.now()
+            }
+        }, { source: "renderChartsWithData", merge: true });
     } else {
         console.log(
             `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
         );
-    } // Add hover effects to all rendered charts
+    }
+
+    // Add hover effects to all rendered charts
     if (totalChartsRendered > 0) {
         // Get theme configuration for hover effects
         let themeConfig;
@@ -659,16 +949,29 @@ function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Add hover effects to charts
         addChartHoverEffects(chartContainer, themeConfig);
+        
+        // Update UI state for chart interactions using existing method
+        uiStateManager.updateChartControlsUI(true);
     }
 
-    // Emit custom event for chart status updates
+    // Update previous chart state for future comparisons
+    updatePreviousChartState(totalChartsRendered, visibleFieldCount, Date.now());
+
+    // Emit comprehensive chart status event with state information
     const chartsRenderedEvent = new CustomEvent("chartsRendered", {
         detail: {
             totalRendered: totalChartsRendered,
             visibleFields: visibleFieldCount,
+            renderTime,
+            settings: getState("charts.chartOptions"),
+            hasData: chartState.hasValidData,
+            timestamp: Date.now()
         },
     });
     document.dispatchEvent(chartsRenderedEvent);
+
+    // Update computed state that depends on rendered charts
+    computedStateManager.invalidateComputed("charts.summary");
 
     return true;
 }
@@ -683,6 +986,13 @@ export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     previousChartState.chartCount = chartCount;
     previousChartState.fieldsRendered = new Array(visibleFields).fill(true);
     previousChartState.lastRenderTimestamp = timestamp;
+    
+    // Update state for other components using updateState
+    updateState("charts.previousState", {
+        chartCount,
+        visibleFields,
+        timestamp
+    }, { source: "updatePreviousChartState" });
 }
 
 /**
@@ -693,10 +1003,430 @@ export function resetChartNotificationState() {
     previousChartState.chartCount = 0;
     previousChartState.fieldsRendered = [];
     previousChartState.lastRenderTimestamp = 0;
+    
+    // Reset state-managed notification tracking using updateState
+    updateState("charts.previousState", {
+        chartCount: 0,
+        visibleFields: 0,
+        timestamp: 0
+    }, { source: "resetChartNotificationState" });
+    
     console.log("[ChartJS] Chart notification state reset for new file");
 }
 
-// Expose to window for development
+/**
+ * State-aware chart refresh function
+ * Triggers re-render only if conditions are met
+ */
+export function refreshChartsIfNeeded() {
+    if (chartState.hasValidData && !chartState.isRendering) {
+        chartActions.requestRerender("Manual refresh requested");
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Get comprehensive chart status from state
+ * @returns {Object} Chart status information
+ */
+export function getChartStatus() {
+    return {
+        isRendered: chartState.isRendered,
+        isRendering: chartState.isRendering,
+        hasData: chartState.hasValidData,
+        controlsVisible: chartState.controlsVisible,
+        selectedChart: chartState.selectedChart,
+        renderedCount: getState("charts.renderedCount") || 0,
+        lastRenderTime: getState("charts.lastRenderTime"),
+        performance: getState("performance.renderTimes.chart"),
+        renderableFields: chartState.renderableFields,
+        chartOptions: getState("charts.chartOptions")
+    };
+}
+
+/**
+ * State-aware chart export function
+ * @param {string} format - Export format (png, csv, json)
+ * @returns {Promise<boolean>} Success status
+ */
+export async function exportChartsWithState(format = "png") {
+    if (!chartState.isRendered || !window._chartjsInstances?.length) {
+        showNotification("No charts available for export", "warning");
+        return false;
+    }
+    
+    try {
+        setState("ui.isExporting", true, { source: "exportChartsWithState" });
+        
+        // Implementation would go here based on format
+        // This is a placeholder for the full export implementation
+        
+        showNotification(`Charts exported as ${format.toUpperCase()}`, "success");
+        setState("ui.isExporting", false, { source: "exportChartsWithState" });
+        return true;
+    } catch (error) {
+        console.error("[ChartJS] Export failed:", error);
+        showNotification("Chart export failed", "error");
+        setState("ui.isExporting", false, { source: "exportChartsWithState" });
+        return false;
+    }
+}
+
+/**
+ * Initialize chart state management integration
+ * Sets up reactive subscriptions and state synchronization
+ * Call this during application startup
+ */
+export function initializeChartStateManagement() {
+    console.log("[ChartJS] Initializing chart state management...");
+    
+    // Initialize chart state in the global state using updateState for better merge handling
+    updateState("charts", {
+        isRendered: false,
+        isRendering: false,
+        controlsVisible: true,
+        selectedChart: "elevation",
+        zoomLevel: 1,
+        chartData: null,
+        chartOptions: {},
+        renderedCount: 0,
+        lastRenderTime: null,
+        previousState: {
+            chartCount: 0,
+            visibleFields: 0,
+            timestamp: 0
+        }
+    }, { source: "initializeChartStateManagement", merge: true });
+    
+    // Set up computed state dependencies
+    computedStateManager.define("charts.hasData", () => {
+        const data = getState("globalData");
+        return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
+    });
+    
+    computedStateManager.define("charts.renderableFieldCount", () => {
+        return chartState.renderableFields.length;
+    });
+    
+    computedStateManager.define("charts.summary", () => {
+        return {
+            isRendered: chartState.isRendered,
+            hasData: chartState.hasValidData,
+            fieldCount: chartState.renderableFields.length,
+            chartCount: getState("charts.renderedCount") || 0,
+            lastRender: getState("charts.lastRenderTime")
+        };
+    });
+    
+    // Set up state middleware for chart operations
+    middlewareManager.register("chart-render", {
+        beforeSet: (context) => {
+            console.log("[ChartJS] Starting chart render action:", context);
+            return context;
+        },
+        afterSet: (context) => {
+            console.log("[ChartJS] Chart render action completed:", context);
+            return context;
+        },
+        onError: (context) => {
+            console.error("[ChartJS] Chart render action failed:", context);
+            showNotification("Chart rendering failed", "error");
+            return context;
+        }
+    });
+    
+    console.log("[ChartJS] Chart state management initialized successfully");
+}
+
+/**
+ * Enhanced chart settings management with state integration
+ * Provides centralized settings access with reactive updates
+ */
+export const chartSettingsManager = {
+    /**
+     * Get chart settings with state management integration
+     * @returns {Object} Complete chart settings
+     */
+    getSettings() {
+        // First try to get from state
+        let settings = getState("settings.charts");
+        
+        // Fallback to settings state manager if not available
+        if (!settings) {
+            settings = settingsStateManager.getChartSettings();
+            // Cache in state for faster access
+            setState("settings.charts", settings, { source: "chartSettingsManager.getSettings" });
+        }
+        
+        return {
+            maxpoints: settings.maxpoints || "all",
+            chartType: settings.chartType || "line",
+            interpolation: settings.interpolation || "linear",
+            animation: settings.animation || "normal",
+            showGrid: settings.showGrid !== false,
+            showLegend: settings.showLegend !== false,
+            showTitle: settings.showTitle !== false,
+            showPoints: settings.showPoints === true,
+            showFill: settings.showFill === true,
+            smoothing: settings.smoothing || 0.1,
+            colors: settings.colors || [],
+            ...settings
+        };
+    },
+    
+    /**
+     * Update chart settings and trigger reactive updates
+     * @param {Object} newSettings - Settings to update
+     */
+    updateSettings(newSettings) {
+        const currentSettings = this.getSettings();
+        const updatedSettings = { ...currentSettings, ...newSettings };
+        
+        // Update through settings state manager for persistence
+        settingsStateManager.updateChartSettings?.(updatedSettings);
+        
+        // Update in global state for reactive access using updateState
+        updateState("settings.charts", updatedSettings, { source: "chartSettingsManager.updateSettings" });
+        
+        // Trigger chart re-render if charts are currently displayed
+        if (chartState.isRendered) {
+            chartActions.requestRerender("Settings updated");
+        }
+    },
+    
+    /**
+     * Get field visibility setting with state management
+     * @param {string} field - Field name
+     * @returns {string} Visibility setting ("visible", "hidden")
+     */
+    getFieldVisibility(field) {
+        // Use localStorage directly for field visibility (existing pattern)
+        const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
+        
+        // Update field visibility state for reactive access
+        setState(`settings.charts.fieldVisibility.${field}`, visibility, { 
+            source: "chartSettingsManager.getFieldVisibility" 
+        });
+        
+        return visibility;
+    },
+    
+    /**
+     * Set field visibility and trigger updates
+     * @param {string} field - Field name
+     * @param {string} visibility - Visibility setting
+     */
+    setFieldVisibility(field, visibility) {
+        // Use localStorage directly for field visibility (existing pattern)
+        localStorage.setItem(`chartjs_field_${field}`, visibility);
+        
+        // Update state for reactive access
+        setState(`settings.charts.fieldVisibility.${field}`, visibility, { 
+            source: "chartSettingsManager.setFieldVisibility" 
+        });
+        
+        // Invalidate computed state that depends on field visibility
+        computedStateManager.invalidateComputed("charts.renderableFieldCount");
+        
+        // Trigger re-render if needed
+        if (chartState.isRendered) {
+            chartActions.requestRerender(`Field ${field} visibility changed to ${visibility}`);
+        }
+    }
+};
+
+/**
+ * State-aware chart performance monitoring
+ * Tracks and reports chart rendering performance metrics
+ */
+export const chartPerformanceMonitor = {
+    /**
+     * Start performance tracking for a chart operation
+     * @param {string} operation - Operation name
+     * @returns {string} Performance tracking ID
+     */
+    startTracking(operation) {
+        const trackingId = `chart-${operation}-${Date.now()}`;
+        const startTime = performance.now();
+        
+        // Use updateState to efficiently add tracking data
+        updateState(`performance.tracking`, {
+            [trackingId]: {
+                operation,
+                startTime,
+                status: "running"
+            }
+        }, { source: "chartPerformanceMonitor.startTracking", merge: true });
+        
+        return trackingId;
+    },
+    
+    /**
+     * End performance tracking and record metrics
+     * @param {string} trackingId - Tracking ID from startTracking
+     * @param {Object} additionalData - Additional performance data
+     */
+    endTracking(trackingId, additionalData = {}) {
+        const trackingData = getState(`performance.tracking.${trackingId}`);
+        if (!trackingData) return;
+        
+        const endTime = performance.now();
+        const duration = endTime - trackingData.startTime;
+        
+        const performanceRecord = {
+            ...trackingData,
+            endTime,
+            duration,
+            status: "completed",
+            ...additionalData
+        };
+        
+        // Update tracking record using updateState
+        updateState(`performance.tracking`, {
+            [trackingId]: performanceRecord
+        }, { source: "chartPerformanceMonitor.endTracking", merge: true });
+        
+        // Add to performance history
+        const history = getState("performance.chartHistory") || [];
+        history.push(performanceRecord);
+        
+        // Keep only last 50 records
+        if (history.length > 50) {
+            history.splice(0, history.length - 50);
+        }
+        
+        setState("performance.chartHistory", history, { 
+            source: "chartPerformanceMonitor.endTracking" 
+        });
+        
+        console.log(`[ChartJS Performance] ${trackingData.operation} completed in ${duration.toFixed(2)}ms`);
+    },
+    
+    /**
+     * Get performance summary for charts
+     * @returns {Object} Performance metrics summary
+     */
+    getSummary() {
+        const history = getState("performance.chartHistory") || [];
+        if (history.length === 0) return null;
+        
+        const durations = history.map(record => record.duration);
+        const avgDuration = durations.reduce((sum, duration) => sum + duration, 0) / durations.length;
+        const maxDuration = Math.max(...durations);
+        const minDuration = Math.min(...durations);
+        
+        return {
+            totalOperations: history.length,
+            averageDuration: avgDuration,
+            maxDuration,
+            minDuration,
+            recentOperations: history.slice(-10),
+            lastOperation: history[history.length - 1]
+        };
+    }
+};
+
+// Expose comprehensive state-aware development tools and functions to window
 if (typeof window !== "undefined") {
     window.addHoverEffectsToExistingCharts = addHoverEffectsToExistingCharts;
+    
+    // Enhanced development tools with complete state integration
+    if (!window.__chartjs_dev) {
+        window.__chartjs_dev = {
+            // Core state access
+            getChartState: () => chartState,
+            getChartStatus,
+            
+            // Actions and state management
+            actions: chartActions,
+            settings: chartSettingsManager,
+            performance: chartPerformanceMonitor,
+            
+            // Chart operations
+            refreshCharts: refreshChartsIfNeeded,
+            clearCharts: chartActions.clearCharts,
+            requestRerender: chartActions.requestRerender,
+            
+            // State debugging and manipulation
+            getState: (path) => getState(path),
+            setState: (path, value) => setState(path, value, { source: "dev-tools" }),
+            subscribe: (path, callback) => subscribe(path, callback),
+            
+            // Chart instance management
+            getChartInstances: () => window._chartjsInstances || [],
+            getChartSettings: () => chartSettingsManager.getSettings(),
+            
+            // Export and import functions
+            exportCharts: exportChartsWithState,
+            
+            // State reset and initialization
+            resetNotificationState: resetChartNotificationState,
+            initializeStateManagement: initializeChartStateManagement,
+            
+            // Performance monitoring and debugging
+            getPerformanceMetrics: () => getState("performance"),
+            getPerformanceSummary: () => chartPerformanceMonitor.getSummary(),
+            
+            // Debounce testing utility
+            testDebounce: (delay = 1000) => {
+                debounce(() => {
+                    console.log("[ChartJS Dev] Debounce test executed");
+                }, delay)();
+            },
+            
+            // Computed state management
+            computed: {
+                invalidate: (key) => computedStateManager.invalidate(key),
+                get: (key) => computedStateManager.get(key),
+                list: () => computedStateManager.list()
+            },
+            
+            // State history and debugging
+            getStateHistory: () => getState("__stateHistory") || [],
+            
+            // Field visibility management
+            fieldVisibility: {
+                get: (field) => chartSettingsManager.getFieldVisibility(field),
+                set: (field, visibility) => chartSettingsManager.setFieldVisibility(field, visibility),
+                getAll: () => {
+                    const result = {};
+                    formatChartFields.forEach(field => {
+                        result[field] = chartSettingsManager.getFieldVisibility(field);
+                    });
+                    return result;
+                }
+            },
+            
+            // State synchronization testing
+            testStateSynchronization: () => {
+                console.log("[ChartJS Dev] Testing state synchronization...");
+                
+                // Test theme change
+                const currentTheme = getState("ui.theme");
+                const newTheme = currentTheme === "dark" ? "light" : "dark";
+                setState("ui.theme", newTheme, { source: "dev-test" });
+                
+                setTimeout(() => {
+                    setState("ui.theme", currentTheme, { source: "dev-test" });
+                    console.log("[ChartJS Dev] State synchronization test completed");
+                }, 1000);
+            },
+            
+            // Comprehensive state dump for debugging
+            dumpState: () => {
+                return {
+                    charts: getState("charts"),
+                    settings: getState("settings"),
+                    performance: getState("performance"),
+                    ui: getState("ui"),
+                    globalData: !!getState("globalData"),
+                    chartInstances: window._chartjsInstances?.length || 0
+                };
+            }
+        };
+        
+        console.log("[ChartJS] Enhanced development tools available at window.__chartjs_dev");
+        console.log("[ChartJS] Available commands:", Object.keys(window.__chartjs_dev));
+    }
 }

@@ -4,7 +4,7 @@ import { exportUtils } from "./exportUtils.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { exportAllCharts } from "./exportAllCharts.js";
 import { extractDeveloperFieldsList } from "./extractDeveloperFieldsList.js";
-import { resetAllSettings } from "./getCurrentSettings.js";
+import { resetAllSettings, reRenderChartsAfterSettingChange } from "./getCurrentSettings.js";
 import { showNotification } from "./showNotification.js";
 import { getThemeConfig } from "./theme.js";
 import { updateAllChartStatusIndicators } from "./chartStatusIndicator.js";
@@ -260,10 +260,10 @@ function createRangeControl(option) {
         const percentage = ((e.target.value - option.min) / (option.max - option.min)) * 100;
         slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
-        // Debounced re-render
+        // Debounced re-render using the same approach as the reset button
         clearTimeout(slider.timeout);
         slider.timeout = setTimeout(function () {
-            renderChartJS();
+            reRenderChartsAfterSettingChange(option.id, e.target.value);
         }, 300);
     });
 
@@ -363,8 +363,8 @@ function createToggleControl(option) {
         // Update visual state
         updateVisualState(isOn);
 
-        // Re-render charts
-        renderChartJS();
+        // Re-render charts using the same approach as the reset button
+        reRenderChartsAfterSettingChange(option.id, isOn);
     });
 
     // Add method to update from external reset
@@ -445,7 +445,7 @@ function createSelectControl(option) {
 
     select.addEventListener("change", (e) => {
         localStorage.setItem(`chartjs_${option.id}`, e.target.value);
-        renderChartJS();
+        reRenderChartsAfterSettingChange(option.id, e.target.value);
     });
 
     return select;
@@ -1159,7 +1159,7 @@ function createFieldToggle(field) {
 			border-radius: 6px;
 			cursor: pointer;
 			background: none;
-		`; // Event listeners for color picker
+		`;        // Event listeners for color picker
         colorPicker.addEventListener("change", () => {
             localStorage.setItem(`chartjs_color_${field}`, colorPicker.value);
 
@@ -1170,7 +1170,7 @@ function createFieldToggle(field) {
                 })
             );
 
-            renderChartJS();
+            reRenderChartsAfterSettingChange(`${field}_color`, colorPicker.value);
         });
 
         container.appendChild(toggle);

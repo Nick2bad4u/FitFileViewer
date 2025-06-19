@@ -15,6 +15,7 @@ import { renderChartJS } from "./renderChartJS.js";
 import { showNotification } from "./showNotification.js";
 import { updateAllChartStatusIndicators } from "./chartStatusIndicator.js";
 import { getThemeConfig } from "./theme.js";
+import { setState } from "./stateManager.js";
 
 // Storage key prefixes
 const STORAGE_PREFIXES = {
@@ -431,6 +432,88 @@ function reRenderChartsAfterReset() {
         }
     } catch (error) {
         console.error(`${LOG_PREFIX} Error re-rendering charts:`, error);
+    }
+}
+
+/**
+ * Re-renders charts after a setting change
+ * @param {string} settingName - Name of the setting that changed
+ * @param {*} newValue - New value of the setting
+ */
+export function reRenderChartsAfterSettingChange(settingName, newValue) {
+    try {
+        // Check if chart data is available
+        if (!window.globalData || !window.globalData.recordMesgs) {
+            console.log(`${LOG_PREFIX} No chart data available for re-rendering after ${settingName} change`);
+            return;
+        }
+
+        console.log(`${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`);
+
+        // CRITICAL: Clear cached settings from state management
+        // This ensures the chart rendering will read fresh settings from localStorage
+        if (typeof setState === 'function') {
+            setState("settings.charts", null, { source: "reRenderChartsAfterSettingChange" });
+            console.log(`${LOG_PREFIX} Cleared cached chart settings from state`);
+        }
+
+        // Clear existing chart instances first
+        if (window._chartjsInstances && Array.isArray(window._chartjsInstances)) {
+            console.log(`${LOG_PREFIX} Destroying ${window._chartjsInstances.length} existing chart instances`);
+            window._chartjsInstances.forEach((chart, index) => {
+                if (chart && typeof chart.destroy === "function") {
+                    try {
+                        chart.destroy();
+                        console.log(`${LOG_PREFIX} Destroyed chart instance ${index}`);
+                    } catch (err) {
+                        console.warn(`${LOG_PREFIX} Error destroying chart ${index}:`, err);
+                    }
+                }
+            });
+            window._chartjsInstances = [];
+        }
+
+        // Also clear any existing chart canvases to ensure clean slate
+        const existingCanvases = document.querySelectorAll('canvas[id^="chart-"], canvas[id^="chartjs-canvas-"]');
+        console.log(`${LOG_PREFIX} Removing ${existingCanvases.length} existing chart canvases`);
+        existingCanvases.forEach((canvas) => {
+            if (canvas.parentNode) {
+                canvas.parentNode.removeChild(canvas);
+            }
+        });
+
+        // Force a complete re-render - try multiple container approaches
+        let container = document.getElementById("content-chart");
+        if (!container) {
+            container = document.getElementById("chartjs-chart-container");
+        }
+        if (!container) {
+            container = document.getElementById("chart-container");
+        }
+
+        console.log(`${LOG_PREFIX} Using container: ${container ? container.id : 'none found'}`);
+
+        // Force re-render
+        if (container) {
+            renderChartJS(container);
+        } else {
+            // Fallback: try to render without container
+            console.log(`${LOG_PREFIX} No container found, attempting fallback render`);
+            renderChartJS();
+        }
+
+        // Show a success notification to confirm the re-render
+        setTimeout(() => {
+            if (typeof showNotification === 'function') {
+                showNotification(`Chart setting "${settingName}" updated`, "success");
+            }
+        }, 100);
+
+    } catch (error) {
+        console.error(`${LOG_PREFIX} Error re-rendering charts after ${settingName} change:`, error);
+        if (typeof showNotification === 'function') {
+            showNotification(`Failed to update chart setting: ${error.message}`, "error");
+        }
     }
 }
 
