@@ -448,7 +448,7 @@
     "./utils/chartSpec.js": "./utils/chartSpec.js",
     "./utils/copyTableAsCSV.js": "./utils/copyTableAsCSV.js",
     "./utils/createTables.js": "./utils/createTables.js",
-    "./utils/drawMapForLap.js": "./utils/drawMapForLap.js",
+    "./utils/mapDrawLaps.js": "./utils/mapDrawLaps.js",
     "./utils/enableTabButtons.js": "./utils/enableTabButtons.js",
     "./utils/formatDistance.js": "./utils/formatDistance.js",
     "./utils/formatDuration.js": "./utils/formatDuration.js",

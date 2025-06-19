@@ -16,7 +16,7 @@ import { addLapSelector } from "./mapLapSelector.js";
 import { getLapColor } from "./mapColors.js";
 import { formatTooltipData } from "./formatTooltipData.js";
 import { getLapNumForIdx } from "./getLapNumForIdx.js";
-import { drawMapForLap } from "./drawMapForLap.js";
+import { mapDrawLaps } from "./mapDrawLaps.js";
 import { updateMapTheme } from "./updateMapTheme.js";
 import { createStartIcon, createEndIcon } from "./mapIcons.js";
 import { baseLayers } from "./mapBaseLayers.js";
@@ -29,7 +29,7 @@ import { createPrintButton } from "./createPrintButton.js";
 import { chartOverlayColorPalette } from "./chartOverlayColorPalette.js";
 import { createElevationProfileButton } from "./createElevationProfileButton.js";
 import { addFullscreenControl } from "./mapFullscreenControl.js";
-import { drawOverlayForFitFile } from "./drawMapForLap.js";
+import { drawOverlayForFitFile } from "./mapDrawLaps.js";
 
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
@@ -195,7 +195,7 @@ export function renderMap() {
         createMarkerCountSelector(() => {
             // Redraw map with new marker count
             if (window.globalData && window.globalData.recordMesgs) {
-                drawMapForLapWrapper("all");
+                mapDrawLapsWrapper("all");
             }
             if (window.updateShownFilesList) window.updateShownFilesList();
         })
@@ -223,8 +223,8 @@ export function renderMap() {
     }
 
     // --- Lap selection UI (moved to mapLapSelector.js) ---
-    function drawMapForLapWrapper(lapIdx) {
-        drawMapForLap(lapIdx, {
+    function mapDrawLapsWrapper(lapIdx) {
+        mapDrawLaps(lapIdx, {
             map,
             baseLayers,
             markerClusterGroup,
@@ -236,7 +236,7 @@ export function renderMap() {
             getLapNumForIdx,
         });
     }
-    addLapSelector(map, document.getElementById("leaflet-map"), drawMapForLapWrapper);
+    addLapSelector(map, document.getElementById("leaflet-map"), mapDrawLapsWrapper);
 
     // --- Minimap (if plugin available) ---
     if (window.L && L.Control && L.Control.MiniMap) {
@@ -321,11 +321,11 @@ export function renderMap() {
             }
         }, 10);
         console.log("[renderMap] Overlay logic complete. No fitBounds/zoom called here.");
-        // --- Always call drawMapForLapWrapper('all') to ensure correct zoom/fitBounds logic ---
-        drawMapForLapWrapper("all");
+        // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
+        mapDrawLapsWrapper("all");
     } else if (window.globalData && window.globalData.recordMesgs) {
-        console.log('[renderMap] No overlays, calling drawMapForLapWrapper("all")');
-        drawMapForLapWrapper("all");
+        console.log('[renderMap] No overlays, calling mapDrawLapsWrapper("all")');
+        mapDrawLapsWrapper("all");
     }
 
     // Restore highlight after overlays are drawn, if any

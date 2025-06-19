@@ -1,9 +1,9 @@
 import { getThemeColors } from "./getThemeColors.js";
 
 // Lap selection UI and logic for Leaflet map
-// Exports: addLapSelector(map, container, drawMapForLap)
+// Exports: addLapSelector(map, container, mapDrawLaps)
 
-export function addLapSelector(map, container, drawMapForLap) {
+export function addLapSelector(map, container, mapDrawLaps) {
     if (!window.globalData || !Array.isArray(window.globalData.lapMesgs) || window.globalData.lapMesgs.length === 0)
         return;
 
@@ -146,15 +146,15 @@ export function addLapSelector(map, container, drawMapForLap) {
                 selected = ["all"];
             }
             if (selected.length === 1 && selected[0] === "all") {
-                drawMapForLap("all");
+                mapDrawLaps("all");
             } else {
-                drawMapForLap(selected);
+                mapDrawLaps(selected);
             }
         } else {
             if (selected[0] === "all") {
-                drawMapForLap("all");
+                mapDrawLaps("all");
             } else {
-                drawMapForLap([selected[0]]);
+                mapDrawLaps([selected[0]]);
             }
         }
     });

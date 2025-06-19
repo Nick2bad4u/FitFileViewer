@@ -39,7 +39,7 @@ function patchLapIndices(lapMesgs, recordMesgs) {
 
 // Draws the map for a given lap or laps
 // Dependencies must be passed as arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
-export function drawMapForLap(
+export function mapDrawLaps(
     lapIdx,
     {
         map,
@@ -72,7 +72,7 @@ export function drawMapForLap(
     }
 
     console.log(
-        "[drawMapForLap] ENTERED FUNCTION, lapIdx =",
+        "[mapDrawLaps] ENTERED FUNCTION, lapIdx =",
         lapIdx,
         "type:",
         typeof lapIdx,
@@ -113,19 +113,19 @@ export function drawMapForLap(
     // --- FIX: handle both string 'all' and array containing 'all' ---
     if (lapIdx === "all" || (Array.isArray(lapIdx) && lapIdx.includes("all"))) {
         console.log(
-            '[drawMapForLap] "all" laps mode: recordMesgs.length =',
+            '[mapDrawLaps] "all" laps mode: recordMesgs.length =',
             recordMesgs.length,
             "lapMesgs.length =",
             lapMesgs.length
         );
-        console.log("[drawMapForLap] lapMesgs[0]:", lapMesgs[0]);
-        console.log("[drawMapForLap] lapMesgs[1]:", lapMesgs[1]);
-        console.log("[drawMapForLap] lapMesgs[2]:", lapMesgs[2]);
+        console.log("[mapDrawLaps] lapMesgs[0]:", lapMesgs[0]);
+        console.log("[mapDrawLaps] lapMesgs[1]:", lapMesgs[1]);
+        console.log("[mapDrawLaps] lapMesgs[2]:", lapMesgs[2]);
         // Test getLapNumForIdx for first few indices
         if (getLapNumForIdx) {
             for (let testIdx = 0; testIdx < 3; ++testIdx) {
                 const lapNum = getLapNumForIdx(testIdx, lapMesgs);
-                console.log(`[drawMapForLap] getLapNumForIdx(${testIdx}, lapMesgs) =`, lapNum);
+                console.log(`[mapDrawLaps] getLapNumForIdx(${testIdx}, lapMesgs) =`, lapNum);
             }
         }
         coords = recordMesgs
@@ -138,7 +138,7 @@ export function drawMapForLap(
                     }
                     if (idx < 10 || idx > recordMesgs.length - 10) {
                         console.log(
-                            `[drawMapForLap] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
+                            `[mapDrawLaps] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
                         );
                     }
                     return [
@@ -162,7 +162,7 @@ export function drawMapForLap(
         }
         if (coords.length > 0) {
             const polyColor = getLapColor("all");
-            console.log("[drawMapForLap] Drawing polyline for all laps, coords.length =", coords.length);
+            console.log("[mapDrawLaps] Drawing polyline for all laps, coords.length =", coords.length);
             const polyline = L.polyline(
                 coords.map((c) => [c[0], c[1]]),
                 {
@@ -211,7 +211,7 @@ export function drawMapForLap(
                 let lapDisplay = c[8]; // c[8] is set to lapNum above
                 if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
                 if (i < 10 || i > coords.length - 10) {
-                    console.log(`[drawMapForLap] Marker i=${i}, c[6]=${c[6]}, lapDisplay=${lapDisplay}`);
+                    console.log(`[mapDrawLaps] Marker i=${i}, c[6]=${c[6]}, lapDisplay=${lapDisplay}`);
                 }
                 const marker = L.circleMarker([c[0], c[1]], {
                     radius: 4,
@@ -273,11 +273,11 @@ export function drawMapForLap(
     }
 
     if (Array.isArray(lapIdx)) {
-        console.log("[drawMapForLap] lapIdx is array:", lapIdx);
+        console.log("[mapDrawLaps] lapIdx is array:", lapIdx);
         // If 'all' is included, treat as 'all' laps mode (single polyline, global record indices)
         if (lapIdx.includes("all")) {
             console.log(
-                '[drawMapForLap] "all" laps mode: recordMesgs.length =',
+                '[mapDrawLaps] "all" laps mode: recordMesgs.length =',
                 recordMesgs.length,
                 "lapMesgs.length =",
                 lapMesgs.length,
@@ -294,7 +294,7 @@ export function drawMapForLap(
                         }
                         if (idx < 10 || idx > recordMesgs.length - 10) {
                             console.log(
-                                `[drawMapForLap] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
+                                `[mapDrawLaps] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
                             );
                         }
                         return [
@@ -318,7 +318,7 @@ export function drawMapForLap(
             }
             if (coords.length > 0) {
                 const polyColor = getLapColor("all");
-                console.log("[drawMapForLap] Drawing polyline for all laps, coords.length =", coords.length);
+                console.log("[mapDrawLaps] Drawing polyline for all laps, coords.length =", coords.length);
                 const polyline = L.polyline(
                     coords.map((c) => [c[0], c[1]]),
                     {
@@ -364,7 +364,7 @@ export function drawMapForLap(
                     let lapDisplay = c[8]; // c[8] is set to lapNum above
                     if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
                     if (i < 10 || i > coords.length - 10) {
-                        console.log(`[drawMapForLap] Marker i=${i}, c[6]=${c[6]}, lapDisplay=${lapDisplay}`);
+                        console.log(`[mapDrawLaps] Marker i=${i}, c[6]=${c[6]}, lapDisplay=${lapDisplay}`);
                     }
                     const marker = L.circleMarker([c[0], c[1]], {
                         radius: 4,
