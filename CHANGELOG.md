@@ -8,12 +8,108 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[221fb03](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)...
-[221fb03](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/221fb032bc3ce5b1dff552afcb895bd4561f0b1a...221fb032bc3ce5b1dff552afcb895bd4561f0b1a))
+[[01892ef](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)...
+[01892ef](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/01892ef2918ad4562942d8e66d5ea7cdaa6f562e...01892ef2918ad4562942d8e66d5ea7cdaa6f562e))
 
 
 ### 📦 Dependencies
+[dependency] Update version 24.4.0
+[`(01892ef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)
+
+
+
+## [24.4.0] - 2025-06-19
+
+
+[[221fb03](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)...
+[a9f752a](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/221fb032bc3ce5b1dff552afcb895bd4561f0b1a...a9f752a3ee06df602b6294421de320739de7081d))
+
+
+### 🛠️ GitHub Actions
+Update prettier.yml
+[`(1b9945b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1b9945b56f9fad21bc1b0201011a879e88b26c95)
+Update prettier.yml
+[`(956ffd4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/956ffd408974b1bb3902811e5e64f73d3aea8d3f)
+Update prettier.yml
+[`(006464b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/006464ba3a6fe274e89bfad3aa385dbee0ebba9b)
+Update prettier.yml
+[`(221bc12)`](https://github.com/Nick2bad4u/FitFileViewer/commit/221bc129ee2a6b0151ab700e4c812b90a5a56e7c)
+Update prettier.yml
+[`(6acc0a9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6acc0a94ed639939ac63cce1ea89269016bd9b64)
+
+
+### ⚙️ Miscellaneous Tasks
+Format code with Prettier (#129)
+[`(b64b260)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b64b260c00bee59c9a8528ef91ccbde6fee954fa)
+Update changelogs for v24.3.0 [skip ci]
+[`(4a2c605)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4a2c605444ab3c8b514805c8fc1f22981b58a36d)
+
+
+### 📦 Dependencies
+[dependency] Update the npm-all group (#128)
+[dependency] Update npm dependencies:
+
+    | Package | From | To |
+    | --- | --- | --- |
+    | [electron](https://github.com/electron/electron) | `36.4.0` | `36.5.0` |
+    | [@protobuf-ts/plugin](https://github.com/timostamm/protobuf-ts/tree/HEAD/packages/plugin) | `2.11.0` | `2.11.1` |
+    | [@protobuf-ts/protoc](https://github.com/timostamm/protobuf-ts/tree/HEAD/packages/protoc) | `2.11.0` | `2.11.1` |
+    | [@protobuf-ts/runtime](https://github.com/timostamm/protobuf-ts/tree/HEAD/packages/runtime) | `2.11.0` | `2.11.1` |
+    | [@protobuf-ts/runtime-rpc](https://github.com/timostamm/protobuf-ts/tree/HEAD/packages/runtime-rpc) | `2.11.0` | `2.11.1` |
+
+
+    Updates `electron` from 36.4.0 to 36.5.0
+    - [Release notes](https://github.com/electron/electron/releases)
+    - [Changelog](https://github.com/electron/electron/blob/main/docs/breaking-changes.md)
+    - [Commits](https://github.com/electron/electron/compare/v36.4.0...v36.5.0)
+
+    Updates `@protobuf-ts/plugin` from 2.11.0 to 2.11.1
+    - [Release notes](https://github.com/timostamm/protobuf-ts/releases)
+    - [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.1/packages/plugin)
+
+    Updates `@protobuf-ts/protoc` from 2.11.0 to 2.11.1
+    - [Release notes](https://github.com/timostamm/protobuf-ts/releases)
+    - [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.1/packages/protoc)
+
+    Updates `@protobuf-ts/runtime` from 2.11.0 to 2.11.1
+    - [Release notes](https://github.com/timostamm/protobuf-ts/releases)
+    - [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.1/packages/runtime)
+
+    Updates `@protobuf-ts/runtime-rpc` from 2.11.0 to 2.11.1
+    - [Release notes](https://github.com/timostamm/protobuf-ts/releases)
+    - [Commits](https://github.com/timostamm/protobuf-ts/commits/v2.11.1/packages/runtime-rpc)
+
+    ---
+    updated-dependencies:
+    - dependency-name: electron
+      dependency-version: 36.5.0
+      dependency-type: direct:development
+      update-type: version-update:semver-minor
+      dependency-group: npm-all
+    - dependency-name: "@protobuf-ts/plugin"
+      dependency-version: 2.11.1
+      dependency-type: indirect
+      update-type: version-update:semver-patch
+      dependency-group: npm-all
+    - dependency-name: "@protobuf-ts/protoc"
+      dependency-version: 2.11.1
+      dependency-type: indirect
+      update-type: version-update:semver-patch
+      dependency-group: npm-all
+    - dependency-name: "@protobuf-ts/runtime"
+      dependency-version: 2.11.1
+      dependency-type: indirect
+      update-type: version-update:semver-patch
+      dependency-group: npm-all
+    - dependency-name: "@protobuf-ts/runtime-rpc"
+      dependency-version: 2.11.1
+      dependency-type: indirect
+      update-type: version-update:semver-patch
+      dependency-group: npm-all
+    ...
+[`(a9f752a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)
 [dependency] Update version 24.3.0
 [`(221fb03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)
 
