@@ -7,9 +7,87 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[0b068eb](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)...
+[0b068eb](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0b068ebb67aa63c09aa225203eec1c015c1c6a8d...0b068ebb67aa63c09aa225203eec1c015c1c6a8d))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 25.1.0 [`(0b068eb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)
+
+
+
+
+
+
+## [25.1.0] - 2025-06-19
+
+
+[[3127263](https://github.com/Nick2bad4u/FitFileViewer/commit/31272631e3eb1d3ae7363ab85c31554e47be26be)...
+[d6709d4](https://github.com/Nick2bad4u/FitFileViewer/commit/d6709d42a69c8a6bca0436b93c32ab0406e37205)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/31272631e3eb1d3ae7363ab85c31554e47be26be...d6709d42a69c8a6bca0436b93c32ab0406e37205))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(d6709d4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d6709d42a69c8a6bca0436b93c32ab0406e37205)
+
+
+
+### 💼 Other
+
+- Syncs zone color scheme with custom changes and resets
+
+Ensures the color scheme is set to "custom" in local storage whenever a user manually changes or resets a chart zone color. Updates all relevant UI elements and selectors to reflect the new scheme, improving consistency and user feedback when customizing chart colors. Also tidies up some formatting and state update logic for maintainability. [`(3127263)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31272631e3eb1d3ae7363ab85c31554e47be26be)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 25.0.0 [`(f408665)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f40866543cbd0d156af54972ad2028042735ed87)
+
+
+
+
+
+
+## [25.0.0] - 2025-06-19
+
+
 [[30cb44e](https://github.com/Nick2bad4u/FitFileViewer/commit/30cb44eec763d0a197ec34adeb215ec56279f288)...
-[30cb44e](https://github.com/Nick2bad4u/FitFileViewer/commit/30cb44eec763d0a197ec34adeb215ec56279f288)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/30cb44eec763d0a197ec34adeb215ec56279f288...30cb44eec763d0a197ec34adeb215ec56279f288))
+[3a9f295](https://github.com/Nick2bad4u/FitFileViewer/commit/3a9f295994065c724873cfd5cdb72e30a9a719db)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/30cb44eec763d0a197ec34adeb215ec56279f288...3a9f295994065c724873cfd5cdb72e30a9a719db))
+
+
+### 💼 Other
+
+- Integrates state management into chart rendering
+
+Adopts a centralized state management system for all aspects of chart rendering, settings, and controls. Refactors rendering logic to use state-driven data flow and reactivity, replacing legacy global variables and direct DOM manipulation. Improves chart update reliability, enables better synchronization across UI components, and lays groundwork for advanced features and performance tracking. Enhances maintainability and paves the way for future extensibility. [`(3a9f295)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a9f295994065c724873cfd5cdb72e30a9a719db)
+
+
+- Improves window validation with context-aware logging
+
+Enhances window usability checks by adding contextual information
+to validation logs, reducing noise during normal shutdown. Sets
+application quitting state to suppress unnecessary warnings and
+adds context to validation calls throughout window operations.
+
+Commented out verbose menu creation logs for cleaner development
+output. [`(2844699)`](https://github.com/Nick2bad4u/FitFileViewer/commit/28446998405327084f02d2758809ceac9eff0577)
+
+
+- Renames and refactors map lap drawing logic
+
+Replaces the previous lap map drawing implementation with a refactored and renamed module for improved clarity and maintainability. Updates all references throughout the codebase to use the new naming and removes the old implementation. Streamlines integration with lap selection and overlay drawing, ensuring consistent and clear map rendering logic. [`(ac88a5f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ac88a5fae70839173db6c0498ea19acd97d88866)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v24.9.0 [skip ci] [`(b52694d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b52694d6731c0d90de36ea0cf1206a5699b60a59)
+
 
 
 ### 📦 Dependencies
