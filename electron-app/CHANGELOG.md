@@ -7,12 +7,38 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[0b068eb](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)...
-[0b068eb](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0b068ebb67aa63c09aa225203eec1c015c1c6a8d...0b068ebb67aa63c09aa225203eec1c015c1c6a8d))
+[[3cca520](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)...
+[3cca520](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3cca520bc8d664ab94ed1eeea7d1592c7dced63a...3cca520bc8d664ab94ed1eeea7d1592c7dced63a))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 25.2.0 [`(3cca520)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)
+
+
+
+
+
+
+## [25.2.0] - 2025-06-20
+
+
+[[0b068eb](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)...
+[0913928](https://github.com/Nick2bad4u/FitFileViewer/commit/0913928733c6b1d07eb0c3c47829641c1b61b7a2)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0b068ebb67aa63c09aa225203eec1c015c1c6a8d...0913928733c6b1d07eb0c3c47829641c1b61b7a2))
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v25.1.0 [skip ci] [`(a894ce0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a894ce02ff1505edffd2892967175737bd6a5192)
+
+
+
+### 📦 Dependencies
+
+- *(deps)* [dependency] Update the npm-all group across 1 directory with 12 updates (#133) [`(0913928)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0913928733c6b1d07eb0c3c47829641c1b61b7a2)
+
 
 - [dependency] Update version 25.1.0 [`(0b068eb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0b068ebb67aa63c09aa225203eec1c015c1c6a8d)
 
