@@ -12,7 +12,7 @@ updates:
     - package-ecosystem: github-actions
       directory: /
       schedule:
-          interval: daily
+          interval: monthly
           time: "05:30"
           timezone: "America/Detroit"
       assignees: ["Nick2bad4u"]
@@ -36,7 +36,7 @@ updates:
     - package-ecosystem: npm
       directory: /electron-app
       schedule:
-          interval: daily
+          interval: monthly
       assignees: ["Nick2bad4u"]
       versioning-strategy: increase
       allow:
