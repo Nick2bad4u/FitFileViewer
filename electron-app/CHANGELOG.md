@@ -7,12 +7,61 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[3cca520](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)...
-[3cca520](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3cca520bc8d664ab94ed1eeea7d1592c7dced63a...3cca520bc8d664ab94ed1eeea7d1592c7dced63a))
+[[1e68c26](https://github.com/Nick2bad4u/FitFileViewer/commit/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1)...
+[1e68c26](https://github.com/Nick2bad4u/FitFileViewer/commit/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1...1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 25.4.0 [`(1e68c26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1)
+
+
+
+
+
+
+## [25.4.0] - 2025-06-24
+
+
+[[5363b04](https://github.com/Nick2bad4u/FitFileViewer/commit/5363b0432e59104f853f644df525e6dc639f6501)...
+[d1bdc0f](https://github.com/Nick2bad4u/FitFileViewer/commit/d1bdc0f6934efc8424cc5d215ad55828af2b6ff7)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5363b0432e59104f853f644df525e6dc639f6501...d1bdc0f6934efc8424cc5d215ad55828af2b6ff7))
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Format code with Prettier (#131) [skip-ci] [`(d1bdc0f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d1bdc0f6934efc8424cc5d215ad55828af2b6ff7)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 25.3.0 [`(5363b04)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5363b0432e59104f853f644df525e6dc639f6501)
+
+
+
+
+
+
+## [25.3.0] - 2025-06-24
+
+
+[[3cca520](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)...
+[d39ae97](https://github.com/Nick2bad4u/FitFileViewer/commit/d39ae977641f3d089c97e8c1cce4c67a7935ef20)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3cca520bc8d664ab94ed1eeea7d1592c7dced63a...d39ae977641f3d089c97e8c1cce4c67a7935ef20))
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v25.2.0 [skip ci] [`(28aeb6d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/28aeb6d4d7cc72678594521db80d386275316868)
+
+
+
+### 📦 Dependencies
+
+- *(deps-dev)* [dependency] Update @sinclair/typebox (#135) [`(d39ae97)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d39ae977641f3d089c97e8c1cce4c67a7935ef20)
+
 
 - [dependency] Update version 25.2.0 [`(3cca520)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3cca520bc8d664ab94ed1eeea7d1592c7dced63a)
 
@@ -452,9 +501,9 @@ No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFile
 ## [24.2.0] - 2025-06-18
 
 
-[[0485992](https://github.com/Nick2bad4u/FitFileViewer/commit/0485992e46e3a3712d7f29165caceef0c2e0bb46)...
+[[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
 [e8ed10d](https://github.com/Nick2bad4u/FitFileViewer/commit/e8ed10dfc6a36c9213c08a2fd1d8b791627b7c27)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/0485992e46e3a3712d7f29165caceef0c2e0bb46...e8ed10dfc6a36c9213c08a2fd1d8b791627b7c27))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...e8ed10dfc6a36c9213c08a2fd1d8b791627b7c27))
 
 
 ### 💼 Other
@@ -467,32 +516,6 @@ No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFile
 - Enhanced the zone color utility functions to support additional color schemes, including pastel, dark, rainbow, ocean, earth, fire, forest, sunset, grayscale, neon, autumn, spring, cycling, and runner.
 - Improved the persistence of zone colors in localStorage and ensured proper synchronization between chart-specific and generic zone color storage. [`(e8ed10d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e8ed10dfc6a36c9213c08a2fd1d8b791627b7c27)
 
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v24.1.0 [skip ci] [`(8a04075)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8a04075e570746662e92f912db841a7e9e4d0f9a)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 24.1.0 [`(0485992)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0485992e46e3a3712d7f29165caceef0c2e0bb46)
-
-
-
-
-
-
-## [24.1.0] - 2025-06-18
-
-
-[[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
-[39fb2f4](https://github.com/Nick2bad4u/FitFileViewer/commit/39fb2f4e23ccaf99173697a68eb2883aa00c04ca)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...39fb2f4e23ccaf99173697a68eb2883aa00c04ca))
-
-
-### 💼 Other
 
 - Refactor code structure for improved readability and maintainability [`(39fb2f4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/39fb2f4e23ccaf99173697a68eb2883aa00c04ca)
 
@@ -507,11 +530,17 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v24.1.0 [skip ci] [`(8a04075)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8a04075e570746662e92f912db841a7e9e4d0f9a)
+
+
 - Update changelogs for v24.0.0 [skip ci] [`(cd2e5b7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cd2e5b726666e228d242d97f0b40e8f24fc586da)
 
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 24.1.0 [`(0485992)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0485992e46e3a3712d7f29165caceef0c2e0bb46)
+
 
 - [dependency] Update version 24.0.0 [`(9daf5a3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)
 
