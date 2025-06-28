@@ -11,7 +11,7 @@ import { setState, getState } from "../../state/core/stateManager.js";
  */
 export function setTabButtonsEnabled(enabled) {
     console.log(`[TabButtons] setTabButtonsEnabled(${enabled}) called`);
-    
+
     // Update state to track tab button status
     setState("ui.tabButtonsEnabled", enabled, { source: "setTabButtonsEnabled" });
 
@@ -30,20 +30,20 @@ export function setTabButtonsEnabled(enabled) {
             // Disable the button
             btn.disabled = true;
             btn.classList.add(TAB_DISABLED_CLASS);
-            btn.setAttribute('disabled', '');
-            btn.style.pointerEvents = 'none';
+            btn.setAttribute("disabled", "");
+            btn.style.pointerEvents = "none";
         } else {
             // Enable the button - be more aggressive about removing all disabled states
             btn.disabled = false;
             btn.classList.remove(TAB_DISABLED_CLASS);
-            btn.removeAttribute('disabled');
-            
+            btn.removeAttribute("disabled");
+
             // Forcefully reset pointer events and styles that might be blocking clicks
-            btn.style.pointerEvents = 'auto'; // Explicitly set to auto instead of empty
-            btn.style.cursor = 'pointer';
-            btn.style.filter = 'none';
-            btn.style.opacity = '1';
-            
+            btn.style.pointerEvents = "auto"; // Explicitly set to auto instead of empty
+            btn.style.cursor = "pointer";
+            btn.style.filter = "none";
+            btn.style.opacity = "1";
+
             // Force a style recalculation
             btn.offsetHeight; // triggers reflow
         }
@@ -56,7 +56,9 @@ export function setTabButtonsEnabled(enabled) {
             if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
                 return;
             }
-            console.log(`[TabButtons] ${btn.id || btn.textContent?.trim()}: disabled=${btn.disabled}, hasDisabledAttr=${btn.hasAttribute('disabled')}, pointerEvents=${btn.style.pointerEvents}`);
+            console.log(
+                `[TabButtons] ${btn.id || btn.textContent?.trim()}: disabled=${btn.disabled}, hasDisabledAttr=${btn.hasAttribute("disabled")}, pointerEvents=${btn.style.pointerEvents}`
+            );
         });
     }, 50);
 
@@ -100,35 +102,35 @@ export function areTabButtonsEnabled() {
 export function debugTabButtons() {
     console.log("[TabButtons] === DEBUG TAB BUTTONS ===");
     const tabButtons = document.querySelectorAll(".tab-button");
-    
+
     tabButtons.forEach((btn) => {
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             console.log(`[TabButtons] SKIPPING open file button: ${btn.id}`);
             return;
         }
-        
+
         console.log(`[TabButtons] Button ${btn.id}:`, {
             disabled: btn.disabled,
-            hasDisabledAttr: btn.hasAttribute('disabled'),
-            hasDisabledClass: btn.classList.contains('tab-disabled'),
+            hasDisabledAttr: btn.hasAttribute("disabled"),
+            hasDisabledClass: btn.classList.contains("tab-disabled"),
             pointerEvents: btn.style.pointerEvents,
             computedPointerEvents: window.getComputedStyle(btn).pointerEvents,
             cursor: btn.style.cursor,
             computedCursor: window.getComputedStyle(btn).cursor,
             opacity: btn.style.opacity,
-            computedOpacity: window.getComputedStyle(btn).opacity
+            computedOpacity: window.getComputedStyle(btn).opacity,
         });
     });
-    
+
     const globalData = getState("globalData");
     const isLoading = getState("ui.isLoading");
     const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
-    
+
     console.log("[TabButtons] Current state:", {
         hasGlobalData: !!globalData,
         isLoading,
         tabButtonsEnabled,
-        globalDataKeys: globalData ? Object.keys(globalData) : null
+        globalDataKeys: globalData ? Object.keys(globalData) : null,
     });
 }
 
@@ -138,29 +140,29 @@ export function debugTabButtons() {
 export function forceEnableTabButtons() {
     console.log("[TabButtons] === FORCE ENABLING ALL TAB BUTTONS ===");
     const tabButtons = document.querySelectorAll(".tab-button");
-    
+
     tabButtons.forEach((btn) => {
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             return;
         }
-        
+
         // Aggressively remove all disabled states
         btn.disabled = false;
-        btn.classList.remove('tab-disabled');
-        btn.removeAttribute('disabled');
-        
+        btn.classList.remove("tab-disabled");
+        btn.removeAttribute("disabled");
+
         // Remove all blocking styles - be explicit about the values
-        btn.style.pointerEvents = 'auto';
-        btn.style.cursor = 'pointer';
-        btn.style.filter = 'none';
-        btn.style.opacity = '1';
-        
+        btn.style.pointerEvents = "auto";
+        btn.style.cursor = "pointer";
+        btn.style.filter = "none";
+        btn.style.opacity = "1";
+
         // Force style recalculation
         btn.offsetHeight;
-        
+
         console.log(`[TabButtons] Force enabled: ${btn.id}`);
     });
-    
+
     // Update state
     setState("ui.tabButtonsEnabled", true, { source: "forceEnableTabButtons" });
 }
@@ -171,29 +173,29 @@ export function forceEnableTabButtons() {
 export function testTabButtonClicks() {
     console.log("[TabButtons] === TESTING TAB BUTTON CLICKS ===");
     const tabButtons = document.querySelectorAll(".tab-button");
-    
+
     tabButtons.forEach((btn) => {
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             return;
         }
-        
+
         // Add a temporary test click handler
         const testHandler = (event) => {
             console.log(`[TabButtons] TEST CLICK DETECTED on ${btn.id}!`, event);
             alert(`Clicked on ${btn.id}!`);
         };
-        
+
         btn.addEventListener("click", testHandler);
-        
+
         console.log(`[TabButtons] Added test handler to: ${btn.id}`);
-        
+
         // Remove the test handler after 30 seconds
         setTimeout(() => {
             btn.removeEventListener("click", testHandler);
             console.log(`[TabButtons] Removed test handler from: ${btn.id}`);
         }, 30000);
     });
-    
+
     console.log("[TabButtons] Test handlers added. Try clicking buttons now!");
 }
 
@@ -203,21 +205,23 @@ export function testTabButtonClicks() {
 export function debugTabState() {
     console.log("[TabButtons] === CURRENT TAB STATE ===");
     const tabButtons = document.querySelectorAll(".tab-button");
-    
+
     tabButtons.forEach((btn) => {
         const isActive = btn.classList.contains("active");
         const ariaSelected = btn.getAttribute("aria-selected");
-        
-        console.log(`[TabButtons] ${btn.id}: active=${isActive}, aria-selected=${ariaSelected}, disabled=${btn.disabled}`);
+
+        console.log(
+            `[TabButtons] ${btn.id}: active=${isActive}, aria-selected=${ariaSelected}, disabled=${btn.disabled}`
+        );
     });
-    
+
     const activeTab = getState("ui.activeTab");
     const globalData = getState("globalData");
-    
+
     console.log("[TabButtons] State:", {
         activeTab,
         hasGlobalData: !!globalData,
-        tabButtonsEnabled: getState("ui.tabButtonsEnabled")
+        tabButtonsEnabled: getState("ui.tabButtonsEnabled"),
     });
 }
 
@@ -227,31 +231,31 @@ export function debugTabState() {
 export function forceFixTabButtons() {
     console.log("[TabButtons] === FORCE FIXING TAB BUTTON STATES ===");
     const tabButtons = document.querySelectorAll(".tab-button");
-    
+
     tabButtons.forEach((btn) => {
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             return;
         }
-        
+
         console.log(`[TabButtons] BEFORE FIX: ${btn.id} disabled=${btn.disabled}`);
-        
+
         // Force set to enabled
         btn.disabled = false;
-        btn.classList.remove('tab-disabled');
-        btn.removeAttribute('disabled');
-        
+        btn.classList.remove("tab-disabled");
+        btn.removeAttribute("disabled");
+
         // Explicitly set styles
-        btn.style.pointerEvents = 'auto';
-        btn.style.cursor = 'pointer';
-        btn.style.filter = 'none';
-        btn.style.opacity = '1';
-        
+        btn.style.pointerEvents = "auto";
+        btn.style.cursor = "pointer";
+        btn.style.filter = "none";
+        btn.style.opacity = "1";
+
         console.log(`[TabButtons] AFTER FIX: ${btn.id} disabled=${btn.disabled}`);
     });
-    
+
     // Also force update the state
     setState("ui.tabButtonsEnabled", true, { source: "forceFixTabButtons" });
-    
+
     console.log("[TabButtons] Force fix complete - try clicking now!");
 }
 
