@@ -1,7 +1,7 @@
 // utils/enableTabButtons.js
 // Utility to enable or disable all tab buttons (except Open FIT File)
 
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+import { setState, getState } from "../../state/core/stateManager.js";
 
 /**
  * Enable or disable all tab buttons (with class 'tab-button'), except the "Open FIT File" button.
@@ -67,24 +67,23 @@ export function setTabButtonsEnabled(enabled) {
  * Initialize tab button state management
  */
 export function initializeTabButtonState() {
-    // Set initial state - tabs should be disabled when no data is loaded
-    const initialData = getState("globalData");
-    const hasInitialData = initialData !== null && initialData !== undefined;
-    setTabButtonsEnabled(hasInitialData);
+    // TEMPORARY FIX: Always enable tabs, disable the disabling logic
+    console.log("[TabButtons] TEMPORARY: Always enabling tabs, disabling auto-disable logic");
+    setTabButtonsEnabled(true);
 
-    // Subscribe to data loading to automatically enable/disable tabs
+    // DISABLED: Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
-    subscribe("globalData", (data) => {
-        const hasData = data !== null && data !== undefined;
-        console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
-        console.log(`[TabButtons] Updating tabs based on globalData: ${hasData ? "enabling" : "disabling"}`);
-        setTabButtonsEnabled(hasData);
-    });
+    // subscribe("globalData", (data) => {
+    //     const hasData = data !== null && data !== undefined;
+    //     console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
+    //     console.log(`[TabButtons] Updating tabs based on globalData: ${hasData ? "enabling" : "disabling"}`);
+    //     setTabButtonsEnabled(hasData);
+    // });
 
     // NOTE: Removed ui.isLoading subscription to avoid conflicts
     // Tab state is now controlled ONLY by globalData presence
 
-    console.log("[TabButtons] State management initialized");
+    console.log("[TabButtons] State management initialized (tabs always enabled)");
 }
 
 /**

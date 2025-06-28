@@ -2865,9 +2865,10 @@ input:disabled,
 textarea:disabled,
 select:disabled,
 button:disabled {
-    opacity: 0.6;
+    /* Temporarily disabled for tab button fix */
+    /* opacity: 0.6;
     cursor: not-allowed;
-    filter: grayscale(0.3);
+    filter: grayscale(0.3); */
 }
 
 /* =====================================================
