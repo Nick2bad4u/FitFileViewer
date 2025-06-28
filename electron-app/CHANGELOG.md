@@ -7,9 +7,79 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[acde6cf](https://github.com/Nick2bad4u/FitFileViewer/commit/acde6cf2fba2728f559434c47d94e0743755e046)...
+[acde6cf](https://github.com/Nick2bad4u/FitFileViewer/commit/acde6cf2fba2728f559434c47d94e0743755e046)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/acde6cf2fba2728f559434c47d94e0743755e046...acde6cf2fba2728f559434c47d94e0743755e046))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 25.6.0 [`(acde6cf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/acde6cf2fba2728f559434c47d94e0743755e046)
+
+
+
+
+
+
+## [25.6.0] - 2025-06-28
+
+
+[[d300a43](https://github.com/Nick2bad4u/FitFileViewer/commit/d300a43a20357c72cf08c35a4db78a9322583f0f)...
+[96cad7d](https://github.com/Nick2bad4u/FitFileViewer/commit/96cad7d341362ff48163db0f26edaf11dea1767a)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d300a43a20357c72cf08c35a4db78a9322583f0f...96cad7d341362ff48163db0f26edaf11dea1767a))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(96cad7d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/96cad7d341362ff48163db0f26edaf11dea1767a)
+
+
+
+### 💼 Other
+
+- 🛠️ [fix] Temporarily force-enable tab buttons and disable styling
+
+- Disables automatic tab button enabling/disabling logic and always enables tab buttons to address a UI issue with tab interaction
+- Comments out opacity and grayscale styles for disabled elements to fix tab button appearance
+- Leaves comments indicating these changes are temporary and disables related state subscriptions to avoid conflicts [`(d300a43)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d300a43a20357c72cf08c35a4db78a9322583f0f)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 25.5.0 [`(2a83d89)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2a83d89ec00f36822cb9343efb9660e29925cbe9)
+
+
+
+
+
+
+## [25.5.0] - 2025-06-28
+
+
 [[1e68c26](https://github.com/Nick2bad4u/FitFileViewer/commit/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1)...
-[1e68c26](https://github.com/Nick2bad4u/FitFileViewer/commit/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1...1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1))
+[556cf5f](https://github.com/Nick2bad4u/FitFileViewer/commit/556cf5f33755e91722f54a7c4ff130c201001b8f)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1e68c2694d8a6e55cd13cf2b97eb63c3256dabb1...556cf5f33755e91722f54a7c4ff130c201001b8f))
+
+
+### 💼 Other
+
+- MASSIVE REFACTOR: Implement centralized tab management and visibility control
+
+- Added a barrel export for tab utilities in `index.js`.
+- Implemented `setupTabButton` to manage tab button click events and caching.
+- Created `TabStateManager` for handling tab switching, state synchronization, and content rendering.
+- Developed `updateActiveTab` to manage active tab state and UI updates.
+- Introduced `updateTabVisibility` to control the visibility of tab content sections based on active state.
+- Integrated state management with subscriptions for reactive updates across the tab system.
+- Added utility functions for extracting tab names and managing tab visibility. [`(556cf5f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/556cf5f33755e91722f54a7c4ff130c201001b8f)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v25.4.0 [skip ci] [`(4e9dea9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4e9dea999c2b8cab328fc584885cd6918a81333c)
+
 
 
 ### 📦 Dependencies
@@ -466,9 +536,9 @@ No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFile
 ## [24.3.0] - 2025-06-19
 
 
-[[a09e7e1](https://github.com/Nick2bad4u/FitFileViewer/commit/a09e7e1ba6cae2d8715497930ed78fe72fa3f12c)...
+[[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
 [dd3386b](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a09e7e1ba6cae2d8715497930ed78fe72fa3f12c...dd3386bd3c7a4861f40818bec8fe740ecea33484))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...dd3386bd3c7a4861f40818bec8fe740ecea33484))
 
 
 ### 🚀 Features
@@ -481,29 +551,6 @@ No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFile
 
 - [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(dd3386b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)
 
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v24.2.0 [skip ci] [`(8aa919f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8aa919f268d067b8751741c6cf52499b5ab5363c)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 24.2.0 [`(f0bf5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f0bf5ec2d2631a0b95267d26e118b590f85a4529)
-
-
-
-
-
-
-## [24.2.0] - 2025-06-18
-
-
-[[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
-[e8ed10d](https://github.com/Nick2bad4u/FitFileViewer/commit/e8ed10dfc6a36c9213c08a2fd1d8b791627b7c27)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...e8ed10dfc6a36c9213c08a2fd1d8b791627b7c27))
 
 
 ### 💼 Other
@@ -530,6 +577,9 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v24.2.0 [skip ci] [`(8aa919f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8aa919f268d067b8751741c6cf52499b5ab5363c)
+
+
 - Update changelogs for v24.1.0 [skip ci] [`(8a04075)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8a04075e570746662e92f912db841a7e9e4d0f9a)
 
 
@@ -538,6 +588,9 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 24.2.0 [`(f0bf5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f0bf5ec2d2631a0b95267d26e118b590f85a4529)
+
 
 - [dependency] Update version 24.1.0 [`(0485992)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0485992e46e3a3712d7f29165caceef0c2e0bb46)
 
