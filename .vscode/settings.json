@@ -31,8 +31,16 @@
         "appimage",
         "asamuzakjp",
         "asar",
+        "btn",
         "chartable",
         "chartjs",
+        "codacy",
+        "dbm",
+        "gps",
+        "idx",
+        "Idx",
+        "kusto",
+        "Marp",
         "Mesg",
         "Mesgs",
         "modelcontextprotocol",
@@ -40,6 +48,8 @@
         "nsis",
         "ossf",
         "softprops",
-        "Zwift"
+        "Typpi",
+        "Zwift",
+        "zwift"
     ]
 }

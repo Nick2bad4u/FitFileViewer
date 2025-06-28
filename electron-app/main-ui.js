@@ -6,27 +6,21 @@
  */
 
 // This file is part of the Electron app that interacts with the main process and the UI.
-import { createTables } from "./utils/createTables.js";
-import { renderMap } from "./utils/renderMap.js";
-import { renderSummary } from "./utils/renderSummary.js";
-import { updateActiveTab } from "./utils/updateActiveTab.js";
-import { updateTabVisibility } from "./utils/updateTabVisibility.js";
-import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
-import { showFitData } from "./utils/showFitData.js";
-import { convertArrayBufferToBase64 } from "./utils/convertArrayBufferToBase64.js";
-import { getActiveTabContent } from "./utils/getActiveTabContent.js";
-import { setupTabButton } from "./utils/setupTabButton.js";
-import { setupFullscreenListeners, setupDOMContentLoaded } from "./utils/addFullScreenButton.js";
-import { setupWindowOnload } from "./utils/setupWindow.js";
-import { renderChartJS } from "./utils/renderChartJS.js";
+import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theming/core/theme.js";
+import { showFitData } from "./utils/rendering/core/showFitData.js";
+import { convertArrayBufferToBase64 } from "./utils/formatting/converters/convertArrayBufferToBase64.js";
+import { setupFullscreenListeners, setupDOMContentLoaded } from "./utils/ui/controls/addFullScreenButton.js";
+import { setupWindow } from "./utils/app/initialization/setupWindow.js";
+import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
 
 // State Management Integration
-import { getState, setState } from "./utils/stateManager.js";
-import { UIActions } from "./utils/uiStateManager.js";
-import { AppActions } from "./utils/appActions.js";
-import { fitFileStateManager } from "./utils/fitFileState.js";
-import { performanceMonitor } from "./utils/stateDevTools.js";
-import { showNotification } from "./utils/showNotification.js";
+import { getState, setState } from "./utils/state/core/stateManager.js";
+import { UIActions } from "./utils/state/domain/uiStateManager.js";
+import { AppActions } from "./utils/app/lifecycle/appActions.js";
+import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
+import { performanceMonitor } from "./utils/debug/stateDevTools.js";
+import { showNotification } from "./utils/ui/notifications/showNotification.js";
+import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 
 // Constants
 const CONSTANTS = {
@@ -167,10 +161,7 @@ function unloadFitFile() {
             window.electronAPI.send("fit-file-loaded", null);
         }
 
-        // Disable tab buttons when no file is loaded
-        if (window.setTabButtonsEnabled) {
-            window.setTabButtonsEnabled(false);
-        }
+        // Tab buttons will be disabled automatically by state management when globalData is cleared
 
         // Show success notification
         showNotification("File unloaded successfully", "info");
@@ -189,6 +180,7 @@ function unloadFitFile() {
 
 // Expose essential functions to window for backward compatibility
 window.showFitData = showFitData;
+// Note: renderChartJS is now handled through chartStateManager, but exposed for legacy compatibility
 window.renderChartJS = renderChartJS;
 window.cleanupEventListeners = cleanupEventListeners;
 
@@ -228,40 +220,14 @@ if (
     typeof window.electronAPI.onSetTheme === "function" &&
     typeof window.electronAPI.sendThemeChanged === "function"
 ) {
-    // Re-render charts when theme changes, regardless of active tab
+    // Clean theme change handling through state management
     listenForThemeChange((theme) => {
         applyTheme(theme);
 
-        // Update theme in state management
+        // Update theme in state management - this will trigger reactive chart updates
         UIActions.setTheme(theme);
 
-        // Always re-render ChartJS charts if data exists and charts container is present
-        const globalData = getState("globalData");
-        if (globalData && globalData.recordMesgs) {
-            const chartsContainer = document.getElementById("chartjs-chart-container");
-            if (chartsContainer && window._chartjsInstances && window._chartjsInstances.length > 0) {
-                console.log("[main-ui] Re-rendering ChartJS charts for theme change from app menu");
-
-                // Destroy existing charts
-                window._chartjsInstances.forEach((chart) => {
-                    if (chart && typeof chart.destroy === "function") {
-                        try {
-                            chart.destroy();
-                        } catch (error) {
-                            console.warn("[main-ui] Error destroying chart during theme change:", error);
-                        }
-                    }
-                });
-                window._chartjsInstances = [];
-
-                // Re-render charts with new theme
-                setTimeout(function () {
-                    if (typeof renderChartJS === "function") {
-                        renderChartJS("chartjs-chart-container");
-                    }
-                }, 100);
-            }
-        }
+        console.log(`[main-ui] Theme changed to: ${theme}`);
     });
 }
 
@@ -314,12 +280,8 @@ if (unloadBtn) {
     unloadBtn.onclick = unloadFitFile;
 }
 
-// On startup, disable tab buttons
-addEventListenerWithCleanup(window, "DOMContentLoaded", () => {
-    if (window.setTabButtonsEnabled) {
-        window.setTabButtonsEnabled(false);
-    }
-});
+// Tab button state is now managed automatically by the state management system
+// in utils/ui/controls/enableTabButtons.js
 
 // Enhanced Drag and Drop UI and Global Handling with State Management
 class DragDropHandler {
@@ -521,31 +483,9 @@ setupFullscreenListeners();
 
 // Sets up event listeners to handle DOMContentLoaded events for initializing UI components.
 setupDOMContentLoaded();
-// Define smaller chunks for better readability and maintainability
-const tabFunctions = {
-    updateTabVisibility,
-    updateActiveTab,
-    setupTabButton,
-};
 
-const renderFunctions = {
-    createTables,
-    renderMap,
-    renderSummary,
-};
-
-const utilityFunctions = {
-    getActiveTabContent,
-    convertArrayBufferToBase64,
-    showFitData,
-};
-
-// Pass the smaller chunks to setupWindowOnload
-setupWindowOnload({
-    ...tabFunctions,
-    ...renderFunctions,
-    ...utilityFunctions,
-});
+// Initialize the application window with modern state management
+setupWindow();
 
 // External link handler for opening links in default browser
 function setupExternalLinkHandlers() {
@@ -612,6 +552,11 @@ window.devCleanup = function () {
     setState("charts.isRendered", false, { source: "devCleanup" });
     setState("ui.dragCounter", 0, { source: "devCleanup" });
 
+    // Clean up our new state managers
+    if (window.chartTabIntegration) {
+        window.chartTabIntegration.destroy();
+    }
+
     console.log("[devCleanup] Application state and event listeners cleaned up");
 };
 
@@ -619,3 +564,12 @@ console.log("[DEV] Development helpers available:");
 console.log("- window.injectMenu(theme, fitFilePath) - Inject menu with specified theme and file path");
 console.log("- window.devCleanup() - Clean up application state and event listeners");
 console.log("- window.cleanupEventListeners() - Clean up all event listeners");
+
+// Initialize state managers
+console.log("[main-ui] Initializing state managers...");
+
+// The imports automatically initialize the state managers
+// chartTabIntegration is a singleton that self-initializes and brings in the other managers
+console.log("[main-ui] Chart tab integration:", chartTabIntegration?.getStatus?.() || "Not available");
+
+console.log("[main-ui] State managers initialized successfully");

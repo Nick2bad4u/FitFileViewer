@@ -7,9 +7,9 @@ const http = require("http");
 const url = require("url");
 const { autoUpdater } = require("electron-updater");
 
-const { loadRecentFiles, addRecentFile } = require("./utils/recentFiles");
-const { createAppMenu } = require("./utils/createAppMenu");
-const { mainProcessState } = require("./utils/mainProcessStateManager");
+const { loadRecentFiles, addRecentFile } = require("./utils/files/recent/recentFiles");
+const { createAppMenu } = require("./utils/app/menu/createAppMenu");
+const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager");
 
 // Constants
 const CONSTANTS = {

@@ -17,22 +17,22 @@
  */
 
 // Import utility functions
-import { formatDistance } from "./utils/formatDistance.js";
-import { formatDuration } from "./utils/formatDuration.js";
-import { patchSummaryFields } from "./utils/patchSummaryFields.js";
-import { createTables } from "./utils/createTables.js";
-import { renderTable } from "./utils/renderTable.js";
-import { copyTableAsCSV } from "./utils/copyTableAsCSV.js";
-import { renderMap } from "./utils/renderMap.js";
-import { renderSummary } from "./utils/renderSummary.js";
-import { updateActiveTab } from "./utils/updateActiveTab.js";
-import { updateTabVisibility } from "./utils/updateTabVisibility.js";
-import { showFitData } from "./utils/showFitData.js";
-import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theme.js";
-import { updateMapTheme } from "./utils/updateMapTheme.js";
-import { showNotification, setLoading } from "./utils/rendererUtils.js";
-import { formatArray } from "./utils/formatUtils.js";
-import { setTabButtonsEnabled } from "./utils/enableTabButtons.js";
+import { formatDistance } from "./utils/formatting/formatters/formatDistance.js";
+import { formatDuration } from "./utils/formatting/formatters/formatDuration.js";
+import { patchSummaryFields } from "./utils/data/processing/patchSummaryFields.js";
+import { createTables } from "./utils/rendering/components/createTables.js";
+import { renderTable } from "./utils/rendering/core/renderTable.js";
+import { copyTableAsCSV } from "./utils/files/export/copyTableAsCSV.js";
+import { renderMap } from "./utils/maps/core/renderMap.js";
+import { renderSummary } from "./utils/rendering/core/renderSummary.js";
+import { updateActiveTab } from "./utils/ui/tabs/updateActiveTab.js";
+import { updateTabVisibility } from "./utils/ui/tabs/updateTabVisibility.js";
+import { showFitData } from "./utils/rendering/core/showFitData.js";
+import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theming/core/theme.js";
+import { updateMapTheme } from "./utils/theming/specific/updateMapTheme.js";
+import { showNotification, setLoading } from "./utils/app/initialization/rendererUtils.js";
+import { formatArray } from "./utils/formatting/formatters/formatUtils.js";
+import { setTabButtonsEnabled } from "./utils/ui/controls/enableTabButtons.js";
 
 // Constants for better maintainability
 const CONSTANTS = {

@@ -47,19 +47,19 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
-import { showNotification } from "./utils/showNotification.js";
-import { handleOpenFile } from "./utils/handleOpenFile.js";
-import { setupTheme } from "./utils/setupTheme.js";
-import { showUpdateNotification } from "./utils/showUpdateNotification.js";
-import { setupListeners } from "./utils/listeners.js";
-import { showAboutModal } from "./utils/aboutModal.js";
-import { createExportGPXButton } from "./utils/createExportGPXButton.js";
-import { applyTheme, listenForThemeChange } from "./utils/theme.js";
-import { setLoading } from "./utils/rendererUtils.js";
-import { masterStateManager } from "./utils/masterStateManager.js";
-import { AppActions } from "./utils/appActions.js";
-import { getState, subscribe } from "./utils/stateManager.js";
-import { uiStateManager } from "./utils/uiStateManager.js";
+import { showNotification } from "./utils/ui/notifications/showNotification.js";
+import { handleOpenFile } from "./utils/files/import/handleOpenFile.js";
+import { setupTheme } from "./utils/theming/core/setupTheme.js";
+import { showUpdateNotification } from "./utils/ui/notifications/showUpdateNotification.js";
+import { setupListeners } from "./utils/app/lifecycle/listeners.js";
+import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
+import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
+import { applyTheme, listenForThemeChange } from "./utils/theming/core/theme.js";
+import { setLoading } from "./utils/app/initialization/rendererUtils.js";
+import { masterStateManager } from "./utils/state/core/masterStateManager.js";
+import { AppActions } from "./utils/app/lifecycle/appActions.js";
+import { getState, subscribe } from "./utils/state/core/stateManager.js";
+import { uiStateManager } from "./utils/state/domain/uiStateManager.js";
 
 // ==========================================
 // Environment Detection
@@ -606,9 +606,9 @@ if (isDevelopmentMode()) {
                 testProductId,
                 showDataKeys,
                 checkDataAvailability,
-            } = await import("./utils/debugSensorInfo.js");
+            } = await import("./utils/debug/debugSensorInfo.js");
             const { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
-                "./utils/debugChartFormatting.js"
+                "./utils/debug/debugChartFormatting.js"
             );
 
             // Expose sensor debug utilities globally
