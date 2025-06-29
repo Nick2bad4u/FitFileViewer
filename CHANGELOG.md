@@ -7,9 +7,41 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[505ea66](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)...
+[505ea66](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/505ea660c25e2c2022721faeae7dec635b6db011...505ea660c25e2c2022721faeae7dec635b6db011))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 25.7.0 [`(505ea66)`](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)
+
+
+
+
+
+
+## [25.7.0] - 2025-06-29
+
+
 [[acde6cf](https://github.com/Nick2bad4u/FitFileViewer/commit/acde6cf2fba2728f559434c47d94e0743755e046)...
-[acde6cf](https://github.com/Nick2bad4u/FitFileViewer/commit/acde6cf2fba2728f559434c47d94e0743755e046)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/acde6cf2fba2728f559434c47d94e0743755e046...acde6cf2fba2728f559434c47d94e0743755e046))
+[a1bfc75](https://github.com/Nick2bad4u/FitFileViewer/commit/a1bfc7526a306972d29cdad16acc3295b05db6cc)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/acde6cf2fba2728f559434c47d94e0743755e046...a1bfc7526a306972d29cdad16acc3295b05db6cc))
+
+
+### 🛠️ GitHub Actions
+
+- Update prettier.yml [`(0eeb934)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0eeb9348a3c544253e70499714310f86dd7a11c7)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Format code with Prettier [skip-ci] (#137) [`(a1bfc75)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a1bfc7526a306972d29cdad16acc3295b05db6cc)
+
+
+- Update changelogs for v25.6.0 [skip ci] [`(a56b2d4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a56b2d43157b6e19f791000f782233a2de7cf409)
+
 
 
 ### 📦 Dependencies
@@ -551,9 +583,21 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 ## [24.4.0] - 2025-06-19
 
 
-[[221fb03](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)...
+[[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
 [a9f752a](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/221fb032bc3ce5b1dff552afcb895bd4561f0b1a...a9f752a3ee06df602b6294421de320739de7081d))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...a9f752a3ee06df602b6294421de320739de7081d))
+
+
+### 🚀 Features
+
+- Implement comprehensive state management system with advanced features [`(a09e7e1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a09e7e1ba6cae2d8715497930ed78fe72fa3f12c)
+
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(dd3386b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)
+
 
 
 ### 🛠️ GitHub Actions
@@ -571,47 +615,6 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 
 
 - Update prettier.yml [`(6acc0a9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6acc0a94ed639939ac63cce1ea89269016bd9b64)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Format code with Prettier (#129) [`(b64b260)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b64b260c00bee59c9a8528ef91ccbde6fee954fa)
-
-
-- Update changelogs for v24.3.0 [skip ci] [`(4a2c605)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4a2c605444ab3c8b514805c8fc1f22981b58a36d)
-
-
-
-### 📦 Dependencies
-
-- *(deps)* [dependency] Update the npm-all group (#128) [`(a9f752a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)
-
-
-- [dependency] Update version 24.3.0 [`(221fb03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)
-
-
-
-
-
-
-## [24.3.0] - 2025-06-19
-
-
-[[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
-[dd3386b](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...dd3386bd3c7a4861f40818bec8fe740ecea33484))
-
-
-### 🚀 Features
-
-- Implement comprehensive state management system with advanced features [`(a09e7e1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a09e7e1ba6cae2d8715497930ed78fe72fa3f12c)
-
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(dd3386b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dd3386bd3c7a4861f40818bec8fe740ecea33484)
 
 
 
@@ -645,6 +648,12 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 ### ⚙️ Miscellaneous Tasks
 
+- Format code with Prettier (#129) [`(b64b260)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b64b260c00bee59c9a8528ef91ccbde6fee954fa)
+
+
+- Update changelogs for v24.3.0 [skip ci] [`(4a2c605)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4a2c605444ab3c8b514805c8fc1f22981b58a36d)
+
+
 - Update changelogs for v24.2.0 [skip ci] [`(8aa919f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8aa919f268d067b8751741c6cf52499b5ab5363c)
 
 
@@ -656,6 +665,12 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 
 ### 📦 Dependencies
+
+- *(deps)* [dependency] Update the npm-all group (#128) [`(a9f752a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)
+
+
+- [dependency] Update version 24.3.0 [`(221fb03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/221fb032bc3ce5b1dff552afcb895bd4561f0b1a)
+
 
 - [dependency] Update version 24.2.0 [`(f0bf5ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f0bf5ec2d2631a0b95267d26e118b590f85a4529)
 
