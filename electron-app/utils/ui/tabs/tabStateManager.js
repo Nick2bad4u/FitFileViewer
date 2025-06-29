@@ -134,7 +134,7 @@ class TabStateManager {
         const tabId = button.id;
 
         // Check if button is disabled
-        if (button.disabled || button.hasAttribute('disabled') || button.classList.contains('tab-disabled')) {
+        if (button.disabled || button.hasAttribute("disabled") || button.classList.contains("tab-disabled")) {
             console.log(`[TabStateManager] Ignoring click on disabled button: ${tabId}`);
             event.preventDefault();
             event.stopPropagation();
