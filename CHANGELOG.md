@@ -7,12 +7,57 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[505ea66](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)...
-[505ea66](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/505ea660c25e2c2022721faeae7dec635b6db011...505ea660c25e2c2022721faeae7dec635b6db011))
+[[b66df28](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)...
+[b66df28](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/b66df283fb26e5370017f20bd7cfd27b11f4318d...b66df283fb26e5370017f20bd7cfd27b11f4318d))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 25.8.0 [`(b66df28)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)
+
+
+
+
+
+
+## [25.8.0] - 2025-07-02
+
+
+[[505ea66](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)...
+[12d96b5](https://github.com/Nick2bad4u/FitFileViewer/commit/12d96b5df6927e4416150a82d2b2c0580fe7d20d)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/505ea660c25e2c2022721faeae7dec635b6db011...12d96b5df6927e4416150a82d2b2c0580fe7d20d))
+
+
+### 💼 Other
+
+- Merge PR #138
+
+[ci](deps): [dependency] Update dependency group [`(5feed2d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5feed2d8c243a284b76952eac9076d030aff4dcc)
+
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(5b1b424)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5b1b4249759eb1b8d4eb56a37305d199ff868301)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v25.7.0 [skip ci] [`(1925929)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1925929f5dfe156158556cb1b8bcbd07be856dc1)
+
+
+
+### 📦 Dependencies
+
+- Merge PR #139
+
+test(deps): [dependency] Update the npm-all group in /electron-app with 21 updates [`(12d96b5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/12d96b5df6927e4416150a82d2b2c0580fe7d20d)
+
+
+- *(deps)* [dependency] Update the npm-all group [`(5930b22)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5930b2214dba68aef37667ce123e291a6b2b0de3)
+
+
+- *(deps)* [dependency] Update dependency group [`(b177670)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b177670b7a83a0931910acca9ac606a413ab3c1a)
+
 
 - [dependency] Update version 25.7.0 [`(505ea66)`](https://github.com/Nick2bad4u/FitFileViewer/commit/505ea660c25e2c2022721faeae7dec635b6db011)
 
@@ -531,61 +576,9 @@ foundation for more scalable UI updates. [`(ca8fa82)`](https://github.com/Nick2b
 ## [24.5.0] - 2025-06-19
 
 
-[[01892ef](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)...
-[62be314](https://github.com/Nick2bad4u/FitFileViewer/commit/62be31491debf127bc896f9495b25abbd06fb363)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/01892ef2918ad4562942d8e66d5ea7cdaa6f562e...62be31491debf127bc896f9495b25abbd06fb363))
-
-
-### 🛠️ GitHub Actions
-
-- Update summary.yml [`(787668f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/787668f979386290bcb0ac28ec0c35ed5d5cab54)
-
-
-
-### 💼 Other
-
-- Integrates state management into FIT file parsing
-
-Adds robust state management integration for FIT file parsing, enabling progress tracking, error reporting, and decoder settings persistence via both a new state system and fallback to electron-conf for backward compatibility.
-
-Introduces validation of decoder options, improved error metadata, and performance monitoring hooks. Enhances user experience with real-time state updates and easier settings management.
-
-No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFileViewer/commit/62be31491debf127bc896f9495b25abbd06fb363)
-
-
-- Update metrics.repository.svg - [Skip GitHub Action] [`(9e6a334)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e6a334b530ae1bbc2cc8991147ceef7a2164387)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v24.4.0 [skip ci] [`(546358e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/546358e5099acbe78692c466583f8e5deae74b42)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 24.4.0 [`(01892ef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)
-
-
-
-### 🛡️ Security
-
-- [StepSecurity] ci: Harden GitHub Actions (#130)
-
-Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b6b42a22645b0ae2bc91d8c5511da380e78c9ce)
-
-
-
-
-
-
-## [24.4.0] - 2025-06-19
-
-
 [[9daf5a3](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)...
-[a9f752a](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...a9f752a3ee06df602b6294421de320739de7081d))
+[62be314](https://github.com/Nick2bad4u/FitFileViewer/commit/62be31491debf127bc896f9495b25abbd06fb363)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/9daf5a37408caa8804b78cfa02430b01d019eeec...62be31491debf127bc896f9495b25abbd06fb363))
 
 
 ### 🚀 Features
@@ -601,6 +594,9 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 
 
 ### 🛠️ GitHub Actions
+
+- Update summary.yml [`(787668f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/787668f979386290bcb0ac28ec0c35ed5d5cab54)
+
 
 - Update prettier.yml [`(1b9945b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1b9945b56f9fad21bc1b0201011a879e88b26c95)
 
@@ -619,6 +615,18 @@ Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://gith
 
 
 ### 💼 Other
+
+- Integrates state management into FIT file parsing
+
+Adds robust state management integration for FIT file parsing, enabling progress tracking, error reporting, and decoder settings persistence via both a new state system and fallback to electron-conf for backward compatibility.
+
+Introduces validation of decoder options, improved error metadata, and performance monitoring hooks. Enhances user experience with real-time state updates and easier settings management.
+
+No issue reference provided. [`(62be314)`](https://github.com/Nick2bad4u/FitFileViewer/commit/62be31491debf127bc896f9495b25abbd06fb363)
+
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(9e6a334)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e6a334b530ae1bbc2cc8991147ceef7a2164387)
+
 
 - Refactor heart rate and power zone color controls to use inline color selectors
 
@@ -648,6 +656,9 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v24.4.0 [skip ci] [`(546358e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/546358e5099acbe78692c466583f8e5deae74b42)
+
+
 - Format code with Prettier (#129) [`(b64b260)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b64b260c00bee59c9a8528ef91ccbde6fee954fa)
 
 
@@ -666,6 +677,9 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 ### 📦 Dependencies
 
+- [dependency] Update version 24.4.0 [`(01892ef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/01892ef2918ad4562942d8e66d5ea7cdaa6f562e)
+
+
 - *(deps)* [dependency] Update the npm-all group (#128) [`(a9f752a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a9f752a3ee06df602b6294421de320739de7081d)
 
 
@@ -679,6 +693,14 @@ Improves accessibility and maintainability of chart settings, while removing red
 
 
 - [dependency] Update version 24.0.0 [`(9daf5a3)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9daf5a37408caa8804b78cfa02430b01d019eeec)
+
+
+
+### 🛡️ Security
+
+- [StepSecurity] ci: Harden GitHub Actions (#130)
+
+Signed-off-by: StepSecurity Bot <bot@stepsecurity.io> [`(6b6b42a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6b6b42a22645b0ae2bc91d8c5511da380e78c9ce)
 
 
 
