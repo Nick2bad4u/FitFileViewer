@@ -30,13 +30,13 @@ jobs:
         steps:
             # Step to harden the runner for security purposes
             - name: Harden Runner
-              uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49 # v2.12.2
+              uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
               with:
                   egress-policy: audit # Set egress policy to audit
 
             # Step to send a greeting message for issues and pull requests
             - name: First Interaction
-              uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7 # v1.3.0
+              uses: actions/first-interaction@2d4393e6bc0e2efb2e48fba7e06819c3bf61ffc9 # v2.0.0
               with:
                   repo-token: ${{ secrets.GITHUB_TOKEN }} # Use the repository token for authentication
                   issue-message: "Greetings, thanks for opening an issue, I'll look when I can." # Message for new issues

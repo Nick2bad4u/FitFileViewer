@@ -23,7 +23,7 @@ jobs:
 
         steps:
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@6c439dc8bdf85cadbbce9ed30d1c7b959517bc49 # v2.12.2
+              uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
               with:
                   egress-policy: audit
 
@@ -33,7 +33,7 @@ jobs:
             - name: Run AI inference
               id: inference
               if: github.event.pull_request.head.repo.full_name == github.repository
-              uses: actions/ai-inference@d645f067d89ee1d5d736a5990e327e504d1c5a4a # v1.1.0
+              uses: actions/ai-inference@9693b137b6566bb66055a713613bf4f0493701eb # v1.2.3
               with:
                   prompt: |
                       Summarize the following GitHub ${{ github.event_name == 'pull_request' && 'pull request' || 'issue' }} in order to explain it to the project owner:
