@@ -377,7 +377,7 @@
     "@types/jest": "^30.0.0",
     "@types/mocha": "10.0.10",
     "cross-env": "^10.0.0",
-    "electron": "37.2.5",
+    "electron": "37.2.6",
     "electron-builder": "^26.0.19",
     "electron-builder-squirrel-windows": "^26.0.19",
     "eslint": "^9.32.0",
