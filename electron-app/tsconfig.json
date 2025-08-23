@@ -1,0 +1,141 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "jsx": "react-jsx",
+        "module": "ESNext",
+        "moduleDetection": "auto",
+        "moduleResolution": "bundler",
+        "outDir": "dist",
+        "target": "ES2024",
+        "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
+        "lib": [
+            "DOM.Iterable",
+            "DOM",
+            "ES2015",
+            "ES2016",
+            "ES2017",
+            "ES2018",
+            "ES2019",
+            "ES2020",
+            "ES2021",
+            "ES2022",
+            "ES2023",
+            "ES6",
+            "ES7",
+            "ESNext"
+        ],
+        "paths": {
+            "@shared/*": [
+                "shared/*"
+            ],
+            "@electron/*": [
+                "electron/*"
+            ],
+            "@app/*": [
+                "src/*"
+            ]
+        },
+        "plugins": [
+            {
+                "name": "@styled/typescript-styled-plugin"
+            }
+        ],
+        "types": [
+            "electron",
+            "node"
+        ],
+        "allowJs": true,
+        "allowSyntheticDefaultImports": true,
+        "allowUmdGlobalAccess": false,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "alwaysStrict": true,
+        "declaration": true,
+        "declarationMap": true,
+        "disableSizeLimit": true,
+        "downlevelIteration": true,
+        "esModuleInterop": true,
+        "exactOptionalPropertyTypes": true,
+        "forceConsistentCasingInFileNames": true,
+        "incremental": true,
+        "isolatedDeclarations": false,
+        "isolatedModules": true,
+        "noCheck": false,
+        "checkJs": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitUseStrict": false,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUncheckedIndexedAccess": true,
+        "noUncheckedSideEffectImports": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "pretty": true,
+        "resolveJsonModule": true,
+        "resolvePackageJsonExports": true,
+        "resolvePackageJsonImports": true,
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "strictBindCallApply": true,
+        "strictBuiltinIteratorReturn": true,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "useDefineForClassFields": true,
+        "useUnknownInCatchVariables": true
+    },
+    "exclude": [
+        "**/dist-electron",
+        "**/dist-electron/**",
+        "**/dist",
+        "**/libs",
+        "**/dist/**",
+        "**/docs/**",
+        "**/node_modules",
+        "**/node_modules/@types/**",
+        "**/node_modules/@typescript-eslint/**",
+        "**/node_modules/**",
+        "**/node_modules/typescript/**",
+        "coverage",
+        "dist-electron",
+        "dist",
+        "dist-shared",
+        "**/dist-shared/**",
+        "electron",
+        "shared",
+        "node_modules",
+        "node_modules/**/*",
+        "out",
+        "release",
+        "src/**/*.test.ts",
+        "src/**/*.test.tsx"
+    ],
+    "include": [
+        "**/*.js",
+        "global.d.ts",
+        "src/**/*.css",
+        "src/**/*.css",
+        "src/**/*.ts",
+        "src/**/*.mts",
+        "src/**/*.cts",
+        "src/**/*.tsx",
+        "src/**/*",
+        "src/App.tsx",
+        "src/index.css",
+        "src/types/global.d.ts",
+        "vite.config.ts",
+        "vite/client",
+        "vitest.config.ts",
+        "vitest.shared.config.ts",
+        "tailwind.config.mjs"
+    ],
+    "typeAcquisition": {
+        "enable": true
+    }
+}
