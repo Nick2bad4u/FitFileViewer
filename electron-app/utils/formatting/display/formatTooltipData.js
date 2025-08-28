@@ -5,6 +5,19 @@
 
 import { getState } from "../../state/core/stateManager.js";
 
+/**
+ * @typedef {Object} RecordMessage
+ * @property {string|Date} [timestamp] - Message timestamp
+ * @property {number} [altitude] - Altitude in meters
+ * @property {number} [heartRate] - Heart rate in bpm
+ * @property {number} [speed] - Speed in m/s
+ * @property {number} [power] - Power in watts
+ * @property {number} [cadence] - Cadence in rpm
+ * @property {number} [distance] - Distance in meters
+ * @property {number} [positionLat] - Latitude
+ * @property {number} [positionLong] - Longitude
+ */
+
 // Constants for better maintainability
 const FORMATTING_CONSTANTS = {
     CONVERSION_FACTORS: {
@@ -171,7 +184,7 @@ function formatDistance(distance) {
 /**
  * Calculates and formats ride time from start to current point
  * @param {string|Date} timestamp - Current point timestamp
- * @param {Array} recordMesgs - Array of record messages for reference
+ * @param {RecordMessage[]} recordMesgs - Array of record messages for reference
  * @returns {string} Formatted ride time string or empty string
  * @private
  */
@@ -208,7 +221,8 @@ function formatRideTime(timestamp, recordMesgs) {
 
         return parts.join(", ");
     } catch (error) {
-        logWithContext(`Error calculating ride time: ${error.message}`, "error");
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        logWithContext(`Error calculating ride time: ${errorMsg}`, "error");
         return "";
     }
 }
@@ -218,9 +232,9 @@ function formatRideTime(timestamp, recordMesgs) {
  * Creates a comprehensive data summary for a specific data point
  *
  * @param {number} idx - Index of the data point
- * @param {Object} row - Data row containing measurement values
+ * @param {RecordMessage} row - Data row containing measurement values
  * @param {number} lapNum - Lap number for this data point
- * @param {Array} [recordMesgsOverride] - Optional override for record messages array
+ * @param {RecordMessage[]} [recordMesgsOverride] - Optional override for record messages array
  * @returns {string} Formatted HTML string for tooltip display
  *
  * @example
@@ -244,19 +258,19 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         const recordMesgs =
             recordMesgsOverride ||
             getState("globalData.recordMesgs") ||
-            (window.globalData && window.globalData.recordMesgs);
+            (/** @type {any} */ (window).globalData && /** @type {any} */ (window).globalData.recordMesgs);
 
         // Format timestamp
         const dateStr = row.timestamp ? new Date(row.timestamp).toLocaleString() : "";
 
         // Format individual metrics
-        const altitude = formatAltitude(row.altitude);
-        const heartRate = formatHeartRate(row.heartRate);
-        const speed = formatSpeed(row.speed);
-        const power = formatPower(row.power);
-        const cadence = formatCadence(row.cadence);
-        const distance = formatDistance(row.distance);
-        const rideTime = formatRideTime(row.timestamp, recordMesgs);
+        const altitude = formatAltitude(row.altitude ?? null);
+        const heartRate = formatHeartRate(row.heartRate ?? null);
+        const speed = formatSpeed(row.speed ?? null);
+        const power = formatPower(row.power ?? null);
+        const cadence = formatCadence(row.cadence ?? null);
+        const distance = formatDistance(row.distance ?? null);
+        const rideTime = formatRideTime(row.timestamp || "", recordMesgs);
 
         // Build the tooltip HTML
         const tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
@@ -272,7 +286,8 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
 
         return tooltipParts.join("<br>");
     } catch (error) {
-        logWithContext(`Error formatting tooltip data: ${error.message}`, "error");
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        logWithContext(`Error formatting tooltip data: ${errorMsg}`, "error");
         return `Error loading data (Index: ${idx || "unknown"})`;
     }
 }

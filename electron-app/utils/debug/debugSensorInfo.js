@@ -1,17 +1,17 @@
 /**
  * @fileoverview Debug utility for extracting and displaying sensor information
- * 
+ *
  * This utility provides console commands to inspect sensor data from FIT files
  *        console.log(`    🎨 Formatted Name: "${formattedName}"`);
         console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);
         if (formattedProduct && formattedProduct !== productField) {
             console.log(`    📦 Formatted Product: "${formattedProduct}"`);
         }
-        
+
         if (verbose) {
             console.log(`    🔬 Full sensor object:`, sensor);
         }help debug manufacturer/product formatting issues.
- * 
+ *
  * @author FitFileViewer Team
  * @since 1.0.0
  */
@@ -23,8 +23,7 @@ import { getManufacturerName, getProductName } from "../formatting/display/forma
 
 /**
  * Extracts and displays detailed sensor information from global data
- * @param {boolean} verbose - Whether to show detailed information for each sensor
- * @returns {Object} Sensor analysis summary
+ * @returns {Object|null} Sensor analysis summary or null if no data
  */
 export function debugSensorInfo() {
     if (!window.globalData || Object.keys(window.globalData).length === 0) {
@@ -42,7 +41,7 @@ export function debugSensorInfo() {
     if (data.deviceInfoMesgs) {
         console.log(`📱 Found ${data.deviceInfoMesgs.length} deviceInfoMesgs entries`);
         sensors.push(
-            ...data.deviceInfoMesgs.map((device) => ({
+            ...data.deviceInfoMesgs.map(/** @param {*} device */ (device) => ({
                 ...device,
                 source: "deviceInfoMesgs",
             }))
@@ -53,7 +52,7 @@ export function debugSensorInfo() {
     if (data.deviceSettingsMesgs) {
         console.log(`⚙️  Found ${data.deviceSettingsMesgs.length} deviceSettingsMesgs entries`);
         sensors.push(
-            ...data.deviceSettingsMesgs.map((device) => ({
+            ...data.deviceSettingsMesgs.map(/** @param {*} device */ (device) => ({
                 ...device,
                 source: "deviceSettingsMesgs",
             }))
@@ -64,7 +63,7 @@ export function debugSensorInfo() {
     if (data.device_info) {
         console.log(`📱 Found ${data.device_info.length} device_info entries`);
         sensors.push(
-            ...data.device_info.map((device) => ({
+            ...data.device_info.map(/** @param {*} device */ (device) => ({
                 ...device,
                 source: "device_info",
             }))
@@ -138,8 +137,8 @@ export function debugSensorInfo() {
 
     const analysis = {
         totalSensors: sensors.length,
-        manufacturerIssues: [],
-        productIssues: [],
+        manufacturerIssues: /** @type {Array<*>} */ ([]),
+        productIssues: /** @type {Array<*>} */ ([]),
         summary: {},
     };
 
@@ -223,13 +222,13 @@ export function showSensorNames() {
     const sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
-        sensors.push(...data.deviceInfoMesgs.map((d) => ({ ...d, source: "deviceInfoMesgs" })));
+        sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceInfoMesgs" })));
     }
     if (data.deviceSettingsMesgs) {
-        sensors.push(...data.deviceSettingsMesgs.map((d) => ({ ...d, source: "deviceSettingsMesgs" })));
+        sensors.push(...data.deviceSettingsMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceSettingsMesgs" })));
     }
     if (data.device_info) {
-        sensors.push(...data.device_info.map((d) => ({ ...d, source: "device_info" })));
+        sensors.push(...data.device_info.map(/** @param {*} d */ (d) => ({ ...d, source: "device_info" })));
     }
     if (data.sessionMesgs && data.sessionMesgs[0]) {
         sensors.push({ ...data.sessionMesgs[0], source: "sessionMesgs" });
@@ -256,7 +255,7 @@ export function showSensorNames() {
  * @param {number|string} manufacturerId - Manufacturer ID to test
  */
 export function testManufacturerId(manufacturerId) {
-    const id = parseInt(manufacturerId, 10);
+    const id = parseInt(String(manufacturerId), 10);
     const resolved = getManufacturerName(id);
     const formatted = formatManufacturer(resolved);
 
@@ -273,8 +272,8 @@ export function testManufacturerId(manufacturerId) {
  * @param {number|string} productId - Product ID to test
  */
 export function testProductId(manufacturerId, productId) {
-    const mfgId = parseInt(manufacturerId, 10);
-    const prodId = parseInt(productId, 10);
+    const mfgId = parseInt(String(manufacturerId), 10);
+    const prodId = parseInt(String(productId), 10);
     const resolvedProduct = getProductName(mfgId, prodId);
     const formattedProduct = formatProduct(mfgId, prodId);
     const manufacturerName = getManufacturerName(mfgId);

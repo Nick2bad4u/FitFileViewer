@@ -48,11 +48,11 @@ export async function loadOverlayFiles(files) {
 
                         // UI update deferred until after all files are processed
                     } else {
-                        showNotification("File already loaded", `${file.name} is already shown on the map`, "warning");
+                        showNotification(/** @type {any} */ (`${file.name} is already shown on the map`), "warning");
                     }
                 } else {
                     invalidFiles.push(file.name);
-                    showNotification("File load failed", `Failed to load ${file.name}: ${result.error}`, "error");
+                    showNotification(/** @type {any} */ (`Failed to load ${file.name}: ${result.error}`), "error");
                 }
 
                 loaded++;
@@ -67,23 +67,23 @@ export async function loadOverlayFiles(files) {
 
         // Batch update UI after all files are processed
         if (window.renderMap) window.renderMap();
-        if (window.updateShownFilesList) window.updateShownFilesList();
+        if (/** @type {any} */ (window).updateShownFilesList) /** @type {any} */ (window).updateShownFilesList();
 
         // Show summary notification
         if (invalidFiles.length === files.length) {
             // All files failed
-            showNotification("Load failed", `Failed to load any of the ${files.length} files.`, "error");
+            showNotification(/** @type {any} */ (`Failed to load any of the ${files.length} files.`), "error");
         } else if (invalidFiles.length > 0) {
             // Some files failed
             const message = `${files.length - invalidFiles.length} files loaded successfully. ${invalidFiles.length} files failed.`;
-            showNotification("Load complete with errors", message, "warning");
+            showNotification(/** @type {any} */ (message), "warning");
         } else {
             // All files succeeded
-            showNotification("Load complete", `Successfully loaded ${files.length} files`, "success");
+            showNotification(/** @type {any} */ (`Successfully loaded ${files.length} files`), "success");
         }
     } catch (error) {
         console.error("[loadOverlayFiles] Error in loadOverlayFiles:", error);
         LoadingOverlay.hide();
-        showNotification("Load failed", "Failed to load overlay files", "error");
+        showNotification("Failed to load overlay files", "error");
     }
 }

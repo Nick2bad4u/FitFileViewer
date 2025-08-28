@@ -7,6 +7,38 @@ import { setState, getState, updateState, subscribe } from "../../state/core/sta
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
+ * @typedef {Object} ChartData
+ * @property {any} datasets - Underlying chart dataset collection (library specific)
+ * @property {any} [meta] - Optional metadata about the chart
+ */
+
+/**
+ * @typedef {Object<string, any>} ChartOptions
+ */
+
+/**
+ * @typedef {[number, number]} MapCenter Tuple of [latitude, longitude]
+ */
+
+/**
+ * @typedef {Object} TableConfig
+ * @property {boolean} [isRendered]
+ * @property {any} [data]
+ * @property {any} [columns]
+ * @property {Object<string, any>} [options]
+ */
+
+/**
+ * @typedef {(path: string, value: any, oldValue: any, options: Record<string, any>) => any} MiddlewareFn
+ */
+
+/**
+ * @typedef {Object} PerformanceMetrics
+ * @property {number} [lastLoadTime]
+ * @property {{chart?: number, map?: number, table?: number}} [renderTimes]
+ */
+
+/**
  * Application state actions - higher-level functions for common state changes
  */
 export const AppActions = {
@@ -97,7 +129,7 @@ export const AppActions = {
      * @param {Object} chartData - Chart data
      * @param {Object} options - Chart options
      */
-    renderChart(chartData, options = {}) {
+    renderChart(chartData, options = /** @type {ChartOptions} */ ({})) {
         const startTime = performance.now();
 
         updateState(
@@ -124,7 +156,7 @@ export const AppActions = {
 
     /**
      * Update map rendering state and center
-     * @param {Array} center - [lat, lng] coordinates for map center
+    * @param {MapCenter} center - [lat, lng] coordinates for map center
      * @param {number} zoom - Zoom level
      */
     renderMap(center, zoom = 13) {
@@ -156,7 +188,7 @@ export const AppActions = {
      * Update table rendering state
      * @param {Object} tableConfig - Table configuration
      */
-    renderTable(tableConfig = {}) {
+    renderTable(tableConfig = /** @type {TableConfig} */ ({}) ) {
         const startTime = performance.now();
 
         updateState(
@@ -338,12 +370,16 @@ export const AppSelectors = {
  */
 export class StateMiddleware {
     constructor() {
+        /** @type {MiddlewareFn[]} */
         this.middlewares = [];
     }
 
     /**
      * Add middleware function
      * @param {Function} middleware - Middleware function
+     */
+    /**
+     * @param {MiddlewareFn} middleware
      */
     use(middleware) {
         this.middlewares.push(middleware);
@@ -356,6 +392,13 @@ export class StateMiddleware {
      * @param {*} oldValue - Old value
      * @param {Object} options - Options
      * @returns {*} Potentially modified value
+     */
+    /**
+     * @param {string} path
+     * @param {any} value
+     * @param {any} oldValue
+     * @param {Record<string, any>} options
+     * @returns {any}
      */
     apply(path, value, oldValue, options) {
         let modifiedValue = value;
@@ -392,14 +435,22 @@ stateMiddleware.use((path, value, oldValue) => {
  * @param {*} defaultValue - Default value if state is undefined
  * @returns {Array} [value, setter] tuple
  */
+/**
+ * Hook-like accessor for state values with a setter.
+ * @template T
+ * @param {string} path
+ * @param {T} [defaultValue]
+ * @returns {[T, (newValue: T) => void]}
+ */
 export function useState(path, defaultValue = undefined) {
     const currentValue = getState(path) ?? defaultValue;
 
+    /** @type {(newValue: any) => void} */
     const setter = (newValue) => {
         setState(path, newValue, { source: "useState" });
     };
 
-    return [currentValue, setter];
+    return /** @type {[any, (newValue: any) => void]} */ ([currentValue, setter]);
 }
 
 /**
@@ -408,7 +459,15 @@ export function useState(path, defaultValue = undefined) {
  * @param {Array<string>} dependencies - Array of state paths to watch
  * @returns {Function} Function that returns the computed value
  */
+/**
+ * Create a lazily evaluated memoized computed value invalidated by dependencies.
+ * @template T
+ * @param {() => T} computeFn
+ * @param {string[]} [dependencies]
+ * @returns {(() => T) & { cleanup: () => void }}
+ */
 export function useComputed(computeFn, dependencies = []) {
+    /** @type {T} */
     let cachedValue;
     let isValid = false;
 

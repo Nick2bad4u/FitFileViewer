@@ -6,6 +6,28 @@
  */
 
 /**
+ * @typedef {Object} StateUpdateEvent
+ * @property {string} path - The state path that changed
+ * @property {*} newValue - The new value
+ * @property {*} oldValue - The previous value
+ * @property {number} timestamp - When the change occurred
+ */
+
+/**
+ * @typedef {Object} StateValue
+ * @property {*} [data] - Global data state
+ * @property {*} [file] - File state information
+ * @property {*} [ui] - UI state information
+ * @property {*} [charts] - Chart state information
+ * @property {*} [performance] - Performance metrics
+ * @property {*} [errors] - Error state information
+ */
+
+/**
+ * @typedef {function(*, *): boolean} StateValidator
+ */
+
+/**
  * State change event types for different categories of state
  */
 export const STATE_EVENTS = {
@@ -123,30 +145,45 @@ class AppStateManager {
      * Sets up reactive properties with getters/setters that trigger events
      */
     setupReactiveProperties() {
+        /**
+         * @param {StateValue} obj - Object to add reactive property to
+         * @param {string} path - Dot notation path
+         * @param {*} initialValue - Initial value for the property
+         */
         const createReactiveProperty = (obj, path, initialValue) => {
             const keys = path.split(".");
+            /** @type {any} */
             let current = obj;
 
             // Navigate to parent object
             for (let i = 0; i < keys.length - 1; i++) {
-                if (!current[keys[i]]) {
-                    current[keys[i]] = {};
+                const key = keys[i];
+                if (key && !current[key]) {
+                    current[key] = {};
                 }
-                current = current[keys[i]];
+                if (key) {
+                    current = current[key];
+                }
             }
 
             const finalKey = keys[keys.length - 1];
+            if (!finalKey) return;
+
             let value = initialValue;
 
+            const self = this;
             Object.defineProperty(current, finalKey, {
                 get() {
                     return value;
                 },
-                set: function (newValue) {
+                /**
+                 * @param {*} newValue - New value to set
+                 */
+                set(newValue) {
                     const oldValue = value;
 
                     // Validate if validator exists
-                    const validator = this.validators.get(path);
+                    const validator = self.validators.get(path);
                     if (validator && !validator(newValue, oldValue)) {
                         console.warn(`[AppState] Validation failed for ${path}:`, newValue);
                         return;
@@ -155,14 +192,14 @@ class AppStateManager {
                     value = newValue;
 
                     // Emit change event
-                    this.emit(`${path}-changed`, {
+                    self.emit(`${path}-changed`, {
                         path,
                         newValue,
                         oldValue,
                         timestamp: Date.now(),
                     }); // Emit specific events based on path
-                    this.emitSpecificEvents(path, newValue, oldValue);
-                }.bind(this),
+                    self.emitSpecificEvents(path, newValue, oldValue);
+                },
                 configurable: true,
                 enumerable: true,
             });
@@ -181,6 +218,7 @@ class AppStateManager {
 
         reactivePaths.forEach((path) => {
             const keys = path.split(".");
+            /** @type {any} */
             let initialValue = this.state;
             for (const key of keys) {
                 initialValue = initialValue[key];
@@ -191,6 +229,9 @@ class AppStateManager {
 
     /**
      * Emits specific events based on state path changes
+     * @param {string} path - State path that changed
+     * @param {*} newValue - New value
+     * @param {*} oldValue - Previous value
      */
     emitSpecificEvents(path, newValue, oldValue) {
         switch (path) {
@@ -237,6 +278,7 @@ class AppStateManager {
      */
     get(path) {
         const keys = path.split(".");
+        /** @type {any} */
         let current = this.state;
 
         for (const key of keys) {
@@ -258,18 +300,25 @@ class AppStateManager {
     set(path, value) {
         try {
             const keys = path.split(".");
+            /** @type {any} */
             let current = this.state;
 
             // Navigate to parent
             for (let i = 0; i < keys.length - 1; i++) {
-                if (!current[keys[i]]) {
-                    current[keys[i]] = {};
+                const key = keys[i];
+                if (key && !current[key]) {
+                    current[key] = {};
                 }
-                current = current[keys[i]];
+                if (key) {
+                    current = current[key];
+                }
             }
 
             // Set value (will trigger reactive setter if property is reactive)
-            current[keys[keys.length - 1]] = value;
+            const finalKey = keys[keys.length - 1];
+            if (finalKey) {
+                current[finalKey] = value;
+            }
 
             return true;
         } catch (error) {
@@ -349,7 +398,7 @@ class AppStateManager {
     emit(event, data) {
         const eventListeners = this.listeners.get(event);
         if (eventListeners) {
-            eventListeners.forEach((callback) => {
+            eventListeners.forEach(/** @param {Function} callback */ (callback) => {
                 try {
                     callback(data);
                 } catch (error) {
@@ -509,11 +558,13 @@ if (typeof window !== "undefined") {
  * @param {Object} data - FIT file data
  */
 export function setGlobalData(data) {
+    /** @type {any} */
+    const fitData = data;
     appState.update({
         "data.globalData": data,
         "data.isLoaded": !!data,
         "data.lastModified": Date.now(),
-        "data.recordCount": data?.recordMesgs?.length || 0,
+        "data.recordCount": fitData?.recordMesgs?.length || 0,
     });
 }
 
@@ -532,7 +583,7 @@ export function clearGlobalData() {
 /**
  * Set file opening state
  * @param {boolean} isOpening - Whether file is currently opening
- * @param {string} filePath - Path to file being opened
+ * @param {string|null} [filePath] - Path to file being opened
  */
 export function setFileOpeningState(isOpening, filePath = null) {
     appState.update({
@@ -573,8 +624,8 @@ export function setTheme(theme) {
  */
 export function addError(error, context = "") {
     const errorObj = {
-        message: error?.message || error,
-        stack: error?.stack,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
         context,
         timestamp: Date.now(),
     };

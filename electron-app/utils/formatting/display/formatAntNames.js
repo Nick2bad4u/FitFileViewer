@@ -13,7 +13,7 @@ import { dataAntProductIds } from "../../data/lookups/dataAntProductIds.js";
  */
 export function getManufacturerName(manufacturerId) {
     const id = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId;
-    return dataAntManufacturerIDs[id] || manufacturerId;
+    return /** @type {any} */ (dataAntManufacturerIDs)[id] || manufacturerId;
 }
 
 /**
@@ -26,21 +26,21 @@ export function getProductName(manufacturerId, productId) {
     const mfgId = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId;
     const prodId = typeof productId === "string" ? parseInt(productId, 10) : productId;
 
-    const manufacturerProducts = dataAntProductIds[mfgId];
+    const manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
     if (manufacturerProducts && manufacturerProducts[prodId]) {
         return manufacturerProducts[prodId];
     }
 
-    return productId;
+    return /** @type {string} */ (productId);
 }
 
 /**
  * Get both manufacturer and product names from IDs
  * @param {number|string} manufacturerId - Manufacturer ID
- * @param {number|string} productId - Product ID (optional)
+ * @param {number|string|null} productId - Product ID (optional)
  * @returns {Object} Object with manufacturerName and productName
  */
-export function getManufacturerAndProduct(manufacturerId, productId = null) {
+export function getManufacturerAndProduct(manufacturerId, productId = /** @type {string|number|null} */ (null)) {
     const manufacturerName = getManufacturerName(manufacturerId);
     const productName = productId !== null ? getProductName(manufacturerId, productId) : null;
 

@@ -7,16 +7,33 @@ import { chartColorSchemes } from "../../charts/theming/chartColorSchemes.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
+ * @typedef {Object} ZoneData
+ * @property {number} [zone] - 1-based zone number
+ * @property {string} [color] - Hex color code
+ * @property {string} [label] - Zone display label
+ * @property {number} [time] - Time spent in zone (seconds)
+ * @property {number} [value] - Zone value/percentage
+ */
+
+/**
+ * @typedef {Record<string, any>} ThemeConfig
+ */
+
+/**
+ * @typedef {Record<string, Record<string, string[]>>} ColorSchemes
+ */
+
+/**
  * Gets default zone colors from theme configuration
  * @param {string} zoneType - "hr" or "power"
- * @returns {Array} Array of color strings
+ * @returns {string[]} Array of color strings
  */
 function getDefaultZoneColors(zoneType) {
-    const themeConfig = getThemeConfig();
+    const themeConfig = /** @type {ThemeConfig} */ (getThemeConfig());
     if (zoneType === "power") {
-        return themeConfig.colors.powerZoneColors;
+        return /** @type {string[]} */ (themeConfig["colors"]?.powerZoneColors || []);
     }
-    return themeConfig.colors.heartRateZoneColors;
+    return /** @type {string[]} */ (themeConfig["colors"]?.heartRateZoneColors || []);
 }
 
 /**
@@ -46,7 +63,7 @@ export function getZoneColor(zoneType, zoneIndex) {
 
     // Return default color
     const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
-    return defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
+    return defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length] || "#808080";
 }
 
 /**
@@ -83,7 +100,7 @@ export function resetZoneColors(zoneType, zoneCount) {
     const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
 
     for (let i = 0; i < zoneCount; i++) {
-        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length];
+        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length] || "#808080";
         saveZoneColor(zoneType, i, defaultColor);
     }
 }
@@ -104,9 +121,9 @@ export function getZoneTypeFromField(field) {
 
 /**
  * Applies zone colors to zone data objects
- * @param {Object[]} zoneData - Array of zone data objects
+ * @param {ZoneData[]} zoneData - Array of zone data objects
  * @param {string} zoneType - "hr" or "power"
- * @returns {Object[]} Zone data with color property set
+ * @returns {ZoneData[]} Zone data with color property set
  */
 export function applyZoneColors(zoneData, zoneType) {
     if (!Array.isArray(zoneData)) {
@@ -139,11 +156,12 @@ export function getChartZoneColors(zoneType, zoneCount, colorScheme = "custom") 
     }
 
     // Use predefined color scheme
-    if (chartColorSchemes[colorScheme] && chartColorSchemes[colorScheme][zoneType]) {
-        const schemeColors = chartColorSchemes[colorScheme][zoneType];
+    const schemes = /** @type {ColorSchemes} */ (chartColorSchemes);
+    if (schemes[colorScheme] && schemes[colorScheme][zoneType]) {
+        const schemeColors = schemes[colorScheme][zoneType];
         const colors = [];
         for (let i = 0; i < zoneCount; i++) {
-            colors.push(schemeColors[i] || schemeColors[i % schemeColors.length]);
+            colors.push(schemeColors[i] || schemeColors[i % schemeColors.length] || "#808080");
         }
         return colors;
     }
@@ -228,7 +246,7 @@ export function resetChartSpecificZoneColors(chartField, zoneCount) {
     localStorage.setItem(`chartjs_${chartField}_color_scheme`, "custom");
 
     for (let i = 0; i < zoneCount; i++) {
-        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length];
+        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length] || "#808080";
         saveChartSpecificZoneColor(chartField, i, defaultColor);
     }
 }

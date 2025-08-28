@@ -22,6 +22,7 @@ const INFO_FIELD_ORDER = ["version", "electron", "node", "chrome", "platform", "
 const LOG_PREFIX = "[SystemInfo]";
 
 // Cache for DOM elements (initialized once)
+/** @type {NodeList|null} */
 let cachedSystemInfoItems = null;
 
 /**
@@ -57,7 +58,7 @@ function validateSystemInfo(info) {
         return { isValid: false, missingFields: INFO_FIELD_ORDER };
     }
 
-    const missingFields = INFO_FIELD_ORDER.filter((field) => info[field] === undefined || info[field] === null);
+    const missingFields = INFO_FIELD_ORDER.filter((field) => /** @type {any} */ (info)[field] === undefined || /** @type {any} */ (info)[field] === null);
 
     if (missingFields.length > 0) {
         console.warn(`${LOG_PREFIX} Missing system info fields:`, missingFields);
@@ -65,7 +66,7 @@ function validateSystemInfo(info) {
 
     return {
         isValid: true,
-        missingFields: missingFields.length > 0 ? missingFields : undefined,
+        ...(missingFields.length > 0 ? { missingFields } : {}),
     };
 }
 
@@ -135,8 +136,8 @@ export function updateSystemInfo(info) {
         // Update each field in the defined order
         INFO_FIELD_ORDER.forEach((fieldName, index) => {
             if (index < systemInfoItems.length) {
-                const value = info[fieldName];
-                updateSystemInfoField(systemInfoItems[index], value, fieldName);
+                const value = /** @type {any} */ (info)[fieldName];
+                updateSystemInfoField(/** @type {Element} */ (systemInfoItems[index]), value, fieldName);
             }
         });
 

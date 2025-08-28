@@ -1,6 +1,14 @@
 // Theme utility functions for theme switching and persistence
 
 /**
+ * @typedef {Object} ThemeConfig
+ * @property {string} theme - The effective theme name
+ * @property {boolean} isDark - Whether the theme is dark
+ * @property {boolean} isLight - Whether the theme is light
+ * @property {Object} colors - Color configuration object
+ */
+
+/**
  * Available theme modes
  */
 export const THEME_MODES = {
@@ -72,7 +80,7 @@ export function getSystemTheme() {
 
 /**
  * Get the effective theme (resolves 'auto' to actual theme)
- * @param {string} theme - The theme preference
+ * @param {string|null} [theme] - The theme preference
  * @returns {string} 'dark' or 'light'
  */
 export function getEffectiveTheme(theme = null) {
@@ -110,15 +118,15 @@ export function toggleTheme(withTransition = true) {
  */
 export function listenForThemeChange(onThemeChange) {
     if (
-        window.electronAPI &&
-        typeof window.electronAPI.onSetTheme === "function" &&
-        typeof window.electronAPI.sendThemeChanged === "function"
+        /** @type {any} */ (window).electronAPI &&
+        typeof /** @type {any} */ (window).electronAPI.onSetTheme === "function" &&
+        typeof /** @type {any} */ (window).electronAPI.sendThemeChanged === "function"
     ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
-        window.electronAPI.onSetTheme((theme) => {
+        /** @type {any} */ (window).electronAPI.onSetTheme((/** @type {string} */ theme) => {
             onThemeChange(theme);
-            if (typeof window.electronAPI.sendThemeChanged === "function") {
-                window.electronAPI.sendThemeChanged(theme);
+            if (typeof /** @type {any} */ (window).electronAPI.sendThemeChanged === "function") {
+                /** @type {any} */ (window).electronAPI.sendThemeChanged(theme);
             } else {
                 console.warn("sendThemeChanged method is not available on electronAPI.");
             }
@@ -130,6 +138,7 @@ export function listenForThemeChange(onThemeChange) {
 
 /**
  * Listen for system theme changes and update if using auto theme
+ * @returns {Function|undefined} Cleanup function if available
  */
 export function listenForSystemThemeChange() {
     if (typeof window !== "undefined" && window.matchMedia) {
@@ -158,6 +167,9 @@ export function listenForSystemThemeChange() {
             }
         };
     }
+
+    // Return undefined if matchMedia is not available
+    return undefined;
 }
 
 /**
@@ -182,10 +194,10 @@ function updateMetaThemeColor(theme) {
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
         metaThemeColor = document.createElement("meta");
-        metaThemeColor.name = "theme-color";
+        /** @type {HTMLMetaElement} */ (metaThemeColor).name = "theme-color";
         document.head.appendChild(metaThemeColor);
     }
-    metaThemeColor.content = themeColor;
+    /** @type {HTMLMetaElement} */ (metaThemeColor).content = themeColor;
 }
 
 /**
@@ -217,12 +229,12 @@ function injectThemeTransitionCSS() {
 		.theme-transitioning *,
 		.theme-transitioning *::before,
 		.theme-transitioning *::after {
-			transition: background-color 0.3s ease-in-out, 
-						color 0.3s ease-in-out, 
+			transition: background-color 0.3s ease-in-out,
+						color 0.3s ease-in-out,
 						border-color 0.3s ease-in-out,
 						box-shadow 0.3s ease-in-out !important;
 		}
-		
+
 		/* Disable transitions for certain elements to avoid conflicts */
 		.theme-transitioning .leaflet-map-pane,
 		.theme-transitioning canvas,
@@ -296,9 +308,11 @@ export function getThemeConfig() {
     ];
 
     // Helper to get CSS variable value
+    /** @param {string} name */
     const getVar = (name) => getComputedStyle(document.body).getPropertyValue(`--${name}`)?.trim();
 
     // Build color map from CSS variables
+    /** @type {Record<string, string>} */
     const cssColors = {};
     cssVars.forEach((key) => {
         cssColors[key.replace(/^color-/, "")] = getVar(key);
@@ -314,29 +328,29 @@ export function getThemeConfig() {
             // Legacy/explicit keys for compatibility
             primary: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
             primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
-            background: cssColors.bg || (effectiveTheme === "dark" ? "#181a20" : "#f8fafc"),
-            backgroundAlt: cssColors.bgAlt || (effectiveTheme === "dark" ? "#23263a" : "#ffffff"),
+            background: cssColors["bg"] || (effectiveTheme === "dark" ? "#181a20" : "#f8fafc"),
+            backgroundAlt: cssColors["bgAlt"] || (effectiveTheme === "dark" ? "#23263a" : "#ffffff"),
             surface: effectiveTheme === "dark" ? "#2d2d2d50" : "#f8f9fa",
             surfaceSecondary: effectiveTheme === "dark" ? "#4a5568" : "#e9ecef",
-            text: cssColors.fg || (effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b"),
+            text: cssColors["fg"] || (effectiveTheme === "dark" ? "#e0e0e0" : "#1e293b"),
             textPrimary: effectiveTheme === "dark" ? "#ffffff" : "#0f172a",
             textSecondary: effectiveTheme === "dark" ? "#a0a0a0" : "#6b7280",
-            border: cssColors.border || (effectiveTheme === "dark" ? "#404040" : "#e5e7eb"),
-            borderLight: cssColors.borderLight || (effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)"),
-            accent: cssColors.accent || (effectiveTheme === "dark" ? "#667eea" : "#3b82f665"),
-            accentHover: cssColors.accentHover || (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
-            shadow: cssColors.shadow || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)"),
+            border: cssColors["border"] || (effectiveTheme === "dark" ? "#404040" : "#e5e7eb"),
+            borderLight: cssColors["borderLight"] || (effectiveTheme === "dark" ? "#fff33" : "rgba(0, 0, 0, 0.05)"),
+            accent: cssColors["accent"] || (effectiveTheme === "dark" ? "#667eea" : "#3b82f665"),
+            accentHover: cssColors["accentHover"] || (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
+            shadow: cssColors["shadow"] || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)"),
             shadowLight:
-                cssColors.boxShadowLight || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
+                cssColors["boxShadowLight"] || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
             shadowMedium: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.1)",
             shadowHeavy: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.15)",
             primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
             primaryShadowLight: effectiveTheme === "dark" ? "#3b82f61a" : "#2563eb0d",
             primaryShadowHeavy: effectiveTheme === "dark" ? "#3b82f680" : "#2563eb33",
-            error: cssColors.error || "#ef4444",
-            success: cssColors.success || "#10b981",
-            warning: cssColors.warning || "#f59e0b",
-            info: cssColors.info || "#3b82f665",
+            error: cssColors["error"] || "#ef4444",
+            success: cssColors["success"] || "#10b981",
+            warning: cssColors["warning"] || "#f59e0b",
+            info: cssColors["info"] || "#3b82f665",
             // Chart-specific colors
             chartBackground: effectiveTheme === "dark" ? "#181c24" : "#ffffff",
             chartSurface: effectiveTheme === "dark" ? "#222" : "#fff",

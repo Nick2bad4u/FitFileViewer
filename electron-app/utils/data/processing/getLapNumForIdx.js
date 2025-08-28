@@ -11,8 +11,17 @@
 const LOG_PREFIX = "[LapLookup]";
 
 /**
+ * @typedef {Object} LapMessage
+ * @property {number} start_index
+ * @property {number} end_index
+ * @property {number} [total_elapsed_time]
+ * @property {number} [total_timer_time]
+ * @property {number} [total_distance]
+ */
+
+/**
  * Validates lap message structure
- * @param {Object} lap - Lap message object to validate
+ * @param {LapMessage} lap - Lap message object to validate
  * @param {number} lapIndex - Index of the lap for logging
  * @returns {boolean} True if lap has valid structure
  */
@@ -43,7 +52,7 @@ function isValidLap(lap, lapIndex) {
 /**
  * Validates input parameters
  * @param {number} idx - Point index to validate
- * @param {Array} lapMesgs - Lap messages array to validate
+ * @param {LapMessage[]} lapMesgs - Lap messages array to validate
  * @returns {{isValid: boolean, error?: string}} Validation result
  */
 function validateInputs(idx, lapMesgs) {
@@ -94,6 +103,11 @@ function validateInputs(idx, lapMesgs) {
  * getLapNumForIdx(150, lapMesgs); // Returns 2
  * getLapNumForIdx(250, lapMesgs); // Returns null
  */
+/**
+ * @param {number} idx
+ * @param {LapMessage[]} lapMesgs
+ * @returns {number|null}
+ */
 export function getLapNumForIdx(idx, lapMesgs) {
     try {
         // Validate inputs
@@ -106,6 +120,7 @@ export function getLapNumForIdx(idx, lapMesgs) {
         // Search through laps to find matching index
         for (let i = 0; i < lapMesgs.length; i++) {
             const lap = lapMesgs[i];
+            if (!lap) continue;
 
             // Validate lap structure
             if (!isValidLap(lap, i)) {

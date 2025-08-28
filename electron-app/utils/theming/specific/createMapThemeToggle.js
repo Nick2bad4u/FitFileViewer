@@ -56,7 +56,7 @@ export function setMapThemeInverted(inverted) {
         console.log(`[createMapThemeToggle] Map theme inversion set to: ${inverted}`);
     } catch (error) {
         console.error("[createMapThemeToggle] Error saving map theme preference:", error);
-        showNotification("Error", "Failed to save map theme preference", "error");
+        showNotification("Failed to save map theme preference", "error");
     }
 }
 
@@ -95,7 +95,7 @@ export function createMapThemeToggle() {
                     // Map is inverted/dark - show moon icon
                     iconContainer.innerHTML = `
                         <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentcolor" stroke-width="2">
-                            <path d="M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <path d="M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="2"/>
                         </svg>
                     `;
                     button.title = "Map: Dark theme (click for light theme)";
@@ -104,15 +104,15 @@ export function createMapThemeToggle() {
                     // Map is standard/light - show sun icon
                     iconContainer.innerHTML = `
                         <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentcolor" stroke-width="2">
-                            <circle cx="10" cy="10" r="5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="10" y1="2" x2="10" y2="4" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="10" y1="16" x2="10" y2="18" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="14.36" y1="14.36" x2="15.78" y2="15.78" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="2" y1="10" x2="4" y2="10" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="16" y1="10" x2="18" y2="10" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="4.22" y1="15.78" x2="5.64" y2="14.36" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="14.36" y1="5.64" x2="15.78" y2="4.22" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <circle cx="10" cy="10" r="5" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="10" y1="2" x2="10" y2="4" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="10" y1="16" x2="10" y2="18" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="14.36" y1="14.36" x2="15.78" y2="15.78" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="2" y1="10" x2="4" y2="10" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="16" y1="10" x2="18" y2="10" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="4.22" y1="15.78" x2="5.64" y2="14.36" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <line x1="14.36" y1="5.64" x2="15.78" y2="4.22" stroke="${themeColors["primary"]}" stroke-width="2"/>
                         </svg>
                     `;
                     button.title = "Map: Light theme (click for dark theme)";
@@ -140,12 +140,12 @@ export function createMapThemeToggle() {
                 }
 
                 const action = newInverted ? "dark" : "light";
-                showNotification("Success", `Map theme set to ${action}`, "success");
+                showNotification(`Map theme set to ${action}`, "success");
 
                 console.log(`[createMapThemeToggle] Map theme toggled to: ${action}`);
             } catch (error) {
                 console.error("[createMapThemeToggle] Error in button click:", error);
-                showNotification("Error", "Failed to toggle map theme", "error");
+                showNotification("Failed to toggle map theme", "error");
             }
         });
 
@@ -169,7 +169,7 @@ export function createMapThemeToggle() {
         return button;
     } catch (error) {
         console.error("[createMapThemeToggle] Error creating map theme toggle:", error);
-        showNotification("Error", "Failed to create map theme toggle", "error");
+        showNotification("Failed to create map theme toggle", "error");
         return document.createElement("div"); // Return empty div as fallback
     }
 }

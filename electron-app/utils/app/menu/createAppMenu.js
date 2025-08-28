@@ -22,8 +22,12 @@ function getDecoderOptions() {
     return conf.get("decoderOptions", decoderOptionDefaults);
 }
 
+/**
+ * @param {*} key
+ * @param {*} value
+ */
 function setDecoderOption(key, value) {
-    const options = getDecoderOptions();
+    const options = /** @type {Record<string, any>} */ (getDecoderOptions());
     options[key] = value;
     conf.set("decoderOptions", options);
     return options;
@@ -33,11 +37,17 @@ function getTheme() {
     return conf.get("theme", "dark");
 }
 
+/**
+ * @param {*} theme
+ */
 function setTheme(theme) {
     conf.set("theme", theme);
 }
 
 // Add platform-specific (macOS) App menu for About, Preferences, and Quit
+/**
+ * @param {*} mainWindow
+ */
 function getPlatformAppMenu(mainWindow) {
     if (process.platform === "darwin") {
         return [
@@ -87,7 +97,7 @@ function getPlatformAppMenu(mainWindow) {
  * @param {string} [currentTheme=null] - The current theme of the application, used to set the checked state of theme radio buttons.
  * @param {string|null} [loadedFitFilePath=null] - The path of the loaded FIT file, used to enable/disable the Summary Columns menu item.
  */
-function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null) {
+function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath = undefined) {
     const theme = currentTheme || getTheme();
     const recentFiles = loadRecentFiles();
     // if (!app.isPackaged) {
@@ -117,12 +127,17 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
         includeUnknownData: "❓",
         mergeHeartRates: "❤️",
     };
+    /**
+     * @param {*} decoderOptions
+     * @param {*} decoderOptionEmojis
+     * @param {*} mainWindow
+     */
     function createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow) {
         return Object.keys(decoderOptionDefaults).map((key) => ({
             label: `${decoderOptionEmojis[key] || ""} ${key}`.trim(),
             type: "checkbox",
             checked: !!decoderOptions[key],
-            click: (menuItem) => {
+            click: /** @param {*} menuItem */ (menuItem) => {
                 const newOptions = setDecoderOption(key, menuItem.checked);
                 const win = BrowserWindow.getFocusedWindow() || mainWindow;
                 if (win && win.webContents) {
@@ -183,7 +198,7 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
                                     win.webContents.send("show-notification", "Recent files cleared.", "info");
                                     win.webContents.send("unload-fit-file");
                                 }
-                                createAppMenu(win, getTheme(), null);
+                                createAppMenu(win, /** @type {string} */ (getTheme()), undefined);
                             },
                         },
                     ],
@@ -482,7 +497,7 @@ function createAppMenu(mainWindow, currentTheme = null, loadedFitFilePath = null
 
     if (!app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => item.label);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item)["label"]);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
     }
     if (!Array.isArray(template) || template.length === 0) {

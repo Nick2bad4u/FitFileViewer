@@ -267,9 +267,9 @@ export function addHoverEffectsToExistingCharts() {
 
     // Get theme configuration
     let themeConfig;
-    if (window.getThemeConfig) {
+    if (/** @type {any} */ (window).getThemeConfig) {
         // @ts-ignore legacy global
-        themeConfig = window.getThemeConfig();
+        themeConfig = /** @type {any} */ (window).getThemeConfig();
     } else {
         themeConfig = getThemeConfig();
     }

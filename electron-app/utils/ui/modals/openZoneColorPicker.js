@@ -10,6 +10,9 @@ import {
     applyZoneColors,
 } from "../../data/zones/chartZoneColorUtils.js";
 
+/**
+ * @param {*} field
+ */
 export function openZoneColorPicker(field) {
     try {
         console.log(`[ChartJS] Opening zone color picker for field: ${field}`);
@@ -219,7 +222,7 @@ export function openZoneColorPicker(field) {
 
             // Color picker change handler
             colorPicker.addEventListener("change", (e) => {
-                const newColor = e.target.value;
+                const newColor = /** @type {HTMLInputElement} */ (e.target).value;
                 colorPreview.style.background = newColor;
 
                 // Set color scheme to custom when manually changing a zone color
@@ -272,14 +275,16 @@ export function openZoneColorPicker(field) {
 
             resetButton.addEventListener("click", () => {
                 const defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
-                colorPicker.value = defaultColor;
-                colorPreview.style.background = defaultColor;
+                if (defaultColor) {
+                    colorPicker.value = defaultColor;
+                    colorPreview.style.background = defaultColor;
 
-                // Set color scheme to custom when manually resetting a zone color
-                localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
+                    // Set color scheme to custom when manually resetting a zone color
+                    localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
 
-                saveChartSpecificZoneColor(field, zoneIndex, defaultColor);
-                updateZoneColorPreview(field, zoneIndex, defaultColor);
+                    saveChartSpecificZoneColor(field, zoneIndex, defaultColor);
+                    updateZoneColorPreview(field, zoneIndex, defaultColor);
+                }
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
                 if (typeof window.updateInlineZoneColorSelectors === "function") {
@@ -370,7 +375,7 @@ export function openZoneColorPicker(field) {
                 if (settingsWrapper) {
                     const fieldToggles = settingsWrapper.querySelectorAll('.field-toggle input[type="checkbox"]');
                     fieldToggles.forEach((toggle) => {
-                        toggle.checked = true;
+                        /** @type {HTMLInputElement} */ (toggle).checked = true;
                     });
                 }
 
@@ -396,7 +401,7 @@ export function openZoneColorPicker(field) {
                 }
             } catch (err) {
                 if (typeof window.showNotification === "function") {
-                    window.showNotification("Failed to reset zone colors: " + err.message, "error");
+                    window.showNotification("Failed to reset zone colors: " + /** @type {Error} */ (err).message, "error");
                 }
                 console.error("[ZoneColorPicker] Reset all failed:", err);
             }
@@ -454,7 +459,7 @@ export function openZoneColorPicker(field) {
         overlay.appendChild(modal);
 
         // ESC key handler
-        const handleEscape = (e) => {
+        const handleEscape = /** @param {*} e */ (e) => {
             if (e.key === "Escape" && document.body.contains(overlay)) {
                 document.body.removeChild(overlay);
                 document.removeEventListener("keydown", handleEscape);
@@ -478,13 +483,14 @@ export function openZoneColorPicker(field) {
         console.error("[ChartJS] Error opening zone color picker:", error);
         showNotification("Failed to open zone color picker", "error");
     }
-} /**
- * Updates zone color preview in real-time (if chart is visible)
- * @param {string} field - The field name
- * @param {number} zoneIndex - Zone index (0-based)
- * @param {string} newColor - New color value
- */
+}
 
+/**
+ * Updates zone color preview in real-time (if chart is visible)
+ * @param {*} field - The field name
+ * @param {*} zoneIndex - Zone index (0-based)
+ * @param {*} newColor - New color value
+ */
 export function updateZoneColorPreview(field, zoneIndex, newColor) {
     try {
         // Find the corresponding chart instance

@@ -188,10 +188,10 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
         };
 
-        const chart = new window.Chart(canvas, config);
+        const chart = new /** @type {any} */ (window).Chart(canvas, config);
         if (chart) {
-            if (!window._chartjsInstances) window._chartjsInstances = [];
-            window._chartjsInstances.push(chart);
+            if (!/** @type {any} */ (window)._chartjsInstances) /** @type {any} */ (window)._chartjsInstances = [];
+            /** @type {any} */ (window)._chartjsInstances.push(chart);
             console.log("[ChartJS] Altitude Profile chart created successfully");
         }
     } catch (error) {

@@ -57,7 +57,7 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        (method) => typeof window.electronAPI[method] !== "function"
+        /** @param {string} method */ (method) => typeof (/** @type {*} */ (window.electronAPI))[method] !== "function"
     );
 
     if (missingMethods.length > 0) {
@@ -77,7 +77,7 @@ function validateElectronAPI() {
  */
 function updateUIState(uiElements, isLoading, isOpening) {
     try {
-        const { openFileBtn, setLoading, isOpeningFileRef } = uiElements;
+        const { openFileBtn, setLoading, isOpeningFileRef } = /** @type {*} */ (uiElements);
 
         if (openFileBtn) {
             openFileBtn.disabled = isLoading;
@@ -96,7 +96,7 @@ function updateUIState(uiElements, isLoading, isOpening) {
         setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
         setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
     } catch (error) {
-        logWithContext(`Error updating UI state: ${error.message}`, "error");
+        logWithContext(`Error updating UI state: ${error instanceof Error ? error.message : String(error)}`, "error");
     }
 }
 
@@ -132,7 +132,7 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
     };
 
     // Prevent multiple simultaneous file opening operations
-    if (isOpeningFileRef?.value) {
+    if ((/** @type {*} */ (isOpeningFileRef))?.value) {
         logWithContext("File opening already in progress", "warn");
         return false;
     }
@@ -187,7 +187,11 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
 
         // Step 2: Read file contents
         try {
-            arrayBuffer = await window.electronAPI.readFile(filePath);
+            const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+            if (!filePathString) {
+                throw new Error("No file path provided");
+            }
+            arrayBuffer = await window.electronAPI.readFile(filePathString);
         } catch (err) {
             const errorMessage = `Error reading file: ${err}`;
             logWithContext(errorMessage, "error");
@@ -224,13 +228,16 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
             updateUIState(uiElements, false, false);
             return false;
         } else {
-            if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
+            if (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] !== "production") {
                 console.log("[DEBUG] FIT parse result:", result);
             }
             try {
-                window.showFitData(result, filePath);
-                if (window.sendFitFileToAltFitReader) {
-                    window.sendFitFileToAltFitReader(arrayBuffer);
+                const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+                if (window.showFitData) {
+                    window.showFitData(result, filePathString);
+                }
+                if ((/** @type {*} */ (window)).sendFitFileToAltFitReader) {
+                    (/** @type {*} */ (window)).sendFitFileToAltFitReader(arrayBuffer);
                 }
             } catch (err) {
                 showNotification(`Error displaying FIT data: ${err}`, "error");
@@ -239,7 +246,8 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
 
         // Update UI state to indicate loading is complete
         updateUIState(uiElements, false, false);
+        return false; // Return false if we reach this point without success
     } finally {
-        isOpeningFileRef.value = false;
+        /** @type {*} */ (isOpeningFileRef).value = false;
     }
 }

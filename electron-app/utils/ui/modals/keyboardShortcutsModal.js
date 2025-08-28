@@ -1,5 +1,6 @@
 // Enhanced Keyboard Shortcuts modal dialog utility with modern design and animations
 
+/** @type {any} */
 let lastFocusedElement = null;
 let modalAnimationDuration = 300; // Animation duration in milliseconds
 
@@ -457,6 +458,9 @@ function injectKeyboardShortcutsModalStyles() {
 /**
  * Sets up event handlers for the keyboard shortcuts modal
  */
+/**
+ * @param {any} modal
+ */
 function setupKeyboardShortcutsModalHandlers(modal) {
     // Close button handler
     const closeBtn = modal.querySelector("#shortcuts-modal-close");
@@ -465,14 +469,14 @@ function setupKeyboardShortcutsModalHandlers(modal) {
     }
 
     // Click outside to close
-    modal.addEventListener("click", (e) => {
+    modal.addEventListener("click", (/** @type {any} */ e) => {
         if (e.target === modal) {
             closeKeyboardShortcutsModal();
         }
     });
 
     // Handle links for external navigation
-    modal.addEventListener("click", (e) => {
+    modal.addEventListener("click", (/** @type {any} */ e) => {
         if (e.target.hasAttribute("data-external-link")) {
             e.preventDefault();
             const url = e.target.href || e.target.closest("a").href;
@@ -485,6 +489,7 @@ function setupKeyboardShortcutsModalHandlers(modal) {
 
 /**
  * Handles Escape key for closing the keyboard shortcuts modal
+ * @param {any} event
  */
 function handleShortcutsEscapeKey(event) {
     if (event.key === "Escape") {
@@ -526,7 +531,7 @@ function showKeyboardShortcutsModal() {
     // Focus management
     const closeBtn = modal.querySelector("#shortcuts-modal-close");
     if (closeBtn) {
-        closeBtn.focus();
+        /** @type {any} */ (closeBtn).focus();
         console.log("Focus set to close button");
     } else {
         console.warn("Close button not found");
@@ -567,6 +572,7 @@ function closeKeyboardShortcutsModal() {
 
 /**
  * Traps focus within the modal for accessibility
+ * @param {any} modal
  */
 function trapFocusInModal(modal) {
     const focusableElements = modal.querySelectorAll(
@@ -578,6 +584,9 @@ function trapFocusInModal(modal) {
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
+    /**
+     * @param {any} e
+     */
     function handleTabKey(e) {
         if (e.key !== "Tab") return;
 

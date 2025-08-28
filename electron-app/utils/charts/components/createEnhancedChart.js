@@ -11,6 +11,10 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
 
 // Enhanced chart creation function
+/**
+ * @param {any} canvas
+ * @param {any} options
+ */
 export function createEnhancedChart(canvas, options) {
     const {
         field,
@@ -59,7 +63,7 @@ export function createEnhancedChart(canvas, options) {
             dataset.backgroundColor = fieldColor;
             dataset.borderWidth = 1;
         } else if (chartType === "scatter") {
-            dataset.showLine = false;
+            /** @type {any} */ (dataset).showLine = false;
             dataset.pointRadius = 4;
         }
 
@@ -107,9 +111,15 @@ export function createEnhancedChart(canvas, options) {
                         cornerRadius: 6,
                         displayColors: true,
                         callbacks: {
+                            /**
+                             * @param {any} context
+                             */
                             title: function (context) {
                                 return context[0].label;
                             },
+                            /**
+                             * @param {any} context
+                             */
                             label: function (context) {
                                 const value = context.parsed.y;
 
@@ -171,6 +181,9 @@ export function createEnhancedChart(canvas, options) {
                         },
                         ticks: {
                             color: currentTheme === "dark" ? "#fff" : "#000",
+                            /**
+                             * @param {any} value
+                             */
                             callback: function (value) {
                                 // Convert time based on user preference for display
                                 const timeUnits = localStorage.getItem("chartjs_timeUnits") || "seconds";

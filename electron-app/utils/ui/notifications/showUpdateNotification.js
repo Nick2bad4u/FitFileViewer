@@ -31,9 +31,9 @@ function logWithContext(level, message, context = {}) {
     const logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
 
     if (context && Object.keys(context).length > 0) {
-        console[level](logMessage, context);
+        /** @type {Record<string, any>} */ (console)[level](logMessage, context);
     } else {
-        console[level](logMessage);
+        /** @type {Record<string, any>} */ (console)[level](logMessage);
     }
 }
 
@@ -42,7 +42,7 @@ function logWithContext(level, message, context = {}) {
  * @returns {boolean} True if electronAPI is available
  */
 function validateElectronAPI() {
-    const hasAPI = window.electronAPI && typeof window.electronAPI.installUpdate === "function";
+    const hasAPI = /** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.installUpdate === "function";
     if (!hasAPI) {
         logWithContext("warn", "electronAPI.installUpdate not available");
     }
@@ -72,7 +72,7 @@ function clearNotificationContent(notification) {
             notification.removeChild(notification.firstChild);
         }
     } catch (error) {
-        logWithContext("error", "Failed to clear notification content", { error: error.message });
+        logWithContext("error", "Failed to clear notification content", { error: /** @type {Error} */ (error).message });
     }
 }
 
@@ -88,7 +88,7 @@ function createThemedButton(text, clickHandler, styles = {}) {
         const button = document.createElement("button");
         button.textContent = text;
         button.className = NOTIFICATION_CONSTANTS.BUTTON_CLASS;
-        button.onclick = clickHandler;
+        button.onclick = /** @type {(this: GlobalEventHandlers, ev: MouseEvent) => any} */ (clickHandler);
 
         // Apply additional styles
         Object.assign(button.style, styles);
@@ -97,9 +97,9 @@ function createThemedButton(text, clickHandler, styles = {}) {
     } catch (error) {
         logWithContext("error", "Failed to create themed button", {
             text,
-            error: error.message,
+            error: /** @type {Error} */ (error).message,
         });
-        return null;
+        return /** @type {HTMLElement} */ (/** @type {unknown} */ (null));
     }
 }
 
@@ -110,12 +110,12 @@ function handleUpdateInstall() {
     try {
         if (validateElectronAPI()) {
             logWithContext("info", "Initiating update installation");
-            window.electronAPI.installUpdate();
+            /** @type {any} */ (window).electronAPI.installUpdate();
         } else {
             logWithContext("error", "Cannot install update - electronAPI not available");
         }
     } catch (error) {
-        logWithContext("error", "Failed to install update", { error: error.message });
+        logWithContext("error", "Failed to install update", { error: /** @type {Error} */ (error).message });
     }
 }
 
@@ -130,7 +130,7 @@ function hideNotification(notification) {
             logWithContext("info", "Notification hidden");
         }
     } catch (error) {
-        logWithContext("error", "Failed to hide notification", { error: error.message });
+        logWithContext("error", "Failed to hide notification", { error: /** @type {Error} */ (error).message });
     }
 }
 
@@ -155,7 +155,7 @@ function createUpdateDownloadedButtons(notification) {
         }
     } catch (error) {
         logWithContext("error", "Failed to create update downloaded buttons", {
-            error: error.message,
+            error: /** @type {Error} */ (error).message,
         });
     }
 }
@@ -174,7 +174,7 @@ function createUpdateActionButton(notification) {
         }
     } catch (error) {
         logWithContext("error", "Failed to create update action button", {
-            error: error.message,
+            error: /** @type {Error} */ (error).message,
         });
     }
 }
@@ -193,7 +193,7 @@ function setupAutoHide(notification, duration) {
         logWithContext("info", "Auto-hide timeout set", { duration });
     } catch (error) {
         logWithContext("error", "Failed to setup auto-hide", {
-            error: error.message,
+            error: /** @type {Error} */ (error).message,
             duration,
         });
     }
@@ -271,7 +271,7 @@ export function showUpdateNotification(
             type,
             duration,
             withAction,
-            error: error.message,
+            error: /** @type {Error} */ (error).message,
         });
     }
 }

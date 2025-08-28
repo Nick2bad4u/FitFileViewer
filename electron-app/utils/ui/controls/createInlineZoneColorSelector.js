@@ -125,7 +125,6 @@ export function createInlineZoneColorSelector(field, container) {
             // Update all zone color items
             const zoneItems = zoneGrid.querySelectorAll(".zone-color-item");
             zoneItems.forEach((item, index) => {
-                const el = /** @type {HTMLElement} */ (item);
                 const zData = /** @type {any[]} */ (zoneData);
                 const zoneIndex = ((zData[index] && zData[index].zone) || index + 1) - 1;
                 let colorToShow;
@@ -133,7 +132,7 @@ export function createInlineZoneColorSelector(field, container) {
                     colorToShow = getChartSpecificZoneColor(field, zoneIndex);
                 } else {
                     // Show the scheme color in the UI
-                    const schemeColors = getChartZoneColors(zoneType, zoneData.length, currentScheme);
+                    const schemeColors = getChartZoneColors(zoneType, (zoneData && zoneData.length) || 0, currentScheme);
                     colorToShow =
                         schemeColors[zoneIndex] ||
                         defaultColors[zoneIndex] ||
@@ -206,7 +205,7 @@ export function createInlineZoneColorSelector(field, container) {
                 updateZoneColorDisplay();
                 updateZoneEditability();
             },
-            (scheme) => {
+            (/** @type {*} */ scheme) => {
                 console.log(`[ZoneColorSelector] Scheme selected: ${scheme} for ${field}`);
                 currentScheme = scheme;
                 updateZoneEditability();
@@ -237,7 +236,7 @@ export function createInlineZoneColorSelector(field, container) {
         `;
 
         // Reset all button
-        const resetButton = createResetButton(field, zoneType, zoneData, defaultColors, () => {
+        const resetButton = createResetButton(field, zoneType, zoneData, () => {
             updateZoneColorDisplay();
         });
         actions.appendChild(resetButton);
@@ -351,8 +350,8 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         font-weight: 500;
     `;
 
-    const zoneName = zone.label || `Zone ${zone.zone || zoneIndex + 1}`;
-    const zoneTime = zone.time ? formatTime(zone.time, true) : "";
+    const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`;
+    const zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
     label.innerHTML = `
         <div>${zoneName}</div>
         ${zoneTime ? `<div style="font-size: 10px; color: var(--color-fg-alt); margin-top: 2px;">${zoneTime}</div>` : ""}
@@ -384,7 +383,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
 
     // Color change handler
     colorInput.addEventListener("change", (e) => {
-        const newColor = e.target.value;
+        const newColor = /** @type {HTMLInputElement} */ (e.target).value;
         console.log(`[ZoneColorSelector] Color changed for ${field} zone ${zoneIndex + 1}: ${newColor}`);
 
         colorPreview.style.backgroundColor = newColor;
@@ -426,11 +425,11 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
                 renderChartJS();
             } else {
                 // Import and call renderChartJS if not available globally
-                import("./renderChartJS.js")
+                import("../../charts/core/renderChartJS.js")
                     .then(({ renderChartJS }) => {
                         renderChartJS();
                     })
-                    .catch((error) => {
+                    .catch((/** @type {Error} */ error) => {
                         console.error("[ZoneColorSelector] Error importing renderChartJS:", error);
                     });
             }
@@ -471,7 +470,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
  * @param {string} field - Chart field
  * @param {string} zoneType - "hr" or "power"
  * @param {number} zoneCount - Number of zones
- * @param {Array} defaultColors - Default color array for the zone type
+ * @param {*} defaultColors - Default color array for the zone type
  * @param {Function} onSchemeChange - Callback when scheme changes
  * @param {Function} onSchemeSelect - Callback when scheme is selected (gets scheme name)
  * @param {string} initialScheme - Initial scheme to select
@@ -619,10 +618,9 @@ function createColorSchemeSelector(
  * @param {string} field
  * @param {string} zoneType
  * @param {ZoneDataItem[]} zoneData
- * @param {string[]} defaultColors - (unused currently, kept for compatibility)
  * @param {Function} onReset
  */
-function createResetButton(field, zoneType, zoneData, defaultColors, onReset) {
+function createResetButton(field, zoneType, zoneData, onReset) {
     const button = document.createElement("button");
     button.innerHTML = "↻ Reset";
     button.title = "Reset all zone colors to defaults";

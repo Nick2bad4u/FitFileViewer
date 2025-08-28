@@ -38,7 +38,9 @@ export class UIStateManager {
         tabButtons.forEach((button) => {
             const tabName = button.getAttribute("data-tab");
             button.addEventListener("click", () => {
-                AppActions.switchTab(tabName);
+                if (tabName) {
+                    AppActions.switchTab(tabName);
+                }
             });
         });
 
@@ -47,7 +49,9 @@ export class UIStateManager {
         themeButtons.forEach((button) => {
             const theme = button.getAttribute("data-theme");
             button.addEventListener("click", () => {
-                AppActions.switchTheme(theme);
+                if (theme) {
+                    AppActions.switchTheme(theme);
+                }
             });
         });
 
@@ -73,28 +77,28 @@ export class UIStateManager {
      */
     initializeReactiveElements() {
         // Subscribe to active tab changes
-        subscribe("ui.activeTab", (activeTab) => {
+        subscribe("ui.activeTab", (/** @type {*} */ activeTab) => {
             this.updateTabVisibility(activeTab);
             this.updateTabButtons(activeTab);
         });
 
         // Subscribe to theme changes
-        subscribe("ui.theme", (theme) => {
+        subscribe("ui.theme", (/** @type {*} */ theme) => {
             this.applyTheme(theme);
         });
 
         // Subscribe to loading state changes
-        subscribe("isLoading", (isLoading) => {
+        subscribe("isLoading", (/** @type {*} */ isLoading) => {
             this.updateLoadingIndicator(isLoading);
         });
 
         // Subscribe to chart controls visibility
-        subscribe("charts.controlsVisible", (isVisible) => {
+        subscribe("charts.controlsVisible", (/** @type {*} */ isVisible) => {
             this.updateChartControlsUI(isVisible);
         });
 
         // Subscribe to measurement mode changes
-        subscribe("map.measurementMode", (isActive) => {
+        subscribe("map.measurementMode", (/** @type {*} */ isActive) => {
             this.updateMeasurementModeUI(isActive);
         });
     }
@@ -110,7 +114,7 @@ export class UIStateManager {
             const tabName = content.getAttribute("data-tab-content");
             const isActive = tabName === activeTab;
 
-            content.style.display = isActive ? "block" : "none";
+            /** @type {HTMLElement} */ (content).style.display = isActive ? "block" : "none";
             content.setAttribute("aria-hidden", (!isActive).toString());
         });
 
@@ -151,7 +155,7 @@ export class UIStateManager {
 
             // Update on system theme change
             if (!this.systemThemeListener) {
-                this.systemThemeListener = (e) => {
+                this.systemThemeListener = (/** @type {*} */ e) => {
                     const newSystemTheme = e.matches ? "dark" : "light";
                     root.setAttribute("data-theme", newSystemTheme);
                 };
@@ -216,9 +220,10 @@ export class UIStateManager {
             toggleBtn.textContent = isVisible ? "▼ Hide Controls" : "▶ Show Controls";
             toggleBtn.setAttribute("aria-expanded", isVisible.toString());
         }
-    } /**
+    }
+    /**
      * Update measurement mode UI
-     * @param {boolean} isActive - Whether measurement mode is active
+     * @param {*} isActive - Whether measurement mode is active
      */
     updateMeasurementModeUI(isActive) {
         const toggleBtn = document.getElementById("measurement-mode-toggle");
@@ -232,12 +237,10 @@ export class UIStateManager {
         if (mapContainer) {
             mapContainer.classList.toggle("measurement-mode", isActive);
         }
-    } /**
+    }
+    /**
      * Show a notification to the user
-     * @param {Object|string} notification - Notification options or message string
-     * @param {string} notification.message - Notification message
-     * @param {string} notification.type - Notification type ('info', 'success', 'warning', 'error')
-     * @param {number} notification.duration - Duration in milliseconds
+     * @param {*} notification - Notification options or message string
      */
     showNotification(notification) {
         try {
@@ -285,11 +288,11 @@ export class UIStateManager {
 
     /**
      * Show/hide sidebar
-     * @param {boolean} collapsed - Whether sidebar should be collapsed
+     * @param {*} collapsed - Whether sidebar should be collapsed
      */
-    toggleSidebar(collapsed = null) {
+    toggleSidebar(collapsed = undefined) {
         const currentState = getState("ui.sidebarCollapsed");
-        const newState = collapsed !== null ? collapsed : !currentState;
+        const newState = collapsed !== undefined ? collapsed : !currentState;
 
         setState("ui.sidebarCollapsed", newState, { source: "UIStateManager.toggleSidebar" });
 

@@ -8,6 +8,22 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { uiStateManager } from "../domain/uiStateManager.js";
 
 /**
+ * @typedef {Object} DebugUtilities
+ * @property {Function} getState - Get state by path
+ * @property {Function} setState - Set state value
+ * @property {Object} AppActions - Application action functions
+ * @property {Object} uiStateManager - UI state manager
+ * @property {Function} logState - Log current state
+ * @property {Function} watchState - Watch state changes
+ * @property {Function} triggerAction - Trigger state action
+ */
+
+/**
+ * @typedef {Object} AppStateMigration
+ * @property {Function[]} migrations - Array of migration functions
+ */
+
+/**
  * Detects if the application is running in development mode
  * Since process is not available in renderer, we use alternative methods
  * @returns {boolean} True if in development mode
@@ -20,7 +36,7 @@ function isDevelopmentMode() {
         window.location.hostname === "127.0.0.1" ||
         window.location.hostname.includes("dev") ||
         // Check for dev tools being open
-        window.__DEVELOPMENT__ === true ||
+        /** @type {any} */ (window).__DEVELOPMENT__ === true ||
         // Check for debug flag in URL
         window.location.search.includes("debug=true") ||
         window.location.hash.includes("debug") ||
@@ -29,7 +45,7 @@ function isDevelopmentMode() {
         // Check if running from file:// protocol (dev mode indicator)
         window.location.protocol === "file:" ||
         // Check if electron dev tools are available
-        (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
+        (/** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.__devMode !== "undefined") ||
         // Check console availability and development-specific globals
         (typeof console !== "undefined" && window.location.href.includes("electron"))
     );
@@ -89,8 +105,8 @@ function setupBackwardCompatibility() {
     }
 
     // Create compatibility layer for existing AppState usage
-    if (!window.AppState) {
-        window.AppState = {
+    if (!/** @type {any} */ (window).AppState) {
+        /** @type {any} */ (window).AppState = {
             get globalData() {
                 return getState("globalData");
             },
@@ -118,41 +134,62 @@ function setupBackwardCompatibility() {
 /**
  * Set up state debugging utilities
  */
+/**
+ * Sets up debug utilities for development mode
+ */
 function setupStateDebugging() {
     // Add debug utilities to window
-    window.__state_debug = {
+    /** @type {DebugUtilities} */
+    const debugUtilities = {
         getState,
         setState,
         AppActions,
         uiStateManager,
 
         // Utility to log current state
+        /**
+         * @param {string} [path] - Optional state path
+         * @returns {*} Current state
+         */
         logState(path) {
-            const state = path ? getState(path) : getState();
+            const state = path ? getState(path) : getState("data");
             console.log(`[StateDebug] Current state${path ? ` for ${path}` : ""}:`, state);
             return state;
         },
 
         // Utility to watch state changes
+        /**
+         * @param {string} path - State path to watch
+         * @returns {Function} Unsubscribe function
+         */
         watchState(path) {
             console.log(`[StateDebug] Watching state changes for: ${path}`);
-            return subscribe(path, (newValue, oldValue) => {
+            return subscribe(path, /** @param {*} newValue */ /** @param {*} oldValue */ (newValue, oldValue) => {
                 console.log(`[StateDebug] ${path} changed:`, { oldValue, newValue });
             });
         },
 
         // Utility to trigger state actions
+        /**
+         * @param {string} actionName - Name of action to trigger
+         * @param {...*} args - Action arguments
+         * @returns {*} Action result
+         */
         triggerAction(actionName, ...args) {
-            if (AppActions[actionName]) {
+            /** @type {any} */
+            const actions = AppActions;
+            if (actions[actionName]) {
                 console.log(`[StateDebug] Triggering action: ${actionName}`, args);
-                return AppActions[actionName](...args);
+                return actions[actionName](...args);
             } else {
                 console.warn(`[StateDebug] Unknown action: ${actionName}`);
+                return undefined;
             }
-        },
+        }
     };
 
-    console.log("[StateIntegration] Debug utilities available at window.__state_debug");
+    // @ts-ignore - Debug utilities assignment to window
+    window.__state_debug = debugUtilities;
 }
 
 /**
@@ -160,6 +197,7 @@ function setupStateDebugging() {
  */
 export class StateMigrationHelper {
     constructor() {
+        /** @type {Function[]} */
         this.migrations = [];
     }
 
@@ -194,15 +232,15 @@ export class StateMigrationHelper {
  */
 export function migrateChartControlsState() {
     // Check if old chartControlsState exists
-    if (window.chartControlsState) {
+    if (/** @type {any} */ (window).chartControlsState) {
         console.log("[StateMigration] Migrating chartControlsState...");
         // Copy existing state
-        setState("charts.controlsVisible", window.chartControlsState.isVisible, {
+        setState("charts.controlsVisible", /** @type {any} */ (window).chartControlsState.isVisible, {
             source: "migration",
         });
 
         // Replace old state with getter/setter
-        window.chartControlsState = {
+        /** @type {any} */ (window).chartControlsState = {
             get isVisible() {
                 return getState("charts.controlsVisible");
             },
@@ -220,15 +258,18 @@ export function migrateChartControlsState() {
  */
 export function integrateWithRendererUtils() {
     // If rendererUtils exists and has state management, integrate it
-    if (window.rendererUtils) {
+    if (/** @type {any} */ (window).rendererUtils) {
         console.log("[StateIntegration] Integrating with rendererUtils...");
 
         // Wrap existing functions to use new state system
-        const originalUtils = { ...window.rendererUtils };
+        const originalUtils = { .../** @type {any} */ (window).rendererUtils };
 
         // Example: if there's a setGlobalData function
         if (originalUtils.setGlobalData) {
-            window.rendererUtils.setGlobalData = (data) => {
+            /**
+             * @param {Object} data - Global data to set
+             */
+            /** @type {any} */ (window).rendererUtils.setGlobalData = (/** @type {Object} */ data) => {
                 setState("globalData", data, { source: "rendererUtils.setGlobalData" });
                 return originalUtils.setGlobalData(data);
             };
@@ -236,7 +277,7 @@ export function integrateWithRendererUtils() {
 
         // Example: if there's a getGlobalData function
         if (originalUtils.getGlobalData) {
-            window.rendererUtils.getGlobalData = () => {
+            /** @type {any} */ (window).rendererUtils.getGlobalData = () => {
                 return getState("globalData");
             };
         }
@@ -264,8 +305,8 @@ export function setupStatePersistence() {
     persistedPaths.forEach((path) => {
         subscribe(path, () => {
             // Debounce the persistence to avoid excessive writes
-            clearTimeout(window.__persistenceTimeout);
-            window.__persistenceTimeout = setTimeout(() => {
+            clearTimeout(/** @type {any} */ (window).__persistenceTimeout);
+            /** @type {any} */ (window).__persistenceTimeout = setTimeout(() => {
                 try {
                     const stateToSave = {};
                     persistedPaths.forEach((p) => {
@@ -306,29 +347,42 @@ export function setupStatePersistence() {
 
 /**
  * Helper function to set nested value in object
+ * @param {Object} obj - Target object
+ * @param {string} path - Dot notation path
+ * @param {*} value - Value to set
  * @private
  */
 function setNestedValue(obj, path, value) {
     const keys = path.split(".");
+    /** @type {any} */
     let target = obj;
 
     for (let i = 0; i < keys.length - 1; i++) {
         const key = keys[i];
-        if (!(key in target) || typeof target[key] !== "object") {
+        if (key && (!(key in target) || typeof target[key] !== "object")) {
             target[key] = {};
         }
-        target = target[key];
+        if (key) {
+            target = target[key];
+        }
     }
 
-    target[keys[keys.length - 1]] = value;
+    const finalKey = keys[keys.length - 1];
+    if (finalKey) {
+        target[finalKey] = value;
+    }
 }
 
 /**
  * Helper function to get nested value from object
+ * @param {Object} obj - Source object
+ * @param {string} path - Dot notation path
+ * @returns {*} Retrieved value
  * @private
  */
 function getNestedValue(obj, path) {
     const keys = path.split(".");
+    /** @type {any} */
     let value = obj;
 
     for (const key of keys) {
@@ -362,12 +416,14 @@ export function setupStatePerformanceMonitoring() {
     });
 
     // Monitor memory usage periodically
-    if (performance.memory) {
+    /** @type {any} */
+    const perfMemory = performance;
+    if (perfMemory.memory) {
         setInterval(() => {
             const memoryInfo = {
-                used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
-                total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
-                limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024),
+                used: Math.round(perfMemory.memory.usedJSHeapSize / 1024 / 1024),
+                total: Math.round(perfMemory.memory.totalJSHeapSize / 1024 / 1024),
+                limit: Math.round(perfMemory.memory.jsHeapSizeLimit / 1024 / 1024),
             };
 
             setState("performance.memoryUsage", memoryInfo, {

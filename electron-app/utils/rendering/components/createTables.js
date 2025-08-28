@@ -15,7 +15,7 @@ import { renderTable } from "../core/renderTable.js";
 export function createTables(dataFrames, containerOverride) {
     console.log("[DEBUG] createTables called", dataFrames);
 
-    const aq = window.aq;
+    const aq = /** @type {any} */ (window).aq;
     if (!aq) {
         console.error("[ERROR] Arquero (window.aq) is not available.");
         return;
@@ -37,14 +37,14 @@ export function createTables(dataFrames, containerOverride) {
         container.removeChild(container.firstChild);
     }
     const keys = Object.keys(dataFrames).filter((key) => {
-        const rows = dataFrames[key];
+        const rows = /** @type {any} */ (dataFrames)[key];
         return Array.isArray(rows) && rows.every((row) => row && typeof row === "object" && !Array.isArray(row));
     });
     console.log("[DEBUG] Table keys:", keys);
 
     // Debug: print first row of each table
     keys.forEach((key) => {
-        const rows = dataFrames[key];
+        const rows = /** @type {any} */ (dataFrames)[key];
         if (rows && rows.length > 0) {
             console.log(`[DEBUG] First row for ${key}:`, rows[0], "Type:", typeof rows[0]);
         }
@@ -59,7 +59,7 @@ export function createTables(dataFrames, containerOverride) {
 
     keys.forEach((key, index) => {
         try {
-            const rows = dataFrames[key];
+            const rows = /** @type {any} */ (dataFrames)[key];
             if (
                 !Array.isArray(rows) ||
                 rows.length === 0 ||
@@ -73,8 +73,8 @@ export function createTables(dataFrames, containerOverride) {
             renderTable(container, key, table, index);
         } catch (e) {
             console.error(
-                `[ERROR] Failed to render table for key: ${key}. Error message: ${e.message}. Stack trace:`,
-                e.stack
+                `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (e).message}. Stack trace:`,
+                /** @type {any} */ (e).stack
             );
         }
     });

@@ -3,6 +3,25 @@
  * Complete initialization and integration of all state management components
  */
 
+/**
+ * @typedef {Object} ComponentState
+ * @property {boolean} initialized - Whether component is initialized
+ * @property {number} [timestamp] - Initialization timestamp
+ * @property {string} [error] - Error message if initialization failed
+ */
+
+/**
+ * @typedef {Window & {
+ *   __state_debug?: {setState?: Function},
+ *   __DEVELOPMENT__?: boolean,
+ *   electronAPI?: {
+ *     __devMode?: boolean,
+ *     openFileDialog?: Function,
+ *     openFile?: Function
+ *   }
+ * }} ExtendedWindow
+ */
+
 import { initializeCompleteStateSystem } from "../integration/stateIntegration.js";
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
@@ -122,7 +141,8 @@ export class MasterStateManager {
             console.log(`[MasterState] ${componentName} initialized successfully`);
         } catch (error) {
             console.error(`[MasterState] Failed to initialize ${componentName}:`, error);
-            this.components.set(componentName, { initialized: false, error: error.message });
+            const errorMessage = error instanceof Error ? error.message : "Unknown initialization error";
+            this.components.set(componentName, { initialized: false, error: errorMessage });
             throw error;
         }
     }
@@ -238,7 +258,7 @@ export class MasterStateManager {
      */
     setupIntegrations() {
         // Integrate file operations with UI state
-        subscribe("globalData", (data) => {
+        subscribe("globalData", /** @param {*} data */ (data) => {
             if (data) {
                 // Enable tabs when data is loaded
                 UIActions.showTab("summary");
@@ -249,17 +269,17 @@ export class MasterStateManager {
         });
 
         // Integrate loading state with UI
-        subscribe("isLoading", (isLoading) => {
+        subscribe("isLoading", /** @param {boolean} isLoading */ (isLoading) => {
             // Update UI elements based on loading state
             const elements = document.querySelectorAll(".loading-sensitive");
             elements.forEach((el) => {
-                el.style.pointerEvents = isLoading ? "none" : "auto";
-                el.style.opacity = isLoading ? "0.5" : "1";
+                /** @type {HTMLElement} */ (el).style.pointerEvents = isLoading ? "none" : "auto";
+                /** @type {HTMLElement} */ (el).style.opacity = isLoading ? "0.5" : "1";
             });
         });
 
         // Integrate theme changes with maps and charts
-        subscribe("ui.theme", (theme) => {
+        subscribe("ui.theme", /** @param {string} theme */ (theme) => {
             // Notify other components about theme changes
             window.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
         });
@@ -314,13 +334,17 @@ export class MasterStateManager {
         let stateChangeCount = 0;
         let lastResetTime = Date.now();
 
-        const originalSetState = window.__state_debug?.setState;
+        // Use type assertion for window debug state
+        const windowExt = /** @type {ExtendedWindow} */ (window);
+        const originalSetState = windowExt.__state_debug?.setState;
         if (originalSetState) {
             // Wrap setState to count changes
-            window.__state_debug.setState = (...args) => {
-                stateChangeCount++;
-                return originalSetState(...args);
-            };
+            if (windowExt.__state_debug) {
+                windowExt.__state_debug.setState = /** @param {...*} args */ (...args) => {
+                    stateChangeCount++;
+                    return originalSetState(...args);
+                };
+            }
         }
 
         // Reset counter every minute
@@ -332,10 +356,10 @@ export class MasterStateManager {
                 "system.performance",
                 {
                     stateChangesPerMinute: Math.round((stateChangeCount * 60000) / elapsed),
-                    memoryUsage: performance.memory
+                    memoryUsage: /** @type {Performance & {memory?: {usedJSHeapSize: number, totalJSHeapSize: number}}} */ (performance).memory
                         ? {
-                              used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
-                              total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
+                              used: Math.round(/** @type {Performance & {memory: {usedJSHeapSize: number}}} */ (performance).memory.usedJSHeapSize / 1024 / 1024),
+                              total: Math.round(/** @type {Performance & {memory: {totalJSHeapSize: number}}} */ (performance).memory.totalJSHeapSize / 1024 / 1024),
                           }
                         : null,
                     timestamp: now,
@@ -416,6 +440,7 @@ export class MasterStateManager {
             document.addEventListener(eventName, preventDefaults, false);
         });
 
+        /** @param {Event} e */
         function preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -441,13 +466,14 @@ export class MasterStateManager {
         // Handle dropped files
         document.addEventListener("drop", handleDrop, false);
 
+        /** @param {DragEvent} e */
         function handleDrop(e) {
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
+            const files = e.dataTransfer?.files;
+            if (files && files.length > 0) {
                 const file = files[0];
-                if (file.name.toLowerCase().endsWith(".fit")) {
-                    // Handle FIT file drop
-                    window.electronAPI?.openFile(file.path);
+                if (file && file.name.toLowerCase().endsWith(".fit")) {
+                    // Handle FIT file drop - file.path not available in browser, use file object
+                    showNotification("FIT file dropped", "info");
                 } else {
                     showNotification("Please drop a .fit file", "warning");
                 }
@@ -472,7 +498,9 @@ export class MasterStateManager {
                 initialized: getState("system.initialized"),
             },
         };
-    } /**
+    }
+
+    /**
      * Reinitialize a specific component
      * @param {string} componentName - Component to reinitialize
      */

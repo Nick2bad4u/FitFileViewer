@@ -71,7 +71,7 @@ class ComputedStateManager {
 
         // Clean up subscriptions
         const subscriptions = this.subscriptions.get(key) || [];
-        subscriptions.forEach((unsubscribe) => {
+        subscriptions.forEach(/** @param {*} unsubscribe */ (unsubscribe) => {
             if (typeof unsubscribe === "function") {
                 unsubscribe();
             }
@@ -138,7 +138,7 @@ class ComputedStateManager {
         this.isComputing.add(key);
 
         try {
-            const state = getState();
+            const state = getState("");  // Pass empty string to get root state
             const startTime = performance.now();
 
             // Call the compute function with current state
@@ -172,6 +172,7 @@ class ComputedStateManager {
      * @returns {Object} All computed values and metadata
      */
     getAllComputed() {
+        /** @type {Record<string, any>} */
         const result = {};
 
         this.computedValues.forEach((computed, key) => {
@@ -204,6 +205,7 @@ class ComputedStateManager {
      * @returns {Object} Dependency relationships
      */
     getDependencyGraph() {
+        /** @type {Record<string, any>} */
         const graph = {};
 
         this.dependencies.forEach((deps, key) => {
@@ -221,7 +223,7 @@ class ComputedStateManager {
 
         // Clean up all subscriptions
         this.subscriptions.forEach((subscriptions) => {
-            subscriptions.forEach((unsubscribe) => {
+            subscriptions.forEach(/** @param {*} unsubscribe */ (unsubscribe) => {
                 if (typeof unsubscribe === "function") {
                     unsubscribe();
                 }
@@ -280,7 +282,7 @@ export function initializeCommonComputedValues() {
     // File loading state
     addComputed(
         "isFileLoaded",
-        (state) => {
+        /** @param {*} state */ (state) => {
             return !!(state.globalData && Object.keys(state.globalData).length > 0);
         },
         ["globalData"]
@@ -289,7 +291,7 @@ export function initializeCommonComputedValues() {
     // Application ready state
     addComputed(
         "isAppReady",
-        (state) => {
+        /** @param {*} state */ (state) => {
             return state.app?.initialized && !state.app?.isOpeningFile;
         },
         ["app.initialized", "app.isOpeningFile"]
@@ -298,7 +300,7 @@ export function initializeCommonComputedValues() {
     // Chart data available
     addComputed(
         "hasChartData",
-        (state) => {
+        /** @param {*} state */ (state) => {
             return !!(state.globalData?.recordMesgs && state.globalData.recordMesgs.length > 0);
         },
         ["globalData.recordMesgs"]
@@ -307,11 +309,11 @@ export function initializeCommonComputedValues() {
     // Map data available
     addComputed(
         "hasMapData",
-        (state) => {
+        /** @param {*} state */ (state) => {
             const records = state.globalData?.recordMesgs;
             return !!(
                 records &&
-                records.some((record) => record.positionLat !== undefined && record.positionLong !== undefined)
+                records.some(/** @param {*} record */ (record) => record.positionLat !== undefined && record.positionLong !== undefined)
             );
         },
         ["globalData.recordMesgs"]
@@ -320,7 +322,7 @@ export function initializeCommonComputedValues() {
     // Summary data
     addComputed(
         "summaryData",
-        (state) => {
+        /** @param {*} state */ (state) => {
             if (!state.globalData?.sessionMesgs) return null;
 
             const session = state.globalData.sessionMesgs[0];
@@ -345,7 +347,7 @@ export function initializeCommonComputedValues() {
     // Performance metrics
     addComputed(
         "performanceMetrics",
-        (state) => {
+        /** @param {*} state */ (state) => {
             const startTime = state.app?.startTime;
             if (!startTime) return null;
 
@@ -362,7 +364,7 @@ export function initializeCommonComputedValues() {
     // Theme information
     addComputed(
         "themeInfo",
-        (state) => {
+        /** @param {*} state */ (state) => {
             const theme = state.settings?.theme || "dark";
             const mapTheme = state.settings?.mapTheme || true;
 
@@ -387,7 +389,7 @@ export function initializeCommonComputedValues() {
     // UI state summary
     addComputed(
         "uiStateSummary",
-        (state) => {
+        /** @param {*} state */ (state) => {
             return {
                 activeTab: state.ui?.activeTab || "summary",
                 loadingState: state.ui?.loading || false,

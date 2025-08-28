@@ -3,6 +3,18 @@
  * Handles the display and management of loaded FIT file data with state management integration
  */
 
+/**
+ * @typedef {Object} FitDataObject
+ * @property {string} [cachedFileName] - Cached filename for performance
+ * @property {string} [cachedFilePath] - Cached filepath for performance
+ */
+
+/**
+ * @typedef {Object} DisplayOptions
+ * @property {boolean} [resetRenderStates=true] - Whether to reset rendering states
+ * @property {boolean} [updateUI=true] - Whether to update UI elements
+ */
+
 import { setState } from "../../state/core/stateManager.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
 
@@ -95,9 +107,10 @@ function updateFileDisplay(fileName) {
         // Update document title
         document.title = fileName ? `${DISPLAY_CONSTANTS.TITLE_PREFIX} - ${fileName}` : DISPLAY_CONSTANTS.TITLE_PREFIX;
 
-        logWithContext(`File display updated: ${fileName}`);
+        logWithContext("File display updated: " + fileName);
     } catch (error) {
-        logWithContext(`Error updating file display: ${error.message}`, "error");
+        const errorMessage = error instanceof Error ? error.message : "Unknown error updating file display";
+        logWithContext("Error updating file display: " + errorMessage, "error");
     }
 }
 
@@ -126,7 +139,8 @@ function enableTabsAndNotify(filePath) {
 
         logWithContext("Tabs enabled and notifications sent");
     } catch (error) {
-        logWithContext(`Error enabling tabs and notifications: ${error.message}`, "error");
+        const errorMessage = error instanceof Error ? error.message : "Unknown error enabling tabs and notifications";
+        logWithContext("Error enabling tabs and notifications: " + errorMessage, "error");
     }
 }
 
@@ -136,9 +150,9 @@ function enableTabsAndNotify(filePath) {
  */
 function resetRenderingStates() {
     try {
-        // Reset rendering flags
-        window.isMapRendered = false;
-        window.isChartRendered = false;
+        // Reset rendering flags - use type assertion for window extensions
+        /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (window).isMapRendered = false;
+        /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (window).isChartRendered = false;
 
         // Update state management
         setState("ui.isMapRendered", false, { source: "showFitData" });
@@ -146,32 +160,37 @@ function resetRenderingStates() {
 
         logWithContext("Rendering states reset");
     } catch (error) {
-        logWithContext(`Error resetting rendering states: ${error.message}`, "error");
+        const errorMessage = error instanceof Error ? error.message : "Unknown error resetting rendering states";
+        logWithContext("Error resetting rendering states: " + errorMessage, "error");
     }
 }
 
 /**
  * Manages file name caching for performance
- * @param {Object} data - FIT data object
+ * @param {FitDataObject} data - FIT data object
  * @param {string} filePath - Path of the file
  * @returns {string} Cached or newly computed filename
  * @private
  */
 function getCachedFileName(data, filePath) {
     try {
+        // Use type assertion for property access
+        const dataWithCache = /** @type {FitDataObject} */ (data);
+
         // Check if we can use cached filename
-        if (data.cachedFileName && data.cachedFilePath === filePath) {
-            return data.cachedFileName;
+        if (dataWithCache.cachedFileName && dataWithCache.cachedFilePath === filePath) {
+            return dataWithCache.cachedFileName;
         }
 
         // Extract and cache new filename
         const fileName = extractFileName(filePath);
-        data.cachedFileName = fileName;
-        data.cachedFilePath = filePath;
+        dataWithCache.cachedFileName = fileName;
+        dataWithCache.cachedFilePath = filePath;
 
         return fileName;
     } catch (error) {
-        logWithContext(`Error managing file name cache: ${error.message}`, "error");
+        const errorMessage = error instanceof Error ? error.message : "Unknown error managing file name cache";
+        logWithContext("Error managing file name cache: " + errorMessage, "error");
         return extractFileName(filePath);
     }
 }
@@ -248,19 +267,21 @@ export function showFitData(data, filePath, options = {}) {
             try {
                 createGlobalChartStatusIndicator();
             } catch (indicatorError) {
-                logWithContext(`Error creating chart status indicator: ${indicatorError.message}`, "warn");
+                const errorMessage = indicatorError instanceof Error ? indicatorError.message : "Unknown error creating chart status indicator";
+                logWithContext("Error creating chart status indicator: " + errorMessage, "warn");
             }
         }
 
-        logWithContext(`FIT data displayed successfully${filePath ? ` for file: ${extractFileName(filePath)}` : ""}`);
+        logWithContext("FIT data displayed successfully" + (filePath ? " for file: " + extractFileName(filePath) : ""));
     } catch (error) {
-        logWithContext(`Error showing FIT data: ${error.message}`, "error");
+        const errorMessage = error instanceof Error ? error.message : "Unknown error showing FIT data";
+        logWithContext("Error showing FIT data: " + errorMessage, "error");
 
         // Update state with error information
         setState(
             "error",
             {
-                message: error.message,
+                message: errorMessage,
                 timestamp: Date.now(),
                 source: "showFitData",
             },
@@ -284,14 +305,22 @@ export function showFitData(data, filePath, options = {}) {
     // Switch to map tab as default when file is loaded
     // Use setTimeout to ensure this happens after DOM updates and tab handlers are ready
     setTimeout(() => {
-        if (window.updateTabVisibility && window.updateActiveTab) {
-            window.updateTabVisibility("content-map");
-            window.updateActiveTab("tab-map");
+        // Use type assertion for window extensions
+        const windowExt = /** @type {Window & {
+            updateTabVisibility?: Function,
+            updateActiveTab?: Function,
+            renderMap?: Function,
+            isMapRendered?: boolean
+        }} */ (window);
+
+        if (windowExt.updateTabVisibility && windowExt.updateActiveTab) {
+            windowExt.updateTabVisibility("content-map");
+            windowExt.updateActiveTab("tab-map");
 
             // Manually trigger map rendering since we're programmatically switching tabs
-            if (window.renderMap && !window.isMapRendered) {
-                window.renderMap();
-                window.isMapRendered = true;
+            if (windowExt.renderMap && !windowExt.isMapRendered) {
+                windowExt.renderMap();
+                windowExt.isMapRendered = true;
             }
         }
     }, 0);

@@ -23,6 +23,7 @@ const CONSTANTS = {
 };
 
 // Module state
+/** @type {HTMLElement|null} */
 let lastFocusedElement = null;
 export let modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 let showingFeatures = false; // Track whether features or system info is currently displayed
@@ -53,14 +54,14 @@ export function getAboutModalContent() {
 						</span>
 					</h1>
 					<p class="modal-subtitle">Advanced FIT file analysis and visualization tool</p>
-					
+
 					<div class="modal-actions">
 						<button id="toggle-info-btn" class="features-btn" tabindex="0" aria-label="Toggle between features and system info">
 							<span class="btn-icon">✨</span>
 							<span class="btn-text">Features</span>
 						</button>
 					</div>
-					
+
 					<div class="feature-highlights">
 						<div class="feature-item">
 							<div class="feature-icon">📊</div>
@@ -245,8 +246,6 @@ function createSystemInfoContent() {
 function toggleInfoSection() {
     const toggleSection = document.getElementById("info-toggle-section");
     const toggleButton = document.getElementById("toggle-info-btn");
-    const buttonIcon = toggleButton?.querySelector(".btn-icon");
-    const buttonText = toggleButton?.querySelector(".btn-text");
 
     if (!toggleSection || !toggleButton) return;
 
@@ -259,14 +258,18 @@ function toggleInfoSection() {
         if (showingFeatures) {
             // Show features
             toggleSection.innerHTML = createFeaturesContent();
-            buttonIcon.textContent = "🔧";
-            buttonText.textContent = "System Info";
+            const buttonIcon = toggleButton.querySelector(".btn-icon");
+            const buttonText = toggleButton.querySelector(".btn-text");
+            if (buttonIcon) buttonIcon.textContent = "🔧";
+            if (buttonText) buttonText.textContent = "System Info";
             toggleButton.setAttribute("aria-label", "View system information");
         } else {
             // Show system info
             toggleSection.innerHTML = createSystemInfoContent();
-            buttonIcon.textContent = "✨";
-            buttonText.textContent = "Features";
+            const buttonIcon = toggleButton.querySelector(".btn-icon");
+            const buttonText = toggleButton.querySelector(".btn-text");
+            if (buttonIcon) buttonIcon.textContent = "✨";
+            if (buttonText) buttonText.textContent = "Features";
             toggleButton.setAttribute("aria-label", "View detailed features");
 
             // Reload system info data after switching back
@@ -328,6 +331,7 @@ function hideAboutModal() {
 
 /**
  * Enhanced escape key handler with better UX
+ * @param {*} e
  */
 export function handleEscapeKey(e) {
     if (e.key === "Escape") {
@@ -354,7 +358,7 @@ export function showAboutModal(html = "") {
             body.innerHTML = html;
 
             // Save current focus
-            lastFocusedElement = document.activeElement;
+            lastFocusedElement = /** @type {HTMLElement} */ (document.activeElement);
 
             // Show modal with animation
             modal.style.display = "flex";
@@ -370,7 +374,7 @@ export function showAboutModal(html = "") {
                 hideAboutModal();
             };
 
-            closeBtn.onkeydown = (e) => {
+            closeBtn.onkeydown = /** @param {*} e */ (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     hideAboutModal();
@@ -383,7 +387,7 @@ export function showAboutModal(html = "") {
                     toggleInfoSection();
                 };
 
-                toggleBtn.onkeydown = (e) => {
+                toggleBtn.onkeydown = /** @param {*} e */ (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         toggleInfoSection();
@@ -394,7 +398,7 @@ export function showAboutModal(html = "") {
             // Handle external links to open in user's default browser
             const externalLinks = modal.querySelectorAll("[data-external-link]");
             externalLinks.forEach((link) => {
-                link.onclick = (e) => {
+                /** @type {HTMLElement} */ (link).onclick = /** @param {*} e */ (e) => {
                     e.preventDefault();
                     const url = link.getAttribute("href");
                     if (url && window.electronAPI && window.electronAPI.openExternal) {
@@ -405,7 +409,7 @@ export function showAboutModal(html = "") {
                     }
                 };
 
-                link.onkeydown = (e) => {
+                /** @type {HTMLElement} */ (link).onkeydown = /** @param {*} e */ (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         const url = link.getAttribute("href");
@@ -429,7 +433,7 @@ export function showAboutModal(html = "") {
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                modalContent.onclick = (e) => {
+                /** @type {HTMLElement} */ (modalContent).onclick = /** @param {*} e */ (e) => {
                     e.stopPropagation();
                 };
             }
@@ -478,8 +482,11 @@ const devHelpers = {
         const modal = document.getElementById("about-modal");
         if (modal) {
             modal.style.transition = "all 1000ms ease";
-            modal.querySelector(".modal-content").style.transition =
-                "transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+            const modalContent = modal.querySelector(".modal-content");
+            if (modalContent) {
+                /** @type {HTMLElement} */ (modalContent).style.transition =
+                    "transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+            }
         }
         devHelpers.showSample();
     },
@@ -499,7 +506,7 @@ const devHelpers = {
 };
 
 // Export development helpers in development mode
-if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") {
+if (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") {
     window.aboutModalDevHelpers = devHelpers;
 }
 

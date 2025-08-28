@@ -19,12 +19,21 @@ const CSV_CONFIG = {
 };
 
 /**
+ * @typedef {Record<string, any>} TableRow
+ */
+
+/**
+ * @typedef {Object} DataTable
+ * @property {() => TableRow[]} objects - Returns array of row objects
+ */
+
+/**
  * Copies the contents of a table as a CSV string to the clipboard
  *
  * This function serializes each row of the table, handling nested objects by stringifying them.
  * It attempts to use the modern Clipboard API and falls back to the legacy method if necessary.
  *
- * @param {Object} table - The table object to copy. Must have an `objects()` method that returns an array of row objects
+ * @param {DataTable} table - The table object to copy. Must have an `objects()` method that returns an array of row objects
  * @throws {Error} If the table object does not have an `objects()` method
  * @example
  * // Copy a DataTable to clipboard as CSV
@@ -42,7 +51,8 @@ export async function copyTableAsCSV(table) {
         const processedRows = processTableRows(table.objects());
 
         // Convert to CSV format
-        const flattenedTable = window.aq.from(processedRows);
+        const aq = /** @type {any} */ (window).aq;
+        const flattenedTable = aq.from(processedRows);
         const csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });
 
         // Attempt clipboard copy
@@ -55,15 +65,15 @@ export async function copyTableAsCSV(table) {
 
 /**
  * Processes table rows, handling nested objects with caching for performance
- * @param {Array} rows - Array of row objects from the table
- * @returns {Array} Processed rows with serialized objects
+ * @param {TableRow[]} rows - Array of row objects from the table
+ * @returns {TableRow[]} Processed rows with serialized objects
  * @private
  */
 function processTableRows(rows) {
     const cache = new Map();
 
     return rows.map((row) => {
-        const processedRow = {};
+        const processedRow = /** @type {TableRow} */ ({});
 
         Object.keys(row).forEach((key) => {
             const cell = row[key];

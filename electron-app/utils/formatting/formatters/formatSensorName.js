@@ -87,10 +87,10 @@ export function formatSensorName(sensor) {
  */
 function hasManufacturerAndProduct(sensor) {
     return (
-        sensor.manufacturer !== null &&
-        sensor.manufacturer !== undefined &&
-        sensor.product !== null &&
-        sensor.product !== undefined
+        /** @type {any} */ (sensor).manufacturer !== null &&
+        /** @type {any} */ (sensor).manufacturer !== undefined &&
+        /** @type {any} */ (sensor).product !== null &&
+        /** @type {any} */ (sensor).product !== undefined
     );
 }
 
@@ -101,8 +101,8 @@ function hasManufacturerAndProduct(sensor) {
  * @private
  */
 function formatManufacturerProduct(sensor) {
-    const manufacturerName = formatManufacturer(sensor.manufacturer);
-    const productName = formatProduct(sensor.manufacturer, sensor.product);
+    const manufacturerName = formatManufacturer(/** @type {any} */ (sensor).manufacturer);
+    const productName = formatProduct(/** @type {any} */ (sensor).manufacturer, /** @type {any} */ (sensor).product);
 
     // Avoid duplication if product name already includes manufacturer
     if (productName.toLowerCase().includes(manufacturerName.toLowerCase())) {

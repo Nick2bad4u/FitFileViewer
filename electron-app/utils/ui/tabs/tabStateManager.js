@@ -309,9 +309,9 @@ class TabStateManager {
 
         // Check if map is already rendered
         const mapState = getState("map");
-        if (!mapState?.isRendered && window.renderMap) {
+        if (!mapState?.isRendered && /** @type {any} */ (window).renderMap) {
             console.log("[TabStateManager] Rendering map for first time");
-            window.renderMap();
+            /** @type {any} */ (window).renderMap();
             setState("map.isRendered", true, { source: "TabStateManager.handleMapTab" });
         }
     }
@@ -322,7 +322,7 @@ class TabStateManager {
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleSummaryTab(globalData) {
-        if (!globalData || !window.renderSummary) return;
+        if (!globalData || !/** @type {any} */ (window).renderSummary) return;
 
         // Check if we need to re-render summary
         const previousData = getState("summary.lastDataHash");
@@ -330,7 +330,7 @@ class TabStateManager {
 
         if (previousData !== currentDataHash) {
             console.log("[TabStateManager] Rendering summary with new data");
-            window.renderSummary(globalData);
+            /** @type {any} */ (window).renderSummary(globalData);
             setState("summary.lastDataHash", currentDataHash, { source: "TabStateManager.handleSummaryTab" });
         }
     }
@@ -341,7 +341,7 @@ class TabStateManager {
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleDataTab(globalData) {
-        if (!globalData || !window.createTables) return;
+        if (!globalData || !/** @type {any} */ (window).createTables) return;
 
         // Check for background-rendered data first
         const bgContainer = document.getElementById("background-data-container");
@@ -356,7 +356,7 @@ class TabStateManager {
         } else {
             // Render fresh tables
             console.log("[TabStateManager] Creating data tables");
-            window.createTables(globalData);
+            /** @type {any} */ (window).createTables(globalData);
         }
     }
 
@@ -473,7 +473,7 @@ export { TAB_CONFIG };
 
 // Expose globally for debugging
 if (typeof window !== "undefined") {
-    window.tabStateManager = tabStateManager;
+    /** @type {any} */ (window).tabStateManager = tabStateManager;
 }
 
 export default tabStateManager;

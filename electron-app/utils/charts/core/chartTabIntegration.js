@@ -39,14 +39,14 @@ class ChartTabIntegration {
      */
     setupIntegration() {
         // Subscribe to file loading events to trigger chart updates
-        subscribe("globalData", (newData, oldData) => {
+        subscribe("globalData", (/** @type {any} */ newData, /** @type {any} */ oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
         });
 
         // Subscribe to file loading state
-        subscribe("app.isOpeningFile", (isOpening) => {
+        subscribe("app.isOpeningFile", (/** @type {any} */ isOpening) => {
             if (!isOpening) {
                 // File finished loading, check if we need to render charts
                 this.checkAndRenderCharts();
@@ -54,7 +54,7 @@ class ChartTabIntegration {
         });
 
         // Expose methods for external calls (backward compatibility)
-        window.chartTabIntegration = this;
+        /** @type {any} */ (window).chartTabIntegration = this;
     }
 
     /**
@@ -64,7 +64,7 @@ class ChartTabIntegration {
     handleDataChange(newData) {
         console.log("[ChartTabIntegration] Data changed, updating availability");
 
-        if (newData && newData.recordMesgs) {
+        if (newData && /** @type {any} */ (newData).recordMesgs) {
             // Enable chart tab
             this.enableChartTab();
 
@@ -104,7 +104,7 @@ class ChartTabIntegration {
     enableChartTab() {
         const chartTabButton = this.getChartTabButton();
         if (chartTabButton) {
-            chartTabButton.disabled = false;
+            /** @type {any} */ (chartTabButton).disabled = false;
             chartTabButton.classList.remove("disabled");
             chartTabButton.style.opacity = "1";
         }
@@ -116,7 +116,7 @@ class ChartTabIntegration {
     disableChartTab() {
         const chartTabButton = this.getChartTabButton();
         if (chartTabButton) {
-            chartTabButton.disabled = true;
+            /** @type {any} */ (chartTabButton).disabled = true;
             chartTabButton.classList.add("disabled");
             chartTabButton.style.opacity = "0.5";
         }
@@ -195,6 +195,13 @@ class ChartTabIntegration {
         this.isInitialized = false;
         console.log("[ChartTabIntegration] Destroyed");
     }
+
+    /**
+     * Cleanup method for compatibility
+     */
+    cleanup() {
+        this.destroy();
+    }
 }
 
 // Create and export singleton instance
@@ -202,7 +209,7 @@ export const chartTabIntegration = new ChartTabIntegration();
 
 // Expose for debugging
 if (typeof window !== "undefined") {
-    window.chartTabIntegration = chartTabIntegration;
+    /** @type {any} */ (window).chartTabIntegration = chartTabIntegration;
 }
 
 export default chartTabIntegration;

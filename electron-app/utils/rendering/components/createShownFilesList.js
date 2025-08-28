@@ -37,7 +37,7 @@ export function createShownFilesList() {
     // Helper: Check color contrast (returns true if color is accessible on the given background)
     /**
      * @param {string} fg - Foreground color
-     * @param {string} bg - Background color  
+     * @param {string} bg - Background color
      * @param {string} [filter=""] - CSS filter string
      * @returns {boolean} True if color is accessible
      */
@@ -84,7 +84,7 @@ export function createShownFilesList() {
         // Relative luminance
         /**
          * @param {number} r - Red component
-         * @param {number} g - Green component  
+         * @param {number} g - Green component
          * @param {number} b - Blue component
          * @returns {number} Luminance value
          */
@@ -109,9 +109,7 @@ export function createShownFilesList() {
         let anyOverlays = false;
         // Remove main file clickable entry (undo previous change)
         // Only show overlays in the list
-        // @ts-expect-error - loadedFitFiles exists on window
         if (window.loadedFitFiles && window.loadedFitFiles.length > 1) {
-            // @ts-expect-error - loadedFitFiles exists on window
             window.loadedFitFiles.forEach(/** @param {LoadedFitFile} f */ /** @param {number} idx */ (f, idx) => {
                 if (idx === 0) return; // skip main file
                 anyOverlays = true;
@@ -172,14 +170,10 @@ export function createShownFilesList() {
                 };
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
-                    // @ts-expect-error - loadedFitFiles exists on window
                     if (window.loadedFitFiles) {
-                        // @ts-expect-error - loadedFitFiles exists on window
                         window.loadedFitFiles.splice(idx, 1);
-                        // @ts-expect-error - renderMap exists on window
                         if (window.renderMap) window.renderMap();
-                        // @ts-expect-error - updateShownFilesList exists on window
-                        if (window.updateShownFilesList) window.updateShownFilesList();
+                        if (/** @type {any} */ (window).updateShownFilesList) /** @type {any} */ (window).updateShownFilesList();
                         // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(function () {
                             const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
@@ -203,11 +197,9 @@ export function createShownFilesList() {
                         const polyline = window._overlayPolylines[idx];
                         if (polyline.bringToFront) polyline.bringToFront();
                         // --- Also bring overlay markers to front ---
-                        // @ts-expect-error - L exists on window
                         if (window.L && window.L.CircleMarker && polyline._map && polyline._map._layers) {
                             Object.values(polyline._map._layers).forEach((layer) => {
                                 if (
-                                    // @ts-expect-error - L exists on window
                                     layer instanceof window.L.CircleMarker &&
                                     layer.options &&
                                     polyline.options &&
@@ -348,14 +340,10 @@ export function createShownFilesList() {
                 /** @param {MouseEvent} ev */
                 clearAll.onclick = (ev) => {
                     ev.stopPropagation();
-                    // @ts-expect-error - loadedFitFiles exists on window
                     if (window.loadedFitFiles) {
-                        // @ts-expect-error - loadedFitFiles exists on window
                         window.loadedFitFiles.splice(1);
-                        // @ts-expect-error - renderMap exists on window
                         if (window.renderMap) window.renderMap();
-                        // @ts-expect-error - updateShownFilesList exists on window
-                        if (window.updateShownFilesList) window.updateShownFilesList();
+                        if (/** @type {any} */ (window).updateShownFilesList) /** @type {any} */ (window).updateShownFilesList();
                         // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(function () {
                             const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
@@ -373,7 +361,6 @@ export function createShownFilesList() {
         }
     };
     // Hide initially if no overlays
-    // @ts-expect-error - loadedFitFiles exists on window
     if (!(window.loadedFitFiles && window.loadedFitFiles.length > 1)) {
         container.style.display = "none";
     }

@@ -27,9 +27,9 @@ export function updateTabVisibility(visibleTabId) {
     const elementMap = {};
     for (let i = 0; i < tabContentIds.length; i++) {
         const id = tabContentIds[i];
-        const el = document.getElementById(id);
+        const el = document.getElementById(/** @type {string} */ (id));
         if (el) {
-            elementMap[id] = el;
+            /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
             console.warn(
                 `updateTabVisibility: Missing element in the DOM: ${id}. Please check the HTML structure to ensure the element with ID '${id}' exists, or verify that it is dynamically added to the DOM before calling updateTabVisibility.`
@@ -71,7 +71,7 @@ function extractTabNameFromContentId(contentId) {
     for (const pattern of patterns) {
         const match = contentId.match(pattern);
         if (match) {
-            return match[1] === "chartjs" ? "chart" : match[1]; // Special case for chartjs -> chart
+            return match[1] === "chartjs" ? "chart" : /** @type {string} */ (match[1]); // Special case for chartjs -> chart
         }
     }
 
@@ -94,7 +94,7 @@ function getContentIdFromTabName(tabName) {
         zwift: "content-zwift",
     };
 
-    return tabToContentMap[tabName] || `content-${tabName}`;
+    return /** @type {any} */ (tabToContentMap)[tabName] || `content-${tabName}`;
 }
 
 /**
@@ -102,13 +102,13 @@ function getContentIdFromTabName(tabName) {
  */
 export function initializeTabVisibilityState() {
     // Subscribe to active tab changes to update content visibility
-    subscribe("ui.activeTab", (activeTab) => {
+    subscribe("ui.activeTab", /** @param {any} activeTab */ (activeTab) => {
         const contentId = getContentIdFromTabName(activeTab);
         updateTabVisibility(contentId);
     });
 
     // Subscribe to data loading to show/hide appropriate content
-    subscribe("globalData", (data) => {
+    subscribe("globalData", /** @param {any} data */ (data) => {
         const hasData = data !== null && data !== undefined;
         const currentTab = getState("ui.activeTab") || "summary";
 

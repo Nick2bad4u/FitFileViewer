@@ -39,6 +39,7 @@ export const throttledAnimLog = (() => {
     let lastAnimLogTimestamp = 0;
     const THROTTLE_INTERVAL_MS = 500;
 
+    /** @param {any} message */
     return function (message) {
         // Skip logging in production or if console is not available
         if (typeof console === "undefined" || !console.log) {
@@ -47,7 +48,7 @@ export const throttledAnimLog = (() => {
 
         // Additional development mode check
         const isDevelopment =
-            (typeof window !== "undefined" && window.__renderer_dev) || process?.env?.NODE_ENV === "development";
+            (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev) || process?.env?.['NODE_ENV'] === "development";
 
         if (!isDevelopment) {
             return;
@@ -86,7 +87,7 @@ export const criticalAnimLog = (message) => {
     }
 
     const isDevelopment =
-        (typeof window !== "undefined" && window.__renderer_dev) || process?.env?.NODE_ENV === "development";
+        (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev) || process?.env?.['NODE_ENV'] === "development";
 
     if (!isDevelopment) {
         return;
@@ -118,6 +119,10 @@ export const perfAnimLog = (() => {
     let lastPerfLogTimestamp = 0;
     const THROTTLE_INTERVAL_MS = 1000; // Less frequent for performance logs
 
+    /**
+     * @param {any} message
+     * @param {any} startTime
+     */
     return function (message, startTime) {
         // Skip logging in production or if console is not available
         if (typeof console === "undefined" || !console.log) {
@@ -125,7 +130,7 @@ export const perfAnimLog = (() => {
         }
 
         const isDevelopment =
-            (typeof window !== "undefined" && window.__renderer_dev) || process?.env?.NODE_ENV === "development";
+            (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev) || process?.env?.['NODE_ENV'] === "development";
 
         if (!isDevelopment) {
             return;

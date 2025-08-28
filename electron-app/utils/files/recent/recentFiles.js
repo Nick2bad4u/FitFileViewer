@@ -45,9 +45,10 @@ const path = require("path");
 const fs = require("fs");
 const { app } = require("electron");
 
+/** @type {string|undefined} */
 let RECENT_FILES_PATH;
-if (process.env.RECENT_FILES_PATH) {
-    RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
+if (process.env['RECENT_FILES_PATH']) {
+    RECENT_FILES_PATH = process.env['RECENT_FILES_PATH'];
 } else {
     let userDataPath;
     try {
@@ -72,12 +73,12 @@ const MAX_RECENT_FILES = 10;
  * Attempts to read and parse a JSON file containing recent files.
  * If the file does not exist or an error occurs, returns an empty array.
  *
- * @returns {Array} An array of recent files, or an empty array if none are found or an error occurs.
+ * @returns {Array<string>} An array of recent files, or an empty array if none are found or an error occurs.
  */
 function loadRecentFiles() {
     try {
-        if (fs.existsSync(RECENT_FILES_PATH)) {
-            const data = fs.readFileSync(RECENT_FILES_PATH, "utf-8");
+        if (fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
+            const data = fs.readFileSync(/** @type {string} */ (RECENT_FILES_PATH), "utf-8");
             return JSON.parse(data);
         }
     } catch (err) {
@@ -89,12 +90,12 @@ function loadRecentFiles() {
 /**
  * Saves the list of recent files to disk, keeping only the most recent entries.
  *
- * @param {Array} list - The array of recent file paths to save.
+ * @param {Array<string>} list - The array of recent file paths to save.
  * @returns {void}
  */
 function saveRecentFiles(list) {
     try {
-        fs.writeFileSync(RECENT_FILES_PATH, JSON.stringify(list.slice(0, MAX_RECENT_FILES)), "utf-8");
+        fs.writeFileSync(/** @type {string} */ (RECENT_FILES_PATH), JSON.stringify(list.slice(0, MAX_RECENT_FILES)), "utf-8");
     } catch (err) {
         console.error("Failed to save recent files:", err);
     }

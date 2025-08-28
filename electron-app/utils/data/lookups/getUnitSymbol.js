@@ -113,7 +113,7 @@ function isSpeedField(field) {
  */
 function getDistanceUnitSymbol() {
     const distanceUnits = getUserPreference(STORAGE_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
-    return UNIT_SYMBOLS.DISTANCE[distanceUnits] || UNIT_SYMBOLS.DISTANCE.meters;
+    return /** @type {any} */ (UNIT_SYMBOLS.DISTANCE)[distanceUnits] || UNIT_SYMBOLS.DISTANCE.meters;
 }
 
 /**
@@ -122,7 +122,7 @@ function getDistanceUnitSymbol() {
  */
 function getTemperatureUnitSymbol() {
     const temperatureUnits = getUserPreference(STORAGE_KEYS.TEMPERATURE_UNITS, DEFAULT_UNITS.TEMPERATURE);
-    return UNIT_SYMBOLS.TEMPERATURE[temperatureUnits] || UNIT_SYMBOLS.TEMPERATURE.celsius;
+    return /** @type {any} */ (UNIT_SYMBOLS.TEMPERATURE)[temperatureUnits] || UNIT_SYMBOLS.TEMPERATURE.celsius;
 }
 
 /**
@@ -131,7 +131,7 @@ function getTemperatureUnitSymbol() {
  */
 function getTimeUnitSymbol() {
     const timeUnits = getUserPreference(STORAGE_KEYS.TIME_UNITS, DEFAULT_UNITS.TIME);
-    return UNIT_SYMBOLS.TIME[timeUnits] || UNIT_SYMBOLS.TIME.seconds;
+    return /** @type {any} */ (UNIT_SYMBOLS.TIME)[timeUnits] || UNIT_SYMBOLS.TIME.seconds;
 }
 
 /**
@@ -182,7 +182,7 @@ export function getUnitSymbol(field, unitType) {
         }
 
         // Fallback to predefined field labels for fitness metrics
-        return ORIGINAL_FIELD_LABELS[field] || "";
+        return /** @type {any} */ (ORIGINAL_FIELD_LABELS)[field] || "";
     } catch (error) {
         console.error(`[UnitSymbol] Error getting unit symbol for field "${field}":`, error);
         return "";

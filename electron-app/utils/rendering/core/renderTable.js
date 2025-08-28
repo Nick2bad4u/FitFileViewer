@@ -1,5 +1,8 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
 /* global $ */
+
+/** @type {any} */
+const $ = /** @type {any} */ (window).$;
 /**
  * Renders a collapsible table section with a header, copy-to-CSV button, and optional DataTables integration.
  *
@@ -28,7 +31,7 @@ export function renderTable(container, title, table, index) {
     copyButton.classList.add("copy-btn");
     copyButton.onclick = (event) => {
         event.stopPropagation();
-        copyTableAsCSV(table, title);
+        copyTableAsCSV(/** @type {any} */ (table));
     };
     const icon = document.createElement("span");
     icon.textContent = "➕";
@@ -38,9 +41,9 @@ export function renderTable(container, title, table, index) {
     header.appendChild(rightContainer);
     header.onclick = () => {
         const content = document.getElementById(tableId + "_content");
-        const currentDisplay = window.getComputedStyle(content).display;
+        const currentDisplay = window.getComputedStyle(/** @type {Element} */ (content)).display;
         const isVisible = currentDisplay === "block";
-        content.style.display = isVisible ? "none" : "block";
+        if (content) content.style.display = isVisible ? "none" : "block";
         icon.textContent = isVisible ? "➕" : "➖";
     };
     const content = document.createElement("div");
@@ -50,12 +53,12 @@ export function renderTable(container, title, table, index) {
     const tableElement = document.createElement("table");
     tableElement.id = tableId;
     tableElement.classList.add("display");
-    tableElement.innerHTML = table.toHTML({ limit: Infinity });
+    tableElement.innerHTML = /** @type {any} */ (table).toHTML({ limit: Infinity });
     content.appendChild(tableElement);
     section.appendChild(header);
     section.appendChild(content);
     container.appendChild(section);
-    if (window.jQuery) {
+    if (/** @type {any} */ (window).jQuery) {
         $(document).ready(function () {
             setTimeout(function () {
                 try {

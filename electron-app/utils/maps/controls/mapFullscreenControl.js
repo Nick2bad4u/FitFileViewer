@@ -1,4 +1,13 @@
-// Utility to add a custom fullscreen control to a Leaflet map
+/**
+ * @typedef {Object} LeafletMap
+ * @property {() => void} invalidateSize - Invalidates map size
+ * @property {HTMLElement} [_container] - Map container element
+ */
+
+/**
+ * Utility to add a custom fullscreen control to a Leaflet map
+ * @param {LeafletMap} map - The Leaflet map instance
+ */
 export function addFullscreenControl(map) {
     const fullscreenControl = document.createElement("div");
     fullscreenControl.className = "custom-fullscreen-control leaflet-top leaflet-left";
@@ -10,14 +19,24 @@ export function addFullscreenControl(map) {
 		</div>
 	`;
     const mapDiv = document.getElementById("leaflet-map");
+    if (!mapDiv) {
+        console.warn("[mapFullscreenControl] Map container not found");
+        return;
+    }
     mapDiv.appendChild(fullscreenControl);
 
     const fullscreenBtn = fullscreenControl.querySelector("#fullscreen-btn");
-    fullscreenBtn.onclick = () => {
+    if (!fullscreenBtn) {
+        console.warn("[mapFullscreenControl] Fullscreen button not found");
+        return;
+    }
+
+    const button = /** @type {HTMLButtonElement} */ (fullscreenBtn);
+    button.onclick = () => {
         if (!mapDiv) return;
         const isFullscreen = mapDiv.classList.toggle("fullscreen");
-        fullscreenBtn.title = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
-        fullscreenBtn.innerHTML = isFullscreen ? fullscreenExitSVG : fullscreenEnterSVG;
+        button.title = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
+        button.innerHTML = isFullscreen ? fullscreenExitSVG : fullscreenEnterSVG;
         if (isFullscreen) {
             mapDiv.requestFullscreen && mapDiv.requestFullscreen();
         } else {
@@ -30,8 +49,8 @@ export function addFullscreenControl(map) {
         const isNowFullscreen = document.fullscreenElement === mapDiv;
         if (!isNowFullscreen) {
             mapDiv.classList.remove("fullscreen");
-            fullscreenBtn.title = "Enter Fullscreen";
-            fullscreenBtn.innerHTML = fullscreenEnterSVG;
+            button.title = "Enter Fullscreen";
+            button.innerHTML = fullscreenEnterSVG;
             // Only call invalidateSize if map is still valid and map container is in the DOM
             if (map && map._container && document.body.contains(map._container)) {
                 setTimeout(() => map.invalidateSize(), 300);

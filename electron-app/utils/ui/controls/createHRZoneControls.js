@@ -161,7 +161,7 @@ export function moveHRZoneControlsToSection() {
         const controls = hrZoneContent.children;
         for (let i = 0; i < controls.length; i++) {
             if (i > 0) {
-                controls[i].style.marginTop = "12px";
+                /** @type {HTMLElement} */ (controls[i]).style.marginTop = "12px";
             }
         }
 

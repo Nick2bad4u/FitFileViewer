@@ -133,7 +133,7 @@ export function addFullScreenButton() {
 
         logWithContext("Fullscreen button created successfully");
     } catch (error) {
-        logWithContext(`Failed to create fullscreen button: ${error.message}`, "error");
+        logWithContext(`Failed to create fullscreen button: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -165,7 +165,7 @@ function handleFullscreenToggle(event) {
             logWithContext("Exiting fullscreen mode");
         }
     } catch (error) {
-        logWithContext(`Failed to toggle fullscreen: ${error.message}`, "error");
+        logWithContext(`Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -198,7 +198,7 @@ function updateButtonState(button, isFullscreen) {
             icon.innerHTML = createEnterFullscreenIcon();
         }
     } catch (error) {
-        logWithContext(`Failed to update button state: ${error.message}`, "error");
+        logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -237,7 +237,7 @@ export function setupFullscreenListeners() {
 
         logWithContext("Fullscreen listeners setup completed");
     } catch (error) {
-        logWithContext(`Failed to setup fullscreen listeners: ${error.message}`, "error");
+        logWithContext(`Failed to setup fullscreen listeners: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -253,7 +253,7 @@ function handleFullscreenStateChange() {
         if (screenfull.isFullscreen) {
             // Entering fullscreen
             if (activeContent) {
-                addExitFullscreenOverlay(activeContent);
+                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -270,7 +270,7 @@ function handleFullscreenStateChange() {
         } else {
             // Exiting fullscreen
             if (activeContent) {
-                removeExitFullscreenOverlay(activeContent);
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -286,7 +286,7 @@ function handleFullscreenStateChange() {
             }
         }
     } catch (error) {
-        logWithContext(`Error handling fullscreen state change: ${error.message}`, "error");
+        logWithContext(`Error handling fullscreen state change: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -320,7 +320,7 @@ function handleKeyboardShortcuts(event) {
             }
         }
     } catch (error) {
-        logWithContext(`Error handling keyboard shortcut: ${error.message}`, "error");
+        logWithContext(`Error handling keyboard shortcut: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -350,7 +350,7 @@ function handleDOMContentLoaded() {
             });
         }
     } catch (error) {
-        logWithContext(`Error during DOM content loaded: ${error.message}`, "error");
+        logWithContext(`Error during DOM content loaded: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -389,6 +389,6 @@ export function setupDOMContentLoaded() {
             }
         }
     } catch (error) {
-        logWithContext(`Error in legacy DOM setup: ${error.message}`, "error");
+        logWithContext(`Error in legacy DOM setup: ${/** @type {any} */ (error).message}`, "error");
     }
 }

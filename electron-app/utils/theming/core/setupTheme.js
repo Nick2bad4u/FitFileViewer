@@ -80,7 +80,7 @@ async function fetchThemeFromMainProcess() {
         logWithContext(`Theme fetched from main process: ${theme}`);
         return theme;
     } catch (error) {
-        logWithContext(`Failed to get theme from main process: ${error.message}, using default`, "warn");
+        logWithContext(`Failed to get theme from main process: ${/** @type {Error} */ (error).message}, using default`, "warn");
         return DEFAULT_THEME;
     }
 }
@@ -114,10 +114,10 @@ function applyAndTrackTheme(theme, applyTheme) {
         try {
             localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
         } catch (storageError) {
-            logWithContext(`Failed to store theme in localStorage: ${storageError.message}`, "warn");
+            logWithContext(`Failed to store theme in localStorage: ${/** @type {Error} */ (storageError).message}`, "warn");
         }
     } catch (error) {
-        logWithContext(`Error applying theme: ${error.message}`, "error");
+        logWithContext(`Error applying theme: ${/** @type {Error} */ (error).message}`, "error");
     }
 }
 
@@ -131,14 +131,14 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
     try {
         if (typeof listenForThemeChange === "function") {
             // Set up external theme change listener
-            listenForThemeChange((newTheme) => {
+            listenForThemeChange(/** @param {*} newTheme */ (newTheme) => {
                 logWithContext(`Theme change received: ${newTheme}`);
                 applyAndTrackTheme(newTheme, applyTheme);
             });
         }
 
         // Set up state-based theme change listener
-        subscribe("ui.theme", (newTheme) => {
+        subscribe("ui.theme", /** @param {*} newTheme */ (newTheme) => {
             if (newTheme && newTheme !== getState("ui.previousTheme")) {
                 logWithContext(`State-driven theme change: ${newTheme}`);
                 setState("ui.previousTheme", newTheme, { source: "setupTheme" });
@@ -151,7 +151,7 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
 
         logWithContext("Theme change listeners registered");
     } catch (error) {
-        logWithContext(`Error setting up theme change listener: ${error.message}`, "error");
+        logWithContext(`Error setting up theme change listener: ${/** @type {Error} */ (error).message}`, "error");
     }
 }
 
@@ -203,18 +203,18 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
         if (theme === THEME_CONSTANTS.DEFAULT_THEME && config.useLocalStorage) {
             try {
                 const storedTheme = localStorage.getItem(THEME_CONSTANTS.STORAGE_KEY);
-                if (isValidTheme(storedTheme)) {
+                if (storedTheme && isValidTheme(storedTheme)) {
                     theme = storedTheme;
                     logWithContext(`Using stored theme: ${theme}`);
                 }
             } catch (storageError) {
-                logWithContext(`Failed to read from localStorage: ${storageError.message}`, "warn");
+                logWithContext(`Failed to read from localStorage: ${/** @type {Error} */ (storageError).message}`, "warn");
             }
         }
 
         // Final fallback to config option
         if (!isValidTheme(theme)) {
-            theme = config.fallbackTheme;
+            theme = config.fallbackTheme || THEME_CONSTANTS.DEFAULT_THEME;
             logWithContext(`Using fallback theme: ${theme}`);
         }
 
@@ -222,12 +222,14 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
         applyAndTrackTheme(theme, applyTheme);
 
         // Set up theme change listeners
-        setupThemeChangeListener(applyTheme, listenForThemeChange);
+        if (listenForThemeChange) {
+            setupThemeChangeListener(applyTheme, listenForThemeChange);
+        }
 
         logWithContext(`Theme setup completed successfully with theme: ${theme}`);
         return theme;
     } catch (error) {
-        logWithContext(`Error during theme setup: ${error.message}`, "error");
+        logWithContext(`Error during theme setup: ${/** @type {Error} */ (error).message}`, "error");
 
         // Emergency fallback
         const emergencyTheme = THEME_CONSTANTS.DEFAULT_THEME;
@@ -235,7 +237,7 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
             applyTheme(emergencyTheme);
             setState("ui.theme", emergencyTheme, { source: "setupTheme-emergency" });
         } catch (emergencyError) {
-            logWithContext(`Emergency theme application failed: ${emergencyError.message}`, "error");
+            logWithContext(`Emergency theme application failed: ${/** @type {Error} */ (emergencyError).message}`, "error");
         }
 
         return emergencyTheme;

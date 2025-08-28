@@ -10,12 +10,12 @@ import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackground
  * @param {HTMLCanvasElement} canvas - Target canvas element
  * @param {Object[]} zoneData - Array of zone objects {label, value, color}
  * @param {Object} [options={}] - Chart options (theme, title, etc.)
- * @returns {Chart|null} Chart.js instance or null on error
+ * @returns {*|null} Chart.js instance or null on error
  */
 
 export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
     try {
-        if (!window.Chart || !canvas || !Array.isArray(zoneData)) {
+        if (!/** @type {any} */ (window).Chart || !canvas || !Array.isArray(zoneData)) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
         const theme = detectCurrentTheme();
@@ -26,14 +26,14 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
 
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
-            label: zone.label,
-            data: [zone.value], // Single value array for this zone
-            backgroundColor: zone.color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
+            label: /** @type {any} */ (zone).label,
+            data: [/** @type {any} */ (zone).value], // Single value array for this zone
+            backgroundColor: /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
             borderColor: theme === "dark" ? "#333" : "#fff",
             borderWidth: 1,
         }));
 
-        const chart = new window.Chart(canvas, {
+        const chart = new /** @type {any} */ (window).Chart(canvas, {
             type: "bar",
             data: {
                 labels: ["Time in Zone"], // Single category for all zones
@@ -52,8 +52,8 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         },
                     },
                     title: {
-                        display: !!options.title,
-                        text: options.title || "Heart Rate Zones",
+                        display: !!/** @type {any} */ (options).title,
+                        text: /** @type {any} */ (options).title || "Heart Rate Zones",
                         color: theme === "dark" ? "#fff" : "#000",
                         font: { size: 16, weight: "bold" },
                     },
@@ -64,6 +64,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         borderColor: theme === "dark" ? "#555" : "#ddd",
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any} context */
                             label: function (context) {
                                 const timeFormatted = formatTime(context.parsed.y, true);
                                 return `${context.dataset.label}: ${timeFormatted}`;
@@ -127,6 +128,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         },
                         ticks: {
                             color: theme === "dark" ? "#fff" : "#000",
+                            /** @param {any} value */
                             callback: function (value) {
                                 return formatTime(value, true);
                             },
@@ -141,7 +143,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         });
         return chart;
     } catch (error) {
-        if (window.showNotification) window.showNotification("Failed to render HR zone bar", "error");
+        if (/** @type {any} */ (window).showNotification) /** @type {any} */ (window).showNotification("Failed to render HR zone bar", "error");
         console.error("[renderSingleHRZoneBar] Error:", error);
         return null;
     }
