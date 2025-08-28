@@ -74,12 +74,12 @@ export function setLoading(isLoading) {
  */
 export function initializeRendererUtils() {
     // Subscribe to loading state changes to update UI
-    subscribe("isLoading", (isLoading) => {
+    subscribe("isLoading", (/** @type {boolean} */ isLoading) => {
         updateLoadingUI(isLoading);
     });
 
     // Subscribe to notification state changes
-    subscribe("ui.currentNotification", (notification) => {
+    subscribe("ui.currentNotification", (/** @type {{message:string,type:string}|null} */ notification) => {
         if (notification) {
             updateNotificationUI(notification);
         }
@@ -116,13 +116,15 @@ function updateLoadingUI(isLoading) {
             return;
         }
 
-        if (isLoading) {
-            element.setAttribute("data-was-disabled", element.disabled.toString());
-            element.disabled = true;
-        } else {
-            const wasDisabled = element.getAttribute("data-was-disabled") === "true";
-            element.disabled = wasDisabled;
-            element.removeAttribute("data-was-disabled");
+        if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
+            if (isLoading) {
+                element.setAttribute("data-was-disabled", element.disabled.toString());
+                element.disabled = true;
+            } else {
+                const wasDisabled = element.getAttribute("data-was-disabled") === "true";
+                element.disabled = wasDisabled;
+                element.removeAttribute("data-was-disabled");
+            }
         }
     });
 }
@@ -131,6 +133,9 @@ function updateLoadingUI(isLoading) {
  * Update notification UI based on state
  * @private
  * @param {Object} notification - Notification object
+ */
+/**
+ * @param {{message:string,type:string}} notification
  */
 function updateNotificationUI(notification) {
     const notif = document.getElementById("notification");

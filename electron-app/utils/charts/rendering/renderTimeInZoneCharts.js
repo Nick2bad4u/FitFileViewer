@@ -1,25 +1,33 @@
 import { renderZoneChart } from "./renderZoneChart.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- JSDoc type import
+/** @typedef {import('../../../global').ZoneInfo} ZoneInfo */
+/** @typedef {{ doughnutVisible?: boolean }} ZoneVisibilitySettings */
 
-// Time in zone charts renderer
-export function renderTimeInZoneCharts(container, options) {
+/**
+ * Render HR / Power time-in-zone charts (doughnut by default) into a container.
+ * @param {HTMLElement} container parent element to append charts into
+ * @param {{ chartType?: string } & Record<string,any>} [options] optional chart options forwarded to renderZoneChart
+ */
+export function renderTimeInZoneCharts(container, options = {}) {
     try {
+        if (!container) return;
         console.log("[ChartJS] renderTimeInZoneCharts called");
-        console.log("[ChartJS] window.heartRateZones:", window.heartRateZones);
-        console.log("[ChartJS] window.powerZones:", window.powerZones); // Check for heart rate zone data and visibility using new HR zone controls
-        const hrZoneSettings = getHRZoneVisibilitySettings();
-        if (
-            hrZoneSettings.doughnutVisible &&
-            window.heartRateZones &&
-            Array.isArray(window.heartRateZones) &&
-            window.heartRateZones.length > 0
-        ) {
-            console.log("[ChartJS] Rendering HR zone chart with data:", window.heartRateZones);
+
+        /** @type {ZoneInfo[]|undefined} */
+        const hrZones = Array.isArray(window.heartRateZones) ? window.heartRateZones : undefined;
+        /** @type {ZoneInfo[]|undefined} */
+        const powerZones = Array.isArray(window.powerZones) ? window.powerZones : undefined;
+
+    /** @type {ZoneVisibilitySettings} */
+    const hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || { doughnutVisible: true };
+        if (hrZoneSettings.doughnutVisible && hrZones && hrZones.length > 0) {
+            console.log("[ChartJS] Rendering HR zone chart with data:", hrZones);
             renderZoneChart(
                 container,
                 "HR Zone Distribution (Doughnut)",
-                window.heartRateZones,
+                hrZones,
                 "heart-rate-zones",
                 options
             );
@@ -27,16 +35,17 @@ export function renderTimeInZoneCharts(container, options) {
             console.log("[ChartJS] HR zone doughnut chart hidden or no data available");
         }
 
-        // Check for power zone data and visibility using new power zone controls
-        const powerZoneSettings = getPowerZoneVisibilitySettings();
-        if (
-            powerZoneSettings.doughnutVisible &&
-            window.powerZones &&
-            Array.isArray(window.powerZones) &&
-            window.powerZones.length > 0
-        ) {
-            console.log("[ChartJS] Rendering power zone doughnut chart with data:", window.powerZones);
-            renderZoneChart(container, "Power Zone Distribution (Doughnut)", window.powerZones, "power-zones", options);
+    /** @type {ZoneVisibilitySettings} */
+    const powerZoneSettings = (getPowerZoneVisibilitySettings && getPowerZoneVisibilitySettings()) || { doughnutVisible: true };
+        if (powerZoneSettings.doughnutVisible && powerZones && powerZones.length > 0) {
+            console.log("[ChartJS] Rendering power zone doughnut chart with data:", powerZones);
+            renderZoneChart(
+                container,
+                "Power Zone Distribution (Doughnut)",
+                powerZones,
+                "power-zones",
+                options
+            );
         } else {
             console.log("[ChartJS] Power zone doughnut chart hidden or no data available");
         }

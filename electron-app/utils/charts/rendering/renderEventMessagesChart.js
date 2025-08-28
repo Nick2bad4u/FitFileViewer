@@ -6,6 +6,11 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 // Event messages chart renderer
+/**
+ * @param {HTMLElement} container
+ * @param {{ showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, zoomPluginConfig?: any }} options
+ * @param {Date|number} startTime
+ */
 export function renderEventMessagesChart(container, options, startTime) {
     try {
         const eventMesgs = window.globalData?.eventMesgs;
@@ -14,20 +19,23 @@ export function renderEventMessagesChart(container, options, startTime) {
         }
 
         // Get theme configuration
-        const themeConfig = getThemeConfig();
+    /** @type {any} */
+    const themeConfig = getThemeConfig();
 
         // Get user-defined color for event messages
         const eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0"; // Purple default
 
-        const canvas = createChartCanvas("events", "events");
+    const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("events", 0));
 
         // Apply theme-aware canvas styling (background handled by plugin)
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = themeConfig.colors.shadow;
+        if (themeConfig?.colors) {
+            canvas.style.boxShadow = themeConfig.colors.shadow || "";
+        }
 
         container.appendChild(canvas);
         // Prepare event data with relative timestamps
-        const eventData = eventMesgs.map((event) => {
+    const eventData = eventMesgs.map((event) => {
             let timestamp = event.timestamp || event.time || 0;
 
             // Convert to relative seconds from start time
@@ -102,6 +110,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                         borderColor: themeConfig.colors.border,
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any} context */
                             label: function (context) {
                                 const point = context.raw;
                                 return point.event || "Event";
@@ -128,6 +137,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                         },
                         ticks: {
                             color: themeConfig.colors.textPrimary,
+                            /** @param {any} value */
                             callback: function (value) {
                                 // Format seconds according to user's preferred units
                                 return formatTime(value, true);
@@ -144,8 +154,8 @@ export function renderEventMessagesChart(container, options, startTime) {
 
         const chart = new window.Chart(canvas, config);
         if (chart) {
-            // Apply enhanced animation configurations
             updateChartAnimations(chart, "Event Messages");
+            if (!window._chartjsInstances) window._chartjsInstances = [];
             window._chartjsInstances.push(chart);
         }
     } catch (error) {

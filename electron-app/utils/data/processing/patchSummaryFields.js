@@ -6,6 +6,32 @@
 import { formatDistance } from "../../formatting/formatters/formatDistance.js";
 import { formatDuration } from "../../formatting/formatters/formatDuration.js";
 
+/**
+ * @typedef {Object} PatchSummaryFieldsOptions
+ * @property {boolean} [preserveOriginal] Whether to shallow-clone the object before mutating so we can restore on failure
+ * @property {boolean} [skipValidation] Skip the initial object validation guard
+ */
+
+/**
+ * Generic summary object we mutate in place. We intentionally allow any value type
+ * because raw FIT summary objects are loosely shaped. Using an index signature avoids
+ * the numerous TS7053 (implicit any on string index) diagnostics under checkJs.
+ * @typedef {Record<string, any>} SummaryRecord
+ */
+
+/**
+ * Narrow an unknown caught error to a message string safely.
+ * @param {unknown} err
+ * @returns {string}
+ */
+function getErrorMessage(err) {
+    if (err && typeof err === "object" && "message" in err) {
+        // @ts-ignore - best effort extraction
+        return String(err.message);
+    }
+    return String(err);
+}
+
 // Constants for better maintainability
 const PATCH_CONSTANTS = {
     DECIMAL_PLACES: {
@@ -105,15 +131,22 @@ function safeToNumber(value, fieldName = "value") {
  * @param {string} description - Description for logging
  * @private
  */
+/**
+ * @param {SummaryRecord} obj
+ * @param {string[]} fieldNames
+ * @param {(value:number)=>any} formatter
+ * @param {string} description
+ */
 function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
     for (const fieldName of fieldNames) {
-        if (obj[fieldName] != null) {
-            const value = safeToNumber(obj[fieldName], fieldName);
+        if (Object.prototype.hasOwnProperty.call(obj, fieldName) && obj[fieldName] != null) {
+            const raw = obj[fieldName];
+            const value = safeToNumber(raw, fieldName);
             if (value !== null) {
                 try {
                     obj[fieldName] = formatter(value);
                 } catch (error) {
-                    logWithContext(`Error formatting ${description} field '${fieldName}': ${error.message}`, "error");
+                    logWithContext(`Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`, "error");
                 }
             }
         }
@@ -127,11 +160,16 @@ function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
  * @param {number} decimalPlaces - Number of decimal places
  * @private
  */
+/**
+ * @param {SummaryRecord} obj
+ * @param {string[]} fieldNames
+ * @param {number} decimalPlaces
+ */
 function patchDecimalFields(obj, fieldNames, decimalPlaces) {
     patchFieldsWithFormatter(
         obj,
         fieldNames,
-        (value) => Number(value.toFixed(decimalPlaces)),
+    /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
         `decimal (${decimalPlaces} places)`
     );
 }
@@ -153,6 +191,11 @@ function patchDecimalFields(obj, fieldNames, decimalPlaces) {
  * // summary.total_distance is now formatted as "5.00 km"
  *
  * @public
+ */
+/**
+ * @param {SummaryRecord} obj
+ * @param {PatchSummaryFieldsOptions} [options]
+ * @returns {SummaryRecord}
  */
 export function patchSummaryFields(obj, options = {}) {
     const config = {
@@ -198,8 +241,8 @@ export function patchSummaryFields(obj, options = {}) {
             throw error;
         }
     } catch (error) {
-        logWithContext(`Error patching summary fields: ${error.message}`, "error");
-        throw error;
+        logWithContext(`Error patching summary fields: ${getErrorMessage(error)}`, "error");
+        throw error; // rethrow for upstream handling
     }
 }
 
@@ -210,6 +253,7 @@ export function patchSummaryFields(obj, options = {}) {
  * @param {Object} obj - The object containing distance fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchDistance(obj) {
     patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.DISTANCE, formatDistance, "distance");
 }
@@ -219,6 +263,7 @@ function patchDistance(obj) {
  * @param {Object} obj - The object containing time fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchTime(obj) {
     patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TIME, formatDuration, "time");
 }
@@ -229,6 +274,7 @@ function patchTime(obj) {
  * @returns {string} The formatted speed string
  * @private
  */
+/** @param {number} val */
 function formatSpeed(val) {
     const mps = Number(val);
     const kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
@@ -241,6 +287,7 @@ function formatSpeed(val) {
  * @param {Object} obj - The object containing speed fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchSpeed(obj) {
     patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.SPEED, formatSpeed, "speed");
 }
@@ -250,6 +297,7 @@ function patchSpeed(obj) {
  * @param {Object} obj - The object containing power fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchPowerModern(obj) {
     patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.POWER, PATCH_CONSTANTS.DECIMAL_PLACES.POWER);
 }
@@ -259,6 +307,7 @@ function patchPowerModern(obj) {
  * @param {Object} obj - The object containing heart rate fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchHeartRateModern(obj) {
     patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.HEART_RATE, PATCH_CONSTANTS.DECIMAL_PLACES.HEART_RATE);
 }
@@ -268,6 +317,7 @@ function patchHeartRateModern(obj) {
  * @param {Object} obj - The object containing cadence fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchCadenceModern(obj) {
     patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.CADENCE, PATCH_CONSTANTS.DECIMAL_PLACES.CADENCE);
 }
@@ -277,6 +327,7 @@ function patchCadenceModern(obj) {
  * @param {Object} obj - The object containing temperature fields to patch
  * @private
  */
+/** @param {SummaryRecord} obj */
 function patchTemperatureModern(obj) {
     patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TEMPERATURE, PATCH_CONSTANTS.DECIMAL_PLACES.TEMPERATURE);
 }
@@ -288,11 +339,13 @@ const patchCadence = patchCadenceModern;
 const patchTemperature = patchTemperatureModern;
 
 // Stub implementations for missing functions that aren't in FIELD_MAPPINGS
+/** @param {SummaryRecord} obj */
 function patchCalories(obj) {
     const calorieFields = ["total_calories", "totalCalories"];
     patchDecimalFields(obj, calorieFields, PATCH_CONSTANTS.DECIMAL_PLACES.CALORIES);
 }
 
+/** @param {SummaryRecord} obj */
 function patchRespirationRate(obj) {
     const respirationFields = [
         "enhanced_avg_respiration_rate",
@@ -305,26 +358,31 @@ function patchRespirationRate(obj) {
     patchDecimalFields(obj, respirationFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }
 
+/** @param {SummaryRecord} obj */
 function patchGritFlow(obj) {
     const gritFlowFields = ["avg_flow", "avgFlow", "avg_grit", "avgGrit"];
     patchDecimalFields(obj, gritFlowFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }
 
+/** @param {SummaryRecord} obj */
 function patchTrainingLoad(obj) {
     const trainingLoadFields = ["training_stress_score", "trainingStressScore"];
     patchDecimalFields(obj, trainingLoadFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }
 
+/** @param {SummaryRecord} obj */
 function patchStrokes(obj) {
     const strokeFields = ["total_strokes", "totalStrokes", "avg_stroke_distance", "avgStrokeDistance"];
     patchDecimalFields(obj, strokeFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }
 
+/** @param {SummaryRecord} obj */
 function patchFractionalCadence(obj) {
     const fractionalCadenceFields = ["avg_fractional_cadence", "avgFractionalCadence"];
     patchDecimalFields(obj, fractionalCadenceFields, PATCH_CONSTANTS.DECIMAL_PLACES.HIGH_PRECISION);
 }
 
+/** @param {SummaryRecord} obj */
 function patchTorquePedal(obj) {
     const torqueFields = [
         "avg_left_torque_effectiveness",
@@ -335,11 +393,13 @@ function patchTorquePedal(obj) {
     patchDecimalFields(obj, torqueFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }
 
+/** @param {SummaryRecord} obj */
 function patchPCO(obj) {
     const pcoFields = ["avg_left_pco", "avgLeftPco", "avg_right_pco", "avgRightPco"];
     patchDecimalFields(obj, pcoFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }
 
+/** @param {SummaryRecord} obj */
 function patchArrays(obj) {
     const arrayFields = [
         "avg_left_power_phase",
@@ -357,12 +417,13 @@ function patchArrays(obj) {
             try {
                 obj[field] = formatArray(obj[field], PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
             } catch (error) {
-                logWithContext(`Error formatting array field '${field}': ${error.message}`, "error");
+                logWithContext(`Error formatting array field '${field}': ${getErrorMessage(error)}`, "error");
             }
         }
     });
 }
 
+/** @param {SummaryRecord} obj */
 function patchTimestamps(obj) {
     const timestampFields = ["timestamp", "start_time", "startTime"];
 
@@ -371,12 +432,13 @@ function patchTimestamps(obj) {
             try {
                 obj[field] = new Date(obj[field] * 1000).toString();
             } catch (error) {
-                logWithContext(`Error formatting timestamp field '${field}': ${error.message}`, "error");
+                logWithContext(`Error formatting timestamp field '${field}': ${getErrorMessage(error)}`, "error");
             }
         }
     });
 }
 
+/** @param {SummaryRecord} obj */
 function patchDecimals(obj) {
     try {
         Object.keys(obj)
@@ -385,16 +447,14 @@ function patchDecimals(obj) {
                 obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
             });
     } catch (error) {
-        logWithContext(`Error formatting decimal fields: ${error.message}`, "error");
+        logWithContext(`Error formatting decimal fields: ${getErrorMessage(error)}`, "error");
     }
 }
 
+// (Legacy doc removed; replaced by typed version below.)
 /**
- * Helper function for formatting arrays used by patchArrays
- * @param {Array|string} val - Array or comma-separated string to format
- * @param {number} digits - Number of decimal places
- * @returns {string} Formatted string
- * @private
+ * @param {any[] | string} val
+ * @param {number} [digits]
  */
 function formatArray(val, digits = PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT) {
     if (Array.isArray(val)) {

@@ -1,25 +1,34 @@
 /**
  * Chart theme listener utility
- * Handles real-time theme updates for charts and settings UI
+ * Handles real-time theme updates for charts and settings UI.
+ * This file uses JSDoc types so TypeScript (checkJs) can understand shapes.
  */
 
 import { chartStateManager } from "../core/chartStateManager.js";
 
 /**
+ * @typedef {CustomEvent & { detail: { theme?: string } }} ThemeChangeEvent
+ */
+
+/**
  * Global theme listener reference for cleanup
+ * Widen parameter type to EventListener signature; we'll narrow inside.
+ * @type {((e: Event) => void) | null}
  */
 let chartThemeListener = null;
 
 /**
- * Theme change event handler for charts and settings
- * @param {Event} event
- * @param {HTMLElement} chartsContainer
- * @param {HTMLElement} settingsContainer
+ * Factory producing a debounced theme change handler.
+ * @param {HTMLElement | null} chartsContainer
+ * @param {HTMLElement | null} settingsContainer
+ * @returns {(e: Event) => void}
  */
 function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
-    // Return the actual event handler function
+    /** @type {(((e: Event) => void) & { timeout?: ReturnType<typeof setTimeout> })} */
     const handler = function (event) {
-        console.log("[ChartThemeListener] Theme changed to:", event.detail.theme);
+        const custom = /** @type {ThemeChangeEvent | null} */ (event instanceof CustomEvent ? event : null);
+        const theme = custom?.detail && typeof custom.detail === "object" ? custom.detail.theme : undefined;
+        console.log("[ChartThemeListener] Theme changed to:", theme);
 
         // Debounce rapid theme changes
         if (handler.timeout) {
@@ -34,15 +43,12 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
                 // Use the modern chart state manager for theme changes
                 if (chartStateManager) {
                     chartStateManager.handleThemeChange();
+                } else if (window.ChartUpdater) {
+                    window.ChartUpdater.updateAll("Theme change");
+                } else if (window.chartUpdater) {
+                    window.chartUpdater.updateAll("Theme change");
                 } else {
-                    // Fallback to unified chart updater for compatibility
-                    if (window.ChartUpdater) {
-                        window.ChartUpdater.updateAll("Theme change");
-                    } else if (window.chartUpdater) {
-                        window.chartUpdater.updateAll("Theme change");
-                    } else {
-                        console.warn("[ChartThemeListener] No chart update mechanism available");
-                    }
+                    console.warn("[ChartThemeListener] No chart update mechanism available");
                 }
             }
 
@@ -96,27 +102,32 @@ function updateSettingsPanelTheme(settingsContainer) {
     try {
         // Update range sliders
         const sliders = settingsContainer.querySelectorAll('input[type="range"]');
-        sliders.forEach((slider) => {
-            const percentage = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+        sliders.forEach((sliderEl) => {
+            const slider = /** @type {HTMLInputElement} */ (sliderEl);
+            if (!(slider instanceof HTMLInputElement)) return;
+            const max = Number(slider.max || 100);
+            const min = Number(slider.min || 0);
+            const current = Number(slider.value || 0);
+            const percentage = max === min ? 0 : ((current - min) / (max - min)) * 100;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
         });
 
         // Update toggle switches
         const toggles = settingsContainer.querySelectorAll(".toggle-switch");
-        toggles.forEach((toggle) => {
+        toggles.forEach((toggleEl) => {
+            const toggle = /** @type {HTMLElement} */ (toggleEl);
             const thumb = toggle.querySelector(".toggle-thumb");
-            if (thumb && thumb.style.left === "26px") {
-                // Toggle is "on" - update to success color
+            if (thumb instanceof HTMLElement && thumb.style.left === "26px") {
                 toggle.style.background = "var(--color-success)";
             } else {
-                // Toggle is "off" - update to border color
                 toggle.style.background = "var(--color-border)";
             }
         });
 
         // Update status text colors
         const statusTexts = settingsContainer.querySelectorAll(".toggle-switch + span");
-        statusTexts.forEach((statusText) => {
+        statusTexts.forEach((statusEl) => {
+            const statusText = /** @type {HTMLElement} */ (statusEl);
             if (statusText.textContent === "On") {
                 statusText.style.color = "var(--color-success)";
             } else {

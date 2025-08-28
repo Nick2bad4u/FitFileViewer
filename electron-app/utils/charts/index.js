@@ -16,13 +16,15 @@ export * from "./rendering/renderAltitudeProfileChart.js";
 export * from "./rendering/renderEventMessagesChart.js";
 export * from "./rendering/renderGPSTrackChart.js";
 export * from "./rendering/renderLapZoneChart.js";
-export * from "./rendering/renderLapZoneCharts.js";
+// Removed wildcard export that re-exported LapZoneDatum / LapZoneEntry already exported by renderLapZoneChart.js
+export { renderLapZoneCharts } from "./rendering/renderLapZoneCharts.js";
 export * from "./rendering/renderPerformanceAnalysisCharts.js";
 export * from "./rendering/renderPowerVsHeartRateChart.js";
 export * from "./rendering/renderSpeedVsDistanceChart.js";
 export * from "./rendering/renderTimeInZoneCharts.js";
 export * from "./rendering/renderZoneChart.js";
-export * from "./rendering/renderZoneChartNew.js";
+// Avoid duplicate named export 'renderZoneChart' from legacy renderZoneChart.js
+export { renderZoneChart as renderZoneChartNew } from "./rendering/renderZoneChartNew.js";
 
 // Chart components
 export * from "./components/createChartCanvas.js";

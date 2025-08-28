@@ -5,6 +5,15 @@
 
 import { getChartCounts } from "../core/getChartCounts.js";
 
+/**
+ * @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts
+ * @typedef {Object} ChartStatus
+ * @property {boolean} isAllVisible
+ * @property {boolean} hasHiddenCharts
+ * @property {boolean} hasNoCharts
+ * @property {ChartCounts} counts
+ */
+
 // Constants for better maintainability
 const CONSTANTS = {
     IDS: {
@@ -44,19 +53,31 @@ const CONSTANTS = {
 };
 
 /**
- * Enhanced logging with context
- * @param {string} level - Log level (info, warn, error)
- * @param {string} message - Log message
- * @param {Object} context - Additional context
+ * Supported log levels for this module
+ * @typedef {'log'|'info'|'warn'|'error'} LogLevel
  */
-function logWithContext(level, message, context = {}) {
+/**
+ * Enhanced logging with context (avoids dynamic console indexing for typing)
+ * @param {LogLevel} level
+ * @param {string} message
+ * @param {Record<string, any>} [context]
+ */
+function logWithContext(level, message, context) {
     const timestamp = new Date().toISOString();
     const logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
-
-    if (context && Object.keys(context).length > 0) {
-        console[level](logMessage, context);
-    } else {
-        console[level](logMessage);
+    const hasContext = context && Object.keys(context).length > 0;
+    switch (level) {
+        case 'info':
+            hasContext ? console.info(logMessage, context) : console.info(logMessage);
+            break;
+        case 'warn':
+            hasContext ? console.warn(logMessage, context) : console.warn(logMessage);
+            break;
+        case 'error':
+            hasContext ? console.error(logMessage, context) : console.error(logMessage);
+            break;
+        default:
+            hasContext ? console.log(logMessage, context) : console.log(logMessage);
     }
 }
 
@@ -76,8 +97,8 @@ function getElementSafely(id, description) {
 
 /**
  * Calculate chart status information
- * @param {Object} counts - Chart counts from getChartCounts
- * @returns {Object} Status information
+ * @param {ChartCounts} counts
+ * @returns {ChartStatus}
  */
 function calculateChartStatus(counts) {
     const isAllVisible = counts.visible === counts.available;
@@ -94,8 +115,8 @@ function calculateChartStatus(counts) {
 
 /**
  * Create status icon based on chart status
- * @param {Object} status - Chart status information
- * @returns {HTMLElement} Status icon element
+ * @param {ChartStatus} status
+ * @returns {HTMLElement}
  */
 function createStatusIcon(status) {
     const statusIcon = document.createElement("span");
@@ -117,8 +138,8 @@ function createStatusIcon(status) {
 
 /**
  * Create status text based on chart status
- * @param {Object} status - Chart status information
- * @returns {HTMLElement} Status text element
+ * @param {ChartStatus} status
+ * @returns {HTMLElement}
  */
 function createStatusText(status) {
     const statusText = document.createElement("span");
@@ -138,7 +159,7 @@ function createStatusText(status) {
               : "var(--color-error)";
 
         statusText.innerHTML = `
-            Showing 
+            Showing
             <span style="color: ${colorClass};">
                 ${status.counts.visible}
             </span>
@@ -178,15 +199,15 @@ function handleSettingsToggle() {
         }
     } catch (error) {
         logWithContext("error", "Failed to toggle settings panel", {
-            error: error.message,
+            error: error && typeof error === 'object' && 'message' in error ? /** @type {any} */ (error).message : String(error),
         });
     }
 }
 
 /**
  * Create quick action button based on chart status
- * @param {Object} status - Chart status information
- * @returns {HTMLElement} Quick action button element
+ * @param {ChartStatus} status
+ * @returns {HTMLElement}
  */
 function createQuickActionButton(status) {
     const quickAction = document.createElement("button");
@@ -271,7 +292,7 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
         logWithContext("info", "Global chart status indicator inserted into DOM");
     } catch (error) {
         logWithContext("error", "Failed to insert indicator into DOM", {
-            error: error.message,
+            error: error && typeof error === 'object' && 'message' in error ? /** @type {any} */ (error).message : String(error),
         });
     }
 }
@@ -310,8 +331,10 @@ export function createGlobalChartStatusIndicator() {
         }
 
         // Get chart counts and calculate status
-        const counts = getChartCounts();
-        const status = calculateChartStatus(counts);
+    /** @type {ChartCounts} */
+    const counts = getChartCounts();
+    /** @type {ChartStatus} */
+    const status = calculateChartStatus(counts);
 
         logWithContext("info", "Chart status calculated", { status });
 
@@ -351,10 +374,10 @@ export function createGlobalChartStatusIndicator() {
         });
 
         return globalIndicator;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to create global chart status indicator", {
-            error: error.message,
-            stack: error.stack,
+            error: error && typeof error === 'object' && 'message' in error ? /** @type {any} */ (error).message : String(error),
+            stack: error && typeof error === 'object' && 'stack' in error ? /** @type {any} */ (error).stack : undefined,
         });
         return null;
     }

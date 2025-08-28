@@ -43,7 +43,7 @@ const LOG_PREFIX = "[ChartAnimations]";
  * @returns {Function} Progress callback function
  */
 function createProgressCallback(type) {
-    return function (context) {
+    return function (/** @type {any} */ context) {
         if (context && context.currentStep !== undefined && context.numSteps !== undefined && context.numSteps > 0) {
             const percentage = Math.round((100 * context.currentStep) / context.numSteps);
             throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
@@ -67,7 +67,8 @@ function createCompletionCallback(type) {
  * @param {Object} chart - Chart.js chart instance
  * @param {string} chartType - Type of chart (line, bar, doughnut)
  */
-function configureTypeSpecificAnimations(chart, chartType) {
+function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
+    if (!chart.options || typeof chart.options !== "object") return;
     if (!chart.options.animations) {
         chart.options.animations = {};
     }
@@ -110,7 +111,7 @@ function configureTypeSpecificAnimations(chart, chartType) {
  * @param {string} type - Chart type identifier for logging
  * @returns {Object|null} Modified chart instance or null if invalid input
  */
-export function updateChartAnimations(chart, type) {
+export function updateChartAnimations(/** @type {any} */ chart, /** @type {string} */ type) {
     try {
         // Validate inputs
         if (!chart || typeof chart !== "object") {
@@ -118,7 +119,7 @@ export function updateChartAnimations(chart, type) {
             return null;
         }
 
-        if (!chart.options || typeof chart.options !== "object") {
+    if (!chart.options || typeof chart.options !== "object") {
             console.warn(`${LOG_PREFIX} Chart instance missing options object`);
             return null;
         }
@@ -143,7 +144,7 @@ export function updateChartAnimations(chart, type) {
         };
 
         // Configure type-specific animations
-        const chartType = chart.config?.type;
+    const chartType = chart.config?.type;
         if (chartType) {
             configureTypeSpecificAnimations(chart, chartType);
         } else {

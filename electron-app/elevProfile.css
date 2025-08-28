@@ -18,6 +18,11 @@ body.theme-light {
     color: #222;
 }
 
+/* Define CSS custom properties that may not be available */
+:root {
+    --elev-bg: #fff;
+}
+
 #elevChart {
     display: block;
     margin: 32px auto;

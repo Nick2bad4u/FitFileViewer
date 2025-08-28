@@ -12,25 +12,22 @@ import { renderChartJS } from "./renderChartJS.js";
  * Unified interface for triggering chart updates
  * @param {string} reason - Reason for the chart update (for logging)
  * @param {HTMLElement} [container] - Optional container element
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
-export async function updateCharts(reason, container = null) {
+export async function updateCharts(reason, container) {
     try {
         console.log(`[ChartUpdate] Triggering chart update: ${reason}`);
 
         // Use modern state management if available
         if (chartStateManager && typeof chartStateManager.debouncedRender === "function") {
-            return await chartStateManager.debouncedRender(reason);
+            await chartStateManager.debouncedRender(reason);
+            return true;
         }
 
         // Fallback to direct renderChartJS call for compatibility
         console.warn("[ChartUpdate] chartStateManager not available, using fallback");
 
-        if (container) {
-            return await renderChartJS(container);
-        } else {
-            return await renderChartJS();
-        }
+    return await renderChartJS(container);
     } catch (error) {
         console.error(`[ChartUpdate] Error updating charts for reason "${reason}":`, error);
         throw error;
@@ -40,14 +37,15 @@ export async function updateCharts(reason, container = null) {
 /**
  * Handle theme changes with proper chart updates
  * @param {string} newTheme - The new theme name
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 export async function updateChartsForThemeChange(newTheme) {
     try {
         console.log(`[ChartUpdate] Handling theme change to: ${newTheme}`);
 
         if (chartStateManager && typeof chartStateManager.handleThemeChange === "function") {
-            return await chartStateManager.handleThemeChange(newTheme);
+            await chartStateManager.handleThemeChange(newTheme);
+            return true;
         }
 
         // Fallback: destroy and re-render charts
@@ -66,7 +64,7 @@ export async function updateChartsForThemeChange(newTheme) {
             window._chartjsInstances = [];
         }
 
-        return await renderChartJS();
+    return await renderChartJS();
     } catch (error) {
         console.error(`[ChartUpdate] Error updating charts for theme change to "${newTheme}":`, error);
         throw error;
@@ -78,9 +76,9 @@ export async function updateChartsForThemeChange(newTheme) {
  * @param {string} settingName - Name of the setting that changed
  * @param {*} newValue - New value of the setting
  * @param {HTMLElement} [container] - Optional container element
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
-export async function updateChartsForSettingChange(settingName, newValue, container = null) {
+export async function updateChartsForSettingChange(settingName, newValue, container) {
     const reason = `Setting change: ${settingName} = ${newValue}`;
     return await updateCharts(reason, container);
 }
@@ -88,7 +86,7 @@ export async function updateChartsForSettingChange(settingName, newValue, contai
 /**
  * Handle data changes with proper chart updates
  * @param {Object} newData - New data object
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 export async function updateChartsForDataChange(newData) {
     const reason = `Data change: ${newData ? "new data loaded" : "data cleared"}`;
@@ -97,7 +95,7 @@ export async function updateChartsForDataChange(newData) {
 
 /**
  * Handle tab activation with proper chart updates
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 export async function updateChartsForTabActivation() {
     const reason = "Chart tab activated";

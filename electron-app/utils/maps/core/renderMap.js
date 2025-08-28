@@ -1,4 +1,48 @@
 /*global L */
+
+/**
+ * @typedef {Object} RecordMessage
+ * @property {number} positionLat - Latitude position (semicircles)
+ * @property {number} positionLong - Longitude position (semicircles)
+ * @property {number} [altitude] - Altitude in meters
+ * @property {number} [timestamp] - Unix timestamp
+ * @property {number} [speed] - Speed value
+ * @property {number} [heartRate] - Heart rate value
+ * @property {number} [power] - Power value
+ * @property {number} [cadence] - Cadence value
+ * @property {number} [distance] - Distance value
+ */
+
+/**
+ * @typedef {Object} GlobalData
+ * @property {RecordMessage[]} recordMesgs - Array of record messages
+ * @property {any[]} [lapMesgs] - Array of lap messages
+ * @property {string} [cachedFilePath] - Cached file path
+ */
+
+/**
+ * @typedef {Object} WindowExtensions
+ * @property {GlobalData} globalData - Global data object
+ * @property {any} _overlayPolylines - Overlay polylines object
+ * @property {any} _leafletMapInstance - Leaflet map instance
+ * @property {any} _mainPolylineOriginalBounds - Original bounds for main polyline
+ * @property {number} _highlightedOverlayIdx - Currently highlighted overlay index
+ * @property {any[]} loadedFitFiles - Array of loaded FIT files
+ * @property {Function} updateOverlayHighlights - Function to update overlay highlights
+ * @property {Function} updateShownFilesList - Function to update shown files list
+ * @property {Function} renderMap - Function to render map
+ * @property {Function} [setupOverlayFileNameMapActions] - Function to setup overlay file name map actions
+ * @property {Function} [setupActiveFileNameMapActions] - Function to setup active file name map actions
+ * @property {Function} [_mapThemeListener] - Map theme change listener
+ * @property {any} L - Leaflet library object
+ */
+
+/**
+ * @typedef {Object} LatLng
+ * @property {number} lat - Latitude
+ * @property {number} lng - Longitude
+ */
+
 /**
  * Renders a Leaflet map inside the element with id 'content-map'.
  * If `window.globalData.recordMesgs` exists and contains valid latitude and longitude data,
@@ -33,13 +77,16 @@ import { drawOverlayForFitFile } from "../layers/mapDrawLaps.js";
 
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
-    window._overlayPolylines = {};
+    const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (window));
+    windowExt._overlayPolylines = {};
 
     const mapContainer = document.getElementById("content-map");
+    if (!mapContainer) return;
+    
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
-    if (window._leafletMapInstance && window._leafletMapInstance.remove) {
-        window._leafletMapInstance.remove();
-        window._leafletMapInstance = null;
+    if (windowExt._leafletMapInstance && windowExt._leafletMapInstance.remove) {
+        windowExt._leafletMapInstance.remove();
+        windowExt._leafletMapInstance = null;
     }
     const oldMapDiv = document.getElementById("leaflet-map");
     if (oldMapDiv) {
@@ -57,16 +104,17 @@ export function renderMap() {
     mapControlsDiv.id = "map-controls";
     mapContainer.appendChild(mapControlsDiv);
 
-    const map = L.map("leaflet-map", {
+    const LeafletLib = /** @type {any} */ (windowExt).L;
+    const map = LeafletLib.map("leaflet-map", {
         center: [0, 0],
         zoom: 2,
         layers: [baseLayers["OpenStreetMap"]],
         fullscreenControl: true,
     });
-    window._leafletMapInstance = map;
+    windowExt._leafletMapInstance = map;
 
     // eslint-disable-next-line no-unused-vars
-    const layersControl = L.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
+    LeafletLib.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
 
     // Add a custom floating label/button to indicate map type selection
     const mapTypeBtn = document.createElement("div");
@@ -74,31 +122,43 @@ export function renderMap() {
     mapTypeBtn.style.position = "absolute";
     mapTypeBtn.style.top = "16px";
     mapTypeBtn.style.right = "60px";
-    mapTypeBtn.style.zIndex = 900; // ensure above layers control
+    mapTypeBtn.style.zIndex = "900"; // ensure above layers control
     mapTypeBtn.innerHTML = "🗺️ Change Map Type";
     mapTypeBtn.title = "Click to change the map type";
     mapTypeBtn.onclick = handleMapTypeButtonClick;
-    document.getElementById("leaflet-map").appendChild(mapTypeBtn);
+    const leafletMapDiv2 = document.getElementById("leaflet-map");
+    if (leafletMapDiv2) leafletMapDiv2.appendChild(mapTypeBtn);
 
+    /**
+     * Handle map type button click
+     * @param {Event} e - Click event
+     * @returns {void}
+     */
     function handleMapTypeButtonClick(e) {
         e.stopPropagation();
         const layersControlEl = document.querySelector(".leaflet-control-layers");
         if (layersControlEl) {
             layersControlEl.classList.add("leaflet-control-layers-expanded");
-            layersControlEl.style.zIndex = 1201; // just below the button
+            const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
+            layersControlElStyled.style.zIndex = "1201"; // just below the button
             // Focus the first input for accessibility
             const firstInput = layersControlEl.querySelector('input[type="radio"]');
-            if (firstInput) firstInput.focus();
+            if (firstInput) {
+                const inputElement = /** @type {HTMLInputElement} */ (firstInput);
+                inputElement.focus();
+            }
         }
     }
 
     // When the user clicks outside the control, collapse it
-    document.addEventListener("mousedown", (e) => {
+    document.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
         const layersControlEl = document.querySelector(".leaflet-control-layers");
         if (layersControlEl && layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
-            if (!layersControlEl.contains(e.target) && !mapTypeBtn.contains(e.target)) {
+            const target = /** @type {Node} */ (e.target);
+            if (!layersControlEl.contains(target) && !mapTypeBtn.contains(target)) {
                 layersControlEl.classList.remove("leaflet-control-layers-expanded");
-                layersControlEl.style.zIndex = "";
+                const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
+                layersControlElStyled.style.zIndex = "";
             }
         }
     });
@@ -108,7 +168,9 @@ export function renderMap() {
     zoomSliderBar.className = "custom-zoom-slider-bar";
     const minZoom = map.getMinZoom();
     const maxZoom = map.getMaxZoom();
+    /** @param {number} zoom */
     const zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
+    /** @param {number} percent */
     const percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100;
     zoomSliderBar.innerHTML = `
 		<div class="custom-zoom-slider-label">Zoom</div>
@@ -121,39 +183,50 @@ export function renderMap() {
 			<span id="zoom-slider-max">100%</span>
 		</div>
 	`;
-    const zoomSlider = zoomSliderBar.querySelector("#zoom-slider-input");
-    const zoomSliderCurrent = zoomSliderBar.querySelector("#zoom-slider-current");
+    const zoomSlider = /** @type {HTMLInputElement} */ (zoomSliderBar.querySelector("#zoom-slider-input"));
+    const zoomSliderCurrent = /** @type {HTMLElement} */ (zoomSliderBar.querySelector("#zoom-slider-current"));
     zoomSliderBar.style.pointerEvents = "auto";
-    zoomSlider.style.pointerEvents = "auto";
-    zoomSlider.addEventListener("mousedown", (e) => e.stopPropagation());
-    zoomSlider.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+    if (zoomSlider) {
+        zoomSlider.style.pointerEvents = "auto";
+        zoomSlider.addEventListener("mousedown", (e) => e.stopPropagation());
+        zoomSlider.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+    }
 
     // Fix jank: Only update map zoom on change, and update slider on zoomend
     let isDragging = false;
     // Debounce function to limit the frequency of updates
+    /**
+     * @param {Function} func
+     * @param {number} wait 
+     * @returns {Function}
+     */
     function debounce(func, wait) {
+        /** @type {ReturnType<typeof setTimeout>} */
         let timeout;
-        return function (...args) {
-            const context = this;
+        return /** @type {any} */ (function () {
+            // @ts-ignore: arguments is available in function context
+            const args = Array.prototype.slice.call(arguments);
             clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), wait);
-        };
+            timeout = setTimeout(() => func.apply(null, args), wait);
+        });
+    }    if (zoomSlider && zoomSliderCurrent) {
+        zoomSlider.addEventListener(
+            "input",
+            /** @type {EventListener} */ (debounce(/** @param {Event} e */ (e) => {
+                isDragging = true;
+                const target = /** @type {HTMLInputElement} */ (e.target);
+                const percent = Number(target.value);
+                zoomSliderCurrent.textContent = `${percent}%`;
+            }, 100)) // Adjust debounce delay as needed
+        );
+        zoomSlider.addEventListener("change", (e) => {
+            const target = /** @type {HTMLInputElement} */ (e.target);
+            const percent = Number(target.value);
+            const newZoom = percentToZoom(percent);
+            map.setZoom(Math.round(newZoom));
+            isDragging = false;
+        });
     }
-
-    zoomSlider.addEventListener(
-        "input",
-        debounce((e) => {
-            isDragging = true;
-            const percent = Number(e.target.value);
-            zoomSliderCurrent.textContent = `${percent}%`;
-        }, 100) // Adjust debounce delay as needed
-    );
-    zoomSlider.addEventListener("change", (e) => {
-        const percent = Number(e.target.value);
-        const newZoom = percentToZoom(percent);
-        map.setZoom(Math.round(newZoom));
-        isDragging = false;
-    });
 
     // Reset isDragging flag if interaction is canceled
     document.addEventListener("mouseup", () => {
@@ -163,16 +236,21 @@ export function renderMap() {
         isDragging = false;
     });
     const updateZoomSlider = () => {
-        if (!isDragging) {
+        if (!isDragging && zoomSlider && zoomSliderCurrent) {
             const percent = Math.round(zoomToPercent(map.getZoom()));
-            zoomSlider.value = percent;
+            zoomSlider.value = String(percent);
             zoomSliderCurrent.textContent = `${percent}%`;
         }
     };
     map.on("zoomend zoomlevelschange", updateZoomSlider);
     updateZoomSlider();
-    document.getElementById("leaflet-map").appendChild(zoomSliderBar);
+    const leafletMapContainer = document.getElementById("leaflet-map");
+    if (leafletMapContainer) {
+        leafletMapContainer.appendChild(zoomSliderBar);
+    }
 
+    /** @type {any} */
+    const L = LeafletLib;
     L.control.scale({ position: "bottomleft", metric: true, imperial: true }).addTo(map);
 
     // --- Fullscreen control (if plugin loaded) ---
@@ -187,25 +265,28 @@ export function renderMap() {
 
     // --- Print/export button ---
     const controlsDiv = document.getElementById("map-controls");
-    controlsDiv.appendChild(createPrintButton());
-    controlsDiv.appendChild(createMapThemeToggle());
-    controlsDiv.appendChild(createExportGPXButton());
-    controlsDiv.appendChild(createElevationProfileButton());
-    controlsDiv.appendChild(
-        createMarkerCountSelector(() => {
-            // Redraw map with new marker count
-            if (window.globalData && window.globalData.recordMesgs) {
-                mapDrawLapsWrapper("all");
-            }
-            if (window.updateShownFilesList) window.updateShownFilesList();
-        })
-    );
-    addSimpleMeasureTool(map, controlsDiv);
-    controlsDiv.appendChild(createAddFitFileToMapButton());
-    if (window.loadedFitFiles && window.loadedFitFiles.length > 1) {
-        const shownFilesList = createShownFilesList();
-        controlsDiv.appendChild(shownFilesList);
-        if (window.updateShownFilesList) window.updateShownFilesList();
+    
+    if (controlsDiv) {
+        controlsDiv.appendChild(createPrintButton());
+        controlsDiv.appendChild(createMapThemeToggle());
+        controlsDiv.appendChild(createExportGPXButton());
+        controlsDiv.appendChild(createElevationProfileButton());
+        controlsDiv.appendChild(
+            createMarkerCountSelector(() => {
+                // Redraw map with new marker count
+                if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+                    mapDrawLapsWrapper("all");
+                }
+                if (windowExt.updateShownFilesList) windowExt.updateShownFilesList();
+            })
+        );
+        addSimpleMeasureTool(map, controlsDiv);
+        controlsDiv.appendChild(createAddFitFileToMapButton());
+        if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
+            const shownFilesList = createShownFilesList();
+            controlsDiv.appendChild(shownFilesList);
+            if (windowExt.updateShownFilesList) windowExt.updateShownFilesList();
+        }
     }
 
     // --- Fullscreen button (custom, styled, top left) ---
@@ -216,13 +297,17 @@ export function renderMap() {
     const endIcon = createEndIcon();
 
     // --- Marker cluster group (if available) ---
+    /** @type {any} */
     let markerClusterGroup = null;
-    if (window.L && L.markerClusterGroup) {
+    if (windowExt.L && L.markerClusterGroup) {
         markerClusterGroup = L.markerClusterGroup();
         map.addLayer(markerClusterGroup);
     }
 
     // --- Lap selection UI (moved to mapLapSelector.js) ---
+    /**
+     * @param {any} lapIdx
+     */
     function mapDrawLapsWrapper(lapIdx) {
         mapDrawLaps(lapIdx, {
             map,
@@ -236,10 +321,13 @@ export function renderMap() {
             getLapNumForIdx,
         });
     }
-    addLapSelector(map, document.getElementById("leaflet-map"), mapDrawLapsWrapper);
+    const leafletMapElement = document.getElementById("leaflet-map");
+    if (leafletMapElement) {
+        addLapSelector(map, leafletMapElement, mapDrawLapsWrapper);
+    }
 
     // --- Minimap (if plugin available) ---
-    if (window.L && L.Control && L.Control.MiniMap) {
+    if (windowExt.L && L.Control && L.Control.MiniMap) {
         // Always use a standard tile layer for the minimap
         const miniMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "",
@@ -250,12 +338,12 @@ export function renderMap() {
     }
 
     // --- Measurement tool (if plugin available) ---
-    if (window.L && L.control && L.control.measure) {
+    if (windowExt.L && L.control && L.control.measure) {
         L.control.measure({ position: "topleft" }).addTo(map);
     }
 
     // --- Drawing/editing tool (if plugin available) ---
-    if (window.L && L.Control && L.Control.Draw) {
+    if (windowExt.L && L.Control && L.Control.Draw) {
         const drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
         const drawControl = new L.Control.Draw({
@@ -269,17 +357,17 @@ export function renderMap() {
             },
         });
         map.addControl(drawControl);
-        map.on(L.Draw.Event.CREATED, function (e) {
+        map.on(L.Draw.Event.CREATED, function (/** @type {any} */ e) {
             drawnItems.addLayer(e.layer);
         });
     }
 
     // --- Overlay logic ---
-    if (window.loadedFitFiles && Array.isArray(window.loadedFitFiles) && window.loadedFitFiles.length > 0) {
-        console.log("[renderMap] Overlay logic: loadedFitFiles.length =", window.loadedFitFiles.length);
+    if (windowExt.loadedFitFiles && Array.isArray(windowExt.loadedFitFiles) && windowExt.loadedFitFiles.length > 0) {
+        console.log("[renderMap] Overlay logic: loadedFitFiles.length =", windowExt.loadedFitFiles.length);
         // Clear overlay polylines tracking before drawing
-        window._overlayPolylines = {};
-        window.loadedFitFiles.forEach((fitFile, idx) => {
+        windowExt._overlayPolylines = {};
+        windowExt.loadedFitFiles.forEach((/** @type {any} */ fitFile, /** @type {any} */ idx) => {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = chartOverlayColorPalette[idx % chartOverlayColorPalette.length];
             const fileName = (fitFile.filePath || "").split(/[\\/]/).pop();
@@ -290,7 +378,7 @@ export function renderMap() {
                 markerClusterGroup,
                 startIcon,
                 endIcon,
-                formatTooltipData: (idx, row, lapNum) =>
+                formatTooltipData: (/** @type {any} */ idx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
                     formatTooltipData(idx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
                 getLapNumForIdx,
                 fileName,
@@ -300,8 +388,8 @@ export function renderMap() {
         });
         // --- Bring overlay markers to front so they appear above all polylines ---
         setTimeout(function () {
-            if (window._overlayPolylines) {
-                Object.entries(window._overlayPolylines).forEach(([idx, polyline]) => {
+            if (windowExt._overlayPolylines) {
+                Object.entries(windowExt._overlayPolylines).forEach(([idx, polyline]) => {
                     console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);
                     if (polyline && polyline._map) {
                         if (polyline._map && polyline._map._layers) {
@@ -323,36 +411,36 @@ export function renderMap() {
         console.log("[renderMap] Overlay logic complete. No fitBounds/zoom called here.");
         // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
         mapDrawLapsWrapper("all");
-    } else if (window.globalData && window.globalData.recordMesgs) {
+    } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
         console.log('[renderMap] No overlays, calling mapDrawLapsWrapper("all")');
         mapDrawLapsWrapper("all");
     }
 
     // Restore highlight after overlays are drawn, if any
-    if (window.updateOverlayHighlights) {
+    if (windowExt.updateOverlayHighlights) {
         console.log(
             "[FFV] [renderMap] Calling updateOverlayHighlights, highlightedOverlayIdx:",
-            window._highlightedOverlayIdx
+            windowExt._highlightedOverlayIdx
         );
-        window.updateOverlayHighlights();
+        windowExt.updateOverlayHighlights();
     }
-    if (window.updateShownFilesList) {
+    if (windowExt.updateShownFilesList) {
         console.log("[FFV] [renderMap] Calling updateShownFilesList after overlays drawn");
-        window.updateShownFilesList();
-        if (window.setupOverlayFileNameMapActions) {
+        windowExt.updateShownFilesList();
+        if (windowExt.setupOverlayFileNameMapActions) {
             console.log("[FFV] [renderMap] Calling setupOverlayFileNameMapActions after updateShownFilesList");
-            window.setupOverlayFileNameMapActions();
-            if (window.setupActiveFileNameMapActions) {
+            windowExt.setupOverlayFileNameMapActions();
+            if (windowExt.setupActiveFileNameMapActions) {
                 console.log("[FFV] [renderMap] Calling setupActiveFileNameMapActions after overlays drawn");
-                window.setupActiveFileNameMapActions();
+                windowExt.setupActiveFileNameMapActions();
             }
         }
     }
     // Enable/disable lap selector based on number of loaded files
     function updateLapSelectorEnabledState() {
-        const lapSelect = document.getElementById("lap-select");
+        const lapSelect = /** @type {HTMLInputElement} */ (document.getElementById("lap-select"));
         if (lapSelect) {
-            if (window.loadedFitFiles && window.loadedFitFiles.length > 1) {
+            if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
                 lapSelect.disabled = true;
             } else {
                 lapSelect.disabled = false;
@@ -364,9 +452,9 @@ export function renderMap() {
     // --- Theme support (dark/light) ---
     if (document.getElementById("leaflet-map")) {
         updateMapTheme();
-        if (!window._mapThemeListener) {
-            window._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", window._mapThemeListener);
+        if (!windowExt._mapThemeListener) {
+            windowExt._mapThemeListener = () => updateMapTheme();
+            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
         }
     }
 }

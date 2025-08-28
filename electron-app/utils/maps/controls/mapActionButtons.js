@@ -23,6 +23,11 @@ import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { createMapThemeToggle } from "../../theming/specific/createMapThemeToggle.js";
 
 // Export loading functions for backward compatibility
+/**
+ * Show a global loading overlay on the map.
+ * @param {string} progressText
+ * @param {string} [fileName]
+ */
 export function showLoadingOverlay(progressText, fileName = "") {
     LoadingOverlay.show(progressText, fileName);
 }
@@ -38,6 +43,11 @@ export { createMapThemeToggle };
  * Sets up interactive functionality for the active file name element
  * Makes the file name clickable to center map on the main file
  * @private
+ */
+/**
+ * Adds click/hover actions to the active file name element allowing centering and highlighting
+ * on the primary (index 0) map overlay.
+ * Safely guards all window global usages with casts to avoid type errors under checkJs.
  */
 function setupActiveFileNameMapActions() {
     try {
@@ -63,7 +73,7 @@ function setupActiveFileNameMapActions() {
 
                 // Switch to map tab if not active
                 const mapTabBtn = document.querySelector('[data-tab="map"]');
-                if (mapTabBtn && !mapTabBtn.classList.contains("active")) {
+                if (mapTabBtn instanceof HTMLElement && !mapTabBtn.classList.contains("active")) {
                     console.log("[mapActionButtons] Switching to map tab");
                     mapTabBtn.click();
                 }
@@ -74,7 +84,8 @@ function setupActiveFileNameMapActions() {
                 }, 100);
             } catch (error) {
                 console.error("[mapActionButtons] Error in active filename click:", error);
-                showNotification("Error", "Failed to center map on file", "error");
+                // Correct argument order: (message, type)
+                showNotification("Failed to center map on file", "error");
             }
         };
 
@@ -83,9 +94,10 @@ function setupActiveFileNameMapActions() {
             try {
                 console.log("[mapActionButtons] Active file name hover");
                 activeFileName.classList.add("highlighted");
-                window._highlightedOverlayIdx = 0;
-                if (window.updateOverlayHighlights) {
-                    window.updateOverlayHighlights();
+                const w = /** @type {any} */ (window);
+                w._highlightedOverlayIdx = 0;
+                if (w.updateOverlayHighlights) {
+                    w.updateOverlayHighlights();
                 }
             } catch (error) {
                 console.error("[mapActionButtons] Error in mouseenter:", error);
@@ -96,9 +108,10 @@ function setupActiveFileNameMapActions() {
             try {
                 console.log("[mapActionButtons] Active file name unhover");
                 activeFileName.classList.remove("highlighted");
-                window._highlightedOverlayIdx = null;
-                if (window.updateOverlayHighlights) {
-                    window.updateOverlayHighlights();
+                const w = /** @type {any} */ (window);
+                w._highlightedOverlayIdx = null;
+                if (w.updateOverlayHighlights) {
+                    w.updateOverlayHighlights();
                 }
             } catch (error) {
                 console.error("[mapActionButtons] Error in mouseleave:", error);
@@ -113,22 +126,28 @@ function setupActiveFileNameMapActions() {
  * Centers the map on the main file's track
  * @private
  */
+/**
+ * Center the map viewport on the main (index 0) polyline if available.
+ * Provides fallbacks and defensive guards for optional globals.
+ * @private
+ */
 function _centerMapOnMainFile() {
     try {
         const idx = 0; // Main file is always index 0
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
+        const w = /** @type {any} */ (window);
 
-        if (!window._overlayPolylines || !window._overlayPolylines[idx]) {
+        if (!w._overlayPolylines || !w._overlayPolylines[idx]) {
             console.warn("[mapActionButtons] No main polyline found");
-            showNotification("Info", "No main track to center on", "info");
+            showNotification("No main track to center on", "info");
             return;
         }
 
-        const polyline = window._overlayPolylines[idx];
-        window._highlightedOverlayIdx = idx;
+        const polyline = /** @type {any} */ (w._overlayPolylines[idx]);
+        w._highlightedOverlayIdx = idx;
 
-        if (window.updateOverlayHighlights) {
-            window.updateOverlayHighlights();
+        if (w.updateOverlayHighlights) {
+            w.updateOverlayHighlights();
         }
 
         // Bring polyline to front
@@ -137,17 +156,21 @@ function _centerMapOnMainFile() {
         }
 
         // Bring associated markers to front
-        if (window.L && window.L.CircleMarker && polyline._map && polyline._map._layers) {
+        if (w.L && w.L.CircleMarker && polyline?._map && polyline._map._layers) {
             Object.values(polyline._map._layers).forEach((layer) => {
-                if (
-                    layer instanceof window.L.CircleMarker &&
-                    layer.options &&
-                    polyline.options &&
-                    layer.options.color === polyline.options.color
-                ) {
-                    if (layer.bringToFront) {
-                        layer.bringToFront();
+                try {
+                    if (
+                        layer instanceof w.L.CircleMarker &&
+                        layer.options &&
+                        polyline.options &&
+                        layer.options.color === polyline.options.color
+                    ) {
+                        if (layer.bringToFront) {
+                            layer.bringToFront();
+                        }
                     }
+                } catch (err) {
+                    // Ignore best-effort bringToFront issues
                 }
             });
         }
@@ -159,22 +182,19 @@ function _centerMapOnMainFile() {
             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
 
             setTimeout(function () {
-                if (window._highlightedOverlayIdx === idx) {
+                const w2 = /** @type {any} */ (window);
+                if (w2._highlightedOverlayIdx === idx) {
                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                 }
             }, 250);
         }
 
         // Fit map bounds to main polyline only
-        if (window._leafletMapInstance) {
+        if (w._leafletMapInstance) {
             let bounds = null;
 
-            if (
-                window._mainPolylineOriginalBounds &&
-                window._mainPolylineOriginalBounds.isValid &&
-                window._mainPolylineOriginalBounds.isValid()
-            ) {
-                bounds = window._mainPolylineOriginalBounds;
+            if (w._mainPolylineOriginalBounds && w._mainPolylineOriginalBounds.isValid && w._mainPolylineOriginalBounds.isValid()) {
+                bounds = w._mainPolylineOriginalBounds;
                 console.log("[mapActionButtons] Using stored main polyline bounds");
             } else if (polyline.getBounds) {
                 bounds = polyline.getBounds();
@@ -183,12 +203,12 @@ function _centerMapOnMainFile() {
 
             if (bounds && bounds.isValid && bounds.isValid()) {
                 console.log("[mapActionButtons] Fitting map to bounds");
-                window._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
+                w._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
 
                 setTimeout(function () {
                     try {
-                        const center = window._leafletMapInstance.getCenter();
-                        const zoom = window._leafletMapInstance.getZoom();
+                        const center = w._leafletMapInstance.getCenter();
+                        const zoom = w._leafletMapInstance.getZoom();
                         console.log(`[mapActionButtons] Map centered at ${center.lat}, ${center.lng}, zoom: ${zoom}`);
                     } catch (err) {
                         console.warn("[mapActionButtons] Error getting map state after centering:", err);
@@ -196,15 +216,15 @@ function _centerMapOnMainFile() {
                 }, 200);
             } else {
                 console.warn("[mapActionButtons] No valid bounds found for main polyline");
-                showNotification("Warning", "Could not determine track bounds", "warning");
+                showNotification("Could not determine track bounds", "warning");
             }
         } else {
             console.warn("[mapActionButtons] Leaflet map instance not available");
-            showNotification("Warning", "Map not ready for centering", "warning");
+            showNotification("Map not ready for centering", "warning");
         }
     } catch (error) {
         console.error("[mapActionButtons] Error centering map on main file:", error);
-        showNotification("Error", "Failed to center map on main file", "error");
+        showNotification("Failed to center map on main file", "error");
     }
 }
 
@@ -239,14 +259,16 @@ function _centerMapOnMainFile() {
 })();
 
 // Export setup function for external use
-window._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
+// Expose setup method on window for external triggers (cast for global augmentation safety)
+/** @type {any} */ (window)._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
 
 // Patch updateShownFilesList to always maintain active filename functionality
 (function patchUpdateShownFilesList() {
     try {
-        const origUpdateShownFilesList = window.updateShownFilesList;
+    const w = /** @type {any} */ (window);
+    const origUpdateShownFilesList = w.updateShownFilesList;
 
-        window.updateShownFilesList = function () {
+    w.updateShownFilesList = function () {
             try {
                 if (origUpdateShownFilesList) {
                     origUpdateShownFilesList.apply(this, arguments);

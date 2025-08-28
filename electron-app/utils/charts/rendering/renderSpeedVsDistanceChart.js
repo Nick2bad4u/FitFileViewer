@@ -7,6 +7,11 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 
 // Speed vs Distance chart
+/**
+ * @param {HTMLElement} container
+ * @param {any[]} data
+ * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ */
 export function renderSpeedVsDistanceChart(container, data, options) {
     try {
         const hasSpeed = data.some(
@@ -25,7 +30,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             return;
         }
 
-        const themeConfig = getThemeConfig();
+    /** @type {any} */
+    const themeConfig = getThemeConfig();
         let chartData = data
             .map((row) => {
                 const speed = row.enhancedSpeed || row.speed;
@@ -53,10 +59,12 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = createChartCanvas("speed-vs-distance", "speed-vs-distance");
-        canvas.style.background = themeConfig.colors.chartBackground;
+        const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("speed-vs-distance", 0));
+        if (themeConfig?.colors) {
+            canvas.style.background = themeConfig.colors.chartBackground || "#000";
+            canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
+        }
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadow}`;
         container.appendChild(canvas);
 
         const config = {
@@ -98,6 +106,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any} context */
                             label: function (context) {
                                 // Chart values are in user's preferred units, but we need raw values for tooltip
                                 // Reverse convert to get raw meters/mps for the formatTooltipWithUnits function
@@ -169,7 +178,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             text: `Distance (${getUnitSymbol("distance")})`,
                             color: themeConfig.colors.text,
                         },
-                        ticks: { color: themeConfig.colors.text },
+                        ticks: { color: themeConfig.colors?.text },
                     },
                     y: {
                         type: "linear",
@@ -183,7 +192,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             text: `Speed (${getUnitSymbol("speed")})`,
                             color: themeConfig.colors.text,
                         },
-                        ticks: { color: themeConfig.colors.text },
+                        ticks: { color: themeConfig.colors?.text },
                     },
                 },
             },
@@ -192,6 +201,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
 
         const chart = new window.Chart(canvas, config);
         if (chart) {
+            if (!window._chartjsInstances) window._chartjsInstances = [];
             window._chartjsInstances.push(chart);
             console.log("[ChartJS] Speed vs Distance chart created successfully");
         }

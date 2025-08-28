@@ -4,14 +4,56 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
+/**
+ * @typedef {Object} LapZoneDatum
+ * @property {string} label - Zone label (e.g., "HR Zone 1")
+ * @property {number} value - Time in zone (seconds)
+ * @property {string} [color] - Base color for the zone
+ * @property {number} [zoneIndex] - Numeric zone index (0-based)
+ */
+
+/**
+ * @typedef {Object} LapZoneEntry
+ * @property {string} lapLabel - Label for the lap (e.g., "Lap 1")
+ * @property {LapZoneDatum[]} zones - Zone distribution for the lap
+ */
+
+/**
+ * @typedef {Object} LapZoneChartOptions
+ * @property {string} [title]
+ */
+
+/**
+ * Safely extract zone numeric index from a label like "HR Zone 2".
+ * @param {string} label
+ * @param {number} fallback
+ * @returns {number}
+ */
+function parseZoneNumber(label, fallback) {
+    if (typeof label !== "string") return fallback;
+    const match = label.match(/\d+/);
+    if (!match) return fallback;
+    const num = parseInt(match[0], 10);
+    return Number.isFinite(num) ? num : fallback;
+}
+
 // Helper function to render lap-by-lap zone analysis bar chart
+/**
+ * Render lap-by-lap stacked zone chart (HR or Power) with robust guards & typing.
+ * @param {HTMLCanvasElement} canvas
+ * @param {LapZoneEntry[]} lapZoneData
+ * @param {LapZoneChartOptions} [options]
+ * @returns {any|null}
+ */
 export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
     try {
         if (!window.Chart || !canvas || !Array.isArray(lapZoneData)) {
             throw new Error("Chart.js, canvas, or lapZoneData missing");
         }
-        const themeConfig = getThemeConfig();
-        console.log("[renderLapZoneChart] Using theme config:", themeConfig.name);
+        const themeConfig = /** @type {any} */ (getThemeConfig() || {});
+        if (themeConfig && typeof themeConfig === "object" && "name" in themeConfig) {
+            console.log("[renderLapZoneChart] Using theme config:", themeConfig.name);
+        }
 
         // Get unique zone labels from all laps (since we now filter zones)
         const allZoneLabels = new Set();
@@ -27,47 +69,51 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         });
 
         const zoneLabels = Array.from(allZoneLabels).sort((a, b) => {
-            // Sort by zone number (extract number from "Zone X" format)
-            const aNum = parseInt(a.match(/\d+/)[0]);
-            const bNum = parseInt(b.match(/\d+/)[0]);
+            const aNum = parseZoneNumber(a, 0);
+            const bNum = parseZoneNumber(b, 0);
             return aNum - bNum;
         });
 
         const numZones = zoneLabels.length;
 
         // Create one dataset per zone (stacked across laps)
+    /** @type {any[]} */
         const datasets = [];
         for (let zoneIndex = 0; zoneIndex < numZones; zoneIndex++) {
             const zoneLabel = zoneLabels[zoneIndex];
+            /** @type {LapZoneDatum|undefined} */
             const zoneInfo = allZoneData.get(zoneLabel);
 
-            // Determine zone type from options or guess from context
-            let zoneType = "hr"; // default
-            if (options.title && options.title.toLowerCase().includes("power")) {
+            // Determine zone type (infer from title)
+            let zoneType = "hr";
+            if (options.title && typeof options.title === "string" && options.title.toLowerCase().includes("power")) {
                 zoneType = "power";
             }
 
-            // Get saved color or use the original color if available
-            const savedColor = getZoneColor(zoneType, zoneInfo?.zoneIndex || zoneIndex);
+            const zoneIdx = typeof zoneInfo?.zoneIndex === "number" ? zoneInfo.zoneIndex : zoneIndex;
+            const savedColor = getZoneColor(zoneType, zoneIdx);
             const originalColor = zoneInfo?.color;
             const zoneColor = savedColor || originalColor || `hsl(${zoneIndex * 45}, 70%, 60%)`;
 
+            const data = lapZoneData.map((lap) => {
+                const zone = Array.isArray(lap.zones) ? lap.zones.find((z) => z.label === zoneLabel) : undefined;
+                return zone ? zone.value : 0;
+            });
+
             datasets.push({
                 label: zoneLabel,
-                data: lapZoneData.map((lap) => {
-                    const zone = lap.zones?.find((z) => z.label === zoneLabel);
-                    return zone ? zone.value : 0;
-                }),
+                data,
                 backgroundColor: zoneColor,
-                borderColor: themeConfig.colors.textSecondary,
+                borderColor: themeConfig?.colors?.textSecondary || "#444",
                 borderWidth: 1,
                 stack: "zones",
             });
         }
 
         // Labels are lap names
-        const lapLabels = lapZoneData.map((lap) => lap.lapLabel || "Lap");
+    const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap"));
 
+        /** @type {any} */
         const chart = new window.Chart(canvas, {
             type: "bar",
             data: {
@@ -82,41 +128,45 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         display: true,
                         position: "top",
                         labels: {
-                            color: themeConfig.colors.textPrimary,
+                            color: themeConfig?.colors?.textPrimary || "#000",
                             font: { size: 12 },
                         },
                     },
                     title: {
                         display: !!options.title,
                         text: options.title || "Zone Distribution by Lap",
-                        color: themeConfig.colors.textPrimary,
+                        color: themeConfig?.colors?.textPrimary || "#000",
                         font: { size: 16, weight: "bold" },
                     },
                     tooltip: {
                         mode: "index",
                         intersect: false,
-                        backgroundColor: themeConfig.colors.chartSurface,
-                        titleColor: themeConfig.colors.textPrimary,
-                        bodyColor: themeConfig.colors.textPrimary,
-                        borderColor: themeConfig.colors.chartBorder,
+                        backgroundColor: themeConfig?.colors?.chartSurface || "rgba(0,0,0,0.8)",
+                        titleColor: themeConfig?.colors?.textPrimary || "#fff",
+                        bodyColor: themeConfig?.colors?.textPrimary || "#fff",
+                        borderColor: themeConfig?.colors?.chartBorder || "#333",
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any} context */
                             label: function (context) {
-                                // Calculate total time for this lap (sum of all zones)
                                 let lapTotal = 0;
-                                context.chart.data.datasets.forEach((dataset) => {
-                                    lapTotal += dataset.data[context.dataIndex] || 0;
+                                const datasetsArr = context.chart?.data?.datasets || [];
+                                datasetsArr.forEach((/** @type {any} */ dataset) => {
+                                    const dsData = /** @type {number[]} */ (dataset.data || []);
+                                    const v = dsData[context.dataIndex];
+                                    if (typeof v === "number") lapTotal += v;
                                 });
-
-                                const value = context.parsed.y;
+                                const value = context.parsed?.y || 0;
                                 const timeFormatted = formatTime(value, true);
                                 const percentage = lapTotal > 0 ? ((value / lapTotal) * 100).toFixed(1) : "0.0";
-
-                                return `${context.dataset.label}: ${timeFormatted} (${percentage}%)`;
+                                return `${context.dataset?.label || "Zone"}: ${timeFormatted} (${percentage}%)`;
                             },
+                            /** @param {any[]} tooltipItems */
                             footer: function (tooltipItems) {
                                 let total = 0;
-                                tooltipItems.forEach((item) => (total += item.parsed.y));
+                                tooltipItems.forEach((item) => {
+                                    total += item.parsed?.y || 0;
+                                });
                                 const totalFormatted = formatTime(total, true);
                                 return `Total: ${totalFormatted}`;
                             },
@@ -138,8 +188,8 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                             },
                             drag: {
                                 enabled: true,
-                                backgroundColor: themeConfig.colors.primaryAlpha,
-                                borderColor: themeConfig.colors.primary,
+                                backgroundColor: themeConfig?.colors?.primaryAlpha || "rgba(59,130,246,0.2)",
+                                borderColor: themeConfig?.colors?.primary || "rgba(59,130,246,0.8)",
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -153,7 +203,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         },
                     },
                     chartBackgroundColorPlugin: {
-                        backgroundColor: themeConfig.colors.chartBackground,
+                        backgroundColor: themeConfig?.colors?.chartBackground || "#fff",
                     },
                 },
                 scales: {
@@ -161,13 +211,13 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         title: {
                             display: true,
                             text: "Lap",
-                            color: themeConfig.colors.textPrimary,
+                            color: themeConfig?.colors?.textPrimary || "#000",
                         },
                         ticks: {
-                            color: themeConfig.colors.textPrimary,
+                            color: themeConfig?.colors?.textPrimary || "#000",
                         },
                         grid: {
-                            color: themeConfig.colors.chartGrid,
+                            color: themeConfig?.colors?.chartGrid || "rgba(0,0,0,0.1)",
                         },
                     },
                     y: {
@@ -176,16 +226,18 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         title: {
                             display: true,
                             text: `Time (${getUnitSymbol("time", "time")})`,
-                            color: themeConfig.colors.textPrimary,
+                            color: themeConfig?.colors?.textPrimary || "#000",
                         },
                         ticks: {
-                            color: themeConfig.colors.textPrimary,
+                            color: themeConfig?.colors?.textPrimary || "#000",
+                            /** @param {number|string} value */
                             callback: function (value) {
-                                return formatTime(value, true);
+                                const num = typeof value === "number" ? value : Number(value);
+                                return formatTime(Number.isFinite(num) ? num : 0, true);
                             },
                         },
                         grid: {
-                            color: themeConfig.colors.chartGrid,
+                            color: themeConfig?.colors?.chartGrid || "rgba(0,0,0,0.1)",
                         },
                     },
                 },
@@ -198,7 +250,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 chartZoomResetPlugin,
                 {
                     id: "chartBackgroundColorPlugin",
-                    backgroundColor: themeConfig.colors.chartBackground,
+                    backgroundColor: themeConfig?.colors?.chartBackground || "#fff",
                 },
             ],
         });

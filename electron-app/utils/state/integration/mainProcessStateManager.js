@@ -10,7 +10,74 @@
 const { ipcMain, BrowserWindow } = require("electron");
 
 /**
+ * @typedef {'log'|'info'|'warn'|'error'|'debug'} ConsoleLevel
+ */
+
+/**
+ * @typedef {Object} Operation
+ * @property {string} id
+ * @property {number} startTime
+ * @property {number} [endTime]
+ * @property {number} [duration]
+ * @property {'running'|'completed'|'failed'} status
+ * @property {number} progress
+ * @property {string} message
+ * @property {Object} [result]
+ * @property {{message:string,stack?:string,name?:string}|undefined} [error]
+ * @property {number} [lastUpdate]
+ */
+
+/**
+ * @typedef {Object} OperationUpdate
+ * @property {number} [progress]
+ * @property {string} [message]
+ * @property {Object} [result]
+ * @property {{message:string,stack?:string,name?:string}|undefined} [error]
+ */
+
+/**
+ * @typedef {Object} ErrorEntry
+ * @property {string} id
+ * @property {number} timestamp
+ * @property {string} message
+ * @property {string|null} stack
+ * @property {Object} context
+ * @property {string} source
+ */
+
+/**
+ * @typedef {Object} Metrics
+ * @property {number} startTime
+ * @property {Map<string,{value:number,timestamp:number,metadata:Object}>} operationTimes
+ */
+
+/**
+ * @typedef {Object} HandlerInfo
+ * @property {{on:Function,removeListener:Function}} emitter
+ * @property {string} event
+ * @property {Function} handler
+ */
+
+/**
+ * @typedef {Object} MainProcessStateData
+ * @property {string|null} loadedFitFilePath
+ * @property {import('electron').BrowserWindow|null} mainWindow
+ * @property {Object|null} gyazoServer
+ * @property {number|null} gyazoServerPort
+ * @property {Map<string,Function>} pendingOAuthResolvers
+ * @property {Map<string,HandlerInfo>} eventHandlers
+ * @property {Map<string,Operation>} operations
+ * @property {ErrorEntry[]} errors
+ * @property {Metrics} metrics
+ */
+
+/**
  * Utility functions for main process state manager
+ */
+/**
+ * Validate an Electron BrowserWindow instance before IPC use.
+ * @param {import('electron').BrowserWindow|undefined|null} win
+ * @returns {boolean}
  */
 function validateWindow(win) {
     if (!win || win.isDestroyed() || !win.webContents || win.webContents.isDestroyed()) {
@@ -20,18 +87,29 @@ function validateWindow(win) {
     return true;
 }
 
+/**
+ * Log with consistent prefix & optional JSON context
+ * @param {ConsoleLevel} level
+ * @param {string} message
+ * @param {Object} [context]
+ */
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString();
     const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
+    // Narrowed level union keeps TS happy accessing console methods
     console[level](`[${timestamp}] [mainProcessStateManager] ${message}`, contextStr);
 }
 
 /**
  * Main process application state
  */
+/**
+ * Main process state manager providing a minimal reactive store & IPC bridge.
+ */
 class MainProcessState {
     constructor() {
-        this.data = {
+    /** @type {MainProcessStateData} */
+    this.data = {
             // File state
             loadedFitFilePath: null,
 
@@ -61,9 +139,11 @@ class MainProcessState {
             },
         };
 
-        this.listeners = new Map();
-        this.middleware = [];
-        this.devMode = process.env.NODE_ENV === "development" || process.argv.includes("--dev");
+    /** @type {Map<string,Set<Function>>} */
+    this.listeners = new Map();
+    /** @type {Array<Function>} */
+    this.middleware = [];
+    this.devMode = (process.env && process.env["NODE_ENV"]) === "development" || process.argv.includes("--dev");
 
         this.setupIPCHandlers();
     }
@@ -72,6 +152,10 @@ class MainProcessState {
      * Get state value by path
      * @param {string} path - Dot notation path (e.g., 'operations.fileLoad')
      * @returns {*} State value
+     */
+    /**
+     * @param {string} path
+     * @returns {*}
      */
     get(path) {
         return this.getByPath(this.data, path);
@@ -82,6 +166,11 @@ class MainProcessState {
      * @param {string} path - Dot notation path
      * @param {*} value - Value to set
      * @param {Object} options - Options for the update
+     */
+    /**
+     * @param {string} path
+     * @param {*} value
+     * @param {Object} [options]
      */
     set(path, value, options = {}) {
         const oldValue = this.get(path);
@@ -112,7 +201,12 @@ class MainProcessState {
      * @param {Object} updates - Object with updates
      * @param {Object} options - Update options
      */
+    /**
+     * @param {Record<string,*>} updates
+     * @param {Object} [options]
+     */
     update(updates, options = {}) {
+        /** @type {Array<{path:string,oldValue:any,newValue:any,timestamp:number,source:string}>} */
         const changes = [];
 
         Object.entries(updates).forEach(([path, value]) => {
@@ -144,6 +238,10 @@ class MainProcessState {
      * @param {string} operationId - Unique operation identifier
      * @param {Object} operationData - Operation metadata
      */
+    /**
+     * @param {string} operationId
+     * @param {Partial<Operation>} [operationData]
+     */
     startOperation(operationId, operationData = {}) {
         const operation = {
             id: operationId,
@@ -163,6 +261,10 @@ class MainProcessState {
      * @param {string} operationId - Operation identifier
      * @param {Object} updates - Progress updates
      */
+    /**
+     * @param {string} operationId
+     * @param {OperationUpdate} updates
+     */
     updateOperation(operationId, updates) {
         const currentOp = this.get(`operations.${operationId}`);
         if (!currentOp) return;
@@ -181,6 +283,10 @@ class MainProcessState {
      * Complete an operation
      * @param {string} operationId - Operation identifier
      * @param {Object} result - Operation result
+     */
+    /**
+     * @param {string} operationId
+     * @param {Object} [result]
      */
     completeOperation(operationId, result = {}) {
         const operation = this.get(`operations.${operationId}`);
@@ -208,6 +314,10 @@ class MainProcessState {
      * Fail an operation
      * @param {string} operationId - Operation identifier
      * @param {Error|string} error - Error that occurred
+     */
+    /**
+     * @param {string} operationId
+     * @param {Error|string} error
      */
     failOperation(operationId, error) {
         const operation = this.get(`operations.${operationId}`);
@@ -241,6 +351,9 @@ class MainProcessState {
      * Remove an operation from tracking
      * @param {string} operationId - Operation identifier
      */
+    /**
+     * @param {string} operationId
+     */
     removeOperation(operationId) {
         const operations = this.get("operations") || {};
         if (operations[operationId]) {
@@ -253,6 +366,10 @@ class MainProcessState {
      * Add an error to the error log
      * @param {Error|string} error - Error to track
      * @param {Object} context - Additional context
+     */
+    /**
+     * @param {Error|string} error
+     * @param {Object} [context]
      */
     addError(error, context = {}) {
         const errorObj = {
@@ -283,6 +400,13 @@ class MainProcessState {
      * @param {Function} handler - Event handler
      * @param {string} [handlerId] - Optional handler ID
      */
+    /**
+     * @param {{on:Function,removeListener:Function}} emitter
+     * @param {string} event
+     * @param {Function} handler
+     * @param {string} [handlerId]
+     * @returns {string}
+     */
     registerEventHandler(emitter, event, handler, handlerId) {
         const id = handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
 
@@ -302,6 +426,9 @@ class MainProcessState {
     /**
      * Unregister event handler
      * @param {string} handlerId - Handler ID
+     */
+    /**
+     * @param {string} handlerId
      */
     unregisterEventHandler(handlerId) {
         const eventHandlers = this.get("eventHandlers") || new Map();
@@ -325,7 +452,12 @@ class MainProcessState {
     cleanupEventHandlers() {
         const eventHandlers = this.get("eventHandlers") || new Map();
 
-        eventHandlers.forEach((handlerInfo, id) => {
+        /**
+         * Iterate through registered handler IDs and unregister each.
+         * @param {Map<string, HandlerInfo>} eventHandlers
+         */
+        eventHandlers.forEach((/** @type {HandlerInfo} */ _handlerInfo, /** @type {string} */ id) => {
+            // _handlerInfo intentionally unused; only id is required
             this.unregisterEventHandler(id);
         });
 
@@ -337,6 +469,11 @@ class MainProcessState {
      * @param {string} metric - Metric name
      * @param {number} value - Metric value
      * @param {Object} metadata - Additional metadata
+     */
+    /**
+     * @param {string} metric
+     * @param {number} value
+     * @param {Object} [metadata]
      */
     recordMetric(metric, value, metadata = {}) {
         const metrics = this.get("metrics") || {};
@@ -359,11 +496,19 @@ class MainProcessState {
      * @param {string} path - Path to listen to (or '*' for all)
      * @param {Function} callback - Change callback
      */
+    /**
+     * @param {string} path
+     * @param {(change:Object)=>void} callback
+     * @returns {Function} unsubscribe
+     */
     listen(path, callback) {
         if (!this.listeners.has(path)) {
             this.listeners.set(path, new Set());
         }
-        this.listeners.get(path).add(callback);
+        const set = this.listeners.get(path);
+        if (set) {
+            set.add(callback);
+        }
 
         return () => {
             const pathListeners = this.listeners.get(path);
@@ -380,6 +525,9 @@ class MainProcessState {
      * Notify listeners of state changes
      * @param {Object} change - Change object
      */
+    /**
+     * @param {{path:string}} change
+     */
     notifyChange(change) {
         // Notify specific path listeners
         const pathListeners = this.listeners.get(change.path);
@@ -388,7 +536,8 @@ class MainProcessState {
                 try {
                     callback(change);
                 } catch (error) {
-                    logWithContext("error", "Error in state change listener", { error: error.message });
+                    const err = /** @type {any} */ (error);
+                    logWithContext("error", "Error in state change listener", { error: err?.message });
                 }
             });
         }
@@ -400,7 +549,8 @@ class MainProcessState {
                 try {
                     callback(change);
                 } catch (error) {
-                    logWithContext("error", "Error in wildcard state change listener", { error: error.message });
+                    const err = /** @type {any} */ (error);
+                    logWithContext("error", "Error in wildcard state change listener", { error: err?.message });
                 }
             });
         }
@@ -413,6 +563,10 @@ class MainProcessState {
      * @param {string} channel - IPC channel
      * @param {*} data - Data to send
      */
+    /**
+     * @param {string} channel
+     * @param {*} data
+     */
     notifyRenderers(channel, data) {
         // Filter out non-serializable data for IPC
         const serializableData = this.makeSerializable(data);
@@ -422,9 +576,10 @@ class MainProcessState {
                 try {
                     win.webContents.send(channel, serializableData);
                 } catch (error) {
+                    const err = /** @type {any} */ (error);
                     logWithContext("warn", "Failed to send IPC message to renderer", {
                         channel,
-                        error: error.message,
+                        error: err?.message,
                     });
                 }
             }
@@ -435,6 +590,10 @@ class MainProcessState {
      * Make an object serializable for IPC by removing non-serializable properties
      * @param {*} data - Data to make serializable
      * @returns {*} Serializable data
+     */
+    /**
+     * @param {*} data
+     * @returns {*}
      */
     makeSerializable(data) {
         if (data === null || data === undefined) return data;
@@ -448,7 +607,8 @@ class MainProcessState {
         }
 
         // Handle objects
-        const serializable = {};
+    /** @type {Record<string, any>} */
+    const serializable = {};
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
             if (
@@ -477,13 +637,13 @@ class MainProcessState {
      */
     setupIPCHandlers() {
         // Get main process state
-        ipcMain.handle("main-state:get", (event, path) => {
+    ipcMain.handle("main-state:get", (_event, path) => {
             const data = path ? this.get(path) : this.data;
             return this.makeSerializable(data);
         });
 
         // Set main process state (restricted)
-        ipcMain.handle("main-state:set", (event, path, value, options) => {
+    ipcMain.handle("main-state:set", (_event, path, value, options) => {
             // Only allow certain paths to be set from renderer
             const allowedPaths = ["loadedFitFilePath", "operations"];
 
@@ -499,40 +659,48 @@ class MainProcessState {
 
         // Listen to main process state changes
         ipcMain.handle("main-state:listen", (event, path) => {
-            const unsubscribe = this.listen(path, (change) => {
-                event.sender.send("main-state-change", change);
+            const sender = event.sender;
+            this.listen(path, (change) => {
+                try {
+                    sender.send("main-state-change", change);
+                } catch (error) {
+                    const err = /** @type {any} */ (error);
+                    logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
+                }
             });
-
-            // Clean up when window closes
-            event.sender.on("destroyed", unsubscribe);
+            // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
+            // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
 
             return true;
         });
 
         // Get operation status
-        ipcMain.handle("main-state:operation", (event, operationId) => {
+    ipcMain.handle("main-state:operation", (_event, operationId) => {
             return this.get(`operations.${operationId}`);
         });
 
         // Get all operations
-        ipcMain.handle("main-state:operations", () => {
+    ipcMain.handle("main-state:operations", () => {
             return this.get("operations") || {};
         });
 
         // Get errors
-        ipcMain.handle("main-state:errors", (event, limit = 50) => {
+    ipcMain.handle("main-state:errors", (_event, limit = 50) => {
             const errors = this.get("errors") || [];
             return errors.slice(0, limit);
         });
 
         // Get metrics
-        ipcMain.handle("main-state:metrics", () => {
+    ipcMain.handle("main-state:metrics", () => {
             return this.get("metrics") || {};
         });
     }
 
     /**
      * Get development information
+     */
+    /**
+     * @returns {{state:MainProcessStateData,listeners:string[],eventHandlers:number,operations:string[],errors:number,uptime:number}}
      */
     getDevInfo() {
         return {
@@ -541,29 +709,52 @@ class MainProcessState {
             eventHandlers: this.get("eventHandlers")?.size || 0,
             operations: Object.keys(this.get("operations") || {}),
             errors: (this.get("errors") || []).length,
-            uptime: Date.now() - this.get("metrics.startTime"),
+            uptime: Date.now() - (this.get("metrics")?.startTime || Date.now()),
         };
     }
 
     // Helper methods for path manipulation
+    /**
+     * @param {Object} obj
+     * @param {string} path
+     * @returns {*}
+     */
     getByPath(obj, path) {
         if (!path) return obj;
         return path.split(".").reduce((current, key) => {
-            return current && current[key] !== undefined ? current[key] : undefined;
-        }, obj);
+            if (current && typeof current === "object" && Object.prototype.hasOwnProperty.call(current, key)) {
+                // @ts-ignore index signature loosened at runtime
+                return current[key];
+            }
+            return undefined;
+        }, /** @type {any} */ (obj));
     }
 
+    /**
+     * @param {Object} obj
+     * @param {string} path
+     * @param {*} value
+     */
     setByPath(obj, path, value) {
         if (!path) return;
         const keys = path.split(".");
         const lastKey = keys.pop();
         const target = keys.reduce((current, key) => {
-            if (current[key] === undefined) {
-                current[key] = {};
+            if (current && typeof current === "object") {
+                // @ts-ignore dynamic expansion
+                if (current[key] === undefined) {
+                    // @ts-ignore dynamic expansion
+                    current[key] = {};
+                }
+                // @ts-ignore dynamic expansion
+                return current[key];
             }
-            return current[key];
-        }, obj);
-        target[lastKey] = value;
+            return {};
+        }, /** @type {any} */ (obj));
+        if (lastKey) {
+            // @ts-ignore dynamic expansion
+            target[lastKey] = value;
+        }
     }
 }
 

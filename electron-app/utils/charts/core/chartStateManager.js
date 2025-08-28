@@ -10,12 +10,29 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { renderChartJS } from "./renderChartJS.js";
 
 /**
+ * @typedef {Object} FitGlobalData
+ * @property {Array<Object>} [recordMesgs]
+ */
+
+/**
+ * @typedef {Object} ChartInfo
+ * @property {boolean} isRendered
+ * @property {boolean} isRendering
+ * @property {boolean} tabActive
+ * @property {string} selectedChart
+ * @property {number|undefined} [lastRenderTime]
+ * @property {number} instanceCount
+ */
+
+/**
  * Chart State Manager - handles all chart-related state and reactive updates
  */
 class ChartStateManager {
     constructor() {
         this.renderDebounceTime = 250; // ms
+        /** @type {number|ReturnType<typeof setTimeout>|null} */
         this.renderTimeout = null;
+        /** @type {boolean} */
         this.isInitialized = false;
 
         // Initialize state subscriptions
@@ -29,7 +46,7 @@ class ChartStateManager {
      */
     initializeSubscriptions() {
         // Subscribe to theme changes for automatic chart re-theming
-        subscribe("ui.theme", (newTheme, oldTheme) => {
+        subscribe("ui.theme", (/** @type {string} */ newTheme, /** @type {string} */ oldTheme) => {
             if (oldTheme && newTheme !== oldTheme) {
                 console.log(`[ChartStateManager] Theme changed: ${oldTheme} -> ${newTheme}`);
                 this.handleThemeChange(newTheme);
@@ -37,25 +54,25 @@ class ChartStateManager {
         });
 
         // Subscribe to active tab changes
-        subscribe("ui.activeTab", (activeTab) => {
+    subscribe("ui.activeTab", (/** @type {string} */ activeTab) => {
             if (activeTab === "chartjs" || activeTab === "chart") {
                 this.handleTabActivation();
             }
         });
 
         // Subscribe to global data changes (new file loaded)
-        subscribe("globalData", (newData, oldData) => {
+    subscribe("globalData", (/** @type {FitGlobalData} */ newData, /** @type {FitGlobalData} */ oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
         });
 
         // Subscribe to chart settings changes
-        subscribe("charts.selectedChart", (chartType) => {
+    subscribe("charts.selectedChart", (/** @type {string} */ chartType) => {
             this.debouncedRender(`Chart type changed to ${chartType}`);
         });
 
-        subscribe("charts.controlsVisible", (visible) => {
+    subscribe("charts.controlsVisible", (/** @type {boolean} */ visible) => {
             this.updateControlsVisibility(visible);
         });
 
@@ -64,14 +81,14 @@ class ChartStateManager {
 
     /**
      * Handle theme changes with proper chart re-rendering
-     * @param {string} newTheme - The new theme name
+     * @param {string} [newTheme] - The new theme name (optional for legacy callers)
      */
-    handleThemeChange(newTheme) {
+    handleThemeChange(/** @type {string|undefined} */ newTheme) {
         const chartState = getState("charts");
-
+        if (!chartState) return;
         // Only re-render if charts are currently rendered and visible
-        if (chartState?.isRendered && this.isChartTabActive()) {
-            this.debouncedRender(`Theme change to ${newTheme}`);
+        if (chartState.isRendered && this.isChartTabActive()) {
+            this.debouncedRender(newTheme ? `Theme change to ${newTheme}` : "Theme change");
         }
     }
 
@@ -97,13 +114,13 @@ class ChartStateManager {
      * Handle new data being loaded
      * @param {Object} newData - The new global data
      */
-    handleDataChange(newData) {
+    handleDataChange(/** @type {FitGlobalData|null|undefined} */ newData) {
         console.log("[ChartStateManager] Data changed, checking if charts need update");
 
         // Clear existing chart state
         this.clearChartState();
 
-        if (newData && newData.recordMesgs && this.isChartTabActive()) {
+        if (newData && Array.isArray(newData.recordMesgs) && this.isChartTabActive()) {
             // Data is available and chart tab is active, render charts
             this.debouncedRender("New data loaded");
         }
@@ -216,9 +233,9 @@ class ChartStateManager {
      * Update chart controls visibility
      * @param {boolean} visible - Whether controls should be visible
      */
-    updateControlsVisibility(visible) {
+    updateControlsVisibility(/** @type {boolean} */ visible) {
         const controlsPanel = document.querySelector(".chart-controls");
-        if (controlsPanel) {
+        if (controlsPanel instanceof HTMLElement) {
             controlsPanel.style.display = visible ? "block" : "none";
         }
     }
@@ -259,6 +276,13 @@ class ChartStateManager {
         }
         this.clearChartState();
         console.log("[ChartStateManager] Destroyed");
+    }
+
+    /**
+     * Backwards compatibility alias expected by legacy code (setupWindow cleanup calls)
+     */
+    cleanup() {
+        this.destroy();
     }
 }
 

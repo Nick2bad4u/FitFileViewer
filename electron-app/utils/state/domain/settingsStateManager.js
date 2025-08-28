@@ -7,8 +7,25 @@ import { getState, setState, subscribe } from "../core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
+ * @typedef {"theme"|"mapTheme"|"chart"|"ui"|"export"|"units"} SettingCategory
+ * @typedef {Object} SettingSchema
+ * @property {string} key
+ * @property {any} default
+ * @property {(value:any)=>boolean} validate
+ * @property {"string"|"boolean"|"object"|"number"} type
+ */
+
+/**
+ * @typedef {Object} ExportedSettings
+ * @property {string} version
+ * @property {number} timestamp
+ * @property {Record<string, any>} settings
+ */
+
+/**
  * Settings categories and their configurations
  */
+/** @type {Record<SettingCategory, SettingSchema>} */
 const SETTINGS_SCHEMA = {
     theme: {
         key: "ffv-theme",
@@ -120,7 +137,14 @@ class SettingsStateManager {
      * @param {string} key - Setting key (optional for non-object settings)
      * @returns {*} Setting value
      */
+    /**
+     * Get a setting (entire category or specific key for object categories)
+     * @param {SettingCategory} category
+     * @param {string|null} [key=null]
+     * @returns {any}
+     */
     getSetting(category, key = null) {
+        // Use bracket access to satisfy exactOptionalPropertyTypes / index signature rules
         const schema = SETTINGS_SCHEMA[category];
         if (!schema) {
             console.warn(`[SettingsState] Unknown setting category: ${category}`);
@@ -130,6 +154,7 @@ class SettingsStateManager {
         try {
             if (schema.type === "object") {
                 // Handle object-type settings (chart, ui, export, units)
+                /** @type {Record<string, any>} */
                 const settings = {};
                 const prefix = schema.key;
 
@@ -142,7 +167,7 @@ class SettingsStateManager {
 
                         try {
                             // Try to parse as JSON, fallback to string
-                            settings[settingKey] = JSON.parse(value);
+                            settings[settingKey] = value != null ? JSON.parse(value) : null;
                         } catch {
                             settings[settingKey] = value;
                         }
@@ -151,7 +176,7 @@ class SettingsStateManager {
 
                 // Return specific key or entire object
                 if (key) {
-                    return settings[key] !== undefined ? settings[key] : schema.default[key];
+                    return settings[key] !== undefined ? settings[key] : (schema.default && typeof schema.default === "object" ? schema.default[key] : undefined);
                 }
 
                 return Object.keys(settings).length > 0 ? { ...schema.default, ...settings } : schema.default;
@@ -180,6 +205,13 @@ class SettingsStateManager {
      * @param {*} value - Setting value
      * @param {string} key - Setting key (for object-type settings)
      */
+    /**
+     * Set a setting value (entire category or specific key for object categories)
+     * @param {SettingCategory} category
+     * @param {any} value
+     * @param {string|null} [key=null]
+     * @returns {boolean}
+     */
     setSetting(category, value, key = null) {
         const schema = SETTINGS_SCHEMA[category];
         if (!schema) {
@@ -200,9 +232,10 @@ class SettingsStateManager {
                 localStorage.setItem(storageKey, JSON.stringify(value));
 
                 // Update state
-                const currentSettings = getState().settings[category] || {};
+                const rootState = /** @type {any} */ (getState("settings"));
+                const currentSettings = (rootState && rootState[category]) || {};
                 currentSettings[key] = value;
-                setState(`settings.${category}`, currentSettings, {
+                setState(`settings.${category}` /** @type {string} */, currentSettings, {
                     source: "SettingsStateManager.setSetting",
                 });
             } else {
@@ -231,7 +264,12 @@ class SettingsStateManager {
      * Get all chart settings
      * @returns {Object} Chart settings object
      */
+    /**
+     * Return all chart (chartjs_) settings as object
+     * @returns {Record<string, any>}
+     */
     getChartSettings() {
+        /** @type {Record<string, any>} */
         const settings = {};
 
         // Get all chartjs_ prefixed settings
@@ -242,7 +280,7 @@ class SettingsStateManager {
                 const value = localStorage.getItem(key);
 
                 try {
-                    settings[settingKey] = JSON.parse(value);
+                    settings[settingKey] = value != null ? JSON.parse(value) : null;
                 } catch {
                     settings[settingKey] = value;
                 }
@@ -255,6 +293,11 @@ class SettingsStateManager {
     /**
      * Reset settings to defaults
      * @param {string} category - Category to reset (optional, resets all if not provided)
+     */
+    /**
+     * Reset settings (single category or all)
+     * @param {SettingCategory|null} [category=null]
+     * @returns {boolean}
      */
     resetSettings(category = null) {
         try {
@@ -287,7 +330,7 @@ class SettingsStateManager {
             } else {
                 // Reset all settings
                 Object.keys(SETTINGS_SCHEMA).forEach((cat) => {
-                    this.resetSettings(cat);
+                    this.resetSettings(/** @type {SettingCategory} */ (cat));
                 });
             }
 
@@ -312,12 +355,18 @@ class SettingsStateManager {
      * Export settings to JSON
      * @returns {Object} Settings export object
      */
+    /**
+     * Export all settings and metadata
+     * @returns {ExportedSettings|null}
+     */
     exportSettings() {
         try {
+            /** @type {Record<string, any>} */
             const settings = {};
 
             Object.keys(SETTINGS_SCHEMA).forEach((category) => {
-                settings[category] = this.getSetting(category);
+                const cat = /** @type {SettingCategory} */ (category);
+                settings[cat] = this.getSetting(cat);
             });
 
             return {
@@ -336,6 +385,11 @@ class SettingsStateManager {
      * @param {Object} settingsData - Settings data to import
      * @returns {boolean} Success status
      */
+    /**
+     * Import settings from exported data
+     * @param {any} settingsData
+     * @returns {boolean}
+     */
     importSettings(settingsData) {
         try {
             if (!settingsData || !settingsData.settings) {
@@ -345,8 +399,9 @@ class SettingsStateManager {
 
             // Validate and import each category
             Object.keys(settingsData.settings).forEach((category) => {
-                if (SETTINGS_SCHEMA[category]) {
-                    this.setSetting(category, settingsData.settings[category]);
+                const cat = /** @type {SettingCategory} */ (category);
+                if (SETTINGS_SCHEMA[cat]) {
+                    this.setSetting(cat, settingsData.settings[category]);
                 }
             });
 
@@ -361,6 +416,9 @@ class SettingsStateManager {
 
     /**
      * Migrate old settings to new format
+     */
+    /**
+     * Perform migrations if required
      */
     async migrateSettings() {
         try {
@@ -390,6 +448,9 @@ class SettingsStateManager {
     /**
      * Migrate from legacy settings format
      */
+    /**
+     * Initial legacy migration (idempotent)
+     */
     async migrateFromLegacy() {
         console.log("[SettingsState] Performing legacy settings migration...");
 
@@ -407,6 +468,9 @@ class SettingsStateManager {
     /**
      * Set up synchronization between state and localStorage
      */
+    /**
+     * Wire listeners for cross-tab storage changes
+     */
     setupLocalStorageSync() {
         // Subscribe to settings changes and update localStorage
         subscribe("settings", () => {
@@ -416,7 +480,8 @@ class SettingsStateManager {
 
         // Listen for localStorage changes from other tabs/windows
         window.addEventListener("storage", (event) => {
-            if (event.key && Object.values(SETTINGS_SCHEMA).some((schema) => event.key.startsWith(schema.key))) {
+            const k = event.key || ""; // normalize for TS nullability
+            if (k && Object.values(SETTINGS_SCHEMA).some((schema) => k.startsWith(schema.key))) {
                 console.log("[SettingsState] External localStorage change detected:", event.key);
 
                 // Update state to reflect external changes
@@ -428,10 +493,14 @@ class SettingsStateManager {
     /**
      * Sync state from localStorage (for external changes)
      */
+    /**
+     * Sync state from localStorage after external changes
+     */
     syncFromLocalStorage() {
         try {
             Object.keys(SETTINGS_SCHEMA).forEach((category) => {
-                const currentValue = this.getSetting(category);
+                const cat = /** @type {SettingCategory} */ (category);
+                const currentValue = this.getSetting(cat);
                 setState(`settings.${category}`, currentValue, {
                     source: "SettingsStateManager.syncFromLocalStorage",
                 });
@@ -447,6 +516,9 @@ class SettingsStateManager {
 
     /**
      * Clean up resources
+     */
+    /**
+     * Cleanup resources (currently minimal)
      */
     cleanup() {
         console.log("[SettingsState] Cleaning up settings state manager...");
@@ -466,72 +538,60 @@ export const settingsStateManager = new SettingsStateManager();
  * Get theme setting
  * @returns {string} Current theme
  */
-export function getThemeSetting() {
-    return settingsStateManager.getSetting("theme");
-}
+export function getThemeSetting() { return /** @type {string} */ (settingsStateManager.getSetting("theme")); }
 
 /**
  * Set theme setting
  * @param {string} theme - Theme to set
  */
-export function setThemeSetting(theme) {
-    return settingsStateManager.setSetting("theme", theme);
-}
+/** @param {string} theme */
+export function setThemeSetting(theme) { return settingsStateManager.setSetting("theme", theme); }
 
 /**
  * Get map theme setting
  * @returns {boolean} Map theme inverted state
  */
-export function getMapThemeSetting() {
-    return settingsStateManager.getSetting("mapTheme");
-}
+export function getMapThemeSetting() { return /** @type {boolean} */ (settingsStateManager.getSetting("mapTheme")); }
 
 /**
  * Set map theme setting
  * @param {boolean} inverted - Map theme inverted state
  */
-export function setMapThemeSetting(inverted) {
-    return settingsStateManager.setSetting("mapTheme", inverted);
-}
+/** @param {boolean} inverted */
+export function setMapThemeSetting(inverted) { return settingsStateManager.setSetting("mapTheme", inverted); }
 
 /**
  * Get chart setting
  * @param {string} key - Chart setting key
  * @returns {*} Chart setting value
  */
-export function getChartSetting(key) {
-    return settingsStateManager.getSetting("chart", key);
-}
+/** @param {string} key */
+export function getChartSetting(key) { return settingsStateManager.getSetting("chart", key); }
 
 /**
  * Set chart setting
  * @param {string} key - Chart setting key
  * @param {*} value - Chart setting value
  */
-export function setChartSetting(key, value) {
-    return settingsStateManager.setSetting("chart", value, key);
-}
+/** @param {string} key @param {any} value */
+export function setChartSetting(key, value) { return settingsStateManager.setSetting("chart", value, key); }
 
 /**
  * Reset all chart settings
  */
-export function resetChartSettings() {
-    return settingsStateManager.resetSettings("chart");
-}
+export function resetChartSettings() { return settingsStateManager.resetSettings("chart"); }
 
 /**
  * Export all settings
  * @returns {Object} Settings export data
  */
-export function exportAllSettings() {
-    return settingsStateManager.exportSettings();
-}
+/** @returns {ExportedSettings|null} */
+export function exportAllSettings() { return settingsStateManager.exportSettings(); }
 
 /**
  * Import settings from data
  * @param {Object} settingsData - Settings data to import
  * @returns {boolean} Success status
  */
-export function importAllSettings(settingsData) {
-    return settingsStateManager.importSettings(settingsData);
-}
+/** @param {any} settingsData */
+export function importAllSettings(settingsData) { return settingsStateManager.importSettings(settingsData); }

@@ -4,6 +4,11 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 
 // Power vs Heart Rate chart
+/**
+ * @param {HTMLElement} container
+ * @param {any[]} data
+ * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ */
 export function renderPowerVsHeartRateChart(container, data, options) {
     try {
         const hasPower = data.some((row) => row.power !== undefined && row.power !== null);
@@ -18,7 +23,8 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             return;
         }
 
-        const themeConfig = getThemeConfig();
+    /** @type {any} */
+    const themeConfig = getThemeConfig();
 
         let chartData = data
             .map((row) => {
@@ -45,10 +51,12 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = createChartCanvas("power-vs-hr", "power-vs-hr");
-        canvas.style.background = themeConfig.colors.chartBackground;
+        const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("power-vs-hr", 0));
+        if (themeConfig?.colors) {
+            canvas.style.background = themeConfig.colors.chartBackground || "#000";
+            canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
+        }
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadow}`;
         container.appendChild(canvas);
 
         const config = {
@@ -86,6 +94,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                         borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any} context */
                             label: function (context) {
                                 return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
                             },
@@ -165,6 +174,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
 
         const chart = new window.Chart(canvas, config);
         if (chart) {
+            if (!window._chartjsInstances) window._chartjsInstances = [];
             window._chartjsInstances.push(chart);
             console.log("[ChartJS] Power vs Heart Rate chart created successfully");
         }

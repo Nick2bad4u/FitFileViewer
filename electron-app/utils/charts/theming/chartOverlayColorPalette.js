@@ -13,17 +13,33 @@ export function getChartOverlayColorPalette(array) {
     let unique = Array.from(new Set(array));
 
     // Helper to compute color distance in RGB space
+    /**
+     * Compute Euclidean distance between two hex colors in RGB space.
+     * @param {string} c1 - First color (e.g. "#ff00aa" or "#f0a").
+     * @param {string} c2 - Second color.
+     * @returns {number}
+     */
     function colorDistance(c1, c2) {
+        /**
+         * Convert a hex color string to an RGB tuple.
+         * Returns black [0,0,0] if parsing fails.
+         * @param {string} hex
+         * @returns {[number, number, number]}
+         */
         function hexToRgb(hex) {
-            hex = hex.replace(/^#/, "");
-            if (hex.length === 3) {
-                hex = hex
+            let cleaned = hex.trim().replace(/^#/, "").toLowerCase();
+            // Expand short form (#abc => #aabbcc)
+            if (cleaned.length === 3 && /^[0-9a-f]{3}$/.test(cleaned)) {
+                cleaned = cleaned
                     .split("")
-                    .map((char) => char + char)
+                    .map((/** @type {string} */ ch) => ch + ch)
                     .join("");
             }
-            const num = parseInt(hex, 16);
-            return [num >> 16, (num >> 8) & 255, num & 255];
+            if (!/^[0-9a-f]{6}$/.test(cleaned)) return [0, 0, 0];
+            const num = parseInt(cleaned, 16);
+            /** @type {[number, number, number]} */
+            const rgb = [num >> 16, (num >> 8) & 255, num & 255];
+            return rgb;
         }
         const [r1, g1, b1] = hexToRgb(c1);
         const [r2, g2, b2] = hexToRgb(c2);
@@ -31,25 +47,42 @@ export function getChartOverlayColorPalette(array) {
     }
 
     // Filter out colors that are too similar (distance < 80)
+    /** @type {string[]} */
     const filtered = [];
-    unique.forEach((color) => {
-        if (filtered.every((existing) => colorDistance(color, existing) >= 80)) {
+    unique.forEach((/** @type {string} */ color) => {
+        if (
+            filtered.every(
+                (/** @type {string} */ existing) => colorDistance(color, existing) >= 80
+            )
+        ) {
             filtered.push(color);
         }
     });
 
     // Deterministic shuffle using a seeded algorithm for reproducibility
+    /**
+     * Deterministically shuffle an array of colors.
+     * @param {string[]} array
+     * @param {number} [seed=42]
+     * @returns {string[]}
+     */
     function seededShuffle(array, seed = 42) {
         // Simple LCG (Linear Congruential Generator)
         let a = 1664525,
             c = 1013904223,
             m = 2 ** 32;
         let state = seed;
-        const arr = array.slice();
+    /** @type {string[]} */
+    const arr = array.slice();
         for (let i = arr.length - 1; i > 0; i--) {
             state = (a * state + c) % m;
             const j = state % (i + 1);
-            [arr[i], arr[j]] = [arr[j], arr[i]];
+            // Swap only if both indices are valid (they should be, but add defensive check for TS)
+            if (typeof arr[i] === "string" && typeof arr[j] === "string") {
+                const tmp = /** @type {string} */ (arr[i]);
+                arr[i] = /** @type {string} */ (arr[j]);
+                arr[j] = tmp;
+            }
         }
         return arr;
     }

@@ -3,6 +3,11 @@ import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 // GPS track chart renderer
+/**
+ * @param {HTMLElement} container
+ * @param {any[]} data
+ * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ */
 export function renderGPSTrackChart(container, data, options) {
     try {
         console.log("[ChartJS] renderGPSTrackChart called");
@@ -22,7 +27,8 @@ export function renderGPSTrackChart(container, data, options) {
             return;
         }
 
-        const themeConfig = getThemeConfig();
+    /** @type {any} */
+    const themeConfig = getThemeConfig();
 
         // Convert GPS positions to chart data
         let gpsData = data
@@ -60,10 +66,12 @@ export function renderGPSTrackChart(container, data, options) {
 
         console.log(`[ChartJS] Creating GPS track chart with ${gpsData.length} points`);
 
-        const canvas = createChartCanvas("gps-track", "gps-track");
-        canvas.style.background = themeConfig.colors.bgPrimary;
+        const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("gps-track", 0));
+        if (themeConfig?.colors) {
+            canvas.style.background = themeConfig.colors.bgPrimary || themeConfig.colors.chartBackground || "#000";
+            canvas.style.boxShadow = themeConfig.colors.shadow || "";
+        }
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = themeConfig.colors.shadow;
         container.appendChild(canvas);
 
         const config = {
@@ -107,6 +115,7 @@ export function renderGPSTrackChart(container, data, options) {
                         borderColor: themeConfig.colors.border,
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any} context */
                             label: function (context) {
                                 const point = context.raw;
                                 return [
@@ -170,6 +179,7 @@ export function renderGPSTrackChart(container, data, options) {
                         },
                         ticks: {
                             color: themeConfig.colors.textPrimary,
+                            /** @param {any} value */
                             callback: function (value) {
                                 return value.toFixed(4) + "°";
                             },
@@ -189,6 +199,7 @@ export function renderGPSTrackChart(container, data, options) {
                         },
                         ticks: {
                             color: themeConfig.colors.textPrimary,
+                            /** @param {any} value */
                             callback: function (value) {
                                 return value.toFixed(4) + "°";
                             },
@@ -201,6 +212,7 @@ export function renderGPSTrackChart(container, data, options) {
 
         const chart = new window.Chart(canvas, config);
         if (chart) {
+            if (!window._chartjsInstances) window._chartjsInstances = [];
             window._chartjsInstances.push(chart);
             console.log("[ChartJS] GPS track chart created successfully");
         }

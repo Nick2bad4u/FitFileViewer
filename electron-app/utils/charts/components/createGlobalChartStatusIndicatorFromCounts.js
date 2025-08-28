@@ -1,6 +1,6 @@
 /**
  * Creates global chart status indicator from pre-calculated counts
- * @param {Object} counts - Pre-calculated chart counts
+ * @param {import('../core/getChartCounts.js').ChartCounts} counts - Pre-calculated chart counts
  */
 export function createGlobalChartStatusIndicatorFromCounts(counts) {
     try {
@@ -68,7 +68,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             statusText.style.color = "var(--color-fg-muted)";
         } else {
             statusText.innerHTML = `
-                Showing 
+                Showing
                 <span style="color: ${isAllVisible ? "var(--color-success)" : hasHiddenCharts ? "var(--color-warning)" : "var(--color-error)"};">
                     ${counts.visible}
                 </span>
@@ -94,17 +94,14 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             quickAction.textContent = "⚙️ Show Settings";
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
-                // Show the settings panel
                 const wrapper = document.getElementById("chartjs-settings-wrapper");
                 const toggleBtn = document.getElementById("chart-controls-toggle");
-                if (wrapper && toggleBtn) {
+                if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
                     wrapper.style.display = "block";
                     toggleBtn.textContent = "▼ Hide Controls";
                     toggleBtn.setAttribute("aria-expanded", "true");
-
-                    // Scroll to field toggles
                     const fieldsSection = document.querySelector(".fields-section");
-                    if (fieldsSection) {
+                    if (fieldsSection instanceof HTMLElement) {
                         setTimeout(function () {
                             fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                         }, 100);

@@ -1,4 +1,18 @@
 /* eslint-env node */
+/**
+ * Window state shape
+ * @typedef {Object} WindowState
+ * @property {number} width
+ * @property {number} height
+ * @property {number} [x]
+ * @property {number} [y]
+ */
+/**
+ * @typedef {Object} DevHelpers
+ * @property {() => {constants: typeof CONSTANTS, settingsPath: string, currentState: WindowState}} getConfig
+ * @property {() => boolean} resetState
+ * @property {() => { isValid: boolean, state?: WindowState, path: string, exists: boolean, error?: string }} validateSettings
+ */
 const path = require("path");
 const fs = require("fs");
 const { app, BrowserWindow } = require("electron");
@@ -33,12 +47,17 @@ const CONSTANTS = {
 };
 
 // Enhanced path resolution with error handling
+/**
+ * Resolve the path to the window state settings file.
+ * @returns {string}
+ */
 function getSettingsPath() {
     try {
         const userDataPath = app.getPath("userData");
         return path.join(userDataPath, CONSTANTS.FILES.WINDOW_STATE);
     } catch (error) {
-        console.error("[windowStateUtils] Error getting settings path:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("[windowStateUtils] Error getting settings path:", errMsg);
         // Fallback to current directory in case of error
         return path.join(process.cwd(), CONSTANTS.FILES.WINDOW_STATE);
     }
@@ -47,64 +66,81 @@ function getSettingsPath() {
 const settingsPath = getSettingsPath();
 
 // Enhanced validation functions
+/**
+ * Type guard validating a window state object.
+ * @param {unknown} state
+ * @returns {state is WindowState}
+ */
 function validateWindowState(state) {
-    if (!state || typeof state !== "object") {
-        return false;
-    }
-
-    // Validate required properties
-    const requiredProps = ["width", "height"];
-    for (const prop of requiredProps) {
-        if (typeof state[prop] !== "number" || state[prop] <= 0) {
-            return false;
-        }
-    }
-
-    // Validate optional position properties
-    if (state.x !== undefined && typeof state.x !== "number") {
-        return false;
-    }
-    if (state.y !== undefined && typeof state.y !== "number") {
-        return false;
-    }
-
+    if (!state || typeof state !== "object") return false;
+    const obj = /** @type {Record<string, unknown>} */ (state);
+    const width = obj["width"];
+    const height = obj["height"];
+    if (typeof width !== "number" || width <= 0) return false;
+    if (typeof height !== "number" || height <= 0) return false;
+    if ("x" in obj && obj["x"] !== undefined && typeof obj["x"] !== "number") return false;
+    if ("y" in obj && obj["y"] !== undefined && typeof obj["y"] !== "number") return false;
     return true;
 }
 
+/**
+ * @param {unknown} win
+ * @returns {win is BrowserWindow}
+ */
 function validateWindow(win) {
-    return win && typeof win === "object" && !win.isDestroyed();
+    return !!win && typeof win === "object" && typeof (/** @type {any} */(win).isDestroyed) === "function" && !(/** @type {any} */(win)).isDestroyed();
 }
 
+/**
+ * Sanitize and normalize persisted window state.
+ * @param {Partial<WindowState>} state
+ * @returns {WindowState}
+ */
 function sanitizeWindowState(state) {
     if (!validateWindowState(state)) {
         return { ...CONSTANTS.DEFAULTS.WINDOW };
     }
-
-    // Ensure minimum dimensions
+    const s = /** @type {WindowState} */ (state);
     const sanitized = {
-        width: Math.max(state.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
-        height: Math.max(state.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
+        width: Math.max(s.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
+        height: Math.max(s.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
     };
-
-    // Include position if valid
-    if (typeof state.x === "number") {
-        sanitized.x = state.x;
+    if (typeof s.x === "number") {
+        // @ts-ignore - augmenting
+        sanitized.x = s.x;
     }
-    if (typeof state.y === "number") {
-        sanitized.y = state.y;
+    if (typeof s.y === "number") {
+        // @ts-ignore
+        sanitized.y = s.y;
     }
-
-    return sanitized;
+    return /** @type {WindowState} */ (sanitized);
 }
 
 // Enhanced error handling and logging
+/**
+ * Safe error message extraction.
+ * @param {unknown} error
+ * @returns {string}
+ */
+function safeErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Contextual logger with leveled output.
+ * @param {"log"|"info"|"warn"|"error"} level
+ * @param {string} message
+ * @param {Record<string, any>} [context]
+ */
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [windowStateUtils] ${message}`;
 
     if (context && Object.keys(context).length > 0) {
+        // @ts-ignore - dynamic console indexing with validated level string
         console[level](logMessage, context);
     } else {
+        // @ts-ignore
         console[level](logMessage);
     }
 }
@@ -112,6 +148,9 @@ function logWithContext(level, message, context = {}) {
 /**
  * Retrieves the saved window state from disk with enhanced error handling
  * @returns {Object} Window state object with width, height, and optional x, y coordinates
+ */
+/**
+ * @returns {WindowState}
  */
 function getWindowState() {
     try {
@@ -133,7 +172,7 @@ function getWindowState() {
         return sanitizedState;
     } catch (error) {
         logWithContext("error", "Error reading window state, using defaults:", {
-            error: error.message,
+            error: safeErrorMessage(error),
             path: settingsPath,
         });
         return { ...CONSTANTS.DEFAULTS.WINDOW };
@@ -143,6 +182,10 @@ function getWindowState() {
 /**
  * Saves the current window state to disk with enhanced validation and error handling
  * @param {BrowserWindow} win - The Electron BrowserWindow instance
+ */
+/**
+ * @param {BrowserWindow} win
+ * @returns {void}
  */
 function saveWindowState(win) {
     if (!validateWindow(win)) {
@@ -170,7 +213,7 @@ function saveWindowState(win) {
         logWithContext("info", "Window state saved successfully", { state });
     } catch (error) {
         logWithContext("error", "Error saving window state:", {
-            error: error.message,
+            error: safeErrorMessage(error),
             path: settingsPath,
         });
     }
@@ -180,21 +223,26 @@ function saveWindowState(win) {
  * Creates a new BrowserWindow with enhanced configuration and error handling
  * @returns {BrowserWindow} The created BrowserWindow instance
  */
+/**
+ * @returns {BrowserWindow}
+ */
 function createWindow() {
     try {
         const state = getWindowState();
 
         // Enhanced window configuration
+        /** @type {import('electron').BrowserWindowConstructorOptions} */
         const windowConfig = {
             width: state.width,
             height: state.height,
             minWidth: CONSTANTS.DEFAULTS.WINDOW.minWidth,
             minHeight: CONSTANTS.DEFAULTS.WINDOW.minHeight,
-            x: typeof state.x === "number" ? state.x : undefined,
-            y: typeof state.y === "number" ? state.y : undefined,
+            // Only assign if defined to satisfy exactOptionalPropertyTypes
+            ...(typeof state.x === "number" ? { x: state.x } : {}),
+            ...(typeof state.y === "number" ? { y: state.y } : {}),
             icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
             autoHideMenuBar: false,
-            show: false, // Don't show until ready
+            show: false,
             webPreferences: {
                 preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
                 ...CONSTANTS.WEB_PREFERENCES,
@@ -213,7 +261,7 @@ function createWindow() {
             try {
                 saveWindowState(win);
             } catch (error) {
-                logWithContext("error", "Error in window close handler:", { error: error.message });
+                logWithContext("error", "Error in window close handler:", { error: safeErrorMessage(error) });
             }
         });
 
@@ -233,12 +281,12 @@ function createWindow() {
                 logWithContext("info", "Main HTML file loaded successfully");
             })
             .catch((error) => {
-                logWithContext("error", "Error loading main HTML file:", { error: error.message });
+                logWithContext("error", "Error loading main HTML file:", { error: safeErrorMessage(error) });
             });
 
         return win;
     } catch (error) {
-        logWithContext("error", "Error creating window:", { error: error.message });
+        logWithContext("error", "Error creating window:", { error: safeErrorMessage(error) });
         throw error;
     }
 }
@@ -268,7 +316,7 @@ const devHelpers = {
             }
             return false;
         } catch (error) {
-            logWithContext("error", "Error resetting window state:", { error: error.message });
+            logWithContext("error", "Error resetting window state:", { error: safeErrorMessage(error) });
             return false;
         }
     },
@@ -288,7 +336,7 @@ const devHelpers = {
         } catch (error) {
             return {
                 isValid: false,
-                error: error.message,
+                error: safeErrorMessage(error),
                 path: settingsPath,
                 exists: false,
             };
@@ -313,7 +361,7 @@ module.exports = {
     CONSTANTS,
 
     // Development helpers (only in development)
-    ...(process.env.NODE_ENV === "development" && { devHelpers }),
+    ...(process.env["NODE_ENV"] === "development" && { devHelpers }),
 
     // Version information
     version: "1.0.0",

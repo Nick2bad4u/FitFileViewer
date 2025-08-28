@@ -4,8 +4,79 @@
  */
 
 /**
+ * @typedef {Object} WindowState
+ * @property {number} width
+ * @property {number} height
+ * @property {?number} x
+ * @property {?number} y
+ * @property {boolean} maximized
+ */
+/**
+ * @typedef {Object} UIState
+ * @property {string} activeTab
+ * @property {boolean} sidebarCollapsed
+ * @property {string} theme
+ * @property {boolean} isFullscreen
+ * @property {WindowState} windowState
+ */
+/**
+ * @typedef {Object} ChartsState
+ * @property {boolean} isRendered
+ * @property {boolean} controlsVisible
+ * @property {string} selectedChart
+ * @property {number} zoomLevel
+ * @property {*} chartData
+ * @property {Object<string, any>} chartOptions
+ */
+/**
+ * @typedef {Object} MapState
+ * @property {boolean} isRendered
+ * @property {*} center
+ * @property {number} zoom
+ * @property {number} selectedLap
+ * @property {boolean} showElevationProfile
+ * @property {boolean} trackVisible
+ * @property {string} baseLayer
+ * @property {boolean} measurementMode
+ */
+/**
+ * @typedef {Object} TablesState
+ * @property {boolean} isRendered
+ * @property {?string} sortColumn
+ * @property {string} sortDirection
+ * @property {number} pageSize
+ * @property {number} currentPage
+ * @property {Object<string, any>} filters
+ */
+/**
+ * @typedef {Object} PerformanceState
+ * @property {?number} lastLoadTime
+ * @property {Object<string, number>} renderTimes
+ * @property {?number} memoryUsage
+ */
+/**
+ * @typedef {Object} SystemState
+ * @property {?string} version
+ * @property {?number} startupTime
+ * @property {string} mode
+ * @property {boolean} initialized
+ */
+/**
+ * @typedef {Object} AppStateShape
+ * @property {{ initialized: boolean, isOpeningFile: boolean, startTime: number }} app
+ * @property {*} globalData
+ * @property {*} currentFile
+ * @property {boolean} isLoading
+ * @property {UIState} ui
+ * @property {ChartsState} charts
+ * @property {MapState} map
+ * @property {TablesState} tables
+ * @property {PerformanceState} performance
+ * @property {SystemState} system
+ */
+/**
  * Central application state container
- * @type {Object}
+ * @type {AppStateShape}
  */
 const AppState = {
     // Application lifecycle state
@@ -111,12 +182,16 @@ export function subscribe(path, callback) {
     }
 
     const listeners = stateListeners.get(path);
-    listeners.add(callback);
+    if (listeners) {
+        listeners.add(callback);
+    }
 
     // Return unsubscribe function
     return () => {
-        listeners.delete(callback);
-        if (listeners.size === 0) {
+        const current = stateListeners.get(path);
+        if (!current) return;
+        current.delete(callback);
+        if (current.size === 0) {
             stateListeners.delete(path);
         }
     };
@@ -131,46 +206,76 @@ export function getState(path) {
     if (!path) return AppState;
 
     const keys = path.split(".");
+    /** @type {any} */
     let value = AppState;
-
-    for (const key of keys) {
-        if (value === null || value === undefined) {
+    for (let i = 0; i < keys.length; i++) {
+        const key = /** @type {string} */ (keys[i]);
+        if (value == null) return undefined;
+        const container = /** @type {Record<string, any>} */ (value);
+        if (Object.prototype.hasOwnProperty.call(container, key)) {
+            value = container[key];
+        } else {
             return undefined;
         }
-        value = value[key];
     }
-
     return value;
 }
+
+/**
+ * @typedef {Object} StateUpdateOptions
+ * @property {boolean} [silent=false] If true, don't notify listeners of this update
+ * @property {string} [source="unknown"] Source tag for debugging / history
+ * @property {boolean} [merge=false] If true and both old & new values are plain objects, perform a shallow merge
+ */
 
 /**
  * Set state value by path and notify listeners
  * @param {string} path - Dot notation path to state property
  * @param {*} value - New value to set
- * @param {Object} options - Options for state update
- * @param {boolean} options.silent - If true, don't notify listeners
- * @param {string} options.source - Source of the state change for debugging
+ * @param {StateUpdateOptions} [options] - Optional update options
  */
 export function setState(path, value, options = {}) {
-    const { silent = false, source = "unknown" } = options;
+    const { silent = false, source = "unknown", merge = false } = options;
 
     // Get the old value for comparison
     const oldValue = getState(path);
 
-    // Set the new value
+    // Set / merge the new value
     const keys = path.split(".");
     let target = AppState;
 
     for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
-        if (!(key in target) || typeof target[key] !== "object") {
-            target[key] = {};
+        const key = /** @type {string} */ (keys[i]);
+        if (!key) continue; // defensive
+        if (typeof target !== "object" || target == null) break;
+        const container = /** @type {Record<string, any>} */ (target);
+        if (!Object.prototype.hasOwnProperty.call(container, key) || typeof container[key] !== "object" || container[key] === null) {
+            container[key] = {};
         }
-        target = target[key];
+        target = container[key];
     }
 
     const finalKey = keys[keys.length - 1];
-    target[finalKey] = value;
+    if (typeof finalKey !== "string" || !finalKey) {
+        console.warn("[StateManager] Invalid final key for path", path);
+        return;
+    }
+    if (
+        merge &&
+        typeof oldValue === "object" &&
+        oldValue !== null &&
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(oldValue) &&
+        !Array.isArray(value)
+    ) {
+        // Shallow merge
+    /** @type {Record<string, any>} */
+    (target)[finalKey] = { ...oldValue, ...value };
+    } else {
+    /** @type {Record<string, any>} */
+    (target)[finalKey] = value;
+    }
 
     // Add to history
     if (stateHistory.length >= MAX_HISTORY_SIZE) {
@@ -197,17 +302,11 @@ export function setState(path, value, options = {}) {
  * Update state by merging with existing object
  * @param {string} path - Dot notation path to state property
  * @param {Object} updates - Object to merge with existing state
- * @param {Object} options - Options for state update
+ * @param {StateUpdateOptions} [options] - Optional update options
  */
 export function updateState(path, updates, options = {}) {
-    const currentValue = getState(path);
-
-    if (typeof currentValue === "object" && currentValue !== null) {
-        const newValue = { ...currentValue, ...updates };
-        setState(path, newValue, options);
-    } else {
-        setState(path, updates, options);
-    }
+    // Force merge semantics; caller may still override silent/source
+    setState(path, updates, { ...options, merge: true });
 }
 
 /**
@@ -256,21 +355,28 @@ function notifyListeners(path, newValue, oldValue) {
 export function resetState(path) {
     if (path) {
         const keys = path.split(".");
+        /** @type {any} */
         let target = AppState;
-
         for (let i = 0; i < keys.length - 1; i++) {
-            target = target[keys[i]];
-            if (!target) return;
+            const k = /** @type {string} */ (keys[i]);
+            if (target == null) return;
+            if (Object.prototype.hasOwnProperty.call(target, k)) {
+                target = target[k];
+            } else {
+                return;
+            }
         }
-
         const finalKey = keys[keys.length - 1];
-        if (finalKey in target) {
-            delete target[finalKey];
+        if (target) {
+            const rec = /** @type {Record<string, any>} */ (target);
+            if (Object.prototype.hasOwnProperty.call(rec, finalKey)) {
+                delete rec[finalKey];
+            }
         }
     } else {
         // Reset entire state
         Object.keys(AppState).forEach((key) => {
-            delete AppState[key];
+            delete /** @type {any} */ (AppState)[key];
         });
 
         // Restore initial structure
@@ -399,17 +505,22 @@ export function loadPersistedState(paths = ["ui", "charts.controlsVisible", "map
  */
 function setNestedValue(obj, path, value) {
     const keys = path.split(".");
+    /** @type {any} */
     let target = obj;
-
     for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
-        if (!(key in target) || typeof target[key] !== "object") {
-            target[key] = {};
+        const key = /** @type {string} */ (keys[i]);
+        if (!key) continue;
+        if (target == null || typeof target !== "object") return;
+        const container = /** @type {Record<string, any>} */ (target);
+        if (!Object.prototype.hasOwnProperty.call(container, key) || typeof container[key] !== "object" || container[key] === null) {
+            container[key] = {};
         }
-        target = target[key];
+        target = container[key];
     }
-
-    target[keys[keys.length - 1]] = value;
+    const finalKey = keys[keys.length - 1];
+    if (finalKey && target != null && typeof target === "object") {
+        /** @type {Record<string, any>} */ (target)[finalKey] = value;
+    }
 }
 
 /**
@@ -421,15 +532,18 @@ function setNestedValue(obj, path, value) {
  */
 function getNestedValue(obj, path) {
     const keys = path.split(".");
+    /** @type {any} */
     let value = obj;
-
-    for (const key of keys) {
-        if (value === null || value === undefined) {
+    for (let i = 0; i < keys.length; i++) {
+        const key = /** @type {string} */ (keys[i]);
+        if (value == null) return undefined;
+        const container = /** @type {Record<string, any>} */ (value);
+        if (Object.prototype.hasOwnProperty.call(container, key)) {
+            value = container[key];
+        } else {
             return undefined;
         }
-        value = value[key];
     }
-
     return value;
 }
 
@@ -451,7 +565,7 @@ export function createReactiveProperty(propertyName, statePath) {
             }
 
             // If it exists but isn't reactive, preserve the current value
-            const currentValue = window[propertyName];
+            const currentValue = /** @type {any} */ (window)[propertyName];
             if (currentValue !== undefined && currentValue !== null) {
                 setState(statePath, currentValue, { source: `createReactiveProperty.${propertyName}` });
             }

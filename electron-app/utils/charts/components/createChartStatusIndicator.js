@@ -5,9 +5,13 @@ import { getChartCounts } from "../core/getChartCounts.js";
  * @returns {HTMLElement} The status indicator element
  */
 
+/**
+ * @returns {HTMLElement}
+ */
 export function createChartStatusIndicator() {
     try {
-        const counts = getChartCounts();
+    /** @type {import('../core/getChartCounts.js').ChartCounts} */
+    const counts = getChartCounts();
 
         const indicator = document.createElement("div");
         indicator.className = "chart-status-indicator";
@@ -137,7 +141,7 @@ export function createChartStatusIndicator() {
         // Click to scroll to field toggles
         indicator.addEventListener("click", () => {
             const fieldsSection = document.querySelector(".fields-section");
-            if (fieldsSection) {
+            if (fieldsSection instanceof HTMLElement) {
                 fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                 // Add a brief highlight effect
                 fieldsSection.style.outline = "2px solid var(--color-accent)";

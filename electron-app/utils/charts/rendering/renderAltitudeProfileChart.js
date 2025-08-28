@@ -6,6 +6,12 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 
 // Altitude profile with gradient visualization
+/**
+ * @param {HTMLElement} container
+ * @param {any[]} data
+ * @param {number[]} labels
+ * @param {{ maxPoints: number|"all", showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ */
 export function renderAltitudeProfileChart(container, data, labels, options) {
     try {
         const hasAltitude = data.some(
@@ -23,7 +29,8 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             return;
         }
 
-        const themeConfig = getThemeConfig();
+    /** @type {any} */
+    const themeConfig = getThemeConfig();
 
         let chartData = data
             .map((row, index) => {
@@ -47,10 +54,12 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = createChartCanvas("altitude-profile", "altitude-profile");
-        canvas.style.background = themeConfig.colors.chartBackground;
+        const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("altitude-profile", 0));
+        if (themeConfig?.colors) {
+            canvas.style.background = themeConfig.colors.chartBackground || "#000";
+            canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
+        }
         canvas.style.borderRadius = "12px";
-        canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadow}`;
         container.appendChild(canvas);
 
         const config = {
@@ -91,9 +100,11 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         borderColor: themeConfig.colors.chartBorder,
                         borderWidth: 1,
                         callbacks: {
+                            /** @param {any[]} context */
                             title: function (context) {
                                 return `Time: ${formatTime(context[0].parsed.x)}`;
                             },
+                            /** @param {any} context */
                             label: function (context) {
                                 return `Altitude: ${context.parsed.y.toFixed(1)} m`;
                             },
@@ -152,6 +163,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         },
                         ticks: {
                             color: themeConfig.colors.textPrimary,
+                            /** @param {any} value */
                             callback: function (value) {
                                 return formatTime(value, true);
                             },
@@ -178,6 +190,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
 
         const chart = new window.Chart(canvas, config);
         if (chart) {
+            if (!window._chartjsInstances) window._chartjsInstances = [];
             window._chartjsInstances.push(chart);
             console.log("[ChartJS] Altitude Profile chart created successfully");
         }

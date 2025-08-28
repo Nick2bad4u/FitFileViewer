@@ -32,7 +32,7 @@ export function setupListeners({
 
     // Recent Files Context Menu
     openFileBtn.addEventListener("contextmenu", async (event) => {
-        event.preventDefault();
+        /** @type {MouseEvent} */ (event).preventDefault();
         if (!window.electronAPI?.recentFiles) return;
         const recentFiles = await window.electronAPI.recentFiles();
         if (!recentFiles || recentFiles.length === 0) {
@@ -41,10 +41,12 @@ export function setupListeners({
         }
         const oldMenu = document.getElementById("recent-files-menu");
         if (oldMenu) oldMenu.remove();
+        /** @type {HTMLDivElement} */
         const menu = document.createElement("div");
         menu.id = "recent-files-menu";
         menu.style.position = "fixed";
-        menu.style.zIndex = 10010;
+        // zIndex must be a string
+        menu.style.zIndex = "10010";
         menu.style.left = `${event.clientX}px`;
         menu.style.top = `${event.clientY}px`;
         menu.style.background = "var(--color-bg-alt-solid)";
@@ -63,13 +65,16 @@ export function setupListeners({
         menu.setAttribute("role", "menu");
         menu.setAttribute("aria-label", "Recent files");
         let focusedIndex = 0;
+        /** @type {HTMLDivElement[]} */
         const items = [];
         recentFiles.forEach((file, idx) => {
             const parts = file.split(/\\|\//g);
             const shortName =
                 parts.length >= 2 ? `${parts[parts.length - 2]}\\${parts[parts.length - 1]}` : parts[parts.length - 1];
+            /** @type {HTMLDivElement} */
             const item = document.createElement("div");
-            item.textContent = shortName;
+            // textContent expects string | null; ensure fallback string
+            item.textContent = shortName || "";
             item.title = file;
             item.style.padding = "8px 18px";
             item.style.whiteSpace = "nowrap";
@@ -96,9 +101,11 @@ export function setupListeners({
                     if (result && result.error) {
                         showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                     } else {
-                        window.showFitData(result, file);
-                        if (window.sendFitFileToAltFitReader) {
-                            window.sendFitFileToAltFitReader(arrayBuffer);
+                        // Optional chaining avoids undefined invocation
+                        window.showFitData?.(result, file);
+                        // Optional integration - guarded
+                        if ((/** @type {any} */ (window)).sendFitFileToAltFitReader) {
+                            (/** @type {any} */ (window)).sendFitFileToAltFitReader(arrayBuffer);
                         }
                     }
                     await window.electronAPI.addRecentFile(file);
@@ -111,6 +118,10 @@ export function setupListeners({
             items.push(item);
             menu.appendChild(item);
         });
+        /**
+         * Move visual focus + highlight to a specific index.
+         * @param {number} idx
+         */
         function focusItem(idx) {
             items.forEach((el, i) => {
                 el.style.background = i === idx ? "var(--color-glass-border)" : "transparent";
@@ -128,15 +139,17 @@ export function setupListeners({
                 focusItem((focusedIndex - 1 + items.length) % items.length);
             } else if (e.key === "Enter") {
                 e.preventDefault();
-                items[focusedIndex].click();
+                items[focusedIndex]?.click();
             } else if (e.key === "Escape") {
                 e.preventDefault();
                 menu.remove();
             }
         });
         setTimeout(() => focusItem(0), 0);
+        /** @param {MouseEvent} e */
         const removeMenu = (e) => {
-            if (!menu.contains(e.target) && e.target !== menu) {
+            const target = e.target;
+            if (target instanceof Node && !menu.contains(target) && target !== menu) {
                 menu.remove();
                 document.removeEventListener("mousedown", removeMenu);
             }
@@ -150,7 +163,7 @@ export function setupListeners({
         }
 
         // Remove menu and cleanup on Escape or Enter
-        menu.addEventListener("keydown", (e) => {
+    menu.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 e.preventDefault();
                 cleanupMenu();
@@ -159,9 +172,12 @@ export function setupListeners({
         // Remove menu and cleanup on item click
         items.forEach((item) => {
             const origOnClick = item.onclick;
-            item.onclick = async () => {
+            item.onclick = async (ev) => {
                 cleanupMenu();
-                await origOnClick();
+                // Invoke original click if present
+                if (typeof origOnClick === "function") {
+                    await origOnClick.call(item, ev);
+                }
             };
         });
 
@@ -170,21 +186,23 @@ export function setupListeners({
     });
 
     // Window resize for chart rendering - use modern state management
-    let chartRenderTimeout;
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let chartRenderTimeout = null;
     window.addEventListener("resize", () => {
         if (
             document.getElementById("tab-chart")?.classList.contains("active") ||
             document.getElementById("tab-chartjs")?.classList.contains("active")
         ) {
-            clearTimeout(chartRenderTimeout);
+            if (chartRenderTimeout) clearTimeout(chartRenderTimeout);
             chartRenderTimeout = setTimeout(function () {
                 // Use modern chart state management for resize handling
                 if (window.ChartUpdater && window.ChartUpdater.updateCharts) {
                     window.ChartUpdater.updateCharts("window-resize");
                 } else if (window.renderChartJS) {
                     window.renderChartJS();
-                } else if (window.renderChart) {
-                    window.renderChart(); // Legacy fallback
+                } else if (/** @type {any} */ (window).renderChart) {
+                    // Legacy fallback (cast window to any for legacy property)
+                    /** @type {any} */ (window).renderChart();
                 }
             }, 200);
         }
@@ -204,9 +222,9 @@ export function setupListeners({
                 if (result && result.error) {
                     showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                 } else {
-                    window.showFitData(result, filePath);
-                    if (window.sendFitFileToAltFitReader) {
-                        window.sendFitFileToAltFitReader(arrayBuffer);
+                    window.showFitData?.(result, filePath);
+                    if ((/** @type {any} */ (window)).sendFitFileToAltFitReader) {
+                        (/** @type {any} */ (window)).sendFitFileToAltFitReader(arrayBuffer);
                     }
                 }
                 await window.electronAPI.addRecentFile(filePath);
@@ -220,7 +238,11 @@ export function setupListeners({
 
     if (window.electronAPI && window.electronAPI.onIpc) {
         // Handles changes to decoder options and updates the UI or data accordingly
-        window.electronAPI.onIpc("decoder-options-changed", (newOptions) => {
+    /**
+     * Decoder options changed handler
+     * @param {any} newOptions
+     */
+    window.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ newOptions) => {
             console.log("[DEBUG] Decoder options changed:", newOptions);
             showNotification("Decoder options updated.", "info", 2000);
             if (window.globalData && window.globalData.cachedFilePath) {
@@ -233,7 +255,7 @@ export function setupListeners({
                         if (result && result.error) {
                             showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                         } else {
-                            window.showFitData(result, filePath);
+                            window.showFitData?.(result, filePath);
                         }
                     })
                     .catch((err) => {
@@ -242,17 +264,27 @@ export function setupListeners({
                     .finally(() => setLoading(false));
             }
         });
-        window.electronAPI.onIpc("export-file", async (event, filePath) => {
+        /**
+         * Export file handler
+         * @param {any} _event
+         * @param {string} filePath
+         */
+        window.electronAPI.onIpc(
+            "export-file",
+            /** @param {any} _event @param {string} filePath */ async (
+                _event, /** @type {string} */ filePath
+            ) => {
             if (!window.globalData) return;
-            const ext = filePath.split(".").pop().toLowerCase();
+            const safePath = filePath || "";
+            const ext = safePath.split(".").pop()?.toLowerCase() || "";
             if (ext === "csv") {
                 const container = document.getElementById("content-summary");
-                if (window.copyTableAsCSV && container) {
-                    const csv = window.copyTableAsCSV({ container, data: window.globalData });
+                if ((/** @type {any} */ (window)).copyTableAsCSV && container) {
+                    const csv = (/** @type {any} */ (window)).copyTableAsCSV({ container, data: window.globalData });
                     const blob = new Blob([csv], { type: "text/csv" });
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(blob);
-                    a.download = filePath.split(/[\\/]/).pop();
+                    a.download = safePath.split(/[\\/]/).pop() || "export.csv";
                     document.body.appendChild(a);
                     a.click();
                     setTimeout(function () {
@@ -262,27 +294,30 @@ export function setupListeners({
                 }
             } else if (ext === "gpx") {
                 if (
-                    window.createExportGPXButton &&
+                    (/** @type {any} */ (window)).createExportGPXButton &&
                     window.globalData.recordMesgs &&
                     Array.isArray(window.globalData.recordMesgs) &&
                     window.globalData.recordMesgs.length > 0
                 ) {
                     const coords = window.globalData.recordMesgs
-                        .filter((row) => row.positionLat != null && row.positionLong != null)
-                        .map((row) => [
+                        .filter(
+                            (/** @type {{positionLat?:number, positionLong?:number}} */ row) =>
+                                row.positionLat != null && row.positionLong != null
+                        )
+                        .map((/** @type {{positionLat:number, positionLong:number}} */ row) => [
                             Number((row.positionLat / 2 ** 31) * 180),
                             Number((row.positionLong / 2 ** 31) * 180),
                         ]);
                     if (coords.length > 0) {
                         let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="FitFileViewer">\n<trk><name>Exported Track</name><trkseg>`;
-                        coords.forEach((c) => {
+                        coords.forEach((/** @type {number[]} */ c) => {
                             gpx += `\n<trkpt lat="${c[0]}" lon="${c[1]}"/>`;
                         });
                         gpx += "\n</trkseg></trk></gpx>";
                         const blob = new Blob([gpx], { type: "application/gpx+xml" });
                         const a = document.createElement("a");
                         a.href = URL.createObjectURL(blob);
-                        a.download = filePath.split(/[\\/]/).pop();
+                        a.download = safePath.split(/[\\/]/).pop() || "export.gpx";
                         document.body.appendChild(a);
                         a.click();
                         setTimeout(function () {
@@ -296,10 +331,14 @@ export function setupListeners({
                     showNotification("No data available for GPX export.", "info", 3000);
                 }
             }
-        });
-        window.electronAPI.onIpc("show-notification", (msg, type) => {
+            }
+        );
+        window.electronAPI.onIpc(
+            "show-notification",
+            (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
             if (typeof showNotification === "function") showNotification(msg, type || "info", 3000);
-        });
+            }
+        );
         window.electronAPI.onIpc("menu-print", () => {
             window.print();
         });
@@ -376,10 +415,10 @@ export function setupListeners({
         window.electronAPI.onUpdateEvent("update-not-available", () => {
             showUpdateNotification("You are using the latest version.", "success", 4000);
         });
-        window.electronAPI.onUpdateEvent("update-error", (err) => {
+        window.electronAPI.onUpdateEvent("update-error", (/** @type {any} */ err) => {
             showUpdateNotification("Update error: " + err, "error", 7000);
         });
-        window.electronAPI.onUpdateEvent("update-download-progress", (progress) => {
+        window.electronAPI.onUpdateEvent("update-download-progress", (/** @type {any} */ progress) => {
             if (progress && typeof progress.percent === "number") {
                 showUpdateNotification(`Downloading update: ${Math.round(progress.percent)}%`, "info", 2000);
             } else {
@@ -398,11 +437,16 @@ export function setupListeners({
 
     // Accessibility Event Listeners
     if (window.electronAPI && window.electronAPI.onIpc) {
-        window.electronAPI.onIpc("set-font-size", (event, size) => {
+        window.electronAPI.onIpc(
+            "set-font-size",
+            (/** @type {any} */ _event, /** @type {string} */ size) => {
             document.body.classList.remove("font-xsmall", "font-small", "font-medium", "font-large", "font-xlarge");
             document.body.classList.add(`font-${size}`);
-        });
-        window.electronAPI.onIpc("set-high-contrast", (event, mode) => {
+            }
+        );
+        window.electronAPI.onIpc(
+            "set-high-contrast",
+            (/** @type {any} */ _event, /** @type {string} */ mode) => {
             document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
             if (mode === "black") {
                 document.body.classList.add("high-contrast");
@@ -411,6 +455,7 @@ export function setupListeners({
             } else if (mode === "yellow") {
                 document.body.classList.add("high-contrast-yellow");
             }
-        });
+            }
+        );
     }
 }

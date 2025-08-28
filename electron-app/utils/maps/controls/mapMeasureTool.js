@@ -2,11 +2,29 @@
 // Simple point-to-point measurement tool for Leaflet
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 
+/**
+ * Add a simple point-to-point measurement tool (two clicks) to a Leaflet map.
+ * Creates a button in the provided controls container; when activated, the next
+ * two clicks on the map will display straight-line distance (meters/km + miles).
+ * Subsequent clicks clear the prior measurement and allow a new one.
+ *
+ * Typing approach: Leaflet types are treated as any to avoid pulling in type
+ * definitions in this JS file. Internal collections are explicitly typed to
+ * remove implicit-any errors under checkJs.
+ *
+ * @param {any} map - Leaflet map instance (L.Map)
+ * @param {HTMLElement} controlsDiv - Container element for map action buttons
+ */
 export function addSimpleMeasureTool(map, controlsDiv) {
+    /** @type {Array<{lat:number,lng:number}>} */
     let measurePoints = [];
+    /** @type {any} */
     let measureLine = null;
+    /** @type {any[]} */
     let measureMarkers = [];
+    /** @type {any} */
     let measureLabel = null;
+    /** @type {boolean} */
     let measuring = false;
 
     function clearMeasure() {
@@ -23,6 +41,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     }
 
+    /**
+     * Disable measurement mode, restore button icon/text.
+     * @param {HTMLButtonElement | null | undefined} measureBtn
+     */
     function disableMeasure(measureBtn) {
         measuring = false;
         map.off("click", onMapClickMeasure);
@@ -46,29 +68,39 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         return `<button class="measure-exit-btn" title="Remove measurement">&times;</button>`;
     }
 
+    /**
+     * Handle click on the measurement label (exit button).
+     * @param {MouseEvent} e
+     */
     function onLabelExitClick(e) {
-        if (e.target.classList.contains("measure-exit-btn")) {
+        const target = /** @type {HTMLElement|null} */ (e.target);
+        if (target && target.classList.contains("measure-exit-btn")) {
             clearMeasure();
         }
     }
 
+    /**
+     * Handle map clicks while in measurement mode.
+     * @param {any} e - Leaflet mouse event (contains latlng)
+     */
     function onMapClickMeasure(e) {
         if (measurePoints.length >= 2) {
             clearMeasure();
         }
         measurePoints.push(e.latlng);
-        const marker = L.marker(e.latlng, { draggable: false });
+        const marker = L.marker(e.latlng, { draggable: false }); // Leaflet marker (any)
         marker.addTo(map);
         measureMarkers.push(marker);
         if (measurePoints.length === 2) {
             measureLine = L.polyline(measurePoints, { color: "#222", dashArray: "4,6", weight: 3 }).addTo(map);
-            const dist = map.distance(measurePoints[0], measurePoints[1]);
+            const p0 = measurePoints[0];
+            const p1 = measurePoints[1];
+            // Defensive: ensure both points exist (should by length check)
+            if (!p0 || !p1) return;
+            const dist = map.distance(p0, p1);
             const distKm = dist / 1000;
             const distMi = dist / 1609.344;
-            const mid = L.latLng(
-                (measurePoints[0].lat + measurePoints[1].lat) / 2,
-                (measurePoints[0].lng + measurePoints[1].lng) / 2
-            );
+            const mid = L.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2);
             measureLabel = L.marker(mid, {
                 icon: L.divIcon({
                     className: "measure-label",
@@ -88,6 +120,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     }
 
+    /**
+     * Enable measurement mode and update button appearance.
+     * @param {HTMLButtonElement | null | undefined} measureBtn
+     */
     function enableSimpleMeasure(measureBtn) {
         if (measuring) return;
         measuring = true;
@@ -105,14 +141,14 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     measureBtn.className = "map-action-btn";
     measureBtn.innerHTML = `
         <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
-            <circle cx="5" cy="19" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-            <circle cx="19" cy="5" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors.primary}">↔</text>
+            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors['primary']}" stroke-width="2"/>
+            <circle cx="5" cy="19" r="2.5" fill="${themeColors['surface']}" stroke="${themeColors['primary']}" stroke-width="2"/>
+            <circle cx="19" cy="5" r="2.5" fill="${themeColors['surface']}" stroke="${themeColors['primary']}" stroke-width="2"/>
+            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors['primary']}">↔</text>
         </svg>
-        <span>Measure</span>
-    `;
+        <span>Measure</span>`;
     measureBtn.title = "Click, then click two points on the map to measure distance";
+    /** @type {HTMLButtonElement} */
     let measureBtnRef = measureBtn;
     measureBtn.onclick = () => {
         if (!measuring) {

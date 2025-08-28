@@ -11,11 +11,45 @@ import { updateAllChartStatusIndicators } from "../../charts/components/chartSta
 import { createChartStatusIndicator } from "../../charts/components/createChartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 
+// ==========================================
+// Type Definitions (JSDoc)
+// ==========================================
+
 /**
- * Creates the settings header with title and global actions
+ * @typedef {Object} WindowExtensions
+ * @property {any[]} [_chartjsInstances] - ChartJS instances
+ * @property {Object} [globalData] - Global data object
+ * @property {any[]} [globalData.timeInZoneMesgs] - Time in zone messages
+ * @property {any[]} [globalData.eventMesgs] - Event messages
+ * @property {any[]} [globalData.recordMesgs] - Record messages
  */
 
-export function createSettingsHeader(wrapper) {
+/**
+ * @typedef {Object} ChartOption
+ * @property {string} id - Option identifier
+ * @property {string} label - Display label
+ * @property {string} type - Option type (slider, toggle, select)
+ * @property {number} [min] - Minimum value for sliders
+ * @property {number} [max] - Maximum value for sliders
+ * @property {number} [step] - Step value for sliders
+ * @property {any} [defaultValue] - Default value
+ * @property {any} [default] - Default value (alternate property)
+ * @property {any[]} [options] - Options for select controls
+ */
+
+/**
+ * @typedef {HTMLInputElement & { timeout?: any }} HTMLInputElementExtended
+ */
+
+/**
+ * @typedef {HTMLDivElement & { _updateFromReset?: Function }} HTMLDivElementExtended
+ */
+
+/**
+ * Creates the settings header with title and global actions
+ * @param {HTMLElement} wrapper - The wrapper element to add the header to
+ */
+export function createSettingsHeader(/** @type {HTMLElement} */ wrapper) {
     // Check if header already exists
     if (wrapper.querySelector(".settings-header")) {
         return;
@@ -98,6 +132,7 @@ export function createSettingsHeader(wrapper) {
 }
 /**
  * Creates the main controls section with dropdowns and sliders
+ * @param {HTMLElement} wrapper - The wrapper element to add the controls to
  */
 
 export function createControlsSection(wrapper) {
@@ -126,6 +161,7 @@ export function createControlsSection(wrapper) {
 }
 /**
  * Creates individual control groups for each setting
+ * @param {any} option - The control option configuration
  */
 function createControlGroup(option) {
     const group = document.createElement("div");
@@ -190,20 +226,21 @@ function createControlGroup(option) {
 }
 /**
  * Creates a range slider control
+ * @param {ChartOption} option - The range control option configuration
  */
-function createRangeControl(option) {
+function createRangeControl(/** @type {ChartOption} */ option) {
     const container = document.createElement("div");
     container.style.cssText = `
 		position: relative;
 	`;
 
-    const slider = document.createElement("input");
+    const slider = /** @type {HTMLInputElementExtended} */ (document.createElement("input"));
     slider.type = "range";
     slider.id = `chartjs-${option.id}-slider`;
-    slider.min = option.min;
-    slider.max = option.max;
-    slider.step = option.step;
-    slider.value = localStorage.getItem(`chartjs_${option.id}`) || option.default;
+    slider.min = String(option.min || 0);
+    slider.max = String(option.max || 100);
+    slider.step = String(option.step || 1);
+    slider.value = localStorage.getItem(`chartjs_${option.id}`) || String(option.default || option.defaultValue || 0);
 
     slider.style.cssText = `
 		width: 100%;
@@ -253,23 +290,31 @@ function createRangeControl(option) {
 		font-weight: 600;
 	`;
 
-    slider.addEventListener("input", (e) => {
-        valueDisplay.textContent = e.target.value;
-        localStorage.setItem(`chartjs_${option.id}`, e.target.value);
+    slider.addEventListener("input", (/** @type {Event} */ e) => {
+        const target = /** @type {HTMLInputElement} */ (e.target);
+        if (target) {
+            valueDisplay.textContent = target.value;
+            localStorage.setItem(`chartjs_${option.id}`, target.value);
 
-        // Update slider background
-        const percentage = ((e.target.value - option.min) / (option.max - option.min)) * 100;
-        slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
+            // Update slider background
+            const minVal = option.min || 0;
+            const maxVal = option.max || 100;
+            const percentage = ((Number(target.value) - minVal) / (maxVal - minVal)) * 100;
+            slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
-        // Debounced re-render using the same approach as the reset button
-        clearTimeout(slider.timeout);
-        slider.timeout = setTimeout(function () {
-            reRenderChartsAfterSettingChange(option.id, e.target.value);
-        }, 300);
+            // Debounced re-render using the same approach as the reset button
+            clearTimeout(slider.timeout);
+            slider.timeout = setTimeout(function () {
+                reRenderChartsAfterSettingChange(option.id, target.value);
+            }, 300);
+        }
     });
 
     // Initialize slider background
-    const initialPercentage = ((slider.value - option.min) / (option.max - option.min)) * 100;
+    // Set initial background
+    const minVal = option.min || 0;
+    const maxVal = option.max || 100;
+    const initialPercentage = ((Number(slider.value) - minVal) / (maxVal - minVal)) * 100;
     slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
 
     container.appendChild(valueDisplay);
@@ -279,8 +324,8 @@ function createRangeControl(option) {
 /**
  * Creates a toggle switch control
  */
-function createToggleControl(option) {
-    const container = document.createElement("div");
+function createToggleControl(/** @type {ChartOption} */ option) {
+    const container = /** @type {HTMLDivElementExtended} */ (document.createElement("div"));
     container.style.cssText = `
 		display: flex;
 		align-items: center;
@@ -320,11 +365,11 @@ function createToggleControl(option) {
             return option.default; // Use default from config (boolean)
         }
         // Handle both string and boolean representations
-        return stored === "true" || stored === "on" || stored === true;
+        return stored === "true" || stored === "on";
     }
 
     // Set visual state based on boolean value
-    function updateVisualState(isOn) {
+    function updateVisualState(/** @type {boolean} */ isOn) {
         if (isOn) {
             toggle.style.background = "var(--color-success)";
             toggleThumb.style.left = "26px";
@@ -381,7 +426,7 @@ function createToggleControl(option) {
 /**
  * Creates a select dropdown control
  */
-function createSelectControl(option) {
+function createSelectControl(/** @type {ChartOption} */ option) {
     const select = document.createElement("select");
     select.id = `chartjs-${option.id}-dropdown`;
     select.style.cssText = `
@@ -408,7 +453,7 @@ function createSelectControl(option) {
         select.style.boxShadow = "none";
     });
 
-    option.options.forEach((val) => {
+    option.options?.forEach((/** @type {any} */ val) => {
         const optionEl = document.createElement("option");
         optionEl.value = val;
         optionEl.textContent =
@@ -433,20 +478,23 @@ function createSelectControl(option) {
             "wheel",
             (e) => {
                 e.preventDefault();
-                const idx = option.options.indexOf(select.value === "all" ? "all" : Number(select.value));
+                const idx = option.options?.indexOf(select.value === "all" ? "all" : Number(select.value)) ?? -1;
                 let newIdx = idx + (e.deltaY > 0 ? 1 : -1);
                 if (newIdx < 0) newIdx = 0;
-                if (newIdx >= option.options.length) newIdx = option.options.length - 1;
-                select.value = option.options[newIdx];
+                if (newIdx >= (option.options?.length ?? 0)) newIdx = (option.options?.length ?? 1) - 1;
+                select.value = option.options?.[newIdx] ?? "";
                 select.dispatchEvent(new Event("change"));
             },
             { passive: false }
         );
     }
 
-    select.addEventListener("change", (e) => {
-        localStorage.setItem(`chartjs_${option.id}`, e.target.value);
-        reRenderChartsAfterSettingChange(option.id, e.target.value);
+    select.addEventListener("change", (/** @type {Event} */ e) => {
+        const target = /** @type {HTMLSelectElement} */ (e.target);
+        if (target) {
+            localStorage.setItem(`chartjs_${option.id}`, target.value);
+            reRenderChartsAfterSettingChange(option.id, target.value);
+        }
     });
 
     return select;
@@ -459,14 +507,14 @@ function createSelectControl(option) {
  */
 
 export function showChartSelectionModal(actionType, singleCallback, combinedCallback) {
-    const charts = window._chartjsInstances;
+    const charts = /** @type {WindowExtensions} */ (window)._chartjsInstances;
     if (!charts || charts.length === 0) {
         showNotification("No charts available", "warning");
         return;
     }
 
     // Filter out invalid charts using exportUtils validation
-    const validCharts = charts.filter((chart) => exportUtils.isValidChart(chart));
+    const validCharts = charts.filter((/** @type {any} */ chart) => exportUtils.isValidChart(chart));
 
     if (validCharts.length === 0) {
         showNotification("No valid charts available", "warning");
@@ -524,7 +572,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 		margin-bottom: 20px;
 	`;
 
-    validCharts.forEach((chart, index) => {
+    validCharts.forEach((/** @type {any} */ chart, /** @type {number} */ index) => {
         const dataset = chart.data.datasets[0];
         const fieldName = dataset?.label || `Chart ${index + 1}`;
 
@@ -612,7 +660,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
     });
 
     // ESC key handler
-    const handleEscape = (e) => {
+    const handleEscape = (/** @type {KeyboardEvent} */ e) => {
         if (e.key === "Escape") {
             document.body.removeChild(overlay);
             document.removeEventListener("keydown", handleEscape);
@@ -639,7 +687,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
  * Creates the export section with various export options
  */
 
-export function createExportSection(wrapper) {
+export function createExportSection(/** @type {HTMLElement} */ wrapper) {
     // Check if export section already exists
     if (wrapper.querySelector(".export-section")) {
         return;
@@ -680,13 +728,13 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Save as PNG",
-                    (chart) => {
+                    (/** @type {any} */ chart) => {
                         const dataset = chart.data.datasets[0];
                         const fieldName = dataset?.label || "chart";
                         const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
                         exportUtils.downloadChartAsPNG(chart, filename);
                     },
-                    (charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
+                    (/** @type {any} */ charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
                 ),
         },
         {
@@ -695,8 +743,8 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Copy to Clipboard",
-                    (chart) => exportUtils.copyChartToClipboard(chart),
-                    (charts) => exportUtils.copyCombinedChartsToClipboard(charts)
+                    (/** @type {any} */ chart) => exportUtils.copyChartToClipboard(chart),
+                    (/** @type {any} */ charts) => exportUtils.copyCombinedChartsToClipboard(charts)
                 ),
         },
         {
@@ -705,7 +753,7 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Export as CSV",
-                    (chart) => {
+                    (/** @type {any} */ chart) => {
                         const dataset = chart.data.datasets[0];
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart";
@@ -713,7 +761,7 @@ export function createExportSection(wrapper) {
                             exportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
                         }
                     },
-                    (charts) => exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
+                    (/** @type {any} */ charts) => exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
                 ),
         },
         {
@@ -722,7 +770,7 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Export as JSON",
-                    (chart) => {
+                    (/** @type {any} */ chart) => {
                         const dataset = chart.data.datasets[0];
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart";
@@ -730,10 +778,10 @@ export function createExportSection(wrapper) {
                             exportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
                         }
                     },
-                    (charts) => {
+                    (/** @type {any} */ charts) => {
                         const allChartsData = {
                             exportedAt: new Date().toISOString(),
-                            charts: charts.map((chart, index) => {
+                            charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
                                 const dataset = chart.data.datasets[0];
                                 return {
                                     field: dataset?.label || `chart-${index}`,
@@ -762,15 +810,15 @@ export function createExportSection(wrapper) {
             action: () =>
                 showChartSelectionModal(
                     "Print",
-                    (chart) => exportUtils.printChart(chart),
-                    (charts) => exportUtils.printCombinedCharts(charts)
+                    (/** @type {any} */ chart) => exportUtils.printChart(chart),
+                    (/** @type {any} */ charts) => exportUtils.printCombinedCharts(charts)
                 ),
         },
         {
             icon: "�",
             text: "Export ZIP",
             action: () => {
-                const charts = window._chartjsInstances;
+                const charts = /** @type {WindowExtensions} */ (window)._chartjsInstances;
                 if (!charts || charts.length === 0) {
                     showNotification("No charts available to export", "warning");
                     return;
@@ -820,7 +868,7 @@ export function createExportSection(wrapper) {
  * Creates the field toggles section for showing/hiding specific metrics
  */
 
-export function createFieldTogglesSection(wrapper) {
+export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     // Check if fields section already exists
     if (wrapper.querySelector(".fields-section")) {
         return;
@@ -927,7 +975,7 @@ export function createFieldTogglesSection(wrapper) {
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 12px;
 	`; // Add field toggles
-    formatChartFields.forEach((field) => {
+    (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields))).forEach((/** @type {string} */ field) => {
         const fieldToggle = createFieldToggle(field);
         fieldsGrid.appendChild(fieldToggle);
     }); // Add GPS track toggle
@@ -950,13 +998,13 @@ export function createFieldTogglesSection(wrapper) {
     fieldsGrid.appendChild(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
-    if (window.globalData?.timeInZoneMesgs) {
-        const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-        const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
+    if ((/** @type {WindowExtensions} */ (window)).globalData?.timeInZoneMesgs) {
+        const timeInZoneMesgs = (/** @type {WindowExtensions} */ (window)).globalData.timeInZoneMesgs;
+        const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
-            const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
+            const hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
             if (hrLapZones.length > 0) {
                 const hrLapStackedToggle = createFieldToggle("hr_lap_zone_stacked");
                 fieldsGrid.appendChild(hrLapStackedToggle);
@@ -966,7 +1014,7 @@ export function createFieldTogglesSection(wrapper) {
             }
 
             // Check for Power lap zone data
-            const powerLapZones = lapZoneMsgs.filter((msg) => msg.timeInPowerZone);
+            const powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
             if (powerLapZones.length > 0) {
                 const powerLapStackedToggle = createFieldToggle("power_lap_zone_stacked");
                 fieldsGrid.appendChild(powerLapStackedToggle);
@@ -979,17 +1027,17 @@ export function createFieldTogglesSection(wrapper) {
 
     // Add event messages toggle if data exists
     if (
-        window.globalData?.eventMesgs &&
-        Array.isArray(window.globalData.eventMesgs) &&
-        window.globalData.eventMesgs.length > 0
+        (/** @type {WindowExtensions} */ (window)).globalData?.eventMesgs &&
+        Array.isArray((/** @type {WindowExtensions} */ (window)).globalData.eventMesgs) &&
+        (/** @type {WindowExtensions} */ (window)).globalData.eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.appendChild(eventMessagesToggle);
     }
 
     // Add developer fields toggles if data exists
-    if (window.globalData && window.globalData.recordMesgs) {
-        const devFields = extractDeveloperFieldsList(window.globalData.recordMesgs);
+    if ((/** @type {WindowExtensions} */ (window)).globalData && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs) {
+        const devFields = extractDeveloperFieldsList((/** @type {WindowExtensions} */ (window)).globalData.recordMesgs);
         devFields.forEach((field) => {
             const fieldToggle = createFieldToggle(field);
             fieldsGrid.appendChild(fieldToggle);
@@ -1003,15 +1051,15 @@ export function createFieldTogglesSection(wrapper) {
 /**
  * Creates individual field toggle controls
  */
-function createFieldToggle(field) {
+function createFieldToggle(/** @type {string} */ field) {
     const themeConfig = getThemeConfig();
     const container = document.createElement("div");
     container.className = "field-toggle";
 
     // Check if this field has valid data
     let hasValidData = false;
-    if (window.globalData && window.globalData.recordMesgs && window.globalData.recordMesgs.length > 0) {
-        const data = window.globalData.recordMesgs;
+    if ((/** @type {WindowExtensions} */ (window)).globalData && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs.length > 0) {
+        const data = (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs;
 
         if (field === "gps_track") {
             hasValidData = data.some((row) => {
@@ -1023,10 +1071,11 @@ function createFieldToggle(field) {
                 );
             });
         } else if (field === "event_messages") {
-            hasValidData =
-                window.globalData?.eventMesgs &&
-                Array.isArray(window.globalData.eventMesgs) &&
-                window.globalData.eventMesgs.length > 0;
+            hasValidData = Boolean(
+                (/** @type {WindowExtensions} */ (window)).globalData?.eventMesgs &&
+                Array.isArray((/** @type {WindowExtensions} */ (window)).globalData.eventMesgs) &&
+                (/** @type {WindowExtensions} */ (window)).globalData.eventMesgs.length > 0
+            );
         } else if (field === "speed_vs_distance") {
             const hasSpeed = data.some((row) => {
                 const speed = row.enhancedSpeed || row.speed;
@@ -1054,18 +1103,18 @@ function createFieldToggle(field) {
             });
         } else if (field === "hr_lap_zone_stacked" || field === "hr_lap_zone_individual") {
             // Check for HR lap zone data
-            if (window.globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-                const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
-                const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
+            if ((/** @type {WindowExtensions} */ (window)).globalData?.timeInZoneMesgs) {
+                const timeInZoneMesgs = (/** @type {WindowExtensions} */ (window)).globalData.timeInZoneMesgs;
+                const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+                const hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
                 hasValidData = hrLapZones.length > 0;
             }
         } else if (field === "power_lap_zone_stacked" || field === "power_lap_zone_individual") {
             // Check for Power lap zone data
-            if (window.globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-                const lapZoneMsgs = timeInZoneMesgs.filter((msg) => msg.referenceMesg === "lap");
-                const powerLapZones = lapZoneMsgs.filter((msg) => msg.timeInPowerZone);
+            if ((/** @type {WindowExtensions} */ (window)).globalData?.timeInZoneMesgs) {
+                const timeInZoneMesgs = (/** @type {WindowExtensions} */ (window)).globalData.timeInZoneMesgs;
+                const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+                const powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
                 hasValidData = powerLapZones.length > 0;
             }
         } else if (field.includes("hr_zone")) {
@@ -1078,7 +1127,7 @@ function createFieldToggle(field) {
                 const power = row.power;
                 return power !== undefined && power !== null && !isNaN(parseFloat(power));
             });
-        } else if (formatChartFields.includes(field)) {
+        } else if ((/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields))).includes(field)) {
             // Regular chart field
             const numericData = data.map((row) => {
                 if (row[field] !== undefined && row[field] !== null) {
@@ -1152,7 +1201,7 @@ function createFieldToggle(field) {
         const colorPicker = document.createElement("input");
         colorPicker.type = "color";
         colorPicker.value =
-            localStorage.getItem(`chartjs_color_${field}`) || fieldColors[field] || themeConfig.colors.primaryAlpha;
+            localStorage.getItem(`chartjs_color_${field}`) || (/** @type {any} */ (fieldColors))[field] || (/** @type {any} */ (themeConfig)).colors?.primaryAlpha;
         colorPicker.style.cssText = `
 			width: 32px;
 			height: 32px;
@@ -1193,7 +1242,7 @@ function createFieldToggle(field) {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`Field toggle: ${field}`);
         } else {
-            renderChartJS(); // Fallback for compatibility
+            renderChartJS("all"); // Fallback for compatibility
         }
 
         // Update status indicators after a short delay to allow charts to render
@@ -1217,7 +1266,7 @@ function createFieldToggle(field) {
 /**
  * Creates styled action buttons
  */
-function createActionButton(text, title, onClick, className = "") {
+function createActionButton(/** @type {string} */ text, /** @type {string} */ title, /** @type {() => void} */ onClick, /** @type {string} */ className = "") {
     const button = document.createElement("button");
     button.textContent = text;
     button.title = title;
@@ -1255,7 +1304,7 @@ function createActionButton(text, title, onClick, className = "") {
  * Applies modern styling to the settings panel
  */
 
-export function applySettingsPanelStyles(wrapper) {
+export function applySettingsPanelStyles(/** @type {HTMLElement} */ wrapper) {
     wrapper.style.cssText = `
 		background: var(--color-bg-alt);
 		border-radius: var(--border-radius);
@@ -1295,7 +1344,7 @@ function toggleAllFields(enable) {
 
         // Get all possible field keys
         const allFields = [
-            ...formatChartFields,
+            ...(/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields))),
             "gps_track",
             "speed_vs_distance",
             "power_vs_hr",
@@ -1310,8 +1359,8 @@ function toggleAllFields(enable) {
         ];
 
         // Add developer fields if they exist
-        if (window.globalData && window.globalData.recordMesgs) {
-            const devFields = extractDeveloperFieldsList(window.globalData.recordMesgs);
+        if ((/** @type {WindowExtensions} */ (window)).globalData && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs) {
+            const devFields = extractDeveloperFieldsList((/** @type {WindowExtensions} */ (window)).globalData.recordMesgs);
             allFields.push(...devFields);
         } // Update localStorage for all fields
         allFields.forEach((field) => {
@@ -1328,7 +1377,7 @@ function toggleAllFields(enable) {
         // Update all toggle checkboxes in the UI
         const toggles = document.querySelectorAll('.field-toggle input[type="checkbox"]');
         toggles.forEach((toggle) => {
-            toggle.checked = enable;
+            (/** @type {HTMLInputElement} */ (toggle)).checked = enable;
         });
 
         // Show notification
@@ -1339,7 +1388,7 @@ function toggleAllFields(enable) {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`All fields ${action}`);
         } else {
-            renderChartJS(); // Fallback for compatibility
+            renderChartJS("all"); // Fallback for compatibility
         }
 
         setTimeout(function () {

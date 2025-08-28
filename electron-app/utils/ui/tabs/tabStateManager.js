@@ -11,7 +11,10 @@ import { showNotification } from "../notifications/showNotification.js";
 /**
  * Tab configuration defining available tabs and their handlers
  */
-const TAB_CONFIG = {
+/**
+ * @typedef {{id:string; contentId:string; label:string; requiresData:boolean; handler:string|null}} TabDef
+ */
+const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
     summary: {
         id: "tab-summary",
         contentId: "content-summary",
@@ -61,7 +64,7 @@ const TAB_CONFIG = {
         requiresData: false,
         handler: null,
     },
-};
+});
 
 /**
  * Tab State Manager - handles tab switching and content management
@@ -82,14 +85,14 @@ class TabStateManager {
      */
     initializeSubscriptions() {
         // Subscribe to active tab changes
-        subscribe("ui.activeTab", (newTab, oldTab) => {
+    subscribe("ui.activeTab", (/** @type {string} */ newTab, /** @type {string} */ oldTab) => {
             if (newTab !== oldTab) {
                 this.handleTabChange(newTab, oldTab);
             }
         });
 
         // Subscribe to data changes to enable/disable tabs
-        subscribe("globalData", (newData) => {
+    subscribe("globalData", (/** @type {any} */ newData) => {
             this.updateTabAvailability(newData);
         });
 
@@ -130,11 +133,11 @@ class TabStateManager {
      * @param {Event} event - Click event
      */
     handleTabButtonClick = (event) => {
-        const button = event.currentTarget;
-        const tabId = button.id;
+        const button = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+        const tabId = button?.id || "";
 
         // Check if button is disabled
-        if (button.disabled || button.hasAttribute("disabled") || button.classList.contains("tab-disabled")) {
+    if (!button || ("disabled" in button && /** @type {any} */ (button).disabled) || button.hasAttribute("disabled") || button.classList.contains("tab-disabled")) {
             console.log(`[TabStateManager] Ignoring click on disabled button: ${tabId}`);
             event.preventDefault();
             event.stopPropagation();
@@ -149,12 +152,12 @@ class TabStateManager {
         }
 
         // Prevent switching if already active
-        if (button.classList.contains("active")) {
+    if (button.classList.contains("active")) {
             return;
         }
 
         // Check if tab requires data
-        const tabConfig = TAB_CONFIG[tabName];
+    const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
         if (tabConfig?.requiresData) {
             const globalData = getState("globalData");
             if (!globalData || !globalData.recordMesgs) {
@@ -208,7 +211,7 @@ class TabStateManager {
      * @param {string} activeTab - Currently active tab name
      */
     updateContentVisibility(activeTab) {
-        const tabConfig = TAB_CONFIG[activeTab];
+    const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[activeTab]);
         if (!tabConfig) {
             console.warn(`[TabStateManager] Unknown tab: ${activeTab}`);
             return;
@@ -234,7 +237,7 @@ class TabStateManager {
      * @param {string} tabName - Name of the active tab
      */
     async handleTabSpecificLogic(tabName) {
-        const tabConfig = TAB_CONFIG[tabName];
+    const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
         if (!tabConfig) return;
 
         const globalData = getState("globalData");
@@ -275,8 +278,9 @@ class TabStateManager {
      * Handle chart tab activation
      * @param {Object} globalData - Current global data
      */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleChartTab(globalData) {
-        if (!globalData?.recordMesgs) {
+    if (!globalData || !globalData.recordMesgs) {
             console.warn("[TabStateManager] No chart data available");
             return;
         }
@@ -299,8 +303,9 @@ class TabStateManager {
      * Handle map tab activation
      * @param {Object} globalData - Current global data
      */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleMapTab(globalData) {
-        if (!globalData?.recordMesgs) return;
+    if (!globalData || !globalData.recordMesgs) return;
 
         // Check if map is already rendered
         const mapState = getState("map");
@@ -315,6 +320,7 @@ class TabStateManager {
      * Handle summary tab activation
      * @param {Object} globalData - Current global data
      */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleSummaryTab(globalData) {
         if (!globalData || !window.renderSummary) return;
 
@@ -333,6 +339,7 @@ class TabStateManager {
      * Handle data tables tab activation
      * @param {Object} globalData - Current global data
      */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleDataTab(globalData) {
         if (!globalData || !window.createTables) return;
 
@@ -340,7 +347,7 @@ class TabStateManager {
         const bgContainer = document.getElementById("background-data-container");
         const visibleContainer = document.getElementById("content-data");
 
-        if (bgContainer?.childNodes.length > 0 && visibleContainer) {
+    if (bgContainer && bgContainer.childNodes && bgContainer.childNodes.length > 0 && visibleContainer) {
             // Move pre-rendered content
             visibleContainer.innerHTML = "";
             while (bgContainer.firstChild) {
@@ -358,7 +365,7 @@ class TabStateManager {
      */
     handleAltFitTab() {
         const iframe = document.getElementById("altfit-iframe");
-        if (iframe && !iframe.src.includes("libs/ffv/index.html")) {
+        if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("libs/ffv/index.html")) {
             iframe.src = "libs/ffv/index.html";
         }
     }
@@ -367,16 +374,17 @@ class TabStateManager {
      * Update tab availability based on data availability
      * @param {Object} globalData - Current global data
      */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     updateTabAvailability(globalData) {
-        const hasData = globalData && globalData.recordMesgs;
+    const hasData = !!(globalData && globalData.recordMesgs);
 
         Object.entries(TAB_CONFIG).forEach(([, config]) => {
-            if (config.requiresData) {
-                const button = document.getElementById(config.id);
-                if (button) {
-                    button.disabled = !hasData;
-                    button.classList.toggle("disabled", !hasData);
-                }
+            if (!config.requiresData) return;
+            const el = document.getElementById(config.id);
+            if (el && el instanceof HTMLElement) {
+                const button = /** @type {HTMLButtonElement} */ (el);
+                button.disabled = !hasData;
+                button.classList.toggle("disabled", !hasData);
             }
         });
     }
@@ -399,7 +407,7 @@ class TabStateManager {
 
         for (const pattern of patterns) {
             const match = buttonId.match(pattern);
-            if (match && TAB_CONFIG[match[1]]) {
+            if (match && match[1] && TAB_CONFIG[match[1]]) {
                 return match[1];
             }
         }
@@ -412,13 +420,15 @@ class TabStateManager {
      * @param {Object} data - Data to hash
      * @returns {string} Simple hash string
      */
+    /** @param {{recordMesgs?: any[]}|null|undefined} data */
     hashData(data) {
         if (!data) return "";
 
         // Simple hash based on data size and some key fields
-        const size = data.recordMesgs?.length || 0;
-        const firstRecord = data.recordMesgs?.[0] || {};
-        const lastRecord = data.recordMesgs?.[size - 1] || {};
+    const recordMesgs = data.recordMesgs || [];
+    const size = recordMesgs.length || 0;
+    const firstRecord = recordMesgs[0] || {};
+    const lastRecord = recordMesgs[size - 1] || {};
 
         return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
     }

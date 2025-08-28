@@ -1,4 +1,5 @@
 import { updateSystemInfo } from "./updateSystemInfo.js";
+import { logWithLevel } from "../../logging/logWithLevel.js";
 
 // Constants for better maintainability
 const CONSTANTS = {
@@ -15,20 +16,14 @@ const CONSTANTS = {
 };
 
 /**
- * Enhanced logging with context
- * @param {string} level - Log level (info, warn, error)
- * @param {string} message - Log message
- * @param {Object} context - Additional context
+ * Scoped logging wrapper
+ * @param {'log'|'info'|'warn'|'error'} level
+ * @param {string} message
+ * @param {Record<string, any>} [context]
  */
-function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
-
-    if (context && Object.keys(context).length > 0) {
-        console[level](logMessage, context);
-    } else {
-        console[level](logMessage);
-    }
+function logWithContext(level, message, context) {
+    const msg = `${CONSTANTS.LOG_PREFIX} ${message}`;
+    logWithLevel(level, msg, context);
 }
 
 /**
@@ -45,7 +40,7 @@ function validateElectronAPI() {
 
 /**
  * Get individual version information from electronAPI
- * @returns {Promise<Object>} System information object
+ * @returns {Promise<{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}>} System information object
  */
 async function getSystemInfoFromElectronAPI() {
     const systemInfo = {
@@ -95,9 +90,9 @@ async function getSystemInfoFromElectronAPI() {
             systemInfo.license = await window.electronAPI.getLicenseInfo();
             logWithContext("info", "License info retrieved", { license: systemInfo.license });
         }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to retrieve system information from electronAPI", {
-            error: error.message,
+            error: error && typeof error === 'object' && 'message' in error ? error.message : String(error),
         });
     }
 
@@ -108,6 +103,9 @@ async function getSystemInfoFromElectronAPI() {
  * Get fallback system information from process (if available)
  * Note: In modern Electron with context isolation, process is typically not available
  * @returns {Object} System information object with fallback values
+ */
+/**
+ * @returns {{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}}
  */
 function getFallbackSystemInfo() {
     logWithContext("warn", "Using fallback system information");
@@ -155,10 +153,10 @@ function updateVersionDisplay(version) {
         } else if (!versionNumber) {
             logWithContext("warn", "Version number element not found in DOM");
         }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to update version display", {
             version,
-            error: error.message,
+            error: error && typeof error === 'object' && 'message' in error ? error.message : String(error),
         });
     }
 }
@@ -177,7 +175,8 @@ export async function loadVersionInfo() {
     try {
         logWithContext("info", "Starting version information loading");
 
-        let systemInfo;
+    /** @type {{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}} */
+    let systemInfo;
 
         if (validateElectronAPI()) {
             // Use electronAPI to get accurate version information
@@ -197,10 +196,10 @@ export async function loadVersionInfo() {
             source: validateElectronAPI() ? "electronAPI" : "fallback",
             systemInfo,
         });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to load version information", {
-            error: error.message,
-            stack: error.stack,
+            error: error && typeof error === 'object' && 'message' in error ? error.message : String(error),
+            stack: error && typeof error === 'object' && 'stack' in error ? error.stack : undefined,
         });
 
         // Try to show fallback information even on error
@@ -208,9 +207,12 @@ export async function loadVersionInfo() {
             const fallbackInfo = getFallbackSystemInfo();
             updateSystemInfo(fallbackInfo);
             logWithContext("info", "Fallback system info applied after error");
-        } catch (fallbackError) {
+        } catch (/** @type {any} */ fallbackError) {
             logWithContext("error", "Failed to apply fallback system info", {
-                error: fallbackError.message,
+                error:
+                    fallbackError && typeof fallbackError === 'object' && 'message' in fallbackError
+                        ? fallbackError.message
+                        : String(fallbackError),
             });
         }
     }

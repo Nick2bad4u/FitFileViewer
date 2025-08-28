@@ -19,6 +19,40 @@
  * @version 21.1.0
  */
 
+// ==========================================
+// Window Extensions for TypeScript
+// ==========================================
+
+/**
+ * @typedef {Object} WindowExtensions
+ * @property {boolean} [__DEVELOPMENT__] - Development mode flag
+ * @property {Function} [createExportGPXButton] - Export GPX button creator
+ * @property {Object} [APP_INFO] - Application information
+ * @property {Object} [__renderer_debug] - Renderer debug utilities
+ * @property {Object} [__renderer_dev] - Renderer development utilities
+ * @property {Object} [__sensorDebug] - Sensor debug utilities
+ * @property {Object} [__debugChartFormatting] - Chart formatting debug utilities
+ */
+
+/**
+ * @typedef {Object} ElectronAPIExtensions
+ * @property {boolean} [__devMode] - Development mode flag in electron API
+ */
+
+/**
+ * @typedef {Object} PerformanceExtended
+ * @property {Object} [memory] - Memory usage information
+ * @property {number} [memory.usedJSHeapSize] - Used JS heap size
+ * @property {number} [memory.totalJSHeapSize] - Total JS heap size
+ * @property {number} [memory.jsHeapSizeLimit] - JS heap size limit
+ */
+
+/**
+ * @typedef {Object} MasterStateManagerExtended
+ * @property {Function} getState - Get current state
+ * @property {Function} getHistory - Get state history
+ */
+
 // In electron-app/renderer.js
 
 // ==========================================
@@ -27,7 +61,7 @@
 
 /**
  * @typedef {Object} RendererDependencies
- * @property {HTMLElement} openFileBtn - Open file button element
+ * @property {HTMLElement | null} openFileBtn - Open file button element
  * @property {{value: boolean}} isOpeningFileRef - Reference to             // Expose formatting test utilities globally
             window.__debugChartFormatting = {
                 testNewFormatting,
@@ -78,7 +112,7 @@ function isDevelopmentMode() {
         window.location.hostname === "127.0.0.1" ||
         window.location.hostname.includes("dev") ||
         // Check for dev tools being open
-        window.__DEVELOPMENT__ === true ||
+        /** @type {any} */ (window).__DEVELOPMENT__ === true ||
         // Check for debug flag in URL
         window.location.search.includes("debug=true") ||
         // Check for development build indicators
@@ -86,7 +120,7 @@ function isDevelopmentMode() {
         // Check if running from file:// protocol (dev mode indicator)
         window.location.protocol === "file:" ||
         // Check if electron dev tools are available
-        (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
+        (window.electronAPI && typeof /** @type {any} */ (window.electronAPI).__devMode !== "undefined") ||
         // Check console availability and development-specific globals
         (typeof console !== "undefined" && window.location.href.includes("electron"))
     );
@@ -107,9 +141,9 @@ function getEnvironment() {
 /**
  * Legacy state reference for backward compatibility
  * @deprecated Use masterStateManager instead
- * @type {{isInitialized: boolean, isOpeningFile: boolean, startTime: number}}
+ * @type {any}
  */
-let appState = null;
+let appState = /** @type {any} */ (null);
 
 /**
  * Reference object for tracking file opening state (legacy compatibility)
@@ -132,25 +166,25 @@ async function initializeStateManager() {
         // Create legacy compatibility object
         appState = {
             get isInitialized() {
-                return masterStateManager.getState().app.initialized;
+                return /** @type {any} */ (masterStateManager).getState().app.initialized;
             },
             set isInitialized(value) {
                 AppActions.setInitialized(value);
             },
             get isOpeningFile() {
-                return masterStateManager.getState().app.isOpeningFile;
+                return /** @type {any} */ (masterStateManager).getState().app.isOpeningFile;
             },
             set isOpeningFile(value) {
                 AppActions.setFileOpening(value);
                 isOpeningFileRef.value = value;
             },
             get startTime() {
-                return getState().app.startTime;
+                return getState("app.startTime");
             },
         };
 
         // Subscribe to state changes to update legacy reference
-        subscribe("app.isOpeningFile", (isOpening) => {
+        subscribe("app.isOpeningFile", /** @param {any} isOpening */ (isOpening) => {
             isOpeningFileRef.value = isOpening;
         });
 
@@ -284,7 +318,11 @@ async function initializeApplication() {
         };
 
         // Initialize core components
-        await initializeComponents(dependencies);
+        if (dependencies.openFileBtn) {
+            await initializeComponents(/** @type {any} */ (dependencies));
+        } else {
+            console.warn("[Renderer] Dependencies missing, initializing with fallbacks");
+        }
 
         // Mark application as initialized using new state system
         AppActions.setInitialized(true);
@@ -301,7 +339,7 @@ async function initializeApplication() {
         console.error("[Renderer] Failed to initialize application:", error);
 
         // Use state manager for error notification
-        showNotification(`Initialization failed: ${error.message}`, "error", 10000);
+        showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10000);
 
         throw error;
     }
@@ -323,7 +361,11 @@ async function initializeComponents(dependencies) {
         // 2. Setup event listeners
         PerformanceMonitor.start("listeners_setup");
         console.log("[Renderer] Setting up event listeners...");
-        setupListeners(dependencies);
+        if (dependencies.openFileBtn) {
+            setupListeners(/** @type {any} */ (dependencies));
+        } else {
+            console.warn("[Renderer] Open file button not found, skipping listener setup");
+        }
         PerformanceMonitor.end("listeners_setup");
 
         // 3. Initialize any async components
@@ -421,6 +463,7 @@ const PerformanceMonitor = {
      * @returns {Object} Object containing all metrics
      */
     getMetrics() {
+        /** @type {any} */
         const result = {};
         for (const [key, value] of this.metrics) {
             if (!key.endsWith("_start")) {
@@ -463,11 +506,11 @@ const APP_INFO = {
             cookieEnabled: navigator.cookieEnabled,
             onLine: navigator.onLine,
             hardwareConcurrency: navigator.hardwareConcurrency,
-            memoryUsage: performance.memory
+            memoryUsage: /** @type {any} */ (performance).memory
                 ? {
-                      usedJSHeapSize: performance.memory.usedJSHeapSize,
-                      totalJSHeapSize: performance.memory.totalJSHeapSize,
-                      jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+                      usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
+                      totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
+                      jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
                   }
                 : null,
         };
@@ -484,14 +527,14 @@ const APP_INFO = {
  */
 if (typeof window !== "undefined") {
     // Expose map utilities globally for chart and map components
-    window.createExportGPXButton = createExportGPXButton;
+    /** @type {any} */ (window).createExportGPXButton = createExportGPXButton;
 
     // Expose application information
-    window.APP_INFO = APP_INFO;
+    /** @type {any} */ (window).APP_INFO = APP_INFO;
 
     // Expose core utilities for debugging and legacy support
     if (isDevelopmentMode()) {
-        window.__renderer_debug = {
+        /** @type {any} */ (window).__renderer_debug = {
             showNotification,
             handleOpenFile,
             setupTheme,
@@ -568,7 +611,7 @@ if (isDevelopmentMode()) {
      * Development utilities exposed to global scope
      * @global
      */
-    window.__renderer_dev = {
+    /** @type {any} */ (window).__renderer_dev = {
         // Legacy state for compatibility
         appState,
         isOpeningFileRef,
@@ -587,12 +630,12 @@ if (isDevelopmentMode()) {
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
 
         // State debugging helpers
-        getState: () => masterStateManager.getState(),
-        getStateHistory: () => masterStateManager.getHistory(),
+        getState: () => /** @type {any} */ (masterStateManager).getState(),
+        getStateHistory: () => /** @type {any} */ (masterStateManager).getHistory(),
         debugState: () => {
-            console.log("Current State:", masterStateManager.getState());
-            console.log("State History:", masterStateManager.getHistory());
-            console.log("Active Subscriptions:", masterStateManager.getSubscriptions());
+            console.log("Current State:", /** @type {any} */ (masterStateManager).getState());
+            console.log("State History:", /** @type {any} */ (masterStateManager).getHistory());
+            console.log("Active Subscriptions:", /** @type {any} */ (masterStateManager).getSubscriptions());
         },
     };
 
@@ -612,7 +655,7 @@ if (isDevelopmentMode()) {
             );
 
             // Expose sensor debug utilities globally
-            window.__sensorDebug = {
+            /** @type {any} */ (window).__sensorDebug = {
                 debugSensorInfo,
                 showSensorNames,
                 testManufacturerId,
@@ -622,7 +665,7 @@ if (isDevelopmentMode()) {
             };
 
             // Expose formatting test utilities globally
-            window.__debugChartFormatting = {
+            /** @type {any} */ (window).__debugChartFormatting = {
                 testNewFormatting,
                 testFaveroCase,
                 testFaveroStringCase,
@@ -653,7 +696,7 @@ if (isDevelopmentMode()) {
             console.log("  __renderer_dev.AppActions                 - Access app actions");
             console.log("  __renderer_dev.uiStateManager             - Access UI state manager");
         } catch (error) {
-            console.warn("[Renderer] Debug utilities failed to load:", error.message);
+            console.warn("[Renderer] Debug utilities failed to load:", /** @type {Error} */ (error).message);
         }
     })();
 

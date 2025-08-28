@@ -6,6 +6,44 @@
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
+ * @typedef {Object} MiddlewareContext
+ * @property {string} path - State path being operated on
+ * @property {any} value - New value (for set operations)
+ * @property {any} [oldValue] - Previous value (for set operations)
+ * @property {Object<string, any>=} options - Options passed to the state operation (shape is dynamic)
+ * @property {number} [_startTime] - Internal timing marker
+ */
+
+/**
+ * A middleware phase handler. It may mutate and return the context, return a new context object,
+ * return false to halt further middleware in the chain, or return void to continue.
+ * @callback MiddlewarePhaseHandler
+ * @param {MiddlewareContext} context
+ * @returns {Promise<MiddlewareContext|false|void>|MiddlewareContext|false|void}
+ */
+
+/**
+ * @typedef {Object} MiddlewareDefinition
+ * @property {Object<string, any>=} metadata
+ * @property {MiddlewarePhaseHandler=} beforeSet
+ * @property {MiddlewarePhaseHandler=} afterSet
+ * @property {MiddlewarePhaseHandler=} beforeGet
+ * @property {MiddlewarePhaseHandler=} afterGet
+ * @property {MiddlewarePhaseHandler=} onSubscribe
+ * @property {MiddlewarePhaseHandler=} onUnsubscribe
+ * @property {(error: Error, errorContext?: { middleware: string, phase: string, context: MiddlewareContext }) => (Promise<void>|void)=} onError
+ */
+
+/**
+ * @typedef {Object} RegisteredMiddleware
+ * @property {string} name
+ * @property {number} priority
+ * @property {boolean} isEnabled
+ * @property {Object<string, MiddlewarePhaseHandler>} handlers
+ * @property {Object<string, any>} metadata
+ */
+
+/**
  * Middleware execution order
  */
 const MIDDLEWARE_PHASES = {
@@ -23,8 +61,11 @@ const MIDDLEWARE_PHASES = {
  */
 class StateMiddlewareManager {
     constructor() {
+        /** @type {Map<string, RegisteredMiddleware>} */
         this.middleware = new Map();
+        /** @type {boolean} */
         this.isEnabled = true;
+        /** @type {string[]} */
         this.executionOrder = [];
     }
 
@@ -34,11 +75,17 @@ class StateMiddlewareManager {
      * @param {Object} middleware - Middleware object with phase handlers
      * @param {number} priority - Execution priority (lower = earlier, default: 100)
      */
+    /**
+     * @param {string} name
+     * @param {MiddlewareDefinition} middleware
+     * @param {number} [priority=100]
+     */
     register(name, middleware, priority = 100) {
         if (this.middleware.has(name)) {
             console.warn(`[StateMiddleware] Middleware "${name}" already registered, replacing...`);
         }
 
+        /** @type {RegisteredMiddleware} */
         const wrappedMiddleware = {
             name,
             priority,
@@ -49,8 +96,10 @@ class StateMiddlewareManager {
 
         // Wrap each phase handler with error handling
         Object.values(MIDDLEWARE_PHASES).forEach((phase) => {
-            if (middleware[phase] && typeof middleware[phase] === "function") {
-                wrappedMiddleware.handlers[phase] = this.wrapHandler(name, phase, middleware[phase]);
+            // dynamic index access – cast to any for safety
+            const original = /** @type {any} */ (middleware)[phase];
+            if (original && typeof original === "function") {
+                wrappedMiddleware.handlers[phase] = this.wrapHandler(name, phase, original);
             }
         });
 
@@ -63,6 +112,10 @@ class StateMiddlewareManager {
     /**
      * Unregister middleware
      * @param {string} name - Middleware name
+     */
+    /**
+     * @param {string} name
+     * @returns {boolean}
      */
     unregister(name) {
         if (!this.middleware.has(name)) {
@@ -82,6 +135,11 @@ class StateMiddlewareManager {
      * @param {string} name - Middleware name
      * @param {boolean} enabled - Whether to enable the middleware
      */
+    /**
+     * @param {string} name
+     * @param {boolean} enabled
+     * @returns {boolean}
+     */
     setEnabled(name, enabled) {
         const middleware = this.middleware.get(name);
         if (!middleware) {
@@ -98,6 +156,10 @@ class StateMiddlewareManager {
      * Enable/disable all middleware
      * @param {boolean} enabled - Whether to enable middleware system
      */
+    /**
+     * @param {boolean} enabled
+     * @returns {void}
+     */
     setGlobalEnabled(enabled) {
         this.isEnabled = enabled;
         console.log(`[StateMiddleware] Middleware system ${enabled ? "enabled" : "disabled"}`);
@@ -108,6 +170,11 @@ class StateMiddlewareManager {
      * @param {string} phase - Middleware phase
      * @param {Object} context - Context object for the operation
      * @returns {Promise<Object>} Modified context
+     */
+    /**
+     * @param {string} phase
+     * @param {MiddlewareContext} context
+     * @returns {Promise<MiddlewareContext>}
      */
     async execute(phase, context) {
         if (!this.isEnabled) return context;
@@ -136,10 +203,11 @@ class StateMiddlewareManager {
                     break;
                 }
             } catch (error) {
-                console.error(`[StateMiddleware] Error in middleware "${middlewareName}" phase "${phase}":`, error);
+                const err = /** @type {Error} */ (error);
+                console.error(`[StateMiddleware] Error in middleware "${middlewareName}" phase "${phase}":`, err);
 
                 // Execute error handlers
-                await this.executeErrorHandlers(error, {
+                await this.executeErrorHandlers(err, {
                     middleware: middlewareName,
                     phase,
                     context: currentContext,
@@ -155,6 +223,10 @@ class StateMiddlewareManager {
      * @param {Error} error - Error that occurred
      * @param {Object} errorContext - Error context
      */
+    /**
+     * @param {Error} error
+     * @param {{middleware: string, phase: string, context: MiddlewareContext}} errorContext
+     */
     async executeErrorHandlers(error, errorContext) {
         for (const middlewareName of this.executionOrder) {
             const middleware = this.middleware.get(middlewareName);
@@ -165,7 +237,18 @@ class StateMiddlewareManager {
             if (!errorHandler) continue;
 
             try {
-                await errorHandler(error, errorContext);
+                // Some middlewares define onError(error) while others may accept (error, context)
+                try {
+                    // We intentionally treat the handler as any due to dynamic signature variability
+                    const eh = /** @type {any} */ (errorHandler);
+                    if (eh.length >= 2) {
+                        await eh(error, errorContext);
+                    } else {
+                        await eh(error);
+                    }
+                } catch (invokeErr) {
+                    console.error("[StateMiddleware] Error invoking error handler", invokeErr);
+                }
             } catch (handlerError) {
                 console.error(`[StateMiddleware] Error in error handler for "${middlewareName}":`, handlerError);
             }
@@ -178,6 +261,12 @@ class StateMiddlewareManager {
      * @param {string} phase - Phase name
      * @param {Function} handler - Original handler
      * @returns {Function} Wrapped handler
+     */
+    /**
+     * @param {string} middlewareName
+     * @param {string} phase
+     * @param {MiddlewarePhaseHandler} handler
+     * @returns {MiddlewarePhaseHandler}
      */
     wrapHandler(middlewareName, phase, handler) {
         return async (context) => {
@@ -195,8 +284,9 @@ class StateMiddlewareManager {
 
                 return result;
             } catch (error) {
-                console.error(`[StateMiddleware] Handler error in "${middlewareName}.${phase}":`, error);
-                throw error;
+                const err = /** @type {Error} */ (error);
+                console.error(`[StateMiddleware] Handler error in "${middlewareName}.${phase}":`, err);
+                throw err;
             }
         };
     }
@@ -204,10 +294,13 @@ class StateMiddlewareManager {
     /**
      * Update execution order based on priorities
      */
+    /** @returns {void} */
     updateExecutionOrder() {
         this.executionOrder = Array.from(this.middleware.keys()).sort((a, b) => {
-            const priorityA = this.middleware.get(a).priority;
-            const priorityB = this.middleware.get(b).priority;
+            const mwA = this.middleware.get(a);
+            const mwB = this.middleware.get(b);
+            const priorityA = mwA ? mwA.priority : 100;
+            const priorityB = mwB ? mwB.priority : 100;
             return priorityA - priorityB;
         });
     }
@@ -215,6 +308,9 @@ class StateMiddlewareManager {
     /**
      * Get middleware information
      * @returns {Array} List of registered middleware with metadata
+     */
+    /**
+     * @returns {{name:string, priority:number, isEnabled:boolean, phases:string[], metadata:Object<string,any>}[]}
      */
     getMiddlewareInfo() {
         return Array.from(this.middleware.values()).map((middleware) => ({
@@ -229,6 +325,7 @@ class StateMiddlewareManager {
     /**
      * Clear all middleware
      */
+    /** @returns {void} */
     clear() {
         this.middleware.clear();
         this.executionOrder = [];
@@ -246,30 +343,35 @@ export const middlewareManager = new StateMiddlewareManager();
 /**
  * Logging middleware - logs all state operations
  */
+/** @type {MiddlewareDefinition} */
 export const loggingMiddleware = {
     metadata: {
         description: "Logs all state operations for debugging",
         version: "1.0.0",
     },
 
+    /** @param {MiddlewareContext} context */
     beforeSet(context) {
-        if (context.options?.source !== "internal") {
+    if (context.options && context.options["source"] !== "internal") {
             console.log(`[StateLog] Setting "${context.path}" to:`, context.value);
         }
         return context;
     },
 
+    /** @param {MiddlewareContext} context */
     afterSet(context) {
-        if (context.options?.source !== "internal") {
+    if (context.options && context.options["source"] !== "internal") {
             console.log(`[StateLog] Set "${context.path}" completed`);
         }
         return context;
     },
 
+    /** @param {MiddlewareContext} context */
     onSubscribe(context) {
         console.log(`[StateLog] New subscription to "${context.path}"`);
         return context;
     },
+    /** @param {Error} error */
     onError(error) {
         console.error(`[StateLog] Error:`, error);
     },
@@ -278,15 +380,17 @@ export const loggingMiddleware = {
 /**
  * Validation middleware - validates state changes
  */
+/** @type {MiddlewareDefinition} */
 export const validationMiddleware = {
     metadata: {
         description: "Validates state changes according to defined schemas",
         version: "1.0.0",
     },
 
+    /** @param {MiddlewareContext} context */
     beforeSet(context) {
         // Prevent setting undefined values
-        if (context.value === undefined && !context.options?.allowUndefined) {
+    if (context.value === undefined && !(context.options && context.options["allowUndefined"])) {
             console.warn(`[StateValidation] Preventing undefined value for "${context.path}"`);
             return false; // Stop execution
         }
@@ -304,6 +408,7 @@ export const validationMiddleware = {
 
         return context;
     },
+    /** @param {Error} error */
     onError(error) {
         showNotification(`State validation error: ${error.message}`, "error");
     },
@@ -312,17 +417,18 @@ export const validationMiddleware = {
 /**
  * Performance monitoring middleware
  */
+/** @type {MiddlewareDefinition} */
 export const performanceMiddleware = {
     metadata: {
         description: "Monitors state operation performance",
         version: "1.0.0",
     },
-
+    /** @param {MiddlewareContext} context */
     beforeSet(context) {
         context._startTime = performance.now();
         return context;
     },
-
+    /** @param {MiddlewareContext} context */
     afterSet(context) {
         if (context._startTime) {
             const duration = performance.now() - context._startTime;
@@ -332,19 +438,20 @@ export const performanceMiddleware = {
             }
 
             // Store performance data
-            if (!window._statePerformance) {
-                window._statePerformance = [];
+            const w = /** @type {any} */ (window);
+            if (!w._statePerformance) {
+                w._statePerformance = [];
             }
 
-            window._statePerformance.push({
+            w._statePerformance.push({
                 path: context.path,
                 duration,
                 timestamp: Date.now(),
             });
 
             // Keep only recent data
-            if (window._statePerformance.length > 100) {
-                window._statePerformance.shift();
+            if (w._statePerformance.length > 100) {
+                w._statePerformance.shift();
             }
         }
 
@@ -355,12 +462,13 @@ export const performanceMiddleware = {
 /**
  * Persistence middleware - automatically saves certain state to localStorage
  */
+/** @type {MiddlewareDefinition} */
 export const persistenceMiddleware = {
     metadata: {
         description: "Automatically persists certain state values to localStorage",
         version: "1.0.0",
     },
-
+    /** @param {MiddlewareContext} context */
     afterSet(context) {
         // Define which paths should be persisted
         const persistPaths = ["settings.theme", "settings.mapTheme", "ui.activeTab", "app.windowState"];
@@ -382,12 +490,13 @@ export const persistenceMiddleware = {
 /**
  * Notification middleware - shows notifications for important state changes
  */
+/** @type {MiddlewareDefinition} */
 export const notificationMiddleware = {
     metadata: {
         description: "Shows notifications for important state changes",
         version: "1.0.0",
     },
-
+    /** @param {MiddlewareContext} context */
     afterSet(context) {
         // Show notifications for specific state changes
         if (context.path === "globalData" && context.value && Object.keys(context.value).length > 0) {
@@ -433,18 +542,32 @@ export function cleanupMiddleware() {
 /**
  * Convenience functions for middleware registration
  */
+/**
+ * @param {string} name
+ * @param {MiddlewareDefinition} middleware
+ * @param {number} [priority=100]
+ */
 export function registerMiddleware(name, middleware, priority = 100) {
     return middlewareManager.register(name, middleware, priority);
 }
 
+/** @param {string} name */
 export function unregisterMiddleware(name) {
     return middlewareManager.unregister(name);
 }
 
+/**
+ * @param {string} name
+ * @param {boolean} [enabled=true]
+ */
 export function enableMiddleware(name, enabled = true) {
     return middlewareManager.setEnabled(name, enabled);
 }
 
+/**
+ * @param {string} phase
+ * @param {MiddlewareContext} context
+ */
 export function executeMiddleware(phase, context) {
     return middlewareManager.execute(phase, context);
 }

@@ -8,6 +8,138 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../app/initialization/rendererUtils.js";
 
 /**
+ * Record message from FIT file (highly simplified subset)
+ * @typedef {Object} RecordMessage
+ * @property {number} [position_lat]
+ * @property {number} [position_long]
+ * @property {number} [heart_rate]
+ * @property {number} [power]
+ * @property {number} [cadence]
+ * @property {number} [altitude]
+ */
+
+/**
+ * Session message subset
+ * @typedef {Object} SessionMessage
+ * @property {number} [start_time]
+ * @property {number} [total_elapsed_time]
+ * @property {number} [total_distance]
+ * @property {number} [total_calories]
+ * @property {string} [sport]
+ * @property {string} [sub_sport]
+ */
+
+/**
+ * Device info message subset
+ * @typedef {Object} DeviceInfoMessage
+ * @property {string|number} [manufacturer]
+ * @property {string|number} [product]
+ * @property {string|number} [serial_number]
+ * @property {number} [software_version]
+ * @property {number} [hardware_version]
+ */
+
+/**
+ * Activity message subset
+ * @typedef {Object} ActivityMessage
+ * @property {number} [timestamp]
+ * @property {number} [total_timer_time]
+ * @property {number} [local_timestamp]
+ * @property {number} [num_sessions]
+ */
+
+/**
+ * Raw FIT data structure (minimal, optional arrays)
+ * @typedef {Object} RawFitData
+ * @property {RecordMessage[]} [recordMesgs]
+ * @property {SessionMessage[]} [sessionMesgs]
+ * @property {DeviceInfoMessage[]} [device_infos]
+ * @property {ActivityMessage[]} [activities]
+ * @property {Object[]} [fileIdMesgs]
+ */
+
+/**
+ * Extracted session info
+ * @typedef {Object} SessionInfo
+ * @property {number|undefined} startTime
+ * @property {number|undefined} totalElapsedTime
+ * @property {number|undefined} totalDistance
+ * @property {number|undefined} totalCalories
+ * @property {string|undefined} sport
+ * @property {string|undefined} subSport
+ */
+
+/**
+ * Extracted device info
+ * @typedef {Object} DeviceInfo
+ * @property {string|number|undefined} manufacturer
+ * @property {string|number|undefined} product
+ * @property {string|number|undefined} serialNumber
+ * @property {number|undefined} softwareVersion
+ * @property {number|undefined} hardwareVersion
+ */
+
+/**
+ * Extracted activity info
+ * @typedef {Object} ActivityInfo
+ * @property {number|undefined} timestamp
+ * @property {number|undefined} totalTimerTime
+ * @property {number|undefined} localTimestamp
+ * @property {number|undefined} numSessions
+ */
+
+/**
+ * Data quality coverage breakdown
+ * @typedef {Object} DataCoverage
+ * @property {number} gps
+ * @property {number} heartRate
+ * @property {number} power
+ * @property {number} cadence
+ * @property {number} altitude
+ */
+
+/**
+ * Data quality assessment
+ * @typedef {Object} DataQuality
+ * @property {boolean} hasGPS
+ * @property {boolean} hasHeartRate
+ * @property {boolean} hasPower
+ * @property {boolean} hasCadence
+ * @property {boolean} hasAltitude
+ * @property {number} completeness
+ * @property {string[]} issues
+ * @property {DataCoverage} [coverage]
+ */
+
+/**
+ * Processed FIT file data
+ * @typedef {Object} ProcessedData
+ * @property {number} recordCount
+ * @property {SessionInfo|null} sessionInfo
+ * @property {DeviceInfo|null} deviceInfo
+ * @property {ActivityInfo|null} activityInfo
+ * @property {DataQuality} dataQuality
+ */
+
+/**
+ * Validation result structure
+ * @typedef {Object} ValidationResult
+ * @property {boolean} isValid
+ * @property {string[]} errors
+ * @property {string[]} warnings
+ */
+
+/**
+ * File metrics structure
+ * @typedef {Object} FileMetrics
+ * @property {number} lastUpdated
+ * @property {number} recordCount
+ * @property {boolean} hasSession
+ * @property {boolean} hasDevice
+ * @property {number} dataQualityScore
+ */
+
+/**
  * FIT File State Manager - handles FIT file specific state operations
  */
 export class FitFileStateManager {
@@ -36,18 +168,18 @@ export class FitFileStateManager {
      */
     setupFileLoadingListeners() {
         // Track file loading progress
-        subscribe("fitFile.loadingProgress", (progress) => {
+        subscribe("fitFile.loadingProgress", (/** @type {number} */ progress) => {
             this.updateLoadingProgress(progress);
         });
 
         // Handle file loading completion
-        subscribe("fitFile.loaded", (fileData) => {
+        subscribe("fitFile.loaded", (/** @type {RawFitData} */ fileData) => {
             this.handleFileLoaded(fileData);
         });
 
         // Handle file loading errors
-        subscribe("fitFile.loadingError", (error) => {
-            this.handleFileLoadingError(error);
+        subscribe("fitFile.loadingError", (/** @type {Error} */ error) => {
+            this.handleFileLoadingError(error); // error originates from fit parser integration
         });
     }
 
@@ -56,14 +188,14 @@ export class FitFileStateManager {
      */
     setupDataProcessingListeners() {
         // Process data when global data changes
-        subscribe("globalData", (data) => {
+        subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
             if (data) {
                 this.processFileData(data);
             }
         });
 
         // Update metrics when data changes
-        subscribe("fitFile.processedData", (processedData) => {
+        subscribe("fitFile.processedData", (/** @type {ProcessedData|null} */ processedData) => {
             this.updateFileMetrics(processedData);
         });
     }
@@ -73,7 +205,7 @@ export class FitFileStateManager {
      */
     setupValidationListeners() {
         // Validate data when it's loaded
-        subscribe("globalData", (data) => {
+        subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
             if (data) {
                 this.validateFileData(data);
             }
@@ -84,7 +216,7 @@ export class FitFileStateManager {
      * Start file loading process
      * @param {string} filePath - Path to the FIT file
      */
-    startFileLoading(filePath) {
+    startFileLoading(/** @type {string} */ filePath) {
         setState("fitFile.isLoading", true, { source: "FitFileStateManager.startFileLoading" });
         setState("fitFile.currentFile", filePath, { source: "FitFileStateManager.startFileLoading" });
         setState("fitFile.loadingProgress", 0, { source: "FitFileStateManager.startFileLoading" });
@@ -97,7 +229,7 @@ export class FitFileStateManager {
      * Update file loading progress
      * @param {number} progress - Progress percentage (0-100)
      */
-    updateLoadingProgress(progress) {
+    updateLoadingProgress(/** @type {number} */ progress) {
         const progressElement = document.getElementById("file-loading-progress");
         if (progressElement) {
             progressElement.style.width = `${progress}%`;
@@ -111,7 +243,7 @@ export class FitFileStateManager {
      * Handle successful file loading
      * @param {Object} fileData - Loaded file data
      */
-    handleFileLoaded(fileData) {
+    handleFileLoaded(/** @type {RawFitData} */ fileData) {
         setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoaded" });
         setState("fitFile.loadingProgress", 100, { source: "FitFileStateManager.handleFileLoaded" });
         setState("fitFile.rawData", fileData, { source: "FitFileStateManager.handleFileLoaded" });
@@ -127,11 +259,13 @@ export class FitFileStateManager {
      * Handle file loading errors
      * @param {Error} error - Loading error
      */
-    handleFileLoadingError(error) {
+    handleFileLoadingError(/** @type {unknown} */ error) {
+        const err = /** @type {{message?: string}} */ (error) || {};
+        const message = err.message || "Unknown error";
         setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
-        setState("fitFile.loadingError", error.message, { source: "FitFileStateManager.handleFileLoadingError" });
+        setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
 
-        showNotification(`Failed to load FIT file: ${error.message}`, "error", 5000);
+        showNotification(`Failed to load FIT file: ${message}`, "error", 5000);
         console.error("[FitFileState] File loading failed:", error);
     }
 
@@ -139,8 +273,9 @@ export class FitFileStateManager {
      * Process file data and extract useful information
      * @param {Object} data - Raw file data
      */
-    processFileData(data) {
+    processFileData(/** @type {RawFitData} */ data) {
         try {
+            /** @type {ProcessedData} */
             const processedData = {
                 recordCount: this.getRecordCount(data),
                 sessionInfo: this.extractSessionInfo(data),
@@ -151,31 +286,34 @@ export class FitFileStateManager {
 
             setState("fitFile.processedData", processedData, { source: "FitFileStateManager.processFileData" });
             console.log("[FitFileState] Data processed successfully");
-        } catch (error) {
-            console.error("[FitFileState] Error processing data:", error);
-            setState("fitFile.processingError", error.message, { source: "FitFileStateManager.processFileData" });
+    } catch (error) {
+        const err = /** @type {{message?: string}} */ (error);
+        console.error("[FitFileState] Error processing data:", error);
+        setState("fitFile.processingError", err?.message || "Unknown error", { source: "FitFileStateManager.processFileData" });
         }
     } /**
+    /**
      * Get record count from file data
-     * @param {Object} data - File data
-     * @returns {number} Number of records
+     * @param {RawFitData} data - File data
+     * @returns {number}
      */
-    getRecordCount(data) {
+    getRecordCount(/** @type {RawFitData} */ data) {
         if (!data || !data.recordMesgs) return 0;
         return Array.isArray(data.recordMesgs) ? data.recordMesgs.length : 0;
     }
 
     /**
-     * Extract session information
-     * @param {Object} data - File data
-     * @returns {Object} Session information
-     */ extractSessionInfo(data) {
+    * Extract session information
+    * @param {RawFitData} data
+    * @returns {SessionInfo|null}
+    */ extractSessionInfo(data) {
         if (!data || !data.sessionMesgs || !Array.isArray(data.sessionMesgs) || data.sessionMesgs.length === 0) {
             return null;
         }
 
-        const session = data.sessionMesgs[0];
-        return {
+    const session = data.sessionMesgs[0];
+    if (!session) return null;
+    return {
             startTime: session.start_time,
             totalElapsedTime: session.total_elapsed_time,
             totalDistance: session.total_distance,
@@ -187,16 +325,17 @@ export class FitFileStateManager {
 
     /**
      * Extract device information
-     * @param {Object} data - File data
-     * @returns {Object} Device information
+     * @param {RawFitData} data
+     * @returns {DeviceInfo|null}
      */
     extractDeviceInfo(data) {
         if (!data || !data.device_infos || !Array.isArray(data.device_infos) || data.device_infos.length === 0) {
             return null;
         }
 
-        const device = data.device_infos[0];
-        return {
+    const device = data.device_infos[0];
+    if (!device) return null;
+    return {
             manufacturer: device.manufacturer,
             product: device.product,
             serialNumber: device.serial_number,
@@ -207,16 +346,17 @@ export class FitFileStateManager {
 
     /**
      * Extract activity information
-     * @param {Object} data - File data
-     * @returns {Object} Activity information
+     * @param {RawFitData} data
+     * @returns {ActivityInfo|null}
      */
     extractActivityInfo(data) {
         if (!data || !data.activities || !Array.isArray(data.activities) || data.activities.length === 0) {
             return null;
         }
 
-        const activity = data.activities[0];
-        return {
+    const activity = data.activities[0];
+    if (!activity) return null;
+    return {
             timestamp: activity.timestamp,
             totalTimerTime: activity.total_timer_time,
             localTimestamp: activity.local_timestamp,
@@ -226,10 +366,11 @@ export class FitFileStateManager {
 
     /**
      * Assess data quality
-     * @param {Object} data - File data
-     * @returns {Object} Data quality assessment
+     * @param {RawFitData} data
+     * @returns {DataQuality}
      */
     assessDataQuality(data) {
+        /** @type {DataQuality} */
         const quality = {
             hasGPS: false,
             hasHeartRate: false,
@@ -285,7 +426,7 @@ export class FitFileStateManager {
         quality.completeness = Math.round((basicDataCount / totalRecords) * 100);
 
         // Calculate coverage percentages for detailed metrics
-        quality.coverage = {
+    quality.coverage = {
             gps: Math.round((gpsCount / totalRecords) * 100),
             heartRate: Math.round((hrCount / totalRecords) * 100),
             power: Math.round((powerCount / totalRecords) * 100),
@@ -309,9 +450,10 @@ export class FitFileStateManager {
 
     /**
      * Validate file data
-     * @param {Object} data - File data to validate
+     * @param {RawFitData} data
      */
     validateFileData(data) {
+        /** @type {ValidationResult} */
         const validation = {
             isValid: true,
             errors: [],
@@ -360,7 +502,8 @@ export class FitFileStateManager {
      * Update file metrics display
      * @param {Object} processedData - Processed file data
      */
-    updateFileMetrics(processedData) {
+    updateFileMetrics(/** @type {ProcessedData|null} */ processedData) {
+        if (!processedData) return;
         updateState(
             "fitFile.metrics",
             {
@@ -432,8 +575,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if valid
      */
     isFileValid() {
-        const validation = this.getValidation();
-        return validation ? validation.isValid : false;
+    /** @type {ValidationResult|null} */
+    const validation = /** @type {any} */ (this.getValidation());
+    return validation ? !!validation.isValid : false;
     },
 
     /**
@@ -457,8 +601,9 @@ export const FitFileSelectors = {
      * @returns {Object|null} Data quality object
      */
     getDataQuality() {
-        const processedData = this.getProcessedData();
-        return processedData ? processedData.dataQuality : null;
+    /** @type {ProcessedData|null} */
+    const processedData = /** @type {any} */ (this.getProcessedData());
+    return processedData ? processedData.dataQuality : null;
     },
 
     /**
@@ -466,8 +611,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if has GPS
      */
     hasGPS() {
-        const quality = this.getDataQuality();
-        return quality ? quality.hasGPS : false;
+    /** @type {DataQuality|null} */
+    const quality = /** @type {any} */ (this.getDataQuality());
+    return quality ? !!quality.hasGPS : false;
     },
 
     /**
@@ -475,8 +621,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if has heart rate
      */
     hasHeartRate() {
-        const quality = this.getDataQuality();
-        return quality ? quality.hasHeartRate : false;
+    /** @type {DataQuality|null} */
+    const quality = /** @type {any} */ (this.getDataQuality());
+    return quality ? !!quality.hasHeartRate : false;
     },
 
     /**
@@ -484,8 +631,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if has power
      */
     hasPower() {
-        const quality = this.getDataQuality();
-        return quality ? quality.hasPower : false;
+    /** @type {DataQuality|null} */
+    const quality = /** @type {any} */ (this.getDataQuality());
+    return quality ? !!quality.hasPower : false;
     },
 
     /**

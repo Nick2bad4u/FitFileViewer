@@ -1,5 +1,68 @@
 /* eslint-env node */
+/**
+ * Preload script exposes a typed, secure IPC API to the renderer via contextBridge.
+ * Incremental typing is applied using JSDoc so strict TypeScript checking over allowJs passes.
+ */
 const { contextBridge, ipcRenderer } = require("electron");
+
+/**
+ * @typedef {Object} GyazoServerStartResult
+ * @property {boolean} success
+ * @property {number} port
+ * @property {string} [message]
+ */
+/**
+ * @typedef {Object} GyazoServerStopResult
+ * @property {boolean} success
+ * @property {string} [message]
+ */
+/**
+ * @typedef {Object} ChannelInfo
+ * @property {Record<string,string>} channels
+ * @property {Record<string,string>} events
+ * @property {number} totalChannels
+ * @property {number} totalEvents
+ */
+/**
+ * @typedef {Object} PlatformInfo
+ * @property {string} platform
+ * @property {string} arch
+ */
+/**
+ * @typedef {Object} ElectronAPI
+ * @property {() => Promise<string[]>} openFile
+ * @property {() => Promise<string[]>} openFileDialog
+ * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
+ * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} parseFitFile
+ * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} decodeFitFile
+ * @property {() => Promise<string[]>} recentFiles
+ * @property {(filePath: string) => Promise<string[]>} addRecentFile
+ * @property {() => Promise<string>} getTheme
+ * @property {(theme: string) => void} sendThemeChanged
+ * @property {() => Promise<string>} getAppVersion
+ * @property {() => Promise<string>} getElectronVersion
+ * @property {() => Promise<string>} getNodeVersion
+ * @property {() => Promise<string>} getChromeVersion
+ * @property {() => Promise<string>} getLicenseInfo
+ * @property {() => Promise<PlatformInfo>} getPlatformInfo
+ * @property {(url: string) => Promise<boolean>} openExternal
+ * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
+ * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
+ * @property {(callback: Function) => void} onMenuOpenFile
+ * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
+ * @property {(callback: (theme: string) => void) => void} onSetTheme
+ * @property {(callback: Function) => void} onOpenSummaryColumnSelector
+ * @property {(eventName: string, callback: Function) => void} onUpdateEvent
+ * @property {() => void} checkForUpdates
+ * @property {() => void} installUpdate
+ * @property {(flag: boolean) => void} setFullScreen
+ * @property {(channel: string, callback: Function) => void} onIpc
+ * @property {(channel: string, ...args: any[]) => void} send
+ * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
+ * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
+ * @property {() => ChannelInfo} getChannelInfo
+ * @property {() => boolean} validateAPI
+ */
 
 // Constants for better maintainability
 const CONSTANTS = {
@@ -40,6 +103,11 @@ const CONSTANTS = {
 };
 
 // Enhanced error handling and validation
+/**
+ * @param {unknown} callback
+ * @param {string} methodName
+ * @returns {callback is Function}
+ */
 function validateCallback(callback, methodName) {
     if (typeof callback !== "function") {
         console.error(`[preload.js] ${methodName}: callback must be a function`);
@@ -48,6 +116,12 @@ function validateCallback(callback, methodName) {
     return true;
 }
 
+/**
+ * @param {unknown} value
+ * @param {string} paramName
+ * @param {string} methodName
+ * @returns {value is string|null}
+ */
 function validateString(value, paramName, methodName) {
     if (value !== null && typeof value !== "string") {
         console.error(`[preload.js] ${methodName}: ${paramName} must be a string or null`);
@@ -56,6 +130,12 @@ function validateString(value, paramName, methodName) {
     return true;
 }
 
+/**
+ * Wrapper to create a safe invoke handler.
+ * @param {string} channel
+ * @param {string} methodName
+ * @returns {(...args: any[]) => Promise<any>}
+ */
 function createSafeInvokeHandler(channel, methodName) {
     return async (...args) => {
         try {
@@ -67,6 +147,12 @@ function createSafeInvokeHandler(channel, methodName) {
     };
 }
 
+/**
+ * Wrapper to create a safe send handler.
+ * @param {string} channel
+ * @param {string} methodName
+ * @returns {(...args: any[]) => void}
+ */
 function createSafeSendHandler(channel, methodName) {
     return (...args) => {
         try {
@@ -77,13 +163,20 @@ function createSafeSendHandler(channel, methodName) {
     };
 }
 
-function createSafeEventHandler(channel, methodName, transform = null) {
+/**
+ * Wrapper to create a safe event subscription handler.
+ * @param {string} channel
+ * @param {string} methodName
+ * @param {( ...args: any[]) => any | null} [transform]
+ * @returns {(callback: Function) => void}
+ */
+function createSafeEventHandler(channel, methodName, transform) {
     return (callback) => {
         if (!validateCallback(callback, methodName)) return;
 
         try {
             if (transform) {
-                ipcRenderer.on(channel, (event, ...args) => {
+                ipcRenderer.on(channel, (_event, ...args) => {
                     try {
                         callback(transform(...args));
                     } catch (error) {
@@ -91,7 +184,7 @@ function createSafeEventHandler(channel, methodName, transform = null) {
                     }
                 });
             } else {
-                ipcRenderer.on(channel, (event, ...args) => {
+                ipcRenderer.on(channel, (_event, ...args) => {
                     try {
                         callback(...args);
                     } catch (error) {
@@ -106,6 +199,7 @@ function createSafeEventHandler(channel, methodName, transform = null) {
 }
 
 // Main API object
+/** @type {ElectronAPI} */
 const electronAPI = {
     // File Operations
     /**
@@ -272,7 +366,7 @@ const electronAPI = {
         if (!validateString(eventName, "eventName", "onUpdateEvent")) return;
 
         try {
-            ipcRenderer.on(eventName, (event, ...args) => {
+            ipcRenderer.on(eventName, (_event, ...args) => {
                 try {
                     callback(...args);
                 } catch (error) {
@@ -384,12 +478,16 @@ const electronAPI = {
      * Get information about available IPC channels for debugging.
      * @returns {Object} Object containing channel information
      */
-    getChannelInfo: () => ({
-        channels: CONSTANTS.CHANNELS,
-        events: CONSTANTS.EVENTS,
-        totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
-        totalEvents: Object.keys(CONSTANTS.EVENTS).length,
-    }),
+    /** @returns {ChannelInfo} */
+    getChannelInfo: () => {
+        const info = {
+            channels: CONSTANTS.CHANNELS,
+            events: CONSTANTS.EVENTS,
+            totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
+            totalEvents: Object.keys(CONSTANTS.EVENTS).length,
+        };
+        return /** @type {ChannelInfo} */( /** @type {any} */(info) );
+    },
     /**
      * Validate the preload API is working correctly.
      * @returns {boolean} True if API is functional
@@ -425,11 +523,16 @@ try {
         console.log("[preload.js] Successfully exposed electronAPI to main world");
 
         // Log API structure in development
-        if (process.env.NODE_ENV === "development") {
+    if (process.env["NODE_ENV"] === "development") {
+            const apiKeys = Object.keys(electronAPI);
+            /** @type {string[]} */
+            const methods = apiKeys.filter((key) => typeof /** @type {any} */(electronAPI)[key] === "function");
+            /** @type {string[]} */
+            const properties = apiKeys.filter((key) => typeof /** @type {any} */(electronAPI)[key] !== "function");
             console.log("[preload.js] API Structure:", {
-                methods: Object.keys(electronAPI).filter((key) => typeof electronAPI[key] === "function"),
-                properties: Object.keys(electronAPI).filter((key) => typeof electronAPI[key] !== "function"),
-                total: Object.keys(electronAPI).length,
+                methods,
+                properties,
+                total: apiKeys.length,
             });
         }
     } else {
@@ -440,7 +543,7 @@ try {
 }
 
 // Development helpers - only available in development mode
-if (process.env.NODE_ENV === "development") {
+if (process.env["NODE_ENV"] === "development") {
     try {
         contextBridge.exposeInMainWorld("devTools", {
             /**
@@ -480,7 +583,7 @@ if (process.env.NODE_ENV === "development") {
             },
         });
 
-        console.log("[preload.js] Development tools exposed");
+    console.log("[preload.js] Development tools exposed");
     } catch (error) {
         console.error("[preload.js] Failed to expose development tools:", error);
     }

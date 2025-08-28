@@ -10,9 +10,82 @@
 const { Buffer } = require("buffer");
 const { Conf } = require("electron-conf");
 
+/**
+ * ============================= Typedef Section =============================
+ * These typedefs provide structure for the JSDoc-based type checking used by
+ * the project (allowJs + checkJs). They intentionally model only the pieces
+ * of each object this module relies on so we can progressively enrich them
+ * without over‑committing to full shapes up front.
+ * ==========================================================================
+ */
+
+/**
+ * @typedef {Object} SettingsStateManager
+ * @property {(category: string) => any} getCategory Retrieve a settings category
+ * @property {(category: string, value: any, opts?: { silent?: boolean, source?: string }) => void} updateCategory Update a settings category
+ */
+
+/**
+ * @typedef {Object} FitFileStateManager
+ * @property {(progress: number) => void} updateLoadingProgress Update decode progress percentage
+ * @property {(error: Error) => void} handleFileLoadingError Record a loading error
+ * @property {(payload: { messages: FitMessages, metadata: any }) => void} handleFileLoaded Record successful load
+ * @property {(messages: FitMessages) => number} getRecordCount Derive record count for metadata
+ */
+
+/**
+ * @typedef {Object} PerformanceMonitor
+ * @property {(id: string) => void} startTimer Start a named timing operation
+ * @property {(id: string) => void} endTimer End a named timing operation
+ * @property {(id: string) => (number|null)} getOperationTime Get elapsed ms
+ * @property {boolean} [isEnabled] Optional flag for enablement
+ */
+
+/**
+ * @typedef {Object} DecoderOptionSchemaEntry
+ * @property {"boolean"} type Primitive type expected (only boolean currently)
+ * @property {boolean} default Default value
+ * @property {string} description Human readable description
+ */
+
+/**
+ * @typedef {Object} DecoderOptions
+ * @property {boolean} applyScaleAndOffset
+ * @property {boolean} expandSubFields
+ * @property {boolean} expandComponents
+ * @property {boolean} convertTypesToStrings
+ * @property {boolean} convertDateTimesToDates
+ * @property {boolean} includeUnknownData
+ * @property {boolean} mergeHeartRates
+ */
+
+/**
+ * @typedef {Object} DecoderOptionsValidationResult
+ * @property {boolean} isValid Whether supplied options passed validation
+ * @property {string[]} errors Validation messages (empty when valid)
+ * @property {DecoderOptions} validatedOptions Sanitized + default‑filled options
+ */
+
+/**
+ * @typedef {Record<string, any[]|object[]>} FitMessages
+ */
+
+/**
+ * @typedef {Object} UnknownMessageMapping
+ * @property {string} name Canonical label to replace unknown_xxx key
+ * @property {string[]} fields Ordered field labels for generic mapping path
+ */
+
+/**
+ * @typedef {Record<string, UnknownMessageMapping>} UnknownMessageMappings
+ */
+
 // State management integration
+/** @type {SettingsStateManager|null} */
 let settingsStateManager = null;
+/** @type {FitFileStateManager|null} */
 let fitFileStateManager = null;
+/** @type {PerformanceMonitor|null} */
 let performanceMonitor = null;
 
 // Fallback to electron-conf for backwards compatibility
@@ -26,10 +99,13 @@ const conf = new Conf({ name: "settings" });
  * @param {Object} stateManagers.fitFileStateManager - FIT file state manager for progress tracking
  * @param {Object} stateManagers.performanceMonitor - Performance monitor for timing operations
  */
+/**
+ * @param {{ settingsStateManager?: SettingsStateManager, fitFileStateManager?: FitFileStateManager, performanceMonitor?: PerformanceMonitor }} [stateManagers]
+ */
 function initializeStateManagement(stateManagers = {}) {
-    settingsStateManager = stateManagers.settingsStateManager;
-    fitFileStateManager = stateManagers.fitFileStateManager;
-    performanceMonitor = stateManagers.performanceMonitor;
+    settingsStateManager = stateManagers.settingsStateManager || null;
+    fitFileStateManager = stateManagers.fitFileStateManager || null;
+    performanceMonitor = stateManagers.performanceMonitor || null;
 
     console.log("[FitParser] State management initialized", {
         hasSettings: !!settingsStateManager,
@@ -77,6 +153,7 @@ class FitDecodeError extends Error {
 /**
  * Default decoder options schema for state management validation
  */
+/** @type {Record<keyof DecoderOptions, DecoderOptionSchemaEntry>} */
 const DECODER_OPTIONS_SCHEMA = {
     applyScaleAndOffset: { type: "boolean", default: true, description: "Apply scale and offset transformations" },
     expandSubFields: { type: "boolean", default: true, description: "Expand sub-fields in messages" },
@@ -91,11 +168,20 @@ const DECODER_OPTIONS_SCHEMA = {
  * Get default decoder options
  * @returns {Object} Default decoder options
  */
+/**
+ * @returns {DecoderOptions}
+ */
 function getDefaultDecoderOptions() {
-    const defaults = {};
-    Object.keys(DECODER_OPTIONS_SCHEMA).forEach((key) => {
-        defaults[key] = DECODER_OPTIONS_SCHEMA[key].default;
-    });
+    /** @type {DecoderOptions} */
+    const defaults = {
+        applyScaleAndOffset: DECODER_OPTIONS_SCHEMA.applyScaleAndOffset.default,
+        expandSubFields: DECODER_OPTIONS_SCHEMA.expandSubFields.default,
+        expandComponents: DECODER_OPTIONS_SCHEMA.expandComponents.default,
+        convertTypesToStrings: DECODER_OPTIONS_SCHEMA.convertTypesToStrings.default,
+        convertDateTimesToDates: DECODER_OPTIONS_SCHEMA.convertDateTimesToDates.default,
+        includeUnknownData: DECODER_OPTIONS_SCHEMA.includeUnknownData.default,
+        mergeHeartRates: DECODER_OPTIONS_SCHEMA.mergeHeartRates.default,
+    };
     return defaults;
 }
 
@@ -104,33 +190,37 @@ function getDefaultDecoderOptions() {
  * @param {Object} options - Options to validate
  * @returns {Object} Validation result with isValid and errors properties
  */
+/**
+ * @param {Partial<DecoderOptions>|null|undefined} options
+ * @returns {DecoderOptionsValidationResult}
+ */
 function validateDecoderOptions(options) {
+    /** @type {string[]} */
     const errors = [];
-    const validatedOptions = {};
+    /** @type {DecoderOptions} */
+    const validatedOptions = { ...getDefaultDecoderOptions() };
 
-    Object.keys(DECODER_OPTIONS_SCHEMA).forEach((key) => {
-        const schema = DECODER_OPTIONS_SCHEMA[key];
-        const value = options[key];
-
-        if (value !== undefined) {
-            if (typeof value !== schema.type) {
-                errors.push(`${key} must be of type ${schema.type}, got ${typeof value}`);
-            } else {
-                validatedOptions[key] = value;
+    if (options && typeof options === "object") {
+        /** @type {(keyof DecoderOptions)[]} */
+        const keys = /** @type {any} */ (Object.keys(DECODER_OPTIONS_SCHEMA));
+        keys.forEach((key) => {
+            const schema = DECODER_OPTIONS_SCHEMA[key];
+            const value = /** @type {any} */ (options)[key];
+            if (value !== undefined) {
+                if (typeof value !== schema.type) {
+                    errors.push(`${String(key)} must be of type ${schema.type}, got ${typeof value}`);
+                } else {
+                    validatedOptions[key] = value;
+                }
             }
-        } else {
-            validatedOptions[key] = schema.default;
-        }
-    });
+        });
+    }
 
-    return {
-        isValid: errors.length === 0,
-        errors,
-        validatedOptions,
-    };
+    return { isValid: errors.length === 0, errors, validatedOptions };
 }
 
 // Mapping of unknown FIT message numbers to human-readable names and field labels
+/** @type {UnknownMessageMappings} */
 const unknownMessageMappings = {
     104: {
         name: "Device Status",
@@ -144,41 +234,54 @@ const unknownMessageMappings = {
  * @param {Object} messages - The decoded FIT messages.
  * @returns {Object} Messages with updated labels for unknown types.
  */
+/**
+ * @param {FitMessages} messages
+ * @returns {FitMessages}
+ */
 function applyUnknownMessageLabels(messages) {
+    /** @type {FitMessages} */
     const updated = { ...messages };
     Object.keys(unknownMessageMappings).forEach((msgNum) => {
-        const mapping = unknownMessageMappings[msgNum];
+    const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
+    if (!mapping) return; // safety guard
         const possibleKeys = [`unknown_${msgNum}`, msgNum];
         possibleKeys.forEach((key) => {
-            if (updated[key]) {
+            if (Object.prototype.hasOwnProperty.call(updated, key)) {
+                const rows = /** @type {any[]} */ (updated[/** @type {any} */ (key)]);
+                if (!Array.isArray(rows)) return;
                 if (msgNum === "104") {
-                    // Special mapping for 104: rearrange fields
-                    updated[mapping.name] = updated[key].map((row) => ({
-                        timestamp: row[253],
-                        battery_voltage: row[0],
-                        battery_level: row[2],
-                        temperature: row[3],
-                        field_4: row[4],
-                    }));
+                    updated[mapping.name] = rows.map((row) => {
+                        if (!row || typeof row !== "object") return row;
+                        return {
+                            timestamp: row[253],
+                            battery_voltage: row[0],
+                            battery_level: row[2],
+                            temperature: row[3],
+                            field_4: row[4],
+                        };
+                    });
                 } else {
-                    // Default: map in order
-                    updated[mapping.name] = updated[key].map((row) => {
+                    updated[mapping.name] = rows.map((row) => {
+                        if (!row || typeof row !== "object") return row;
+                        /** @type {Record<string, any>} */
                         const labeled = {};
-                        mapping.fields.forEach((field, idx) => {
-                            labeled[field] = row[idx];
-                        });
+                        if (mapping && Array.isArray(mapping.fields)) {
+                            mapping.fields.forEach((field, idx) => {
+                                labeled[field] = row[idx];
+                            });
+                        }
                         return labeled;
                     });
                 }
-                delete updated[key];
+                delete updated[/** @type {any} */ (key)];
             }
         });
     });
-    // After relabeling, remove numeric keys for mapped messages
     Object.keys(unknownMessageMappings).forEach((msgNum) => {
-        const mapping = unknownMessageMappings[msgNum];
-        const key = msgNum;
-        if (updated[key] && updated[mapping.name]) {
+        const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
+        if (!mapping) return;
+        const key = /** @type {any} */ (msgNum);
+        if (Object.prototype.hasOwnProperty.call(updated, key) && Object.prototype.hasOwnProperty.call(updated, mapping.name)) {
             delete updated[key];
         }
     });
@@ -207,7 +310,7 @@ function getPersistedDecoderOptions() {
     }
 
     // Fallback to electron-conf
-    const storedOptions = conf.get("decoderOptions", defaults);
+    const storedOptions = /** @type {Partial<DecoderOptions>} */ (conf.get("decoderOptions", defaults));
     const validation = validateDecoderOptions(storedOptions);
     return validation.validatedOptions;
 }
@@ -219,7 +322,13 @@ function getPersistedDecoderOptions() {
  * @param {Object} [fitsdk] - Optional fitsdk dependency for testing/mocking.
  * @returns {Promise<Object>} Decoded messages or error object.
  */
-async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
+/**
+ * @param {Buffer|Uint8Array} fileBuffer
+ * @param {Partial<DecoderOptions>=} options
+ * @param {any=} fitsdk Optional injected sdk for tests (should expose Decoder & Stream)
+ * @returns {Promise<FitMessages|{error:string, details:any}>}
+ */
+async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
     const operationId = `fitFile_decode_${Date.now()}`;
 
     // Start performance monitoring if available
@@ -244,18 +353,21 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         // Update state with error
         if (fitFileStateManager) {
             try {
-                fitFileStateManager.handleFileLoadingError(new FitDecodeError(msg));
+        fitFileStateManager.handleFileLoadingError(new FitDecodeError(msg, null));
             } catch (error) {
                 console.warn("[FitParser] Failed to update error state:", error);
             }
         }
 
-        throw new FitDecodeError(msg);
+    throw new FitDecodeError(msg, null);
     }
 
     try {
-        const sdk = fitsdk || (await import("@garmin/fitsdk"));
-        const { Decoder, Stream } = sdk;
+    /** @type {any} */
+    // @ts-ignore - external library lacks bundled types; suppressed locally
+    const sdk = fitsdk || (await import("@garmin/fitsdk"));
+    // @ts-ignore - typed as any due to missing declaration file
+    const { Decoder, Stream } = /** @type {any} */ (sdk);
         const buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer);
         const stream = Stream.fromBuffer(buffer);
         const decoder = new Decoder(stream);
@@ -333,7 +445,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
             const msg = "No valid messages decoded, FIT file might be corrupted.";
             console.error(msg);
 
-            const error = new FitDecodeError(msg);
+            const error = new FitDecodeError(msg, null);
             if (fitFileStateManager) {
                 try {
                     fitFileStateManager.handleFileLoadingError(error);
@@ -395,15 +507,16 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         // Update state with generic error
         if (fitFileStateManager) {
             try {
-                fitFileStateManager.handleFileLoadingError(error);
+                fitFileStateManager.handleFileLoadingError(/** @type {Error} */ (error));
             } catch (stateError) {
                 console.warn("[FitParser] Failed to update error state:", stateError);
             }
         }
 
+        const errObj = /** @type {any} */ (error);
         return {
-            error: error.message || "Failed to decode file",
-            details: error.stack || null,
+            error: (errObj && errObj.message) ? errObj.message : "Failed to decode file",
+            details: errObj && errObj.stack ? errObj.stack : null,
         };
     }
 }

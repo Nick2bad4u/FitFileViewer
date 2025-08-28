@@ -2,10 +2,15 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 
 /**
+ * @typedef {Object} LoadedFitFile
+ * @property {any} data
+ * @property {string} [filePath]
+ */
+
+/**
  * Creates a list container for showing loaded FIT files on the map
  * @returns {HTMLElement} The files list container
  */
-
 export function createShownFilesList() {
     const container = document.createElement("div");
     container.className = "shown-files-list";
@@ -22,31 +27,45 @@ export function createShownFilesList() {
 
     function applyTheme() {
         const themeColors = getThemeColors();
-        container.style.background = themeColors.surface + "ec"; // Add transparency
-        container.style.color = themeColors.text;
-        container.style.border = `1px solid ${themeColors.border}`;
+        container.style.background = (themeColors["surface"] || "#ffffff") + "ec"; // Add transparency
+        container.style.color = themeColors["text"] || "#000000";
+        container.style.border = `1px solid ${themeColors["border"] || "#cccccc"}`;
     }
     applyTheme();
     document.body.addEventListener("themechange", applyTheme);
 
     // Helper: Check color contrast (returns true if color is accessible on the given background)
+    /**
+     * @param {string} fg - Foreground color
+     * @param {string} bg - Background color  
+     * @param {string} [filter=""] - CSS filter string
+     * @returns {boolean} True if color is accessible
+     */
     function isColorAccessible(fg, bg, filter = "") {
         // fg, bg: CSS color strings (e.g., '#fff', 'rgb(30,34,40)')
         // filter: CSS filter string (e.g., 'invert(0.92) ...')
+        /**
+         * @param {string} hex - Hex color string
+         * @returns {number[]} RGB array
+         */
         function hexToRgb(hex) {
             hex = hex.replace("#", "");
             if (hex.length === 3)
                 hex = hex
                     .split("")
-                    .map((x) => x + x)
+                    .map(/** @param {string} x */ (x) => x + x)
                     .join("");
             const num = parseInt(hex, 16);
             return [num >> 16, (num >> 8) & 255, num & 255];
         }
+        /**
+         * @param {string} str - Color string to parse
+         * @returns {number[]} RGB array
+         */
         function parseColor(str) {
             if (str.startsWith("#")) return hexToRgb(str);
             const m = str.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-            if (m) return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+            if (m && m[1] && m[2] && m[3]) return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
             return [255, 255, 255];
         }
         // If a filter is provided, simulate the filtered color using a temp element
@@ -63,34 +82,44 @@ export function createShownFilesList() {
         const [r1, g1, b1] = parseColor(fgColor);
         const [r2, g2, b2] = parseColor(bg);
         // Relative luminance
+        /**
+         * @param {number} r - Red component
+         * @param {number} g - Green component  
+         * @param {number} b - Blue component
+         * @returns {number} Luminance value
+         */
         function lum(r, g, b) {
-            [r, g, b] = [r, g, b].map((v) => {
+            const components = [r, g, b].map((v) => {
                 v /= 255;
                 return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
             });
-            return 0.2126 * r + 0.7152 * g + 0.0722;
+            return 0.2126 * (components[0] || 0) + 0.7152 * (components[1] || 0) + 0.0722 * (components[2] || 0);
         }
-        const L1 = lum(r1, g1, b1) + 0.05,
-            L2 = lum(r2, g2, b2) + 0.05;
+        const L1 = lum(r1 || 0, g1 || 0, b1 || 0) + 0.05;
+        const L2 = lum(r2 || 0, g2 || 0, b2 || 0) + 0.05;
         const ratio = L1 > L2 ? L1 / L2 : L2 / L1;
         return ratio >= 3.5; // WCAG AA for UI text
     }
 
+    // @ts-expect-error - Adding property to window
     window.updateShownFilesList = function () {
         const ul = container.querySelector("#shown-files-ul");
+        if (!ul) return;
         ul.innerHTML = "";
         let anyOverlays = false;
         // Remove main file clickable entry (undo previous change)
         // Only show overlays in the list
+        // @ts-expect-error - loadedFitFiles exists on window
         if (window.loadedFitFiles && window.loadedFitFiles.length > 1) {
-            window.loadedFitFiles.forEach((f, idx) => {
+            // @ts-expect-error - loadedFitFiles exists on window
+            window.loadedFitFiles.forEach(/** @param {LoadedFitFile} f */ /** @param {number} idx */ (f, idx) => {
                 if (idx === 0) return; // skip main file
                 anyOverlays = true;
                 const li = document.createElement("li");
                 li.style.position = "relative";
                 li.textContent = "File: " + (f.filePath || "(unknown)");
                 const colorIdx = idx % chartOverlayColorPalette.length;
-                const color = chartOverlayColorPalette[colorIdx];
+                const color = chartOverlayColorPalette[colorIdx] || "#1976d2";
                 const isDark = document.body.classList.contains("theme-dark");
                 let filter = "";
                 if (isDark) {
@@ -114,7 +143,7 @@ export function createShownFilesList() {
                     filteredColor = getComputedStyle(temp).color;
                     document.body.removeChild(temp);
                 }
-                let showWarning = !isColorAccessible(filteredColor, bg);
+                let showWarning = !isColorAccessible(filteredColor || color, bg);
                 let fullPath = f.filePath || "(unknown)";
                 li.style.cursor = "pointer";
 
@@ -143,9 +172,13 @@ export function createShownFilesList() {
                 };
                 removeBtn.onclick = (ev) => {
                     ev.stopPropagation();
+                    // @ts-expect-error - loadedFitFiles exists on window
                     if (window.loadedFitFiles) {
+                        // @ts-expect-error - loadedFitFiles exists on window
                         window.loadedFitFiles.splice(idx, 1);
+                        // @ts-expect-error - renderMap exists on window
                         if (window.renderMap) window.renderMap();
+                        // @ts-expect-error - updateShownFilesList exists on window
                         if (window.updateShownFilesList) window.updateShownFilesList();
                         // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(function () {
@@ -157,17 +190,24 @@ export function createShownFilesList() {
                 li.appendChild(removeBtn);
 
                 li.onclick = () => {
+                    // @ts-expect-error - _highlightedOverlayIdx exists on window
                     window._highlightedOverlayIdx = idx;
+                    // @ts-expect-error - updateOverlayHighlights exists on window
                     if (window.updateOverlayHighlights) window.updateOverlayHighlights();
+                    // @ts-expect-error - Custom property on HTMLElement
                     if (li._tooltipRemover) li._tooltipRemover();
                     // Bring the overlay polyline to front and flash highlight
+                    // @ts-expect-error - _overlayPolylines exists on window
                     if (window._overlayPolylines && window._overlayPolylines[idx]) {
+                        // @ts-expect-error - _overlayPolylines exists on window
                         const polyline = window._overlayPolylines[idx];
                         if (polyline.bringToFront) polyline.bringToFront();
                         // --- Also bring overlay markers to front ---
+                        // @ts-expect-error - L exists on window
                         if (window.L && window.L.CircleMarker && polyline._map && polyline._map._layers) {
                             Object.values(polyline._map._layers).forEach((layer) => {
                                 if (
+                                    // @ts-expect-error - L exists on window
                                     layer instanceof window.L.CircleMarker &&
                                     layer.options &&
                                     polyline.options &&
@@ -183,13 +223,16 @@ export function createShownFilesList() {
                             polyElem.style.filter =
                                 "drop-shadow(0 0 16px " + (polyline.options.color || "#1976d2") + ")";
                             setTimeout(function () {
+                                // @ts-expect-error - _highlightedOverlayIdx exists on window
                                 if (window._highlightedOverlayIdx === idx) {
                                     polyElem.style.filter =
                                         "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")";
                                 }
                             }, 250);
                             // Center and fit map to this overlay
+                            // @ts-expect-error - _leafletMapInstance exists on window
                             if (polyline.getBounds && window._leafletMapInstance) {
+                                // @ts-expect-error - _leafletMapInstance exists on window
                                 window._leafletMapInstance.fitBounds(polyline.getBounds(), {
                                     padding: [20, 20],
                                 });
@@ -198,27 +241,36 @@ export function createShownFilesList() {
                     }
                 };
 
+                // @ts-expect-error - Custom property on HTMLElement
                 li._tooltipTimeout = null;
+                // @ts-expect-error - Custom property on HTMLElement
                 li._tooltipRemover = null;
+                /** @param {MouseEvent} e */
                 li.onmouseenter = (e) => {
+                    // @ts-expect-error - _highlightedOverlayIdx exists on window
                     window._highlightedOverlayIdx = idx;
+                    // @ts-expect-error - updateOverlayHighlights exists on window
                     if (window.updateOverlayHighlights) window.updateOverlayHighlights();
                     removeBtn.style.opacity = "1";
 
                     // Tooltip delay and singleton logic
+                    // @ts-expect-error - _overlayTooltipTimeout exists on window
                     if (window._overlayTooltipTimeout) clearTimeout(window._overlayTooltipTimeout);
                     // Remove any existing tooltip immediately
                     const oldTooltips = document.querySelectorAll(".overlay-filename-tooltip");
                     oldTooltips.forEach((t) => t.parentNode && t.parentNode.removeChild(t));
+                    // @ts-expect-error - Custom property on HTMLElement
                     if (li._tooltipRemover) li._tooltipRemover();
 
+                    // @ts-expect-error - _overlayTooltipTimeout exists on window
                     window._overlayTooltipTimeout = setTimeout(function () {
                         // Only show if still hovered
+                        // @ts-expect-error - _highlightedOverlayIdx exists on window
                         if (window._highlightedOverlayIdx !== idx) return;
                         let tooltip = document.createElement("div");
                         tooltip.className = "overlay-filename-tooltip";
                         tooltip.style.position = "fixed";
-                        tooltip.style.zIndex = 9999;
+                        tooltip.style.zIndex = "9999";
                         tooltip.style.pointerEvents = "none";
                         tooltip.style.background = isDark ? "#23263a" : "#fff";
                         tooltip.style.color = isDark ? "#fff" : "#222";
@@ -234,6 +286,7 @@ export function createShownFilesList() {
                         }
                         tooltip.innerHTML = html;
                         document.body.appendChild(tooltip);
+                        /** @param {MouseEvent} evt */
                         const moveTooltip = (evt) => {
                             const pad = 12;
                             let x = evt.clientX + pad;
@@ -247,6 +300,7 @@ export function createShownFilesList() {
                         };
                         moveTooltip(e);
                         window.addEventListener("mousemove", moveTooltip);
+                        // @ts-expect-error - Custom property on HTMLElement
                         li._tooltipRemover = () => {
                             window.removeEventListener("mousemove", moveTooltip);
                             if (tooltip.parentNode) tooltip.parentNode.removeChild(tooltip);
@@ -254,13 +308,19 @@ export function createShownFilesList() {
                     }, 350);
                 };
                 li.onmouseleave = () => {
+                    // @ts-expect-error - _highlightedOverlayIdx exists on window
                     window._highlightedOverlayIdx = null;
+                    // @ts-expect-error - updateOverlayHighlights exists on window
                     if (window.updateOverlayHighlights) window.updateOverlayHighlights();
                     removeBtn.style.opacity = "0";
+                    // @ts-expect-error - _overlayTooltipTimeout exists on window
                     if (window._overlayTooltipTimeout) {
+                        // @ts-expect-error - _overlayTooltipTimeout exists on window
                         clearTimeout(window._overlayTooltipTimeout);
+                        // @ts-expect-error - _overlayTooltipTimeout exists on window
                         window._overlayTooltipTimeout = null;
                     }
+                    // @ts-expect-error - Custom property on HTMLElement
                     if (li._tooltipRemover) li._tooltipRemover();
                     // Remove any lingering tooltips from the DOM
                     setTimeout(function () {
@@ -271,7 +331,7 @@ export function createShownFilesList() {
                 ul.appendChild(li);
             });
             // Add Clear All button if overlays exist
-            if (anyOverlays && !ul.parentNode.querySelector(".overlay-clear-all-btn")) {
+            if (anyOverlays && ul.parentNode && !ul.parentNode.querySelector(".overlay-clear-all-btn")) {
                 const clearAll = document.createElement("button");
                 clearAll.textContent = "Clear All";
                 clearAll.className = "overlay-clear-all-btn";
@@ -285,11 +345,16 @@ export function createShownFilesList() {
                 clearAll.style.cursor = "pointer";
                 clearAll.style.float = "right";
                 clearAll.title = "Remove all overlays from the map";
+                /** @param {MouseEvent} ev */
                 clearAll.onclick = (ev) => {
                     ev.stopPropagation();
+                    // @ts-expect-error - loadedFitFiles exists on window
                     if (window.loadedFitFiles) {
+                        // @ts-expect-error - loadedFitFiles exists on window
                         window.loadedFitFiles.splice(1);
+                        // @ts-expect-error - renderMap exists on window
                         if (window.renderMap) window.renderMap();
+                        // @ts-expect-error - updateShownFilesList exists on window
                         if (window.updateShownFilesList) window.updateShownFilesList();
                         // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(function () {
@@ -298,7 +363,9 @@ export function createShownFilesList() {
                         }, 10);
                     }
                 };
-                ul.parentNode.appendChild(clearAll);
+                if (ul.parentNode) {
+                    ul.parentNode.appendChild(clearAll);
+                }
             }
             container.style.display = "";
         } else {
@@ -306,6 +373,7 @@ export function createShownFilesList() {
         }
     };
     // Hide initially if no overlays
+    // @ts-expect-error - loadedFitFiles exists on window
     if (!(window.loadedFitFiles && window.loadedFitFiles.length > 1)) {
         container.style.display = "none";
     }

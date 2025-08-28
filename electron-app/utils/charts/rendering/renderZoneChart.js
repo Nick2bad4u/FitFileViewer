@@ -6,25 +6,45 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 
 // Helper function to render individual zone chart
-
+/**
+ * Render a zone chart (doughnut or bar)
+ * @param {HTMLElement} container
+ * @param {string} title
+ * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {string} chartId
+ * @param {{ chartType?: string, showLegend?: boolean }} [options]
+ * @returns {void}
+ */
 export function renderZoneChart(container, title, zoneData, chartId, options = {}) {
+    if (!(container instanceof HTMLElement)) {
+        console.warn("renderZoneChart: invalid container", container);
+        return;
+    }
+    if (!Array.isArray(zoneData)) {
+        console.warn("renderZoneChart: zoneData not array", zoneData);
+        return;
+    }
     console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
 
+    /** @type {any} */
     const themeConfig = getThemeConfig();
     const currentTheme = detectCurrentTheme();
 
     // Determine chart type from options or default to doughnut
     const chartType = options.chartType || "doughnut";
 
-    const canvas = createChartCanvas(chartId, chartId);
+    // createChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
+    const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0));
 
     // Apply theme-aware canvas styling (background handled by plugin)
     canvas.style.borderRadius = "12px";
-    canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadowLight}`;
+    if (themeConfig?.colors?.shadowLight && canvas.style) {
+        canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadowLight}`;
+    }
 
     container.appendChild(canvas); // Determine zone type and get user-selected colors from theme
-    let colors = themeConfig.colors.zoneColors; // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
-    if (zoneData.length > 0 && zoneData[0].color) {
+    let colors = themeConfig?.colors?.zoneColors || []; // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
+    if (zoneData.length > 0 && zoneData[0] && zoneData[0].color) {
         // Use colors from the zone data objects
         colors = zoneData.map((zone) => zone.color);
     } else {
@@ -37,8 +57,9 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
     console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
-    const chart = new window.Chart(canvas, config);
-    if (chart) {
+    const ChartCtor = /** @type {any} */ (window.Chart);
+    const chart = ChartCtor ? new ChartCtor(canvas, config) : null;
+    if (chart && Array.isArray(window._chartjsInstances)) {
         console.log(`[ChartJS] Zone chart created successfully for ${title}`);
         window._chartjsInstances.push(chart);
     } else {
@@ -49,12 +70,20 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
 /**
  * Creates chart configuration based on chart type
  * @param {string} chartType - "doughnut" or "bar"
- * @param {Array} zoneData - Zone data array
- * @param {Array} colors - Colors array
+ * @param {any[]} zoneData - Zone data array
+ * @param {any[]} colors - Colors array
  * @param {string} title - Chart title
  * @param {Object} options - Chart options
  * @param {string} currentTheme - Current theme
  * @returns {Object} Chart.js configuration object
+ */
+/**
+ * @param {string} chartType
+ * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {string[]} colors
+ * @param {string} title
+ * @param {{ showLegend?: boolean }} options
+ * @param {string} currentTheme
  */
 function createChartConfig(chartType, zoneData, colors, title, options, currentTheme) {
     const baseDataset = {
@@ -73,6 +102,14 @@ function createChartConfig(chartType, zoneData, colors, title, options, currentT
 
 /**
  * Creates doughnut chart configuration
+ */
+/**
+ * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {string[]} colors
+ * @param {string} title
+ * @param {{ showLegend?: boolean }} options
+ * @param {string} currentTheme
+ * @param {any} baseDataset
  */
 function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
     return {
@@ -122,7 +159,12 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                 legend: {
                     display: options.showLegend !== false,
                     position: "right",
-                    onClick: function (event, legendItem, legend) {
+                    /**
+                     * @param {any} _event
+                     * @param {any} legendItem
+                     * @param {any} legend
+                     */
+                    onClick: function (_event, legendItem, legend) {
                         // Get the chart instance and dataset meta
                         const chart = legend.chart;
                         const index = legendItem.index;
@@ -141,13 +183,14 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         padding: 20,
                         usePointStyle: true,
                         pointStyle: "circle",
+                        /** @param {any} chart */
                         generateLabels: function (chart) {
                             const data = chart.data;
                             if (data.labels.length && data.datasets.length) {
                                 const dataset = data.datasets[0];
-                                const total = dataset.data.reduce((a, b) => a + b, 0);
+                                const total = dataset.data.reduce((/** @type {number} */a, /** @type {number} */b) => a + b, 0);
 
-                                return data.labels.map((label, i) => {
+                                return data.labels.map((/** @type {string} */label, /** @type {number} */i) => {
                                     const value = dataset.data[i];
                                     const percentage = ((value / total) * 100).toFixed(1);
                                     const meta = chart.getDatasetMeta(0);
@@ -183,13 +226,15 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     cornerRadius: 8,
                     displayColors: true,
                     callbacks: {
+                        /** @param {any} context */
                         label: function (context) {
                             const value = context.parsed;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const total = context.dataset.data.reduce((/** @type {number} */a, /** @type {number} */b) => a + b, 0);
                             const percentage = ((value / total) * 100).toFixed(1);
                             const timeFormatted = formatTime(context.parsed, true);
                             return [`Time: ${timeFormatted}`, `Percentage: ${percentage}%`];
                         },
+                        /** @param {any} context */
                         labelColor: function (context) {
                             return {
                                 borderColor: context.dataset.borderColor,
@@ -229,7 +274,23 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
 /**
  * Creates bar chart configuration
  */
-function createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
+/**
+ * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {string[]} colors
+ * @param {string} title
+ * @param {{ showLegend?: boolean }} _options
+ * @param {string} currentTheme
+ * @param {any} baseDataset
+ */
+/**
+ * @param {any[]} zoneData
+ * @param {any[]} colors
+ * @param {string} title
+ * @param {{ showLegend?: boolean }} _options
+ * @param {string} currentTheme
+ * @param {any} baseDataset
+ */
+function createBarChartConfig(zoneData, colors, title, _options, currentTheme, baseDataset) {
     return {
         type: "bar",
         data: {
@@ -279,11 +340,13 @@ function createBarChartConfig(zoneData, colors, title, options, currentTheme, ba
                     cornerRadius: 8,
                     displayColors: true,
                     callbacks: {
+                        /** @param {any} context */
                         label: function (context) {
                             const value = context.parsed.y;
                             const timeFormatted = formatTime(value, true);
                             return `Time: ${timeFormatted}`;
                         },
+                        /** @param {any} context */
                         labelColor: function (context) {
                             return {
                                 borderColor: context.dataset.borderColor,
@@ -310,6 +373,7 @@ function createBarChartConfig(zoneData, colors, title, options, currentTheme, ba
                         font: {
                             size: 12,
                         },
+                        /** @param {any} value */
                         callback: function (value) {
                             return formatTime(value, true);
                         },

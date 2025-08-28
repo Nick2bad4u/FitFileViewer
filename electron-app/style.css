@@ -48,6 +48,17 @@
     --color-filename: #aaa;
     --color-glass: rgb(0 0 0 / 35%);
     --color-glass-border: rgb(255 255 255 / 15%);
+    --elev-bg: var(--color-bg-solid);
+    
+    /* RGB variants for transparency effects */
+    --color-accent-rgb: 102, 126, 234;
+    --color-fg-rgb: 224, 224, 224;
+    --color-error-rgb: 239, 68, 68;
+    --color-success-rgb: 16, 185, 129;
+    
+    /* Leaflet control background */
+    --leaflet-control-bg: var(--color-bg-alt-solid);
+    
     --backdrop-blur: blur(12px);
     --border-radius: 16px;
     --border-radius-small: 8px;
@@ -85,6 +96,14 @@ body.theme-light {
     --color-glass: rgb(255 255 255 / 85%);
     --color-glass-border: rgb(255 255 255 / 95%);
     --color-overlay-bg: rgb(0 0 0 / 30%);
+    
+    /* Light theme specific variables */
+    --elev-bg: var(--color-bg-solid);
+    --color-accent-rgb: 59, 130, 246;
+    --color-fg-rgb: 30, 41, 59;
+    --color-error-rgb: 239, 68, 68;
+    --color-success-rgb: 16, 185, 129;
+    --leaflet-control-bg: var(--color-bg-alt-solid);
 }
 
 /* =====================================================
@@ -2248,7 +2267,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 .summary-filter-bar select:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px var(--color-accent) 33;
+    box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.33);
     transition:
         border-color 0.2s,
         box-shadow 0.2s;

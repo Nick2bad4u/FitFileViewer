@@ -1,27 +1,51 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 
+/**
+ * Create the Elevation Profile action button (Map toolbar) which opens a new
+ * window rendering elevation charts for each currently loaded FIT file (or the
+ * active file if none explicitly loaded as overlays).
+ *
+ * Implementation notes / typing strategy:
+ * - getThemeColors() returns an index-signature based object; due to
+ *   noPropertyAccessFromIndexSignature we must use bracket notation.
+ * - Many dynamic data objects (window.loadedFitFiles / window.globalData) are
+ *   loosely typed; we defensively treat them as any while keeping local
+ *   structures documented via JSDoc typedefs.
+ * - Guard the popup window (can be blocked and be null) before dereferencing.
+ *
+ * @returns {HTMLButtonElement}
+ */
 export function createElevationProfileButton() {
-    const btn = document.createElement("button");
-    btn.className = "map-action-btn";
-    btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${getThemeColors().primary}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${getThemeColors().primary}"/><circle cx="6" cy="10" r="1.5" fill="${getThemeColors().primary}"/><circle cx="10" cy="14" r="1.5" fill="${getThemeColors().primary}"/><circle cx="14" cy="6" r="1.5" fill="${getThemeColors().primary}"/><circle cx="18" cy="12" r="1.5" fill="${getThemeColors().primary}"/></svg> <span>Elevation</span>`;
-    btn.title = "Show Elevation Profile";
+	const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+	btn.className = "map-action-btn";
+	const themeColorsInit = getThemeColors();
+	// Use bracket notation because themeColorsInit comes from an index signature
+	const p = themeColorsInit["primary"] || "#3b82f6";
+	btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
+	btn.title = "Show Elevation Profile";
 
-    btn.onclick = () => {
-        let fitFiles = [];
-        if (window.loadedFitFiles && window.loadedFitFiles.length > 0) {
-            fitFiles = window.loadedFitFiles;
-        } else if (window.globalData && window.globalData.recordMesgs) {
-            fitFiles = [
-                {
-                    data: window.globalData,
-                    filePath: window.globalData?.cachedFilePath,
-                },
-            ];
-        }
-        const isDark = document.body.classList.contains("theme-dark");
-        const themeColors = getThemeColors();
-        const chartWin = window.open("", "Elevation Profile", "width=900,height=600");
-        let chartHtml = `
+	btn.onclick = () => {
+		/** @type {Array<any>} */
+		let fitFiles = [];
+		const w = /** @type {any} */ (window);
+		if (Array.isArray(w.loadedFitFiles) && w.loadedFitFiles.length > 0) {
+			fitFiles = w.loadedFitFiles;
+		} else if (w.globalData && Array.isArray(w.globalData.recordMesgs)) {
+			fitFiles = [
+				{
+					data: w.globalData,
+					filePath: w.globalData?.cachedFilePath,
+				},
+			];
+		}
+		const isDark = document.body.classList.contains("theme-dark");
+		const themeColors = getThemeColors();
+		const chartWin = window.open("", "Elevation Profile", "width=900,height=600");
+		if (!chartWin) {
+			// Popup likely blocked; fail silently or optionally notify
+			return;
+		}
+		let chartHtml = `
 		<html>
 		<head>
 			<title>Elevation Profiles</title>
@@ -33,16 +57,16 @@ export function createElevationProfileButton() {
 					margin: 0;
 					padding: 0;
 					font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-					background: ${themeColors.background};
-					color: ${themeColors.text};
+					background: ${themeColors["background"]};
+					color: ${themeColors["text"]};
 				}
 				header {
 					display: flex;
 					align-items: center;
 					justify-content: space-between;
 					padding: 24px 32px 0 32px;
-					background: ${themeColors.surface};
-					box-shadow: 0 2px 12px ${themeColors.shadowLight};
+					background: ${themeColors["surface"]};
+					box-shadow: 0 2px 12px ${themeColors["shadowLight"]};
 					border-radius: 0 0 18px 18px;
 				}
 				#elevChartsContainer {
@@ -54,19 +78,19 @@ export function createElevationProfileButton() {
 					padding: 32px 32px 32px 32px;
 				}
 				.elev-profile-block {
-					background: ${themeColors.surface};
+					background: ${themeColors["surface"]};
 					border-radius: 14px;
-					box-shadow: 0 4px 24px ${themeColors.shadowMedium};
+					box-shadow: 0 4px 24px ${themeColors["shadowMedium"]};
 					padding: 24px 24px 18px 24px;
 					display: flex;
 					flex-direction: column;
 					align-items: stretch;
 					transition: box-shadow 0.2s;
-					border: 1px solid ${themeColors.border};
+					border: 1px solid ${themeColors["border"]};
 				}
 				.elev-profile-block:hover {
-					box-shadow: 0 8px 32px ${themeColors.primaryShadow};
-					border-color: ${themeColors.primary};
+					box-shadow: 0 8px 32px ${themeColors["primaryShadow"]};
+					border-color: ${themeColors["primary"]};
 				}
 				.elev-profile-label {
 					font-weight: 600;
@@ -85,8 +109,8 @@ export function createElevationProfileButton() {
 					height: 14px;
 					border-radius: 50%;
 					margin-right: 2px;
-					box-shadow: 0 0 0 2px ${themeColors.borderLight}, 0 1px 4px ${themeColors.shadowMedium};
-					border: 2px solid ${themeColors.surface};
+					box-shadow: 0 0 0 2px ${themeColors["borderLight"]}, 0 1px 4px ${themeColors["shadowMedium"]};
+					border: 2px solid ${themeColors["surface"]};
 				}
 				.elev-profile-canvas {
 					width: 100%;
@@ -95,20 +119,20 @@ export function createElevationProfileButton() {
 					height: 200px;
 					background: inherit;
 					border-radius: 8px;
-					box-shadow: 0 2px 8px ${themeColors.shadowLight};
+					box-shadow: 0 2px 8px ${themeColors["shadowLight"]};
 				}
 				.no-altitude-data {
-					color: ${themeColors.textSecondary};
+					color: ${themeColors["textSecondary"]};
 					font-size: 1em;
 					margin-top: 12px;
 					text-align: center;
 				}
 				::-webkit-scrollbar {
 					width: 10px;
-					background: ${themeColors.surface};
+					background: ${themeColors["surface"]};
 				}
 				::-webkit-scrollbar-thumb {
-					background: ${themeColors.border};
+					background: ${themeColors["border"]};
 					border-radius: 6px;
 				}
 				@media (max-width: 700px) {
@@ -126,23 +150,17 @@ export function createElevationProfileButton() {
 			<div id="elevChartsContainer"></div>
 			<script>
 				const fitFiles = ${JSON.stringify(
-                    fitFiles.map((f, idx) => ({
-                        filePath: f.filePath || `File ${idx + 1}`,
-                        altitudes:
-                            f.data && f.data.recordMesgs
-                                ? f.data.recordMesgs
-                                      .filter(
-                                          (r) => r.positionLat != null && r.positionLong != null && r.altitude != null
-                                      )
-                                      .map((r, i) => ({ x: i, y: r.altitude }))
-                                : [],
-                        color:
-                            window.opener && window.opener.chartOverlayColorPalette
-                                ? window.opener.chartOverlayColorPalette[
-                                      idx % window.opener.chartOverlayColorPalette.length
-                                  ]
-                                : "#1976d2",
-                    }))
+					fitFiles.map((f, idx) => ({
+						filePath: f.filePath || `File ${idx + 1}`,
+						altitudes: f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
+							? /** @type {any[]} */ (f.data.recordMesgs)
+								  .filter((r) => r && r.positionLat != null && r.positionLong != null && r.altitude != null)
+								  .map((r, i) => ({ x: i, y: r.altitude }))
+							: [],
+						color: window.opener && window.opener.chartOverlayColorPalette
+							? window.opener.chartOverlayColorPalette[idx % window.opener.chartOverlayColorPalette.length]
+							: "#1976d2",
+					}))
                 )};
 				const isDark = ${isDark};
 				const container = document.getElementById('elevChartsContainer');
@@ -234,8 +252,8 @@ export function createElevationProfileButton() {
 		</body>
 		</html>
 		`;
-        chartWin.document.write(chartHtml);
-        chartWin.document.close();
+		chartWin.document.write(chartHtml);
+		chartWin.document.close();
     };
     return btn;
 }

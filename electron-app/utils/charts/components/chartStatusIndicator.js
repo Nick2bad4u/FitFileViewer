@@ -9,6 +9,7 @@ import { createChartStatusIndicatorFromCounts } from "./createChartStatusIndicat
 import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndicator.js";
 import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartStatusIndicatorFromCounts.js";
 import { getChartCounts } from "../core/getChartCounts.js";
+/** @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts */
 
 /**
  * Updates both the settings and global chart status indicators synchronously
@@ -23,7 +24,10 @@ export function updateAllChartStatusIndicators() {
         const settingsIndicator = document.getElementById("chart-status-indicator");
         if (settingsIndicator) {
             const newSettingsIndicator = createChartStatusIndicatorFromCounts(counts);
-            settingsIndicator.parentNode.replaceChild(newSettingsIndicator, settingsIndicator);
+            const parent = settingsIndicator.parentNode;
+            if (parent && newSettingsIndicator) {
+                parent.replaceChild(newSettingsIndicator, settingsIndicator);
+            }
         }
 
         // Update global indicator
@@ -31,7 +35,10 @@ export function updateAllChartStatusIndicators() {
         if (globalIndicator) {
             const newGlobalIndicator = createGlobalChartStatusIndicatorFromCounts(counts);
             if (newGlobalIndicator) {
-                globalIndicator.parentNode.replaceChild(newGlobalIndicator, globalIndicator);
+                const parent = globalIndicator.parentNode;
+                if (parent) {
+                    parent.replaceChild(newGlobalIndicator, globalIndicator);
+                }
             }
         } else {
             // Create if it doesn't exist
@@ -42,19 +49,23 @@ export function updateAllChartStatusIndicators() {
     }
 }
 
+/**
+ * Update a single chart status indicator element
+ * @param {HTMLElement|null} indicator
+ */
 export function updateChartStatusIndicator(indicator = null) {
     try {
-        if (!indicator) {
-            indicator = document.getElementById("chart-status-indicator");
-        }
-
-        if (!indicator) {
+        const target = indicator || document.getElementById("chart-status-indicator");
+        if (!target) {
             return;
         }
 
         // Replace the entire indicator with a new one
         const newIndicator = createChartStatusIndicator();
-        indicator.parentNode.replaceChild(newIndicator, indicator);
+        const parent = target.parentNode;
+        if (parent && newIndicator) {
+            parent.replaceChild(newIndicator, target);
+        }
     } catch (error) {
         console.error("[ChartStatus] Error updating chart status indicator:", error);
     }
@@ -107,12 +118,12 @@ export function setupChartStatusUpdates() {
                 // Store existing value if any
                 const currentValue = window.globalData;
 
-                Object.defineProperty(window, "globalData", {
+        Object.defineProperty(window, "globalData", {
                     get() {
-                        return window._globalData || currentValue;
+            return /** @type {any} */ (window).___ffv_globalData || currentValue;
                     },
                     set(value) {
-                        window._globalData = value;
+            /** @type {any} */ (window).___ffv_globalData = value;
                         setTimeout(function () {
                             try {
                                 updateAllChartStatusIndicators();
@@ -127,7 +138,7 @@ export function setupChartStatusUpdates() {
 
                 // Set initial value if it existed
                 if (currentValue !== undefined) {
-                    window._globalData = currentValue;
+                    /** @type {any} */ (window).___ffv_globalData = currentValue;
                 }
             } catch (propertyError) {
                 console.warn(

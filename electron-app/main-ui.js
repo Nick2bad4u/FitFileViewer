@@ -22,7 +22,25 @@ import { performanceMonitor } from "./utils/debug/stateDevTools.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 
-// Constants
+/**
+ * @typedef {Object} FitFileData Placeholder for decoded FIT file structure
+ * @property {Object<string, any>} [recordMesgs]
+ */
+
+/**
+ * @typedef {Object} DragDropHandlerLike
+ * @property {Function} showDropOverlay
+ * @property {Function} hideDropOverlay
+ * @property {(file: File) => Promise<void>} processDroppedFile
+ */
+
+/**
+ * @typedef {Object} StateChangeOptions
+ * @property {boolean} [silent]
+ * @property {string} source
+ */
+
+// Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
     SUMMARY_COLUMN_SELECTOR_DELAY: 100,
     IFRAME_PATHS: {
@@ -37,8 +55,9 @@ const CONSTANTS = {
         UNLOAD_FILE_BTN: "unloadFileBtn",
         TAB_CHART: "tab-chart",
         TAB_SUMMARY: "tab-summary",
-        CONTENT_MAP: "content-map",
-        CONTENT_DATA: "content-data",
+    CONTENT_MAP: "content-map",
+    CONTENT_DATA: "content-data",
+    CONTENT_CHART: "content-chart",
         CONTENT_SUMMARY: "content-summary",
     },
     SELECTORS: {
@@ -55,11 +74,17 @@ Object.defineProperty(window, "globalData", {
         return getState("globalData");
     },
     set(value) {
-        setState("globalData", value, { source: "main-ui.js" });
+    setState("globalData", value, { silent: false, source: "main-ui.js" });
     },
 });
 
 // Event listener management with state integration
+/**
+ * @param {EventTarget & { addEventListener: Function, removeEventListener: Function }} element
+ * @param {string} event
+ * @param {EventListenerOrEventListenerObject} handler
+ * @param {AddEventListenerOptions|boolean} [options]
+ */
 function addEventListenerWithCleanup(element, event, handler, options = {}) {
     if (!element) return;
 
@@ -73,7 +98,7 @@ function addEventListenerWithCleanup(element, event, handler, options = {}) {
 
 function cleanupEventListeners() {
     eventListeners.forEach((listeners) => {
-        listeners.forEach(({ element, event, handler }) => {
+        listeners.forEach((/** @type {{element:any,event:string,handler:any}} */ { element, event, handler }) => {
             if (element && element.removeEventListener) {
                 element.removeEventListener(event, handler);
             }
@@ -87,6 +112,10 @@ function validateElectronAPI() {
     return window.electronAPI && typeof window.electronAPI.decodeFitFile === "function";
 }
 
+/**
+ * @param {string} id
+ * @returns {HTMLElement|null}
+ */
 function validateElement(id) {
     const element = document.getElementById(id);
     if (!element) {
@@ -129,18 +158,22 @@ function clearContentAreas() {
 function unloadFitFile() {
     const operationId = `unload_file_${Date.now()}`;
 
-    // Start performance monitoring
-    if (performanceMonitor?.isEnabled()) {
-        performanceMonitor.startTimer(operationId);
+    // Start performance monitoring (tolerate differing impl shapes)
+    {
+        const pm = /** @type {any} */ (performanceMonitor);
+        if (pm && (typeof pm.isEnabled === "function" ? pm.isEnabled() : !!pm.isEnabled)) {
+            if (typeof pm.startTimer === "function") pm.startTimer(operationId);
+        }
     }
 
     try {
         // Clear global data using state management
-        AppActions.clearGlobalData();
+        // Prefer clearData for backward compatibility if clearGlobalData absent
+    if (AppActions.clearData) { AppActions.clearData(); }
 
         // Update file state
         if (fitFileStateManager) {
-            fitFileStateManager.handleFileLoaded(null);
+            fitFileStateManager.handleFileLoaded(/** @type {any} */ (null));
         }
 
         // Clear UI
@@ -172,20 +205,26 @@ function unloadFitFile() {
         showNotification("Error unloading file", "error");
     } finally {
         // End performance monitoring
-        if (performanceMonitor?.isEnabled()) {
-            performanceMonitor.endTimer(operationId);
+        {
+            const pm2 = /** @type {any} */ (performanceMonitor);
+            if (pm2 && (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : !!pm2.isEnabled)) {
+                if (typeof pm2.endTimer === "function") pm2.endTimer(operationId);
+            }
         }
     }
 }
 
 // Expose essential functions to window for backward compatibility
+// @ts-ignore augmenting window for legacy globals
 window.showFitData = showFitData;
-// Note: renderChartJS is now handled through chartStateManager, but exposed for legacy compatibility
+// @ts-ignore legacy compatibility
 window.renderChartJS = renderChartJS;
+// @ts-ignore
 window.cleanupEventListeners = cleanupEventListeners;
 
 // Enhanced iframe communication with better error handling
-window.sendFitFileToAltFitReader = async function (arrayBuffer) {
+// @ts-ignore legacy global
+window.sendFitFileToAltFitReader = async function (arrayBuffer /** @type {ArrayBuffer} */) {
     const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
     if (!iframe) {
         console.warn("Alt FIT iframe not found");
@@ -195,22 +234,24 @@ window.sendFitFileToAltFitReader = async function (arrayBuffer) {
     // If iframe is not loaded yet, wait for it to load before posting message
     const postToIframe = () => {
         try {
-            if (iframe.contentWindow) {
+            const frame = /** @type {HTMLIFrameElement} */ (iframe);
+            if (frame.contentWindow) {
                 const base64 = convertArrayBufferToBase64(arrayBuffer);
-                iframe.contentWindow.postMessage({ type: "fit-file", base64 }, "*");
+                frame.contentWindow.postMessage({ type: "fit-file", base64 }, "*");
             }
         } catch (error) {
             console.error("Error posting message to iframe:", error);
         }
     };
 
-    if (!iframe.src || !iframe.src.includes(CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
-        iframe.src = CONSTANTS.IFRAME_PATHS.ALT_FIT;
-        iframe.onload = postToIframe;
-    } else if (iframe.contentWindow && iframe.src) {
+    const frame = /** @type {HTMLIFrameElement} */ (iframe);
+    if (!frame.src || !frame.src.includes(CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
+        frame.src = CONSTANTS.IFRAME_PATHS.ALT_FIT;
+        frame.onload = postToIframe;
+    } else if (frame.contentWindow && frame.src) {
         postToIframe();
     } else {
-        iframe.onload = postToIframe;
+        frame.onload = postToIframe;
     }
 };
 
@@ -237,8 +278,8 @@ applyTheme(loadTheme());
 // Enhanced menu event handling with better error checking
 if (window.electronAPI && window.electronAPI.onOpenSummaryColumnSelector === undefined) {
     window.electronAPI.onOpenSummaryColumnSelector = (callback) => {
-        if (window.electronAPI && window.electronAPI._summaryColListenerAdded !== true) {
-            window.electronAPI._summaryColListenerAdded = true;
+        if (window.electronAPI && (/** @type {any} */ (window.electronAPI))._summaryColListenerAdded !== true) {
+            (/** @type {any} */ (window.electronAPI))._summaryColListenerAdded = true;
             window.electronAPI.onIpc("open-summary-column-selector", callback);
         }
     };
@@ -251,14 +292,14 @@ if (window.electronAPI && window.electronAPI.onIpc) {
             // Switch to summary tab if not already active
             const tabSummary = validateElement(CONSTANTS.DOM_IDS.TAB_SUMMARY);
             if (tabSummary && !tabSummary.classList.contains("active")) {
-                tabSummary.click();
+                (tabSummary instanceof HTMLElement ? tabSummary : /** @type {any} */ (tabSummary)).click();
             }
 
             // Wait for renderSummary to finish, then open the column selector
             setTimeout(function () {
                 const gearBtn = document.querySelector(CONSTANTS.SELECTORS.SUMMARY_GEAR_BTN);
                 if (gearBtn) {
-                    gearBtn.click();
+                    (gearBtn instanceof HTMLElement ? gearBtn : /** @type {any} */ (gearBtn)).click();
                 } else {
                     console.warn("Summary gear button not found");
                 }
@@ -288,7 +329,7 @@ class DragDropHandler {
     constructor() {
         this.setupEventListeners();
         // Initialize drag counter in state
-        setState("ui.dragCounter", 0, { source: "DragDropHandler" });
+    setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
     }
 
     showDropOverlay() {
@@ -313,12 +354,15 @@ class DragDropHandler {
         if (zwiftIframe) zwiftIframe.style.pointerEvents = "";
     }
 
+    /** @param {File} file */
     async processDroppedFile(file) {
         const operationId = `process_dropped_file_${Date.now()}`;
 
         // Start performance monitoring
-        if (performanceMonitor?.isEnabled()) {
-            performanceMonitor.startTimer(operationId);
+        /** @type {{isEnabled?:()=>boolean,startTimer?:(id:string)=>void,endTimer?:(id:string)=>void}} */
+        const pm = /** @type {any} */ (performanceMonitor) || {};
+        if (typeof pm.isEnabled === "function" ? pm.isEnabled() : !!pm.isEnabled) {
+            if (typeof pm.startTimer === "function") pm.startTimer(operationId);
         }
 
         if (!file || !file.name.toLowerCase().endsWith(".fit")) {
@@ -350,6 +394,7 @@ class DragDropHandler {
             const fitData = await window.electronAPI.decodeFitFile(arrayBuffer);
             if (fitData && !fitData.error) {
                 showFitData(fitData, file.name);
+                // @ts-ignore ensured above
                 window.sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
@@ -372,72 +417,76 @@ class DragDropHandler {
 
             // Handle error in state manager
             if (fitFileStateManager) {
-                fitFileStateManager.handleFileLoadingError(error);
+                fitFileStateManager.handleFileLoadingError(/** @type {Error} */ (error instanceof Error ? error : new Error(String(error))));
             }
         } finally {
             // Clear loading state
             AppActions.setFileOpening(false);
 
             // End performance monitoring
-            if (performanceMonitor?.isEnabled()) {
-                performanceMonitor.endTimer(operationId);
+            const pm2 = /** @type {any} */ (performanceMonitor) || {};
+            if (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : !!pm2.isEnabled) {
+                if (typeof pm2.endTimer === "function") pm2.endTimer(operationId);
             }
         }
     }
 
+    /** @param {File} file */
     readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (event) => resolve(event.target.result);
+            reader.onload = (event) => { resolve(/** @type {any} */ (event).target?.result || null); };
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
         });
     }
     setupEventListeners() {
         // Show overlay on dragenter, hide on dragleave/drop
-        addEventListenerWithCleanup(window, "dragenter", (e) => {
+    addEventListenerWithCleanup(window, "dragenter", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
                 const currentCounter = getState("ui.dragCounter") || 0;
-                setState("ui.dragCounter", currentCounter + 1, { source: "DragDropHandler" });
+                setState("ui.dragCounter", currentCounter + 1, { silent: false, source: "DragDropHandler" });
                 this.showDropOverlay();
             }
         });
 
-        addEventListenerWithCleanup(window, "dragleave", (e) => {
+    addEventListenerWithCleanup(window, "dragleave", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
                 const currentCounter = getState("ui.dragCounter") || 0;
                 const newCounter = currentCounter - 1;
-                setState("ui.dragCounter", newCounter, { source: "DragDropHandler" });
+                setState("ui.dragCounter", newCounter, { silent: false, source: "DragDropHandler" });
                 if (newCounter <= 0) {
                     this.hideDropOverlay();
-                    setState("ui.dragCounter", 0, { source: "DragDropHandler" });
+                    setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
                 }
             }
         });
 
-        addEventListenerWithCleanup(window, "dragover", (e) => {
+        addEventListenerWithCleanup(window, "dragover", (/** @type {Event} */ e) => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = "copy";
+            const de = /** @type {any} */ (e);
+            if (de.dataTransfer) de.dataTransfer.dropEffect = "copy";
             this.showDropOverlay();
         });
 
-        addEventListenerWithCleanup(window, "drop", async (e) => {
-            setState("ui.dragCounter", 0, { source: "DragDropHandler" });
+        addEventListenerWithCleanup(window, "drop", async (/** @type {Event} */ e) => {
+            setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
             this.hideDropOverlay();
             e.preventDefault();
-
-            if (!e.dataTransfer || !e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+            const de = /** @type {any} */ (e);
+            if (!de.dataTransfer || !de.dataTransfer.files || de.dataTransfer.files.length === 0) {
                 const message = "No valid files detected. Please drop a .fit file.";
                 alert(message);
                 showNotification(message, "warning");
                 return;
             }
 
-            await this.processDroppedFile(e.dataTransfer.files[0]);
+            const first = de.dataTransfer.files[0];
+            if (first) await this.processDroppedFile(first);
         });
 
         // Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
-        if (window.enableDragAndDrop) {
+        if (/** @type {any} */ (window).enableDragAndDrop) {
             this.setupIframeEventListeners();
         }
     }
@@ -475,6 +524,7 @@ class DragDropHandler {
 const dragDropHandler = new DragDropHandler();
 
 // Expose dragDropHandler for cleanup if needed
+// @ts-ignore legacy global
 window.dragDropHandler = dragDropHandler;
 
 // Move event listener setup to utility functions
@@ -490,22 +540,28 @@ setupWindow();
 // External link handler for opening links in default browser
 function setupExternalLinkHandlers() {
     // Use event delegation to handle both existing and dynamically added external links
-    document.addEventListener("click", (e) => {
-        const link = e.target.closest('[data-external-link="true"]');
+    document.addEventListener("click", (/** @type {MouseEvent} */ e) => {
+        const target = e.target instanceof HTMLElement ? e.target : null;
+        const link = target?.closest('[data-external-link="true"]');
         if (link) {
-            handleExternalLink(e, link);
+            handleExternalLink(e, /** @type {HTMLElement} */ (link));
         }
     });
 
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
         if (e.key === "Enter" || e.key === " ") {
-            const link = e.target.closest('[data-external-link="true"]');
+            const target = e.target instanceof HTMLElement ? e.target : null;
+            const link = target?.closest('[data-external-link="true"]');
             if (link) {
-                handleExternalLink(e, link);
+                handleExternalLink(/** @type {MouseEvent} */ (/** @type {any} */ (e)), /** @type {HTMLElement} */ (link));
             }
         }
     });
 
+    /**
+     * @param {MouseEvent} e
+     * @param {HTMLElement} link
+     */
     function handleExternalLink(e, link) {
         e.preventDefault();
         const url = link.getAttribute("href");
@@ -530,6 +586,7 @@ if (document.readyState === "loading") {
 }
 
 // Enhanced development helper function with better error handling
+// @ts-ignore legacy global
 window.injectMenu = function (theme = null, fitFilePath = null) {
     try {
         if (window.electronAPI && typeof window.electronAPI.injectMenu === "function") {
@@ -544,18 +601,20 @@ window.injectMenu = function (theme = null, fitFilePath = null) {
 };
 
 // Add cleanup function to development helpers with state management integration
+// @ts-ignore legacy global
 window.devCleanup = function () {
     cleanupEventListeners();
 
     // Clear state using the new system
-    AppActions.clearGlobalData();
-    setState("charts.isRendered", false, { source: "devCleanup" });
-    setState("ui.dragCounter", 0, { source: "devCleanup" });
+    if (AppActions.clearData) { AppActions.clearData(); }
+    setState("charts.isRendered", false, { silent: false, source: "devCleanup" });
+    setState("ui.dragCounter", 0, { silent: false, source: "devCleanup" });
 
     // Clean up our new state managers
-    if (window.chartTabIntegration) {
-        window.chartTabIntegration.destroy();
-    }
+    if (/** @type {any} */ (window).chartTabIntegration) {
+            // @ts-ignore legacy
+            (window).chartTabIntegration.destroy();
+        }
 
     console.log("[devCleanup] Application state and event listeners cleaned up");
 };

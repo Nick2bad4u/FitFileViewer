@@ -1,7 +1,8 @@
-import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
-import { formatDistance } from "../../formatting/formatters/formatDistance.js";
-import { formatDuration } from "../../formatting/formatters/formatDuration.js";
 import { getStorageKey, loadColPrefs, renderTable, showColModal } from "../helpers/renderSummaryHelpers.js";
+
+/**
+ * @typedef {import("../helpers/renderSummaryHelpers.js").FitSummaryData} FitSummaryData
+ */
 
 /**
  * Renders a summary of activity data, including main summary and lap summary tables,
@@ -24,90 +25,22 @@ import { getStorageKey, loadColPrefs, renderTable, showColModal } from "../helpe
  */
 export function renderSummary(data) {
     const container = document.getElementById("content-summary");
+    if (!container) return; // Guard: container missing
     container.innerHTML = "";
-    let summaryRows = [];
-    // Main summary table logic
-    if (data.sessionMesgs && data.sessionMesgs.length > 0) {
-        const raw = { ...data.sessionMesgs[0] };
-        patchSummaryFields(raw);
-        if (raw.total_ascent != null && !isNaN(raw.total_ascent)) {
-            raw.total_ascent_ft = (raw.total_ascent * 3.28084).toFixed(0) + " ft";
-        }
-        if (raw.total_descent != null) {
-            raw.total_descent_ft = (raw.total_descent * 3.28084).toFixed(0) + " ft";
-        }
-        summaryRows = [raw];
-    } else if (data.recordMesgs && data.recordMesgs.length > 0) {
-        const aq = window.aq;
-        const table = aq.from(data.recordMesgs);
-        const stats = {
-            total_records: table.numRows(),
-            start_time: table.get(0, "timestamp"),
-            end_time: table.get(table.numRows() - 1, "timestamp"),
-        };
-        if (table.columnNames().includes("distance")) {
-            const dist = table.get(table.numRows() - 1, "distance");
-            stats.total_distance = formatDistance(dist);
-        }
-        if (table.columnNames().includes("timestamp")) {
-            const start = new Date(table.get(0, "timestamp"));
-            const end = new Date(table.get(table.numRows() - 1, "timestamp"));
-            const sec = Math.round((end - start) / 1000);
-            stats.duration = formatDuration(sec);
-        }
-        if (table.columnNames().includes("speed")) {
-            const avg = table.array("speed").reduce((a, b) => a + b, 0) / table.numRows();
-            const max = Math.max(...table.array("speed"));
-            stats.avg_speed = (avg * 3.6).toFixed(2) + " km/h / " + (avg * 2.23694).toFixed(2) + " mph";
-            stats.max_speed = (max * 3.6).toFixed(2) + " km/h / " + (max * 2.23694).toFixed(2) + " mph";
-        }
-        if (table.columnNames().includes("altitude")) {
-            const min = Math.min(...table.array("altitude"));
-            const max = Math.max(...table.array("altitude"));
-            stats.min_altitude_ft = (min * 3.28084).toFixed(0) + " ft";
-            stats.max_altitude_ft = (max * 3.28084).toFixed(0) + " ft";
-        }
-        patchSummaryFields(stats);
-        summaryRows = [stats];
-    } else {
-        container.innerHTML = "<p>No summary data available.</p>";
-        return;
-    }
-    // Remove summary columns with no data, all zero values, or NaN
-    if (summaryRows.length > 0) {
-        const keys = Object.keys(summaryRows[0]);
-        const filteredKeys = keys.filter((key) => {
-            const val = summaryRows[0][key];
-            // Remove if null, undefined, empty string, strictly 0, or NaN
-            return (
-                val !== null &&
-                val !== undefined &&
-                val !== "" &&
-                !(
-                    (typeof val === "number" && val === 0) ||
-                    (typeof val === "string" && /^(0+(\.0+)?|0*\.\d*0+)$/.test(val.trim()))
-                ) &&
-                !(typeof val === "number" && isNaN(val))
-            );
-        });
-        summaryRows[0] = Object.fromEntries(filteredKeys.map((k) => [k, summaryRows[0][k]]));
-    }
 
-    // Use helpers for the rest
-    let allKeys = Object.keys(summaryRows[0]);
-    if (data.sessionMesgs && data.sessionMesgs.length > 0) {
-        data.sessionMesgs.forEach((row) => {
-            Object.keys(row).forEach((k) => {
-                if (!allKeys.includes(k)) allKeys.push(k);
-            });
-        });
-    } else if (data.recordMesgs && data.recordMesgs.length > 0) {
-        data.recordMesgs.forEach((row) => {
-            Object.keys(row).forEach((k) => {
-                if (!allKeys.includes(k)) allKeys.push(k);
-            });
-        });
+    // Build superset of keys from session, lap, record messages for column selection.
+    /** @type {Set<string>} */
+    const keySet = new Set();
+    if (data && data.sessionMesgs) {
+        data.sessionMesgs.forEach((row) => Object.keys(row || {}).forEach((k) => keySet.add(k)));
     }
+    if (data && data.lapMesgs) {
+        data.lapMesgs.forEach((row) => Object.keys(row || {}).forEach((k) => keySet.add(k)));
+    }
+    if (data && data.recordMesgs) {
+        data.recordMesgs.forEach((row) => Object.keys(row || {}).forEach((k) => keySet.add(k)));
+    }
+    const allKeys = Array.from(keySet);
     let visibleColumns = loadColPrefs(getStorageKey(data, allKeys), allKeys) || allKeys.slice();
 
     const gearBtn = document.createElement("button");
@@ -117,7 +50,6 @@ export function renderSummary(data) {
     gearBtn.onclick = (e) => {
         e.stopPropagation();
         showColModal({
-            container,
             allKeys,
             visibleColumns,
             setVisibleColumns: (cols) => {
@@ -126,8 +58,7 @@ export function renderSummary(data) {
             renderTable: () =>
                 renderTable({
                     container,
-                    data,
-                    allKeys,
+                    data: /** @type {FitSummaryData} */ (data),
                     visibleColumns,
                     setVisibleColumns: (cols) => {
                         visibleColumns = cols;
@@ -139,8 +70,7 @@ export function renderSummary(data) {
 
     renderTable({
         container,
-        data,
-        allKeys,
+        data: /** @type {FitSummaryData} */ (data),
         visibleColumns,
         setVisibleColumns: (cols) => {
             visibleColumns = cols;

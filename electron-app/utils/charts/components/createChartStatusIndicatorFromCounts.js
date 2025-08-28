@@ -1,6 +1,6 @@
 /**
  * Creates chart status indicator from pre-calculated counts
- * @param {Object} counts - Pre-calculated chart counts
+ * @param {import('../core/getChartCounts.js').ChartCounts} counts - Pre-calculated chart counts
  */
 export function createChartStatusIndicatorFromCounts(counts) {
     try {
@@ -148,14 +148,15 @@ export function createChartStatusIndicatorFromCounts(counts) {
         // Click to scroll to field toggles
         indicator.addEventListener("click", () => {
             const fieldsSection = document.querySelector(".fields-section");
-            if (fieldsSection) {
+            if (fieldsSection instanceof HTMLElement) {
                 fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-                // Add a brief highlight effect
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
                 setTimeout(function () {
-                    fieldsSection.style.outline = "none";
-                    fieldsSection.style.outlineOffset = "0";
+                    if (fieldsSection.style) {
+                        fieldsSection.style.outline = "none";
+                        fieldsSection.style.outlineOffset = "0";
+                    }
                 }, 2000);
             }
         });

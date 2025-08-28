@@ -18,40 +18,68 @@
  * }
  */
 /**
+ * Lightweight structural JSDoc to avoid heavy chart.js type imports (which were causing TS2307 in checkJs mode).
+ * We define the minimal shape we actually rely on instead of importing from the chart.js module.
+ * @typedef {Object} MinimalChartLike
+ * @property {HTMLCanvasElement} canvas
+ * @property {CanvasRenderingContext2D} ctx
+ * @property {Object.<string,any>} [options]
+ */
+
+/**
+ * @typedef {Object} BackgroundColorPluginOptions
+ * @property {string} [backgroundColor]
+ */
+
+/**
  * Chart.js plugin for setting a theme-aware background color on chart canvases.
- * @type {import('chart.js').Plugin}
+ * (Typed minimally to prevent missing module errors.)
+ * @type {{ id: string, beforeDraw: (chart: MinimalChartLike, options?: BackgroundColorPluginOptions) => void }}
  * @exports chartBackgroundColorPlugin
  */
 export const chartBackgroundColorPlugin = {
     id: "chartBackgroundColorPlugin",
     /**
      * Sets the chart background color before drawing chart elements.
-     * @param {import('chart.js').Chart} chart - The chart instance
-     * @param {Object} [options] - Plugin options
-     * @param {string} [options.backgroundColor] - Background color to use
+     * @param {MinimalChartLike} chart - The chart instance (minimal shape)
+     * @param {BackgroundColorPluginOptions} [options] - Plugin options
      */
     beforeDraw: (chart, options) => {
         // Precedence: use backgroundColor from plugin options if provided, otherwise fallback to chart config
         // Use plugin option, then chart config, then fallback to CSS variable or white
-        let backgroundColor =
-            options?.backgroundColor ||
-            chart.options?.plugins?.chartBackgroundColorPlugin?.backgroundColor ||
-            (() => {
-                const cssBg = getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim();
-                return cssBg && cssBg !== "" ? cssBg : undefined;
-            })() ||
-            "#23263a";
+        let backgroundColor = options && options.backgroundColor;
+        if (!backgroundColor) {
+            try {
+                // Access via bracket notation to satisfy index signature constraints under exactOptionalPropertyTypes
+                const pluginCfg = chart?.options && chart.options["plugins"] && chart.options["plugins"].chartBackgroundColorPlugin;
+                if (pluginCfg && typeof pluginCfg.backgroundColor === "string") backgroundColor = pluginCfg.backgroundColor;
+            } catch (_) {
+                /* ignore */
+            }
+        }
+        if (!backgroundColor) {
+            try {
+                const cssBg = chart?.canvas ? getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim() : "";
+                if (cssBg) backgroundColor = cssBg;
+            } catch (_) {
+                /* ignore */
+            }
+        }
+        backgroundColor = backgroundColor || "#23263a";
         if (!backgroundColor) {
             console.warn("[chartBackgroundColorPlugin] No backgroundColor set, using default #23263a");
             backgroundColor = "#23263a";
         }
-        const { ctx, width, height } = chart;
+        const ctx = chart?.ctx;
+        const width = chart?.canvas?.width || 0;
+        const height = chart?.canvas?.height || 0;
         if (!ctx) {
             console.warn("[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw.");
             return;
         }
         // Only log in development mode to avoid noisy output in production
-        if (window?.__renderer_dev?.debug) {
+    const w = /** @type {any} */ (typeof window !== "undefined" ? window : undefined);
+    if (w?.__renderer_dev?.debug) {
             console.log(
                 `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
             );
