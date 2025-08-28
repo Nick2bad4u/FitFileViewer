@@ -71,11 +71,13 @@ class ComputedStateManager {
 
         // Clean up subscriptions
         const subscriptions = this.subscriptions.get(key) || [];
-        subscriptions.forEach(/** @param {*} unsubscribe */ (unsubscribe) => {
-            if (typeof unsubscribe === "function") {
-                unsubscribe();
+        subscriptions.forEach(
+            /** @param {*} unsubscribe */ (unsubscribe) => {
+                if (typeof unsubscribe === "function") {
+                    unsubscribe();
+                }
             }
-        });
+        );
 
         // Remove from all maps
         this.computedValues.delete(key);
@@ -138,7 +140,7 @@ class ComputedStateManager {
         this.isComputing.add(key);
 
         try {
-            const state = getState("");  // Pass empty string to get root state
+            const state = getState(""); // Pass empty string to get root state
             const startTime = performance.now();
 
             // Call the compute function with current state
@@ -223,11 +225,13 @@ class ComputedStateManager {
 
         // Clean up all subscriptions
         this.subscriptions.forEach((subscriptions) => {
-            subscriptions.forEach(/** @param {*} unsubscribe */ (unsubscribe) => {
-                if (typeof unsubscribe === "function") {
-                    unsubscribe();
+            subscriptions.forEach(
+                /** @param {*} unsubscribe */ (unsubscribe) => {
+                    if (typeof unsubscribe === "function") {
+                        unsubscribe();
+                    }
                 }
-            });
+            );
         });
 
         // Clear all maps
@@ -313,7 +317,10 @@ export function initializeCommonComputedValues() {
             const records = state.globalData?.recordMesgs;
             return !!(
                 records &&
-                records.some(/** @param {*} record */ (record) => record.positionLat !== undefined && record.positionLong !== undefined)
+                records.some(
+                    /** @param {*} record */ (record) =>
+                        record.positionLat !== undefined && record.positionLong !== undefined
+                )
             );
         },
         ["globalData.recordMesgs"]

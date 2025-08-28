@@ -255,8 +255,8 @@ export const chartActions = {
      */
     startRendering() {
         // Use state management instead of missing AppActions method
-        setState("charts.isRendering", true, { silent: false, source: "chartActions.startRendering"  });
-        setState("isLoading", true, { silent: false, source: "chartActions.startRendering"  });
+        setState("charts.isRendering", true, { silent: false, source: "chartActions.startRendering" });
+        setState("isLoading", true, { silent: false, source: "chartActions.startRendering" });
     },
 
     /**
@@ -280,7 +280,7 @@ export const chartActions = {
             { silent: false, source: "chartActions.completeRendering" }
         );
 
-        setState("isLoading", false, { silent: false, source: "chartActions.completeRendering"  });
+        setState("isLoading", false, { silent: false, source: "chartActions.completeRendering" });
 
         if (success) {
             updateState(
@@ -292,7 +292,7 @@ export const chartActions = {
             );
 
             // Notify other components of successful render
-            (/** @type {any} */ (AppActions)).notifyChartRenderComplete?.(chartCount);
+            /** @type {any} */ (AppActions).notifyChartRenderComplete?.(chartCount);
         }
     },
 
@@ -301,7 +301,7 @@ export const chartActions = {
      * @param {string} chartType - New chart type selection
      */
     selectChart(chartType) {
-        setState("charts.selectedChart", chartType, { silent: false, source: "chartActions.selectChart"  });
+        setState("charts.selectedChart", chartType, { silent: false, source: "chartActions.selectChart" });
 
         // Trigger re-render if charts are currently displayed
         if (chartState.isRendered) {
@@ -314,8 +314,8 @@ export const chartActions = {
      */
     toggleControls() {
         const newVisibility = !chartState.controlsVisible;
-        setState("charts.controlsVisible", newVisibility, { silent: false, source: "chartActions.toggleControls"  });
-        (/** @type {any} */ (uiStateManager)).updatePanelVisibility?.("chart-controls", newVisibility);
+        setState("charts.controlsVisible", newVisibility, { silent: false, source: "chartActions.toggleControls" });
+        /** @type {any} */ (uiStateManager).updatePanelVisibility?.("chart-controls", newVisibility);
     },
 
     /**
@@ -448,7 +448,7 @@ export async function renderChartJS(targetContainer) {
         }
 
         // Get validated data through state
-    const globalData = getState("globalData");
+        const globalData = getState("globalData");
 
         // Setup zone data from FIT file
         setupZoneData(globalData);
@@ -478,13 +478,13 @@ export async function renderChartJS(targetContainer) {
 					<div class="chart-placeholder" style="
 						text-align: center;
 						padding: 40px;
-						color: var(--color-fg, ${(/** @type {any} */ (themeConfig)).colors.text});
-						background: var(--color-bg-alt-solid, ${(/** @type {any} */ (themeConfig)).colors.backgroundAlt});
+						color: var(--color-fg, ${/** @type {any} */ (themeConfig).colors.text});
+						background: var(--color-bg-alt-solid, ${/** @type {any} */ (themeConfig).colors.backgroundAlt});
 						border-radius: 12px;
 						margin: 20px 0;
-						border: 1px solid var(--color-border, ${(/** @type {any} */ (themeConfig)).colors.border});
+						border: 1px solid var(--color-border, ${/** @type {any} */ (themeConfig).colors.border});
 					">
-						<h3 style="color: var(--color-fg-alt, ${(/** @type {any} */ (themeConfig)).colors.textPrimary}); margin-bottom: 16px;">No Chart Data Available</h3>
+						<h3 style="color: var(--color-fg-alt, ${/** @type {any} */ (themeConfig).colors.textPrimary}); margin-bottom: 16px;">No Chart Data Available</h3>
 						<p style="margin-bottom: 8px;">This FIT file does not contain time-series data that can be charted.</p>
 						<p style="margin-bottom: 0;">Try loading a FIT file from a fitness activity or workout.</p>
 					</div>
@@ -514,7 +514,11 @@ export async function renderChartJS(targetContainer) {
             { silent: false, source: "renderChartJS" }
         );
 
-        const result = await renderChartsWithData(/** @type {HTMLElement} */ (targetContainer), recordMesgs, activityStartTime);
+        const result = await renderChartsWithData(
+            /** @type {HTMLElement} */ (targetContainer),
+            recordMesgs,
+            activityStartTime
+        );
 
         // Log performance timing
         const performanceEnd = performance.now();
@@ -550,25 +554,25 @@ export async function renderChartJS(targetContainer) {
 				<div class="chart-error" style="
 					text-align: center;
 					padding: 40px;
-					color: var(--color-error, ${(/** @type {any} */ (themeConfig)).colors.error});
-					background: var(--color-glass, ${(/** @type {any} */ (themeConfig)).colors.backgroundAlt});
-					border: 1px solid var(--color-border, ${(/** @type {any} */ (themeConfig)).colors.border});
+					color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});
+					background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt});
+					border: 1px solid var(--color-border, ${/** @type {any} */ (themeConfig).colors.border});
 					border-radius: var(--border-radius, 12px);
 					margin: 20px 0;
 				">
-					<h3 style="margin-bottom: 16px; color: var(--color-error, ${(/** @type {any} */ (themeConfig)).colors.error});">Chart Rendering Error</h3>
+					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
-                        (/** @type {any} */ (themeConfig)).colors.text
+                        /** @type {any} */ (themeConfig).colors.text
                     });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
-                            (/** @type {any} */ (themeConfig)).colors.text
+                            /** @type {any} */ (themeConfig).colors.text
                         });">Error Details</summary>
-						<pre style="background: var(--color-glass, ${(/** @type {any} */ (themeConfig)).colors.backgroundAlt}); color: var(--color-fg, ${
-                            (/** @type {any} */ (themeConfig)).colors.text
+						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
+                            /** @type {any} */ (themeConfig).colors.text
                         }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
-                            (/** @type {any} */ (themeConfig)).colors.border
-                        });">${(/** @type {any} */ (error)).stack || (/** @type {any} */ (error)).message}</pre>
+                            /** @type {any} */ (themeConfig).colors.border
+                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -649,14 +653,14 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         colors: customColors = [],
     } = settings;
 
-        // Convert boolean settings from strings (maintain backward compatibility)
-        const boolSettings = {
-            showGrid: String(showGrid) !== "off" && showGrid !== false,
-            showLegend: String(showLegend) !== "off" && showLegend !== false,
-            showTitle: String(showTitle) !== "off" && showTitle !== false,
-            showPoints: String(showPoints) === "on" || showPoints === true,
-            showFill: String(showFill) === "on" || showFill === true,
-        };    // Store processed settings in state for other components
+    // Convert boolean settings from strings (maintain backward compatibility)
+    const boolSettings = {
+        showGrid: String(showGrid) !== "off" && showGrid !== false,
+        showLegend: String(showLegend) !== "off" && showLegend !== false,
+        showTitle: String(showTitle) !== "off" && showTitle !== false,
+        showPoints: String(showPoints) === "on" || showPoints === true,
+        showFill: String(showFill) === "on" || showFill === true,
+    }; // Store processed settings in state for other components
     setState(
         "charts.chartOptions",
         {
@@ -684,8 +688,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             },
             drag: {
                 enabled: true,
-                backgroundColor: (/** @type {any} */ (themeConfig)).colors.primaryAlpha || "rgba(59, 130, 246, 0.2)",
-                borderColor: (/** @type {any} */ (themeConfig)).colors.primary || "rgba(59, 130, 246, 0.8)",
+                backgroundColor: /** @type {any} */ (themeConfig).colors.primaryAlpha || "rgba(59, 130, 246, 0.2)",
+                borderColor: /** @type {any} */ (themeConfig).colors.primary || "rgba(59, 130, 246, 0.8)",
                 borderWidth: 2,
                 modifierKey: "shift", // Require shift key for drag selection
             },
@@ -706,24 +710,27 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const data = recordMesgs; // Use the record messages
     const labels = data.map((row, i) => {
         // Convert timestamp to relative seconds from start time
-        if ((/** @type {any} */ (row)).timestamp && startTime) {
+        if (/** @type {any} */ (row).timestamp && startTime) {
             let timestamp;
             let startTimestamp;
 
             // Handle different timestamp formats
-            if ((/** @type {any} */ (row)).timestamp instanceof Date) {
-                timestamp = (/** @type {any} */ (row)).timestamp.getTime() / 1000; // Convert to seconds
-            } else if (typeof (/** @type {any} */ (row)).timestamp === "number") {
+            if (/** @type {any} */ (row).timestamp instanceof Date) {
+                timestamp = /** @type {any} */ (row).timestamp.getTime() / 1000; // Convert to seconds
+            } else if (typeof /** @type {any} */ (row).timestamp === "number") {
                 // Check if timestamp is in milliseconds (very large number) or seconds
-                timestamp = (/** @type {any} */ (row)).timestamp > 1000000000000 ? (/** @type {any} */ (row)).timestamp / 1000 : (/** @type {any} */ (row)).timestamp;
+                timestamp =
+                    /** @type {any} */ (row).timestamp > 1000000000000
+                        ? /** @type {any} */ (row).timestamp / 1000
+                        : /** @type {any} */ (row).timestamp;
             } else {
                 return i; // fallback to index if timestamp is invalid
             }
 
             if (typeof startTime === "number") {
                 startTimestamp = startTime > 1000000000000 ? startTime / 1000 : startTime;
-            } else if (startTime && typeof startTime === 'object' && 'getTime' in startTime) {
-                startTimestamp = (/** @type {Date} */ (startTime)).getTime() / 1000;
+            } else if (startTime && typeof startTime === "object" && "getTime" in startTime) {
+                startTimestamp = /** @type {Date} */ (startTime).getTime() / 1000;
             } else {
                 return i; // fallback to index if startTime is invalid
             }
@@ -739,7 +746,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const renderableFields = chartState.renderableFields;
 
     console.log(
-        `[ChartJS] Processing ${renderableFields.length} visible fields out of ${(Array.isArray(formatChartFields) ? formatChartFields.length : 0)} total`
+        `[ChartJS] Processing ${renderableFields.length} visible fields out of ${Array.isArray(formatChartFields) ? formatChartFields.length : 0} total`
     );
 
     renderableFields.forEach((field) => {
@@ -754,8 +761,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
-            if ((/** @type {any} */ (row))[field] !== undefined && (/** @type {any} */ (row))[field] !== null) {
-                let value = parseFloat((/** @type {any} */ (row))[field]);
+            if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
+                let value = parseFloat(/** @type {any} */ (row)[field]);
 
                 // Apply unit conversion based on user preferences
                 if (!isNaN(value)) {
@@ -765,7 +772,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                 if (index < 3) {
                     // Debug first few rows
                     console.log(
-                        `[ChartJS] Field ${field}, row ${index}: raw=${(/** @type {any} */ (row))[field]}, converted=${value} ${getUnitSymbol(
+                        `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
                             field
                         )}`
                     );
@@ -791,7 +798,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Prepare chart data for enhanced chart with comprehensive unit conversion
         let chartData = data
             .map((row, i) => {
-                let value = (/** @type {any} */ (row))[field] ?? null;
+                let value = /** @type {any} */ (row)[field] ?? null;
 
                 // Apply unit conversion based on user preferences
                 if (value !== null && typeof value === "number") {
@@ -814,21 +821,24 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             console.log(`[ChartJS] Field ${field}: limited to ${chartData.length} points (max: ${maxPoints})`);
         }
         // Create enhanced chart
-    const chart = createEnhancedChart(canvas, /** @type {any} */ ({
-            field,
-            chartData,
-            chartType,
-            interpolation,
-            animationStyle,
-            showLegend: boolSettings.showLegend,
-            showTitle: boolSettings.showTitle,
-            showPoints: boolSettings.showPoints,
-            showFill: boolSettings.showFill,
-            smoothing,
-            customColors,
-            zoomPluginConfig,
-            fieldLabels,
-        }));
+        const chart = createEnhancedChart(
+            canvas,
+            /** @type {any} */ ({
+                field,
+                chartData,
+                chartType,
+                interpolation,
+                animationStyle,
+                showLegend: boolSettings.showLegend,
+                showTitle: boolSettings.showTitle,
+                showPoints: boolSettings.showPoints,
+                showFill: boolSettings.showFill,
+                smoothing,
+                customColors,
+                zoomPluginConfig,
+                fieldLabels,
+            })
+        );
         if (chart) {
             windowAny._chartjsInstances.push(chart);
         }
@@ -854,7 +864,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,
         showTitle: boolSettings.showTitle,
-    zoomPluginConfig,
+        zoomPluginConfig,
     });
 
     // Render lap zone charts with enhanced state-managed visibility
@@ -867,14 +877,17 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
     // Only render if at least one lap zone chart type is visible
     if (Object.values(lapZoneVisibility).some((visible) => visible)) {
-        renderLapZoneCharts(chartContainer, /** @type {any} */ ({
-            // showGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
-            showGrid: boolSettings.showGrid,
-            showLegend: boolSettings.showLegend,
-            showTitle: boolSettings.showTitle,
-            zoomPluginConfig,
-            visibilitySettings: lapZoneVisibility,
-        }));
+        renderLapZoneCharts(
+            chartContainer,
+            /** @type {any} */ ({
+                // showGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
+                showGrid: boolSettings.showGrid,
+                showLegend: boolSettings.showLegend,
+                showTitle: boolSettings.showTitle,
+                zoomPluginConfig,
+                visibilitySettings: lapZoneVisibility,
+            })
+        );
     } // Render GPS track chart if position data is available
     renderGPSTrackChart(chartContainer, data, {
         showGrid: boolSettings.showGrid,
@@ -889,7 +902,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,
         showTitle: boolSettings.showTitle,
-    zoomPluginConfig,
+        zoomPluginConfig,
         maxPoints: typeof maxPoints === "number" || maxPoints === "all" ? maxPoints : Number(maxPoints) || "all",
         chartType,
         interpolation,
@@ -1092,18 +1105,18 @@ export async function exportChartsWithState(format = "png") {
     }
 
     try {
-        setState("ui.isExporting", true, { silent: false, source: "exportChartsWithState"  });
+        setState("ui.isExporting", true, { silent: false, source: "exportChartsWithState" });
 
         // Implementation would go here based on format
         // This is a placeholder for the full export implementation
 
         showNotification(`Charts exported as ${format.toUpperCase()}`, "success");
-        setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState"  });
+        setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState" });
         return true;
     } catch (error) {
         console.error("[ChartJS] Export failed:", error);
         showNotification("Chart export failed", "error");
-        setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState"  });
+        setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState" });
         return false;
     }
 }
@@ -1139,16 +1152,16 @@ export function initializeChartStateManagement() {
     );
 
     // Set up computed state dependencies
-    (/** @type {any} */ (computedStateManager)).define?.("charts.hasData", () => {
+    /** @type {any} */ (computedStateManager).define?.("charts.hasData", () => {
         const data = getState("globalData");
         return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
     });
 
-    (/** @type {any} */ (computedStateManager)).define?.("charts.renderableFieldCount", () => {
+    /** @type {any} */ (computedStateManager).define?.("charts.renderableFieldCount", () => {
         return chartState.renderableFields.length;
     });
 
-    (/** @type {any} */ (computedStateManager)).define?.("charts.summary", () => {
+    /** @type {any} */ (computedStateManager).define?.("charts.summary", () => {
         return {
             isRendered: chartState.isRendered,
             hasData: chartState.hasValidData,
@@ -1195,7 +1208,7 @@ export const chartSettingsManager = {
         if (!settings) {
             settings = settingsStateManager.getChartSettings();
             // Cache in state for faster access
-            setState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings"  });
+            setState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings" });
         }
 
         return {
@@ -1223,10 +1236,13 @@ export const chartSettingsManager = {
         const updatedSettings = { ...currentSettings, ...newSettings };
 
         // Update through settings state manager for persistence
-        (/** @type {any} */ (settingsStateManager)).updateChartSettings?.(updatedSettings);
+        /** @type {any} */ (settingsStateManager).updateChartSettings?.(updatedSettings);
 
         // Update in global state for reactive access using updateState
-        updateState("settings.charts", updatedSettings, { silent: false, source: "chartSettingsManager.updateSettings" });
+        updateState("settings.charts", updatedSettings, {
+            silent: false,
+            source: "chartSettingsManager.updateSettings",
+        });
 
         // Trigger chart re-render if charts are currently displayed
         if (chartState.isRendered) {
@@ -1362,7 +1378,9 @@ export const chartPerformanceMonitor = {
         if (history.length === 0) return {};
 
         const durations = history.map((/** @type {any} */ record) => record.duration);
-        const avgDuration = durations.reduce((/** @type {any} */ sum, /** @type {any} */ duration) => sum + duration, 0) / durations.length;
+        const avgDuration =
+            durations.reduce((/** @type {any} */ sum, /** @type {any} */ duration) => sum + duration, 0) /
+            durations.length;
         const maxDuration = Math.max(...durations);
         const minDuration = Math.min(...durations);
 
@@ -1400,7 +1418,8 @@ if (typeof window !== "undefined") {
 
             // State debugging and manipulation
             getState: (/** @type {any} */ path) => getState(path),
-            setState: (/** @type {any} */ path, /** @type {any} */ value) => setState(path, value, { silent: false, source: "dev-tools"  }),
+            setState: (/** @type {any} */ path, /** @type {any} */ value) =>
+                setState(path, value, { silent: false, source: "dev-tools" }),
             subscribe: (/** @type {any} */ path, /** @type {any} */ callback) => subscribe(path, callback),
 
             // Chart instance management
@@ -1427,9 +1446,9 @@ if (typeof window !== "undefined") {
 
             // Computed state management
             computed: {
-                invalidate: (/** @type {any} */ key) => (/** @type {any} */ (computedStateManager)).invalidate?.(key),
-                get: (/** @type {any} */ key) => (/** @type {any} */ (computedStateManager)).get?.(key),
-                list: () => (/** @type {any} */ (computedStateManager)).list?.(),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
+                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
+                list: () => /** @type {any} */ (computedStateManager).list?.(),
             },
 
             // State history and debugging
@@ -1438,7 +1457,8 @@ if (typeof window !== "undefined") {
             // Field visibility management
             fieldVisibility: {
                 get: (/** @type {any} */ field) => chartSettingsManager.getFieldVisibility(field),
-                set: (/** @type {any} */ field, /** @type {any} */ visibility) => chartSettingsManager.setFieldVisibility(field, visibility),
+                set: (/** @type {any} */ field, /** @type {any} */ visibility) =>
+                    chartSettingsManager.setFieldVisibility(field, visibility),
                 getAll: () => {
                     /** @type {any} */
                     const result = {};
@@ -1458,10 +1478,10 @@ if (typeof window !== "undefined") {
                 // Test theme change
                 const currentTheme = getState("ui.theme");
                 const newTheme = currentTheme === "dark" ? "light" : "dark";
-                setState("ui.theme", newTheme, { silent: false, source: "dev-test"  });
+                setState("ui.theme", newTheme, { silent: false, source: "dev-test" });
 
                 setTimeout(() => {
-                    setState("ui.theme", currentTheme, { silent: false, source: "dev-test"  });
+                    setState("ui.theme", currentTheme, { silent: false, source: "dev-test" });
                     console.log("[ChartJS Dev] State synchronization test completed");
                 }, 1000);
             },

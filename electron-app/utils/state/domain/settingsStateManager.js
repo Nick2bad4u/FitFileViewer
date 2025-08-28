@@ -176,7 +176,11 @@ class SettingsStateManager {
 
                 // Return specific key or entire object
                 if (key) {
-                    return settings[key] !== undefined ? settings[key] : (schema.default && typeof schema.default === "object" ? schema.default[key] : undefined);
+                    return settings[key] !== undefined
+                        ? settings[key]
+                        : schema.default && typeof schema.default === "object"
+                          ? schema.default[key]
+                          : undefined;
                 }
 
                 return Object.keys(settings).length > 0 ? { ...schema.default, ...settings } : schema.default;
@@ -538,27 +542,35 @@ export const settingsStateManager = new SettingsStateManager();
  * Get theme setting
  * @returns {string} Current theme
  */
-export function getThemeSetting() { return /** @type {string} */ (settingsStateManager.getSetting("theme")); }
+export function getThemeSetting() {
+    return /** @type {string} */ (settingsStateManager.getSetting("theme"));
+}
 
 /**
  * Set theme setting
  * @param {string} theme - Theme to set
  */
 /** @param {string} theme */
-export function setThemeSetting(theme) { return settingsStateManager.setSetting("theme", theme); }
+export function setThemeSetting(theme) {
+    return settingsStateManager.setSetting("theme", theme);
+}
 
 /**
  * Get map theme setting
  * @returns {boolean} Map theme inverted state
  */
-export function getMapThemeSetting() { return /** @type {boolean} */ (settingsStateManager.getSetting("mapTheme")); }
+export function getMapThemeSetting() {
+    return /** @type {boolean} */ (settingsStateManager.getSetting("mapTheme"));
+}
 
 /**
  * Set map theme setting
  * @param {boolean} inverted - Map theme inverted state
  */
 /** @param {boolean} inverted */
-export function setMapThemeSetting(inverted) { return settingsStateManager.setSetting("mapTheme", inverted); }
+export function setMapThemeSetting(inverted) {
+    return settingsStateManager.setSetting("mapTheme", inverted);
+}
 
 /**
  * Get chart setting
@@ -566,7 +578,9 @@ export function setMapThemeSetting(inverted) { return settingsStateManager.setSe
  * @returns {*} Chart setting value
  */
 /** @param {string} key */
-export function getChartSetting(key) { return settingsStateManager.getSetting("chart", key); }
+export function getChartSetting(key) {
+    return settingsStateManager.getSetting("chart", key);
+}
 
 /**
  * Set chart setting
@@ -574,19 +588,25 @@ export function getChartSetting(key) { return settingsStateManager.getSetting("c
  * @param {*} value - Chart setting value
  */
 /** @param {string} key @param {any} value */
-export function setChartSetting(key, value) { return settingsStateManager.setSetting("chart", value, key); }
+export function setChartSetting(key, value) {
+    return settingsStateManager.setSetting("chart", value, key);
+}
 
 /**
  * Reset all chart settings
  */
-export function resetChartSettings() { return settingsStateManager.resetSettings("chart"); }
+export function resetChartSettings() {
+    return settingsStateManager.resetSettings("chart");
+}
 
 /**
  * Export all settings
  * @returns {Object} Settings export data
  */
 /** @returns {ExportedSettings|null} */
-export function exportAllSettings() { return settingsStateManager.exportSettings(); }
+export function exportAllSettings() {
+    return settingsStateManager.exportSettings();
+}
 
 /**
  * Import settings from data
@@ -594,4 +614,6 @@ export function exportAllSettings() { return settingsStateManager.exportSettings
  * @returns {boolean} Success status
  */
 /** @param {any} settingsData */
-export function importAllSettings(settingsData) { return settingsStateManager.importSettings(settingsData); }
+export function importAllSettings(settingsData) {
+    return settingsStateManager.importSettings(settingsData);
+}

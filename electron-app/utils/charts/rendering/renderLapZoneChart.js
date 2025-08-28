@@ -77,7 +77,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         const numZones = zoneLabels.length;
 
         // Create one dataset per zone (stacked across laps)
-    /** @type {any[]} */
+        /** @type {any[]} */
         const datasets = [];
         for (let zoneIndex = 0; zoneIndex < numZones; zoneIndex++) {
             const zoneLabel = zoneLabels[zoneIndex];
@@ -111,7 +111,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         }
 
         // Labels are lap names
-    const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap"));
+        const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap"));
 
         /** @type {any} */
         const chart = new window.Chart(canvas, {

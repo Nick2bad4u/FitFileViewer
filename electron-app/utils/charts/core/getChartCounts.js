@@ -79,7 +79,7 @@ export function getChartCounts() {
                 }
             }
         }); // GPS track chart (counted separately from lat/long individual charts)
-    const hasGPSData = data.some((/** @type {any} */ row) => {
+        const hasGPSData = data.some((/** @type {any} */ row) => {
             const lat = row.positionLat;
             const long = row.positionLong;
             return (
@@ -102,7 +102,7 @@ export function getChartCounts() {
             }
         } // Performance analysis charts
         const analysisCharts = ["speed_vs_distance", "power_vs_hr", "altitude_profile"];
-    analysisCharts.forEach((/** @type {string} */ chartType) => {
+        analysisCharts.forEach((/** @type {string} */ chartType) => {
             counts.total++;
             counts.categories.analysis.total++; // Check if required fields exist and have valid data for each analysis chart
             let hasRequiredData = false;
@@ -152,7 +152,7 @@ export function getChartCounts() {
             }
         }); // Zone charts (these are field-based toggles for doughnut charts only)
         const zoneCharts = ["hr_zone_doughnut", "power_zone_doughnut"];
-    zoneCharts.forEach((/** @type {string} */ chartType) => {
+        zoneCharts.forEach((/** @type {string} */ chartType) => {
             counts.total++;
             counts.categories.zones.total++;
 

@@ -15,7 +15,7 @@
  * @returns {el is HTMLElement}
  */
 export function isHTMLElement(el) {
-  return !!el && typeof el === 'object' && el.nodeType === 1;
+    return !!el && typeof el === "object" && el.nodeType === 1;
 }
 
 /**
@@ -25,8 +25,8 @@ export function isHTMLElement(el) {
  * @returns {HTMLElement|null}
  */
 export function query(selector, root = document) {
-  const el = root.querySelector(selector);
-  return isHTMLElement(el) ? el : null;
+    const el = root.querySelector(selector);
+    return isHTMLElement(el) ? el : null;
 }
 
 /**
@@ -36,7 +36,7 @@ export function query(selector, root = document) {
  * @returns {HTMLElement[]}
  */
 export function queryAll(selector, root = document) {
-  return Array.from(root.querySelectorAll(selector)).filter(isHTMLElement);
+    return Array.from(root.querySelectorAll(selector)).filter(isHTMLElement);
 }
 
 /**
@@ -47,11 +47,11 @@ export function queryAll(selector, root = document) {
  * @returns {HTMLElement}
  */
 export function requireElement(selector, root = document) {
-  const el = query(selector, root);
-  if (!el) {
-    throw new Error(`Required element not found: ${selector}`);
-  }
-  return el;
+    const el = query(selector, root);
+    if (!el) {
+        throw new Error(`Required element not found: ${selector}`);
+    }
+    return el;
 }
 
 /**
@@ -60,9 +60,9 @@ export function requireElement(selector, root = document) {
  * @param {string|number|null|undefined} value
  */
 export function setText(el, value) {
-  if (isHTMLElement(el) && value != null) {
-    el.textContent = String(value);
-  }
+    if (isHTMLElement(el) && value != null) {
+        el.textContent = String(value);
+    }
 }
 
 /**
@@ -71,9 +71,9 @@ export function setText(el, value) {
  * @param {string} className
  */
 export function addClass(el, className) {
-  if (isHTMLElement(el)) {
-    el.classList.add(className);
-  }
+    if (isHTMLElement(el)) {
+        el.classList.add(className);
+    }
 }
 
 /**
@@ -82,9 +82,9 @@ export function addClass(el, className) {
  * @param {string} className
  */
 export function removeClass(el, className) {
-  if (isHTMLElement(el)) {
-    el.classList.remove(className);
-  }
+    if (isHTMLElement(el)) {
+        el.classList.remove(className);
+    }
 }
 
 /**
@@ -94,10 +94,10 @@ export function removeClass(el, className) {
  * @param {boolean} disabled
  */
 export function setDisabled(el, disabled) {
-  if (isHTMLElement(el) && 'disabled' in el) {
-    // @ts-ignore - guarded by 'disabled' in el
-    el.disabled = !!disabled;
-  }
+    if (isHTMLElement(el) && "disabled" in el) {
+        // @ts-ignore - guarded by 'disabled' in el
+        el.disabled = !!disabled;
+    }
 }
 
 /**
@@ -106,11 +106,11 @@ export function setDisabled(el, disabled) {
  * @returns {string|undefined}
  */
 export function getValue(el) {
-  if (isHTMLElement(el) && 'value' in el) {
-    // @ts-ignore - runtime guarded
-    return el.value;
-  }
-  return undefined;
+    if (isHTMLElement(el) && "value" in el) {
+        // @ts-ignore - runtime guarded
+        return el.value;
+    }
+    return undefined;
 }
 
 /**
@@ -119,10 +119,10 @@ export function getValue(el) {
  * @param {string|number|null|undefined} value
  */
 export function setValue(el, value) {
-  if (isHTMLElement(el) && 'value' in el && value != null) {
-    // @ts-ignore - runtime guarded
-    el.value = String(value);
-  }
+    if (isHTMLElement(el) && "value" in el && value != null) {
+        // @ts-ignore - runtime guarded
+        el.value = String(value);
+    }
 }
 
 /**
@@ -131,10 +131,10 @@ export function setValue(el, value) {
  * @param {boolean} checked
  */
 export function setChecked(el, checked) {
-  if (isHTMLElement(el) && 'checked' in el) {
-    // @ts-ignore - runtime guarded
-    el.checked = !!checked;
-  }
+    if (isHTMLElement(el) && "checked" in el) {
+        // @ts-ignore - runtime guarded
+        el.checked = !!checked;
+    }
 }
 
 /**
@@ -143,11 +143,11 @@ export function setChecked(el, checked) {
  * @returns {boolean|undefined}
  */
 export function getChecked(el) {
-  if (isHTMLElement(el) && 'checked' in el) {
-    // @ts-ignore - runtime guarded
-    return !!el.checked;
-  }
-  return undefined;
+    if (isHTMLElement(el) && "checked" in el) {
+        // @ts-ignore - runtime guarded
+        return !!el.checked;
+    }
+    return undefined;
 }
 
 /**
@@ -157,9 +157,9 @@ export function getChecked(el) {
  * @param {string} value
  */
 export function setStyle(el, prop, value) {
-  if (isHTMLElement(el) && el.style && typeof el.style.setProperty === 'function') {
-    el.style.setProperty(prop, value);
-  }
+    if (isHTMLElement(el) && el.style && typeof el.style.setProperty === "function") {
+        el.style.setProperty(prop, value);
+    }
 }
 
 /**
@@ -167,9 +167,9 @@ export function setStyle(el, prop, value) {
  * @param {Element|null|undefined} el
  */
 export function clearElement(el) {
-  if (isHTMLElement(el)) {
-    while (el.firstChild) el.removeChild(el.firstChild);
-  }
+    if (isHTMLElement(el)) {
+        while (el.firstChild) el.removeChild(el.firstChild);
+    }
 }
 
 /**
@@ -179,9 +179,9 @@ export function clearElement(el) {
  * @param {(ev: Event) => void} handler
  */
 export function on(el, type, handler) {
-  if (isHTMLElement(el)) {
-    el.addEventListener(type, handler);
-  }
+    if (isHTMLElement(el)) {
+        el.addEventListener(type, handler);
+    }
 }
 
 /**
@@ -191,10 +191,10 @@ export function on(el, type, handler) {
  * @returns {string|undefined}
  */
 export function getData(el, key) {
-  if (isHTMLElement(el) && el.dataset) {
-    return el.dataset[key];
-  }
-  return undefined;
+    if (isHTMLElement(el) && el.dataset) {
+        return el.dataset[key];
+    }
+    return undefined;
 }
 
 /**
@@ -204,9 +204,9 @@ export function getData(el, key) {
  * @param {string} value
  */
 export function setData(el, key, value) {
-  if (isHTMLElement(el) && el.dataset) {
-    el.dataset[key] = value;
-  }
+    if (isHTMLElement(el) && el.dataset) {
+        el.dataset[key] = value;
+    }
 }
 
 /**
@@ -214,28 +214,28 @@ export function setData(el, key, value) {
  * @param {Element|null|undefined} el
  */
 export function focus(el) {
-  if (isHTMLElement(el) && typeof el.focus === 'function') {
-    el.focus();
-  }
+    if (isHTMLElement(el) && typeof el.focus === "function") {
+        el.focus();
+    }
 }
 
 export default {
-  isHTMLElement,
-  query,
-  queryAll,
-  requireElement,
-  setText,
-  addClass,
-  removeClass,
-  setDisabled,
-  getValue,
-  setValue,
-  setChecked,
-  getChecked,
-  setStyle,
-  clearElement,
-  on,
-  getData,
-  setData,
-  focus
+    isHTMLElement,
+    query,
+    queryAll,
+    requireElement,
+    setText,
+    addClass,
+    removeClass,
+    setDisabled,
+    getValue,
+    setValue,
+    setChecked,
+    getChecked,
+    setStyle,
+    clearElement,
+    on,
+    getData,
+    setData,
+    focus,
 };

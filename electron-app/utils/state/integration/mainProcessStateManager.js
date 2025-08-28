@@ -108,8 +108,8 @@ function logWithContext(level, message, context = {}) {
  */
 class MainProcessState {
     constructor() {
-    /** @type {MainProcessStateData} */
-    this.data = {
+        /** @type {MainProcessStateData} */
+        this.data = {
             // File state
             loadedFitFilePath: null,
 
@@ -139,11 +139,11 @@ class MainProcessState {
             },
         };
 
-    /** @type {Map<string,Set<Function>>} */
-    this.listeners = new Map();
-    /** @type {Array<Function>} */
-    this.middleware = [];
-    this.devMode = (process.env && process.env["NODE_ENV"]) === "development" || process.argv.includes("--dev");
+        /** @type {Map<string,Set<Function>>} */
+        this.listeners = new Map();
+        /** @type {Array<Function>} */
+        this.middleware = [];
+        this.devMode = (process.env && process.env["NODE_ENV"]) === "development" || process.argv.includes("--dev");
 
         this.setupIPCHandlers();
     }
@@ -607,8 +607,8 @@ class MainProcessState {
         }
 
         // Handle objects
-    /** @type {Record<string, any>} */
-    const serializable = {};
+        /** @type {Record<string, any>} */
+        const serializable = {};
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
             if (
@@ -637,13 +637,13 @@ class MainProcessState {
      */
     setupIPCHandlers() {
         // Get main process state
-    ipcMain.handle("main-state:get", (_event, path) => {
+        ipcMain.handle("main-state:get", (_event, path) => {
             const data = path ? this.get(path) : this.data;
             return this.makeSerializable(data);
         });
 
         // Set main process state (restricted)
-    ipcMain.handle("main-state:set", (_event, path, value, options) => {
+        ipcMain.handle("main-state:set", (_event, path, value, options) => {
             // Only allow certain paths to be set from renderer
             const allowedPaths = ["loadedFitFilePath", "operations"];
 
@@ -675,23 +675,23 @@ class MainProcessState {
         });
 
         // Get operation status
-    ipcMain.handle("main-state:operation", (_event, operationId) => {
+        ipcMain.handle("main-state:operation", (_event, operationId) => {
             return this.get(`operations.${operationId}`);
         });
 
         // Get all operations
-    ipcMain.handle("main-state:operations", () => {
+        ipcMain.handle("main-state:operations", () => {
             return this.get("operations") || {};
         });
 
         // Get errors
-    ipcMain.handle("main-state:errors", (_event, limit = 50) => {
+        ipcMain.handle("main-state:errors", (_event, limit = 50) => {
             const errors = this.get("errors") || [];
             return errors.slice(0, limit);
         });
 
         // Get metrics
-    ipcMain.handle("main-state:metrics", () => {
+        ipcMain.handle("main-state:metrics", () => {
             return this.get("metrics") || {};
         });
     }

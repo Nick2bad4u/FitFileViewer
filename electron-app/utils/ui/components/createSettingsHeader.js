@@ -761,7 +761,8 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                             exportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
                         }
                     },
-                    (/** @type {any} */ charts) => exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
+                    (/** @type {any} */ charts) =>
+                        exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
                 ),
         },
         {
@@ -975,7 +976,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 12px;
 	`; // Add field toggles
-    (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields))).forEach((/** @type {string} */ field) => {
+    /** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).forEach((/** @type {string} */ field) => {
         const fieldToggle = createFieldToggle(field);
         fieldsGrid.appendChild(fieldToggle);
     }); // Add GPS track toggle
@@ -998,8 +999,8 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     fieldsGrid.appendChild(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
-    if ((/** @type {WindowExtensions} */ (window)).globalData?.timeInZoneMesgs) {
-        const timeInZoneMesgs = (/** @type {WindowExtensions} */ (window)).globalData.timeInZoneMesgs;
+    if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
+        const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs;
         const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
         if (lapZoneMsgs.length > 0) {
@@ -1027,17 +1028,20 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
 
     // Add event messages toggle if data exists
     if (
-        (/** @type {WindowExtensions} */ (window)).globalData?.eventMesgs &&
-        Array.isArray((/** @type {WindowExtensions} */ (window)).globalData.eventMesgs) &&
-        (/** @type {WindowExtensions} */ (window)).globalData.eventMesgs.length > 0
+        /** @type {WindowExtensions} */ (window).globalData?.eventMesgs &&
+        Array.isArray(/** @type {WindowExtensions} */ (window).globalData.eventMesgs) &&
+        /** @type {WindowExtensions} */ (window).globalData.eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.appendChild(eventMessagesToggle);
     }
 
     // Add developer fields toggles if data exists
-    if ((/** @type {WindowExtensions} */ (window)).globalData && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs) {
-        const devFields = extractDeveloperFieldsList((/** @type {WindowExtensions} */ (window)).globalData.recordMesgs);
+    if (
+        /** @type {WindowExtensions} */ (window).globalData &&
+        /** @type {WindowExtensions} */ (window).globalData.recordMesgs
+    ) {
+        const devFields = extractDeveloperFieldsList(/** @type {WindowExtensions} */ (window).globalData.recordMesgs);
         devFields.forEach((field) => {
             const fieldToggle = createFieldToggle(field);
             fieldsGrid.appendChild(fieldToggle);
@@ -1058,8 +1062,12 @@ function createFieldToggle(/** @type {string} */ field) {
 
     // Check if this field has valid data
     let hasValidData = false;
-    if ((/** @type {WindowExtensions} */ (window)).globalData && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs.length > 0) {
-        const data = (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs;
+    if (
+        /** @type {WindowExtensions} */ (window).globalData &&
+        /** @type {WindowExtensions} */ (window).globalData.recordMesgs &&
+        /** @type {WindowExtensions} */ (window).globalData.recordMesgs.length > 0
+    ) {
+        const data = /** @type {WindowExtensions} */ (window).globalData.recordMesgs;
 
         if (field === "gps_track") {
             hasValidData = data.some((row) => {
@@ -1072,9 +1080,9 @@ function createFieldToggle(/** @type {string} */ field) {
             });
         } else if (field === "event_messages") {
             hasValidData = Boolean(
-                (/** @type {WindowExtensions} */ (window)).globalData?.eventMesgs &&
-                Array.isArray((/** @type {WindowExtensions} */ (window)).globalData.eventMesgs) &&
-                (/** @type {WindowExtensions} */ (window)).globalData.eventMesgs.length > 0
+                /** @type {WindowExtensions} */ (window).globalData?.eventMesgs &&
+                    Array.isArray(/** @type {WindowExtensions} */ (window).globalData.eventMesgs) &&
+                    /** @type {WindowExtensions} */ (window).globalData.eventMesgs.length > 0
             );
         } else if (field === "speed_vs_distance") {
             const hasSpeed = data.some((row) => {
@@ -1103,16 +1111,16 @@ function createFieldToggle(/** @type {string} */ field) {
             });
         } else if (field === "hr_lap_zone_stacked" || field === "hr_lap_zone_individual") {
             // Check for HR lap zone data
-            if ((/** @type {WindowExtensions} */ (window)).globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = (/** @type {WindowExtensions} */ (window)).globalData.timeInZoneMesgs;
+            if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
+                const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs;
                 const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
                 const hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
                 hasValidData = hrLapZones.length > 0;
             }
         } else if (field === "power_lap_zone_stacked" || field === "power_lap_zone_individual") {
             // Check for Power lap zone data
-            if ((/** @type {WindowExtensions} */ (window)).globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = (/** @type {WindowExtensions} */ (window)).globalData.timeInZoneMesgs;
+            if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
+                const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs;
                 const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
                 const powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
                 hasValidData = powerLapZones.length > 0;
@@ -1127,7 +1135,7 @@ function createFieldToggle(/** @type {string} */ field) {
                 const power = row.power;
                 return power !== undefined && power !== null && !isNaN(parseFloat(power));
             });
-        } else if ((/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields))).includes(field)) {
+        } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
             // Regular chart field
             const numericData = data.map((row) => {
                 if (row[field] !== undefined && row[field] !== null) {
@@ -1201,7 +1209,9 @@ function createFieldToggle(/** @type {string} */ field) {
         const colorPicker = document.createElement("input");
         colorPicker.type = "color";
         colorPicker.value =
-            localStorage.getItem(`chartjs_color_${field}`) || (/** @type {any} */ (fieldColors))[field] || (/** @type {any} */ (themeConfig)).colors?.primaryAlpha;
+            localStorage.getItem(`chartjs_color_${field}`) ||
+            /** @type {any} */ (fieldColors)[field] ||
+            /** @type {any} */ (themeConfig).colors?.primaryAlpha;
         colorPicker.style.cssText = `
 			width: 32px;
 			height: 32px;
@@ -1266,7 +1276,12 @@ function createFieldToggle(/** @type {string} */ field) {
 /**
  * Creates styled action buttons
  */
-function createActionButton(/** @type {string} */ text, /** @type {string} */ title, /** @type {() => void} */ onClick, /** @type {string} */ className = "") {
+function createActionButton(
+    /** @type {string} */ text,
+    /** @type {string} */ title,
+    /** @type {() => void} */ onClick,
+    /** @type {string} */ className = ""
+) {
     const button = document.createElement("button");
     button.textContent = text;
     button.title = title;
@@ -1344,7 +1359,7 @@ function toggleAllFields(enable) {
 
         // Get all possible field keys
         const allFields = [
-            ...(/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields))),
+            .../** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)),
             "gps_track",
             "speed_vs_distance",
             "power_vs_hr",
@@ -1359,8 +1374,13 @@ function toggleAllFields(enable) {
         ];
 
         // Add developer fields if they exist
-        if ((/** @type {WindowExtensions} */ (window)).globalData && (/** @type {WindowExtensions} */ (window)).globalData.recordMesgs) {
-            const devFields = extractDeveloperFieldsList((/** @type {WindowExtensions} */ (window)).globalData.recordMesgs);
+        if (
+            /** @type {WindowExtensions} */ (window).globalData &&
+            /** @type {WindowExtensions} */ (window).globalData.recordMesgs
+        ) {
+            const devFields = extractDeveloperFieldsList(
+                /** @type {WindowExtensions} */ (window).globalData.recordMesgs
+            );
             allFields.push(...devFields);
         } // Update localStorage for all fields
         allFields.forEach((field) => {
@@ -1377,7 +1397,7 @@ function toggleAllFields(enable) {
         // Update all toggle checkboxes in the UI
         const toggles = document.querySelectorAll('.field-toggle input[type="checkbox"]');
         toggles.forEach((toggle) => {
-            (/** @type {HTMLInputElement} */ (toggle)).checked = enable;
+            /** @type {HTMLInputElement} */ (toggle).checked = enable;
         });
 
         // Show notification

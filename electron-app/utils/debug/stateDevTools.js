@@ -366,7 +366,7 @@ class StateDebugUtilities {
         console.log("[StateDebug] Debug mode disabled");
 
         if (typeof window !== "undefined") {
-            delete /** @type {any} */ (window).__stateDebug;
+            delete (/** @type {any} */ (window).__stateDebug);
         }
     }
 
@@ -374,7 +374,7 @@ class StateDebugUtilities {
      * Log current state
      */
     logCurrentState() {
-    const state = getState("");
+        const state = getState("");
         console.group("[StateDebug] Current State");
         console.log("Full State:", state);
         console.log("State Keys:", Object.keys(state));
@@ -469,7 +469,7 @@ class StateDebugUtilities {
 
     /**
      * Find slow subscribers (mock implementation)
-    * @returns {Array<any>} List of potentially slow subscribers
+     * @returns {Array<any>} List of potentially slow subscribers
      */
     findSlowSubscribers() {
         // This would need access to internal subscription tracking
@@ -611,7 +611,7 @@ export async function measureStateOperation(operationName, operation) {
         return result;
     } catch (error) {
         performanceMonitor.endTimer(operationName);
-    performanceMonitor.recordError(/** @type {Error} */ (error), operationName);
+        performanceMonitor.recordError(/** @type {Error} */ (error), operationName);
         throw error;
     }
 }

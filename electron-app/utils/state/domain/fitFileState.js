@@ -286,10 +286,12 @@ export class FitFileStateManager {
 
             setState("fitFile.processedData", processedData, { source: "FitFileStateManager.processFileData" });
             console.log("[FitFileState] Data processed successfully");
-    } catch (error) {
-        const err = /** @type {{message?: string}} */ (error);
-        console.error("[FitFileState] Error processing data:", error);
-        setState("fitFile.processingError", err?.message || "Unknown error", { source: "FitFileStateManager.processFileData" });
+        } catch (error) {
+            const err = /** @type {{message?: string}} */ (error);
+            console.error("[FitFileState] Error processing data:", error);
+            setState("fitFile.processingError", err?.message || "Unknown error", {
+                source: "FitFileStateManager.processFileData",
+            });
         }
     } /**
     /**
@@ -303,17 +305,17 @@ export class FitFileStateManager {
     }
 
     /**
-    * Extract session information
-    * @param {RawFitData} data
-    * @returns {SessionInfo|null}
-    */ extractSessionInfo(data) {
+     * Extract session information
+     * @param {RawFitData} data
+     * @returns {SessionInfo|null}
+     */ extractSessionInfo(data) {
         if (!data || !data.sessionMesgs || !Array.isArray(data.sessionMesgs) || data.sessionMesgs.length === 0) {
             return null;
         }
 
-    const session = data.sessionMesgs[0];
-    if (!session) return null;
-    return {
+        const session = data.sessionMesgs[0];
+        if (!session) return null;
+        return {
             startTime: session.start_time,
             totalElapsedTime: session.total_elapsed_time,
             totalDistance: session.total_distance,
@@ -333,9 +335,9 @@ export class FitFileStateManager {
             return null;
         }
 
-    const device = data.device_infos[0];
-    if (!device) return null;
-    return {
+        const device = data.device_infos[0];
+        if (!device) return null;
+        return {
             manufacturer: device.manufacturer,
             product: device.product,
             serialNumber: device.serial_number,
@@ -354,9 +356,9 @@ export class FitFileStateManager {
             return null;
         }
 
-    const activity = data.activities[0];
-    if (!activity) return null;
-    return {
+        const activity = data.activities[0];
+        if (!activity) return null;
+        return {
             timestamp: activity.timestamp,
             totalTimerTime: activity.total_timer_time,
             localTimestamp: activity.local_timestamp,
@@ -426,7 +428,7 @@ export class FitFileStateManager {
         quality.completeness = Math.round((basicDataCount / totalRecords) * 100);
 
         // Calculate coverage percentages for detailed metrics
-    quality.coverage = {
+        quality.coverage = {
             gps: Math.round((gpsCount / totalRecords) * 100),
             heartRate: Math.round((hrCount / totalRecords) * 100),
             power: Math.round((powerCount / totalRecords) * 100),
@@ -575,9 +577,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if valid
      */
     isFileValid() {
-    /** @type {ValidationResult|null} */
-    const validation = /** @type {any} */ (this.getValidation());
-    return validation ? !!validation.isValid : false;
+        /** @type {ValidationResult|null} */
+        const validation = /** @type {any} */ (this.getValidation());
+        return validation ? !!validation.isValid : false;
     },
 
     /**
@@ -601,9 +603,9 @@ export const FitFileSelectors = {
      * @returns {Object|null} Data quality object
      */
     getDataQuality() {
-    /** @type {ProcessedData|null} */
-    const processedData = /** @type {any} */ (this.getProcessedData());
-    return processedData ? processedData.dataQuality : null;
+        /** @type {ProcessedData|null} */
+        const processedData = /** @type {any} */ (this.getProcessedData());
+        return processedData ? processedData.dataQuality : null;
     },
 
     /**
@@ -611,9 +613,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if has GPS
      */
     hasGPS() {
-    /** @type {DataQuality|null} */
-    const quality = /** @type {any} */ (this.getDataQuality());
-    return quality ? !!quality.hasGPS : false;
+        /** @type {DataQuality|null} */
+        const quality = /** @type {any} */ (this.getDataQuality());
+        return quality ? !!quality.hasGPS : false;
     },
 
     /**
@@ -621,9 +623,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if has heart rate
      */
     hasHeartRate() {
-    /** @type {DataQuality|null} */
-    const quality = /** @type {any} */ (this.getDataQuality());
-    return quality ? !!quality.hasHeartRate : false;
+        /** @type {DataQuality|null} */
+        const quality = /** @type {any} */ (this.getDataQuality());
+        return quality ? !!quality.hasHeartRate : false;
     },
 
     /**
@@ -631,9 +633,9 @@ export const FitFileSelectors = {
      * @returns {boolean} True if has power
      */
     hasPower() {
-    /** @type {DataQuality|null} */
-    const quality = /** @type {any} */ (this.getDataQuality());
-    return quality ? !!quality.hasPower : false;
+        /** @type {DataQuality|null} */
+        const quality = /** @type {any} */ (this.getDataQuality());
+        return quality ? !!quality.hasPower : false;
     },
 
     /**

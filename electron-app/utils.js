@@ -57,7 +57,10 @@ const CONSTANTS = /** @type {ConstantsType} */ ({
 // Function to get version from electronAPI
 async function loadVersionFromElectron() {
     try {
-        if (/** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.getAppVersion === "function") {
+        if (
+            /** @type {any} */ (window).electronAPI &&
+            typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+        ) {
             const version = await /** @type {any} */ (window).electronAPI.getAppVersion();
             CONSTANTS.VERSION = version || "unknown";
             logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
@@ -75,12 +78,18 @@ async function loadVersionFromElectron() {
 // Initialize version asynchronously when electronAPI becomes available
 if (typeof window !== "undefined") {
     // Try immediately if electronAPI is already available
-    if (/** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.getAppVersion === "function") {
+    if (
+        /** @type {any} */ (window).electronAPI &&
+        typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+    ) {
         loadVersionFromElectron();
     } else {
         // Wait for electronAPI to be available
         const checkForElectronAPI = () => {
-            if (/** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.getAppVersion === "function") {
+            if (
+                /** @type {any} */ (window).electronAPI &&
+                typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+            ) {
                 loadVersionFromElectron();
             } else {
                 // Keep checking periodically for a short time

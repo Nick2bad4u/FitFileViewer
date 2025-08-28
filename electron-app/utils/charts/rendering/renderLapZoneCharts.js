@@ -42,7 +42,7 @@ export function renderLapZoneCharts(container, options = {}) {
         }
 
         const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-    const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+        const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
         // Get theme configuration
         const themeConfig = /** @type {any} */ (getThemeConfig() || {});
@@ -57,22 +57,25 @@ export function renderLapZoneCharts(container, options = {}) {
         }
 
         // Get visibility settings from options
-    /** @type {LapZoneVisibility} */
-    const visibility = (options && options.visibilitySettings ? options.visibilitySettings : {
-            hrStackedVisible: true,
-            hrIndividualVisible: true,
-            powerStackedVisible: true,
-            powerIndividualVisible: true,
-    });
+        /** @type {LapZoneVisibility} */
+        const visibility =
+            options && options.visibilitySettings
+                ? options.visibilitySettings
+                : {
+                      hrStackedVisible: true,
+                      hrIndividualVisible: true,
+                      powerStackedVisible: true,
+                      powerIndividualVisible: true,
+                  };
 
         console.log("[ChartJS] Found lap zone data:", lapZoneMsgs);
 
         // Helper function to parse zone arrays safely
-    /**
-     * @param {unknown} val
-     * @returns {any[]}
-     */
-    function safeParseArray(val) {
+        /**
+         * @param {unknown} val
+         * @returns {any[]}
+         */
+        function safeParseArray(val) {
             if (Array.isArray(val)) return val;
             if (!val || typeof val !== "string") return [];
             try {
@@ -102,9 +105,9 @@ export function renderLapZoneCharts(container, options = {}) {
             })
             .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0);
 
-    // Find which HR zones have any meaningful data across all laps
-    /** @type {Record<number, number>} */
-    const hrZoneTotals = {};
+        // Find which HR zones have any meaningful data across all laps
+        /** @type {Record<number, number>} */
+        const hrZoneTotals = {};
         hrZoneDataRaw.forEach((/** @type {LapZoneEntry} */ lap) => {
             lap.zones.forEach((/** @type {LapZoneDatum} */ zone) => {
                 const idx = zone.zoneIndex;
@@ -146,9 +149,9 @@ export function renderLapZoneCharts(container, options = {}) {
             })
             .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0);
 
-    // Find which Power zones have any meaningful data across all laps
-    /** @type {Record<number, number>} */
-    const pwrZoneTotals = {};
+        // Find which Power zones have any meaningful data across all laps
+        /** @type {Record<number, number>} */
+        const pwrZoneTotals = {};
         pwrZoneDataRaw.forEach((/** @type {LapZoneEntry} */ lap) => {
             lap.zones.forEach((/** @type {LapZoneDatum} */ zone) => {
                 const idx = zone.zoneIndex;
@@ -328,9 +331,13 @@ export function renderLapZoneCharts(container, options = {}) {
                 canvas4.style.boxShadow = themeConfig.colors.shadow;
                 container.appendChild(canvas4);
 
-                const singlePwrChart = renderSinglePowerZoneBar(canvas4, /** @type {{label:string,value:number,color:string}[]} */ (sessionPowerZones), {
-                    title: "Power Zone by Lap (Individual)",
-                });
+                const singlePwrChart = renderSinglePowerZoneBar(
+                    canvas4,
+                    /** @type {{label:string,value:number,color:string}[]} */ (sessionPowerZones),
+                    {
+                        title: "Power Zone by Lap (Individual)",
+                    }
+                );
                 if (singlePwrChart) {
                     if (!Array.isArray(window._chartjsInstances)) window._chartjsInstances = [];
                     window._chartjsInstances.push(singlePwrChart);

@@ -352,7 +352,7 @@ export const loggingMiddleware = {
 
     /** @param {MiddlewareContext} context */
     beforeSet(context) {
-    if (context.options && context.options["source"] !== "internal") {
+        if (context.options && context.options["source"] !== "internal") {
             console.log(`[StateLog] Setting "${context.path}" to:`, context.value);
         }
         return context;
@@ -360,7 +360,7 @@ export const loggingMiddleware = {
 
     /** @param {MiddlewareContext} context */
     afterSet(context) {
-    if (context.options && context.options["source"] !== "internal") {
+        if (context.options && context.options["source"] !== "internal") {
             console.log(`[StateLog] Set "${context.path}" completed`);
         }
         return context;
@@ -390,7 +390,7 @@ export const validationMiddleware = {
     /** @param {MiddlewareContext} context */
     beforeSet(context) {
         // Prevent setting undefined values
-    if (context.value === undefined && !(context.options && context.options["allowUndefined"])) {
+        if (context.value === undefined && !(context.options && context.options["allowUndefined"])) {
             console.warn(`[StateValidation] Preventing undefined value for "${context.path}"`);
             return false; // Stop execution
         }

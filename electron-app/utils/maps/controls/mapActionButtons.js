@@ -193,7 +193,11 @@ function _centerMapOnMainFile() {
         if (w._leafletMapInstance) {
             let bounds = null;
 
-            if (w._mainPolylineOriginalBounds && w._mainPolylineOriginalBounds.isValid && w._mainPolylineOriginalBounds.isValid()) {
+            if (
+                w._mainPolylineOriginalBounds &&
+                w._mainPolylineOriginalBounds.isValid &&
+                w._mainPolylineOriginalBounds.isValid()
+            ) {
                 bounds = w._mainPolylineOriginalBounds;
                 console.log("[mapActionButtons] Using stored main polyline bounds");
             } else if (polyline.getBounds) {
@@ -265,10 +269,10 @@ function _centerMapOnMainFile() {
 // Patch updateShownFilesList to always maintain active filename functionality
 (function patchUpdateShownFilesList() {
     try {
-    const w = /** @type {any} */ (window);
-    const origUpdateShownFilesList = w.updateShownFilesList;
+        const w = /** @type {any} */ (window);
+        const origUpdateShownFilesList = w.updateShownFilesList;
 
-    w.updateShownFilesList = function () {
+        w.updateShownFilesList = function () {
             try {
                 if (origUpdateShownFilesList) {
                     origUpdateShownFilesList.apply(this, arguments);

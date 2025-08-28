@@ -55,9 +55,9 @@ const CONSTANTS = {
         UNLOAD_FILE_BTN: "unloadFileBtn",
         TAB_CHART: "tab-chart",
         TAB_SUMMARY: "tab-summary",
-    CONTENT_MAP: "content-map",
-    CONTENT_DATA: "content-data",
-    CONTENT_CHART: "content-chart",
+        CONTENT_MAP: "content-map",
+        CONTENT_DATA: "content-data",
+        CONTENT_CHART: "content-chart",
         CONTENT_SUMMARY: "content-summary",
     },
     SELECTORS: {
@@ -74,7 +74,7 @@ Object.defineProperty(window, "globalData", {
         return getState("globalData");
     },
     set(value) {
-    setState("globalData", value, { silent: false, source: "main-ui.js" });
+        setState("globalData", value, { silent: false, source: "main-ui.js" });
     },
 });
 
@@ -169,7 +169,9 @@ function unloadFitFile() {
     try {
         // Clear global data using state management
         // Prefer clearData for backward compatibility if clearGlobalData absent
-    if (AppActions.clearData) { AppActions.clearData(); }
+        if (AppActions.clearData) {
+            AppActions.clearData();
+        }
 
         // Update file state
         if (fitFileStateManager) {
@@ -278,8 +280,8 @@ applyTheme(loadTheme());
 // Enhanced menu event handling with better error checking
 if (window.electronAPI && window.electronAPI.onOpenSummaryColumnSelector === undefined) {
     window.electronAPI.onOpenSummaryColumnSelector = (callback) => {
-        if (window.electronAPI && (/** @type {any} */ (window.electronAPI))._summaryColListenerAdded !== true) {
-            (/** @type {any} */ (window.electronAPI))._summaryColListenerAdded = true;
+        if (window.electronAPI && /** @type {any} */ (window.electronAPI)._summaryColListenerAdded !== true) {
+            /** @type {any} */ (window.electronAPI)._summaryColListenerAdded = true;
             window.electronAPI.onIpc("open-summary-column-selector", callback);
         }
     };
@@ -329,7 +331,7 @@ class DragDropHandler {
     constructor() {
         this.setupEventListeners();
         // Initialize drag counter in state
-    setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
+        setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
     }
 
     showDropOverlay() {
@@ -417,7 +419,9 @@ class DragDropHandler {
 
             // Handle error in state manager
             if (fitFileStateManager) {
-                fitFileStateManager.handleFileLoadingError(/** @type {Error} */ (error instanceof Error ? error : new Error(String(error))));
+                fitFileStateManager.handleFileLoadingError(
+                    /** @type {Error} */ (error instanceof Error ? error : new Error(String(error)))
+                );
             }
         } finally {
             // Clear loading state
@@ -435,14 +439,16 @@ class DragDropHandler {
     readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (event) => { resolve(/** @type {any} */ (event).target?.result || null); };
+            reader.onload = (event) => {
+                resolve(/** @type {any} */ (event).target?.result || null);
+            };
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
         });
     }
     setupEventListeners() {
         // Show overlay on dragenter, hide on dragleave/drop
-    addEventListenerWithCleanup(window, "dragenter", (/** @type {Event} */ e) => {
+        addEventListenerWithCleanup(window, "dragenter", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
                 const currentCounter = getState("ui.dragCounter") || 0;
                 setState("ui.dragCounter", currentCounter + 1, { silent: false, source: "DragDropHandler" });
@@ -450,7 +456,7 @@ class DragDropHandler {
             }
         });
 
-    addEventListenerWithCleanup(window, "dragleave", (/** @type {Event} */ e) => {
+        addEventListenerWithCleanup(window, "dragleave", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
                 const currentCounter = getState("ui.dragCounter") || 0;
                 const newCounter = currentCounter - 1;
@@ -553,7 +559,10 @@ function setupExternalLinkHandlers() {
             const target = e.target instanceof HTMLElement ? e.target : null;
             const link = target?.closest('[data-external-link="true"]');
             if (link) {
-                handleExternalLink(/** @type {MouseEvent} */ (/** @type {any} */ (e)), /** @type {HTMLElement} */ (link));
+                handleExternalLink(
+                    /** @type {MouseEvent} */ (/** @type {any} */ (e)),
+                    /** @type {HTMLElement} */ (link)
+                );
             }
         }
     });
@@ -606,15 +615,17 @@ window.devCleanup = function () {
     cleanupEventListeners();
 
     // Clear state using the new system
-    if (AppActions.clearData) { AppActions.clearData(); }
+    if (AppActions.clearData) {
+        AppActions.clearData();
+    }
     setState("charts.isRendered", false, { silent: false, source: "devCleanup" });
     setState("ui.dragCounter", 0, { silent: false, source: "devCleanup" });
 
     // Clean up our new state managers
     if (/** @type {any} */ (window).chartTabIntegration) {
-            // @ts-ignore legacy
-            (window).chartTabIntegration.destroy();
-        }
+        // @ts-ignore legacy
+        window.chartTabIntegration.destroy();
+    }
 
     console.log("[devCleanup] Application state and event listeners cleaned up");
 };

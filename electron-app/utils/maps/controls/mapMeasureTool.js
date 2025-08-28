@@ -141,10 +141,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     measureBtn.className = "map-action-btn";
     measureBtn.innerHTML = `
         <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors['primary']}" stroke-width="2"/>
-            <circle cx="5" cy="19" r="2.5" fill="${themeColors['surface']}" stroke="${themeColors['primary']}" stroke-width="2"/>
-            <circle cx="19" cy="5" r="2.5" fill="${themeColors['surface']}" stroke="${themeColors['primary']}" stroke-width="2"/>
-            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors['primary']}">↔</text>
+            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors["primary"]}" stroke-width="2"/>
+            <circle cx="5" cy="19" r="2.5" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="2"/>
+            <circle cx="19" cy="5" r="2.5" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="2"/>
+            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors["primary"]}">↔</text>
         </svg>
         <span>Measure</span>`;
     measureBtn.title = "Click, then click two points on the map to measure distance";

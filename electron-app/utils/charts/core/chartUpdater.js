@@ -27,7 +27,7 @@ export async function updateCharts(reason, container) {
         // Fallback to direct renderChartJS call for compatibility
         console.warn("[ChartUpdate] chartStateManager not available, using fallback");
 
-    return await renderChartJS(container);
+        return await renderChartJS(container);
     } catch (error) {
         console.error(`[ChartUpdate] Error updating charts for reason "${reason}":`, error);
         throw error;
@@ -64,7 +64,7 @@ export async function updateChartsForThemeChange(newTheme) {
             window._chartjsInstances = [];
         }
 
-    return await renderChartJS();
+        return await renderChartJS();
     } catch (error) {
         console.error(`[ChartUpdate] Error updating charts for theme change to "${newTheme}":`, error);
         throw error;

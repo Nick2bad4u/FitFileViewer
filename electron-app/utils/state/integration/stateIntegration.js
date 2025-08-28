@@ -45,7 +45,8 @@ function isDevelopmentMode() {
         // Check if running from file:// protocol (dev mode indicator)
         window.location.protocol === "file:" ||
         // Check if electron dev tools are available
-        (/** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.__devMode !== "undefined") ||
+        /** @type {any} */ ((window).electronAPI &&
+            typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined") ||
         // Check console availability and development-specific globals
         (typeof console !== "undefined" && window.location.href.includes("electron"))
     );
@@ -105,7 +106,7 @@ function setupBackwardCompatibility() {
     }
 
     // Create compatibility layer for existing AppState usage
-    if (!/** @type {any} */ (window).AppState) {
+    if (!(/** @type {any} */ (window).AppState)) {
         /** @type {any} */ (window).AppState = {
             get globalData() {
                 return getState("globalData");
@@ -164,9 +165,12 @@ function setupStateDebugging() {
          */
         watchState(path) {
             console.log(`[StateDebug] Watching state changes for: ${path}`);
-            return subscribe(path, /** @param {*} newValue */ /** @param {*} oldValue */ (/** @type {any} */ newValue, oldValue) => {
-                console.log(`[StateDebug] ${path} changed:`, { oldValue, newValue });
-            });
+            return subscribe(
+                path,
+                /** @param {*} newValue */ /** @param {*} oldValue */ (/** @type {any} */ newValue, oldValue) => {
+                    console.log(`[StateDebug] ${path} changed:`, { oldValue, newValue });
+                }
+            );
         },
 
         // Utility to trigger state actions
@@ -185,7 +189,7 @@ function setupStateDebugging() {
                 console.warn(`[StateDebug] Unknown action: ${actionName}`);
                 return undefined;
             }
-        }
+        },
     };
 
     // @ts-ignore - Debug utilities assignment to window

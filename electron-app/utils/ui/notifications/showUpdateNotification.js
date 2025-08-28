@@ -42,7 +42,9 @@ function logWithContext(level, message, context = {}) {
  * @returns {boolean} True if electronAPI is available
  */
 function validateElectronAPI() {
-    const hasAPI = /** @type {any} */ (window).electronAPI && typeof /** @type {any} */ (window).electronAPI.installUpdate === "function";
+    const hasAPI =
+        /** @type {any} */ (window).electronAPI &&
+        typeof (/** @type {any} */ (window).electronAPI.installUpdate) === "function";
     if (!hasAPI) {
         logWithContext("warn", "electronAPI.installUpdate not available");
     }
@@ -72,7 +74,9 @@ function clearNotificationContent(notification) {
             notification.removeChild(notification.firstChild);
         }
     } catch (error) {
-        logWithContext("error", "Failed to clear notification content", { error: /** @type {Error} */ (error).message });
+        logWithContext("error", "Failed to clear notification content", {
+            error: /** @type {Error} */ (error).message,
+        });
     }
 }
 

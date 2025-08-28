@@ -19,7 +19,7 @@ function toggleChartControls() {
     const wrapper = document.getElementById("chartjs-settings-wrapper");
     if (!wrapper) {
         console.warn("[ChartJS] Controls panel not found, creating it...");
-    ensureChartSettingsDropdowns("chartjs-chart-container");
+        ensureChartSettingsDropdowns("chartjs-chart-container");
         return;
     }
 
@@ -124,7 +124,11 @@ export function ensureChartSettingsDropdowns(targetContainer) {
     }
 
     // Create toggle button if it doesn't exist
-    createControlsToggleButton(/** @type {HTMLElement} */ (chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body));
+    createControlsToggleButton(
+        /** @type {HTMLElement} */ (
+            chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body
+        )
+    );
 
     // Create main settings wrapper only if it doesn't exist
     let wrapper = document.getElementById("chartjs-settings-wrapper");

@@ -169,8 +169,12 @@ export const exportUtils = {
 
             // Set background
             if (backgroundColor !== "transparent") {
-                if (ctx) { ctx.fillStyle = backgroundColor; }
-                if (ctx) { ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height); }
+                if (ctx) {
+                    ctx.fillStyle = backgroundColor;
+                }
+                if (ctx) {
+                    ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                }
             }
 
             // Draw each chart onto the combined canvas
@@ -191,17 +195,26 @@ export const exportUtils = {
                 }
 
                 if (backgroundColor !== "transparent") {
-                    const tempCtx = tempCanvas.getContext('2d'); if (tempCtx) { tempCtx.fillStyle = backgroundColor; }
-                    if (tempCtx) { tempCtx.fillRect(0, 0, chartWidth, chartHeight); }
+                    const tempCtx = tempCanvas.getContext("2d");
+                    if (tempCtx) {
+                        tempCtx.fillStyle = backgroundColor;
+                    }
+                    if (tempCtx) {
+                        tempCtx.fillRect(0, 0, chartWidth, chartHeight);
+                    }
                 }
 
                 // Draw chart on temp canvas
                 /** @type {any} */
                 const chartAny = /** @type {any} */ (chart);
-                if (tempCtx) { tempCtx.drawImage(chartAny.canvas, 0, 0, chartWidth, chartHeight); }
+                if (tempCtx) {
+                    tempCtx.drawImage(chartAny.canvas, 0, 0, chartWidth, chartHeight);
+                }
 
                 // Draw temp canvas onto combined canvas
-                if (ctx) { ctx.drawImage(tempCanvas, x, y); }
+                if (ctx) {
+                    ctx.drawImage(tempCanvas, x, y);
+                }
             });
 
             // Download the combined image
@@ -243,11 +256,17 @@ export const exportUtils = {
             }
 
             if (backgroundColor !== "transparent") {
-                if (ctx) { ctx.fillStyle = backgroundColor; }
-                if (ctx) { ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                if (ctx) {
+                    ctx.fillStyle = backgroundColor;
+                }
+                if (ctx) {
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
             }
 
-            if (ctx) { ctx.drawImage(chartAny.canvas, 0, 0); }
+            if (ctx) {
+                ctx.drawImage(chartAny.canvas, 0, 0);
+            }
 
             canvas.toBlob(async (blob) => {
                 try {
@@ -297,8 +316,12 @@ export const exportUtils = {
 
             // Set background
             if (backgroundColor !== "transparent") {
-                if (ctx) { ctx.fillStyle = backgroundColor; }
-                if (ctx) { ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height); }
+                if (ctx) {
+                    ctx.fillStyle = backgroundColor;
+                }
+                if (ctx) {
+                    ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                }
             }
 
             // Draw each chart
@@ -318,14 +341,23 @@ export const exportUtils = {
                 }
 
                 if (backgroundColor !== "transparent") {
-                    const tempCtx = tempCanvas.getContext('2d'); if (tempCtx) { tempCtx.fillStyle = backgroundColor; }
-                    if (tempCtx) { tempCtx.fillRect(0, 0, chartWidth, chartHeight); }
+                    const tempCtx = tempCanvas.getContext("2d");
+                    if (tempCtx) {
+                        tempCtx.fillStyle = backgroundColor;
+                    }
+                    if (tempCtx) {
+                        tempCtx.fillRect(0, 0, chartWidth, chartHeight);
+                    }
                 }
 
                 /** @type {any} */
                 const chartAny = /** @type {any} */ (chart);
-                if (tempCtx) { tempCtx.drawImage(chartAny.canvas, 0, 0, chartWidth, chartHeight); }
-                if (ctx) { ctx.drawImage(tempCanvas, x, y); }
+                if (tempCtx) {
+                    tempCtx.drawImage(chartAny.canvas, 0, 0, chartWidth, chartHeight);
+                }
+                if (ctx) {
+                    ctx.drawImage(tempCanvas, x, y);
+                }
             });
 
             // Copy to clipboard
@@ -413,7 +445,8 @@ export const exportUtils = {
         ];
 
         // Apply ROT13-like transformation as additional obfuscation layer
-        /** @param {number[]} arr */ const transform = (arr) => arr.map((/** @type {number} */ code) => String.fromCharCode(code)).join("");
+        /** @param {number[]} arr */ const transform = (arr) =>
+            arr.map((/** @type {number} */ code) => String.fromCharCode(code)).join("");
         /** @param {string} str */ const reverseTransform = (str) => str.split("").reverse().join("");
 
         // Decode with multiple transformations
@@ -501,7 +534,7 @@ export const exportUtils = {
     async authenticateWithGyazo() {
         const config = exportUtils.getGyazoConfig();
 
-        if (!(/** @type {any} */ (config)).clientId || !(/** @type {any} */ (config)).clientSecret) {
+        if (!/** @type {any} */ (config).clientId || !/** @type {any} */ (config).clientSecret) {
             exportUtils.showGyazoSetupGuide();
             throw new Error("Gyazo credentials not configured. Please complete the setup first.");
         }
@@ -523,13 +556,13 @@ export const exportUtils = {
 
                 // Construct the authorization URL
                 const authParams = new URLSearchParams({
-                    client_id: (/** @type {any} */ (config)).clientId,
+                    client_id: /** @type {any} */ (config).clientId,
                     redirect_uri: redirectUri,
                     response_type: "code",
                     state: state,
                 });
 
-                const authUrl = `${(/** @type {any} */ (config)).authUrl}?${authParams.toString()}`;
+                const authUrl = `${/** @type {any} */ (config).authUrl}?${authParams.toString()}`;
 
                 // Listen for the OAuth callback from the main process
                 const callbackHandler = async (/** @type {any} */ _event, /** @type {any} */ data) => {
@@ -548,7 +581,7 @@ export const exportUtils = {
                         const tokenData = await exportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
 
                         // Store the access token
-                        exportUtils.setGyazoAccessToken((/** @type {any} */ (tokenData)).access_token);
+                        exportUtils.setGyazoAccessToken(/** @type {any} */ (tokenData).access_token);
 
                         // Update status in any open account manager modal
                         const accountManagerModal = document.querySelector(".gyazo-account-manager-modal");
@@ -562,7 +595,7 @@ export const exportUtils = {
                             existingModal.remove();
                         }
 
-                        resolve((/** @type {any} */ (tokenData)).access_token);
+                        resolve(/** @type {any} */ (tokenData).access_token);
                     } catch (error) {
                         // Stop the server on error
                         await window.electronAPI.stopGyazoServer();
@@ -774,7 +807,7 @@ export const exportUtils = {
         if (completeAuthBtn && codeInput) {
             // Manual mode - handle authentication button
             completeAuthBtn.addEventListener("click", async () => {
-                const code = (/** @type {HTMLInputElement} */ (codeInput)).value.trim();
+                const code = /** @type {HTMLInputElement} */ (codeInput).value.trim();
                 if (!code) {
                     showNotification("Please enter the authorization code", "error");
                     return;
@@ -784,16 +817,16 @@ export const exportUtils = {
                     showNotification("Exchanging code for access token...", "info");
                     const tokenData = await exportUtils.exchangeGyazoCodeForToken(
                         code,
-                        (/** @type {any} */ (exportUtils.getGyazoConfig())).redirectUri
+                        /** @type {any} */ (exportUtils.getGyazoConfig()).redirectUri
                     );
-                    exportUtils.setGyazoAccessToken((/** @type {any} */ (tokenData)).access_token);
+                    exportUtils.setGyazoAccessToken(/** @type {any} */ (tokenData).access_token);
 
                     document.body.removeChild(overlay);
                     showNotification("Gyazo authentication successful!", "success");
-                    resolve((/** @type {any} */ (tokenData)).access_token);
+                    resolve(/** @type {any} */ (tokenData).access_token);
                 } catch (error) {
                     console.error("Error completing Gyazo authentication:", error);
-                    showNotification(`Authentication failed: ${(/** @type {any} */ (error)).message}`, "error");
+                    showNotification(`Authentication failed: ${/** @type {any} */ (error).message}`, "error");
                 }
             });
         }
@@ -864,15 +897,15 @@ export const exportUtils = {
         const config = exportUtils.getGyazoConfig();
 
         const tokenParams = new URLSearchParams({
-            client_id: (/** @type {any} */ (config)).clientId,
-            client_secret: (/** @type {any} */ (config)).clientSecret,
+            client_id: /** @type {any} */ (config).clientId,
+            client_secret: /** @type {any} */ (config).clientSecret,
             redirect_uri: redirectUri,
             code: code,
             grant_type: "authorization_code",
         });
 
         try {
-            const response = await fetch((/** @type {any} */ (config)).tokenUrl, {
+            const response = await fetch(/** @type {any} */ (config).tokenUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -910,7 +943,7 @@ export const exportUtils = {
             try {
                 accessToken = await exportUtils.authenticateWithGyazo();
             } catch (error) {
-                throw new Error(`Gyazo authentication required: ${(/** @type {any} */ (error)).message}`);
+                throw new Error(`Gyazo authentication required: ${/** @type {any} */ (error).message}`);
             }
         }
 
@@ -924,7 +957,7 @@ export const exportUtils = {
             formData.append("access_token", accessToken);
             formData.append("imagedata", blob, "chart.png");
 
-            const uploadResponse = await fetch((/** @type {any} */ (exportUtils.getGyazoConfig())).uploadUrl, {
+            const uploadResponse = await fetch(/** @type {any} */ (exportUtils.getGyazoConfig()).uploadUrl, {
                 method: "POST",
                 body: formData,
             });
@@ -952,7 +985,10 @@ export const exportUtils = {
             console.error("Error uploading to Gyazo:", error);
 
             // If it's an authentication error, clear the stored token
-            if ((/** @type {any} */ (error)).message.includes("expired") || (/** @type {any} */ (error)).message.includes("unauthorized")) {
+            if (
+                /** @type {any} */ (error).message.includes("expired") ||
+                /** @type {any} */ (error).message.includes("unauthorized")
+            ) {
                 exportUtils.clearGyazoAccessToken();
             }
 
@@ -969,7 +1005,10 @@ export const exportUtils = {
     async exportChartDataAsCSV(chartData, fieldName, filename = "chart-data.csv") {
         try {
             const headers = ["timestamp", fieldName];
-            const csvContent = [headers.join(","), ...chartData.map((/** @type {any} */ point) => `${point.x},${point.y}`)].join("\n");
+            const csvContent = [
+                headers.join(","),
+                ...chartData.map((/** @type {any} */ point) => `${point.x},${point.y}`),
+            ].join("\n");
 
             const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a");
@@ -999,7 +1038,7 @@ export const exportUtils = {
             // Get all unique timestamps
             const allTimestamps = new Set();
             charts.forEach((chart) => {
-                const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                const dataset = /** @type {any} */ (chart.data).datasets[0];
                 if (dataset && dataset.data) {
                     dataset.data.forEach((/** @type {any} */ point) => allTimestamps.add(point.x));
                 }
@@ -1010,7 +1049,7 @@ export const exportUtils = {
             // Create headers
             const headers = ["timestamp"];
             charts.forEach((chart) => {
-                const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                const dataset = /** @type {any} */ (chart.data).datasets[0];
                 const fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             });
@@ -1020,7 +1059,7 @@ export const exportUtils = {
             timestamps.forEach((timestamp) => {
                 const row = [timestamp];
                 charts.forEach((chart) => {
-                    const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                    const dataset = /** @type {any} */ (chart.data).datasets[0];
                     const point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
                     row.push(point ? point.y : "");
                 });
@@ -1081,17 +1120,17 @@ export const exportUtils = {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
             }
-            if (typeof (/** @type {any} */ (window)).JSZip === "undefined") {
+            if (typeof /** @type {any} */ (window).JSZip === "undefined") {
                 throw new Error("JSZip library not loaded");
             }
 
-            const zip = new (/** @type {any} */ (window)).JSZip(); // JSZip is loaded globally via script tag
+            const zip = new /** @type {any} */ (window).JSZip(); // JSZip is loaded globally via script tag
             const backgroundColor = exportUtils.getExportThemeBackground();
 
             // Add individual chart images
             for (let i = 0; i < charts.length; i++) {
                 const chart = charts[i];
-                const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                const dataset = /** @type {any} */ (chart.data).datasets[0];
                 const fieldName = dataset?.label || `chart-${i}`;
                 const safeFieldName = fieldName.replace(/[^a-zA-Z0-9]/g, "-");
 
@@ -1102,11 +1141,17 @@ export const exportUtils = {
                 const ctx = canvas.getContext("2d");
 
                 if (backgroundColor !== "transparent") {
-                    if (ctx) { ctx.fillStyle = backgroundColor; }
-                    if (ctx) { ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                    if (ctx) {
+                        ctx.fillStyle = backgroundColor;
+                    }
+                    if (ctx) {
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
                 }
 
-                if (ctx) { ctx.drawImage(chart.canvas, 0, 0); }
+                if (ctx) {
+                    ctx.drawImage(chart.canvas, 0, 0);
+                }
                 const imageData = canvas.toDataURL("image/png").split(",")[1];
                 zip.file(`${safeFieldName}-chart.png`, imageData, { base64: true });
 
@@ -1148,8 +1193,12 @@ export const exportUtils = {
                 combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
 
                 if (backgroundColor !== "transparent") {
-                    if (ctx) { ctx.fillStyle = backgroundColor; }
-                    if (ctx) { ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height); }
+                    if (ctx) {
+                        ctx.fillStyle = backgroundColor;
+                    }
+                    if (ctx) {
+                        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                    }
                 }
 
                 charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
@@ -1164,12 +1213,21 @@ export const exportUtils = {
                     const tempCtx = tempCanvas.getContext("2d");
 
                     if (backgroundColor !== "transparent") {
-                        const tempCtx = tempCanvas.getContext('2d'); if (tempCtx) { tempCtx.fillStyle = backgroundColor; }
-                        if (tempCtx) { tempCtx.fillRect(0, 0, chartWidth, chartHeight); }
+                        const tempCtx = tempCanvas.getContext("2d");
+                        if (tempCtx) {
+                            tempCtx.fillStyle = backgroundColor;
+                        }
+                        if (tempCtx) {
+                            tempCtx.fillRect(0, 0, chartWidth, chartHeight);
+                        }
                     }
 
-                    if (tempCtx) { tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight); }
-                    if (ctx) { ctx.drawImage(tempCanvas, x, y); }
+                    if (tempCtx) {
+                        tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight);
+                    }
+                    if (ctx) {
+                        ctx.drawImage(tempCanvas, x, y);
+                    }
                 });
 
                 const combinedImageData = combinedCanvas.toDataURL("image/png").split(",")[1];
@@ -1184,7 +1242,7 @@ export const exportUtils = {
                 exportedAt: new Date().toISOString(),
                 totalCharts: charts.length,
                 charts: charts.map((chart, index) => {
-                    const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                    const dataset = /** @type {any} */ (chart.data).datasets[0];
                     return {
                         field: dataset?.label || `chart-${index}`,
                         data: dataset?.data || [],
@@ -1220,7 +1278,7 @@ export const exportUtils = {
         try {
             const allTimestamps = new Set();
             charts.forEach((chart) => {
-                const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                const dataset = /** @type {any} */ (chart.data).datasets[0];
                 if (dataset && dataset.data) {
                     dataset.data.forEach((/** @type {any} */ point) => allTimestamps.add(point.x));
                 }
@@ -1230,7 +1288,7 @@ export const exportUtils = {
 
             const headers = ["timestamp"];
             charts.forEach((chart) => {
-                const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                const dataset = /** @type {any} */ (chart.data).datasets[0];
                 const fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             });
@@ -1239,7 +1297,7 @@ export const exportUtils = {
             timestamps.forEach((timestamp) => {
                 const row = [timestamp];
                 charts.forEach((chart) => {
-                    const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                    const dataset = /** @type {any} */ (chart.data).datasets[0];
                     const point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
                     row.push(point ? point.y : "");
                 });
@@ -1268,14 +1326,21 @@ export const exportUtils = {
             const ctx = canvas.getContext("2d");
 
             if (backgroundColor !== "transparent") {
-                if (ctx) { ctx.fillStyle = backgroundColor; }
-                if (ctx) { ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                if (ctx) {
+                    ctx.fillStyle = backgroundColor;
+                }
+                if (ctx) {
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
             }
 
-            if (ctx) { ctx.drawImage(chart.canvas, 0, 0); }
+            if (ctx) {
+                ctx.drawImage(chart.canvas, 0, 0);
+            }
             const imgData = canvas.toDataURL("image/png", 1.0);
 
-            if (printWindow) { printWindow.document.write(`
+            if (printWindow) {
+                printWindow.document.write(`
 				<html>
 					<head>
 						<title>Chart Print</title>
@@ -1290,11 +1355,18 @@ export const exportUtils = {
 				</html>
 			`);
 
-            printWindow.document.close(); }
-            if (printWindow) { printWindow.focus(); }
+                printWindow.document.close();
+            }
+            if (printWindow) {
+                printWindow.focus();
+            }
             setTimeout(function () {
-                if (printWindow) { printWindow.print(); }
-                if (printWindow) { printWindow.close(); }
+                if (printWindow) {
+                    printWindow.print();
+                }
+                if (printWindow) {
+                    printWindow.close();
+                }
             }, 250);
 
             showNotification("Chart sent to printer", "success");
@@ -1352,7 +1424,7 @@ export const exportUtils = {
 			`;
 
             charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                const dataset = (/** @type {any} */ (chart.data)).datasets[0];
+                const dataset = /** @type {any} */ (chart.data).datasets[0];
                 const fieldName = dataset?.label || `Chart ${index + 1}`;
 
                 // Create canvas with theme background
@@ -1362,11 +1434,17 @@ export const exportUtils = {
                 const ctx = canvas.getContext("2d");
 
                 if (backgroundColor !== "transparent") {
-                    if (ctx) { ctx.fillStyle = backgroundColor; }
-                    if (ctx) { ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                    if (ctx) {
+                        ctx.fillStyle = backgroundColor;
+                    }
+                    if (ctx) {
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
                 }
 
-                if (ctx) { ctx.drawImage(chart.canvas, 0, 0); }
+                if (ctx) {
+                    ctx.drawImage(chart.canvas, 0, 0);
+                }
                 const imgData = canvas.toDataURL("image/png", 1.0);
 
                 htmlContent += `
@@ -1379,12 +1457,20 @@ export const exportUtils = {
 
             htmlContent += "</body></html>";
 
-            if (printWindow) { printWindow.document.write(htmlContent);
-            printWindow.document.close(); }
-            if (printWindow) { printWindow.focus(); }
+            if (printWindow) {
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+            }
+            if (printWindow) {
+                printWindow.focus();
+            }
             setTimeout(function () {
-                if (printWindow) { printWindow.print(); }
-                if (printWindow) { printWindow.close(); }
+                if (printWindow) {
+                    printWindow.print();
+                }
+                if (printWindow) {
+                    printWindow.close();
+                }
             }, 500);
 
             showNotification("Charts sent to printer", "success");
@@ -1417,11 +1503,17 @@ export const exportUtils = {
                     const ctx = canvas.getContext("2d");
 
                     if (backgroundColor !== "transparent") {
-                        if (ctx) { ctx.fillStyle = backgroundColor; }
-                        if (ctx) { ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                        if (ctx) {
+                            ctx.fillStyle = backgroundColor;
+                        }
+                        if (ctx) {
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        }
                     }
 
-                    if (ctx) { ctx.drawImage(chart.canvas, 0, 0); }
+                    if (ctx) {
+                        ctx.drawImage(chart.canvas, 0, 0);
+                    }
                     const base64Image = canvas.toDataURL("image/png", 1.0);
 
                     const gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
@@ -1431,7 +1523,7 @@ export const exportUtils = {
                     showNotification("Chart uploaded to Gyazo! URL copied to clipboard", "success");
                 } catch (error) {
                     console.error("Error sharing single chart to Gyazo:", error);
-                    if ((/** @type {any} */ (error)).message.includes("Gyazo access token not configured")) {
+                    if (/** @type {any} */ (error).message.includes("Gyazo access token not configured")) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
@@ -1465,8 +1557,12 @@ export const exportUtils = {
                     combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
 
                     if (backgroundColor !== "transparent") {
-                        if (ctx) { ctx.fillStyle = backgroundColor; }
-                        if (ctx) { ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height); }
+                        if (ctx) {
+                            ctx.fillStyle = backgroundColor;
+                        }
+                        if (ctx) {
+                            ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                        }
                     }
 
                     charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
@@ -1481,12 +1577,21 @@ export const exportUtils = {
                         const tempCtx = tempCanvas.getContext("2d");
 
                         if (backgroundColor !== "transparent") {
-                            const tempCtx = tempCanvas.getContext('2d'); if (tempCtx) { tempCtx.fillStyle = backgroundColor; }
-                            if (tempCtx) { tempCtx.fillRect(0, 0, chartWidth, chartHeight); }
+                            const tempCtx = tempCanvas.getContext("2d");
+                            if (tempCtx) {
+                                tempCtx.fillStyle = backgroundColor;
+                            }
+                            if (tempCtx) {
+                                tempCtx.fillRect(0, 0, chartWidth, chartHeight);
+                            }
                         }
 
-                        if (tempCtx) { tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight); }
-                        if (ctx) { ctx.drawImage(tempCanvas, x, y); }
+                        if (tempCtx) {
+                            tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight);
+                        }
+                        if (ctx) {
+                            ctx.drawImage(tempCanvas, x, y);
+                        }
                     });
 
                     const base64Image = combinedCanvas.toDataURL("image/png", 1.0);
@@ -1497,7 +1602,7 @@ export const exportUtils = {
                     showNotification("Combined charts uploaded to Gyazo! URL copied to clipboard", "success");
                 } catch (error) {
                     console.error("Error sharing combined charts to Gyazo:", error);
-                    if ((/** @type {any} */ (error)).message.includes("Gyazo access token not configured")) {
+                    if (/** @type {any} */ (error).message.includes("Gyazo access token not configured")) {
                         showNotification(
                             "Gyazo access token not configured. Please update the exportUtils.uploadToGyazo function with your Gyazo access token.",
                             "error"
@@ -1534,11 +1639,17 @@ export const exportUtils = {
                     const ctx = canvas.getContext("2d");
 
                     if (backgroundColor !== "transparent") {
-                        if (ctx) { ctx.fillStyle = backgroundColor; }
-                        if (ctx) { ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                        if (ctx) {
+                            ctx.fillStyle = backgroundColor;
+                        }
+                        if (ctx) {
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        }
                     }
 
-                    if (ctx) { ctx.drawImage(chart.canvas, 0, 0); }
+                    if (ctx) {
+                        ctx.drawImage(chart.canvas, 0, 0);
+                    }
                     const base64Image = canvas.toDataURL("image/png", 1.0);
 
                     const imgurUrl = await exportUtils.uploadToImgur(base64Image);
@@ -1548,7 +1659,7 @@ export const exportUtils = {
                     showNotification("Chart uploaded! URL copied to clipboard", "success");
                 } catch (error) {
                     console.error("Error sharing single chart as URL:", error);
-                    if ((/** @type {any} */ (error)).message.includes("Imgur client ID not configured")) {
+                    if (/** @type {any} */ (error).message.includes("Imgur client ID not configured")) {
                         showNotification(
                             "Imgur client ID not configured. Please update the exportUtils.uploadToImgur function with your Imgur client ID.",
                             "error"
@@ -1582,8 +1693,12 @@ export const exportUtils = {
                     combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
 
                     if (backgroundColor !== "transparent") {
-                        if (ctx) { ctx.fillStyle = backgroundColor; }
-                        if (ctx) { ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height); }
+                        if (ctx) {
+                            ctx.fillStyle = backgroundColor;
+                        }
+                        if (ctx) {
+                            ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+                        }
                     }
 
                     charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
@@ -1598,12 +1713,21 @@ export const exportUtils = {
                         const tempCtx = tempCanvas.getContext("2d");
 
                         if (backgroundColor !== "transparent") {
-                            const tempCtx = tempCanvas.getContext('2d'); if (tempCtx) { tempCtx.fillStyle = backgroundColor; }
-                            if (tempCtx) { tempCtx.fillRect(0, 0, chartWidth, chartHeight); }
+                            const tempCtx = tempCanvas.getContext("2d");
+                            if (tempCtx) {
+                                tempCtx.fillStyle = backgroundColor;
+                            }
+                            if (tempCtx) {
+                                tempCtx.fillRect(0, 0, chartWidth, chartHeight);
+                            }
                         }
 
-                        if (tempCtx) { tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight); }
-                        if (ctx) { ctx.drawImage(tempCanvas, x, y); }
+                        if (tempCtx) {
+                            tempCtx.drawImage(chart.canvas, 0, 0, chartWidth, chartHeight);
+                        }
+                        if (ctx) {
+                            ctx.drawImage(tempCanvas, x, y);
+                        }
                     });
 
                     const base64Image = combinedCanvas.toDataURL("image/png", 1.0);
@@ -1614,7 +1738,7 @@ export const exportUtils = {
                     showNotification("Combined charts uploaded! URL copied to clipboard", "success");
                 } catch (error) {
                     console.error("Error sharing combined charts as URL:", error);
-                    if ((/** @type {any} */ (error)).message.includes("Imgur client ID not configured")) {
+                    if (/** @type {any} */ (error).message.includes("Imgur client ID not configured")) {
                         showNotification(
                             "Imgur client ID not configured. Please update the exportUtils.uploadToImgur function with your Imgur client ID.",
                             "error"
@@ -1643,7 +1767,7 @@ export const exportUtils = {
     showGyazoAccountManager() {
         const isAuthenticated = exportUtils.isGyazoAuthenticated();
         const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!((/** @type {any} */ (config)).clientId && (/** @type {any} */ (config)).clientSecret);
+        const hasCredentials = !!(/** @type {any} */ (config).clientId && /** @type {any} */ (config).clientSecret);
 
         // Create modal overlay
         const overlay = document.createElement("div");
@@ -1748,7 +1872,7 @@ export const exportUtils = {
                     Client ID:
                 </label>
                 <input type="text" id="gyazo-client-id" placeholder="Enter your Gyazo Client ID"
-                       value="${(/** @type {any} */ (config)).clientId}" style="
+                       value="${/** @type {any} */ (config).clientId}" style="
                     width: 100%;
                     padding: 8px 10px;
                     border-radius: 6px;
@@ -1765,7 +1889,7 @@ export const exportUtils = {
                     Client Secret:
                 </label>
                 <input type="password" id="gyazo-client-secret" placeholder="Enter your Gyazo Client Secret"
-                       value="${(/** @type {any} */ (config)).clientSecret}" style="
+                       value="${/** @type {any} */ (config).clientSecret}" style="
                     width: 100%;
                     padding: 8px 10px;
                     border-radius: 6px;
@@ -1871,8 +1995,8 @@ export const exportUtils = {
         // Save credentials
         if (saveCredsBtn) {
             saveCredsBtn.addEventListener("click", () => {
-                const clientId = (/** @type {HTMLInputElement} */ (clientIdInput))?.value.trim();
-                const clientSecret = (/** @type {HTMLInputElement} */ (clientSecretInput))?.value.trim();
+                const clientId = /** @type {HTMLInputElement} */ (clientIdInput)?.value.trim();
+                const clientSecret = /** @type {HTMLInputElement} */ (clientSecretInput)?.value.trim();
 
                 if (!clientId || !clientSecret) {
                     showNotification("Please enter both Client ID and Client Secret", "error");
@@ -1896,7 +2020,7 @@ export const exportUtils = {
                     exportUtils.updateGyazoAuthStatus(modal);
                     showNotification("Gyazo account connected successfully!", "success");
                 } catch (error) {
-                    showNotification(`Failed to connect Gyazo account: ${(/** @type {any} */ (error)).message}`, "error");
+                    showNotification(`Failed to connect Gyazo account: ${/** @type {any} */ (error).message}`, "error");
                 }
             });
         }
@@ -2077,19 +2201,23 @@ export const exportUtils = {
     updateGyazoAuthStatus(modal) {
         const isAuthenticated = exportUtils.isGyazoAuthenticated();
         const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!((/** @type {any} */ (config)).clientId && (/** @type {any} */ (config)).clientSecret);
+        const hasCredentials = !!(/** @type {any} */ (config).clientId && /** @type {any} */ (config).clientSecret);
 
         // Update auth status
         const authStatus = modal.querySelector("#auth-status");
         if (authStatus) {
-            (/** @type {HTMLElement} */ (authStatus)).style.background = isAuthenticated ? "var(--color-success)" : "var(--color-error)";
+            /** @type {HTMLElement} */ (authStatus).style.background = isAuthenticated
+                ? "var(--color-success)"
+                : "var(--color-error)";
             authStatus.textContent = isAuthenticated ? "✅ Connected" : "❌ Not Connected";
         }
 
         // Update credentials status
         const credsStatus = modal.querySelector("#creds-status");
         if (credsStatus) {
-            (/** @type {HTMLElement} */ (credsStatus)).style.background = hasCredentials ? "var(--color-success)" : "var(--color-warning)";
+            /** @type {HTMLElement} */ (credsStatus).style.background = hasCredentials
+                ? "var(--color-success)"
+                : "var(--color-warning)";
             credsStatus.textContent = hasCredentials ? "🔑 Credentials Saved" : "⚠️ Credentials Needed";
         }
 
@@ -2098,13 +2226,14 @@ export const exportUtils = {
         const disconnectBtn = modal.querySelector("#gyazo-disconnect");
 
         if (connectBtn) {
-            (/** @type {HTMLElement} */ (connectBtn)).style.display = hasCredentials && !isAuthenticated ? "block" : "none";
+            /** @type {HTMLElement} */ (connectBtn).style.display =
+                hasCredentials && !isAuthenticated ? "block" : "none";
         }
 
         if (disconnectBtn) {
-            (/** @type {HTMLElement} */ (disconnectBtn)).style.display = isAuthenticated ? "block" : "none";
+            /** @type {HTMLElement} */ (disconnectBtn).style.display = isAuthenticated ? "block" : "none";
         }
 
         console.log("[Gyazo] Status updated - Auth:", isAuthenticated, "Creds:", hasCredentials);
-    }
+    },
 }; // Global export functions for the settings panel

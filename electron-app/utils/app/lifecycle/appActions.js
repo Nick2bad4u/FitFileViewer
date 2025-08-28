@@ -156,7 +156,7 @@ export const AppActions = {
 
     /**
      * Update map rendering state and center
-    * @param {MapCenter} center - [lat, lng] coordinates for map center
+     * @param {MapCenter} center - [lat, lng] coordinates for map center
      * @param {number} zoom - Zoom level
      */
     renderMap(center, zoom = 13) {
@@ -188,7 +188,7 @@ export const AppActions = {
      * Update table rendering state
      * @param {Object} tableConfig - Table configuration
      */
-    renderTable(tableConfig = /** @type {TableConfig} */ ({}) ) {
+    renderTable(tableConfig = /** @type {TableConfig} */ ({})) {
         const startTime = performance.now();
 
         updateState(

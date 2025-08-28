@@ -267,7 +267,10 @@ export function showFitData(data, filePath, options = {}) {
             try {
                 createGlobalChartStatusIndicator();
             } catch (indicatorError) {
-                const errorMessage = indicatorError instanceof Error ? indicatorError.message : "Unknown error creating chart status indicator";
+                const errorMessage =
+                    indicatorError instanceof Error
+                        ? indicatorError.message
+                        : "Unknown error creating chart status indicator";
                 logWithContext("Error creating chart status indicator: " + errorMessage, "warn");
             }
         }

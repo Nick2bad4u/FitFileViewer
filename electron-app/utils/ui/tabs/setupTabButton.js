@@ -60,14 +60,16 @@ export function setupTabButton(id, handler) {
  * @type {Map<string, HTMLElement> | undefined}
  */
 // Initialize the cache property definition so TypeScript (checkJs) recognizes it
-Object.assign(setupTabButton, { cache: /** @type {Map<string, HTMLElement>|undefined} */ ((/** @type {any} */ (setupTabButton)).cache) });
+Object.assign(setupTabButton, {
+    cache: /** @type {Map<string, HTMLElement>|undefined} */ (/** @type {any} */ (setupTabButton).cache),
+});
 
 /**
  * Clears the cache and removes all event handlers
  * Useful for cleanup during page navigation or testing
  */
 export function clearTabButtonCache() {
-    const cache = /** @type {Map<string, HTMLElement>|undefined} */ ((/** @type {any} */ (setupTabButton)).cache);
+    const cache = /** @type {Map<string, HTMLElement>|undefined} */ (/** @type {any} */ (setupTabButton).cache);
     if (cache) {
         // Clean up event handlers before clearing cache
         cache.forEach((/** @type {HTMLElement} */ btn) => {

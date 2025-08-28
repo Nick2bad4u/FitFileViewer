@@ -11,12 +11,15 @@ import { defineConfig } from "eslint/config";
 // import tseslint from 'typescript-eslint'; and extend its configs.
 
 export default defineConfig([
-        { files: ["**/*.{js,mjs,cjs,ts}"], plugins: { js: js }, extends: ["js/recommended"],
-            rules: {
-                // Allow intentionally unused parameters prefixed with underscore (common for Electron event placeholders)
-                "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
-            }
+    {
+        files: ["**/*.{js,mjs,cjs,ts}"],
+        plugins: { js: js },
+        extends: ["js/recommended"],
+        rules: {
+            // Allow intentionally unused parameters prefixed with underscore (common for Electron event placeholders)
+            "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
         },
+    },
     // Merging browser and node globals to support environments where both are used, such as Electron.
     { files: ["**/*.{js,mjs,cjs,ts}"], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
     {

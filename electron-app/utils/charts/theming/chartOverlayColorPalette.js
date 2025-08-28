@@ -50,11 +50,7 @@ export function getChartOverlayColorPalette(array) {
     /** @type {string[]} */
     const filtered = [];
     unique.forEach((/** @type {string} */ color) => {
-        if (
-            filtered.every(
-                (/** @type {string} */ existing) => colorDistance(color, existing) >= 80
-            )
-        ) {
+        if (filtered.every((/** @type {string} */ existing) => colorDistance(color, existing) >= 80)) {
             filtered.push(color);
         }
     });
@@ -72,8 +68,8 @@ export function getChartOverlayColorPalette(array) {
             c = 1013904223,
             m = 2 ** 32;
         let state = seed;
-    /** @type {string[]} */
-    const arr = array.slice();
+        /** @type {string[]} */
+        const arr = array.slice();
         for (let i = arr.length - 1; i > 0; i--) {
             state = (a * state + c) % m;
             const j = state % (i + 1);

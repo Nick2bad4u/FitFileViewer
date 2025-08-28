@@ -47,8 +47,8 @@ const { app } = require("electron");
 
 /** @type {string|undefined} */
 let RECENT_FILES_PATH;
-if (process.env['RECENT_FILES_PATH']) {
-    RECENT_FILES_PATH = process.env['RECENT_FILES_PATH'];
+if (process.env["RECENT_FILES_PATH"]) {
+    RECENT_FILES_PATH = process.env["RECENT_FILES_PATH"];
 } else {
     let userDataPath;
     try {
@@ -95,7 +95,11 @@ function loadRecentFiles() {
  */
 function saveRecentFiles(list) {
     try {
-        fs.writeFileSync(/** @type {string} */ (RECENT_FILES_PATH), JSON.stringify(list.slice(0, MAX_RECENT_FILES)), "utf-8");
+        fs.writeFileSync(
+            /** @type {string} */ (RECENT_FILES_PATH),
+            JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
+            "utf-8"
+        );
     } catch (err) {
         console.error("Failed to save recent files:", err);
     }

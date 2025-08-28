@@ -165,8 +165,8 @@ export function forceEnableTabButtons() {
         }
 
         // Aggressively remove all disabled states
-    const buttonEl = /** @type {HTMLButtonElement} */ (btn);
-    buttonEl.disabled = false;
+        const buttonEl = /** @type {HTMLButtonElement} */ (btn);
+        buttonEl.disabled = false;
         btn.classList.remove("tab-disabled");
         btn.removeAttribute("disabled");
 
@@ -201,8 +201,8 @@ export function testTabButtonClicks() {
         }
 
         // Add a temporary test click handler
-    /** @param {MouseEvent} event */
-    const testHandler = (event) => {
+        /** @param {MouseEvent} event */
+        const testHandler = (event) => {
             console.log(`[TabButtons] TEST CLICK DETECTED on ${btn.id}!`, event);
             alert(`Clicked on ${btn.id}!`);
         };
@@ -264,11 +264,11 @@ export function forceFixTabButtons() {
             return;
         }
 
-    const buttonEl = /** @type {HTMLButtonElement} */ (btn);
-    console.log(`[TabButtons] BEFORE FIX: ${btn.id} disabled=${buttonEl.disabled}`);
+        const buttonEl = /** @type {HTMLButtonElement} */ (btn);
+        console.log(`[TabButtons] BEFORE FIX: ${btn.id} disabled=${buttonEl.disabled}`);
 
         // Force set to enabled
-    buttonEl.disabled = false;
+        buttonEl.disabled = false;
         btn.classList.remove("tab-disabled");
         btn.removeAttribute("disabled");
 
@@ -278,7 +278,7 @@ export function forceFixTabButtons() {
         btn.style.filter = "none";
         btn.style.opacity = "1";
 
-    console.log(`[TabButtons] AFTER FIX: ${btn.id} disabled=${buttonEl.disabled}`);
+        console.log(`[TabButtons] AFTER FIX: ${btn.id} disabled=${buttonEl.disabled}`);
     });
 
     // Also force update the state

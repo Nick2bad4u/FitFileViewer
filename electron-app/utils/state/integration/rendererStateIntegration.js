@@ -168,7 +168,7 @@ async function loadChartTab() {
     if (!globalData) return;
 
     try {
-    setState("isLoading", true, { silent: false, source: "loadChartTab" });
+        setState("isLoading", true, { silent: false, source: "loadChartTab" });
 
         // Your existing chart rendering logic here
         // const chartData = await processChartData(globalData);
@@ -180,7 +180,7 @@ async function loadChartTab() {
     } catch (error) {
         console.error("[Renderer] Error loading chart tab:", error);
     } finally {
-    setState("isLoading", false, { silent: false, source: "loadChartTab" });
+        setState("isLoading", false, { silent: false, source: "loadChartTab" });
     }
 }
 
@@ -192,7 +192,7 @@ async function loadMapTab() {
     if (!globalData) return;
 
     try {
-    setState("isLoading", true, { silent: false, source: "loadMapTab" });
+        setState("isLoading", true, { silent: false, source: "loadMapTab" });
 
         // Your existing map rendering logic here
         // const mapCenter = calculateMapCenter(globalData);
@@ -204,7 +204,7 @@ async function loadMapTab() {
     } catch (error) {
         console.error("[Renderer] Error loading map tab:", error);
     } finally {
-    setState("isLoading", false, { silent: false, source: "loadMapTab" });
+        setState("isLoading", false, { silent: false, source: "loadMapTab" });
     }
 }
 
@@ -216,7 +216,7 @@ async function loadTableTab() {
     if (!globalData) return;
 
     try {
-    setState("isLoading", true, { silent: false, source: "loadTableTab" });
+        setState("isLoading", true, { silent: false, source: "loadTableTab" });
 
         // Your existing table rendering logic here
         // const tableConfig = {
@@ -230,7 +230,7 @@ async function loadTableTab() {
     } catch (error) {
         console.error("[Renderer] Error loading table tab:", error);
     } finally {
-    setState("isLoading", false, { silent: false, source: "loadTableTab" });
+        setState("isLoading", false, { silent: false, source: "loadTableTab" });
     }
 }
 

@@ -120,7 +120,7 @@ function isDevelopmentMode() {
         // Check if running from file:// protocol (dev mode indicator)
         window.location.protocol === "file:" ||
         // Check if electron dev tools are available
-        (window.electronAPI && typeof /** @type {any} */ (window.electronAPI).__devMode !== "undefined") ||
+        (window.electronAPI && typeof (/** @type {any} */ (window.electronAPI).__devMode) !== "undefined") ||
         // Check console availability and development-specific globals
         (typeof console !== "undefined" && window.location.href.includes("electron"))
     );
@@ -184,9 +184,12 @@ async function initializeStateManager() {
         };
 
         // Subscribe to state changes to update legacy reference
-        subscribe("app.isOpeningFile", /** @param {any} isOpening */ (isOpening) => {
-            isOpeningFileRef.value = isOpening;
-        });
+        subscribe(
+            "app.isOpeningFile",
+            /** @param {any} isOpening */ (isOpening) => {
+                isOpeningFileRef.value = isOpening;
+            }
+        );
 
         console.log("[Renderer] State management system initialized");
     } catch (error) {

@@ -130,10 +130,10 @@ function updateUIControl(control, option, value) {
     if (!isHTMLElement(control)) return;
 
     try {
-    /** @type {ChartOptionConfig} */
-    // @ts-ignore
-    const opt = option;
-    switch (opt.type) {
+        /** @type {ChartOptionConfig} */
+        // @ts-ignore
+        const opt = option;
+        switch (opt.type) {
             case "select": {
                 /** @type {HTMLElement|null} */
                 let selectEl = control.tagName === "SELECT" ? control : control.querySelector("select");
@@ -167,7 +167,10 @@ function updateUIControl(control, option, value) {
 
             case "range": {
                 /** @type {HTMLElement|null} */
-                let sliderEl = ("type" in control && control.type === "range") ? control : control.querySelector("input[type='range']");
+                let sliderEl =
+                    "type" in control && control.type === "range"
+                        ? control
+                        : control.querySelector("input[type='range']");
                 if (!sliderEl) sliderEl = query(`#chartjs-${opt.id}-slider`);
                 if (sliderEl && "type" in sliderEl && sliderEl.type === "range") {
                     // @ts-ignore value exists
@@ -201,14 +204,14 @@ function updateUIControl(control, option, value) {
 function updateRangeSliderStyling(control, option, value) {
     try {
         const themeConfig = getThemeConfig();
-    /** @type {any} */
-    const theme = themeConfig || {};
-    const accentColor = theme.colors?.accent || "var(--color-accent, #3b82f6)";
-    const borderLight = theme.colors?.borderLight || "var(--color-border, #e5e7eb)";
-    /** @type {any} */
-    const optRange = option || {};
-    const min = optRange && optRange.min != null ? optRange.min : 0;
-    const max = optRange && optRange.max != null ? optRange.max : 1;
+        /** @type {any} */
+        const theme = themeConfig || {};
+        const accentColor = theme.colors?.accent || "var(--color-accent, #3b82f6)";
+        const borderLight = theme.colors?.borderLight || "var(--color-border, #e5e7eb)";
+        /** @type {any} */
+        const optRange = option || {};
+        const min = optRange && optRange.min != null ? optRange.min : 0;
+        const max = optRange && optRange.max != null ? optRange.max : 1;
         const percentage = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
 
         if (isHTMLElement(control)) {
@@ -226,7 +229,7 @@ function updateRangeSliderStyling(control, option, value) {
 function clearAllStorageItems() {
     try {
         // Clear chart option settings
-    (chartOptionsConfig || []).forEach((opt) => {
+        (chartOptionsConfig || []).forEach((opt) => {
             localStorage.removeItem(`${STORAGE_PREFIXES.CHART_OPTION}${opt.id}`);
         });
 
@@ -273,7 +276,7 @@ function resetUIControlsToDefaults(wrapper) {
         console.log(`${LOG_PREFIX} Resetting ${chartOptionsConfig.length} chart option controls`);
 
         // Reset all chart option controls to default values
-    (chartOptionsConfig || []).forEach((opt) => {
+        (chartOptionsConfig || []).forEach((opt) => {
             // Try multiple ways to find the control
             let control =
                 query(`#chartjs-${opt.id}`, wrapper) ||
@@ -315,7 +318,10 @@ function resetUIControlsToDefaults(wrapper) {
                             if (settingRow) {
                                 const label = settingRow.querySelector(".setting-label");
                                 // Guard label.textContent which can be null per DOM typings
-                                if (label && (label.textContent || "").toLowerCase().includes(opt.label.toLowerCase())) {
+                                if (
+                                    label &&
+                                    (label.textContent || "").toLowerCase().includes(opt.label.toLowerCase())
+                                ) {
                                     parent._updateFromReset && parent._updateFromReset();
                                     console.log(`${LOG_PREFIX} Updated toggle ${opt.id} via context matching`);
                                 }
@@ -327,14 +333,16 @@ function resetUIControlsToDefaults(wrapper) {
         });
 
         // Reset all field toggles to visible (default state)
-    const fieldToggles = queryAll('.field-toggle input[type="checkbox"]', wrapper);
-    fieldToggles.forEach((toggle) => { setChecked(toggle, true); });
+        const fieldToggles = queryAll('.field-toggle input[type="checkbox"]', wrapper);
+        fieldToggles.forEach((toggle) => {
+            setChecked(toggle, true);
+        });
         if (fieldToggles.length > 0) {
             console.log(`${LOG_PREFIX} Reset ${fieldToggles.length} field toggles to visible`);
         }
 
         // Reset all color pickers to default colors
-    const colorPickers = queryAll('input[type="color"]', wrapper);
+        const colorPickers = queryAll('input[type="color"]', wrapper);
         colorPickers.forEach((picker) => {
             const fieldName = picker.id.replace("field-color-", "").replace("chartjs-", "");
             if (/** @type {any} */ (fieldColors)[fieldName]) {
@@ -365,7 +373,7 @@ function resetUIControlsToDefaults(wrapper) {
 function updateCustomControlsFromReset(wrapper) {
     try {
         // Find all elements with _updateFromReset method and call them
-    const allElements = queryAll("*", wrapper);
+        const allElements = queryAll("*", wrapper);
         let updatedCount = 0;
 
         allElements.forEach((element) => {
@@ -393,7 +401,7 @@ function performDirectControlUpdates() {
         let updatedCount = 0;
 
         // Direct updates for known control types
-    (chartOptionsConfig || []).forEach((opt) => {
+        (chartOptionsConfig || []).forEach((opt) => {
             let updated = false;
 
             switch (opt.type) {
@@ -471,7 +479,7 @@ function reRenderChartsAfterReset() {
         const chartsContainer = document.getElementById("chart-container");
 
         // Clear existing chart instances
-    if (window._chartjsInstances && Array.isArray(window._chartjsInstances)) {
+        if (window._chartjsInstances && Array.isArray(window._chartjsInstances)) {
             window._chartjsInstances.forEach((chart) => {
                 if (chart && typeof chart.destroy === "function") {
                     chart.destroy();
@@ -522,7 +530,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         // Clear existing chart instances first
-    if (window._chartjsInstances && Array.isArray(window._chartjsInstances)) {
+        if (window._chartjsInstances && Array.isArray(window._chartjsInstances)) {
             console.log(`${LOG_PREFIX} Destroying ${window._chartjsInstances.length} existing chart instances`);
             window._chartjsInstances.forEach((chart, index) => {
                 if (chart && typeof chart.destroy === "function") {
@@ -538,9 +546,13 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         // Also clear any existing chart canvases to ensure clean slate
-    const existingCanvases = queryAll('canvas[id^="chart-"], canvas[id^="chartjs-canvas-"]');
+        const existingCanvases = queryAll('canvas[id^="chart-"], canvas[id^="chartjs-canvas-"]');
         console.log(`${LOG_PREFIX} Removing ${existingCanvases.length} existing chart canvases`);
-    existingCanvases.forEach((canvas) => { if (canvas.parentNode) { canvas.parentNode.removeChild(canvas); } });
+        existingCanvases.forEach((canvas) => {
+            if (canvas.parentNode) {
+                canvas.parentNode.removeChild(canvas);
+            }
+        });
 
         // Force a complete re-render - try multiple container approaches
         let container = document.getElementById("content-chart");
@@ -636,7 +648,10 @@ export function getCurrentSettings() {
         fields.forEach((field) => {
             const stored = localStorage.getItem(`${STORAGE_PREFIXES.FIELD_COLOR}${field}`);
             // @ts-ignore dynamic field key
-            settings.colors[field] = stored || /** @type {any} */ (fieldColors)[field] || (themeConfig && themeConfig.colors ? themeConfig.colors.primaryAlpha : "#3b82f6");
+            settings.colors[field] =
+                stored ||
+                /** @type {any} */ (fieldColors)[field] ||
+                (themeConfig && themeConfig.colors ? themeConfig.colors.primaryAlpha : "#3b82f6");
         });
 
         return settings;
@@ -682,7 +697,7 @@ export function resetAllSettings() {
         reRenderChartsAfterReset();
 
         // Show success notification
-    showNotification("Settings reset to defaults", "success");
+        showNotification("Settings reset to defaults", "success");
 
         console.log(`${LOG_PREFIX} Settings reset completed successfully`);
         return true;

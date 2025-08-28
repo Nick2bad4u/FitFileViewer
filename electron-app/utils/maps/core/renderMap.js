@@ -202,21 +202,29 @@ export function renderMap() {
     function debounce(func, wait) {
         /** @type {ReturnType<typeof setTimeout>} */
         let timeout;
-        return /** @type {any} */ (function () {
-            // @ts-ignore: arguments is available in function context
-            const args = Array.prototype.slice.call(arguments);
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(null, args), wait);
-        });
-    }    if (zoomSlider && zoomSliderCurrent) {
+        return /** @type {any} */ (
+            function () {
+                // @ts-ignore: arguments is available in function context
+                const args = Array.prototype.slice.call(arguments);
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(null, args), wait);
+            }
+        );
+    }
+    if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            /** @type {EventListener} */ (debounce(/** @param {Event} e */ (e) => {
-                isDragging = true;
-                const target = /** @type {HTMLInputElement} */ (e.target);
-                const percent = Number(target.value);
-                zoomSliderCurrent.textContent = `${percent}%`;
-            }, 100)) // Adjust debounce delay as needed
+            /** @type {EventListener} */ (
+                debounce(
+                    /** @param {Event} e */ (e) => {
+                        isDragging = true;
+                        const target = /** @type {HTMLInputElement} */ (e.target);
+                        const percent = Number(target.value);
+                        zoomSliderCurrent.textContent = `${percent}%`;
+                    },
+                    100
+                )
+            ) // Adjust debounce delay as needed
         );
         zoomSlider.addEventListener("change", (e) => {
             const target = /** @type {HTMLInputElement} */ (e.target);
@@ -314,7 +322,9 @@ export function renderMap() {
             markerClusterGroup,
             startIcon,
             endIcon,
-            mapContainer: /** @type {HTMLElement} */ (mapContainer || document.getElementById("leaflet-map") || document.body),
+            mapContainer: /** @type {HTMLElement} */ (
+                mapContainer || document.getElementById("leaflet-map") || document.body
+            ),
             getLapColor,
             formatTooltipData,
             getLapNumForIdx,
@@ -368,7 +378,9 @@ export function renderMap() {
         windowExt._overlayPolylines = {};
         windowExt.loadedFitFiles.forEach((/** @type {any} */ fitFile, /** @type {any} */ idx) => {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
-            const color = /** @type {string} */ (chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000");
+            const color = /** @type {string} */ (
+                chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
+            );
             const fileName = (fitFile.filePath || "").split(/[\\/]/).pop();
             const bounds = drawOverlayForFitFile({
                 fitData: fitFile.data,

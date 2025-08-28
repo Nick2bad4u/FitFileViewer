@@ -10,8 +10,8 @@ import { getChartCounts } from "../core/getChartCounts.js";
  */
 export function createChartStatusIndicator() {
     try {
-    /** @type {import('../core/getChartCounts.js').ChartCounts} */
-    const counts = getChartCounts();
+        /** @type {import('../core/getChartCounts.js').ChartCounts} */
+        const counts = getChartCounts();
 
         const indicator = document.createElement("div");
         indicator.className = "chart-status-indicator";

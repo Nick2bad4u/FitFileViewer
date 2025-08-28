@@ -242,8 +242,8 @@ function applyUnknownMessageLabels(messages) {
     /** @type {FitMessages} */
     const updated = { ...messages };
     Object.keys(unknownMessageMappings).forEach((msgNum) => {
-    const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
-    if (!mapping) return; // safety guard
+        const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
+        if (!mapping) return; // safety guard
         const possibleKeys = [`unknown_${msgNum}`, msgNum];
         possibleKeys.forEach((key) => {
             if (Object.prototype.hasOwnProperty.call(updated, key)) {
@@ -281,7 +281,10 @@ function applyUnknownMessageLabels(messages) {
         const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
         if (!mapping) return;
         const key = /** @type {any} */ (msgNum);
-        if (Object.prototype.hasOwnProperty.call(updated, key) && Object.prototype.hasOwnProperty.call(updated, mapping.name)) {
+        if (
+            Object.prototype.hasOwnProperty.call(updated, key) &&
+            Object.prototype.hasOwnProperty.call(updated, mapping.name)
+        ) {
             delete updated[key];
         }
     });
@@ -353,21 +356,21 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
         // Update state with error
         if (fitFileStateManager) {
             try {
-        fitFileStateManager.handleFileLoadingError(new FitDecodeError(msg, null));
+                fitFileStateManager.handleFileLoadingError(new FitDecodeError(msg, null));
             } catch (error) {
                 console.warn("[FitParser] Failed to update error state:", error);
             }
         }
 
-    throw new FitDecodeError(msg, null);
+        throw new FitDecodeError(msg, null);
     }
 
     try {
-    /** @type {any} */
-    // @ts-ignore - external library lacks bundled types; suppressed locally
-    const sdk = fitsdk || (await import("@garmin/fitsdk"));
-    // @ts-ignore - typed as any due to missing declaration file
-    const { Decoder, Stream } = /** @type {any} */ (sdk);
+        /** @type {any} */
+        // @ts-ignore - external library lacks bundled types; suppressed locally
+        const sdk = fitsdk || (await import("@garmin/fitsdk"));
+        // @ts-ignore - typed as any due to missing declaration file
+        const { Decoder, Stream } = /** @type {any} */ (sdk);
         const buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer);
         const stream = Stream.fromBuffer(buffer);
         const decoder = new Decoder(stream);
@@ -515,7 +518,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
 
         const errObj = /** @type {any} */ (error);
         return {
-            error: (errObj && errObj.message) ? errObj.message : "Failed to decode file",
+            error: errObj && errObj.message ? errObj.message : "Failed to decode file",
             details: errObj && errObj.stack ? errObj.stack : null,
         };
     }

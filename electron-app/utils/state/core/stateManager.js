@@ -249,7 +249,11 @@ export function setState(path, value, options = {}) {
         if (!key) continue; // defensive
         if (typeof target !== "object" || target == null) break;
         const container = /** @type {Record<string, any>} */ (target);
-        if (!Object.prototype.hasOwnProperty.call(container, key) || typeof container[key] !== "object" || container[key] === null) {
+        if (
+            !Object.prototype.hasOwnProperty.call(container, key) ||
+            typeof container[key] !== "object" ||
+            container[key] === null
+        ) {
             container[key] = {};
         }
         target = container[key];
@@ -270,11 +274,11 @@ export function setState(path, value, options = {}) {
         !Array.isArray(value)
     ) {
         // Shallow merge
-    /** @type {Record<string, any>} */
-    (target)[finalKey] = { ...oldValue, ...value };
+        /** @type {Record<string, any>} */
+        (target)[finalKey] = { ...oldValue, ...value };
     } else {
-    /** @type {Record<string, any>} */
-    (target)[finalKey] = value;
+        /** @type {Record<string, any>} */
+        (target)[finalKey] = value;
     }
 
     // Add to history
@@ -376,7 +380,7 @@ export function resetState(path) {
     } else {
         // Reset entire state
         Object.keys(AppState).forEach((key) => {
-            delete /** @type {any} */ (AppState)[key];
+            delete (/** @type {any} */ (AppState)[key]);
         });
 
         // Restore initial structure
@@ -512,7 +516,11 @@ function setNestedValue(obj, path, value) {
         if (!key) continue;
         if (target == null || typeof target !== "object") return;
         const container = /** @type {Record<string, any>} */ (target);
-        if (!Object.prototype.hasOwnProperty.call(container, key) || typeof container[key] !== "object" || container[key] === null) {
+        if (
+            !Object.prototype.hasOwnProperty.call(container, key) ||
+            typeof container[key] !== "object" ||
+            container[key] === null
+        ) {
             container[key] = {};
         }
         target = container[key];

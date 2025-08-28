@@ -26,25 +26,16 @@
             "ESNext"
         ],
         "paths": {
-            "@shared/*": [
-                "shared/*"
-            ],
-            "@electron/*": [
-                "electron/*"
-            ],
-            "@app/*": [
-                "src/*"
-            ]
+            "@shared/*": ["shared/*"],
+            "@electron/*": ["electron/*"],
+            "@app/*": ["src/*"]
         },
         "plugins": [
             {
                 "name": "@styled/typescript-styled-plugin"
             }
         ],
-        "types": [
-            "electron",
-            "node"
-        ],
+        "types": ["electron", "node"],
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "allowUmdGlobalAccess": false,

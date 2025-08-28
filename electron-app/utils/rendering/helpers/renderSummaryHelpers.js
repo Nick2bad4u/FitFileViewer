@@ -59,7 +59,7 @@ export function getStorageKey(data, _allKeys) {
         const w = /** @type {AugmentedWindow} */ (window);
         if (typeof window !== "undefined" && w?.globalData?.cachedFilePath) {
             fpath = w.globalData.cachedFilePath;
-        } else if (data && typeof data === "object" && (/** @type {any} */ (data))?.cachedFilePath) {
+        } else if (data && typeof data === "object" && /** @type {any} */ (data)?.cachedFilePath) {
             fpath = /** @type {any} */ (data).cachedFilePath;
         } else if (typeof window !== "undefined" && w?.activeFitFileName) {
             fpath = w.activeFitFileName;
@@ -207,10 +207,12 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
             // Summary row
             if (filterValue === "All" || filterValue === "Summary") {
                 const summaryRows = getSummaryRows(data);
-                const summary = (summaryRows && summaryRows[0]) ? summaryRows[0] : {};
+                const summary = summaryRows && summaryRows[0] ? summaryRows[0] : {};
                 rows.push(
                     sortedVisible
-                            .map((k) => (k === LABEL_COL ? "Summary" : (summary && summary[k] !== undefined ? summary[k] : "")))
+                        .map((k) =>
+                            k === LABEL_COL ? "Summary" : summary && summary[k] !== undefined ? summary[k] : ""
+                        )
                         .join(",")
                 );
             }
@@ -260,7 +262,7 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
         const summaryRec = summaryRows[0] || {};
         sortedVisible.forEach((key, idx) => {
             const td = document.createElement("td");
-            td.textContent = key === LABEL_COL ? "Summary" : (summaryRec[key] !== undefined ? summaryRec[key] : "");
+            td.textContent = key === LABEL_COL ? "Summary" : summaryRec[key] !== undefined ? summaryRec[key] : "";
             if (idx === 0) td.classList.add("summary-row");
             summaryRow.appendChild(td);
         });
@@ -313,7 +315,12 @@ function getSummaryRows(data) {
         }
         return [raw];
     }
-    if (data?.recordMesgs && data.recordMesgs.length > 0 && typeof window !== "undefined" && (/** @type {AugmentedWindow} */ (window))?.aq) {
+    if (
+        data?.recordMesgs &&
+        data.recordMesgs.length > 0 &&
+        typeof window !== "undefined" &&
+        /** @type {AugmentedWindow} */ (window)?.aq
+    ) {
         try {
             const aq = /** @type {AugmentedWindow} */ (window).aq;
             const table = aq.from(data.recordMesgs);

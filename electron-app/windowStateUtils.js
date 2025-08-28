@@ -56,8 +56,8 @@ function getSettingsPath() {
         const userDataPath = app.getPath("userData");
         return path.join(userDataPath, CONSTANTS.FILES.WINDOW_STATE);
     } catch (error) {
-    const errMsg = error instanceof Error ? error.message : String(error);
-    console.error("[windowStateUtils] Error getting settings path:", errMsg);
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error("[windowStateUtils] Error getting settings path:", errMsg);
         // Fallback to current directory in case of error
         return path.join(process.cwd(), CONSTANTS.FILES.WINDOW_STATE);
     }
@@ -88,7 +88,12 @@ function validateWindowState(state) {
  * @returns {win is BrowserWindow}
  */
 function validateWindow(win) {
-    return !!win && typeof win === "object" && typeof (/** @type {any} */(win).isDestroyed) === "function" && !(/** @type {any} */(win)).isDestroyed();
+    return (
+        !!win &&
+        typeof win === "object" &&
+        typeof (/** @type {any} */ (win).isDestroyed) === "function" &&
+        !/** @type {any} */ (win).isDestroyed()
+    );
 }
 
 /**

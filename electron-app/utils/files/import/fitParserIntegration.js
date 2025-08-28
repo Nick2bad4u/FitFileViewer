@@ -27,10 +27,10 @@ import { setState } from "../../state/core/stateManager.js";
  */
 export async function initializeFitParserIntegration() {
     try {
-    // Import the fitParser module (Node.js require in main process)
-    /** @type {any} */
-    // Path: utils/files/import -> utils/files -> utils -> (electron-app root)
-    const fitParser = require("../../../fitParser.js");
+        // Import the fitParser module (Node.js require in main process)
+        /** @type {any} */
+        // Path: utils/files/import -> utils/files -> utils -> (electron-app root)
+        const fitParser = require("../../../fitParser.js");
 
         // Initialize with state management instances
         fitParser.initializeStateManagement({
@@ -42,9 +42,16 @@ export async function initializeFitParserIntegration() {
         // Set up decoder options schema in settings if not already present
         try {
             // Attempt to read existing decoder options from settings state (dynamic category not in schema)
-            const existingDecoder = /** @type {any} */ (settingsStateManager && settingsStateManager.getSetting ? settingsStateManager.getSetting(/** @type {any} */ ("decoder")) : undefined);
+            const existingDecoder = /** @type {any} */ (
+                settingsStateManager && settingsStateManager.getSetting
+                    ? settingsStateManager.getSetting(/** @type {any} */ ("decoder"))
+                    : undefined
+            );
             if (existingDecoder == null) {
-                const defaultOptions = typeof fitParser.getDefaultDecoderOptions === "function" ? fitParser.getDefaultDecoderOptions() : {};
+                const defaultOptions =
+                    typeof fitParser.getDefaultDecoderOptions === "function"
+                        ? fitParser.getDefaultDecoderOptions()
+                        : {};
                 setState("settings.decoder", defaultOptions, { source: "FitParserIntegration" });
                 console.log("[FitParserIntegration] Decoder options initialized in settings state");
             }
@@ -76,10 +83,10 @@ export async function initializeFitParserIntegration() {
  */
 export async function decodeFitFileWithState(fileBuffer, options = {}) {
     try {
-    // Import fitParser
-    /** @type {any} */
-    // Path adjustment same as above
-    const fitParser = require("../../../fitParser.js");
+        // Import fitParser
+        /** @type {any} */
+        // Path adjustment same as above
+        const fitParser = require("../../../fitParser.js");
 
         // Decode the file with state management integration
         const result = await fitParser.decodeFitFile(fileBuffer, options);
@@ -124,10 +131,13 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
  */
 export async function updateDecoderOptionsWithState(newOptions) {
     try {
-    /** @type {any} */
-    // Path adjustment same as above
-    const fitParser = require("../../../fitParser.js");
-    const result = typeof fitParser.updateDecoderOptions === "function" ? fitParser.updateDecoderOptions(newOptions) : { success: false, error: "updateDecoderOptions not available" };
+        /** @type {any} */
+        // Path adjustment same as above
+        const fitParser = require("../../../fitParser.js");
+        const result =
+            typeof fitParser.updateDecoderOptions === "function"
+                ? fitParser.updateDecoderOptions(newOptions)
+                : { success: false, error: "updateDecoderOptions not available" };
 
         if (result.success && masterStateManager) {
             try {
@@ -156,15 +166,19 @@ export async function updateDecoderOptionsWithState(newOptions) {
 export function getCurrentDecoderOptionsWithState() {
     try {
         /** @type {any} */
-    const fitParser = require("../../../fitParser.js");
+        const fitParser = require("../../../fitParser.js");
         return typeof fitParser.getCurrentDecoderOptions === "function"
             ? fitParser.getCurrentDecoderOptions()
-            : (typeof fitParser.getDefaultDecoderOptions === "function" ? fitParser.getDefaultDecoderOptions() : {});
+            : typeof fitParser.getDefaultDecoderOptions === "function"
+              ? fitParser.getDefaultDecoderOptions()
+              : {};
     } catch (error) {
         console.error("[FitParserIntegration] Error getting decoder options:", error);
         try {
             const fitParserFallback = require("../../../fitParser.js");
-            return typeof fitParserFallback.getDefaultDecoderOptions === "function" ? fitParserFallback.getDefaultDecoderOptions() : {};
+            return typeof fitParserFallback.getDefaultDecoderOptions === "function"
+                ? fitParserFallback.getDefaultDecoderOptions()
+                : {};
         } catch {
             return {};
         }
@@ -216,16 +230,21 @@ export function setupFitParserIPC(ipcMain) {
     );
 
     // Handle resetting decoder options
-    ipcMain.handle("reset-decoder-options", /** @param {import('electron').IpcMainInvokeEvent} _event */ async (_event) => {
-        try {
-            /** @type {any} */
-            const fitParser = require("../../../fitParser.js");
-            return typeof fitParser.resetDecoderOptions === "function" ? fitParser.resetDecoderOptions() : { success: false, error: "resetDecoderOptions not available" };
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            return { success: false, error: message };
+    ipcMain.handle(
+        "reset-decoder-options",
+        /** @param {import('electron').IpcMainInvokeEvent} _event */ async (_event) => {
+            try {
+                /** @type {any} */
+                const fitParser = require("../../../fitParser.js");
+                return typeof fitParser.resetDecoderOptions === "function"
+                    ? fitParser.resetDecoderOptions()
+                    : { success: false, error: "resetDecoderOptions not available" };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return { success: false, error: message };
+            }
         }
-    });
+    );
 
     console.log("[FitParserIntegration] IPC handlers registered for FIT parser operations");
 }

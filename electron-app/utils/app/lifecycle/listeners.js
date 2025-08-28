@@ -104,8 +104,8 @@ export function setupListeners({
                         // Optional chaining avoids undefined invocation
                         window.showFitData?.(result, file);
                         // Optional integration - guarded
-                        if ((/** @type {any} */ (window)).sendFitFileToAltFitReader) {
-                            (/** @type {any} */ (window)).sendFitFileToAltFitReader(arrayBuffer);
+                        if (/** @type {any} */ (window).sendFitFileToAltFitReader) {
+                            /** @type {any} */ (window).sendFitFileToAltFitReader(arrayBuffer);
                         }
                     }
                     await window.electronAPI.addRecentFile(file);
@@ -163,7 +163,7 @@ export function setupListeners({
         }
 
         // Remove menu and cleanup on Escape or Enter
-    menu.addEventListener("keydown", (e) => {
+        menu.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 e.preventDefault();
                 cleanupMenu();
@@ -223,8 +223,8 @@ export function setupListeners({
                     showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                 } else {
                     window.showFitData?.(result, filePath);
-                    if ((/** @type {any} */ (window)).sendFitFileToAltFitReader) {
-                        (/** @type {any} */ (window)).sendFitFileToAltFitReader(arrayBuffer);
+                    if (/** @type {any} */ (window).sendFitFileToAltFitReader) {
+                        /** @type {any} */ (window).sendFitFileToAltFitReader(arrayBuffer);
                     }
                 }
                 await window.electronAPI.addRecentFile(filePath);
@@ -238,11 +238,11 @@ export function setupListeners({
 
     if (window.electronAPI && window.electronAPI.onIpc) {
         // Handles changes to decoder options and updates the UI or data accordingly
-    /**
-     * Decoder options changed handler
-     * @param {any} newOptions
-     */
-    window.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ newOptions) => {
+        /**
+         * Decoder options changed handler
+         * @param {any} newOptions
+         */
+        window.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ newOptions) => {
             console.log("[DEBUG] Decoder options changed:", newOptions);
             showNotification("Decoder options updated.", "info", 2000);
             if (window.globalData && window.globalData.cachedFilePath) {
@@ -271,72 +271,70 @@ export function setupListeners({
          */
         window.electronAPI.onIpc(
             "export-file",
-            /** @param {any} _event @param {string} filePath */ async (
-                _event, /** @type {string} */ filePath
-            ) => {
-            if (!window.globalData) return;
-            const safePath = filePath || "";
-            const ext = safePath.split(".").pop()?.toLowerCase() || "";
-            if (ext === "csv") {
-                const container = document.getElementById("content-summary");
-                if ((/** @type {any} */ (window)).copyTableAsCSV && container) {
-                    const csv = (/** @type {any} */ (window)).copyTableAsCSV({ container, data: window.globalData });
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const a = document.createElement("a");
-                    a.href = URL.createObjectURL(blob);
-                    a.download = safePath.split(/[\\/]/).pop() || "export.csv";
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(function () {
-                        URL.revokeObjectURL(a.href);
-                        document.body.removeChild(a);
-                    }, 100);
-                }
-            } else if (ext === "gpx") {
-                if (
-                    (/** @type {any} */ (window)).createExportGPXButton &&
-                    window.globalData.recordMesgs &&
-                    Array.isArray(window.globalData.recordMesgs) &&
-                    window.globalData.recordMesgs.length > 0
-                ) {
-                    const coords = window.globalData.recordMesgs
-                        .filter(
-                            (/** @type {{positionLat?:number, positionLong?:number}} */ row) =>
-                                row.positionLat != null && row.positionLong != null
-                        )
-                        .map((/** @type {{positionLat:number, positionLong:number}} */ row) => [
-                            Number((row.positionLat / 2 ** 31) * 180),
-                            Number((row.positionLong / 2 ** 31) * 180),
-                        ]);
-                    if (coords.length > 0) {
-                        let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="FitFileViewer">\n<trk><name>Exported Track</name><trkseg>`;
-                        coords.forEach((/** @type {number[]} */ c) => {
-                            gpx += `\n<trkpt lat="${c[0]}" lon="${c[1]}"/>`;
-                        });
-                        gpx += "\n</trkseg></trk></gpx>";
-                        const blob = new Blob([gpx], { type: "application/gpx+xml" });
+            /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
+                if (!window.globalData) return;
+                const safePath = filePath || "";
+                const ext = safePath.split(".").pop()?.toLowerCase() || "";
+                if (ext === "csv") {
+                    const container = document.getElementById("content-summary");
+                    if (/** @type {any} */ (window).copyTableAsCSV && container) {
+                        const csv = /** @type {any} */ (window).copyTableAsCSV({ container, data: window.globalData });
+                        const blob = new Blob([csv], { type: "text/csv" });
                         const a = document.createElement("a");
                         a.href = URL.createObjectURL(blob);
-                        a.download = safePath.split(/[\\/]/).pop() || "export.gpx";
+                        a.download = safePath.split(/[\\/]/).pop() || "export.csv";
                         document.body.appendChild(a);
                         a.click();
                         setTimeout(function () {
                             URL.revokeObjectURL(a.href);
                             document.body.removeChild(a);
                         }, 100);
-                    } else {
-                        showNotification("No valid coordinates found for GPX export.", "info", 3000);
                     }
-                } else {
-                    showNotification("No data available for GPX export.", "info", 3000);
+                } else if (ext === "gpx") {
+                    if (
+                        /** @type {any} */ (window).createExportGPXButton &&
+                        window.globalData.recordMesgs &&
+                        Array.isArray(window.globalData.recordMesgs) &&
+                        window.globalData.recordMesgs.length > 0
+                    ) {
+                        const coords = window.globalData.recordMesgs
+                            .filter(
+                                (/** @type {{positionLat?:number, positionLong?:number}} */ row) =>
+                                    row.positionLat != null && row.positionLong != null
+                            )
+                            .map((/** @type {{positionLat:number, positionLong:number}} */ row) => [
+                                Number((row.positionLat / 2 ** 31) * 180),
+                                Number((row.positionLong / 2 ** 31) * 180),
+                            ]);
+                        if (coords.length > 0) {
+                            let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="FitFileViewer">\n<trk><name>Exported Track</name><trkseg>`;
+                            coords.forEach((/** @type {number[]} */ c) => {
+                                gpx += `\n<trkpt lat="${c[0]}" lon="${c[1]}"/>`;
+                            });
+                            gpx += "\n</trkseg></trk></gpx>";
+                            const blob = new Blob([gpx], { type: "application/gpx+xml" });
+                            const a = document.createElement("a");
+                            a.href = URL.createObjectURL(blob);
+                            a.download = safePath.split(/[\\/]/).pop() || "export.gpx";
+                            document.body.appendChild(a);
+                            a.click();
+                            setTimeout(function () {
+                                URL.revokeObjectURL(a.href);
+                                document.body.removeChild(a);
+                            }, 100);
+                        } else {
+                            showNotification("No valid coordinates found for GPX export.", "info", 3000);
+                        }
+                    } else {
+                        showNotification("No data available for GPX export.", "info", 3000);
+                    }
                 }
-            }
             }
         );
         window.electronAPI.onIpc(
             "show-notification",
             (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
-            if (typeof showNotification === "function") showNotification(msg, type || "info", 3000);
+                if (typeof showNotification === "function") showNotification(msg, type || "info", 3000);
             }
         );
         window.electronAPI.onIpc("menu-print", () => {
@@ -437,16 +435,11 @@ export function setupListeners({
 
     // Accessibility Event Listeners
     if (window.electronAPI && window.electronAPI.onIpc) {
-        window.electronAPI.onIpc(
-            "set-font-size",
-            (/** @type {any} */ _event, /** @type {string} */ size) => {
+        window.electronAPI.onIpc("set-font-size", (/** @type {any} */ _event, /** @type {string} */ size) => {
             document.body.classList.remove("font-xsmall", "font-small", "font-medium", "font-large", "font-xlarge");
             document.body.classList.add(`font-${size}`);
-            }
-        );
-        window.electronAPI.onIpc(
-            "set-high-contrast",
-            (/** @type {any} */ _event, /** @type {string} */ mode) => {
+        });
+        window.electronAPI.onIpc("set-high-contrast", (/** @type {any} */ _event, /** @type {string} */ mode) => {
             document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
             if (mode === "black") {
                 document.body.classList.add("high-contrast");
@@ -455,7 +448,6 @@ export function setupListeners({
             } else if (mode === "yellow") {
                 document.body.classList.add("high-contrast-yellow");
             }
-            }
-        );
+        });
     }
 }

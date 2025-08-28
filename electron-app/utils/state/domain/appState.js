@@ -398,13 +398,15 @@ class AppStateManager {
     emit(event, data) {
         const eventListeners = this.listeners.get(event);
         if (eventListeners) {
-            eventListeners.forEach(/** @param {Function} callback */ (callback) => {
-                try {
-                    callback(data);
-                } catch (error) {
-                    console.error(`[AppState] Error in event listener for ${event}:`, error);
+            eventListeners.forEach(
+                /** @param {Function} callback */ (callback) => {
+                    try {
+                        callback(data);
+                    } catch (error) {
+                        console.error(`[AppState] Error in event listener for ${event}:`, error);
+                    }
                 }
-            });
+            );
         }
     }
 

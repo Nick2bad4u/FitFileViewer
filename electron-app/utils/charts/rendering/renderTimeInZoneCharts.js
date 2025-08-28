@@ -19,32 +19,24 @@ export function renderTimeInZoneCharts(container, options = {}) {
         /** @type {ZoneInfo[]|undefined} */
         const powerZones = Array.isArray(window.powerZones) ? window.powerZones : undefined;
 
-    /** @type {ZoneVisibilitySettings} */
-    const hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || { doughnutVisible: true };
+        /** @type {ZoneVisibilitySettings} */
+        const hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || {
+            doughnutVisible: true,
+        };
         if (hrZoneSettings.doughnutVisible && hrZones && hrZones.length > 0) {
             console.log("[ChartJS] Rendering HR zone chart with data:", hrZones);
-            renderZoneChart(
-                container,
-                "HR Zone Distribution (Doughnut)",
-                hrZones,
-                "heart-rate-zones",
-                options
-            );
+            renderZoneChart(container, "HR Zone Distribution (Doughnut)", hrZones, "heart-rate-zones", options);
         } else {
             console.log("[ChartJS] HR zone doughnut chart hidden or no data available");
         }
 
-    /** @type {ZoneVisibilitySettings} */
-    const powerZoneSettings = (getPowerZoneVisibilitySettings && getPowerZoneVisibilitySettings()) || { doughnutVisible: true };
+        /** @type {ZoneVisibilitySettings} */
+        const powerZoneSettings = (getPowerZoneVisibilitySettings && getPowerZoneVisibilitySettings()) || {
+            doughnutVisible: true,
+        };
         if (powerZoneSettings.doughnutVisible && powerZones && powerZones.length > 0) {
             console.log("[ChartJS] Rendering power zone doughnut chart with data:", powerZones);
-            renderZoneChart(
-                container,
-                "Power Zone Distribution (Doughnut)",
-                powerZones,
-                "power-zones",
-                options
-            );
+            renderZoneChart(container, "Power Zone Distribution (Doughnut)", powerZones, "power-zones", options);
         } else {
             console.log("[ChartJS] Power zone doughnut chart hidden or no data available");
         }

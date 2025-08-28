@@ -102,21 +102,27 @@ function getContentIdFromTabName(tabName) {
  */
 export function initializeTabVisibilityState() {
     // Subscribe to active tab changes to update content visibility
-    subscribe("ui.activeTab", /** @param {any} activeTab */ (activeTab) => {
-        const contentId = getContentIdFromTabName(activeTab);
-        updateTabVisibility(contentId);
-    });
+    subscribe(
+        "ui.activeTab",
+        /** @param {any} activeTab */ (activeTab) => {
+            const contentId = getContentIdFromTabName(activeTab);
+            updateTabVisibility(contentId);
+        }
+    );
 
     // Subscribe to data loading to show/hide appropriate content
-    subscribe("globalData", /** @param {any} data */ (data) => {
-        const hasData = data !== null && data !== undefined;
-        const currentTab = getState("ui.activeTab") || "summary";
+    subscribe(
+        "globalData",
+        /** @param {any} data */ (data) => {
+            const hasData = data !== null && data !== undefined;
+            const currentTab = getState("ui.activeTab") || "summary";
 
-        if (!hasData && currentTab !== "summary") {
-            // If no data, switch to summary tab
-            setState("ui.activeTab", "summary", { source: "initializeTabVisibilityState" });
+            if (!hasData && currentTab !== "summary") {
+                // If no data, switch to summary tab
+                setState("ui.activeTab", "summary", { source: "initializeTabVisibilityState" });
+            }
         }
-    });
+    );
 
     console.log("[TabVisibility] State management initialized");
 }

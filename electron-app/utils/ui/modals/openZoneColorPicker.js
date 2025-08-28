@@ -401,7 +401,10 @@ export function openZoneColorPicker(field) {
                 }
             } catch (err) {
                 if (typeof window.showNotification === "function") {
-                    window.showNotification("Failed to reset zone colors: " + /** @type {Error} */ (err).message, "error");
+                    window.showNotification(
+                        "Failed to reset zone colors: " + /** @type {Error} */ (err).message,
+                        "error"
+                    );
                 }
                 console.error("[ZoneColorPicker] Reset all failed:", err);
             }

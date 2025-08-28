@@ -27,8 +27,8 @@ export function renderGPSTrackChart(container, data, options) {
             return;
         }
 
-    /** @type {any} */
-    const themeConfig = getThemeConfig();
+        /** @type {any} */
+        const themeConfig = getThemeConfig();
 
         // Convert GPS positions to chart data
         let gpsData = data
@@ -66,7 +66,7 @@ export function renderGPSTrackChart(container, data, options) {
 
         console.log(`[ChartJS] Creating GPS track chart with ${gpsData.length} points`);
 
-        const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("gps-track", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-track", 0));
         if (themeConfig?.colors) {
             canvas.style.background = themeConfig.colors.bgPrimary || themeConfig.colors.chartBackground || "#000";
             canvas.style.boxShadow = themeConfig.colors.shadow || "";

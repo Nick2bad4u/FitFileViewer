@@ -146,7 +146,10 @@ function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
                 try {
                     obj[fieldName] = formatter(value);
                 } catch (error) {
-                    logWithContext(`Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`, "error");
+                    logWithContext(
+                        `Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`,
+                        "error"
+                    );
                 }
             }
         }
@@ -169,7 +172,7 @@ function patchDecimalFields(obj, fieldNames, decimalPlaces) {
     patchFieldsWithFormatter(
         obj,
         fieldNames,
-    /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
+        /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
         `decimal (${decimalPlaces} places)`
     );
 }

@@ -57,7 +57,7 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */ (method) => typeof (/** @type {*} */ (window.electronAPI))[method] !== "function"
+        /** @param {string} method */ (method) => typeof /** @type {*} */ (window.electronAPI)[method] !== "function"
     );
 
     if (missingMethods.length > 0) {
@@ -132,7 +132,7 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
     };
 
     // Prevent multiple simultaneous file opening operations
-    if ((/** @type {*} */ (isOpeningFileRef))?.value) {
+    if (/** @type {*} */ (isOpeningFileRef)?.value) {
         logWithContext("File opening already in progress", "warn");
         return false;
     }
@@ -236,8 +236,8 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
                 if (window.showFitData) {
                     window.showFitData(result, filePathString);
                 }
-                if ((/** @type {*} */ (window)).sendFitFileToAltFitReader) {
-                    (/** @type {*} */ (window)).sendFitFileToAltFitReader(arrayBuffer);
+                if (/** @type {*} */ (window).sendFitFileToAltFitReader) {
+                    /** @type {*} */ (window).sendFitFileToAltFitReader(arrayBuffer);
                 }
             } catch (err) {
                 showNotification(`Error displaying FIT data: ${err}`, "error");

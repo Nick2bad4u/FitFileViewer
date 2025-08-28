@@ -119,13 +119,13 @@ export function toggleTheme(withTransition = true) {
 export function listenForThemeChange(onThemeChange) {
     if (
         /** @type {any} */ (window).electronAPI &&
-        typeof /** @type {any} */ (window).electronAPI.onSetTheme === "function" &&
-        typeof /** @type {any} */ (window).electronAPI.sendThemeChanged === "function"
+        typeof (/** @type {any} */ (window).electronAPI.onSetTheme) === "function" &&
+        typeof (/** @type {any} */ (window).electronAPI.sendThemeChanged) === "function"
     ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
         /** @type {any} */ (window).electronAPI.onSetTheme((/** @type {string} */ theme) => {
             onThemeChange(theme);
-            if (typeof /** @type {any} */ (window).electronAPI.sendThemeChanged === "function") {
+            if (typeof (/** @type {any} */ (window).electronAPI.sendThemeChanged) === "function") {
                 /** @type {any} */ (window).electronAPI.sendThemeChanged(theme);
             } else {
                 console.warn("sendThemeChanged method is not available on electronAPI.");
@@ -341,7 +341,8 @@ export function getThemeConfig() {
             accentHover: cssColors["accentHover"] || (effectiveTheme === "dark" ? "#667eea33" : "#3b82f633"),
             shadow: cssColors["shadow"] || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)"),
             shadowLight:
-                cssColors["boxShadowLight"] || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
+                cssColors["boxShadowLight"] ||
+                (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
             shadowMedium: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.1)",
             shadowHeavy: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.15)",
             primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",

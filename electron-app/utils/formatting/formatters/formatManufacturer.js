@@ -113,7 +113,7 @@ export function formatManufacturer(manufacturer) {
         let manufacturerName = manufacturer;
 
         // If it's a number, try to get the name from the ID mapping first
-    if (typeof manufacturer === "number" || (!isNaN(Number(manufacturer)) && manufacturer !== "")) {
+        if (typeof manufacturer === "number" || (!isNaN(Number(manufacturer)) && manufacturer !== "")) {
             try {
                 const nameFromId = getManufacturerName(manufacturer);
                 if (nameFromId && nameFromId !== manufacturer.toString()) {
@@ -130,7 +130,7 @@ export function formatManufacturer(manufacturer) {
         const normalizedName = String(manufacturerName).toLowerCase().trim();
 
         // Return formatted name from mapping or original value
-    return /** @type {any} */ (MANUFACTURER_MAP)[normalizedName] || String(manufacturer);
+        return /** @type {any} */ (MANUFACTURER_MAP)[normalizedName] || String(manufacturer);
     } catch (error) {
         console.error(`[formatManufacturer] ${MANUFACTURER_CONFIG.ERROR_MESSAGES.FORMATTING_ERROR}`, error);
         return String(manufacturer) || MANUFACTURER_CONFIG.FALLBACK_NAME;

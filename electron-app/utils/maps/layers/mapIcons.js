@@ -22,10 +22,10 @@ const ASSET_BASE_PATH = "libs/assets/icons/";
  */
 function getLeaflet() {
     // Access via index signature to avoid TS error when no ambient L property declared with richer type.
-    const leaflet = /** @type {any} */ ((/** @type {any} */ (globalThis))?.L);
+    const leaflet = /** @type {any} */ (/** @type {any} */ (globalThis)?.L);
     if (!leaflet) {
         return {
-            icon: () => ({})
+            icon: () => ({}),
         };
     }
     return leaflet;

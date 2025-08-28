@@ -258,7 +258,7 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         const recordMesgs =
             recordMesgsOverride ||
             getState("globalData.recordMesgs") ||
-            (/** @type {any} */ (window).globalData && /** @type {any} */ (window).globalData.recordMesgs);
+            /** @type {any} */ ((window).globalData && /** @type {any} */ (window).globalData.recordMesgs);
 
         // Format timestamp
         const dateStr = row.timestamp ? new Date(row.timestamp).toLocaleString() : "";

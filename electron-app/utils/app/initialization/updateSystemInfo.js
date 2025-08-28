@@ -58,7 +58,9 @@ function validateSystemInfo(info) {
         return { isValid: false, missingFields: INFO_FIELD_ORDER };
     }
 
-    const missingFields = INFO_FIELD_ORDER.filter((field) => /** @type {any} */ (info)[field] === undefined || /** @type {any} */ (info)[field] === null);
+    const missingFields = INFO_FIELD_ORDER.filter(
+        (field) => /** @type {any} */ (info)[field] === undefined || /** @type {any} */ (info)[field] === null
+    );
 
     if (missingFields.length > 0) {
         console.warn(`${LOG_PREFIX} Missing system info fields:`, missingFields);

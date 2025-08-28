@@ -188,9 +188,12 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                             const data = chart.data;
                             if (data.labels.length && data.datasets.length) {
                                 const dataset = data.datasets[0];
-                                const total = dataset.data.reduce((/** @type {number} */a, /** @type {number} */b) => a + b, 0);
+                                const total = dataset.data.reduce(
+                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                    0
+                                );
 
-                                return data.labels.map((/** @type {string} */label, /** @type {number} */i) => {
+                                return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
                                     const value = dataset.data[i];
                                     const percentage = ((value / total) * 100).toFixed(1);
                                     const meta = chart.getDatasetMeta(0);
@@ -229,7 +232,10 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         /** @param {any} context */
                         label: function (context) {
                             const value = context.parsed;
-                            const total = context.dataset.data.reduce((/** @type {number} */a, /** @type {number} */b) => a + b, 0);
+                            const total = context.dataset.data.reduce(
+                                (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                0
+                            );
                             const percentage = ((value / total) * 100).toFixed(1);
                             const timeFormatted = formatTime(context.parsed, true);
                             return [`Time: ${timeFormatted}`, `Percentage: ${percentage}%`];

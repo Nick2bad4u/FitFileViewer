@@ -15,7 +15,7 @@ import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackground
 
 export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
     try {
-        if (!/** @type {any} */ (window).Chart || !canvas || !Array.isArray(zoneData)) {
+        if (!(/** @type {any} */ (window).Chart) || !canvas || !Array.isArray(zoneData)) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
         const theme = detectCurrentTheme();
@@ -141,7 +141,8 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
         });
         return chart;
     } catch (error) {
-        if (/** @type {any} */ (window).showNotification) /** @type {any} */ (window).showNotification("Failed to render power zone bar", "error");
+        if (/** @type {any} */ (window).showNotification)
+            /** @type {any} */ (window).showNotification("Failed to render power zone bar", "error");
         console.error("[renderSinglePowerZoneBar] Error:", error);
         return null;
     }

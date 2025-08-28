@@ -118,12 +118,12 @@ export function setupChartStatusUpdates() {
                 // Store existing value if any
                 const currentValue = window.globalData;
 
-        Object.defineProperty(window, "globalData", {
+                Object.defineProperty(window, "globalData", {
                     get() {
-            return /** @type {any} */ (window).___ffv_globalData || currentValue;
+                        return /** @type {any} */ (window).___ffv_globalData || currentValue;
                     },
                     set(value) {
-            /** @type {any} */ (window).___ffv_globalData = value;
+                        /** @type {any} */ (window).___ffv_globalData = value;
                         setTimeout(function () {
                             try {
                                 updateAllChartStatusIndicators();

@@ -15,7 +15,7 @@ import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackground
 
 export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
     try {
-        if (!/** @type {any} */ (window).Chart || !canvas || !Array.isArray(zoneData)) {
+        if (!(/** @type {any} */ (window).Chart) || !canvas || !Array.isArray(zoneData)) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
         const theme = detectCurrentTheme();
@@ -28,7 +28,8 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         const datasets = zoneData.map((zone, index) => ({
             label: /** @type {any} */ (zone).label,
             data: [/** @type {any} */ (zone).value], // Single value array for this zone
-            backgroundColor: /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
+            backgroundColor:
+                /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
             borderColor: theme === "dark" ? "#333" : "#fff",
             borderWidth: 1,
         }));
@@ -52,7 +53,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         },
                     },
                     title: {
-                        display: !!/** @type {any} */ (options).title,
+                        display: !!(/** @type {any} */ (options).title),
                         text: /** @type {any} */ (options).title || "Heart Rate Zones",
                         color: theme === "dark" ? "#fff" : "#000",
                         font: { size: 16, weight: "bold" },
@@ -143,7 +144,8 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         });
         return chart;
     } catch (error) {
-        if (/** @type {any} */ (window).showNotification) /** @type {any} */ (window).showNotification("Failed to render HR zone bar", "error");
+        if (/** @type {any} */ (window).showNotification)
+            /** @type {any} */ (window).showNotification("Failed to render HR zone bar", "error");
         console.error("[renderSingleHRZoneBar] Error:", error);
         return null;
     }

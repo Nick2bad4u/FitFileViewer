@@ -19,13 +19,13 @@ export function renderEventMessagesChart(container, options, startTime) {
         }
 
         // Get theme configuration
-    /** @type {any} */
-    const themeConfig = getThemeConfig();
+        /** @type {any} */
+        const themeConfig = getThemeConfig();
 
         // Get user-defined color for event messages
         const eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0"; // Purple default
 
-    const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("events", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("events", 0));
 
         // Apply theme-aware canvas styling (background handled by plugin)
         canvas.style.borderRadius = "12px";
@@ -35,7 +35,7 @@ export function renderEventMessagesChart(container, options, startTime) {
 
         container.appendChild(canvas);
         // Prepare event data with relative timestamps
-    const eventData = eventMesgs.map((event) => {
+        const eventData = eventMesgs.map((event) => {
             let timestamp = event.timestamp || event.time || 0;
 
             // Convert to relative seconds from start time

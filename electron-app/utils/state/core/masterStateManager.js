@@ -258,31 +258,40 @@ export class MasterStateManager {
      */
     setupIntegrations() {
         // Integrate file operations with UI state
-        subscribe("globalData", /** @param {*} data */ (data) => {
-            if (data) {
-                // Enable tabs when data is loaded
-                UIActions.showTab("summary");
-            } else {
-                // Disable tabs when no data
-                UIActions.showTab("summary");
+        subscribe(
+            "globalData",
+            /** @param {*} data */ (data) => {
+                if (data) {
+                    // Enable tabs when data is loaded
+                    UIActions.showTab("summary");
+                } else {
+                    // Disable tabs when no data
+                    UIActions.showTab("summary");
+                }
             }
-        });
+        );
 
         // Integrate loading state with UI
-        subscribe("isLoading", /** @param {boolean} isLoading */ (isLoading) => {
-            // Update UI elements based on loading state
-            const elements = document.querySelectorAll(".loading-sensitive");
-            elements.forEach((el) => {
-                /** @type {HTMLElement} */ (el).style.pointerEvents = isLoading ? "none" : "auto";
-                /** @type {HTMLElement} */ (el).style.opacity = isLoading ? "0.5" : "1";
-            });
-        });
+        subscribe(
+            "isLoading",
+            /** @param {boolean} isLoading */ (isLoading) => {
+                // Update UI elements based on loading state
+                const elements = document.querySelectorAll(".loading-sensitive");
+                elements.forEach((el) => {
+                    /** @type {HTMLElement} */ (el).style.pointerEvents = isLoading ? "none" : "auto";
+                    /** @type {HTMLElement} */ (el).style.opacity = isLoading ? "0.5" : "1";
+                });
+            }
+        );
 
         // Integrate theme changes with maps and charts
-        subscribe("ui.theme", /** @param {string} theme */ (theme) => {
-            // Notify other components about theme changes
-            window.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
-        });
+        subscribe(
+            "ui.theme",
+            /** @param {string} theme */ (theme) => {
+                // Notify other components about theme changes
+                window.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
+            }
+        );
 
         console.log("[MasterState] Component integrations set up");
     }
@@ -356,12 +365,25 @@ export class MasterStateManager {
                 "system.performance",
                 {
                     stateChangesPerMinute: Math.round((stateChangeCount * 60000) / elapsed),
-                    memoryUsage: /** @type {Performance & {memory?: {usedJSHeapSize: number, totalJSHeapSize: number}}} */ (performance).memory
-                        ? {
-                              used: Math.round(/** @type {Performance & {memory: {usedJSHeapSize: number}}} */ (performance).memory.usedJSHeapSize / 1024 / 1024),
-                              total: Math.round(/** @type {Performance & {memory: {totalJSHeapSize: number}}} */ (performance).memory.totalJSHeapSize / 1024 / 1024),
-                          }
-                        : null,
+                    memoryUsage:
+                        /** @type {Performance & {memory?: {usedJSHeapSize: number, totalJSHeapSize: number}}} */ (
+                            performance
+                        ).memory
+                            ? {
+                                  used: Math.round(
+                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */ (performance)
+                                          .memory.usedJSHeapSize /
+                                          1024 /
+                                          1024
+                                  ),
+                                  total: Math.round(
+                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */ (performance)
+                                          .memory.totalJSHeapSize /
+                                          1024 /
+                                          1024
+                                  ),
+                              }
+                            : null,
                     timestamp: now,
                 },
                 { source: "performanceMonitor" }

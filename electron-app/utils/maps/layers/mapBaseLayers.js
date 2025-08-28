@@ -14,7 +14,7 @@ function getLeaflet() {
     if (g && g.L && g.L.tileLayer) return g.L;
     return {
         tileLayer: () => ({}),
-        maplibreGL: () => ({})
+        maplibreGL: () => ({}),
     };
 }
 const LRef = getLeaflet();
@@ -166,21 +166,31 @@ export const baseLayers = {
     }),
     // The OpenFreeMap_* layers use L.maplibreGL for rendering vector tiles with MapLibre GL styles,
     // while other layers use L.tileLayer for raster tile layers.
-    OpenFreeMap_Liberty: LRef.maplibreGL ? LRef.maplibreGL({
-        style: "https://tiles.openfreemap.org/styles/liberty",
-    }) : {},
-    OpenFreeMap_Positron: LRef.maplibreGL ? LRef.maplibreGL({
-        style: "https://tiles.openfreemap.org/styles/positron",
-    }) : {},
-    OpenFreeMap_Bright: LRef.maplibreGL ? LRef.maplibreGL({
-        style: "https://tiles.openfreemap.org/styles/bright",
-    }) : {},
-    OpenFreeMap_Dark: LRef.maplibreGL ? LRef.maplibreGL({
-        style: "https://tiles.openfreemap.org/styles/dark",
-    }) : {},
-    OpenFreeMap_Fiord: LRef.maplibreGL ? LRef.maplibreGL({
-        style: "https://tiles.openfreemap.org/styles/fiord",
-    }) : {},
+    OpenFreeMap_Liberty: LRef.maplibreGL
+        ? LRef.maplibreGL({
+              style: "https://tiles.openfreemap.org/styles/liberty",
+          })
+        : {},
+    OpenFreeMap_Positron: LRef.maplibreGL
+        ? LRef.maplibreGL({
+              style: "https://tiles.openfreemap.org/styles/positron",
+          })
+        : {},
+    OpenFreeMap_Bright: LRef.maplibreGL
+        ? LRef.maplibreGL({
+              style: "https://tiles.openfreemap.org/styles/bright",
+          })
+        : {},
+    OpenFreeMap_Dark: LRef.maplibreGL
+        ? LRef.maplibreGL({
+              style: "https://tiles.openfreemap.org/styles/dark",
+          })
+        : {},
+    OpenFreeMap_Fiord: LRef.maplibreGL
+        ? LRef.maplibreGL({
+              style: "https://tiles.openfreemap.org/styles/fiord",
+          })
+        : {},
     Humanitarian: LRef.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
         attribution:
             'Tiles &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://www.openstreetmap.fr/fonds-de-carte/">Humanitarian OSM</a>',

@@ -486,7 +486,7 @@ const electronAPI = {
             totalChannels: Object.keys(CONSTANTS.CHANNELS).length,
             totalEvents: Object.keys(CONSTANTS.EVENTS).length,
         };
-        return /** @type {ChannelInfo} */( /** @type {any} */(info) );
+        return /** @type {ChannelInfo} */ (/** @type {any} */ (info));
     },
     /**
      * Validate the preload API is working correctly.
@@ -523,12 +523,12 @@ try {
         console.log("[preload.js] Successfully exposed electronAPI to main world");
 
         // Log API structure in development
-    if (process.env["NODE_ENV"] === "development") {
+        if (process.env["NODE_ENV"] === "development") {
             const apiKeys = Object.keys(electronAPI);
             /** @type {string[]} */
-            const methods = apiKeys.filter((key) => typeof /** @type {any} */(electronAPI)[key] === "function");
+            const methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function");
             /** @type {string[]} */
-            const properties = apiKeys.filter((key) => typeof /** @type {any} */(electronAPI)[key] !== "function");
+            const properties = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) !== "function");
             console.log("[preload.js] API Structure:", {
                 methods,
                 properties,
@@ -583,7 +583,7 @@ if (process.env["NODE_ENV"] === "development") {
             },
         });
 
-    console.log("[preload.js] Development tools exposed");
+        console.log("[preload.js] Development tools exposed");
     } catch (error) {
         console.error("[preload.js] Failed to expose development tools:", error);
     }

@@ -41,10 +41,12 @@ export function debugSensorInfo() {
     if (data.deviceInfoMesgs) {
         console.log(`📱 Found ${data.deviceInfoMesgs.length} deviceInfoMesgs entries`);
         sensors.push(
-            ...data.deviceInfoMesgs.map(/** @param {*} device */ (device) => ({
-                ...device,
-                source: "deviceInfoMesgs",
-            }))
+            ...data.deviceInfoMesgs.map(
+                /** @param {*} device */ (device) => ({
+                    ...device,
+                    source: "deviceInfoMesgs",
+                })
+            )
         );
     }
 
@@ -52,10 +54,12 @@ export function debugSensorInfo() {
     if (data.deviceSettingsMesgs) {
         console.log(`⚙️  Found ${data.deviceSettingsMesgs.length} deviceSettingsMesgs entries`);
         sensors.push(
-            ...data.deviceSettingsMesgs.map(/** @param {*} device */ (device) => ({
-                ...device,
-                source: "deviceSettingsMesgs",
-            }))
+            ...data.deviceSettingsMesgs.map(
+                /** @param {*} device */ (device) => ({
+                    ...device,
+                    source: "deviceSettingsMesgs",
+                })
+            )
         );
     }
 
@@ -63,10 +67,12 @@ export function debugSensorInfo() {
     if (data.device_info) {
         console.log(`📱 Found ${data.device_info.length} device_info entries`);
         sensors.push(
-            ...data.device_info.map(/** @param {*} device */ (device) => ({
-                ...device,
-                source: "device_info",
-            }))
+            ...data.device_info.map(
+                /** @param {*} device */ (device) => ({
+                    ...device,
+                    source: "device_info",
+                })
+            )
         );
     }
 
@@ -225,7 +231,9 @@ export function showSensorNames() {
         sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceInfoMesgs" })));
     }
     if (data.deviceSettingsMesgs) {
-        sensors.push(...data.deviceSettingsMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceSettingsMesgs" })));
+        sensors.push(
+            ...data.deviceSettingsMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceSettingsMesgs" }))
+        );
     }
     if (data.device_info) {
         sensors.push(...data.device_info.map(/** @param {*} d */ (d) => ({ ...d, source: "device_info" })));

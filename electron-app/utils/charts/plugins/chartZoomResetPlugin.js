@@ -71,7 +71,7 @@ export const chartZoomResetPlugin = {
             chart._zoomResetBtnBounds = { x, y, w: btnW, h: btnH };
         } catch (err) {
             // Silent fail to avoid breaking charts
-            if (typeof window !== "undefined" && (/** @type {any} */ (window)).__renderer_dev?.debug) {
+            if (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev?.debug) {
                 console.warn("[chartZoomResetPlugin] afterDraw error", err);
             }
         }
@@ -109,7 +109,7 @@ export const chartZoomResetPlugin = {
                 }
             }
         } catch (err) {
-            if (typeof window !== "undefined" && (/** @type {any} */ (window)).__renderer_dev?.debug) {
+            if (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev?.debug) {
                 console.warn("[chartZoomResetPlugin] afterEvent error", err);
             }
         }
@@ -121,14 +121,14 @@ export const chartZoomResetPlugin = {
 if (typeof CanvasRenderingContext2D !== "undefined") {
     const ctxProto = /** @type {any} */ (CanvasRenderingContext2D.prototype);
     if (typeof ctxProto.roundRect !== "function") {
-    /**
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {number|Object} radius
-     */
-    ctxProto.roundRect = function (x, y, width, height, radius) {
+        /**
+         * @param {number} x
+         * @param {number} y
+         * @param {number} width
+         * @param {number} height
+         * @param {number|Object} radius
+         */
+        ctxProto.roundRect = function (x, y, width, height, radius) {
             let r;
             if (typeof radius === "number") {
                 r = { tl: radius, tr: radius, br: radius, bl: radius };

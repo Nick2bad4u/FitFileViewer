@@ -119,7 +119,7 @@ export function updateChartAnimations(/** @type {any} */ chart, /** @type {strin
             return null;
         }
 
-    if (!chart.options || typeof chart.options !== "object") {
+        if (!chart.options || typeof chart.options !== "object") {
             console.warn(`${LOG_PREFIX} Chart instance missing options object`);
             return null;
         }
@@ -144,7 +144,7 @@ export function updateChartAnimations(/** @type {any} */ chart, /** @type {strin
         };
 
         // Configure type-specific animations
-    const chartType = chart.config?.type;
+        const chartType = chart.config?.type;
         if (chartType) {
             configureTypeSpecificAnimations(chart, chartType);
         } else {

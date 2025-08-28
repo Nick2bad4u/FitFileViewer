@@ -80,7 +80,10 @@ async function fetchThemeFromMainProcess() {
         logWithContext(`Theme fetched from main process: ${theme}`);
         return theme;
     } catch (error) {
-        logWithContext(`Failed to get theme from main process: ${/** @type {Error} */ (error).message}, using default`, "warn");
+        logWithContext(
+            `Failed to get theme from main process: ${/** @type {Error} */ (error).message}, using default`,
+            "warn"
+        );
         return DEFAULT_THEME;
     }
 }
@@ -114,7 +117,10 @@ function applyAndTrackTheme(theme, applyTheme) {
         try {
             localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
         } catch (storageError) {
-            logWithContext(`Failed to store theme in localStorage: ${/** @type {Error} */ (storageError).message}`, "warn");
+            logWithContext(
+                `Failed to store theme in localStorage: ${/** @type {Error} */ (storageError).message}`,
+                "warn"
+            );
         }
     } catch (error) {
         logWithContext(`Error applying theme: ${/** @type {Error} */ (error).message}`, "error");
@@ -131,23 +137,28 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
     try {
         if (typeof listenForThemeChange === "function") {
             // Set up external theme change listener
-            listenForThemeChange(/** @param {*} newTheme */ (newTheme) => {
-                logWithContext(`Theme change received: ${newTheme}`);
-                applyAndTrackTheme(newTheme, applyTheme);
-            });
+            listenForThemeChange(
+                /** @param {*} newTheme */ (newTheme) => {
+                    logWithContext(`Theme change received: ${newTheme}`);
+                    applyAndTrackTheme(newTheme, applyTheme);
+                }
+            );
         }
 
         // Set up state-based theme change listener
-        subscribe("ui.theme", /** @param {*} newTheme */ (newTheme) => {
-            if (newTheme && newTheme !== getState("ui.previousTheme")) {
-                logWithContext(`State-driven theme change: ${newTheme}`);
-                setState("ui.previousTheme", newTheme, { source: "setupTheme" });
+        subscribe(
+            "ui.theme",
+            /** @param {*} newTheme */ (newTheme) => {
+                if (newTheme && newTheme !== getState("ui.previousTheme")) {
+                    logWithContext(`State-driven theme change: ${newTheme}`);
+                    setState("ui.previousTheme", newTheme, { source: "setupTheme" });
 
-                if (typeof applyTheme === "function") {
-                    applyTheme(newTheme);
+                    if (typeof applyTheme === "function") {
+                        applyTheme(newTheme);
+                    }
                 }
             }
-        });
+        );
 
         logWithContext("Theme change listeners registered");
     } catch (error) {
@@ -208,7 +219,10 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
                     logWithContext(`Using stored theme: ${theme}`);
                 }
             } catch (storageError) {
-                logWithContext(`Failed to read from localStorage: ${/** @type {Error} */ (storageError).message}`, "warn");
+                logWithContext(
+                    `Failed to read from localStorage: ${/** @type {Error} */ (storageError).message}`,
+                    "warn"
+                );
             }
         }
 
@@ -237,7 +251,10 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
             applyTheme(emergencyTheme);
             setState("ui.theme", emergencyTheme, { source: "setupTheme-emergency" });
         } catch (emergencyError) {
-            logWithContext(`Emergency theme application failed: ${/** @type {Error} */ (emergencyError).message}`, "error");
+            logWithContext(
+                `Emergency theme application failed: ${/** @type {Error} */ (emergencyError).message}`,
+                "error"
+            );
         }
 
         return emergencyTheme;

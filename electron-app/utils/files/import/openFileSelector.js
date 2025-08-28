@@ -88,7 +88,9 @@ function setupFileInputHandler(input) {
  * @private
  */
 async function handleFileSelection(event) {
-    const target = /** @type {HTMLInputElement|null} */ (event.target instanceof HTMLInputElement ? event.target : null);
+    const target = /** @type {HTMLInputElement|null} */ (
+        event.target instanceof HTMLInputElement ? event.target : null
+    );
     const files = target ? target.files : null;
 
     if (!files || files.length === 0) {

@@ -116,7 +116,12 @@ function updateLoadingUI(isLoading) {
             return;
         }
 
-        if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
+        if (
+            element instanceof HTMLButtonElement ||
+            element instanceof HTMLInputElement ||
+            element instanceof HTMLSelectElement ||
+            element instanceof HTMLTextAreaElement
+        ) {
             if (isLoading) {
                 element.setAttribute("data-was-disabled", element.disabled.toString());
                 element.disabled = true;

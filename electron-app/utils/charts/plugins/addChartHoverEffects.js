@@ -21,12 +21,12 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     chartCanvases.forEach((canvas) => {
         if (!(canvas instanceof HTMLElement)) return;
         // Skip if hover effects already added
-    if (canvas.dataset && canvas.dataset["hoverEffectsAdded"]) {
+        if (canvas.dataset && canvas.dataset["hoverEffectsAdded"]) {
             return;
         }
 
         // Mark as having hover effects
-    if (canvas.dataset) canvas.dataset["hoverEffectsAdded"] = "true"; // Create a wrapper div for the chart to handle hover effects properly
+        if (canvas.dataset) canvas.dataset["hoverEffectsAdded"] = "true"; // Create a wrapper div for the chart to handle hover effects properly
         const wrapper = document.createElement("div");
         wrapper.className = "chart-wrapper";
         const colors = /** @type {any} */ (themeConfig.colors || {});
@@ -51,17 +51,17 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         wrapper.appendChild(canvas); // Update canvas styles to work with wrapper - ensure it stays inside
         if (canvas.style) {
             canvas.style.border = "none";
-        canvas.style.boxShadow = "none";
-        canvas.style.margin = "0";
-        canvas.style.marginBottom = "0";
-        canvas.style.borderRadius = "8px";
-        canvas.style.display = "block";
-        canvas.style.width = "100%";
-        canvas.style.maxWidth = "100%";
-        canvas.style.height = "400px";
-        canvas.style.maxHeight = "400px";
-        canvas.style.position = "relative";
-        canvas.style.boxSizing = "border-box";
+            canvas.style.boxShadow = "none";
+            canvas.style.margin = "0";
+            canvas.style.marginBottom = "0";
+            canvas.style.borderRadius = "8px";
+            canvas.style.display = "block";
+            canvas.style.width = "100%";
+            canvas.style.maxWidth = "100%";
+            canvas.style.height = "400px";
+            canvas.style.maxHeight = "400px";
+            canvas.style.position = "relative";
+            canvas.style.boxSizing = "border-box";
         }
 
         // Add animated border glow overlay

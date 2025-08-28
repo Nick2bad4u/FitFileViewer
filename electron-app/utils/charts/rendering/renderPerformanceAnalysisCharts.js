@@ -22,7 +22,7 @@ export function renderPerformanceAnalysisCharts(container, data, labels, options
         renderPowerVsHeartRateChart(container, data, options);
 
         // Render altitude profile with gradient chart
-    renderAltitudeProfileChart(container, data, /** @type {number[]} */ (labels), options);
+        renderAltitudeProfileChart(container, data, /** @type {number[]} */ (labels), options);
     } catch (error) {
         console.error("[ChartJS] Error rendering performance analysis charts:", error);
     }

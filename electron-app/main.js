@@ -248,7 +248,9 @@ async function initializeApplication() {
                 await _autoUpdater.checkForUpdatesAndNotify();
                 setAppState("autoUpdaterInitialized", true);
             } catch (error) {
-                logWithContext("error", "Failed to setup auto-updater:", { error: /** @type {Error} */ (error).message });
+                logWithContext("error", "Failed to setup auto-updater:", {
+                    error: /** @type {Error} */ (error).message,
+                });
             }
         }
 
@@ -258,7 +260,9 @@ async function initializeApplication() {
             createAppMenu(mainWindow, theme, getAppState("loadedFitFilePath"));
             sendToRenderer(mainWindow, "set-theme", theme);
         } catch (error) {
-            logWithContext("warn", "Failed to get theme from renderer, using fallback", { error: /** @type {Error} */ (error).message });
+            logWithContext("warn", "Failed to get theme from renderer, using fallback", {
+                error: /** @type {Error} */ (error).message,
+            });
             createAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
             sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
         }
@@ -272,39 +276,36 @@ async function initializeApplication() {
  */
 function setupIPCHandlers(mainWindow) {
     // File dialog handler
-    ipcMain.handle(
-        "dialog:openFile",
-        async (/** @type {any} */ _event) => {
-            try {
-                const { canceled, filePaths } = await dialog.showOpenDialog({
-                    filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
-                    properties: ["openFile"],
-                });
-                if (canceled || filePaths.length === 0) return null;
+    ipcMain.handle("dialog:openFile", async (/** @type {any} */ _event) => {
+        try {
+            const { canceled, filePaths } = await dialog.showOpenDialog({
+                filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
+                properties: ["openFile"],
+            });
+            if (canceled || filePaths.length === 0) return null;
 
-                if (filePaths[0]) {
-                    addRecentFile(filePaths[0]);
-                    setAppState("loadedFitFilePath", filePaths[0]);
+            if (filePaths[0]) {
+                addRecentFile(filePaths[0]);
+                setAppState("loadedFitFilePath", filePaths[0]);
 
-                    // Fetch current theme from renderer before rebuilding menu
-                    const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                    if (win) {
-                        const theme = await getThemeFromRenderer(win);
-                        createAppMenu(win, theme, getAppState("loadedFitFilePath"));
-                    }
-
-                    return filePaths[0];
+                // Fetch current theme from renderer before rebuilding menu
+                const win = BrowserWindow.getFocusedWindow() || mainWindow;
+                if (win) {
+                    const theme = await getThemeFromRenderer(win);
+                    createAppMenu(win, theme, getAppState("loadedFitFilePath"));
                 }
-                return null;
-            } catch (error) {
-                logWithContext("error", "Error in dialog:openFile:", {
-                    error: /** @type {Error} */ (error).message,
-                    stack: /** @type {Error} */ (error).stack,
-                });
-                throw error;
+
+                return filePaths[0];
             }
+            return null;
+        } catch (error) {
+            logWithContext("error", "Error in dialog:openFile:", {
+                error: /** @type {Error} */ (error).message,
+                stack: /** @type {Error} */ (error).stack,
+            });
+            throw error;
         }
-    );
+    });
     ipcMain.on("fit-file-loaded", async (event, filePath) => {
         setAppState("loadedFitFilePath", filePath);
         const win = BrowserWindow.fromWebContents(event.sender);
@@ -313,101 +314,91 @@ function setupIPCHandlers(mainWindow) {
                 const theme = await getThemeFromRenderer(/** @type {any} */ (win));
                 createAppMenu(/** @type {any} */ (win), theme, getAppState("loadedFitFilePath"));
             } catch (error) {
-                logWithContext("error", "Failed to update menu after fit file loaded:", { error: /** @type {Error} */ (error).message });
+                logWithContext("error", "Failed to update menu after fit file loaded:", {
+                    error: /** @type {Error} */ (error).message,
+                });
             }
         }
     });
 
     // Recent files handlers
-    ipcMain.handle(
-        "recentFiles:get",
-        async (/** @type {any} */ _event) => {
-            try {
-                return loadRecentFiles();
-            } catch (error) {
-                logWithContext("error", "Error in recentFiles:get:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
-            }
+    ipcMain.handle("recentFiles:get", async (/** @type {any} */ _event) => {
+        try {
+            return loadRecentFiles();
+        } catch (error) {
+            logWithContext("error", "Error in recentFiles:get:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
-    ipcMain.handle(
-        "recentFiles:add",
-        async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
-            try {
-                addRecentFile(filePath);
-                const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                if (win) {
-                    const theme = await getThemeFromRenderer(win);
-                    createAppMenu(win, theme, getAppState("loadedFitFilePath"));
-                }
-                return loadRecentFiles();
-            } catch (error) {
-                logWithContext("error", "Error in recentFiles:add:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
+    });
+    ipcMain.handle("recentFiles:add", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
+        try {
+            addRecentFile(filePath);
+            const win = BrowserWindow.getFocusedWindow() || mainWindow;
+            if (win) {
+                const theme = await getThemeFromRenderer(win);
+                createAppMenu(win, theme, getAppState("loadedFitFilePath"));
             }
+            return loadRecentFiles();
+        } catch (error) {
+            logWithContext("error", "Error in recentFiles:add:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 
     // File operations handlers
-    ipcMain.handle(
-        "file:read",
-        async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
-            try {
-                return new Promise((resolve, reject) => {
-                    fs.readFile(filePath, (/** @type {any} */ err, /** @type {any} */ data) => {
-                        if (err) {
-                            logWithContext("error", "Error reading file:", { filePath, error: /** @type {Error} */ (err).message });
-                            reject(err);
-                        } else {
-                            resolve(data.buffer);
-                        }
-                    });
+    ipcMain.handle("file:read", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
+        try {
+            return new Promise((resolve, reject) => {
+                fs.readFile(filePath, (/** @type {any} */ err, /** @type {any} */ data) => {
+                    if (err) {
+                        logWithContext("error", "Error reading file:", {
+                            filePath,
+                            error: /** @type {Error} */ (err).message,
+                        });
+                        reject(err);
+                    } else {
+                        resolve(data.buffer);
+                    }
                 });
-            } catch (error) {
-                logWithContext("error", "Error in file:read:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
-            }
+            });
+        } catch (error) {
+            logWithContext("error", "Error in file:read:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 
     // FIT file parsing handlers
-    ipcMain.handle(
-        "fit:parse",
-        async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
-            try {
-                const fitParser = require("./fitParser");
-                const buffer = Buffer.from(arrayBuffer);
-                return await fitParser.decodeFitFile(buffer);
-            } catch (error) {
-                logWithContext("error", "Error in fit:parse:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
-            }
+    ipcMain.handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
+        try {
+            const fitParser = require("./fitParser");
+            const buffer = Buffer.from(arrayBuffer);
+            return await fitParser.decodeFitFile(buffer);
+        } catch (error) {
+            logWithContext("error", "Error in fit:parse:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 
-    ipcMain.handle(
-        "fit:decode",
-        async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
-            try {
-                const fitParser = require("./fitParser");
-                const buffer = Buffer.from(arrayBuffer);
-                return await fitParser.decodeFitFile(buffer);
-            } catch (error) {
-                logWithContext("error", "Error in fit:decode:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
-            }
+    ipcMain.handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
+        try {
+            const fitParser = require("./fitParser");
+            const buffer = Buffer.from(arrayBuffer);
+            return await fitParser.decodeFitFile(buffer);
+        } catch (error) {
+            logWithContext("error", "Error in fit:decode:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 
     // Application info handlers
     const infoHandlers = {
@@ -435,7 +426,9 @@ function setupIPCHandlers(mainWindow) {
                 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
                 return packageJson.license || "Unknown";
             } catch (err) {
-                                logWithContext("error", "Failed to read license from package.json:", { error: /** @type {Error} */ (err).message });
+                logWithContext("error", "Failed to read license from package.json:", {
+                    error: /** @type {Error} */ (err).message,
+                });
             }
         },
     };
@@ -454,60 +447,51 @@ function setupIPCHandlers(mainWindow) {
     });
 
     // External link handler
-    ipcMain.handle(
-        "shell:openExternal",
-        async (/** @type {any} */ _event, /** @type {string} */ url) => {
-            try {
-                if (!url || typeof url !== "string") {
-                    throw new Error("Invalid URL provided");
-                }
-
-                // Basic URL validation
-                if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                    throw new Error("Only HTTP and HTTPS URLs are allowed");
-                }
-
-                await shell.openExternal(url);
-                return true;
-            } catch (error) {
-                logWithContext("error", "Error in shell:openExternal:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
+    ipcMain.handle("shell:openExternal", async (/** @type {any} */ _event, /** @type {string} */ url) => {
+        try {
+            if (!url || typeof url !== "string") {
+                throw new Error("Invalid URL provided");
             }
+
+            // Basic URL validation
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                throw new Error("Only HTTP and HTTPS URLs are allowed");
+            }
+
+            await shell.openExternal(url);
+            return true;
+        } catch (error) {
+            logWithContext("error", "Error in shell:openExternal:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 
     // Gyazo OAuth Server Handlers
-    ipcMain.handle(
-        "gyazo:server:start",
-        async (/** @type {any} */ _event, /** @type {number} */ port = 3000) => {
-            try {
-                return await startGyazoOAuthServer(port);
-            } catch (error) {
-                logWithContext("error", "Error in gyazo:server:start:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
-            }
+    ipcMain.handle("gyazo:server:start", async (/** @type {any} */ _event, /** @type {number} */ port = 3000) => {
+        try {
+            return await startGyazoOAuthServer(port);
+        } catch (error) {
+            logWithContext("error", "Error in gyazo:server:start:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 
-    ipcMain.handle(
-        "gyazo:server:stop",
-        async (/** @type {any} */ _event) => {
-            try {
-                return await stopGyazoOAuthServer();
-            } catch (error) {
-                logWithContext("error", "Error in gyazo:server:stop:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                throw error;
-            }
+    ipcMain.handle("gyazo:server:stop", async (/** @type {any} */ _event) => {
+        try {
+            return await stopGyazoOAuthServer();
+        } catch (error) {
+            logWithContext("error", "Error in gyazo:server:stop:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
         }
-    );
+    });
 }
-    /*
+/*
     // NOTE: These handlers are already registered above - commenting out duplicates
     // Register all info handlers
     Object.entries(infoHandlers).forEach(([channel, handler]) => {
@@ -564,7 +548,9 @@ function setupMenuAndEventHandlers() {
             try {
                 _autoUpdater.checkForUpdates();
             } catch (error) {
-                logWithContext("error", "Failed to check for updates:", { error: /** @type {Error} */ (error).message });
+                logWithContext("error", "Failed to check for updates:", {
+                    error: /** @type {Error} */ (error).message,
+                });
             }
         },
         "install-update": () => {
@@ -586,7 +572,9 @@ function setupMenuAndEventHandlers() {
             try {
                 _autoUpdater.quitAndInstall();
             } catch (err) {
-                logWithContext("error", "Error during restart and install:", { error: /** @type {Error} */ (err).message });
+                logWithContext("error", "Error during restart and install:", {
+                    error: /** @type {Error} */ (err).message,
+                });
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
                     dialog.showMessageBox({
                         type: "info",
@@ -660,16 +648,19 @@ function setupMenuAndEventHandlers() {
     });
 
     // Development helper for menu injection
-    ipcMain.handle("devtools-inject-menu", (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
-        const win = BrowserWindow.fromWebContents(event.sender);
-        const t = theme || CONSTANTS.DEFAULT_THEME;
-        const f = fitFilePath || null;
-        logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
-        if (win) {
-            createAppMenu(/** @type {any} */ (win), t, f);
+    ipcMain.handle(
+        "devtools-inject-menu",
+        (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
+            const win = BrowserWindow.fromWebContents(event.sender);
+            const t = theme || CONSTANTS.DEFAULT_THEME;
+            const f = fitFilePath || null;
+            logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
+            if (win) {
+                createAppMenu(/** @type {any} */ (win), t, f);
+            }
+            return true;
         }
-        return true;
-    });
+    );
 }
 
 // Enhanced application event handlers
@@ -694,7 +685,9 @@ function setupApplicationEventHandlers() {
                 const theme = await getThemeFromRenderer(win);
                 createAppMenu(win, theme, getAppState("loadedFitFilePath"));
             } catch (err) {
-                logWithContext("error", "Error setting menu on browser-window-focus:", { error: /** @type {Error} */ (err).message });
+                logWithContext("error", "Error setting menu on browser-window-focus:", {
+                    error: /** @type {Error} */ (err).message,
+                });
             }
         }
     });
@@ -717,7 +710,9 @@ function setupApplicationEventHandlers() {
                 await stopGyazoOAuthServer();
                 app.quit();
             } catch (error) {
-                logWithContext("error", "Failed to stop Gyazo server during quit:", { error: /** @type {Error} */ (error).message });
+                logWithContext("error", "Failed to stop Gyazo server during quit:", {
+                    error: /** @type {Error} */ (error).message,
+                });
                 app.quit();
             }
         }
@@ -764,7 +759,11 @@ function exposeDevHelpers() {
         rebuildMenu: (/** @type {any} */ theme, /** @type {any} */ filePath) => {
             const win = BrowserWindow.getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
-                createAppMenu(/** @type {any} */ (win), theme || CONSTANTS.DEFAULT_THEME, filePath || getAppState("loadedFitFilePath"));
+                createAppMenu(
+                    /** @type {any} */ (win),
+                    theme || CONSTANTS.DEFAULT_THEME,
+                    filePath || getAppState("loadedFitFilePath")
+                );
             }
         },
         logState: () => {
@@ -964,7 +963,9 @@ async function startGyazoOAuthServer(port = 3000) {
                 });
             });
         } catch (error) {
-            logWithContext("error", "Failed to start Gyazo OAuth server:", { error: /** @type {Error} */ (error).message });
+            logWithContext("error", "Failed to start Gyazo OAuth server:", {
+                error: /** @type {Error} */ (error).message,
+            });
             reject(error);
         }
     });

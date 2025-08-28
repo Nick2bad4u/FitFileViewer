@@ -54,25 +54,25 @@ class ChartStateManager {
         });
 
         // Subscribe to active tab changes
-    subscribe("ui.activeTab", (/** @type {string} */ activeTab) => {
+        subscribe("ui.activeTab", (/** @type {string} */ activeTab) => {
             if (activeTab === "chartjs" || activeTab === "chart") {
                 this.handleTabActivation();
             }
         });
 
         // Subscribe to global data changes (new file loaded)
-    subscribe("globalData", (/** @type {FitGlobalData} */ newData, /** @type {FitGlobalData} */ oldData) => {
+        subscribe("globalData", (/** @type {FitGlobalData} */ newData, /** @type {FitGlobalData} */ oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
         });
 
         // Subscribe to chart settings changes
-    subscribe("charts.selectedChart", (/** @type {string} */ chartType) => {
+        subscribe("charts.selectedChart", (/** @type {string} */ chartType) => {
             this.debouncedRender(`Chart type changed to ${chartType}`);
         });
 
-    subscribe("charts.controlsVisible", (/** @type {boolean} */ visible) => {
+        subscribe("charts.controlsVisible", (/** @type {boolean} */ visible) => {
             this.updateControlsVisibility(visible);
         });
 

@@ -92,7 +92,7 @@ async function getSystemInfoFromElectronAPI() {
         }
     } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to retrieve system information from electronAPI", {
-            error: error && typeof error === 'object' && 'message' in error ? error.message : String(error),
+            error: error && typeof error === "object" && "message" in error ? error.message : String(error),
         });
     }
 
@@ -156,7 +156,7 @@ function updateVersionDisplay(version) {
     } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to update version display", {
             version,
-            error: error && typeof error === 'object' && 'message' in error ? error.message : String(error),
+            error: error && typeof error === "object" && "message" in error ? error.message : String(error),
         });
     }
 }
@@ -175,8 +175,8 @@ export async function loadVersionInfo() {
     try {
         logWithContext("info", "Starting version information loading");
 
-    /** @type {{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}} */
-    let systemInfo;
+        /** @type {{version:string,electron:string,node:string,chrome:string,platform:string,author:string,license:string}} */
+        let systemInfo;
 
         if (validateElectronAPI()) {
             // Use electronAPI to get accurate version information
@@ -198,8 +198,8 @@ export async function loadVersionInfo() {
         });
     } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to load version information", {
-            error: error && typeof error === 'object' && 'message' in error ? error.message : String(error),
-            stack: error && typeof error === 'object' && 'stack' in error ? error.stack : undefined,
+            error: error && typeof error === "object" && "message" in error ? error.message : String(error),
+            stack: error && typeof error === "object" && "stack" in error ? error.stack : undefined,
         });
 
         // Try to show fallback information even on error
@@ -210,7 +210,7 @@ export async function loadVersionInfo() {
         } catch (/** @type {any} */ fallbackError) {
             logWithContext("error", "Failed to apply fallback system info", {
                 error:
-                    fallbackError && typeof fallbackError === 'object' && 'message' in fallbackError
+                    fallbackError && typeof fallbackError === "object" && "message" in fallbackError
                         ? fallbackError.message
                         : String(fallbackError),
             });

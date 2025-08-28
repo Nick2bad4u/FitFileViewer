@@ -84,7 +84,7 @@ export async function showNotification(message, type = "info", duration, options
 
     /** @type {NotificationTypeConfig} */
     const config = NOTIFICATION_TYPES[type];
-    const finalDuration = options.persistent ? null : (typeof duration === "number" ? duration : config.duration);
+    const finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration;
 
     // Create notification object
     /** @type {QueuedNotification} */
@@ -154,7 +154,7 @@ async function processNotificationQueue() {
  */
 async function displayNotification(notification) {
     /** @type {NotificationElement|null} */
-    const notificationElement = /** @type {any} */(document.getElementById("notification"));
+    const notificationElement = /** @type {any} */ (document.getElementById("notification"));
     if (!notificationElement) {
         console.warn("Notification element not found. Unable to display notification.");
         return;
@@ -180,10 +180,14 @@ async function displayNotification(notification) {
 
     // Set up auto-hide if not persistent
     if (notification.duration) {
-    // Cast via unknown to satisfy differing Node vs browser timer return types
-    notificationElement.hideTimeout = /** @type {number} */(/** @type {unknown} */(setTimeout(function () {
-            hideNotification(notificationElement);
-    }, notification.duration)));
+        // Cast via unknown to satisfy differing Node vs browser timer return types
+        notificationElement.hideTimeout = /** @type {number} */ (
+            /** @type {unknown} */ (
+                setTimeout(function () {
+                    hideNotification(notificationElement);
+                }, notification.duration)
+            )
+        );
     }
 
     // Return a promise that resolves after the display duration + animation time
@@ -261,7 +265,7 @@ async function buildNotificationContent(element, notification) {
     if (notification.onClick) {
         element.style.cursor = "pointer";
         element.onclick = (e) => {
-            const tgt = /** @type {HTMLElement|null} */(e.target instanceof HTMLElement ? e.target : null);
+            const tgt = /** @type {HTMLElement|null} */ (e.target instanceof HTMLElement ? e.target : null);
             if (tgt && !tgt.closest(".notification-actions") && notification.onClick) {
                 notification.onClick();
                 hideNotification(element);
@@ -373,15 +377,22 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     persistent: (message, type = "info", options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, { ...options, persistent: true }),
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+            ...options,
+            persistent: true,
+        }),
 
     /**
      * Shows a notification with action buttons
      * @param {string} message - Message to display
      * @param {string} [type='info'] - Notification type
-    * @param {NotificationAction[]} actions - Action button definitions
+     * @param {NotificationAction[]} actions - Action button definitions
      * @param {Object} [options] - Additional options
      */
     withActions: (message, type = "info", actions = [], options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, { ...options, actions, persistent: true }),
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+            ...options,
+            actions,
+            persistent: true,
+        }),
 };

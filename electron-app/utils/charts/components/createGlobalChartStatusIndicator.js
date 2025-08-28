@@ -67,13 +67,13 @@ function logWithContext(level, message, context) {
     const logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
     const hasContext = context && Object.keys(context).length > 0;
     switch (level) {
-        case 'info':
+        case "info":
             hasContext ? console.info(logMessage, context) : console.info(logMessage);
             break;
-        case 'warn':
+        case "warn":
             hasContext ? console.warn(logMessage, context) : console.warn(logMessage);
             break;
-        case 'error':
+        case "error":
             hasContext ? console.error(logMessage, context) : console.error(logMessage);
             break;
         default:
@@ -199,7 +199,10 @@ function handleSettingsToggle() {
         }
     } catch (error) {
         logWithContext("error", "Failed to toggle settings panel", {
-            error: error && typeof error === 'object' && 'message' in error ? /** @type {any} */ (error).message : String(error),
+            error:
+                error && typeof error === "object" && "message" in error
+                    ? /** @type {any} */ (error).message
+                    : String(error),
         });
     }
 }
@@ -292,7 +295,10 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
         logWithContext("info", "Global chart status indicator inserted into DOM");
     } catch (error) {
         logWithContext("error", "Failed to insert indicator into DOM", {
-            error: error && typeof error === 'object' && 'message' in error ? /** @type {any} */ (error).message : String(error),
+            error:
+                error && typeof error === "object" && "message" in error
+                    ? /** @type {any} */ (error).message
+                    : String(error),
         });
     }
 }
@@ -331,10 +337,10 @@ export function createGlobalChartStatusIndicator() {
         }
 
         // Get chart counts and calculate status
-    /** @type {ChartCounts} */
-    const counts = getChartCounts();
-    /** @type {ChartStatus} */
-    const status = calculateChartStatus(counts);
+        /** @type {ChartCounts} */
+        const counts = getChartCounts();
+        /** @type {ChartStatus} */
+        const status = calculateChartStatus(counts);
 
         logWithContext("info", "Chart status calculated", { status });
 
@@ -376,8 +382,12 @@ export function createGlobalChartStatusIndicator() {
         return globalIndicator;
     } catch (/** @type {any} */ error) {
         logWithContext("error", "Failed to create global chart status indicator", {
-            error: error && typeof error === 'object' && 'message' in error ? /** @type {any} */ (error).message : String(error),
-            stack: error && typeof error === 'object' && 'stack' in error ? /** @type {any} */ (error).stack : undefined,
+            error:
+                error && typeof error === "object" && "message" in error
+                    ? /** @type {any} */ (error).message
+                    : String(error),
+            stack:
+                error && typeof error === "object" && "stack" in error ? /** @type {any} */ (error).stack : undefined,
         });
         return null;
     }

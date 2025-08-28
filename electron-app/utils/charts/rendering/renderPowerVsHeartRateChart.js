@@ -23,8 +23,8 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             return;
         }
 
-    /** @type {any} */
-    const themeConfig = getThemeConfig();
+        /** @type {any} */
+        const themeConfig = getThemeConfig();
 
         let chartData = data
             .map((row) => {
@@ -51,7 +51,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
-        const canvas = /** @type {HTMLCanvasElement} */(createChartCanvas("power-vs-hr", 0));
+        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("power-vs-hr", 0));
         if (themeConfig?.colors) {
             canvas.style.background = themeConfig.colors.chartBackground || "#000";
             canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
@@ -174,7 +174,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
 
         const chart = new /** @type {any} */ (window).Chart(canvas, config);
         if (chart) {
-            if (!/** @type {any} */ (window)._chartjsInstances) /** @type {any} */ (window)._chartjsInstances = [];
+            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ (window)._chartjsInstances = [];
             /** @type {any} */ (window)._chartjsInstances.push(chart);
             console.log("[ChartJS] Power vs Heart Rate chart created successfully");
         }

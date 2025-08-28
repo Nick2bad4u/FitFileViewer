@@ -8,10 +8,10 @@ export async function loadSingleOverlayFile(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
 
-    reader.onload = async function (event) {
+        reader.onload = async function (event) {
             try {
-        const target = /** @type {FileReader|null} */ (event.target);
-        const arrayBuffer = target && target.result;
+                const target = /** @type {FileReader|null} */ (event.target);
+                const arrayBuffer = target && target.result;
 
                 if (!arrayBuffer || !window.electronAPI?.decodeFitFile) {
                     resolve({ success: false, error: "No file data or decoder not available" });
@@ -28,7 +28,8 @@ export async function loadSingleOverlayFile(file) {
                 // Validate that file has location data
                 const validLocationCount = Array.isArray(fitData.recordMesgs)
                     ? fitData.recordMesgs.filter(
-                          (/** @type {any} */ r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
+                          (/** @type {any} */ r) =>
+                              typeof r.positionLat === "number" && typeof r.positionLong === "number"
                       ).length
                     : 0;
 

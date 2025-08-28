@@ -135,10 +135,10 @@ export function createMarkerCountSelector(onChange) {
         container.appendChild(label);
         container.appendChild(select);
 
-    return container;
+        return container;
     } catch (error) {
         console.error("[mapActionButtons] Error creating marker count selector:", error);
-    showNotification("Failed to create marker count selector", "error");
-    return /** @type {HTMLDivElement} */ (document.createElement("div")); // Return empty div as fallback
+        showNotification("Failed to create marker count selector", "error");
+        return /** @type {HTMLDivElement} */ (document.createElement("div")); // Return empty div as fallback
     }
 }

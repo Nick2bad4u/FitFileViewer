@@ -51,15 +51,19 @@ export const chartBackgroundColorPlugin = {
         if (!backgroundColor) {
             try {
                 // Access via bracket notation to satisfy index signature constraints under exactOptionalPropertyTypes
-                const pluginCfg = chart?.options && chart.options["plugins"] && chart.options["plugins"].chartBackgroundColorPlugin;
-                if (pluginCfg && typeof pluginCfg.backgroundColor === "string") backgroundColor = pluginCfg.backgroundColor;
+                const pluginCfg =
+                    chart?.options && chart.options["plugins"] && chart.options["plugins"].chartBackgroundColorPlugin;
+                if (pluginCfg && typeof pluginCfg.backgroundColor === "string")
+                    backgroundColor = pluginCfg.backgroundColor;
             } catch {
                 /* ignore */
             }
         }
         if (!backgroundColor) {
             try {
-                const cssBg = chart?.canvas ? getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim() : "";
+                const cssBg = chart?.canvas
+                    ? getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim()
+                    : "";
                 if (cssBg) backgroundColor = cssBg;
             } catch {
                 /* ignore */
@@ -78,8 +82,8 @@ export const chartBackgroundColorPlugin = {
             return;
         }
         // Only log in development mode to avoid noisy output in production
-    const w = /** @type {any} */ (typeof window !== "undefined" ? window : undefined);
-    if (w?.__renderer_dev?.debug) {
+        const w = /** @type {any} */ (typeof window !== "undefined" ? window : undefined);
+        if (w?.__renderer_dev?.debug) {
             console.log(
                 `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
             );
