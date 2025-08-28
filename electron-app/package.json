@@ -387,6 +387,8 @@
     "makensis": "^3.0.1",
     "screenfull": "^6.0.2",
     "stylelint-config-standard": "^39.0.0",
+    "ts-migrate": "^0.1.35",
+    "ts-migrate-plugins": "^0.1.35",
     "vitest": "3.2.4"
   },
   "dependencies": {

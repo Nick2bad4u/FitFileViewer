@@ -47,7 +47,7 @@ export function getActiveTabContent() {
 
         // Find the first visible tab content element
         for (const element of tabContents) {
-            if (element.style.display === DISPLAY_STATES.VISIBLE) {
+            if (/** @type {HTMLElement} */ (element).style.display === DISPLAY_STATES.VISIBLE) {
                 return element;
             }
         }

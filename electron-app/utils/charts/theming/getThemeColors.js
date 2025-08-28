@@ -33,7 +33,7 @@ const THEME_COLOR_CONFIG = {
  */
 export function getThemeColors() {
     try {
-        const themeConfig = getThemeConfig();
+    const themeConfig = /** @type {any} */ (getThemeConfig());
 
         // Validate theme configuration
         if (!themeConfig || typeof themeConfig !== "object") {
@@ -42,13 +42,13 @@ export function getThemeColors() {
         }
 
         // Validate colors object exists
-        if (!themeConfig.colors || typeof themeConfig.colors !== "object") {
+    if (!themeConfig.colors || typeof themeConfig.colors !== "object") {
             console.warn("[getThemeColors] Theme colors not found, using fallback");
             return { ...THEME_COLOR_CONFIG.FALLBACK_COLORS };
         }
 
         // Return copy of theme colors to prevent mutation
-        return { ...themeConfig.colors };
+    return { ...themeConfig.colors };
     } catch (error) {
         console.error(`[getThemeColors] ${THEME_COLOR_CONFIG.ERROR_MESSAGES.THEME_ACCESS_ERROR}`, error);
 

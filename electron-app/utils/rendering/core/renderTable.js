@@ -1,8 +1,4 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
-/* global $ */
-
-/** @type {any} */
-const $ = /** @type {any} */ (window).$;
 /**
  * Renders a collapsible table section with a header, copy-to-CSV button, and optional DataTables integration.
  *
@@ -59,18 +55,19 @@ export function renderTable(container, title, table, index) {
     section.appendChild(content);
     container.appendChild(section);
     if (/** @type {any} */ (window).jQuery) {
-        $(document).ready(function () {
+        const jQ = /** @type {any} */ (window).jQuery;
+        jQ(document).ready(function () {
             setTimeout(function () {
                 try {
-                    if ($.fn.DataTable) {
+                    if (jQ.fn.DataTable) {
                         const tableSelector = "#" + tableId;
                         // Destroy existing DataTable instance if it exists
-                        if ($.fn.DataTable.isDataTable(tableSelector)) {
+                        if (jQ.fn.DataTable.isDataTable(tableSelector)) {
                             console.log(`[DEBUG] Destroying existing DataTable for ${tableSelector}`);
-                            $(tableSelector).DataTable().destroy();
+                            jQ(tableSelector).DataTable().destroy();
                         }
                         console.log(`[DEBUG] Initializing DataTable for #${tableId}`);
-                        $(tableSelector).DataTable({
+                        jQ(tableSelector).DataTable({
                             paging: true,
                             lengthMenu: [
                                 [10, 25, 50, 100, -1],

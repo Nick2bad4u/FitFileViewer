@@ -2,6 +2,11 @@
 // Accepts a lap index (number or 'all') and returns a corresponding color.
 // Special case: if 'all' is passed, it returns the color 'blue'.
 // Throws an error if the input is not a valid number or 'all'.
+/**
+ * Get a color for a lap index.
+ * @param {number|string} lapIdx - Lap index number or 'all'.
+ * @returns {string}
+ */
 export function getLapColor(lapIdx) {
     const palette = [
         "#ff5722",
@@ -40,5 +45,5 @@ export function getLapColor(lapIdx) {
     if (isNaN(lapIndex)) {
         throw new Error(`Invalid lapIdx: ${lapIdx}`);
     }
-    return palette[lapIndex % palette.length];
+    return /** @type {string} */ (palette[lapIndex % palette.length] || palette[0]);
 }

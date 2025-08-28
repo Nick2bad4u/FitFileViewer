@@ -814,13 +814,12 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             console.log(`[ChartJS] Field ${field}: limited to ${chartData.length} points (max: ${maxPoints})`);
         }
         // Create enhanced chart
-    const chart = createEnhancedChart(canvas, {
+    const chart = createEnhancedChart(canvas, /** @type {any} */ ({
             field,
             chartData,
             chartType,
             interpolation,
             animationStyle,
-            showGrid: boolSettings.showGrid,
             showLegend: boolSettings.showLegend,
             showTitle: boolSettings.showTitle,
             showPoints: boolSettings.showPoints,
@@ -829,7 +828,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             customColors,
             zoomPluginConfig,
             fieldLabels,
-        });
+        }));
         if (chart) {
             windowAny._chartjsInstances.push(chart);
         }
@@ -868,13 +867,14 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
     // Only render if at least one lap zone chart type is visible
     if (Object.values(lapZoneVisibility).some((visible) => visible)) {
-        renderLapZoneCharts(chartContainer, {
+        renderLapZoneCharts(chartContainer, /** @type {any} */ ({
+            // showGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
             showGrid: boolSettings.showGrid,
             showLegend: boolSettings.showLegend,
             showTitle: boolSettings.showTitle,
             zoomPluginConfig,
             visibilitySettings: lapZoneVisibility,
-        });
+        }));
     } // Render GPS track chart if position data is available
     renderGPSTrackChart(chartContainer, data, {
         showGrid: boolSettings.showGrid,

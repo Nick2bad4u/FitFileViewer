@@ -37,7 +37,7 @@ export function updateControlsState() {
  */
 export function initializeControlsState() {
     // Subscribe to state changes to keep DOM in sync
-    subscribe("charts.controlsVisible", (isVisible) => {
+    subscribe("charts.controlsVisible", (/** @type {boolean} */ isVisible) => {
         const wrapper = document.getElementById("chartjs-settings-wrapper");
         const toggleBtn = document.getElementById("chart-controls-toggle");
 

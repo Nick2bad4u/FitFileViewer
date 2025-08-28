@@ -107,10 +107,11 @@ export function renderLapZoneCharts(container, options = {}) {
     const hrZoneTotals = {};
         hrZoneDataRaw.forEach((/** @type {LapZoneEntry} */ lap) => {
             lap.zones.forEach((/** @type {LapZoneDatum} */ zone) => {
-                if (!hrZoneTotals[zone.zoneIndex]) {
-                    hrZoneTotals[zone.zoneIndex] = 0;
+                const idx = zone.zoneIndex;
+                if (hrZoneTotals[idx] == null) {
+                    hrZoneTotals[idx] = 0;
                 }
-                hrZoneTotals[zone.zoneIndex] += zone.value;
+                hrZoneTotals[idx] += zone.value || 0;
             });
         });
         const meaningfulHRZones = Object.keys(hrZoneTotals)
@@ -150,10 +151,11 @@ export function renderLapZoneCharts(container, options = {}) {
     const pwrZoneTotals = {};
         pwrZoneDataRaw.forEach((/** @type {LapZoneEntry} */ lap) => {
             lap.zones.forEach((/** @type {LapZoneDatum} */ zone) => {
-                if (!pwrZoneTotals[zone.zoneIndex]) {
-                    pwrZoneTotals[zone.zoneIndex] = 0;
+                const idx = zone.zoneIndex;
+                if (pwrZoneTotals[idx] == null) {
+                    pwrZoneTotals[idx] = 0;
                 }
-                pwrZoneTotals[zone.zoneIndex] += zone.value;
+                pwrZoneTotals[idx] += zone.value || 0;
             });
         });
         const meaningfulPowerZones = Object.keys(pwrZoneTotals)
@@ -326,7 +328,7 @@ export function renderLapZoneCharts(container, options = {}) {
                 canvas4.style.boxShadow = themeConfig.colors.shadow;
                 container.appendChild(canvas4);
 
-                const singlePwrChart = renderSinglePowerZoneBar(canvas4, sessionPowerZones, {
+                const singlePwrChart = renderSinglePowerZoneBar(canvas4, /** @type {{label:string,value:number,color:string}[]} */ (sessionPowerZones), {
                     title: "Power Zone by Lap (Individual)",
                 });
                 if (singlePwrChart) {

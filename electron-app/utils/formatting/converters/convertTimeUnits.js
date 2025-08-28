@@ -51,6 +51,7 @@ export function convertTimeUnits(seconds, targetUnit) {
         }
     } catch (error) {
         console.error("[convertTimeUnits] Conversion failed:", error);
-        throw new Error(`Failed to convert time: ${error.message}`);
+        const anyErr = /** @type {any} */ (error);
+        throw new Error(`Failed to convert time: ${anyErr?.message}`);
     }
 }

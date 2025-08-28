@@ -2,7 +2,7 @@ import { showChartSelectionModal } from "../../ui/components/createSettingsHeade
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 
-/* global JSZip */
+// JSZip is loaded globally via a script tag when export-all is used; reference retained only where actually accessed.
 
 /**
  * @typedef {Object} ChartJSInstance
@@ -641,7 +641,7 @@ export const exportUtils = {
             <div style="margin-bottom: 20px; color: var(--color-fg); line-height: 1.5;">
                 <p>To upload charts to Gyazo, you need to authenticate with your Gyazo account.</p>
                 <div style="margin: 16px 0; padding: 12px; background: var(--color-glass); border-radius: 8px;">
-                    <strong>� Automatic Mode:</strong> Click the button below to open Gyazo authentication. 
+                    <strong>� Automatic Mode:</strong> Click the button below to open Gyazo authentication.
                     After you log in and authorize the app, this window will close automatically.
                 </div>
             </div>
@@ -735,11 +735,11 @@ export const exportUtils = {
             </h3>
             ${instructions}
             <div style="margin-bottom: 16px;">
-                <a href="${authUrl}" 
-                   data-external-link="true" 
-                   role="link" 
+                <a href="${authUrl}"
+                   data-external-link="true"
+                   role="link"
                    tabindex="0"
-                   id="gyazo-open-auth" 
+                   id="gyazo-open-auth"
                    style="
                     display: block;
                     width: 100%;
@@ -1322,27 +1322,27 @@ export const exportUtils = {
 					<head>
 						<title>Charts Print</title>
 						<style>
-							body { 
-								margin: 20px; 
-								font-family: Arial, sans-serif; 
+							body {
+								margin: 20px;
+								font-family: Arial, sans-serif;
 								background: ${backgroundColor === "transparent" ? "#ffffff" : backgroundColor};
 								color: ${backgroundColor === "#1a1a1a" ? "#ffffff" : "#000000"};
 							}
-							.chart { 
-								page-break-inside: avoid; 
-								margin-bottom: 30px; 
-								text-align: center; 
+							.chart {
+								page-break-inside: avoid;
+								margin-bottom: 30px;
+								text-align: center;
 							}
-							.chart img { 
-								max-width: 100%; 
-								height: auto; 
+							.chart img {
+								max-width: 100%;
+								height: auto;
 							}
-							.chart h3 { 
-								margin: 0 0 10px 0; 
+							.chart h3 {
+								margin: 0 0 10px 0;
 								color: ${backgroundColor === "#1a1a1a" ? "#ffffff" : "#333"};
 							}
-							@media print { 
-								.chart { page-break-after: always; } 
+							@media print {
+								.chart { page-break-after: always; }
 								.chart:last-child { page-break-after: avoid; }
 							}
 						</style>
@@ -1680,7 +1680,7 @@ export const exportUtils = {
             <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
             📸 Gyazo Settings
             </h3>
-            
+
             <!-- Status Section -->
             <div style="margin-bottom: 20px; text-align: center;">
             <div style="margin-bottom: 12px;">
@@ -1717,7 +1717,7 @@ export const exportUtils = {
                 🚀 Getting Started
             </h4>
             <p style="margin: 0; color: var(--color-fg); font-size: 14px; line-height: 1.5;">
-                Simply click the <strong>"Connect to Gyazo"</strong> button below and log in with your Gyazo account. 
+                Simply click the <strong>"Connect to Gyazo"</strong> button below and log in with your Gyazo account.
                 No additional setup required!
             </p>
             </div>
@@ -1725,9 +1725,9 @@ export const exportUtils = {
             <!-- Advanced Options (Collapsible) -->
             <details style="margin-bottom: 20px;">
             <summary style="
-                color: var(--color-fg-alt); 
-                font-size: 13px; 
-                cursor: pointer; 
+                color: var(--color-fg-alt);
+                font-size: 13px;
+                cursor: pointer;
                 padding: 8px 0;
                 border-bottom: 1px solid var(--color-border);
             ">
@@ -1742,12 +1742,12 @@ export const exportUtils = {
                 <li>Use redirect URI: <code style="background: var(--color-glass); padding: 2px 4px; border-radius: 4px;">http://localhost:3000/gyazo/callback</code></li>
                 <li>Enter your credentials below</li>
                 </ol>
-                
+
                 <div style="margin-bottom: 12px;">
                 <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;">
                     Client ID:
                 </label>
-                <input type="text" id="gyazo-client-id" placeholder="Enter your Gyazo Client ID" 
+                <input type="text" id="gyazo-client-id" placeholder="Enter your Gyazo Client ID"
                        value="${(/** @type {any} */ (config)).clientId}" style="
                     width: 100%;
                     padding: 8px 10px;
@@ -1764,7 +1764,7 @@ export const exportUtils = {
                 <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;">
                     Client Secret:
                 </label>
-                <input type="password" id="gyazo-client-secret" placeholder="Enter your Gyazo Client Secret" 
+                <input type="password" id="gyazo-client-secret" placeholder="Enter your Gyazo Client Secret"
                        value="${(/** @type {any} */ (config)).clientSecret}" style="
                     width: 100%;
                     padding: 8px 10px;
@@ -1811,7 +1811,7 @@ export const exportUtils = {
             ">
                 🔗 Connect to Gyazo
             </button>
-            
+
             <button id="gyazo-disconnect" style="
                 width: 100%;
                 padding: 12px;
@@ -1869,7 +1869,7 @@ export const exportUtils = {
         const closeBtn = modal.querySelector("#gyazo-close");
 
         // Save credentials
-        if (saveCredsBtn) { 
+        if (saveCredsBtn) {
             saveCredsBtn.addEventListener("click", () => {
                 const clientId = (/** @type {HTMLInputElement} */ (clientIdInput))?.value.trim();
                 const clientSecret = (/** @type {HTMLInputElement} */ (clientSecretInput))?.value.trim();
@@ -1912,7 +1912,7 @@ export const exportUtils = {
         }
 
         // Clear all data
-        if (clearDataBtn) { 
+        if (clearDataBtn) {
             clearDataBtn.addEventListener("click", () => {
                 if (
                     confirm(
@@ -1927,7 +1927,7 @@ export const exportUtils = {
         }
 
         // Close modal
-        if (closeBtn) { 
+        if (closeBtn) {
             closeBtn.addEventListener("click", () => {
                 document.body.removeChild(overlay);
             });
@@ -2045,7 +2045,7 @@ export const exportUtils = {
         `;
 
         const closeBtn = modal.querySelector("#setup-close");
-        if (closeBtn) { 
+        if (closeBtn) {
             closeBtn.addEventListener("click", () => {
                 document.body.removeChild(overlay);
             });

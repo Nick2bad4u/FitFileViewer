@@ -77,7 +77,6 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 const win = /** @type {any} */ (window);
 
 /** @type {any} */
-// @ts-expect-error - Leaflet global access pattern
 const L = /** @type {any} */ (globalThis.L || win.L);
 
 /**
@@ -635,9 +634,7 @@ export function mapDrawLaps(lapIdx, {
                 if (bounds) {
                     // Defensive: ensure bounds is a valid LatLngBounds object
                     let safeBounds = bounds;
-                    // @ts-expect-error - Window/Leaflet library access
                     if (typeof bounds.clone !== "function" && win.L && win.L.latLngBounds) {
-                        // @ts-expect-error - Window/Leaflet library access
                         safeBounds = win.L.latLngBounds(bounds);
                     }
                     lastOverlayBounds = typeof safeBounds.clone === "function" ? safeBounds.clone() : safeBounds;
@@ -798,9 +795,7 @@ export function mapDrawLaps(lapIdx, {
                 if (bounds) {
                     // Defensive: ensure bounds is a valid LatLngBounds object
                     let safeBounds = bounds;
-                    // @ts-expect-error - Window/Leaflet library access
                     if (typeof bounds.clone !== "function" && win.L && win.L.latLngBounds) {
-                        // @ts-expect-error - Window/Leaflet library access
                         safeBounds = win.L.latLngBounds(bounds);
                     }
                     lastOverlayBounds = typeof safeBounds.clone === "function" ? safeBounds.clone() : safeBounds;

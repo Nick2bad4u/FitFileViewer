@@ -132,7 +132,9 @@ export async function updateDecoderOptionsWithState(newOptions) {
         if (result.success && masterStateManager) {
             try {
                 setState("settings.decoder", result.options, { source: "FitParserIntegration" });
-            } catch {}
+            } catch {
+                // Silent: state update failure should not break decoder option update flow
+            }
         }
 
         return result;

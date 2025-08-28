@@ -1,9 +1,5 @@
-/* global L */
-// The global variable `L` is provided by the Leaflet library.
-// In test / non-map environments we defensively fall back to a noop factory
-// so importing this module does not throw when Leaflet isn't loaded.
-//
-// NOTE: This file is JS (with checkJs) so we use JSDoc for lightweight typing.
+// Leaflet base layers module. Resolves the Leaflet global if present; otherwise
+// provides a minimal shim to keep imports safe in non-map/test environments.
 
 /** @typedef {{ addTo?: Function, setZIndex?: Function, on?: Function, remove?: Function }} LeafletLayer */
 /** @typedef {{ tileLayer: Function, maplibreGL?: Function }} LeafletMinimal */
@@ -14,7 +10,6 @@
  * @returns {LeafletMinimal}
  */
 function getLeaflet() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const g = /** @type {any} */ (globalThis);
     if (g && g.L && g.L.tileLayer) return g.L;
     return {

@@ -448,6 +448,17 @@ class TabStateManager {
     }
 
     /**
+     * Cleanup resources (placeholder for future unsubscribe logic)
+     */
+    cleanup() {
+        // If we later store unsubscribe handles, invoke them here.
+        if (this.isInitialized) {
+            this.isInitialized = false; // allows re-init if ever needed
+        }
+        console.log("[TabStateManager] cleanup invoked");
+    }
+
+    /**
      * Get current active tab information
      * @returns {Object} Active tab information
      */

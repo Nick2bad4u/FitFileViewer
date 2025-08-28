@@ -116,7 +116,8 @@ export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_D
         // Return original value for non-processable types
         return val;
     } catch (error) {
-        logWithContext(`Error formatting array: ${error.message}`, "error");
-        throw error;
+        const anyErr = /** @type {any} */ (error);
+        logWithContext(`Error formatting array: ${anyErr?.message}`, "error");
+        throw anyErr;
     }
 }

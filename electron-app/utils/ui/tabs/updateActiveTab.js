@@ -58,7 +58,7 @@ function extractTabName(tabId) {
     for (const pattern of patterns) {
         const match = tabId.match(pattern);
         if (match) {
-            return match[1];
+            return /** @type {string} */ (match[1] || null);
         }
     }
 
@@ -71,7 +71,7 @@ function extractTabName(tabId) {
  */
 export function initializeActiveTabState() {
     // Subscribe to state changes to update DOM
-    subscribe("ui.activeTab", (activeTab) => {
+    subscribe("ui.activeTab", (/** @type {string} */ activeTab) => {
         updateTabButtonsFromState(activeTab);
     });
 

@@ -23,7 +23,7 @@ export function logWithLevel(level, message, context) {
             default:
                 hasContext ? console.log(base, context) : console.log(base);
         }
-    } catch (e) {
+    } catch {
         // Fallback minimal logging if something unexpected occurs
         console.log('[FFV][logWithLevel] Logging failure');
     }

@@ -58,7 +58,7 @@ export function getFieldColor(field) {
 
     try {
         // Return mapped color or default
-        const color = FIELD_COLOR_MAP[field] || DEFAULT_FIELD_COLOR;
+    const color = /** @type {any} */ (FIELD_COLOR_MAP)[field] || DEFAULT_FIELD_COLOR;
 
         // Log debug info for unmapped fields in development
         if (color === DEFAULT_FIELD_COLOR && field !== "") {

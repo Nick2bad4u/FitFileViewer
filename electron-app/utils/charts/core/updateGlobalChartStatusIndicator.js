@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 
-import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndicator.js";
+import { createGlobalChartStatusIndicator } from "../components/createGlobalChartStatusIndicator.js";
 
 // DOM element IDs and selectors
 const ELEMENT_IDS = {

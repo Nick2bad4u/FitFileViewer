@@ -164,7 +164,7 @@ function setupStateDebugging() {
          */
         watchState(path) {
             console.log(`[StateDebug] Watching state changes for: ${path}`);
-            return subscribe(path, /** @param {*} newValue */ /** @param {*} oldValue */ (newValue, oldValue) => {
+            return subscribe(path, /** @param {*} newValue */ /** @param {*} oldValue */ (/** @type {any} */ newValue, oldValue) => {
                 console.log(`[StateDebug] ${path} changed:`, { oldValue, newValue });
             });
         },

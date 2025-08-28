@@ -9,7 +9,6 @@ import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { UIActions } from "../domain/uiStateManager.js";
 // Corrected path: state manager utilities live in ../core directory
 import { getState, setState, subscribe } from "../core/stateManager.js";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- JSDoc typedef import
 /** @typedef {{ silent: boolean; source: string }} StateMeta */
 
 /**

@@ -169,7 +169,7 @@ function _centerMapOnMainFile() {
                             layer.bringToFront();
                         }
                     }
-                } catch (err) {
+                } catch {
                     // Ignore best-effort bringToFront issues
                 }
             });
@@ -210,8 +210,8 @@ function _centerMapOnMainFile() {
                         const center = w._leafletMapInstance.getCenter();
                         const zoom = w._leafletMapInstance.getZoom();
                         console.log(`[mapActionButtons] Map centered at ${center.lat}, ${center.lng}, zoom: ${zoom}`);
-                    } catch (err) {
-                        console.warn("[mapActionButtons] Error getting map state after centering:", err);
+                    } catch {
+                        console.warn("[mapActionButtons] Error getting map state after centering (details suppressed)");
                     }
                 }, 200);
             } else {

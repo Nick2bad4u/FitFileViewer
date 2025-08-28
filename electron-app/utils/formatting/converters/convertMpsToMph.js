@@ -29,6 +29,7 @@ export function convertMpsToMph(mps) {
         return mps * SPEED_CONVERSIONS.MPS_TO_MPH;
     } catch (error) {
         console.error("[convertMpsToMph] Conversion failed:", error);
-        throw new Error(`Failed to convert speed: ${error.message}`);
+        const anyErr = /** @type {any} */ (error);
+        throw new Error(`Failed to convert speed: ${anyErr?.message}`);
     }
 }

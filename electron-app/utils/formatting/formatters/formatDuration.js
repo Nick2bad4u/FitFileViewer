@@ -35,7 +35,8 @@ function validateAndNormalizeDuration(seconds) {
     if (typeof seconds === "string") {
         const trimmed = seconds.trim();
         if (trimmed === "") {
-            return { isValid: false, error: "Empty string input" };
+            // Provide required value field for validation result shape
+            return { isValid: false, value: 0, error: "Empty string input" };
         }
         seconds = Number(trimmed);
     }
@@ -47,12 +48,12 @@ function validateAndNormalizeDuration(seconds) {
 
     // Validate that it's a finite number
     if (!Number.isFinite(seconds)) {
-        return { isValid: false, error: "Input must be a finite number" };
+        return { isValid: false, value: 0, error: "Input must be a finite number" };
     }
 
     // Ensure non-negative
     if (seconds < 0) {
-        return { isValid: false, error: "Duration cannot be negative" };
+        return { isValid: false, value: 0, error: "Duration cannot be negative" };
     }
 
     return { isValid: true, value: seconds };

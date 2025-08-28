@@ -55,7 +55,7 @@ export const maxPointsOptions = [
  * @property {string} id - Unique identifier for the option (used as localStorage key)
  * @property {string} label - Human-readable label for UI display
  * @property {string} type - Option type: "select", "toggle", "range"
- * @property {Array} [options] - Allowed values for "select" or "toggle" types
+ * @property {Array<*>} [options] - Allowed values for "select" or "toggle" types
  * @property {number|string|boolean} default - Default value for the option
  * @property {string} description - Description of the option for tooltips/help
  * @property {number} [min] - Minimum value (for "range" type)
@@ -229,7 +229,7 @@ export function isValidOptionValue(optionId, value) {
 
     switch (option.type) {
         case "select":
-            return option.options.includes(value);
+            return Array.isArray(option.options) ? option.options.includes(value) : false;
 
         case "toggle":
             return typeof value === "boolean";

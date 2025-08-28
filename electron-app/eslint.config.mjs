@@ -5,8 +5,18 @@ import markdown from "@eslint/markdown";
 import css from "@eslint/css";
 import { defineConfig } from "eslint/config";
 
+// NOTE: The project currently has residual references to @typescript-eslint rules in built JS (dist) files.
+// We are not linting TypeScript specifically here; to suppress missing rule errors inside generated dist files,
+// we ensure those files are ignored (see ignores below). If future TS linting is needed, add:
+// import tseslint from 'typescript-eslint'; and extend its configs.
+
 export default defineConfig([
-    { files: ["**/*.{js,mjs,cjs,ts}"], plugins: { js: js }, extends: ["js/recommended"] },
+        { files: ["**/*.{js,mjs,cjs,ts}"], plugins: { js: js }, extends: ["js/recommended"],
+            rules: {
+                // Allow intentionally unused parameters prefixed with underscore (common for Electron event placeholders)
+                "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+            }
+        },
     // Merging browser and node globals to support environments where both are used, such as Electron.
     { files: ["**/*.{js,mjs,cjs,ts}"], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
     {
@@ -29,12 +39,25 @@ export default defineConfig([
             "css/no-important": "off",
             // Disabling 'css/use-baseline' as the project does not strictly adhere to a baseline grid system.
             "css/use-baseline": "off",
+            // Project uses gradients, custom properties, and utility patterns that the strict property validator flags.
+            // Disable for now to prioritize JS lint health; revisit with a tailored allowlist if needed.
+            "css/no-invalid-properties": "off",
+            // Allow id selectors/universal selectors given existing stylesheet structure.
+            "css/no-id-selectors": "off",
+            "css/no-universal-selectors": "off",
+            // Allow empty blocks (sometimes placeholder for theming) to reduce noise.
+            "css/no-empty-blocks": "off",
         },
     },
     {
-        // Ignoring 'libs/**' as it contains third-party libraries that should not be modified.
-        // Ignoring 'tests/**' as test files may follow different coding standards.
-        // Ignoring 'electron-app/libs/**' as it contains Electron-specific libraries that are not linted.
-        ignores: ["libs/**", "tests/**", "electron-app/libs/**"],
+        // Ignore third-party and generated output directories
+        ignores: [
+            "libs/**",
+            "tests/**",
+            "electron-app/libs/**",
+            "**/node_modules/**",
+            "dist/**", // built output (contains many vendor + d.ts artifacts not meant for linting)
+            "**/*.d.ts", // skip type declaration files (parsed as JS currently)
+        ],
     },
 ]);

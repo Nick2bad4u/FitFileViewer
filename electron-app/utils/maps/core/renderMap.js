@@ -1,4 +1,4 @@
-/*global L */
+/*global */
 
 /**
  * @typedef {Object} RecordMessage
@@ -82,7 +82,7 @@ export function renderMap() {
 
     const mapContainer = document.getElementById("content-map");
     if (!mapContainer) return;
-    
+
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
     if (windowExt._leafletMapInstance && windowExt._leafletMapInstance.remove) {
         windowExt._leafletMapInstance.remove();
@@ -113,7 +113,6 @@ export function renderMap() {
     });
     windowExt._leafletMapInstance = map;
 
-    // eslint-disable-next-line no-unused-vars
     LeafletLib.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
 
     // Add a custom floating label/button to indicate map type selection
@@ -197,7 +196,7 @@ export function renderMap() {
     // Debounce function to limit the frequency of updates
     /**
      * @param {Function} func
-     * @param {number} wait 
+     * @param {number} wait
      * @returns {Function}
      */
     function debounce(func, wait) {
@@ -265,7 +264,7 @@ export function renderMap() {
 
     // --- Print/export button ---
     const controlsDiv = document.getElementById("map-controls");
-    
+
     if (controlsDiv) {
         controlsDiv.appendChild(createPrintButton());
         controlsDiv.appendChild(createMapThemeToggle());
@@ -315,7 +314,7 @@ export function renderMap() {
             markerClusterGroup,
             startIcon,
             endIcon,
-            mapContainer,
+            mapContainer: /** @type {HTMLElement} */ (mapContainer || document.getElementById("leaflet-map") || document.body),
             getLapColor,
             formatTooltipData,
             getLapNumForIdx,
@@ -369,7 +368,7 @@ export function renderMap() {
         windowExt._overlayPolylines = {};
         windowExt.loadedFitFiles.forEach((/** @type {any} */ fitFile, /** @type {any} */ idx) => {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
-            const color = chartOverlayColorPalette[idx % chartOverlayColorPalette.length];
+            const color = /** @type {string} */ (chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000");
             const fileName = (fitFile.filePath || "").split(/[\\/]/).pop();
             const bounds = drawOverlayForFitFile({
                 fitData: fitFile.data,

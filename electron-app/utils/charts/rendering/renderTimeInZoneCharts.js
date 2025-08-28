@@ -1,7 +1,6 @@
 import { renderZoneChart } from "./renderZoneChart.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- JSDoc type import
 /** @typedef {import('../../../global').ZoneInfo} ZoneInfo */
 /** @typedef {{ doughnutVisible?: boolean }} ZoneVisibilitySettings */
 

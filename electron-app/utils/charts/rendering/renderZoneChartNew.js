@@ -97,7 +97,6 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
  * @param {ZoneDataItem[]} zoneData
  * @param {string[]} colors
  * @param {string} title
- * @param {RenderZoneChartOptions} options
  * @param {string} currentTheme
  */
 function createChartConfig(chartType, zoneData, colors, title, /** @type {RenderZoneChartOptions} */ options, currentTheme) {
@@ -271,7 +270,6 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
  * @param {ZoneDataItem[]} zoneData
  * @param {string[]} colors
  * @param {string} title
- * @param {RenderZoneChartOptions} options
  * @param {string} currentTheme
  * @param {any} baseDataset
  */

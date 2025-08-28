@@ -47,6 +47,7 @@ export function convertTemperatureUnits(celsius, targetUnit) {
         }
     } catch (error) {
         console.error("[convertTemperatureUnits] Conversion failed:", error);
-        throw new Error(`Failed to convert temperature: ${error.message}`);
+        const anyErr = /** @type {any} */ (error);
+        throw new Error(`Failed to convert temperature: ${anyErr?.message}`);
     }
 }

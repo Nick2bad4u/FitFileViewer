@@ -19,7 +19,7 @@ function toggleChartControls() {
     const wrapper = document.getElementById("chartjs-settings-wrapper");
     if (!wrapper) {
         console.warn("[ChartJS] Controls panel not found, creating it...");
-        ensureChartSettingsDropdowns();
+    ensureChartSettingsDropdowns("chartjs-chart-container");
         return;
     }
 
@@ -44,6 +44,9 @@ function toggleChartControls() {
 }
 /**
  * Creates a toggle button for the chart controls panel
+ */
+/**
+ * @param {HTMLElement} container
  */
 function createControlsToggleButton(container) {
     let toggleBtn = document.getElementById("chart-controls-toggle");
@@ -121,7 +124,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
     }
 
     // Create toggle button if it doesn't exist
-    createControlsToggleButton(chartContainer.parentNode || document.body);
+    createControlsToggleButton(/** @type {HTMLElement} */ (chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body));
 
     // Create main settings wrapper only if it doesn't exist
     let wrapper = document.getElementById("chartjs-settings-wrapper");
@@ -133,10 +136,12 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         applySettingsPanelStyles(wrapper);
 
         const toggleBtn = document.getElementById("chart-controls-toggle");
-        if (toggleBtn && toggleBtn.parentNode) {
+        if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
             toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
         } else {
-            chartContainer.parentNode.insertBefore(wrapper, chartContainer);
+            if (chartContainer.parentNode instanceof HTMLElement) {
+                chartContainer.parentNode.insertBefore(wrapper, chartContainer);
+            }
         } // Initialize settings sections only once
         createSettingsHeader(wrapper);
         createControlsSection(wrapper);

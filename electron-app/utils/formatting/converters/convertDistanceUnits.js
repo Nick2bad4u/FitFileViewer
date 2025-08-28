@@ -56,6 +56,7 @@ export function convertDistanceUnits(meters, targetUnit) {
         }
     } catch (error) {
         console.error("[convertDistanceUnits] Conversion failed:", error);
-        throw new Error(`Failed to convert distance: ${error.message}`);
+        const anyErr = /** @type {any} */ (error);
+        throw new Error(`Failed to convert distance: ${anyErr?.message}`);
     }
 }

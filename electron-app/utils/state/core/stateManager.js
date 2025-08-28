@@ -367,7 +367,7 @@ export function resetState(path) {
             }
         }
         const finalKey = keys[keys.length - 1];
-        if (target) {
+        if (finalKey && target) {
             const rec = /** @type {Record<string, any>} */ (target);
             if (Object.prototype.hasOwnProperty.call(rec, finalKey)) {
                 delete rec[finalKey];

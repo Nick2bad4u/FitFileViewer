@@ -109,7 +109,7 @@ export function testFaveroCase() {
     const formattedMfg = formatManufacturer(faveroSensor.manufacturer);
     console.log(`Step 2 - Manufacturer formatted as: "${formattedMfg}"`);
 
-    const prodName = getProductName(faveroSensor.manufacturer, faveroSensor.product);
+    const prodName = getProductName(faveroSensor.manufacturer ?? 0, faveroSensor.product);
     console.log(`Step 3 - Product ID ${faveroSensor.product} resolves to: "${prodName}"`);
 
     const formattedProd = formatProduct(faveroSensor.manufacturer, faveroSensor.product);
@@ -150,7 +150,7 @@ export function testFaveroStringCase() {
     const formattedMfg = formatManufacturer(faveroSensor.manufacturer);
     console.log(`Step 2 - Manufacturer formatted as: "${formattedMfg}"`);
 
-    const prodName = getProductName(mfgIdFromName, faveroSensor.product);
+    const prodName = getProductName(mfgIdFromName ?? 0, faveroSensor.product);
     console.log(`Step 3 - Product ID ${faveroSensor.product} resolves to: "${prodName}"`);
 
     const formattedProd = formatProduct(faveroSensor.manufacturer, faveroSensor.product);

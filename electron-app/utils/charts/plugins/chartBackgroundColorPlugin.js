@@ -53,7 +53,7 @@ export const chartBackgroundColorPlugin = {
                 // Access via bracket notation to satisfy index signature constraints under exactOptionalPropertyTypes
                 const pluginCfg = chart?.options && chart.options["plugins"] && chart.options["plugins"].chartBackgroundColorPlugin;
                 if (pluginCfg && typeof pluginCfg.backgroundColor === "string") backgroundColor = pluginCfg.backgroundColor;
-            } catch (_) {
+            } catch {
                 /* ignore */
             }
         }
@@ -61,7 +61,7 @@ export const chartBackgroundColorPlugin = {
             try {
                 const cssBg = chart?.canvas ? getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim() : "";
                 if (cssBg) backgroundColor = cssBg;
-            } catch (_) {
+            } catch {
                 /* ignore */
             }
         }

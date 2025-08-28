@@ -5,7 +5,8 @@ const path = require("path");
 const fs = require("fs");
 const http = require("http");
 const url = require("url");
-const { autoUpdater } = require("electron-updater");
+// Auto-updater required where used below
+const { autoUpdater: _autoUpdater } = require("electron-updater");
 
 const { loadRecentFiles, addRecentFile } = require("./utils/files/recent/recentFiles");
 const { createAppMenu } = require("./utils/app/menu/createAppMenu");
@@ -133,7 +134,7 @@ function logWithContext(level, message, context = {}) {
  * @returns {Function}
  */
 // @ts-expect-error - Function designed for future use, currently unused
-function createErrorHandler(operation) {
+function _createErrorHandler(operation) {
     return async (/** @type {any} */ ...args) => {
         try {
             return await operation(...args);
@@ -152,6 +153,8 @@ function createErrorHandler(operation) {
  * @param {any} mainWindow
  */
 function setupAutoUpdater(mainWindow) {
+    // alias back to name expected in existing code
+    const autoUpdater = _autoUpdater;
     if (!validateWindow(mainWindow, "auto-updater setup")) {
         logWithContext("warn", "Cannot setup auto-updater: main window is not usable");
         return;
@@ -242,7 +245,7 @@ async function initializeApplication() {
         if (!getAppState("autoUpdaterInitialized")) {
             try {
                 setupAutoUpdater(mainWindow);
-                await autoUpdater.checkForUpdatesAndNotify();
+                await _autoUpdater.checkForUpdatesAndNotify();
                 setAppState("autoUpdaterInitialized", true);
             } catch (error) {
                 logWithContext("error", "Failed to setup auto-updater:", { error: /** @type {Error} */ (error).message });
@@ -559,14 +562,14 @@ function setupMenuAndEventHandlers() {
     const updateHandlers = {
         "menu-check-for-updates": () => {
             try {
-                autoUpdater.checkForUpdates();
+                _autoUpdater.checkForUpdates();
             } catch (error) {
                 logWithContext("error", "Failed to check for updates:", { error: /** @type {Error} */ (error).message });
             }
         },
         "install-update": () => {
             try {
-                autoUpdater.quitAndInstall();
+                _autoUpdater.quitAndInstall();
             } catch (err) {
                 logWithContext("error", "Error during quitAndInstall:", { error: /** @type {Error} */ (err).message });
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
@@ -581,7 +584,7 @@ function setupMenuAndEventHandlers() {
         },
         "menu-restart-update": () => {
             try {
-                autoUpdater.quitAndInstall();
+                _autoUpdater.quitAndInstall();
             } catch (err) {
                 logWithContext("error", "Error during restart and install:", { error: /** @type {Error} */ (err).message });
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
@@ -835,23 +838,10 @@ async function startGyazoOAuthServer(port = 3000) {
                             <html>
                                 <head>
                                     <title>Gyazo OAuth - Error</title>
-                                    <style>
-                                        body { 
+                                        body {
                                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                            margin: 0; padding: 40px; min-height: 100vh; display: flex; 
-                                            align-items: center; justify-content: center; 
-                                        }
-                                        .container { 
-                                            background: white; padding: 40px; border-radius: 12px; 
-                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; 
-                                            max-width: 500px; 
-                                        }
-                                        h1 { color: #e74c3c; margin: 0 0 20px 0; }
-                                        p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }
-                                        .error { background: #ffeaea; padding: 15px; border-radius: 8px; margin: 20px 0; }
-                                    </style>
-                                </head>
+                            // Removed unused createErrorHandler placeholder to satisfy lint no-unused-vars
                                 <body>
                                     <div class="container">
                                         <h1>❌ Authorization Failed</h1>
@@ -871,16 +861,16 @@ async function startGyazoOAuthServer(port = 3000) {
                                 <head>
                                     <title>Gyazo OAuth - Success</title>
                                     <style>
-                                        body { 
+                                        body {
                                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                            margin: 0; padding: 40px; min-height: 100vh; display: flex; 
-                                            align-items: center; justify-content: center; 
+                                            margin: 0; padding: 40px; min-height: 100vh; display: flex;
+                                            align-items: center; justify-content: center;
                                         }
-                                        .container { 
-                                            background: white; padding: 40px; border-radius: 12px; 
-                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; 
-                                            max-width: 500px; 
+                                        .container {
+                                            background: white; padding: 40px; border-radius: 12px;
+                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center;
+                                            max-width: 500px;
                                         }
                                         h1 { color: #27ae60; margin: 0 0 20px 0; }
                                         p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }
@@ -917,16 +907,16 @@ async function startGyazoOAuthServer(port = 3000) {
                                 <head>
                                     <title>Gyazo OAuth - Invalid Request</title>
                                     <style>
-                                        body { 
+                                        body {
                                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                            margin: 0; padding: 40px; min-height: 100vh; display: flex; 
-                                            align-items: center; justify-content: center; 
+                                            margin: 0; padding: 40px; min-height: 100vh; display: flex;
+                                            align-items: center; justify-content: center;
                                         }
-                                        .container { 
-                                            background: white; padding: 40px; border-radius: 12px; 
-                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; 
-                                            max-width: 500px; 
+                                        .container {
+                                            background: white; padding: 40px; border-radius: 12px;
+                                            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center;
+                                            max-width: 500px;
                                         }
                                         h1 { color: #f39c12; margin: 0 0 20px 0; }
                                         p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }

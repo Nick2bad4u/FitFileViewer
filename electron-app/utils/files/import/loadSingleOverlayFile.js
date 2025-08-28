@@ -8,16 +8,17 @@ export async function loadSingleOverlayFile(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
 
-        reader.onload = async function (event) {
+    reader.onload = async function (event) {
             try {
-                const arrayBuffer = event.target.result;
+        const target = /** @type {FileReader|null} */ (event.target);
+        const arrayBuffer = target && target.result;
 
                 if (!arrayBuffer || !window.electronAPI?.decodeFitFile) {
                     resolve({ success: false, error: "No file data or decoder not available" });
                     return;
                 }
 
-                const fitData = await window.electronAPI.decodeFitFile(arrayBuffer);
+                const fitData = await window.electronAPI.decodeFitFile(/** @type {ArrayBuffer} */ (arrayBuffer));
 
                 if (!fitData || fitData.error) {
                     resolve({ success: false, error: fitData?.error || "Failed to parse FIT file" });
@@ -27,7 +28,7 @@ export async function loadSingleOverlayFile(file) {
                 // Validate that file has location data
                 const validLocationCount = Array.isArray(fitData.recordMesgs)
                     ? fitData.recordMesgs.filter(
-                          (r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
+                          (/** @type {any} */ r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
                       ).length
                     : 0;
 
@@ -43,7 +44,8 @@ export async function loadSingleOverlayFile(file) {
                 resolve({ success: true, data: fitData });
             } catch (error) {
                 console.error("[mapActionButtons] Error processing file:", file.name, error);
-                resolve({ success: false, error: error.message || "Unknown error processing file" });
+                const anyErr = /** @type {any} */ (error);
+                resolve({ success: false, error: anyErr?.message || "Unknown error processing file" });
             }
         };
 

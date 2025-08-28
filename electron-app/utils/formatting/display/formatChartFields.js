@@ -11,14 +11,8 @@
 
 // Enhanced chart fields with better categorization - match actual FIT file field names
 /**
- *
- * Mapping of chart field keys to their associated color codes for consistent and accessible chart rendering.
- * Use this object to retrieve the color for a given field when rendering charts or visualizations.
- *
- * @type {Object.<string, string>}
- * @example
- * import { fieldColors } from '../formatting/display/formatChartFields';
- * const color = fieldColors['speed']; // "#1976d2"
+ * Ordered list of supported chart field keys.
+ * @type {string[]}
  */
 export const formatChartFields = [
     "speed",
