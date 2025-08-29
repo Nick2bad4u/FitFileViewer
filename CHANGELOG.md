@@ -7,12 +7,38 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[d638d9e](https://github.com/Nick2bad4u/FitFileViewer/commit/d638d9eda195fb22286a0842d0ae8dd5543901da)...
-[d638d9e](https://github.com/Nick2bad4u/FitFileViewer/commit/d638d9eda195fb22286a0842d0ae8dd5543901da)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d638d9eda195fb22286a0842d0ae8dd5543901da...d638d9eda195fb22286a0842d0ae8dd5543901da))
+[[a812d0a](https://github.com/Nick2bad4u/FitFileViewer/commit/a812d0aa3e76c54b8ff7d33618e956b39f3adb13)...
+[a812d0a](https://github.com/Nick2bad4u/FitFileViewer/commit/a812d0aa3e76c54b8ff7d33618e956b39f3adb13)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a812d0aa3e76c54b8ff7d33618e956b39f3adb13...a812d0aa3e76c54b8ff7d33618e956b39f3adb13))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 26.1.0 [`(a812d0a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a812d0aa3e76c54b8ff7d33618e956b39f3adb13)
+
+
+
+
+
+
+## [26.1.0] - 2025-08-29
+
+
+[[d638d9e](https://github.com/Nick2bad4u/FitFileViewer/commit/d638d9eda195fb22286a0842d0ae8dd5543901da)...
+[70b1817](https://github.com/Nick2bad4u/FitFileViewer/commit/70b1817b8cd11de4a3ccc706bd808ef839a93189)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d638d9eda195fb22286a0842d0ae8dd5543901da...70b1817b8cd11de4a3ccc706bd808ef839a93189))
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v26.0.0 [skip ci] [`(0b81a40)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0b81a406f6414fa5b90a23863a0dad33033644e5)
+
+
+
+### 📦 Dependencies
+
+- *(deps-dev)* [dependency] Update tmp (#144) [`(70b1817)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70b1817b8cd11de4a3ccc706bd808ef839a93189)
+
 
 - [dependency] Update version 26.0.0 [`(d638d9e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d638d9eda195fb22286a0842d0ae8dd5543901da)
 
@@ -554,9 +580,9 @@ Prepares utilities for easier extension and consistent UI/UX in data display and
 ## [24.8.0] - 2025-06-19
 
 
-[[7712a03](https://github.com/Nick2bad4u/FitFileViewer/commit/7712a0346df1c05c97a47e6988dc6ce109f58297)...
+[[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)...
 [cf1c487](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/7712a0346df1c05c97a47e6988dc6ce109f58297...cf1c487d88eb195d388ac2b0acb851c4855210ac))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...cf1c487d88eb195d388ac2b0acb851c4855210ac))
 
 
 ### 🔀 Merge Commits
@@ -604,32 +630,6 @@ Enhances error handling and provides explicit structure for UI updates and chart
 Aligns color scheme utility file and export names for clarity and consistency across the codebase. Updates imports accordingly to prevent confusion. Removes fixed canvas height to allow improved chart responsiveness. [`(7712a03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7712a0346df1c05c97a47e6988dc6ce109f58297)
 
 
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v24.7.0 [skip ci] [`(5bdccc0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5bdccc0d565378263a941f2205c746aa87ca2e1f)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 24.7.0 [`(623988a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)
-
-
-
-
-
-
-## [24.7.0] - 2025-06-19
-
-
-[[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)...
-[cee6f43](https://github.com/Nick2bad4u/FitFileViewer/commit/cee6f4381dcced2b65ace0921affb992bb2f7e60)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...cee6f4381dcced2b65ace0921affb992bb2f7e60))
-
-
-### 💼 Other
-
 - Improves system info handling and update notifications
 
 Enhances reliability and user feedback for version and system info display by introducing dynamic loading placeholders, robust logging, and fallback mechanisms. Refactors update notification logic for better error handling, accessibility, and clearer action buttons. Updates code structure for maintainability, modularity, and resilience to missing APIs or DOM elements. [`(cee6f43)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cee6f4381dcced2b65ace0921affb992bb2f7e60)
@@ -638,11 +638,17 @@ Enhances reliability and user feedback for version and system info display by in
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v24.7.0 [skip ci] [`(5bdccc0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5bdccc0d565378263a941f2205c746aa87ca2e1f)
+
+
 - Update changelogs for v24.6.0 [skip ci] [`(cef7a42)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cef7a427316644983f6752928f6cec3463e3d0f1)
 
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 24.7.0 [`(623988a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)
+
 
 - [dependency] Update version 24.6.0 [`(6ee65d7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)
 
