@@ -57,7 +57,7 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */ (method) => typeof /** @type {*} */ (window.electronAPI)[method] !== "function"
+        /** @param {string} method */ (method) => typeof (/** @type {*} */ (window.electronAPI)[method]) !== "function"
     );
 
     if (missingMethods.length > 0) {
