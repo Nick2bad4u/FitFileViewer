@@ -717,7 +717,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             // Handle different timestamp formats
             if (/** @type {any} */ (row).timestamp instanceof Date) {
                 timestamp = /** @type {any} */ (row).timestamp.getTime() / 1000; // Convert to seconds
-            } else if (typeof /** @type {any} */ (row).timestamp === "number") {
+            } else if (typeof (/** @type {any} */ (row).timestamp) === "number") {
                 // Check if timestamp is in milliseconds (very large number) or seconds
                 timestamp =
                     /** @type {any} */ (row).timestamp > 1000000000000

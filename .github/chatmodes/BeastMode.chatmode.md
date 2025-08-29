@@ -1,6 +1,6 @@
 ---
 description: Beast Mode 3.1
-tools: ['Best Tools']
+tools: ["Best Tools"]
 ---
 
 # Beast Mode 3.1
@@ -146,7 +146,6 @@ A tool for dynamic and reflective problem-solving through thoughts, with intelli
 
 Use a standard naming convention for entities and relations to ensure clarity and consistency.
 For example, use the filename as the entity name, and add observations about the file and code to the entity. If you have an issue in the future, you can search for the entity by filename and find all relevant information about it. Use the filename without the extension. For example, if the file is `index.ts`, use `index` as the entity name.
-
 
 Time constraint setting: `unlimited`
 Compute Resource setting: `unlimited`

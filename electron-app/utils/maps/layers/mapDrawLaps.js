@@ -341,9 +341,9 @@ export function mapDrawLaps(
                 let i = 0;
                 i < coords.length;
                 i +=
-                    /** @type {any} */ (win).mapMarkerCount === 0 || !/** @type {any} */ (win).mapMarkerCount
+                    /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                         ? 1
-                        : Math.max(1, Math.floor(coords.length / (/** @type {any} */ (win).mapMarkerCount || 1)))
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
             ) {
                 const c = coords[i];
                 if (!c) continue;
@@ -396,7 +396,7 @@ export function mapDrawLaps(
                 if (bounds) {
                     let safeBounds = bounds;
                     if (
-                        typeof /** @type {any} */ (bounds).clone !== "function" &&
+                        typeof (/** @type {any} */ (bounds).clone) !== "function" &&
                         /** @type {any} */ (win).L &&
                         /** @type {any} */ (win).L.latLngBounds
                     ) {
@@ -510,9 +510,9 @@ export function mapDrawLaps(
                     let i = 0;
                     i < coords.length;
                     i +=
-                        /** @type {any} */ (win).mapMarkerCount === 0 || !/** @type {any} */ (win).mapMarkerCount
+                        /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                             ? 1
-                            : Math.max(1, Math.floor(coords.length / (/** @type {any} */ (win).mapMarkerCount || 1)))
+                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
                 ) {
                     const c = coords[i];
                     if (!c) continue;
@@ -565,7 +565,7 @@ export function mapDrawLaps(
                     if (bounds) {
                         let safeBounds = bounds;
                         if (
-                            typeof /** @type {any} */ (bounds).clone !== "function" &&
+                            typeof (/** @type {any} */ (bounds).clone) !== "function" &&
                             /** @type {any} */ (win).L &&
                             /** @type {any} */ (win).L.latLngBounds
                         ) {
@@ -655,11 +655,11 @@ export function mapDrawLaps(
                         }
 
                         const stepLap =
-                            /** @type {any} */ (win).mapMarkerCount === 0 || !/** @type {any} */ (win).mapMarkerCount
+                            /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                                 ? 1
                                 : Math.max(
                                       1,
-                                      Math.floor(lapCoords.length / (/** @type {any} */ (win).mapMarkerCount || 1))
+                                      Math.floor(lapCoords.length / /** @type {any} */ ((win).mapMarkerCount || 1))
                                   );
                         for (let j = 0; j < lapCoords.length; j += stepLap) {
                             const c = lapCoords[j];
@@ -848,9 +848,9 @@ export function mapDrawLaps(
             let i = 0;
             i < coords.length;
             i +=
-                /** @type {any} */ (win).mapMarkerCount === 0 || !/** @type {any} */ (win).mapMarkerCount
+                /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                     ? 1
-                    : Math.max(1, Math.floor(coords.length / (/** @type {any} */ (win).mapMarkerCount || 1)))
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
         ) {
             const c = coords[i];
             if (!c) continue;
@@ -992,7 +992,7 @@ export function drawOverlayForFitFile({
 
         // Track overlay polylines for highlight updates
         if (typeof overlayIdx === "number") {
-            if (!/** @type {any} */ (win)._overlayPolylines) /** @type {any} */ (win)._overlayPolylines = {};
+            if (!(/** @type {any} */ (win)._overlayPolylines)) /** @type {any} */ (win)._overlayPolylines = {};
             /** @type {any} */ (win)._overlayPolylines[overlayIdx] = polyline;
         }
 
@@ -1016,9 +1016,9 @@ export function drawOverlayForFitFile({
 
         // --- Ensure data point markers are above polylines ---
         const stepOverlay =
-            /** @type {any} */ (win).mapMarkerCount === 0 || !/** @type {any} */ (win).mapMarkerCount
+            /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                 ? 1
-                : Math.max(1, Math.floor(coords.length / (/** @type {any} */ (win).mapMarkerCount || 1)));
+                : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)));
         for (let i = 0; i < coords.length; i += stepOverlay) {
             const c = coords[i];
             if (!c) continue;
@@ -1062,7 +1062,7 @@ export function drawOverlayForFitFile({
 
 // Add global function to update overlay highlights without redrawing the map
 /** @type {any} */ (win).updateOverlayHighlights = function () {
-    if (!/** @type {any} */ (win)._overlayPolylines) return;
+    if (!(/** @type {any} */ (win)._overlayPolylines)) return;
     Object.entries(/** @type {any} */ (win)._overlayPolylines).forEach(([idx, polyline]) => {
         const isHighlighted = Number(idx) === /** @type {any} */ (win)._highlightedOverlayIdx;
         polyline.setStyle({

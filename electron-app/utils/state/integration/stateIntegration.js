@@ -45,8 +45,9 @@ function isDevelopmentMode() {
         // Check if running from file:// protocol (dev mode indicator)
         window.location.protocol === "file:" ||
         // Check if electron dev tools are available
-        /** @type {any} */ ((window).electronAPI &&
-            typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined") ||
+        /** @type {any} */ (
+            window.electronAPI && typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined"
+        ) ||
         // Check console availability and development-specific globals
         (typeof console !== "undefined" && window.location.href.includes("electron"))
     );
