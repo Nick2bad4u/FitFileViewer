@@ -63,6 +63,12 @@ export function updateTabVisibility(visibleTabId) {
  * @returns {string|null} Tab name or null if not found
  */
 function extractTabNameFromContentId(contentId) {
+    // CRITICAL BUG FIX: Type validation for contentId
+    if (!contentId || typeof contentId !== "string") {
+        console.warn("extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:", contentId);
+        return null;
+    }
+
     const patterns = [
         /^content-(.+)$/, // Content-summary -> summary
         /^(.+)-content$/, // Summary-content -> summary

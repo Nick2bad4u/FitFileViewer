@@ -41,8 +41,8 @@ vi.doMock('../../../utils/dom/domHelpers.js', () => ({
 }));
 
 // Now import the modules after mocking
-const { setTabButtonsEnabled, initializeTabButtonState } = await import('../../../utils/ui/controls/enableTabButtons.js');
-const { initializeActiveTabState, updateActiveTab } = await import('../../../utils/ui/tabs/updateActiveTab.js');
+const { setTabButtonsEnabled, initializeTabButtonState } = await import('../../utils/ui/controls/enableTabButtons.js');
+const { initializeActiveTabState, updateActiveTab } = await import('../../utils/ui/tabs/updateActiveTab.js');
 
 describe('Real App Integration: Tab Button Bug', () => {
     beforeEach(() => {
