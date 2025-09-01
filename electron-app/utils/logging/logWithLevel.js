@@ -9,10 +9,10 @@
  */
 export function logWithLevel(level, message, context) {
     try {
-        const timestamp = new Date().toISOString();
-        const prefix = `[FFV]`;
-        const base = `${timestamp} ${prefix} ${message}`;
-        const hasContext = context && Object.keys(context).length > 0;
+        const timestamp = new Date().toISOString(),
+         prefix = `[FFV]`,
+         base = `${timestamp} ${prefix} ${message}`,
+         hasContext = context && Object.keys(context).length > 0;
         switch (level) {
             case "info":
                 hasContext ? console.info(base, context) : console.info(base);

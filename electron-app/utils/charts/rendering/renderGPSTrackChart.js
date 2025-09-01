@@ -13,8 +13,8 @@ export function renderGPSTrackChart(container, data, options) {
         console.log("[ChartJS] renderGPSTrackChart called");
 
         // Check if GPS position data is available
-        const hasLatitude = data.some((row) => row.positionLat !== undefined && row.positionLat !== null);
-        const hasLongitude = data.some((row) => row.positionLong !== undefined && row.positionLong !== null);
+        const hasLatitude = data.some((row) => row.positionLat !== undefined && row.positionLat !== null),
+         hasLongitude = data.some((row) => row.positionLong !== undefined && row.positionLong !== null);
 
         if (!hasLatitude || !hasLongitude) {
             console.log("[ChartJS] No GPS position data available");
@@ -40,8 +40,8 @@ export function renderGPSTrackChart(container, data, options) {
                     row.positionLong !== null
                 ) {
                     // Convert semicircle coordinates to degrees
-                    const lat = (row.positionLat * 180) / Math.pow(2, 31);
-                    const lng = (row.positionLong * 180) / Math.pow(2, 31);
+                    const lat = (row.positionLat * 180) / 2**31,
+                     lng = (row.positionLong * 180) / 2**31;
 
                     return {
                         x: lng,
@@ -116,7 +116,7 @@ export function renderGPSTrackChart(container, data, options) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 const point = context.raw;
                                 return [
                                     `Latitude: ${point.y.toFixed(6)}°`,
@@ -180,8 +180,8 @@ export function renderGPSTrackChart(container, data, options) {
                         ticks: {
                             color: themeConfig.colors.textPrimary,
                             /** @param {any} value */
-                            callback: function (value) {
-                                return value.toFixed(4) + "°";
+                            callback (value) {
+                                return `${value.toFixed(4)  }°`;
                             },
                         },
                     },
@@ -200,19 +200,19 @@ export function renderGPSTrackChart(container, data, options) {
                         ticks: {
                             color: themeConfig.colors.textPrimary,
                             /** @param {any} value */
-                            callback: function (value) {
-                                return value.toFixed(4) + "°";
+                            callback (value) {
+                                return `${value.toFixed(4)  }°`;
                             },
                         },
                     },
                 },
             },
             plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
-        };
+        },
 
-        const chart = new window.Chart(canvas, config);
+         chart = new window.Chart(canvas, config);
         if (chart) {
-            if (!window._chartjsInstances) window._chartjsInstances = [];
+            if (!window._chartjsInstances) {window._chartjsInstances = [];}
             window._chartjsInstances.push(chart);
             console.log("[ChartJS] GPS track chart created successfully");
         }

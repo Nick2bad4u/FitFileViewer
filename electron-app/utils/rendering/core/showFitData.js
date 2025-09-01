@@ -81,10 +81,10 @@ function extractFileName(filePath) {
  */
 function updateFileDisplay(fileName) {
     try {
-        const { SELECTORS, CSS_CLASSES } = DISPLAY_CONSTANTS;
+        const { SELECTORS, CSS_CLASSES } = DISPLAY_CONSTANTS,
 
         // Update file name container
-        const fileNameContainer = document.getElementById(SELECTORS.FILE_NAME_CONTAINER);
+         fileNameContainer = document.getElementById(SELECTORS.FILE_NAME_CONTAINER);
         if (fileNameContainer) {
             fileNameContainer.classList.add(CSS_CLASSES.HAS_FILE);
         }
@@ -107,10 +107,10 @@ function updateFileDisplay(fileName) {
         // Update document title
         document.title = fileName ? `${DISPLAY_CONSTANTS.TITLE_PREFIX} - ${fileName}` : DISPLAY_CONSTANTS.TITLE_PREFIX;
 
-        logWithContext("File display updated: " + fileName);
+        logWithContext(`File display updated: ${  fileName}`);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error updating file display";
-        logWithContext("Error updating file display: " + errorMessage, "error");
+        logWithContext(`Error updating file display: ${  errorMessage}`, "error");
     }
 }
 
@@ -140,7 +140,7 @@ function enableTabsAndNotify(filePath) {
         logWithContext("Tabs enabled and notifications sent");
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error enabling tabs and notifications";
-        logWithContext("Error enabling tabs and notifications: " + errorMessage, "error");
+        logWithContext(`Error enabling tabs and notifications: ${  errorMessage}`, "error");
     }
 }
 
@@ -161,7 +161,7 @@ function resetRenderingStates() {
         logWithContext("Rendering states reset");
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error resetting rendering states";
-        logWithContext("Error resetting rendering states: " + errorMessage, "error");
+        logWithContext(`Error resetting rendering states: ${  errorMessage}`, "error");
     }
 }
 
@@ -190,7 +190,7 @@ function getCachedFileName(data, filePath) {
         return fileName;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error managing file name cache";
-        logWithContext("Error managing file name cache: " + errorMessage, "error");
+        logWithContext(`Error managing file name cache: ${  errorMessage}`, "error");
         return extractFileName(filePath);
     }
 }
@@ -271,14 +271,14 @@ export function showFitData(data, filePath, options = {}) {
                     indicatorError instanceof Error
                         ? indicatorError.message
                         : "Unknown error creating chart status indicator";
-                logWithContext("Error creating chart status indicator: " + errorMessage, "warn");
+                logWithContext(`Error creating chart status indicator: ${  errorMessage}`, "warn");
             }
         }
 
-        logWithContext("FIT data displayed successfully" + (filePath ? " for file: " + extractFileName(filePath) : ""));
+        logWithContext(`FIT data displayed successfully${  filePath ? ` for file: ${  extractFileName(filePath)}` : ""}`);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error showing FIT data";
-        logWithContext("Error showing FIT data: " + errorMessage, "error");
+        logWithContext(`Error showing FIT data: ${  errorMessage}`, "error");
 
         // Update state with error information
         setState(

@@ -36,7 +36,7 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
  * @type {string}
  */
 // (legacy prefix documented for clarity)
-// const SUMMARY_COL_KEY_PREFIX = "summaryColSel_"; // not directly used; retained in comment
+// Const SUMMARY_COL_KEY_PREFIX = "summaryColSel_"; // not directly used; retained in comment
 
 /**
  * Augment window types (runtime only, JSDoc helps TS inference)
@@ -65,9 +65,9 @@ export function getStorageKey(data, _allKeys) {
             fpath = w.activeFitFileName;
         }
     } catch {
-        // ignore
+        // Ignore
     }
-    if (fpath) return `summaryColSel_${encodeURIComponent(String(fpath))}`;
+    if (fpath) {return `summaryColSel_${encodeURIComponent(String(fpath))}`;}
     return "summaryColSel_default";
 }
 
@@ -83,7 +83,7 @@ export function saveColPrefs(key, visibleColumns, _allKeys) {
     try {
         localStorage.setItem(key, JSON.stringify(visibleColumns));
     } catch {
-        /* intentionally ignore errors */
+        /* Intentionally ignore errors */
     }
 }
 
@@ -104,7 +104,7 @@ export function loadColPrefs(key, _allKeys) {
             }
         }
     } catch {
-        /* intentionally ignore errors */
+        /* Intentionally ignore errors */
     }
     return null;
 }
@@ -156,7 +156,7 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
     }
     // --- Persist filter value on container ---
     // @ts-ignore - augmenting DOM element with cached filter value
-    let filterValue = /** @type {any} */ (container)._summaryFilterValue || "All";
+    const filterValue = /** @type {any} */ (container)._summaryFilterValue || "All";
     filterSelect.value = filterValue;
     filterSelect.onchange = () => {
         // @ts-ignore
@@ -201,13 +201,13 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
     copyBtn.onclick = () => {
         try {
             /** @type {string[]} */
-            const rows = [];
-            const sortedVisible = [LABEL_COL, ...visibleColumns];
+            const rows = [],
+             sortedVisible = [LABEL_COL, ...visibleColumns];
             rows.push(sortedVisible.map((k) => (k === LABEL_COL ? "Type" : k)).join(","));
             // Summary row
             if (filterValue === "All" || filterValue === "Summary") {
-                const summaryRows = getSummaryRows(data);
-                const summary = summaryRows && summaryRows[0] ? summaryRows[0] : {};
+                const summaryRows = getSummaryRows(data),
+                 summary = summaryRows && summaryRows[0] ? summaryRows[0] : {};
                 rows.push(
                     sortedVisible
                         .map((k) =>
@@ -237,7 +237,7 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
                 navigator.clipboard.writeText(rows.join("\n"));
             }
         } catch {
-            /* ignore copy errors */
+            /* Ignore copy errors */
         }
     };
     headerBar.appendChild(copyBtn);
@@ -245,10 +245,10 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
 
     const table = document.createElement("table");
     table.classList.add("display");
-    const thead = document.createElement("thead");
-    const tbody = document.createElement("tbody");
-    const sortedVisible = [LABEL_COL, ...visibleColumns];
-    const headerRow = document.createElement("tr");
+    const thead = document.createElement("thead"),
+     tbody = document.createElement("tbody"),
+     sortedVisible = [LABEL_COL, ...visibleColumns],
+     headerRow = document.createElement("tr");
     sortedVisible.forEach((key) => {
         const th = document.createElement("th");
         th.textContent = key === LABEL_COL ? "Type" : key;
@@ -257,13 +257,13 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
     thead.appendChild(headerRow);
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
-        const summaryRows = getSummaryRows(data);
-        const summaryRow = document.createElement("tr");
-        const summaryRec = summaryRows[0] || {};
+        const summaryRows = getSummaryRows(data),
+         summaryRow = document.createElement("tr"),
+         summaryRec = summaryRows[0] || {};
         sortedVisible.forEach((key, idx) => {
             const td = document.createElement("td");
             td.textContent = key === LABEL_COL ? "Summary" : summaryRec[key] !== undefined ? summaryRec[key] : "";
-            if (idx === 0) td.classList.add("summary-row");
+            if (idx === 0) {td.classList.add("summary-row");}
             summaryRow.appendChild(td);
         });
         tbody.appendChild(summaryRow);
@@ -282,8 +282,8 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
                     const td = document.createElement("td");
                     if (key === LABEL_COL) {
                         td.textContent = `Lap ${i + 1}`;
-                    } else if (key === "timestamp" && lap["startTime"]) {
-                        td.textContent = lap["startTime"]; // bracket access for index signature
+                    } else if (key === "timestamp" && lap.startTime) {
+                        td.textContent = lap.startTime; // Bracket access for index signature
                     } else {
                         td.textContent = lap[key] !== undefined ? lap[key] : "";
                     }
@@ -307,11 +307,11 @@ function getSummaryRows(data) {
     if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
         const raw = { ...data.sessionMesgs[0] };
         patchSummaryFields(raw);
-        if (raw["total_ascent"] != null && !isNaN(raw["total_ascent"])) {
-            raw["total_ascent_ft"] = (raw["total_ascent"] * 3.28084).toFixed(0) + " ft";
+        if (raw.total_ascent != null && !isNaN(raw.total_ascent)) {
+            raw.total_ascent_ft = `${(raw.total_ascent * 3.28084).toFixed(0)  } ft`;
         }
-        if (raw["total_descent"] != null && !isNaN(raw["total_descent"])) {
-            raw["total_descent_ft"] = (raw["total_descent"] * 3.28084).toFixed(0) + " ft";
+        if (raw.total_descent != null && !isNaN(raw.total_descent)) {
+            raw.total_descent_ft = `${(raw.total_descent * 3.28084).toFixed(0)  } ft`;
         }
         return [raw];
     }
@@ -322,10 +322,10 @@ function getSummaryRows(data) {
         /** @type {AugmentedWindow} */ (window)?.aq
     ) {
         try {
-            const aq = /** @type {AugmentedWindow} */ (window).aq;
-            const table = aq.from(data.recordMesgs);
+            const aq = /** @type {AugmentedWindow} */ (window).aq,
+             table = aq.from(data.recordMesgs),
             /** @type {SummaryStats} */
-            const stats = {
+             stats = {
                 total_records: table.numRows(),
                 start_time: table.get(0, "timestamp"),
                 end_time: table.get(table.numRows() - 1, "timestamp"),
@@ -334,8 +334,8 @@ function getSummaryRows(data) {
                 stats.total_distance = table.get(table.numRows() - 1, "distance");
             }
             if (table.columnNames().includes("timestamp")) {
-                const startTs = new Date(table.get(0, "timestamp")).getTime();
-                const endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime();
+                const startTs = new Date(table.get(0, "timestamp")).getTime(),
+                 endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime();
                 if (Number.isFinite(startTs) && Number.isFinite(endTs)) {
                     const sec = Math.round((endTs - startTs) / 1000);
                     stats.duration = sec;
@@ -359,7 +359,7 @@ function getSummaryRows(data) {
             patchSummaryFields(stats);
             return [/** @type {GenericRecord} */ (stats)];
         } catch {
-            // ignore stats errors
+            // Ignore stats errors
         }
     }
     return [{}];
@@ -378,7 +378,7 @@ function getSummaryRows(data) {
 export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, setVisibleColumns, renderTable }) {
     // Remove any existing modal
     const old = document.querySelector(".summary-col-modal-overlay");
-    if (old) old.remove();
+    if (old) {old.remove();}
     const overlay = document.createElement("div");
     overlay.className = "summary-col-modal-overlay";
     const modal = document.createElement("div");
@@ -393,10 +393,10 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
      */
     const updateVisibleColumns = (cols) => {
         visibleColumns = [...cols];
-        if (typeof setVisibleColumns === "function") setVisibleColumns(visibleColumns);
-    };
+        if (typeof setVisibleColumns === "function") {setVisibleColumns(visibleColumns);}
+    },
     // Select/Deselect All
-    const selectAllBtn = document.createElement("button");
+     selectAllBtn = document.createElement("button");
     selectAllBtn.className = "select-all-btn themed-btn";
     /**
      * Refresh checkbox list based on current visibleColumns
@@ -405,8 +405,8 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
     function updateColList() {
         colList.innerHTML = "";
         // Always show label column as checked and disabled
-        const label = document.createElement("label");
-        const cb = document.createElement("input");
+        const label = document.createElement("label"),
+         cb = document.createElement("input");
         cb.type = "checkbox";
         cb.checked = true;
         cb.disabled = true;
@@ -414,8 +414,8 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
         label.appendChild(document.createTextNode("Type"));
         colList.appendChild(label);
         allKeys.forEach((key, idx) => {
-            const label = document.createElement("label");
-            const cb = document.createElement("input");
+            const label = document.createElement("label"),
+             cb = document.createElement("input");
             cb.type = "checkbox";
             cb.checked = visibleColumns.includes(key);
             cb.tabIndex = 0;
@@ -425,15 +425,15 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
             cb.onmousedown = (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     e.preventDefault();
-                    const start = Math.min(lastCheckedIndex, idx);
-                    const end = Math.max(lastCheckedIndex, idx);
-                    const shouldCheck = !visibleColumns.includes(key);
+                    const start = Math.min(lastCheckedIndex, idx),
+                     end = Math.max(lastCheckedIndex, idx),
+                     shouldCheck = !visibleColumns.includes(key);
                     let newCols = [...visibleColumns];
                     for (let i = start; i <= end; ++i) {
                         const k = allKeys[i];
-                        if (typeof k !== "string") continue;
-                        if (shouldCheck && !newCols.includes(k)) newCols.push(k);
-                        if (!shouldCheck && newCols.includes(k)) newCols = newCols.filter((x) => x !== k);
+                        if (typeof k !== "string") {continue;}
+                        if (shouldCheck && !newCols.includes(k)) {newCols.push(k);}
+                        if (!shouldCheck && newCols.includes(k)) {newCols = newCols.filter((x) => x !== k);}
                     }
                     newCols = allKeys.filter((k) => newCols.includes(k));
                     updateVisibleColumns(newCols);
@@ -446,11 +446,11 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
              * @param {Event & { shiftKey?: boolean}} e
              */
             cb.onchange = (e) => {
-                if (e.shiftKey && lastCheckedIndex !== null) return; // handled in onmousedown
+                if (e.shiftKey && lastCheckedIndex !== null) {return;} // Handled in onmousedown
                 lastCheckedIndex = idx;
                 let newCols = [...visibleColumns];
                 if (cb.checked) {
-                    if (!newCols.includes(key)) newCols.push(key);
+                    if (!newCols.includes(key)) {newCols.push(key);}
                 } else {
                     newCols = newCols.filter((k) => k !== key);
                 }
@@ -470,7 +470,7 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
     selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
     selectAllBtn.onclick = () => {
         /** @type {string[]} */
-        let newCols = visibleColumns.length === allKeys.length ? [] : allKeys.slice();
+        const newCols = visibleColumns.length === allKeys.length ? [] : allKeys.slice();
         updateVisibleColumns(newCols);
         updateColList();
         renderTable();

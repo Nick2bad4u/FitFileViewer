@@ -7,14 +7,14 @@
  */
 
 /** @type {PointTuple} */
-const ICON_SIZE = [32, 32];
+const ICON_SIZE = [32, 32],
 /** @type {PointTuple} */
-const ICON_ANCHOR = [16, 32];
+ ICON_ANCHOR = [16, 32],
 /** @type {PointTuple} */
-const POPUP_ANCHOR = [0, -32];
+ POPUP_ANCHOR = [0, -32],
 
 // Base path for asset URLs (ensure single trailing slash)
-const ASSET_BASE_PATH = "libs/assets/icons/";
+ ASSET_BASE_PATH = "libs/assets/icons/";
 
 /**
  * Safely obtain the Leaflet global. If unavailable (e.g. during test without DOM), returns a no-op shim.

@@ -124,8 +124,8 @@ export const exportUtils = {
      * @param {string} filename - Download filename
      */ async downloadChartAsPNG(chart, filename = "chart.png") {
         try {
-            const backgroundColor = exportUtils.getExportThemeBackground();
-            const link = document.createElement("a");
+            const backgroundColor = exportUtils.getExportThemeBackground(),
+             link = document.createElement("a");
             link.download = filename;
             /** @type {any} */
             const chartAny = /** @type {any} */ (chart);
@@ -150,19 +150,19 @@ export const exportUtils = {
                 throw new Error("No charts provided");
             }
 
-            const backgroundColor = exportUtils.getExportThemeBackground();
-            const combinedCanvas = document.createElement("canvas");
-            const ctx = combinedCanvas.getContext("2d");
+            const backgroundColor = exportUtils.getExportThemeBackground(),
+             combinedCanvas = document.createElement("canvas"),
+             ctx = combinedCanvas.getContext("2d");
             if (!ctx) {
                 throw new Error("Failed to get 2D context");
             }
 
             // Calculate dimensions for grid layout
-            const cols = Math.ceil(Math.sqrt(charts.length));
-            const rows = Math.ceil(charts.length / cols);
-            const chartWidth = 800;
-            const chartHeight = 400;
-            const padding = 20;
+            const cols = Math.ceil(Math.sqrt(charts.length)),
+             rows = Math.ceil(charts.length / cols),
+             chartWidth = 800,
+             chartHeight = 400,
+             padding = 20;
 
             combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
             combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
@@ -179,13 +179,13 @@ export const exportUtils = {
 
             // Draw each chart onto the combined canvas
             charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                const col = index % cols;
-                const row = Math.floor(index / cols);
-                const x = col * (chartWidth + padding);
-                const y = row * (chartHeight + padding);
+                const col = index % cols,
+                 row = Math.floor(index / cols),
+                 x = col * (chartWidth + padding),
+                 y = row * (chartHeight + padding),
 
                 // Create temporary canvas with theme background
-                const tempCanvas = document.createElement("canvas");
+                 tempCanvas = document.createElement("canvas");
                 tempCanvas.width = chartWidth;
                 tempCanvas.height = chartHeight;
                 const tempCtx = tempCanvas.getContext("2d");
@@ -242,12 +242,12 @@ export const exportUtils = {
                 throw new Error("Invalid chart instance provided");
             }
 
-            const backgroundColor = exportUtils.getExportThemeBackground();
+            const backgroundColor = exportUtils.getExportThemeBackground(),
             /** @type {any} */
-            const chartAny = /** @type {any} */ (chart);
+             chartAny = /** @type {any} */ (chart),
 
             // Create canvas with theme background
-            const canvas = document.createElement("canvas");
+             canvas = document.createElement("canvas");
             canvas.width = chartAny.canvas.width;
             canvas.height = chartAny.canvas.height;
             const ctx = canvas.getContext("2d");
@@ -297,19 +297,19 @@ export const exportUtils = {
                 throw new Error("No charts provided");
             }
 
-            const backgroundColor = exportUtils.getExportThemeBackground();
-            const combinedCanvas = document.createElement("canvas");
-            const ctx = combinedCanvas.getContext("2d");
+            const backgroundColor = exportUtils.getExportThemeBackground(),
+             combinedCanvas = document.createElement("canvas"),
+             ctx = combinedCanvas.getContext("2d");
             if (!ctx) {
                 throw new Error("Failed to get 2D context");
             }
 
             // Calculate dimensions for grid layout
-            const cols = Math.ceil(Math.sqrt(charts.length));
-            const rows = Math.ceil(charts.length / cols);
-            const chartWidth = 800;
-            const chartHeight = 400;
-            const padding = 20;
+            const cols = Math.ceil(Math.sqrt(charts.length)),
+             rows = Math.ceil(charts.length / cols),
+             chartWidth = 800,
+             chartHeight = 400,
+             padding = 20;
 
             combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
             combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
@@ -326,12 +326,12 @@ export const exportUtils = {
 
             // Draw each chart
             charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                const col = index % cols;
-                const row = Math.floor(index / cols);
-                const x = col * (chartWidth + padding);
-                const y = row * (chartHeight + padding);
+                const col = index % cols,
+                 row = Math.floor(index / cols),
+                 x = col * (chartWidth + padding),
+                 y = row * (chartHeight + padding),
 
-                const tempCanvas = document.createElement("canvas");
+                 tempCanvas = document.createElement("canvas");
                 tempCanvas.width = chartWidth;
                 tempCanvas.height = chartHeight;
                 const tempCtx = tempCanvas.getContext("2d");
@@ -385,10 +385,10 @@ export const exportUtils = {
      * @returns {Promise<string>} Imgur URL
      */
     async uploadToImgur(base64Image) {
-        const clientId = "0046ee9e30ac578"; // User needs to replace this
+        const clientId = "0046ee9e30ac578", // User needs to replace this
 
         // Check if the client ID is the placeholder or default value
-        const defaultClientIds = ["0046ee9e30ac578", "YOUR_IMGUR_CLIENT_ID"];
+         defaultClientIds = ["0046ee9e30ac578", "YOUR_IMGUR_CLIENT_ID"];
         if (defaultClientIds.includes(clientId)) {
             throw new Error(
                 "Imgur client ID not configured. Please add your Imgur client ID to the exportUtils.uploadToImgur function."
@@ -417,9 +417,9 @@ export const exportUtils = {
             const data = await response.json();
             if (data.success) {
                 return data.data.link;
-            } else {
+            } 
                 throw new Error("Imgur upload failed");
-            }
+            
         } catch (error) {
             console.error("Error uploading to Imgur:", error);
             throw error;
@@ -437,21 +437,21 @@ export const exportUtils = {
             0x6c, 0x63, 0x6f, 0x7a, 0x6f, 0x61, 0x6e, 0x44, 0x4a, 0x57, 0x76, 0x6f, 0x75, 0x39, 0x70, 0x6a, 0x6b, 0x42,
             0x6d, 0x50, 0x4a, 0x6c, 0x61, 0x30, 0x62, 0x4e, 0x67, 0x72, 0x54, 0x37, 0x59, 0x62, 0x73, 0x37, 0x69, 0x79,
             0x56, 0x77, 0x4f, 0x6c, 0x59, 0x45, 0x51,
-        ];
-        const GyazoAppData2 = [
+        ],
+         GyazoAppData2 = [
             0x77, 0x63, 0x68, 0x52, 0x46, 0x7a, 0x46, 0x5a, 0x75, 0x4f, 0x71, 0x32, 0x33, 0x4f, 0x69, 0x70, 0x48, 0x6b,
             0x63, 0x45, 0x49, 0x76, 0x51, 0x61, 0x31, 0x4b, 0x59, 0x30, 0x6c, 0x6a, 0x6f, 0x50, 0x66, 0x32, 0x71, 0x30,
             0x4d, 0x55, 0x62, 0x45, 0x6f, 0x53, 0x30,
-        ];
+        ],
 
         // Apply ROT13-like transformation as additional obfuscation layer
-        /** @param {number[]} arr */ const transform = (arr) =>
-            arr.map((/** @type {number} */ code) => String.fromCharCode(code)).join("");
-        /** @param {string} str */ const reverseTransform = (str) => str.split("").reverse().join("");
+        /** @param {number[]} arr */  transform = (arr) =>
+            arr.map((/** @type {number} */ code) => String.fromCharCode(code)).join(""),
+        /** @param {string} str */  reverseTransform = (str) => str.split("").reverse().join(""),
 
         // Decode with multiple transformations
-        const defaultClientId = transform(GyazoAppData1);
-        const defaultClientSecret = reverseTransform(transform(GyazoAppData2.reverse()));
+         defaultClientId = transform(GyazoAppData1),
+         defaultClientSecret = reverseTransform(transform(GyazoAppData2.reverse()));
 
         return {
             clientId: localStorage.getItem("gyazo_client_id") || defaultClientId,
@@ -552,20 +552,20 @@ export const exportUtils = {
                 localStorage.setItem("gyazo_oauth_state", state);
 
                 // Update redirect URI to use the actual server port
-                const redirectUri = `http://localhost:${serverResult.port}/gyazo/callback`;
+                const redirectUri = `http://localhost:${serverResult.port}/gyazo/callback`,
 
                 // Construct the authorization URL
-                const authParams = new URLSearchParams({
+                 authParams = new URLSearchParams({
                     client_id: /** @type {any} */ (config).clientId,
                     redirect_uri: redirectUri,
                     response_type: "code",
-                    state: state,
-                });
+                    state,
+                }),
 
-                const authUrl = `${/** @type {any} */ (config).authUrl}?${authParams.toString()}`;
+                 authUrl = `${/** @type {any} */ (config).authUrl}?${authParams.toString()}`,
 
                 // Listen for the OAuth callback from the main process
-                const callbackHandler = async (/** @type {any} */ _event, /** @type {any} */ data) => {
+                 callbackHandler = async (/** @type {any} */ _event, /** @type {any} */ data) => {
                     try {
                         if (data.state !== state) {
                             throw new Error("Invalid state parameter. Possible CSRF attack.");
@@ -690,9 +690,9 @@ export const exportUtils = {
                     <li>Click "Complete Authentication"</li>
                 </ol>
             </div>
-        `;
+        `,
 
-        const codeInputSection = useServer
+         codeInputSection = useServer
             ? ""
             : `
             <div style="margin-bottom: 16px;">
@@ -710,9 +710,9 @@ export const exportUtils = {
                     box-sizing: border-box;
                 ">
             </div>
-        `;
+        `,
 
-        const actionButtons = useServer
+         actionButtons = useServer
             ? `
             <div style="display: flex; gap: 8px;">
                 <button id="gyazo-cancel-auth" style="
@@ -797,9 +797,9 @@ export const exportUtils = {
         `;
 
         // Event handlers
-        const completeAuthBtn = modal.querySelector("#gyazo-complete-auth");
-        const cancelBtn = modal.querySelector("#gyazo-cancel-auth");
-        const codeInput = modal.querySelector("#gyazo-auth-code");
+        const completeAuthBtn = modal.querySelector("#gyazo-complete-auth"),
+         cancelBtn = modal.querySelector("#gyazo-cancel-auth"),
+         codeInput = modal.querySelector("#gyazo-auth-code");
 
         // The external link will be handled by main-ui.js external link handler
         // No need for a click handler on the link itself
@@ -894,13 +894,13 @@ export const exportUtils = {
      * @returns {Promise<Object>} Token data with access_token
      */
     async exchangeGyazoCodeForToken(code, redirectUri) {
-        const config = exportUtils.getGyazoConfig();
+        const config = exportUtils.getGyazoConfig(),
 
-        const tokenParams = new URLSearchParams({
+         tokenParams = new URLSearchParams({
             client_id: /** @type {any} */ (config).clientId,
             client_secret: /** @type {any} */ (config).clientSecret,
             redirect_uri: redirectUri,
-            code: code,
+            code,
             grant_type: "authorization_code",
         });
 
@@ -921,9 +921,9 @@ export const exportUtils = {
             const data = await response.json();
             if (data.access_token) {
                 return data;
-            } else {
+            } 
                 throw new Error("No access token returned from Gyazo");
-            }
+            
         } catch (error) {
             console.error("Error exchanging code for token:", error);
             throw error;
@@ -949,11 +949,11 @@ export const exportUtils = {
 
         try {
             // Convert base64 to blob for FormData
-            const response = await fetch(base64Image);
-            const blob = await response.blob();
+            const response = await fetch(base64Image),
+             blob = await response.blob(),
 
             // Create FormData for multipart/form-data upload
-            const formData = new FormData();
+             formData = new FormData();
             formData.append("access_token", accessToken);
             formData.append("imagedata", blob, "chart.png");
 
@@ -978,9 +978,9 @@ export const exportUtils = {
                 return data.permalink_url;
             } else if (data.url) {
                 return data.url;
-            } else {
+            } 
                 throw new Error("No URL returned from Gyazo upload");
-            }
+            
         } catch (error) {
             console.error("Error uploading to Gyazo:", error);
 
@@ -1004,14 +1004,14 @@ export const exportUtils = {
      */
     async exportChartDataAsCSV(chartData, fieldName, filename = "chart-data.csv") {
         try {
-            const headers = ["timestamp", fieldName];
-            const csvContent = [
+            const headers = ["timestamp", fieldName],
+             csvContent = [
                 headers.join(","),
                 ...chartData.map((/** @type {any} */ point) => `${point.x},${point.y}`),
-            ].join("\n");
+            ].join("\n"),
 
-            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
+             blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" }),
+             link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             document.body.appendChild(link);
@@ -1044,13 +1044,13 @@ export const exportUtils = {
                 }
             });
 
-            const timestamps = Array.from(allTimestamps).sort();
+            const timestamps = Array.from(allTimestamps).sort(),
 
             // Create headers
-            const headers = ["timestamp"];
+             headers = ["timestamp"];
             charts.forEach((chart) => {
-                const dataset = /** @type {any} */ (chart.data).datasets[0];
-                const fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
+                const dataset = /** @type {any} */ (chart.data).datasets[0],
+                 fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             });
 
@@ -1059,16 +1059,16 @@ export const exportUtils = {
             timestamps.forEach((timestamp) => {
                 const row = [timestamp];
                 charts.forEach((chart) => {
-                    const dataset = /** @type {any} */ (chart.data).datasets[0];
-                    const point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
+                    const dataset = /** @type {any} */ (chart.data).datasets[0],
+                     point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
                     row.push(point ? point.y : "");
                 });
                 rows.push(row.join(","));
             });
 
-            const csvContent = rows.join("\n");
-            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
+            const csvContent = rows.join("\n"),
+             blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" }),
+             link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             document.body.appendChild(link);
@@ -1095,10 +1095,10 @@ export const exportUtils = {
                 data: chartData,
                 exportedAt: new Date().toISOString(),
                 totalPoints: chartData.length,
-            };
+            },
 
-            const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json;charset=utf-8;" });
-            const link = document.createElement("a");
+             blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json;charset=utf-8;" }),
+             link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             document.body.appendChild(link);
@@ -1124,18 +1124,18 @@ export const exportUtils = {
                 throw new Error("JSZip library not loaded");
             }
 
-            const zip = new /** @type {any} */ (window).JSZip(); // JSZip is loaded globally via script tag
-            const backgroundColor = exportUtils.getExportThemeBackground();
+            const zip = new /** @type {any} */ (window).JSZip(), // JSZip is loaded globally via script tag
+             backgroundColor = exportUtils.getExportThemeBackground();
 
             // Add individual chart images
             for (let i = 0; i < charts.length; i++) {
-                const chart = charts[i];
-                const dataset = /** @type {any} */ (chart.data).datasets[0];
-                const fieldName = dataset?.label || `chart-${i}`;
-                const safeFieldName = fieldName.replace(/[^a-zA-Z0-9]/g, "-");
+                const chart = charts[i],
+                 dataset = /** @type {any} */ (chart.data).datasets[0],
+                 fieldName = dataset?.label || `chart-${i}`,
+                 safeFieldName = fieldName.replace(/[^a-zA-Z0-9]/g, "-"),
 
                 // Add chart image
-                const canvas = document.createElement("canvas");
+                 canvas = document.createElement("canvas");
                 canvas.width = chart.canvas.width;
                 canvas.height = chart.canvas.height;
                 const ctx = canvas.getContext("2d");
@@ -1157,8 +1157,8 @@ export const exportUtils = {
 
                 // Add chart data as CSV
                 if (dataset && dataset.data) {
-                    const headers = ["timestamp", fieldName];
-                    const csvContent = [
+                    const headers = ["timestamp", fieldName],
+                     csvContent = [
                         headers.join(","),
                         ...dataset.data.map((/** @type {any} */ point) => `${point.x},${point.y}`),
                     ].join("\n");
@@ -1180,14 +1180,14 @@ export const exportUtils = {
 
             // Add combined charts image
             if (charts.length > 1) {
-                const combinedCanvas = document.createElement("canvas");
-                const ctx = combinedCanvas.getContext("2d");
+                const combinedCanvas = document.createElement("canvas"),
+                 ctx = combinedCanvas.getContext("2d"),
 
-                const cols = Math.ceil(Math.sqrt(charts.length));
-                const rows = Math.ceil(charts.length / cols);
-                const chartWidth = 800;
-                const chartHeight = 400;
-                const padding = 20;
+                 cols = Math.ceil(Math.sqrt(charts.length)),
+                 rows = Math.ceil(charts.length / cols),
+                 chartWidth = 800,
+                 chartHeight = 400,
+                 padding = 20;
 
                 combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
                 combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
@@ -1202,12 +1202,12 @@ export const exportUtils = {
                 }
 
                 charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                    const col = index % cols;
-                    const row = Math.floor(index / cols);
-                    const x = col * (chartWidth + padding);
-                    const y = row * (chartHeight + padding);
+                    const col = index % cols,
+                     row = Math.floor(index / cols),
+                     x = col * (chartWidth + padding),
+                     y = row * (chartHeight + padding),
 
-                    const tempCanvas = document.createElement("canvas");
+                     tempCanvas = document.createElement("canvas");
                     tempCanvas.width = chartWidth;
                     tempCanvas.height = chartHeight;
                     const tempCtx = tempCanvas.getContext("2d");
@@ -1254,8 +1254,8 @@ export const exportUtils = {
             zip.file("combined-data.json", JSON.stringify(allChartsData, null, 2));
 
             // Generate and download ZIP
-            const content = await zip.generateAsync({ type: "blob" });
-            const link = document.createElement("a");
+            const content = await zip.generateAsync({ type: "blob" }),
+             link = document.createElement("a");
             link.href = URL.createObjectURL(content);
             link.download = `fitfile-charts-${new Date().toISOString().split("T")[0]}.zip`;
             document.body.appendChild(link);
@@ -1284,12 +1284,12 @@ export const exportUtils = {
                 }
             });
 
-            const timestamps = Array.from(allTimestamps).sort();
+            const timestamps = Array.from(allTimestamps).sort(),
 
-            const headers = ["timestamp"];
+             headers = ["timestamp"];
             charts.forEach((chart) => {
-                const dataset = /** @type {any} */ (chart.data).datasets[0];
-                const fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
+                const dataset = /** @type {any} */ (chart.data).datasets[0],
+                 fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             });
 
@@ -1297,8 +1297,8 @@ export const exportUtils = {
             timestamps.forEach((timestamp) => {
                 const row = [timestamp];
                 charts.forEach((chart) => {
-                    const dataset = /** @type {any} */ (chart.data).datasets[0];
-                    const point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
+                    const dataset = /** @type {any} */ (chart.data).datasets[0],
+                     point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
                     row.push(point ? point.y : "");
                 });
                 rows.push(row.join(","));
@@ -1316,11 +1316,11 @@ export const exportUtils = {
      * @param {ChartJSInstance} chart - Chart.js instance
      */ async printChart(chart) {
         try {
-            const backgroundColor = exportUtils.getExportThemeBackground();
-            const printWindow = window.open("", "_blank");
+            const backgroundColor = exportUtils.getExportThemeBackground(),
+             printWindow = window.open("", "_blank"),
 
             // Create canvas with theme background
-            const canvas = document.createElement("canvas");
+             canvas = document.createElement("canvas");
             canvas.width = chart.canvas.width;
             canvas.height = chart.canvas.height;
             const ctx = canvas.getContext("2d");
@@ -1360,7 +1360,7 @@ export const exportUtils = {
             if (printWindow) {
                 printWindow.focus();
             }
-            setTimeout(function () {
+            setTimeout(() => {
                 if (printWindow) {
                     printWindow.print();
                 }
@@ -1387,8 +1387,8 @@ export const exportUtils = {
                 return;
             }
 
-            const backgroundColor = exportUtils.getExportThemeBackground();
-            const printWindow = window.open("", "_blank");
+            const backgroundColor = exportUtils.getExportThemeBackground(),
+             printWindow = window.open("", "_blank");
             let htmlContent = `
 				<html>
 					<head>
@@ -1424,11 +1424,11 @@ export const exportUtils = {
 			`;
 
             charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                const dataset = /** @type {any} */ (chart.data).datasets[0];
-                const fieldName = dataset?.label || `Chart ${index + 1}`;
+                const dataset = /** @type {any} */ (chart.data).datasets[0],
+                 fieldName = dataset?.label || `Chart ${index + 1}`,
 
                 // Create canvas with theme background
-                const canvas = document.createElement("canvas");
+                 canvas = document.createElement("canvas");
                 canvas.width = chart.canvas.width;
                 canvas.height = chart.canvas.height;
                 const ctx = canvas.getContext("2d");
@@ -1464,7 +1464,7 @@ export const exportUtils = {
             if (printWindow) {
                 printWindow.focus();
             }
-            setTimeout(function () {
+            setTimeout(() => {
                 if (printWindow) {
                     printWindow.print();
                 }
@@ -1495,9 +1495,9 @@ export const exportUtils = {
 
                     showNotification("Uploading chart to Gyazo...", "info");
 
-                    const backgroundColor = exportUtils.getExportThemeBackground();
+                    const backgroundColor = exportUtils.getExportThemeBackground(),
 
-                    const canvas = document.createElement("canvas");
+                     canvas = document.createElement("canvas");
                     canvas.width = chart.canvas.width;
                     canvas.height = chart.canvas.height;
                     const ctx = canvas.getContext("2d");
@@ -1514,9 +1514,9 @@ export const exportUtils = {
                     if (ctx) {
                         ctx.drawImage(chart.canvas, 0, 0);
                     }
-                    const base64Image = canvas.toDataURL("image/png", 1.0);
+                    const base64Image = canvas.toDataURL("image/png", 1.0),
 
-                    const gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
+                     gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(gyazoUrl);
@@ -1543,15 +1543,15 @@ export const exportUtils = {
 
                     showNotification("Uploading combined charts to Gyazo...", "info");
 
-                    const backgroundColor = exportUtils.getExportThemeBackground();
-                    const combinedCanvas = document.createElement("canvas");
-                    const ctx = combinedCanvas.getContext("2d");
+                    const backgroundColor = exportUtils.getExportThemeBackground(),
+                     combinedCanvas = document.createElement("canvas"),
+                     ctx = combinedCanvas.getContext("2d"),
 
-                    const cols = Math.ceil(Math.sqrt(charts.length));
-                    const rows = Math.ceil(charts.length / cols);
-                    const chartWidth = 1000;
-                    const chartHeight = 400;
-                    const padding = 20;
+                     cols = Math.ceil(Math.sqrt(charts.length)),
+                     rows = Math.ceil(charts.length / cols),
+                     chartWidth = 1000,
+                     chartHeight = 400,
+                     padding = 20;
 
                     combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
                     combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
@@ -1566,12 +1566,12 @@ export const exportUtils = {
                     }
 
                     charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                        const col = index % cols;
-                        const row = Math.floor(index / cols);
-                        const x = col * (chartWidth + padding);
-                        const y = row * (chartHeight + padding);
+                        const col = index % cols,
+                         row = Math.floor(index / cols),
+                         x = col * (chartWidth + padding),
+                         y = row * (chartHeight + padding),
 
-                        const tempCanvas = document.createElement("canvas");
+                         tempCanvas = document.createElement("canvas");
                         tempCanvas.width = chartWidth;
                         tempCanvas.height = chartHeight;
                         const tempCtx = tempCanvas.getContext("2d");
@@ -1594,8 +1594,8 @@ export const exportUtils = {
                         }
                     });
 
-                    const base64Image = combinedCanvas.toDataURL("image/png", 1.0);
-                    const gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
+                    const base64Image = combinedCanvas.toDataURL("image/png", 1.0),
+                     gyazoUrl = await exportUtils.uploadToGyazo(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(gyazoUrl);
@@ -1631,9 +1631,9 @@ export const exportUtils = {
 
                     showNotification("Uploading chart to Imgur...", "info");
 
-                    const backgroundColor = exportUtils.getExportThemeBackground();
+                    const backgroundColor = exportUtils.getExportThemeBackground(),
 
-                    const canvas = document.createElement("canvas");
+                     canvas = document.createElement("canvas");
                     canvas.width = chart.canvas.width;
                     canvas.height = chart.canvas.height;
                     const ctx = canvas.getContext("2d");
@@ -1650,9 +1650,9 @@ export const exportUtils = {
                     if (ctx) {
                         ctx.drawImage(chart.canvas, 0, 0);
                     }
-                    const base64Image = canvas.toDataURL("image/png", 1.0);
+                    const base64Image = canvas.toDataURL("image/png", 1.0),
 
-                    const imgurUrl = await exportUtils.uploadToImgur(base64Image);
+                     imgurUrl = await exportUtils.uploadToImgur(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(imgurUrl);
@@ -1679,15 +1679,15 @@ export const exportUtils = {
 
                     showNotification("Uploading combined charts to Imgur...", "info");
 
-                    const backgroundColor = exportUtils.getExportThemeBackground();
-                    const combinedCanvas = document.createElement("canvas");
-                    const ctx = combinedCanvas.getContext("2d");
+                    const backgroundColor = exportUtils.getExportThemeBackground(),
+                     combinedCanvas = document.createElement("canvas"),
+                     ctx = combinedCanvas.getContext("2d"),
 
-                    const cols = Math.ceil(Math.sqrt(charts.length));
-                    const rows = Math.ceil(charts.length / cols);
-                    const chartWidth = 800;
-                    const chartHeight = 400;
-                    const padding = 20;
+                     cols = Math.ceil(Math.sqrt(charts.length)),
+                     rows = Math.ceil(charts.length / cols),
+                     chartWidth = 800,
+                     chartHeight = 400,
+                     padding = 20;
 
                     combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
                     combinedCanvas.height = rows * chartHeight + (rows - 1) * padding;
@@ -1702,12 +1702,12 @@ export const exportUtils = {
                     }
 
                     charts.forEach((/** @type {ChartJSInstance} */ chart, /** @type {number} */ index) => {
-                        const col = index % cols;
-                        const row = Math.floor(index / cols);
-                        const x = col * (chartWidth + padding);
-                        const y = row * (chartHeight + padding);
+                        const col = index % cols,
+                         row = Math.floor(index / cols),
+                         x = col * (chartWidth + padding),
+                         y = row * (chartHeight + padding),
 
-                        const tempCanvas = document.createElement("canvas");
+                         tempCanvas = document.createElement("canvas");
                         tempCanvas.width = chartWidth;
                         tempCanvas.height = chartHeight;
                         const tempCtx = tempCanvas.getContext("2d");
@@ -1730,8 +1730,8 @@ export const exportUtils = {
                         }
                     });
 
-                    const base64Image = combinedCanvas.toDataURL("image/png", 1.0);
-                    const imgurUrl = await exportUtils.uploadToImgur(base64Image);
+                    const base64Image = combinedCanvas.toDataURL("image/png", 1.0),
+                     imgurUrl = await exportUtils.uploadToImgur(base64Image);
 
                     // Copy URL to clipboard
                     await navigator.clipboard.writeText(imgurUrl);
@@ -1757,20 +1757,20 @@ export const exportUtils = {
      */
     isGyazoAuthenticated() {
         const token = exportUtils.getGyazoAccessToken();
-        console.log("[Gyazo] Checking authentication status. Token exists:", !!token);
-        return !!token;
+        console.log("[Gyazo] Checking authentication status. Token exists:", Boolean(token));
+        return Boolean(token);
     },
 
     /**
      * Shows Gyazo account management modal with credentials setup
      */
     showGyazoAccountManager() {
-        const isAuthenticated = exportUtils.isGyazoAuthenticated();
-        const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!(/** @type {any} */ (config).clientId && /** @type {any} */ (config).clientSecret);
+        const isAuthenticated = exportUtils.isGyazoAuthenticated(),
+         config = exportUtils.getGyazoConfig(),
+         hasCredentials = Boolean((config).clientId && /** @type {any} */ (config).clientSecret),
 
         // Create modal overlay
-        const overlay = document.createElement("div");
+         overlay = document.createElement("div");
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -1984,19 +1984,19 @@ export const exportUtils = {
         `;
 
         // Event handlers
-        const clientIdInput = modal.querySelector("#gyazo-client-id");
-        const clientSecretInput = modal.querySelector("#gyazo-client-secret");
-        const saveCredsBtn = modal.querySelector("#save-credentials");
-        const connectBtn = modal.querySelector("#gyazo-connect");
-        const disconnectBtn = modal.querySelector("#gyazo-disconnect");
-        const clearDataBtn = modal.querySelector("#clear-all-data");
-        const closeBtn = modal.querySelector("#gyazo-close");
+        const clientIdInput = modal.querySelector("#gyazo-client-id"),
+         clientSecretInput = modal.querySelector("#gyazo-client-secret"),
+         saveCredsBtn = modal.querySelector("#save-credentials"),
+         connectBtn = modal.querySelector("#gyazo-connect"),
+         disconnectBtn = modal.querySelector("#gyazo-disconnect"),
+         clearDataBtn = modal.querySelector("#clear-all-data"),
+         closeBtn = modal.querySelector("#gyazo-close");
 
         // Save credentials
         if (saveCredsBtn) {
             saveCredsBtn.addEventListener("click", () => {
-                const clientId = /** @type {HTMLInputElement} */ (clientIdInput)?.value.trim();
-                const clientSecret = /** @type {HTMLInputElement} */ (clientSecretInput)?.value.trim();
+                const clientId = /** @type {HTMLInputElement} */ (clientIdInput)?.value.trim(),
+                 clientSecret = /** @type {HTMLInputElement} */ (clientSecretInput)?.value.trim();
 
                 if (!clientId || !clientSecret) {
                     showNotification("Please enter both Client ID and Client Secret", "error");
@@ -2199,12 +2199,12 @@ export const exportUtils = {
      * @param {HTMLElement} modal - The modal element containing status indicators
      */
     updateGyazoAuthStatus(modal) {
-        const isAuthenticated = exportUtils.isGyazoAuthenticated();
-        const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!(/** @type {any} */ (config).clientId && /** @type {any} */ (config).clientSecret);
+        const isAuthenticated = exportUtils.isGyazoAuthenticated(),
+         config = exportUtils.getGyazoConfig(),
+         hasCredentials = Boolean((config).clientId && /** @type {any} */ (config).clientSecret),
 
         // Update auth status
-        const authStatus = modal.querySelector("#auth-status");
+         authStatus = modal.querySelector("#auth-status");
         if (authStatus) {
             /** @type {HTMLElement} */ (authStatus).style.background = isAuthenticated
                 ? "var(--color-success)"
@@ -2222,8 +2222,8 @@ export const exportUtils = {
         }
 
         // Update action buttons visibility
-        const connectBtn = modal.querySelector("#gyazo-connect");
-        const disconnectBtn = modal.querySelector("#gyazo-disconnect");
+        const connectBtn = modal.querySelector("#gyazo-connect"),
+         disconnectBtn = modal.querySelector("#gyazo-disconnect");
 
         if (connectBtn) {
             /** @type {HTMLElement} */ (connectBtn).style.display =

@@ -30,9 +30,9 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
  * @returns {number}
  */
 function parseZoneNumber(label, fallback) {
-    if (typeof label !== "string") return fallback;
+    if (typeof label !== "string") {return fallback;}
     const match = label.match(/\d+/);
-    if (!match) return fallback;
+    if (!match) {return fallback;}
     const num = parseInt(match[0], 10);
     return Number.isFinite(num) ? num : fallback;
 }
@@ -56,8 +56,8 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         }
 
         // Get unique zone labels from all laps (since we now filter zones)
-        const allZoneLabels = new Set();
-        const allZoneData = new Map(); // zone label -> zone info
+        const allZoneLabels = new Set(),
+         allZoneData = new Map(); // Zone label -> zone info
 
         lapZoneData.forEach((lap) => {
             lap.zones.forEach((zone) => {
@@ -69,20 +69,20 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         });
 
         const zoneLabels = Array.from(allZoneLabels).sort((a, b) => {
-            const aNum = parseZoneNumber(a, 0);
-            const bNum = parseZoneNumber(b, 0);
+            const aNum = parseZoneNumber(a, 0),
+             bNum = parseZoneNumber(b, 0);
             return aNum - bNum;
-        });
+        }),
 
-        const numZones = zoneLabels.length;
+         numZones = zoneLabels.length,
 
         // Create one dataset per zone (stacked across laps)
         /** @type {any[]} */
-        const datasets = [];
+         datasets = [];
         for (let zoneIndex = 0; zoneIndex < numZones; zoneIndex++) {
-            const zoneLabel = zoneLabels[zoneIndex];
+            const zoneLabel = zoneLabels[zoneIndex],
             /** @type {LapZoneDatum|undefined} */
-            const zoneInfo = allZoneData.get(zoneLabel);
+             zoneInfo = allZoneData.get(zoneLabel);
 
             // Determine zone type (infer from title)
             let zoneType = "hr";
@@ -90,12 +90,12 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                 zoneType = "power";
             }
 
-            const zoneIdx = typeof zoneInfo?.zoneIndex === "number" ? zoneInfo.zoneIndex : zoneIndex;
-            const savedColor = getZoneColor(zoneType, zoneIdx);
-            const originalColor = zoneInfo?.color;
-            const zoneColor = savedColor || originalColor || `hsl(${zoneIndex * 45}, 70%, 60%)`;
+            const zoneIdx = typeof zoneInfo?.zoneIndex === "number" ? zoneInfo.zoneIndex : zoneIndex,
+             savedColor = getZoneColor(zoneType, zoneIdx),
+             originalColor = zoneInfo?.color,
+             zoneColor = savedColor || originalColor || `hsl(${zoneIndex * 45}, 70%, 60%)`,
 
-            const data = lapZoneData.map((lap) => {
+             data = lapZoneData.map((lap) => {
                 const zone = Array.isArray(lap.zones) ? lap.zones.find((z) => z.label === zoneLabel) : undefined;
                 return zone ? zone.value : 0;
             });
@@ -111,10 +111,10 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         }
 
         // Labels are lap names
-        const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap"));
+        const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap")),
 
         /** @type {any} */
-        const chart = new window.Chart(canvas, {
+         chart = new window.Chart(canvas, {
             type: "bar",
             data: {
                 labels: lapLabels,
@@ -133,7 +133,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         },
                     },
                     title: {
-                        display: !!options.title,
+                        display: Boolean(options.title),
                         text: options.title || "Zone Distribution by Lap",
                         color: themeConfig?.colors?.textPrimary || "#000",
                         font: { size: 16, weight: "bold" },
@@ -148,21 +148,21 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 let lapTotal = 0;
                                 const datasetsArr = context.chart?.data?.datasets || [];
                                 datasetsArr.forEach((/** @type {any} */ dataset) => {
-                                    const dsData = /** @type {number[]} */ (dataset.data || []);
-                                    const v = dsData[context.dataIndex];
-                                    if (typeof v === "number") lapTotal += v;
+                                    const dsData = /** @type {number[]} */ (dataset.data || []),
+                                     v = dsData[context.dataIndex];
+                                    if (typeof v === "number") {lapTotal += v;}
                                 });
-                                const value = context.parsed?.y || 0;
-                                const timeFormatted = formatTime(value, true);
-                                const percentage = lapTotal > 0 ? ((value / lapTotal) * 100).toFixed(1) : "0.0";
+                                const value = context.parsed?.y || 0,
+                                 timeFormatted = formatTime(value, true),
+                                 percentage = lapTotal > 0 ? ((value / lapTotal) * 100).toFixed(1) : "0.0";
                                 return `${context.dataset?.label || "Zone"}: ${timeFormatted} (${percentage}%)`;
                             },
                             /** @param {any[]} tooltipItems */
-                            footer: function (tooltipItems) {
+                            footer (tooltipItems) {
                                 let total = 0;
                                 tooltipItems.forEach((item) => {
                                     total += item.parsed?.y || 0;
@@ -231,7 +231,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         ticks: {
                             color: themeConfig?.colors?.textPrimary || "#000",
                             /** @param {number|string} value */
-                            callback: function (value) {
+                            callback (value) {
                                 const num = typeof value === "number" ? value : Number(value);
                                 return formatTime(Number.isFinite(num) ? num : 0, true);
                             },
@@ -256,7 +256,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         });
         return chart;
     } catch (error) {
-        if (window.showNotification) window.showNotification("Failed to render lap zone chart", "error");
+        if (window.showNotification) {window.showNotification("Failed to render lap zone chart", "error");}
         console.error("[renderLapZoneChart] Error:", error);
         return null;
     }

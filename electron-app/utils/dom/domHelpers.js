@@ -15,7 +15,7 @@
  * @returns {el is HTMLElement}
  */
 export function isHTMLElement(el) {
-    return !!el && typeof el === "object" && el.nodeType === 1;
+    return Boolean(el) && typeof el === "object" && el.nodeType === 1;
 }
 
 /**
@@ -96,7 +96,7 @@ export function removeClass(el, className) {
 export function setDisabled(el, disabled) {
     if (isHTMLElement(el) && "disabled" in el) {
         // @ts-ignore - guarded by 'disabled' in el
-        el.disabled = !!disabled;
+        el.disabled = Boolean(disabled);
     }
 }
 
@@ -133,7 +133,7 @@ export function setValue(el, value) {
 export function setChecked(el, checked) {
     if (isHTMLElement(el) && "checked" in el) {
         // @ts-ignore - runtime guarded
-        el.checked = !!checked;
+        el.checked = Boolean(checked);
     }
 }
 
@@ -145,7 +145,7 @@ export function setChecked(el, checked) {
 export function getChecked(el) {
     if (isHTMLElement(el) && "checked" in el) {
         // @ts-ignore - runtime guarded
-        return !!el.checked;
+        return Boolean(el.checked);
     }
     return undefined;
 }
@@ -168,7 +168,7 @@ export function setStyle(el, prop, value) {
  */
 export function clearElement(el) {
     if (isHTMLElement(el)) {
-        while (el.firstChild) el.removeChild(el.firstChild);
+        while (el.firstChild) {el.removeChild(el.firstChild);}
     }
 }
 

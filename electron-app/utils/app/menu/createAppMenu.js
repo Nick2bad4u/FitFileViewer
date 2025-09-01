@@ -1,8 +1,8 @@
 /* eslint-env node */
 const { loadRecentFiles, getShortRecentName } = require("../../files/recent/recentFiles");
 const { Menu, BrowserWindow, app } = require("electron");
-const { Conf } = require("electron-conf");
-const conf = new Conf({ name: "settings" });
+const { Conf } = require("electron-conf"),
+ conf = new Conf({ name: "settings" });
 
 // Persistent reference to prevent menu GC/disappearance on Linux.
 // See: https://github.com/electron/electron/issues/18397
@@ -59,7 +59,7 @@ function getPlatformAppMenu(mainWindow) {
                         role: "about",
                         click: () => {
                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                            if (win && win.webContents) win.webContents.send("menu-about");
+                            if (win && win.webContents) {win.webContents.send("menu-about");}
                         },
                     },
                     { type: "separator" },
@@ -68,7 +68,7 @@ function getPlatformAppMenu(mainWindow) {
                         accelerator: "CmdOrCtrl+,",
                         click: () => {
                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                            if (win && win.webContents) win.webContents.send("menu-preferences");
+                            if (win && win.webContents) {win.webContents.send("menu-preferences");}
                         },
                     },
                     { type: "separator" },
@@ -82,10 +82,10 @@ function getPlatformAppMenu(mainWindow) {
                 ],
             },
         ];
-    } else {
+    } 
         // For Windows/Linux, add About and Preferences to Help menu
         return [];
-    }
+    
 }
 
 /**
@@ -98,13 +98,13 @@ function getPlatformAppMenu(mainWindow) {
  * @param {string|null} [loadedFitFilePath=null] - The path of the loaded FIT file, used to enable/disable the Summary Columns menu item.
  */
 function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath = undefined) {
-    const theme = currentTheme || getTheme();
-    const recentFiles = loadRecentFiles();
-    // if (!app.isPackaged) {
-    //     console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
+    const theme = currentTheme || getTheme(),
+     recentFiles = loadRecentFiles(),
+    // If (!app.isPackaged) {
+    //     Console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
     // }
 
-    const recentMenuItems =
+     recentMenuItems =
         recentFiles.length > 0
             ? recentFiles.map((file) => ({
                   label: getShortRecentName(file),
@@ -115,10 +115,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                       }
                   },
               }))
-            : [{ label: "No Recent Files", enabled: false }];
+            : [{ label: "No Recent Files", enabled: false }],
 
-    const decoderOptions = getDecoderOptions();
-    const decoderOptionEmojis = {
+     decoderOptions = getDecoderOptions(),
+     decoderOptionEmojis = {
         applyScaleAndOffset: "📏",
         expandSubFields: "🧩",
         expandComponents: "🔗",
@@ -136,10 +136,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
         return Object.keys(decoderOptionDefaults).map((key) => ({
             label: `${decoderOptionEmojis[key] || ""} ${key}`.trim(),
             type: "checkbox",
-            checked: !!decoderOptions[key],
+            checked: Boolean(decoderOptions[key]),
             click: /** @param {*} menuItem */ (menuItem) => {
-                const newOptions = setDecoderOption(key, menuItem.checked);
-                const win = BrowserWindow.getFocusedWindow() || mainWindow;
+                const newOptions = setDecoderOption(key, menuItem.checked),
+                 win = BrowserWindow.getFocusedWindow() || mainWindow;
                 if (win && win.webContents) {
                     win.webContents.send("decoder-options-changed", newOptions);
                 }
@@ -150,7 +150,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
     const decoderOptionsMenu = {
         label: "💿 Decoder Options",
         submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
-    };
+    },
 
     /**
      * Defines the application menu template for the Electron app.
@@ -169,7 +169,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
      * @property {Function} [click] - Click handler for the menu item.
      * @property {string} [role] - Built-in role for standard menu items.
      */
-    const template = [
+     template = [
         ...getPlatformAppMenu(mainWindow),
         {
             label: "📁 File",
@@ -206,7 +206,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 { type: "separator" },
                 {
                     label: "❌ Unload File",
-                    enabled: !!loadedFitFilePath,
+                    enabled: Boolean(loadedFitFilePath),
                     click: () => {
                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
                         if (win && win.webContents) {
@@ -216,7 +216,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 },
                 {
                     label: "💾 Save As...",
-                    enabled: !!loadedFitFilePath,
+                    enabled: Boolean(loadedFitFilePath),
                     accelerator: "CmdOrCtrl+S",
                     click: () => {
                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -227,7 +227,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 },
                 {
                     label: "📤 Export...",
-                    enabled: !!loadedFitFilePath,
+                    enabled: Boolean(loadedFitFilePath),
                     click: () => {
                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
                         if (win && win.webContents) {
@@ -237,7 +237,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 },
                 {
                     label: "🖨️ Print...",
-                    enabled: !!loadedFitFilePath,
+                    enabled: Boolean(loadedFitFilePath),
                     accelerator: "CmdOrCtrl+P",
                     click: () => {
                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
@@ -291,7 +291,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("fontSize", "xsmall");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-font-size", "xsmall");
+                                        if (win && win.webContents) {win.webContents.send("set-font-size", "xsmall");}
                                     },
                                 },
                                 {
@@ -301,7 +301,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("fontSize", "small");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-font-size", "small");
+                                        if (win && win.webContents) {win.webContents.send("set-font-size", "small");}
                                     },
                                 },
                                 {
@@ -311,7 +311,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("fontSize", "medium");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-font-size", "medium");
+                                        if (win && win.webContents) {win.webContents.send("set-font-size", "medium");}
                                     },
                                 },
                                 {
@@ -321,7 +321,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("fontSize", "large");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-font-size", "large");
+                                        if (win && win.webContents) {win.webContents.send("set-font-size", "large");}
                                     },
                                 },
                                 {
@@ -331,7 +331,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("fontSize", "xlarge");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-font-size", "xlarge");
+                                        if (win && win.webContents) {win.webContents.send("set-font-size", "xlarge");}
                                     },
                                 },
                             ],
@@ -346,7 +346,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("highContrast", "black");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-high-contrast", "black");
+                                        if (win && win.webContents) {win.webContents.send("set-high-contrast", "black");}
                                     },
                                 },
                                 {
@@ -356,7 +356,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("highContrast", "white");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-high-contrast", "white");
+                                        if (win && win.webContents) {win.webContents.send("set-high-contrast", "white");}
                                     },
                                 },
                                 {
@@ -366,7 +366,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("highContrast", "yellow");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-high-contrast", "yellow");
+                                        if (win && win.webContents) {win.webContents.send("set-high-contrast", "yellow");}
                                     },
                                 },
                                 {
@@ -376,7 +376,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     click: () => {
                                         conf.set("highContrast", "off");
                                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                        if (win && win.webContents) win.webContents.send("set-high-contrast", "off");
+                                        if (win && win.webContents) {win.webContents.send("set-high-contrast", "off");}
                                     },
                                 },
                             ],
@@ -419,7 +419,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 },
                 {
                     label: "📊 Summary Columns...",
-                    enabled: !!loadedFitFilePath,
+                    enabled: Boolean(loadedFitFilePath),
                     click: () => {
                         const win = BrowserWindow.getFocusedWindow() || mainWindow;
                         if (win && win.webContents) {
@@ -497,7 +497,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
 
     if (!app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item)["label"]);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item).label);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
     }
     if (!Array.isArray(template) || template.length === 0) {
@@ -508,7 +508,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
     }
     try {
         mainMenu = Menu.buildFromTemplate(template);
-        console.log("[createAppMenu] Menu built and assigned to mainMenu:", !!mainMenu);
+        console.log("[createAppMenu] Menu built and assigned to mainMenu:", Boolean(mainMenu));
         Menu.setApplicationMenu(mainMenu);
         console.log("[createAppMenu] Menu set successfully.");
     } catch (err) {

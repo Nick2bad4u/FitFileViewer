@@ -69,13 +69,13 @@ const MANUFACTURER_MAP = {
     oakley: "Oakley",
     smith: "Smith",
     uvex: "Uvex",
-};
+},
 
 /**
  * Configuration for manufacturer formatting
  * @readonly
  */
-const MANUFACTURER_CONFIG = {
+ MANUFACTURER_CONFIG = {
     ERROR_MESSAGES: {
         FORMATTING_ERROR: "Error formatting manufacturer:",
         ID_LOOKUP_ERROR: "Error looking up manufacturer by ID:",
@@ -157,6 +157,6 @@ export function getAllManufacturerMappings() {
  * const hasMapping = hasManufacturerMapping("garmin"); // true
  */
 export function hasManufacturerMapping(manufacturer) {
-    if (typeof manufacturer !== "string") return false;
+    if (typeof manufacturer !== "string") {return false;}
     return manufacturer.toLowerCase().trim() in MANUFACTURER_MAP;
 }

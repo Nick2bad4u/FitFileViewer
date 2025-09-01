@@ -3,7 +3,7 @@
  * Specific utilities for managing UI state and interactions
  */
 
-import { setState, getState, subscribe, updateState } from "../core/stateManager.js";
+import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -111,8 +111,8 @@ export class UIStateManager {
         const tabContents = document.querySelectorAll(".tab-content");
 
         tabContents.forEach((content) => {
-            const tabName = content.getAttribute("data-tab-content");
-            const isActive = tabName === activeTab;
+            const tabName = content.getAttribute("data-tab-content"),
+             isActive = tabName === activeTab;
 
             /** @type {HTMLElement} */ (content).style.display = isActive ? "block" : "none";
             content.setAttribute("aria-hidden", (!isActive).toString());
@@ -129,8 +129,8 @@ export class UIStateManager {
         const tabButtons = document.querySelectorAll("[data-tab]");
 
         tabButtons.forEach((button) => {
-            const tabName = button.getAttribute("data-tab");
-            const isActive = tabName === activeTab;
+            const tabName = button.getAttribute("data-tab"),
+             isActive = tabName === activeTab;
 
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-selected", isActive.toString());
@@ -149,8 +149,8 @@ export class UIStateManager {
             root.removeAttribute("data-theme");
 
             // Listen for system theme changes
-            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-            const systemTheme = mediaQuery.matches ? "dark" : "light";
+            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)"),
+             systemTheme = mediaQuery.matches ? "dark" : "light";
             root.setAttribute("data-theme", systemTheme);
 
             // Update on system theme change
@@ -188,8 +188,8 @@ export class UIStateManager {
      * @param {boolean} isLoading - Whether the app is loading
      */
     updateLoadingIndicator(isLoading) {
-        const loadingIndicator = document.getElementById("loading-indicator");
-        const mainContent = document.getElementById("main-content");
+        const loadingIndicator = document.getElementById("loading-indicator"),
+         mainContent = document.getElementById("main-content");
 
         if (loadingIndicator) {
             loadingIndicator.style.display = isLoading ? "block" : "none";
@@ -209,8 +209,8 @@ export class UIStateManager {
      * @param {boolean} isVisible - Whether controls are visible
      */
     updateChartControlsUI(isVisible) {
-        const wrapper = document.getElementById("chartjs-settings-wrapper");
-        const toggleBtn = document.getElementById("chart-controls-toggle");
+        const wrapper = document.getElementById("chartjs-settings-wrapper"),
+         toggleBtn = document.getElementById("chart-controls-toggle");
 
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";
@@ -226,8 +226,8 @@ export class UIStateManager {
      * @param {*} isActive - Whether measurement mode is active
      */
     updateMeasurementModeUI(isActive) {
-        const toggleBtn = document.getElementById("measurement-mode-toggle");
-        const mapContainer = document.getElementById("map-container");
+        const toggleBtn = document.getElementById("measurement-mode-toggle"),
+         mapContainer = document.getElementById("map-container");
 
         if (toggleBtn) {
             toggleBtn.classList.toggle("active", isActive);
@@ -245,7 +245,7 @@ export class UIStateManager {
     showNotification(notification) {
         try {
             // Handle both object and string parameters for backward compatibility
-            let message, type, duration;
+            let duration, message, type;
 
             if (typeof notification === "string") {
                 message = notification;
@@ -291,13 +291,13 @@ export class UIStateManager {
      * @param {*} collapsed - Whether sidebar should be collapsed
      */
     toggleSidebar(collapsed = undefined) {
-        const currentState = getState("ui.sidebarCollapsed");
-        const newState = collapsed !== undefined ? collapsed : !currentState;
+        const currentState = getState("ui.sidebarCollapsed"),
+         newState = collapsed !== undefined ? collapsed : !currentState;
 
         setState("ui.sidebarCollapsed", newState, { source: "UIStateManager.toggleSidebar" });
 
-        const sidebar = document.getElementById("sidebar");
-        const mainContent = document.getElementById("main-content");
+        const sidebar = document.getElementById("sidebar"),
+         mainContent = document.getElementById("main-content");
 
         if (sidebar) {
             sidebar.classList.toggle("collapsed", newState);

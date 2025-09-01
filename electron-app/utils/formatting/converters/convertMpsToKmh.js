@@ -3,7 +3,7 @@
  * @readonly
  */
 const SPEED_CONVERSIONS = {
-    MPS_TO_KMH: 3.6, // meters/second to kilometers/hour conversion factor
+    MPS_TO_KMH: 3.6, // Meters/second to kilometers/hour conversion factor
 };
 
 /**

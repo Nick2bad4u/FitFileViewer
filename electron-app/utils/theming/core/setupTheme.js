@@ -3,7 +3,7 @@
  * Provides consistent theme initialization and change handling with state management integration
  */
 
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 // Constants for better maintainability
 const THEME_CONSTANTS = {
@@ -65,12 +65,12 @@ async function fetchThemeFromMainProcess() {
 
     try {
         // Add timeout to prevent hanging
-        const themePromise = window.electronAPI.getTheme();
-        const timeoutPromise = new Promise((_, reject) => {
+        const themePromise = window.electronAPI.getTheme(),
+         timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error("Theme fetch timeout")), TIMEOUT.THEME_FETCH);
-        });
+        }),
 
-        const theme = await Promise.race([themePromise, timeoutPromise]);
+         theme = await Promise.race([themePromise, timeoutPromise]);
 
         if (!isValidTheme(theme)) {
             logWithContext(`Invalid theme received: ${theme}, using default`, "warn");

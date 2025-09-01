@@ -11,15 +11,15 @@ import { getChartCounts } from "../core/getChartCounts.js";
 export function createChartStatusIndicator() {
     try {
         /** @type {import('../core/getChartCounts.js').ChartCounts} */
-        const counts = getChartCounts();
+        const counts = getChartCounts(),
 
-        const indicator = document.createElement("div");
+         indicator = document.createElement("div");
         indicator.className = "chart-status-indicator";
         indicator.id = "chart-status-indicator";
 
         // Calculate status
-        const isAllVisible = counts.visible === counts.available;
-        const hasHiddenCharts = counts.available > counts.visible;
+        const isAllVisible = counts.visible === counts.available,
+         hasHiddenCharts = counts.available > counts.visible;
 
         indicator.style.cssText = `
         display: flex;
@@ -146,7 +146,7 @@ export function createChartStatusIndicator() {
                 // Add a brief highlight effect
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
-                setTimeout(function () {
+                setTimeout(() => {
                     fieldsSection.style.outline = "none";
                     fieldsSection.style.outlineOffset = "0";
                 }, 2000);

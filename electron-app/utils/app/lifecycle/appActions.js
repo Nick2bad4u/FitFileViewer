@@ -3,7 +3,7 @@
  * Higher-level actions that encapsulate common state changes
  */
 
-import { setState, getState, updateState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
@@ -443,10 +443,10 @@ stateMiddleware.use((path, value, oldValue) => {
  * @returns {[T, (newValue: T) => void]}
  */
 export function useState(path, defaultValue = undefined) {
-    const currentValue = getState(path) ?? defaultValue;
+    const currentValue = getState(path) ?? defaultValue,
 
     /** @type {(newValue: any) => void} */
-    const setter = (newValue) => {
+     setter = (newValue) => {
         setState(path, newValue, { source: "useState" });
     };
 
@@ -468,17 +468,17 @@ export function useState(path, defaultValue = undefined) {
  */
 export function useComputed(computeFn, dependencies = []) {
     /** @type {T} */
-    let cachedValue;
-    let isValid = false;
+    let cachedValue,
+     isValid = false;
 
     // Subscribe to dependency changes
     const unsubscribers = dependencies.map((dep) =>
         subscribe(dep, () => {
             isValid = false;
         })
-    );
+    ),
 
-    const getComputedValue = () => {
+     getComputedValue = () => {
         if (!isValid) {
             cachedValue = computeFn();
             isValid = true;

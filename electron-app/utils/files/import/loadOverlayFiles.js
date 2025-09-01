@@ -66,8 +66,8 @@ export async function loadOverlayFiles(files) {
         LoadingOverlay.hide();
 
         // Batch update UI after all files are processed
-        if (window.renderMap) window.renderMap();
-        if (/** @type {any} */ (window).updateShownFilesList) /** @type {any} */ (window).updateShownFilesList();
+        if (window.renderMap) {window.renderMap();}
+        if (/** @type {any} */ (window).updateShownFilesList) /** @type {any} */ {(window).updateShownFilesList();}
 
         // Show summary notification
         if (invalidFiles.length === files.length) {

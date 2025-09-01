@@ -1,5 +1,5 @@
 // Leaflet base layers module. Resolves the Leaflet global if present; otherwise
-// provides a minimal shim to keep imports safe in non-map/test environments.
+// Provides a minimal shim to keep imports safe in non-map/test environments.
 
 /** @typedef {{ addTo?: Function, setZIndex?: Function, on?: Function, remove?: Function }} LeafletLayer */
 /** @typedef {{ tileLayer: Function, maplibreGL?: Function }} LeafletMinimal */
@@ -11,7 +11,7 @@
  */
 function getLeaflet() {
     const g = /** @type {any} */ (globalThis);
-    if (g && g.L && g.L.tileLayer) return g.L;
+    if (g && g.L && g.L.tileLayer) {return g.L;}
     return {
         tileLayer: () => ({}),
         maplibreGL: () => ({}),
@@ -165,7 +165,7 @@ export const baseLayers = {
             'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://slopes.waymarkedtrails.org/">Waymarked Trails Riding</a>',
     }),
     // The OpenFreeMap_* layers use L.maplibreGL for rendering vector tiles with MapLibre GL styles,
-    // while other layers use L.tileLayer for raster tile layers.
+    // While other layers use L.tileLayer for raster tile layers.
     OpenFreeMap_Liberty: LRef.maplibreGL
         ? LRef.maplibreGL({
               style: "https://tiles.openfreemap.org/styles/liberty",

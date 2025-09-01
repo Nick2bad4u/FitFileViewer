@@ -10,10 +10,10 @@ const { autoUpdater: _autoUpdater } = require("electron-updater");
 
 const { loadRecentFiles, addRecentFile } = require("./utils/files/recent/recentFiles");
 const { createAppMenu } = require("./utils/app/menu/createAppMenu");
-const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager");
+const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager"),
 
 // Constants
-const CONSTANTS = {
+ CONSTANTS = {
     DEFAULT_THEME: "dark",
     THEME_STORAGE_KEY: "ffv-theme",
     SETTINGS_CONFIG_NAME: "settings",
@@ -81,9 +81,9 @@ function validateWindow(win, context = "unknown operation") {
         // Only log warning if window should exist but doesn't (avoid noise during normal shutdown)
         if (!getAppState("appIsQuitting")) {
             logWithContext("warn", `Window validation failed during ${context}`, {
-                hasWindow: !!win,
+                hasWindow: Boolean(win),
                 isDestroyed: win?.isDestroyed(),
-                hasWebContents: !!win?.webContents,
+                hasWebContents: Boolean(win?.webContents),
                 webContentsDestroyed: win?.webContents?.isDestroyed(),
             });
         }
@@ -96,7 +96,7 @@ function validateWindow(win, context = "unknown operation") {
  * @param {any} win
  */
 async function getThemeFromRenderer(win) {
-    if (!validateWindow(win, "theme retrieval")) return CONSTANTS.DEFAULT_THEME;
+    if (!validateWindow(win, "theme retrieval")) {return CONSTANTS.DEFAULT_THEME;}
 
     try {
         const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
@@ -123,8 +123,8 @@ function sendToRenderer(win, channel, ...args) {
  * @param {any} message
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
+    const timestamp = new Date().toISOString(),
+     contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
     /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, contextStr);
 }
 
@@ -153,7 +153,7 @@ function _createErrorHandler(operation) {
  * @param {any} mainWindow
  */
 function setupAutoUpdater(mainWindow) {
-    // alias back to name expected in existing code
+    // Alias back to name expected in existing code
     const autoUpdater = _autoUpdater;
     if (!validateWindow(mainWindow, "auto-updater setup")) {
         logWithContext("warn", "Cannot setup auto-updater: main window is not usable");
@@ -282,7 +282,7 @@ function setupIPCHandlers(mainWindow) {
                 filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                 properties: ["openFile"],
             });
-            if (canceled || filePaths.length === 0) return null;
+            if (canceled || filePaths.length === 0) {return null;}
 
             if (filePaths[0]) {
                 addRecentFile(filePaths[0]);
@@ -376,8 +376,8 @@ function setupIPCHandlers(mainWindow) {
     // FIT file parsing handlers
     ipcMain.handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
-            const fitParser = require("./fitParser");
-            const buffer = Buffer.from(arrayBuffer);
+            const fitParser = require("./fitParser"),
+             buffer = Buffer.from(arrayBuffer);
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:parse:", {
@@ -389,8 +389,8 @@ function setupIPCHandlers(mainWindow) {
 
     ipcMain.handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
-            const fitParser = require("./fitParser");
-            const buffer = Buffer.from(arrayBuffer);
+            const fitParser = require("./fitParser"),
+             buffer = Buffer.from(arrayBuffer);
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:decode:", {
@@ -403,13 +403,13 @@ function setupIPCHandlers(mainWindow) {
     // Application info handlers
     const infoHandlers = {
         "theme:get": async () => {
-            const { Conf } = require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            const { Conf } = require("electron-conf"),
+             conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("theme", CONSTANTS.DEFAULT_THEME);
         },
         "map-tab:get": async () => {
-            const { Conf } = require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            const { Conf } = require("electron-conf"),
+             conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("selectedMapTab", "map");
         },
         getAppVersion: async () => app.getVersion(),
@@ -422,8 +422,8 @@ function setupIPCHandlers(mainWindow) {
         }),
         getLicenseInfo: async () => {
             try {
-                const packageJsonPath = path.join(app.getAppPath(), "package.json");
-                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+                const packageJsonPath = path.join(app.getAppPath(), "package.json"),
+                 packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
                 return packageJson.license || "Unknown";
             } catch (err) {
                 logWithContext("error", "Failed to read license from package.json:", {
@@ -593,9 +593,9 @@ function setupMenuAndEventHandlers() {
     }); // File menu action handlers
     const fileMenuHandlers = {
         "menu-save-as": async (/** @type {any} */ event) => {
-            const win = BrowserWindow.fromWebContents(event.sender);
-            const loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) return;
+            const win = BrowserWindow.fromWebContents(event.sender),
+             loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath || !win) {return;}
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(/** @type {any} */ (win), {
@@ -614,9 +614,9 @@ function setupMenuAndEventHandlers() {
             }
         },
         "menu-export": async (/** @type {any} */ event) => {
-            const win = BrowserWindow.fromWebContents(event.sender);
-            const loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) return;
+            const win = BrowserWindow.fromWebContents(event.sender),
+             loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath || !win) {return;}
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(/** @type {any} */ (win), {
@@ -643,7 +643,7 @@ function setupMenuAndEventHandlers() {
     ipcMain.on("set-fullscreen", (/** @type {any} */ _event, /** @type {any} */ flag) => {
         const win = BrowserWindow.getFocusedWindow();
         if (validateWindow(win, "set-fullscreen event")) {
-            /** @type {any} */ (win).setFullScreen(!!flag);
+            /** @type {any} */ (win).setFullScreen(Boolean(flag));
         }
     });
 
@@ -651,9 +651,9 @@ function setupMenuAndEventHandlers() {
     ipcMain.handle(
         "devtools-inject-menu",
         (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
-            const win = BrowserWindow.fromWebContents(event.sender);
-            const t = theme || CONSTANTS.DEFAULT_THEME;
-            const f = fitFilePath || null;
+            const win = BrowserWindow.fromWebContents(event.sender),
+             t = theme || CONSTANTS.DEFAULT_THEME,
+             f = fitFilePath || null;
             logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
             if (win) {
                 createAppMenu(/** @type {any} */ (win), t, f);
@@ -666,7 +666,7 @@ function setupMenuAndEventHandlers() {
 // Enhanced application event handlers
 function setupApplicationEventHandlers() {
     // App activation handler (macOS)
-    app.on("activate", function () {
+    app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             const win = createWindow();
             createAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
@@ -693,7 +693,7 @@ function setupApplicationEventHandlers() {
     });
 
     // Window all closed handler
-    app.on("window-all-closed", function () {
+    app.on("window-all-closed", () => {
         setAppState("appIsQuitting", true);
         if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
             app.quit();
@@ -769,7 +769,7 @@ function exposeDevHelpers() {
         logState: () => {
             logWithContext("info", "Current application state:", {
                 loadedFitFilePath: getAppState("loadedFitFilePath"),
-                hasMainWindow: !!getAppState("mainWindow"),
+                hasMainWindow: Boolean(getAppState("mainWindow")),
                 eventHandlersCount: mainProcessState.data.eventHandlers.size,
             });
         },
@@ -792,7 +792,7 @@ app.whenReady().then(async () => {
         setupApplicationEventHandlers();
 
         // Expose development helpers in development mode
-        if (/** @type {any} */ (process.env)["NODE_ENV"] === "development" || process.argv.includes("--dev")) {
+        if (/** @type {any} */ (process.env).NODE_ENV === "development" || process.argv.includes("--dev")) {
             exposeDevHelpers();
         }
 

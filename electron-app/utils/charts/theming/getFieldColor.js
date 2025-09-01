@@ -20,13 +20,13 @@ const FIELD_COLOR_MAP = {
     positionLat: "#ff5722", // Deep orange - latitude data
     positionLong: "#3f51b5", // Indigo - longitude data
     gps_track: "#4caf50", // Green - GPS track data
-};
+},
 
 /**
  * Default color for unmapped fields
  * @readonly
  */
-const DEFAULT_FIELD_COLOR = "#6B7280"; // Gray
+ DEFAULT_FIELD_COLOR = "#6B7280"; // Gray
 
 /**
  * Gets the standardized color for a given field type

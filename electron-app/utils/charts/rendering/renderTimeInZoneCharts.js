@@ -11,16 +11,16 @@ import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneContr
  */
 export function renderTimeInZoneCharts(container, options = {}) {
     try {
-        if (!container) return;
+        if (!container) {return;}
         console.log("[ChartJS] renderTimeInZoneCharts called");
 
         /** @type {ZoneInfo[]|undefined} */
-        const hrZones = Array.isArray(window.heartRateZones) ? window.heartRateZones : undefined;
+        const hrZones = Array.isArray(window.heartRateZones) ? window.heartRateZones : undefined,
         /** @type {ZoneInfo[]|undefined} */
-        const powerZones = Array.isArray(window.powerZones) ? window.powerZones : undefined;
+         powerZones = Array.isArray(window.powerZones) ? window.powerZones : undefined,
 
         /** @type {ZoneVisibilitySettings} */
-        const hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || {
+         hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || {
             doughnutVisible: true,
         };
         if (hrZoneSettings.doughnutVisible && hrZones && hrZones.length > 0) {

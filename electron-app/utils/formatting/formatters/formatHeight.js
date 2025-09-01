@@ -28,12 +28,12 @@ export function formatHeight(meters) {
     }
 
     try {
-        const totalInches = meters * HEIGHT_CONVERSIONS.METERS_TO_INCHES;
-        const feet = Math.floor(totalInches / HEIGHT_CONVERSIONS.INCHES_PER_FOOT);
-        let inches = Math.round(totalInches % HEIGHT_CONVERSIONS.INCHES_PER_FOOT);
+        const totalInches = meters * HEIGHT_CONVERSIONS.METERS_TO_INCHES,
+         feet = Math.floor(totalInches / HEIGHT_CONVERSIONS.INCHES_PER_FOOT);
+        let inches = Math.round(totalInches % HEIGHT_CONVERSIONS.INCHES_PER_FOOT),
 
         // Handle rounding up to 12 inches (e.g., 5'12" -> 6'0")
-        let adjustedFeet = feet;
+         adjustedFeet = feet;
         if (inches === HEIGHT_CONVERSIONS.INCHES_PER_FOOT) {
             adjustedFeet += 1;
             inches = 0;

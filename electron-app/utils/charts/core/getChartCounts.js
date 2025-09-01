@@ -32,10 +32,10 @@ export function getChartCounts() {
             zones: { total: 0, visible: 0, available: 0 },
             gps: { total: 0, visible: 0, available: 0 },
         },
-    };
+    },
 
     // Check if we have data
-    const hasData = window.globalData && window.globalData.recordMesgs && window.globalData.recordMesgs.length > 0;
+     hasData = window.globalData && window.globalData.recordMesgs && window.globalData.recordMesgs.length > 0;
     if (!hasData) {
         return counts;
     }
@@ -63,10 +63,10 @@ export function getChartCounts() {
                     return isNaN(value) ? null : value;
                 }
                 return null;
-            });
+            }),
 
             // Only count as available if there's at least one valid data point
-            const hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
+             hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
             if (hasValidData) {
                 counts.available++;
                 counts.categories.metrics.available++;
@@ -80,8 +80,8 @@ export function getChartCounts() {
             }
         }); // GPS track chart (counted separately from lat/long individual charts)
         const hasGPSData = data.some((/** @type {any} */ row) => {
-            const lat = row.positionLat;
-            const long = row.positionLong;
+            const lat = row.positionLat,
+             long = row.positionLong;
             return (
                 (lat !== undefined && lat !== null && !isNaN(parseFloat(lat))) ||
                 (long !== undefined && long !== null && !isNaN(parseFloat(long)))
@@ -111,9 +111,9 @@ export function getChartCounts() {
                     const hasSpeed = data.some((/** @type {any} */ row) => {
                         const speed = row.enhancedSpeed || row.speed;
                         return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
-                    });
-                    const hasDistance = data.some((/** @type {any} */ row) => {
-                        const distance = row.distance;
+                    }),
+                     hasDistance = data.some((/** @type {any} */ row) => {
+                        const {distance} = row;
                         return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
                     });
                     hasRequiredData = hasSpeed && hasDistance;
@@ -121,10 +121,10 @@ export function getChartCounts() {
                 }
                 case "power_vs_hr": {
                     const hasPower = data.some((/** @type {any} */ row) => {
-                        const power = row.power;
+                        const {power} = row;
                         return power !== undefined && power !== null && !isNaN(parseFloat(power));
-                    });
-                    const hasHeartRate = data.some((/** @type {any} */ row) => {
+                    }),
+                     hasHeartRate = data.some((/** @type {any} */ row) => {
                         const hr = row.heartRate;
                         return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
                     });
@@ -165,7 +165,7 @@ export function getChartCounts() {
                 });
             } else if (chartType.includes("power_zone")) {
                 hasRequiredData = data.some((/** @type {any} */ row) => {
-                    const power = row.power;
+                    const {power} = row;
                     return power !== undefined && power !== null && !isNaN(parseFloat(power));
                 });
             }
@@ -201,8 +201,8 @@ export function getChartCounts() {
 
         // No need to count separately as they use the same visibility toggles        // Lap zone charts (from renderLapZoneCharts - up to 4 charts possible)
         if (window.globalData?.timeInZoneMesgs) {
-            const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-            const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+            const {timeInZoneMesgs} = window.globalData,
+             lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
             if (lapZoneMsgs.length > 0) {
                 // Check for HR lap zone charts (2 charts: stacked bar and individual bars)
@@ -214,8 +214,8 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for HR lap zone charts
-                    const hrStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked");
-                    const hrIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual");
+                    const hrStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked"),
+                     hrIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual");
 
                     if (hrStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -236,8 +236,8 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for Power lap zone charts
-                    const powerStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked");
-                    const powerIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual");
+                    const powerStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked"),
+                     powerIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual");
 
                     if (powerStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -253,9 +253,9 @@ export function getChartCounts() {
 
         // Only count fields that are not already in formatChartFields and have meaningful data
         if (window.globalData?.recordMesgs && window.globalData.recordMesgs.length > 0) {
-            const sampleRecord = window.globalData.recordMesgs[0];
-            const excludedFields = ["timestamp", "distance", "fractional_cadence", "positionLat", "positionLong"];
-            const developerFields = Object.keys(sampleRecord).filter(
+            const sampleRecord = window.globalData.recordMesgs[0],
+             excludedFields = ["timestamp", "distance", "fractional_cadence", "positionLat", "positionLong"],
+             developerFields = Object.keys(sampleRecord).filter(
                 (key) =>
                     !metricFields.includes(key) &&
                     !excludedFields.includes(key) &&
@@ -269,10 +269,10 @@ export function getChartCounts() {
                         return isNaN(value) ? null : value;
                     }
                     return null;
-                });
+                }),
 
                 // Only count as available if there's at least one valid data point
-                const hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
+                 hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
                 if (hasValidData) {
                     counts.total++;
                     counts.available++;

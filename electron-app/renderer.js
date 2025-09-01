@@ -262,9 +262,9 @@ function validateDOMElements() {
         { id: "openFileBtn", name: "Open File button" },
         { id: "notification", name: "Notification container" },
         { id: "loadingOverlay", name: "Loading overlay" },
-    ];
+    ],
 
-    const missingElements = requiredElements.filter(({ id }) => !document.getElementById(id));
+     missingElements = requiredElements.filter(({ id }) => !document.getElementById(id));
 
     if (missingElements.length > 0) {
         const missing = missingElements.map(({ name }) => name).join(", ");
@@ -403,7 +403,7 @@ async function initializeAsyncComponents() {
         // Check for updates if in production
         if (window.electronAPI?.checkForUpdates && !isDevelopmentMode()) {
             try {
-                setTimeout(function () {
+                setTimeout(() => {
                     window.electronAPI.checkForUpdates();
                 }, 5000); // Delay to avoid blocking startup
             } catch (error) {
@@ -475,7 +475,7 @@ const PerformanceMonitor = {
         }
         return result;
     },
-};
+},
 
 // ==========================================
 // Application Information
@@ -489,7 +489,7 @@ const PerformanceMonitor = {
  * Application metadata and version information
  * @constant {Object}
  */
-const APP_INFO = {
+ APP_INFO = {
     name: "FIT File Viewer",
     version: "21.1.0",
     description: "Advanced FIT file analysis and visualization tool",
@@ -550,7 +550,7 @@ if (typeof window !== "undefined") {
 
 // Log application startup information
 console.group("[Renderer] Application Startup");
-console.log("App:", APP_INFO.name, "v" + APP_INFO.version);
+console.log("App:", APP_INFO.name, `v${  APP_INFO.version}`);
 console.log("Environment:", getEnvironment());
 console.log("Runtime Info:", APP_INFO.getRuntimeInfo());
 console.groupEnd();
@@ -652,8 +652,8 @@ if (isDevelopmentMode()) {
                 testProductId,
                 showDataKeys,
                 checkDataAvailability,
-            } = await import("./utils/debug/debugSensorInfo.js");
-            const { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
+            } = await import("./utils/debug/debugSensorInfo.js"),
+             { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
                 "./utils/debug/debugChartFormatting.js"
             );
 

@@ -1,6 +1,6 @@
 /* eslint-env browser */
 
-// utils.js - Enhanced Utility exports for FitFileViewer Electron app
+// Utils.js - Enhanced Utility exports for FitFileViewer Electron app
 /**
  * Exposes utility functions globally for use in index.html and other scripts.
  *
@@ -28,9 +28,9 @@ import { renderSummary } from "./utils/rendering/core/renderSummary.js";
 import { updateActiveTab } from "./utils/ui/tabs/updateActiveTab.js";
 import { updateTabVisibility } from "./utils/ui/tabs/updateTabVisibility.js";
 import { showFitData } from "./utils/rendering/core/showFitData.js";
-import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theming/core/theme.js";
+import { applyTheme, listenForThemeChange, loadTheme } from "./utils/theming/core/theme.js";
 import { updateMapTheme } from "./utils/theming/specific/updateMapTheme.js";
-import { showNotification, setLoading } from "./utils/app/initialization/rendererUtils.js";
+import { setLoading, showNotification } from "./utils/app/initialization/rendererUtils.js";
 import { formatArray } from "./utils/formatting/formatters/formatUtils.js";
 import { setTabButtonsEnabled } from "./utils/ui/controls/enableTabButtons.js";
 
@@ -65,9 +65,9 @@ async function loadVersionFromElectron() {
             CONSTANTS.VERSION = version || "unknown";
             logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
             return CONSTANTS.VERSION;
-        } else {
+        } 
             logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
-        }
+        
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         logWithContext("warn", "Failed to load version from Electron API:", { error: errorMessage });
@@ -107,8 +107,8 @@ if (typeof window !== "undefined") {
  * @param {Object} context - Additional context
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
+    const timestamp = new Date().toISOString(),
+     logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
 
     if (context && Object.keys(context).length > 0) {
         // @ts-expect-error - Dynamic console method access
@@ -231,7 +231,7 @@ function attachUtilitiesToWindow() {
                 // If the same function is already attached, skip it silently
                 // @ts-expect-error - Dynamic window property access
                 if (window[key] === fn) {
-                    attachmentResults.successful.push(key + " (already attached)");
+                    attachmentResults.successful.push(`${key  } (already attached)`);
                     continue;
                 }
 
@@ -241,7 +241,7 @@ function attachUtilitiesToWindow() {
                     // Functions with same name are likely the same, just re-exported
                     // @ts-expect-error - Dynamic window property access
                     if (window[key].name === fn.name && (window[key].name === key || window[key].name === "")) {
-                        attachmentResults.successful.push(key + " (updated)");
+                        attachmentResults.successful.push(`${key  } (updated)`);
                     } else {
                         // Only log if the functions are genuinely different
                         // @ts-expect-error - Dynamic window property access
@@ -305,7 +305,7 @@ function attachUtilitiesToWindow() {
 
         // Log failures in development
         const isDevelopment =
-            (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
+            (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
             (typeof window !== "undefined" && window.location && window.location.protocol === "file:");
         if (isDevelopment) {
             if (attachmentResults.failed.length > 0) {
@@ -355,10 +355,10 @@ const FitFileViewerUtils = {
      * @param {string} name - Utility name
      * @returns {boolean} Is utility available
      */
-    isUtilAvailable: (name) => {
+    isUtilAvailable: (name) => 
         // @ts-expect-error - Dynamic utils property access
-        return Object.prototype.hasOwnProperty.call(utils, name) && validateFunction(utils[name], name);
-    },
+         Object.hasOwn(utils, name) && validateFunction(utils[name], name)
+    ,
 
     /**
      * @param {string} name - Utility name
@@ -429,7 +429,7 @@ const FitFileViewerUtils = {
 // Attach utilities to window after imports are loaded
 /** @type {AttachmentResults|undefined} */
 let attachmentResults;
-setTimeout(function () {
+setTimeout(() => {
     attachmentResults = attachUtilitiesToWindow();
 }, 0);
 
@@ -439,7 +439,7 @@ window.FitFileViewerUtils = FitFileViewerUtils;
 
 // Development mode enhancements
 const isDevelopment =
-    (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
+    (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
     (typeof window !== "undefined" && window.location && window.location.protocol === "file:");
 if (isDevelopment) {
     // Expose additional development helpers

@@ -12,14 +12,14 @@
 // DOM selectors and constants
 const DOM_SELECTORS = {
     SYSTEM_INFO_VALUE: ".system-info-value",
-};
+},
 
-const EXPECTED_INFO_FIELDS = 7;
+ EXPECTED_INFO_FIELDS = 7,
 
 // System info field mapping (order matters - must match DOM structure)
-const INFO_FIELD_ORDER = ["version", "electron", "node", "chrome", "platform", "author", "license"];
+ INFO_FIELD_ORDER = ["version", "electron", "node", "chrome", "platform", "author", "license"],
 
-const LOG_PREFIX = "[SystemInfo]";
+ LOG_PREFIX = "[SystemInfo]";
 
 // Cache for DOM elements (initialized once)
 /** @type {NodeList|null} */

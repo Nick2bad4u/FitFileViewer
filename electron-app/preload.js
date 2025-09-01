@@ -3,7 +3,7 @@
  * Preload script exposes a typed, secure IPC API to the renderer via contextBridge.
  * Incremental typing is applied using JSDoc so strict TypeScript checking over allowJs passes.
  */
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron"),
 
 /**
  * @typedef {Object} GyazoServerStartResult
@@ -65,7 +65,7 @@ const { contextBridge, ipcRenderer } = require("electron");
  */
 
 // Constants for better maintainability
-const CONSTANTS = {
+ CONSTANTS = {
     CHANNELS: {
         DIALOG_OPEN_FILE: "dialog:openFile",
         FILE_READ: "file:read",
@@ -172,7 +172,7 @@ function createSafeSendHandler(channel, methodName) {
  */
 function createSafeEventHandler(channel, methodName, transform) {
     return (callback) => {
-        if (!validateCallback(callback, methodName)) return;
+        if (!validateCallback(callback, methodName)) {return;}
 
         try {
             if (transform) {
@@ -362,8 +362,8 @@ const electronAPI = {
      * @param {Function} callback - Callback function to handle the event
      */
     onUpdateEvent: (eventName, callback) => {
-        if (!validateCallback(callback, "onUpdateEvent")) return;
-        if (!validateString(eventName, "eventName", "onUpdateEvent")) return;
+        if (!validateCallback(callback, "onUpdateEvent")) {return;}
+        if (!validateString(eventName, "eventName", "onUpdateEvent")) {return;}
 
         try {
             ipcRenderer.on(eventName, (_event, ...args) => {
@@ -401,8 +401,8 @@ const electronAPI = {
      * @param {Function} callback - Callback function to handle the event
      */
     onIpc: (channel, callback) => {
-        if (!validateString(channel, "channel", "onIpc")) return;
-        if (!validateCallback(callback, "onIpc")) return;
+        if (!validateString(channel, "channel", "onIpc")) {return;}
+        if (!validateCallback(callback, "onIpc")) {return;}
 
         try {
             ipcRenderer.on(channel, (event, ...args) => {
@@ -423,7 +423,7 @@ const electronAPI = {
      * @param {...any} args - Arguments to send
      */
     send: (channel, ...args) => {
-        if (!validateString(channel, "channel", "send")) return;
+        if (!validateString(channel, "channel", "send")) {return;}
 
         try {
             ipcRenderer.send(channel, ...args);
@@ -462,8 +462,8 @@ const electronAPI = {
         theme = CONSTANTS.DEFAULT_VALUES.THEME,
         fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH
     ) => {
-        if (!validateString(theme, "theme", "injectMenu")) return false;
-        if (!validateString(fitFilePath, "fitFilePath", "injectMenu")) return false;
+        if (!validateString(theme, "theme", "injectMenu")) {return false;}
+        if (!validateString(fitFilePath, "fitFilePath", "injectMenu")) {return false;}
 
         try {
             return await ipcRenderer.invoke(CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU, theme, fitFilePath);
@@ -495,9 +495,9 @@ const electronAPI = {
     validateAPI: () => {
         try {
             // Test basic functionality
-            const hasIpcRenderer = typeof ipcRenderer !== "undefined";
-            const hasContextBridge = typeof contextBridge !== "undefined";
-            const hasConstants = typeof CONSTANTS !== "undefined";
+            const hasIpcRenderer = typeof ipcRenderer !== "undefined",
+             hasContextBridge = typeof contextBridge !== "undefined",
+             hasConstants = typeof CONSTANTS !== "undefined";
 
             console.log("[preload.js] API Validation:", {
                 hasIpcRenderer,
@@ -523,12 +523,12 @@ try {
         console.log("[preload.js] Successfully exposed electronAPI to main world");
 
         // Log API structure in development
-        if (process.env["NODE_ENV"] === "development") {
-            const apiKeys = Object.keys(electronAPI);
+        if (process.env.NODE_ENV === "development") {
+            const apiKeys = Object.keys(electronAPI),
             /** @type {string[]} */
-            const methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function");
+             methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function"),
             /** @type {string[]} */
-            const properties = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) !== "function");
+             properties = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) !== "function");
             console.log("[preload.js] API Structure:", {
                 methods,
                 properties,
@@ -543,7 +543,7 @@ try {
 }
 
 // Development helpers - only available in development mode
-if (process.env["NODE_ENV"] === "development") {
+if (process.env.NODE_ENV === "development") {
     try {
         contextBridge.exposeInMainWorld("devTools", {
             /**

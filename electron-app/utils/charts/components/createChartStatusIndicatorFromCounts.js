@@ -9,8 +9,8 @@ export function createChartStatusIndicatorFromCounts(counts) {
         indicator.id = "chart-status-indicator";
 
         // Calculate status
-        const isAllVisible = counts.visible === counts.available;
-        const hasHiddenCharts = counts.available > counts.visible;
+        const isAllVisible = counts.visible === counts.available,
+         hasHiddenCharts = counts.available > counts.visible;
 
         indicator.style.cssText = `
             display: flex;
@@ -152,7 +152,7 @@ export function createChartStatusIndicatorFromCounts(counts) {
                 fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
-                setTimeout(function () {
+                setTimeout(() => {
                     if (fieldsSection.style) {
                         fieldsSection.style.outline = "none";
                         fieldsSection.style.outlineOffset = "0";

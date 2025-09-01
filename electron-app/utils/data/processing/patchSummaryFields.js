@@ -112,7 +112,7 @@ function logWithContext(message, level = "info") {
  * @private
  */
 function safeToNumber(value, fieldName = "value") {
-    if (value == null) return null;
+    if (value == null) {return null;}
 
     const num = Number(value);
     if (!Number.isFinite(num)) {
@@ -139,9 +139,9 @@ function safeToNumber(value, fieldName = "value") {
  */
 function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
     for (const fieldName of fieldNames) {
-        if (Object.prototype.hasOwnProperty.call(obj, fieldName) && obj[fieldName] != null) {
-            const raw = obj[fieldName];
-            const value = safeToNumber(raw, fieldName);
+        if (Object.hasOwn(obj, fieldName) && obj[fieldName] != null) {
+            const raw = obj[fieldName],
+             value = safeToNumber(raw, fieldName);
             if (value !== null) {
                 try {
                     obj[fieldName] = formatter(value);
@@ -245,7 +245,7 @@ export function patchSummaryFields(obj, options = {}) {
         }
     } catch (error) {
         logWithContext(`Error patching summary fields: ${getErrorMessage(error)}`, "error");
-        throw error; // rethrow for upstream handling
+        throw error; // Rethrow for upstream handling
     }
 }
 
@@ -279,9 +279,9 @@ function patchTime(obj) {
  */
 /** @param {number} val */
 function formatSpeed(val) {
-    const mps = Number(val);
-    const kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-    const mph = (mps * 2.23694).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+    const mps = Number(val),
+     kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT),
+     mph = (mps * 2.23694).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
     return `${kmh} km/h / ${mph} mph`;
 }
 
@@ -336,10 +336,10 @@ function patchTemperatureModern(obj) {
 }
 
 // Replace old implementations with modern ones
-const patchPower = patchPowerModern;
-const patchHeartRate = patchHeartRateModern;
-const patchCadence = patchCadenceModern;
-const patchTemperature = patchTemperatureModern;
+const patchPower = patchPowerModern,
+ patchHeartRate = patchHeartRateModern,
+ patchCadence = patchCadenceModern,
+ patchTemperature = patchTemperatureModern;
 
 // Stub implementations for missing functions that aren't in FIELD_MAPPINGS
 /** @param {SummaryRecord} obj */

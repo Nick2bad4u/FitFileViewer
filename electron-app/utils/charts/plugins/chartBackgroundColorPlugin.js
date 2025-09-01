@@ -52,11 +52,11 @@ export const chartBackgroundColorPlugin = {
             try {
                 // Access via bracket notation to satisfy index signature constraints under exactOptionalPropertyTypes
                 const pluginCfg =
-                    chart?.options && chart.options["plugins"] && chart.options["plugins"].chartBackgroundColorPlugin;
+                    chart?.options && chart.options.plugins && chart.options.plugins.chartBackgroundColorPlugin;
                 if (pluginCfg && typeof pluginCfg.backgroundColor === "string")
-                    backgroundColor = pluginCfg.backgroundColor;
+                    {backgroundColor = pluginCfg.backgroundColor;}
             } catch {
-                /* ignore */
+                /* Ignore */
             }
         }
         if (!backgroundColor) {
@@ -64,19 +64,19 @@ export const chartBackgroundColorPlugin = {
                 const cssBg = chart?.canvas
                     ? getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim()
                     : "";
-                if (cssBg) backgroundColor = cssBg;
+                if (cssBg) {backgroundColor = cssBg;}
             } catch {
-                /* ignore */
+                /* Ignore */
             }
         }
-        backgroundColor = backgroundColor || "#23263a";
+        backgroundColor ||= "#23263a";
         if (!backgroundColor) {
             console.warn("[chartBackgroundColorPlugin] No backgroundColor set, using default #23263a");
             backgroundColor = "#23263a";
         }
-        const ctx = chart?.ctx;
-        const width = chart?.canvas?.width || 0;
-        const height = chart?.canvas?.height || 0;
+        const ctx = chart?.ctx,
+         width = chart?.canvas?.width || 0,
+         height = chart?.canvas?.height || 0;
         if (!ctx) {
             console.warn("[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw.");
             return;

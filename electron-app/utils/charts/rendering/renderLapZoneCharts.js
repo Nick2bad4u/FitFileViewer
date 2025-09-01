@@ -41,11 +41,11 @@ export function renderLapZoneCharts(container, options = {}) {
             return;
         }
 
-        const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-        const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+        const {timeInZoneMesgs} = window.globalData,
+         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
 
         // Get theme configuration
-        const themeConfig = /** @type {any} */ (getThemeConfig() || {});
+         themeConfig = /** @type {any} */ (getThemeConfig() || {});
         if (themeConfig && typeof themeConfig === "object" && themeConfig.name) {
             console.log("[renderLapZoneCharts] Using theme config:", themeConfig.name);
         }
@@ -76,12 +76,12 @@ export function renderLapZoneCharts(container, options = {}) {
          * @returns {any[]}
          */
         function safeParseArray(val) {
-            if (Array.isArray(val)) return val;
-            if (!val || typeof val !== "string") return [];
+            if (Array.isArray(val)) {return val;}
+            if (!val || typeof val !== "string") {return [];}
             try {
-                const clean = val.trim().replace(/^"+|"+$/g, "");
-                const arr = JSON.parse(clean);
-                if (!Array.isArray(arr)) throw new Error("Not an array");
+                const clean = val.trim().replace(/^"+|"+$/g, ""),
+                 arr = JSON.parse(clean);
+                if (!Array.isArray(arr)) {throw new Error("Not an array");}
                 return arr;
             } catch {
                 return [];
@@ -99,15 +99,15 @@ export function renderLapZoneCharts(container, options = {}) {
                         label: `HR Zone ${zoneIndex + 1}`,
                         value: value || 0,
                         color: getZoneColor("hr", zoneIndex),
-                        zoneIndex: zoneIndex,
+                        zoneIndex,
                     })),
                 };
             })
-            .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0);
+            .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
 
         // Find which HR zones have any meaningful data across all laps
         /** @type {Record<number, number>} */
-        const hrZoneTotals = {};
+         hrZoneTotals = {};
         hrZoneDataRaw.forEach((/** @type {LapZoneEntry} */ lap) => {
             lap.zones.forEach((/** @type {LapZoneDatum} */ zone) => {
                 const idx = zone.zoneIndex;
@@ -119,10 +119,10 @@ export function renderLapZoneCharts(container, options = {}) {
         });
         const meaningfulHRZones = Object.keys(hrZoneTotals)
             .filter((zoneIndex) => (hrZoneTotals[Number(zoneIndex)] || 0) > 0)
-            .map(Number);
+            .map(Number),
 
         // Filter to only include meaningful zones
-        const hrZoneData = hrZoneDataRaw
+         hrZoneData = hrZoneDataRaw
             .map((/** @type {LapZoneEntry} */ lap) => ({
                 ...lap,
                 zones: lap.zones.filter((zone) => meaningfulHRZones.includes(zone.zoneIndex)),
@@ -143,15 +143,15 @@ export function renderLapZoneCharts(container, options = {}) {
                         label: `Power Zone ${zoneIndex + 1}`,
                         value: value || 0,
                         color: getZoneColor("power", zoneIndex),
-                        zoneIndex: zoneIndex,
+                        zoneIndex,
                     })),
                 };
             })
-            .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0);
+            .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
 
         // Find which Power zones have any meaningful data across all laps
         /** @type {Record<number, number>} */
-        const pwrZoneTotals = {};
+         pwrZoneTotals = {};
         pwrZoneDataRaw.forEach((/** @type {LapZoneEntry} */ lap) => {
             lap.zones.forEach((/** @type {LapZoneDatum} */ zone) => {
                 const idx = zone.zoneIndex;
@@ -163,10 +163,10 @@ export function renderLapZoneCharts(container, options = {}) {
         });
         const meaningfulPowerZones = Object.keys(pwrZoneTotals)
             .filter((zoneIndex) => (pwrZoneTotals[Number(zoneIndex)] || 0) > 0)
-            .map(Number);
+            .map(Number),
 
         // Filter to only include meaningful zones
-        const pwrZoneData = pwrZoneDataRaw
+         pwrZoneData = pwrZoneDataRaw
             .map((/** @type {LapZoneEntry} */ lap) => ({
                 ...lap,
                 zones: lap.zones.filter((zone) => meaningfulPowerZones.includes(zone.zoneIndex)),
@@ -189,7 +189,7 @@ export function renderLapZoneCharts(container, options = {}) {
                 title: "HR Zone by Lap (Stacked)",
             });
             if (hrChart) {
-                if (!Array.isArray(window._chartjsInstances)) window._chartjsInstances = [];
+                if (!Array.isArray(window._chartjsInstances)) {window._chartjsInstances = [];}
                 window._chartjsInstances.push(hrChart);
             }
         }
@@ -208,7 +208,7 @@ export function renderLapZoneCharts(container, options = {}) {
                 title: "Power Zone by Lap (Stacked)",
             });
             if (pwrChart) {
-                if (!Array.isArray(window._chartjsInstances)) window._chartjsInstances = [];
+                if (!Array.isArray(window._chartjsInstances)) {window._chartjsInstances = [];}
                 window._chartjsInstances.push(pwrChart);
             }
         }
@@ -270,7 +270,7 @@ export function renderLapZoneCharts(container, options = {}) {
                     title: "HR Zone by Lap (Individual)",
                 });
                 if (singleHRChart) {
-                    if (!Array.isArray(window._chartjsInstances)) window._chartjsInstances = [];
+                    if (!Array.isArray(window._chartjsInstances)) {window._chartjsInstances = [];}
                     window._chartjsInstances.push(singleHRChart);
                 }
             } else {
@@ -339,7 +339,7 @@ export function renderLapZoneCharts(container, options = {}) {
                     }
                 );
                 if (singlePwrChart) {
-                    if (!Array.isArray(window._chartjsInstances)) window._chartjsInstances = [];
+                    if (!Array.isArray(window._chartjsInstances)) {window._chartjsInstances = [];}
                     window._chartjsInstances.push(singlePwrChart);
                 }
             } else {

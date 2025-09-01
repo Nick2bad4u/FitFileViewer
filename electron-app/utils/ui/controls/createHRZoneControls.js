@@ -12,7 +12,7 @@ import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.j
  */
 export function createHRZoneControls(parentContainer) {
     // Check if HR zone controls already exist
-    let existingControls = document.getElementById("hr-zone-controls");
+    const existingControls = document.getElementById("hr-zone-controls");
     if (existingControls) {
         return existingControls;
     }
@@ -138,8 +138,8 @@ export function moveHRZoneControlsToSection() {
         console.warn("[HRZoneControls] HR zone content container not found");
         return;
     } // Find existing HR zone controls in the field toggles section
-    const hrZoneFields = ["hr_zone_doughnut", "hr_lap_zone_stacked", "hr_lap_zone_individual"];
-    const movedControls = [];
+    const hrZoneFields = ["hr_zone_doughnut", "hr_lap_zone_stacked", "hr_lap_zone_individual"],
+     movedControls = [];
 
     hrZoneFields.forEach((fieldName) => {
         // Look for the toggle by ID
@@ -205,7 +205,7 @@ function addUnifiedHRZoneColorPicker(container) {
  */
 export function updateHRZoneControlsVisibility(hasData) {
     const controls = document.getElementById("hr-zone-controls");
-    if (!controls) return;
+    if (!controls) {return;}
 
     if (hasData) {
         controls.style.display = "block";

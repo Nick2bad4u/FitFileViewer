@@ -3,7 +3,7 @@
  * @readonly
  */
 const SPEED_CONVERSIONS = {
-    MPS_TO_MPH: 2.236936, // meters/second to miles/hour conversion factor
+    MPS_TO_MPH: 2.236936, // Meters/second to miles/hour conversion factor
 };
 
 /**

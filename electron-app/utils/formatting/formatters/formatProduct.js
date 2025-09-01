@@ -1,4 +1,4 @@
-import { getProductName, getManufacturerIdFromName } from "../display/formatAntNames.js";
+import { getManufacturerIdFromName, getProductName } from "../display/formatAntNames.js";
 
 /**
  * Product formatting configuration and constants

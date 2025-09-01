@@ -29,7 +29,7 @@ import { renderChartJS } from "./renderChartJS.js";
  */
 class ChartStateManager {
     constructor() {
-        this.renderDebounceTime = 250; // ms
+        this.renderDebounceTime = 250; // Ms
         /** @type {number|ReturnType<typeof setTimeout>|null} */
         this.renderTimeout = null;
         /** @type {boolean} */
@@ -85,7 +85,7 @@ class ChartStateManager {
      */
     handleThemeChange(/** @type {string|undefined} */ newTheme) {
         const chartState = getState("charts");
-        if (!chartState) return;
+        if (!chartState) {return;}
         // Only re-render if charts are currently rendered and visible
         if (chartState.isRendered && this.isChartTabActive()) {
             this.debouncedRender(newTheme ? `Theme change to ${newTheme}` : "Theme change");
@@ -96,8 +96,8 @@ class ChartStateManager {
      * Handle chart tab activation
      */
     handleTabActivation() {
-        const chartState = getState("charts");
-        const globalData = getState("globalData");
+        const chartState = getState("charts"),
+         globalData = getState("globalData");
 
         console.log("[ChartStateManager] Chart tab activated");
 

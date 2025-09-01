@@ -11,8 +11,8 @@ import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugi
  */
 export function renderPowerVsHeartRateChart(container, data, options) {
     try {
-        const hasPower = data.some((row) => row.power !== undefined && row.power !== null);
-        const hasHeartRate = data.some((row) => row.heartRate !== undefined && row.heartRate !== null);
+        const hasPower = data.some((row) => row.power !== undefined && row.power !== null),
+         hasHeartRate = data.some((row) => row.heartRate !== undefined && row.heartRate !== null);
 
         if (!hasPower || !hasHeartRate) {
             return;
@@ -43,7 +43,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             })
             .filter((point) => point !== null);
 
-        if (chartData.length === 0) return;
+        if (chartData.length === 0) {return;}
 
         // Apply data point limiting
         if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
@@ -66,7 +66,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                     {
                         label: "Power vs Heart Rate",
                         data: chartData,
-                        backgroundColor: themeConfig.colors.warning + "99", // Orange with alpha
+                        backgroundColor: `${themeConfig.colors.warning  }99`, // Orange with alpha
                         borderColor: themeConfig.colors.warning,
                         pointRadius: options.showPoints ? 2 : 1,
                         pointHoverRadius: 4,
@@ -95,7 +95,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
                             },
                         },
@@ -117,7 +117,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                             drag: {
                                 enabled: true,
                                 backgroundColor: themeConfig.colors.primaryAlpha,
-                                borderColor: themeConfig.colors.primary + "CC", // Primary with more opacity
+                                borderColor: `${themeConfig.colors.primary  }CC`, // Primary with more opacity
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -170,11 +170,11 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                 },
             },
             plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-        };
+        },
 
-        const chart = new /** @type {any} */ (window).Chart(canvas, config);
+         chart = new /** @type {any} */ (window).Chart(canvas, config);
         if (chart) {
-            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ (window)._chartjsInstances = [];
+            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ {(window)._chartjsInstances = [];}
             /** @type {any} */ (window)._chartjsInstances.push(chart);
             console.log("[ChartJS] Power vs Heart Rate chart created successfully");
         }

@@ -12,7 +12,7 @@ import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.j
  */
 export function createPowerZoneControls(parentContainer) {
     // Check if power zone controls already exist
-    let existingControls = document.getElementById("power-zone-controls");
+    const existingControls = document.getElementById("power-zone-controls");
     if (existingControls) {
         return existingControls;
     }
@@ -138,8 +138,8 @@ export function movePowerZoneControlsToSection() {
         console.warn("[PowerZoneControls] Power zone content container not found");
         return;
     } // Find existing power zone controls in the field toggles section
-    const powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"];
-    const movedControls = [];
+    const powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"],
+     movedControls = [];
 
     powerZoneFields.forEach((fieldName) => {
         // Look for the toggle by ID
@@ -205,7 +205,7 @@ function addUnifiedPowerZoneColorPicker(container) {
  */
 export function updatePowerZoneControlsVisibility(hasData) {
     const controls = document.getElementById("power-zone-controls");
-    if (!controls) return;
+    if (!controls) {return;}
 
     if (hasData) {
         controls.style.display = "block";

@@ -145,9 +145,9 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
 
     const uiElements = { openFileBtn, setLoading, isOpeningFileRef };
 
-    let filePath;
-    let arrayBuffer;
-    let result;
+    let arrayBuffer,
+     filePath,
+     result;
 
     try {
         // Set opening state
@@ -227,8 +227,8 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
             showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
             updateUIState(uiElements, false, false);
             return false;
-        } else {
-            if (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] !== "production") {
+        } 
+            if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
                 console.log("[DEBUG] FIT parse result:", result);
             }
             try {
@@ -242,7 +242,7 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
             } catch (err) {
                 showNotification(`Error displaying FIT data: ${err}`, "error");
             }
-        }
+        
 
         // Update UI state to indicate loading is complete
         updateUIState(uiElements, false, false);

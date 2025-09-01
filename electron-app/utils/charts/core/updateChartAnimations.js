@@ -27,15 +27,15 @@ const ANIMATION_CONFIG = {
         FROM: 0,
         TO: 0.4,
     },
-};
+},
 
-const CHART_TYPES = {
+ CHART_TYPES = {
     LINE: "line",
     BAR: "bar",
     DOUGHNUT: "doughnut",
-};
+},
 
-const LOG_PREFIX = "[ChartAnimations]";
+ LOG_PREFIX = "[ChartAnimations]";
 
 /**
  * Creates progress callback for chart animations
@@ -68,7 +68,7 @@ function createCompletionCallback(type) {
  * @param {string} chartType - Type of chart (line, bar, doughnut)
  */
 function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
-    if (!chart.options || typeof chart.options !== "object") return;
+    if (!chart.options || typeof chart.options !== "object") {return;}
     if (!chart.options.animations) {
         chart.options.animations = {};
     }

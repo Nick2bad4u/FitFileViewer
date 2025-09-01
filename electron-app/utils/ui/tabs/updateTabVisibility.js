@@ -3,7 +3,7 @@
  * Now integrated with centralized state management for reactive updates.
  */
 
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 /**
  * Toggles the visibility of tab content sections by setting the display style.
@@ -21,13 +21,13 @@ export function updateTabVisibility(visibleTabId) {
         "content-summary",
         "content-altfit",
         "content-zwift",
-    ];
+    ],
 
     // Cache DOM elements in a map for better performance
-    const elementMap = {};
+     elementMap = {};
     for (let i = 0; i < tabContentIds.length; i++) {
-        const id = tabContentIds[i];
-        const el = document.getElementById(/** @type {string} */ (id));
+        const id = tabContentIds[i],
+         el = document.getElementById(/** @type {string} */ (id));
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
@@ -38,8 +38,8 @@ export function updateTabVisibility(visibleTabId) {
     }
 
     // Define constants for display styles
-    const DISPLAY_BLOCK = "block";
-    const DISPLAY_NONE = "none";
+    const DISPLAY_BLOCK = "block",
+     DISPLAY_NONE = "none";
 
     // Toggle visibility using the cached elements
     Object.entries(elementMap).forEach(([id, el]) => {
@@ -64,8 +64,8 @@ export function updateTabVisibility(visibleTabId) {
  */
 function extractTabNameFromContentId(contentId) {
     const patterns = [
-        /^content-(.+)$/, // content-summary -> summary
-        /^(.+)-content$/, // summary-content -> summary
+        /^content-(.+)$/, // Content-summary -> summary
+        /^(.+)-content$/, // Summary-content -> summary
     ];
 
     for (const pattern of patterns) {
@@ -114,8 +114,8 @@ export function initializeTabVisibilityState() {
     subscribe(
         "globalData",
         /** @param {any} data */ (data) => {
-            const hasData = data !== null && data !== undefined;
-            const currentTab = getState("ui.activeTab") || "summary";
+            const hasData = data !== null && data !== undefined,
+             currentTab = getState("ui.activeTab") || "summary";
 
             if (!hasData && currentTab !== "summary") {
                 // If no data, switch to summary tab

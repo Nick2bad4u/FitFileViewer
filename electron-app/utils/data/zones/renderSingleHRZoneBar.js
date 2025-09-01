@@ -22,19 +22,19 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         console.log("[renderSingleHRZoneBar] Detected theme:", theme);
 
         // Get saved HR zone colors
-        const savedColors = getChartZoneColors("hr", zoneData.length);
+        const savedColors = getChartZoneColors("hr", zoneData.length),
 
         // Create one dataset per zone for interactive legend
-        const datasets = zoneData.map((zone, index) => ({
+         datasets = zoneData.map((zone, index) => ({
             label: /** @type {any} */ (zone).label,
             data: [/** @type {any} */ (zone).value], // Single value array for this zone
             backgroundColor:
                 /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
             borderColor: theme === "dark" ? "#333" : "#fff",
             borderWidth: 1,
-        }));
+        })),
 
-        const chart = new /** @type {any} */ (window).Chart(canvas, {
+         chart = new /** @type {any} */ (window).Chart(canvas, {
             type: "bar",
             data: {
                 labels: ["Time in Zone"], // Single category for all zones
@@ -53,7 +53,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         },
                     },
                     title: {
-                        display: !!(/** @type {any} */ (options).title),
+                        display: Boolean((options).title),
                         text: /** @type {any} */ (options).title || "Heart Rate Zones",
                         color: theme === "dark" ? "#fff" : "#000",
                         font: { size: 16, weight: "bold" },
@@ -66,7 +66,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 const timeFormatted = formatTime(context.parsed.y, true);
                                 return `${context.dataset.label}: ${timeFormatted}`;
                             },
@@ -130,7 +130,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                         ticks: {
                             color: theme === "dark" ? "#fff" : "#000",
                             /** @param {any} value */
-                            callback: function (value) {
+                            callback (value) {
                                 return formatTime(value, true);
                             },
                         },
@@ -145,7 +145,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         return chart;
     } catch (error) {
         if (/** @type {any} */ (window).showNotification)
-            /** @type {any} */ (window).showNotification("Failed to render HR zone bar", "error");
+            /** @type {any} */ {(window).showNotification("Failed to render HR zone bar", "error");}
         console.error("[renderSingleHRZoneBar] Error:", error);
         return null;
     }

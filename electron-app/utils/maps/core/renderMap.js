@@ -62,7 +62,7 @@ import { formatTooltipData } from "../../formatting/display/formatTooltipData.js
 import { getLapNumForIdx } from "../../data/processing/getLapNumForIdx.js";
 import { mapDrawLaps } from "../layers/mapDrawLaps.js";
 import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
-import { createStartIcon, createEndIcon } from "../layers/mapIcons.js";
+import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { baseLayers } from "../layers/mapBaseLayers.js";
 import { createMapThemeToggle } from "../controls/mapActionButtons.js";
 import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
@@ -81,7 +81,7 @@ export function renderMap() {
     windowExt._overlayPolylines = {};
 
     const mapContainer = document.getElementById("content-map");
-    if (!mapContainer) return;
+    if (!mapContainer) {return;}
 
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
     if (windowExt._leafletMapInstance && windowExt._leafletMapInstance.remove) {
@@ -104,11 +104,11 @@ export function renderMap() {
     mapControlsDiv.id = "map-controls";
     mapContainer.appendChild(mapControlsDiv);
 
-    const LeafletLib = /** @type {any} */ (windowExt).L;
-    const map = LeafletLib.map("leaflet-map", {
+    const LeafletLib = /** @type {any} */ (windowExt).L,
+     map = LeafletLib.map("leaflet-map", {
         center: [0, 0],
         zoom: 2,
-        layers: [baseLayers["OpenStreetMap"]],
+        layers: [baseLayers.OpenStreetMap],
         fullscreenControl: true,
     });
     windowExt._leafletMapInstance = map;
@@ -121,12 +121,12 @@ export function renderMap() {
     mapTypeBtn.style.position = "absolute";
     mapTypeBtn.style.top = "16px";
     mapTypeBtn.style.right = "60px";
-    mapTypeBtn.style.zIndex = "900"; // ensure above layers control
+    mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
     mapTypeBtn.innerHTML = "🗺️ Change Map Type";
     mapTypeBtn.title = "Click to change the map type";
     mapTypeBtn.onclick = handleMapTypeButtonClick;
     const leafletMapDiv2 = document.getElementById("leaflet-map");
-    if (leafletMapDiv2) leafletMapDiv2.appendChild(mapTypeBtn);
+    if (leafletMapDiv2) {leafletMapDiv2.appendChild(mapTypeBtn);}
 
     /**
      * Handle map type button click
@@ -139,7 +139,7 @@ export function renderMap() {
         if (layersControlEl) {
             layersControlEl.classList.add("leaflet-control-layers-expanded");
             const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
-            layersControlElStyled.style.zIndex = "1201"; // just below the button
+            layersControlElStyled.style.zIndex = "1201"; // Just below the button
             // Focus the first input for accessibility
             const firstInput = layersControlEl.querySelector('input[type="radio"]');
             if (firstInput) {
@@ -165,12 +165,12 @@ export function renderMap() {
     // --- Add a custom zoom slider bar (normalized 0-100%) ---
     const zoomSliderBar = document.createElement("div");
     zoomSliderBar.className = "custom-zoom-slider-bar";
-    const minZoom = map.getMinZoom();
-    const maxZoom = map.getMaxZoom();
+    const minZoom = map.getMinZoom(),
+     maxZoom = map.getMaxZoom(),
     /** @param {number} zoom */
-    const zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
+     zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100,
     /** @param {number} percent */
-    const percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100;
+     percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100;
     zoomSliderBar.innerHTML = `
 		<div class="custom-zoom-slider-label">Zoom</div>
 		<input type="range" min="0" max="100" value="${zoomToPercent(map.getZoom())}" step="1" id="zoom-slider-input">
@@ -182,8 +182,8 @@ export function renderMap() {
 			<span id="zoom-slider-max">100%</span>
 		</div>
 	`;
-    const zoomSlider = /** @type {HTMLInputElement} */ (zoomSliderBar.querySelector("#zoom-slider-input"));
-    const zoomSliderCurrent = /** @type {HTMLElement} */ (zoomSliderBar.querySelector("#zoom-slider-current"));
+    const zoomSlider = /** @type {HTMLInputElement} */ (zoomSliderBar.querySelector("#zoom-slider-input")),
+     zoomSliderCurrent = /** @type {HTMLElement} */ (zoomSliderBar.querySelector("#zoom-slider-current"));
     zoomSliderBar.style.pointerEvents = "auto";
     if (zoomSlider) {
         zoomSlider.style.pointerEvents = "auto";
@@ -218,8 +218,8 @@ export function renderMap() {
                 debounce(
                     /** @param {Event} e */ (e) => {
                         isDragging = true;
-                        const target = /** @type {HTMLInputElement} */ (e.target);
-                        const percent = Number(target.value);
+                        const target = /** @type {HTMLInputElement} */ (e.target),
+                         percent = Number(target.value);
                         zoomSliderCurrent.textContent = `${percent}%`;
                     },
                     100
@@ -227,9 +227,9 @@ export function renderMap() {
             ) // Adjust debounce delay as needed
         );
         zoomSlider.addEventListener("change", (e) => {
-            const target = /** @type {HTMLInputElement} */ (e.target);
-            const percent = Number(target.value);
-            const newZoom = percentToZoom(percent);
+            const target = /** @type {HTMLInputElement} */ (e.target),
+             percent = Number(target.value),
+             newZoom = percentToZoom(percent);
             map.setZoom(Math.round(newZoom));
             isDragging = false;
         });
@@ -284,7 +284,7 @@ export function renderMap() {
                 if (windowExt.globalData && windowExt.globalData.recordMesgs) {
                     mapDrawLapsWrapper("all");
                 }
-                if (windowExt.updateShownFilesList) windowExt.updateShownFilesList();
+                if (windowExt.updateShownFilesList) {windowExt.updateShownFilesList();}
             })
         );
         addSimpleMeasureTool(map, controlsDiv);
@@ -292,7 +292,7 @@ export function renderMap() {
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
             const shownFilesList = createShownFilesList();
             controlsDiv.appendChild(shownFilesList);
-            if (windowExt.updateShownFilesList) windowExt.updateShownFilesList();
+            if (windowExt.updateShownFilesList) {windowExt.updateShownFilesList();}
         }
     }
 
@@ -300,8 +300,8 @@ export function renderMap() {
     addFullscreenControl(map);
 
     // --- Custom icons for start/end ---
-    const startIcon = createStartIcon();
-    const endIcon = createEndIcon();
+    const startIcon = createStartIcon(),
+     endIcon = createEndIcon();
 
     // --- Marker cluster group (if available) ---
     /** @type {any} */
@@ -366,7 +366,7 @@ export function renderMap() {
             },
         });
         map.addControl(drawControl);
-        map.on(L.Draw.Event.CREATED, function (/** @type {any} */ e) {
+        map.on(L.Draw.Event.CREATED, (/** @type {any} */ e) => {
             drawnItems.addLayer(e.layer);
         });
     }
@@ -380,9 +380,9 @@ export function renderMap() {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
                 chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
-            );
-            const fileName = (fitFile.filePath || "").split(/[\\/]/).pop();
-            const bounds = drawOverlayForFitFile({
+            ),
+             fileName = (fitFile.filePath || "").split(/[\\/]/).pop(),
+             bounds = drawOverlayForFitFile({
                 fitData: fitFile.data,
                 map,
                 color,
@@ -398,7 +398,7 @@ export function renderMap() {
             console.log(`[renderMap] Overlay idx=${idx} bounds:`, bounds);
         });
         // --- Bring overlay markers to front so they appear above all polylines ---
-        setTimeout(function () {
+        setTimeout(() => {
             if (windowExt._overlayPolylines) {
                 Object.entries(windowExt._overlayPolylines).forEach(([idx, polyline]) => {
                     console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);
@@ -411,7 +411,7 @@ export function renderMap() {
                                     polyline.options &&
                                     layer.options.color === polyline.options.color
                                 ) {
-                                    if (layer.bringToFront) layer.bringToFront();
+                                    if (layer.bringToFront) {layer.bringToFront();}
                                 }
                             });
                         }

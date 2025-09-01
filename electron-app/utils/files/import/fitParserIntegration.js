@@ -86,10 +86,10 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
         // Import fitParser
         /** @type {any} */
         // Path adjustment same as above
-        const fitParser = require("../../../fitParser.js");
+        const fitParser = require("../../../fitParser.js"),
 
         // Decode the file with state management integration
-        const result = await fitParser.decodeFitFile(fileBuffer, options);
+         result = await fitParser.decodeFitFile(fileBuffer, options);
 
         // If successful, update master state
         if (result && !result.error) {
@@ -104,8 +104,8 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
         return result;
     } catch (error) {
         console.error("[FitParserIntegration] Error in decodeFitFileWithState:", error);
-        const message = error instanceof Error ? error.message : String(error);
-        const stack = error instanceof Error ? error.stack : undefined;
+        const message = error instanceof Error ? error.message : String(error),
+         stack = error instanceof Error ? error.stack : undefined;
 
         // Update state with error
         if (masterStateManager) {
@@ -133,8 +133,8 @@ export async function updateDecoderOptionsWithState(newOptions) {
     try {
         /** @type {any} */
         // Path adjustment same as above
-        const fitParser = require("../../../fitParser.js");
-        const result =
+        const fitParser = require("../../../fitParser.js"),
+         result =
             typeof fitParser.updateDecoderOptions === "function"
                 ? fitParser.updateDecoderOptions(newOptions)
                 : { success: false, error: "updateDecoderOptions not available" };

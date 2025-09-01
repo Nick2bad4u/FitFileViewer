@@ -15,17 +15,17 @@ const STORAGE_KEYS = {
     TIME_UNITS: "chartjs_timeUnits",
     DISTANCE_UNITS: "chartjs_distanceUnits",
     TEMPERATURE_UNITS: "chartjs_temperatureUnits",
-};
+},
 
 // Default unit preferences
-const DEFAULT_UNITS = {
+ DEFAULT_UNITS = {
     TIME: "seconds",
     DISTANCE: "kilometers",
     TEMPERATURE: "celsius",
-};
+},
 
 // Unit symbol mappings
-const UNIT_SYMBOLS = {
+ UNIT_SYMBOLS = {
     DISTANCE: {
         kilometers: "km",
         meters: "m",
@@ -44,17 +44,17 @@ const UNIT_SYMBOLS = {
     SPEED: {
         default: "m/s", // Always show m/s for speed fields
     },
-};
+},
 
 // Field type categories
-const FIELD_TYPES = {
+ FIELD_TYPES = {
     DISTANCE: ["distance", "altitude", "enhancedAltitude"],
     TEMPERATURE: ["temperature"],
     SPEED: ["speed", "enhancedSpeed"],
-};
+},
 
 // Fallback symbols for fitness metrics and other fields
-const ORIGINAL_FIELD_LABELS = {
+ ORIGINAL_FIELD_LABELS = {
     heartRate: "bpm",
     power: "W",
     cadence: "rpm",

@@ -16,8 +16,8 @@ import { getMapThemeInverted } from "./createMapThemeToggle.js";
  */
 export function updateMapTheme() {
     try {
-        const mapShouldBeDark = getMapThemeInverted();
-        const leafletMap = document.getElementById("leaflet-map");
+        const mapShouldBeDark = getMapThemeInverted(),
+         leafletMap = document.getElementById("leaflet-map");
 
         if (leafletMap) {
             // Apply dark theme filter if user prefers dark maps

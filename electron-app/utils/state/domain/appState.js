@@ -167,7 +167,7 @@ class AppStateManager {
             }
 
             const finalKey = keys[keys.length - 1];
-            if (!finalKey) return;
+            if (!finalKey) {return;}
 
             let value = initialValue;
 
@@ -180,10 +180,10 @@ class AppStateManager {
                  * @param {*} newValue - New value to set
                  */
                 set(newValue) {
-                    const oldValue = value;
+                    const oldValue = value,
 
                     // Validate if validator exists
-                    const validator = self.validators.get(path);
+                     validator = self.validators.get(path);
                     if (validator && !validator(newValue, oldValue)) {
                         console.warn(`[AppState] Validation failed for ${path}:`, newValue);
                         return;
@@ -203,10 +203,10 @@ class AppStateManager {
                 configurable: true,
                 enumerable: true,
             });
-        };
+        },
 
         // Setup reactive properties for key state paths
-        const reactivePaths = [
+         reactivePaths = [
             "data.globalData",
             "data.isLoaded",
             "file.isOpening",
@@ -433,8 +433,8 @@ class AppStateManager {
     loadPersistedState() {
         try {
             PERSISTENCE_CONFIG.PERSISTENT_KEYS.forEach((path) => {
-                const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path;
-                const stored = localStorage.getItem(key);
+                const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path,
+                 stored = localStorage.getItem(key);
 
                 if (stored !== null) {
                     try {
@@ -461,8 +461,8 @@ class AppStateManager {
         }
 
         try {
-            const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path;
-            const value = this.get(path);
+            const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path,
+             value = this.get(path);
 
             if (value !== undefined) {
                 localStorage.setItem(key, JSON.stringify(value));
@@ -564,7 +564,7 @@ export function setGlobalData(data) {
     const fitData = data;
     appState.update({
         "data.globalData": data,
-        "data.isLoaded": !!data,
+        "data.isLoaded": Boolean(data),
         "data.lastModified": Date.now(),
         "data.recordCount": fitData?.recordMesgs?.length || 0,
     });
@@ -630,10 +630,10 @@ export function addError(error, context = "") {
         stack: error instanceof Error ? error.stack : undefined,
         context,
         timestamp: Date.now(),
-    };
+    },
 
-    const currentErrors = appState.get("errors.current") || [];
-    const errorHistory = appState.get("errors.history") || [];
+     currentErrors = appState.get("errors.current") || [],
+     errorHistory = appState.get("errors.history") || [];
 
     appState.update({
         "errors.current": [...currentErrors, errorObj],

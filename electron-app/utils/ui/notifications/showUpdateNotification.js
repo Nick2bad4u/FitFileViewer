@@ -11,14 +11,14 @@ const NOTIFICATION_CONSTANTS = {
     BUTTON_CLASS: "themed-btn",
     UPDATE_DOWNLOADED: "update-downloaded",
     BUTTON_MARGIN: "10px",
-};
+},
 
-const BUTTON_TEXTS = {
+ BUTTON_TEXTS = {
     RESTART_UPDATE: "Restart & Update",
     LATER: "Later",
-};
+},
 
-const LOG_PREFIX = "[ShowUpdateNotification]";
+ LOG_PREFIX = "[ShowUpdateNotification]";
 
 /**
  * Enhanced logging with context
@@ -27,8 +27,8 @@ const LOG_PREFIX = "[ShowUpdateNotification]";
  * @param {Object} context - Additional context
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
+    const timestamp = new Date().toISOString(),
+     logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
 
     if (context && Object.keys(context).length > 0) {
         /** @type {Record<string, any>} */ (console)[level](logMessage, context);
@@ -145,10 +145,10 @@ function hideNotification(notification) {
 function createUpdateDownloadedButtons(notification) {
     try {
         // Restart & Update button
-        const restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall);
+        const restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall),
 
         // Later button
-        const laterBtn = createThemedButton(BUTTON_TEXTS.LATER, () => hideNotification(notification), {
+         laterBtn = createThemedButton(BUTTON_TEXTS.LATER, () => hideNotification(notification), {
             marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
         });
 

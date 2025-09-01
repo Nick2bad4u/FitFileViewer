@@ -15,8 +15,8 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
         globalIndicator.className = "global-chart-status";
 
         // Calculate status
-        const isAllVisible = counts.visible === counts.available;
-        const hasHiddenCharts = counts.available > counts.visible;
+        const isAllVisible = counts.visible === counts.available,
+         hasHiddenCharts = counts.available > counts.visible;
 
         globalIndicator.style.cssText = `
             position: sticky;
@@ -94,15 +94,15 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             quickAction.textContent = "⚙️ Show Settings";
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
-                const wrapper = document.getElementById("chartjs-settings-wrapper");
-                const toggleBtn = document.getElementById("chart-controls-toggle");
+                const wrapper = document.getElementById("chartjs-settings-wrapper"),
+                 toggleBtn = document.getElementById("chart-controls-toggle");
                 if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
                     wrapper.style.display = "block";
                     toggleBtn.textContent = "▼ Hide Controls";
                     toggleBtn.setAttribute("aria-expanded", "true");
                     const fieldsSection = document.querySelector(".fields-section");
                     if (fieldsSection instanceof HTMLElement) {
-                        setTimeout(function () {
+                        setTimeout(() => {
                             fieldsSection.scrollIntoView({ behavior: "smooth", block: "start" });
                         }, 100);
                     }

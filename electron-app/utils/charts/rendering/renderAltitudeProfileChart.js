@@ -46,7 +46,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             })
             .filter((point) => point !== null);
 
-        if (chartData.length === 0) return;
+        if (chartData.length === 0) {return;}
 
         // Apply data point limiting
         if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
@@ -69,7 +69,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                     {
                         label: "Altitude Profile",
                         data: chartData,
-                        backgroundColor: themeConfig.colors.success + "4D", // Green with alpha
+                        backgroundColor: `${themeConfig.colors.success  }4D`, // Green with alpha
                         borderColor: themeConfig.colors.success,
                         pointRadius: 0,
                         pointHoverRadius: 4,
@@ -101,11 +101,11 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any[]} context */
-                            title: function (context) {
+                            title (context) {
                                 return `Time: ${formatTime(context[0].parsed.x)}`;
                             },
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 return `Altitude: ${context.parsed.y.toFixed(1)} m`;
                             },
                         },
@@ -127,7 +127,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             drag: {
                                 enabled: true,
                                 backgroundColor: themeConfig.colors.primaryAlpha,
-                                borderColor: themeConfig.colors.primary + "CC", // Primary with more opacity
+                                borderColor: `${themeConfig.colors.primary  }CC`, // Primary with more opacity
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -164,7 +164,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         ticks: {
                             color: themeConfig.colors.textPrimary,
                             /** @param {any} value */
-                            callback: function (value) {
+                            callback (value) {
                                 return formatTime(value, true);
                             },
                         },
@@ -186,11 +186,11 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                 },
             },
             plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-        };
+        },
 
-        const chart = new /** @type {any} */ (window).Chart(canvas, config);
+         chart = new /** @type {any} */ (window).Chart(canvas, config);
         if (chart) {
-            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ (window)._chartjsInstances = [];
+            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ {(window)._chartjsInstances = [];}
             /** @type {any} */ (window)._chartjsInstances.push(chart);
             console.log("[ChartJS] Altitude Profile chart created successfully");
         }

@@ -73,7 +73,7 @@ export const chartColorSchemes = {
             "#e53935", // Anaerobic Capacity (Z6)
             "#8e24aa", // Neuromuscular Power (Z7)
         ],
-        hr: ["#b3e5fc", "#81d4fa", "#4fc3f7", "#0288d1", "#ffb300"], // fallback HR colors
+        hr: ["#b3e5fc", "#81d4fa", "#4fc3f7", "#0288d1", "#ffb300"], // Fallback HR colors
     },
     // Runner-specific power color scheme (Stryd 5 zones)
     runner: {
@@ -84,7 +84,7 @@ export const chartColorSchemes = {
             "#ffb74d", // Interval
             "#ef5350", // Repetition/Sprint
         ],
-        hr: ["#b2dfdb", "#4dd0e1", "#26a69a", "#ffb74d", "#ef5350"], // fallback HR colors
+        hr: ["#b2dfdb", "#4dd0e1", "#26a69a", "#ffb74d", "#ef5350"], // Fallback HR colors
     },
     // General exercise power color scheme (generic 5 zones)
     exercise: {
@@ -95,7 +95,7 @@ export const chartColorSchemes = {
             "#ffb74d", // Zone 4 (Hard)
             "#e57373", // Zone 5 (Max)
         ],
-        hr: ["#aed581", "#fff176", "#ffd54f", "#ffb74d", "#e57373"], // fallback HR colors
+        hr: ["#aed581", "#fff176", "#ffd54f", "#ffb74d", "#e57373"], // Fallback HR colors
     },
     // Add more schemes as needed
 };

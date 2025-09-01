@@ -76,7 +76,7 @@ function logWithContext(message, level = "info") {
  * @private
  */
 function safeToNumber(value, fieldName = "value") {
-    if (value == null) return null;
+    if (value == null) {return null;}
 
     const num = Number(value);
     if (!Number.isFinite(num)) {
@@ -95,12 +95,12 @@ function safeToNumber(value, fieldName = "value") {
  */
 function formatAltitude(altitude) {
     const altMeters = safeToNumber(altitude, "altitude");
-    if (altMeters === null) return "";
+    if (altMeters === null) {return "";}
 
-    const { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
-    const { ALTITUDE_METERS, ALTITUDE_FEET } = FORMATTING_CONSTANTS.DECIMAL_PLACES;
+    const { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
+     { ALTITUDE_METERS, ALTITUDE_FEET } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
 
-    const altFeet = altMeters * METERS_TO_FEET;
+     altFeet = altMeters * METERS_TO_FEET;
     return `${altMeters.toFixed(ALTITUDE_METERS)} m / ${altFeet.toFixed(ALTITUDE_FEET)} ft`;
 }
 
@@ -112,7 +112,7 @@ function formatAltitude(altitude) {
  */
 function formatHeartRate(heartRate) {
     const hr = safeToNumber(heartRate, "heart rate");
-    if (hr === null) return "";
+    if (hr === null) {return "";}
 
     return `${hr.toFixed(FORMATTING_CONSTANTS.DECIMAL_PLACES.HEART_RATE)} bpm`;
 }
@@ -125,13 +125,13 @@ function formatHeartRate(heartRate) {
  */
 function formatSpeed(speed) {
     const speedMps = safeToNumber(speed, "speed");
-    if (speedMps === null) return "";
+    if (speedMps === null) {return "";}
 
-    const { MPS_TO_KMH, MPS_TO_MPH } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
-    const { SPEED } = FORMATTING_CONSTANTS.DECIMAL_PLACES;
+    const { MPS_TO_KMH, MPS_TO_MPH } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
+     { SPEED } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
 
-    const speedKmh = speedMps * MPS_TO_KMH;
-    const speedMph = speedMps * MPS_TO_MPH;
+     speedKmh = speedMps * MPS_TO_KMH,
+     speedMph = speedMps * MPS_TO_MPH;
 
     return `${speedKmh.toFixed(SPEED)} km/h / ${speedMph.toFixed(SPEED)} mph`;
 }
@@ -144,7 +144,7 @@ function formatSpeed(speed) {
  */
 function formatPower(power) {
     const watts = safeToNumber(power, "power");
-    if (watts === null) return "";
+    if (watts === null) {return "";}
 
     return `${watts.toFixed(FORMATTING_CONSTANTS.DECIMAL_PLACES.POWER)} W`;
 }
@@ -157,7 +157,7 @@ function formatPower(power) {
  */
 function formatCadence(cadence) {
     const rpm = safeToNumber(cadence, "cadence");
-    if (rpm === null) return "";
+    if (rpm === null) {return "";}
 
     return `${rpm.toFixed(FORMATTING_CONSTANTS.DECIMAL_PLACES.CADENCE)} rpm`;
 }
@@ -170,13 +170,13 @@ function formatCadence(cadence) {
  */
 function formatDistance(distance) {
     const meters = safeToNumber(distance, "distance");
-    if (meters === null) return "";
+    if (meters === null) {return "";}
 
-    const { METERS_TO_KM, KM_TO_MILES } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
-    const { DISTANCE_KM, DISTANCE_MI } = FORMATTING_CONSTANTS.DECIMAL_PLACES;
+    const { METERS_TO_KM, KM_TO_MILES } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
+     { DISTANCE_KM, DISTANCE_MI } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
 
-    const km = meters / METERS_TO_KM;
-    const mi = km * KM_TO_MILES;
+     km = meters / METERS_TO_KM,
+     mi = km * KM_TO_MILES;
 
     return `${km.toFixed(DISTANCE_KM)} km / ${mi.toFixed(DISTANCE_MI)} mi<br>`;
 }
@@ -199,25 +199,25 @@ function formatRideTime(timestamp, recordMesgs) {
             return "";
         }
 
-        const firstTime = new Date(first.timestamp).getTime();
-        const currTime = new Date(timestamp).getTime();
+        const firstTime = new Date(first.timestamp).getTime(),
+         currTime = new Date(timestamp).getTime();
 
         if (isNaN(firstTime) || isNaN(currTime)) {
             logWithContext("Invalid timestamp in ride time calculation", "warn");
             return "";
         }
 
-        const diff = Math.max(0, Math.floor((currTime - firstTime) / 1000));
-        const { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } = FORMATTING_CONSTANTS.TIME_UNITS;
+        const diff = Math.max(0, Math.floor((currTime - firstTime) / 1000)),
+         { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } = FORMATTING_CONSTANTS.TIME_UNITS,
 
-        const hours = Math.floor(diff / SECONDS_PER_HOUR);
-        const minutes = Math.floor((diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
-        const seconds = Math.floor(diff % SECONDS_PER_MINUTE);
+         hours = Math.floor(diff / SECONDS_PER_HOUR),
+         minutes = Math.floor((diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE),
+         seconds = Math.floor(diff % SECONDS_PER_MINUTE),
 
-        const parts = [];
-        if (hours > 0) parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);
-        if (minutes > 0) parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);
-        if (seconds > 0 || parts.length === 0) parts.push(`${seconds} second${seconds !== 1 ? "s" : ""}`);
+         parts = [];
+        if (hours > 0) {parts.push(`${hours} hour${hours !== 1 ? "s" : ""}`);}
+        if (minutes > 0) {parts.push(`${minutes} minute${minutes !== 1 ? "s" : ""}`);}
+        if (seconds > 0 || parts.length === 0) {parts.push(`${seconds} second${seconds !== 1 ? "s" : ""}`);}
 
         return parts.join(", ");
     } catch (error) {
@@ -258,31 +258,31 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         const recordMesgs =
             recordMesgsOverride ||
             getState("globalData.recordMesgs") ||
-            /** @type {any} */ ((window).globalData && /** @type {any} */ (window).globalData.recordMesgs);
+            /** @type {any} */ ((window).globalData && /** @type {any} */ (window).globalData.recordMesgs),
 
         // Format timestamp
-        const dateStr = row.timestamp ? new Date(row.timestamp).toLocaleString() : "";
+         dateStr = row.timestamp ? new Date(row.timestamp).toLocaleString() : "",
 
         // Format individual metrics
-        const altitude = formatAltitude(row.altitude ?? null);
-        const heartRate = formatHeartRate(row.heartRate ?? null);
-        const speed = formatSpeed(row.speed ?? null);
-        const power = formatPower(row.power ?? null);
-        const cadence = formatCadence(row.cadence ?? null);
-        const distance = formatDistance(row.distance ?? null);
-        const rideTime = formatRideTime(row.timestamp || "", recordMesgs);
+         altitude = formatAltitude(row.altitude ?? null),
+         heartRate = formatHeartRate(row.heartRate ?? null),
+         speed = formatSpeed(row.speed ?? null),
+         power = formatPower(row.power ?? null),
+         cadence = formatCadence(row.cadence ?? null),
+         distance = formatDistance(row.distance ?? null),
+         rideTime = formatRideTime(row.timestamp || "", recordMesgs),
 
         // Build the tooltip HTML
-        const tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
+         tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
 
-        if (dateStr) tooltipParts.push(`<b>Time:</b> ${dateStr}`);
-        if (rideTime) tooltipParts.push(`<b>Ride Time:</b> ${rideTime}`);
-        if (distance) tooltipParts.push(`<b>Distance:</b> ${distance.replace("<br>", "")}`);
-        if (altitude) tooltipParts.push(`<b>Alt:</b> ${altitude}`);
-        if (heartRate) tooltipParts.push(`<b>HR:</b> ${heartRate}`);
-        if (speed) tooltipParts.push(`<b>Speed:</b> ${speed}`);
-        if (power) tooltipParts.push(`<b>Power:</b> ${power}`);
-        if (cadence) tooltipParts.push(`<b>Cadence:</b> ${cadence}`);
+        if (dateStr) {tooltipParts.push(`<b>Time:</b> ${dateStr}`);}
+        if (rideTime) {tooltipParts.push(`<b>Ride Time:</b> ${rideTime}`);}
+        if (distance) {tooltipParts.push(`<b>Distance:</b> ${distance.replace("<br>", "")}`);}
+        if (altitude) {tooltipParts.push(`<b>Alt:</b> ${altitude}`);}
+        if (heartRate) {tooltipParts.push(`<b>HR:</b> ${heartRate}`);}
+        if (speed) {tooltipParts.push(`<b>Speed:</b> ${speed}`);}
+        if (power) {tooltipParts.push(`<b>Power:</b> ${power}`);}
+        if (cadence) {tooltipParts.push(`<b>Cadence:</b> ${cadence}`);}
 
         return tooltipParts.join("<br>");
     } catch (error) {

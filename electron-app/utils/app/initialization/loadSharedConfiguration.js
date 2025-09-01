@@ -5,8 +5,8 @@ import { chartStateManager } from "../../charts/core/chartStateManager.js";
 // Function to load shared configuration from URL
 export function loadSharedConfiguration() {
     try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const configParam = urlParams.get("chartConfig");
+        const urlParams = new URLSearchParams(window.location.search),
+         configParam = urlParams.get("chartConfig");
 
         if (configParam) {
             const settings = JSON.parse(atob(configParam));

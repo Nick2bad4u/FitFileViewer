@@ -3,7 +3,7 @@
  * Helps migrate from existing state patterns to the new centralized system
  */
 
-import { initializeStateManager, setState, getState, subscribe } from "../core/stateManager.js";
+import { getState, initializeStateManager, setState, subscribe } from "../core/stateManager.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { uiStateManager } from "../domain/uiStateManager.js";
 
@@ -185,10 +185,10 @@ function setupStateDebugging() {
             if (actions[actionName]) {
                 console.log(`[StateDebug] Triggering action: ${actionName}`, args);
                 return actions[actionName](...args);
-            } else {
+            } 
                 console.warn(`[StateDebug] Unknown action: ${actionName}`);
                 return undefined;
-            }
+            
         },
     };
 
@@ -281,9 +281,7 @@ export function integrateWithRendererUtils() {
 
         // Example: if there's a getGlobalData function
         if (originalUtils.getGlobalData) {
-            /** @type {any} */ (window).rendererUtils.getGlobalData = () => {
-                return getState("globalData");
-            };
+            /** @type {any} */ (window).rendererUtils.getGlobalData = () => getState("globalData");
         }
 
         console.log("[StateIntegration] rendererUtils integration completed");
@@ -403,8 +401,8 @@ function getNestedValue(obj, path) {
  * Set up performance monitoring for state changes
  */
 export function setupStatePerformanceMonitoring() {
-    let stateChangeCount = 0;
-    let lastResetTime = Date.now();
+    let stateChangeCount = 0,
+     lastResetTime = Date.now();
 
     // Monitor state change frequency
     subscribe("", () => {

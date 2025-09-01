@@ -160,7 +160,7 @@ let lastRenderTime = 0;
 const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
 
 // Track previous render state for notification logic
-export let previousChartState = {
+export const previousChartState = {
     chartCount: 0,
     fieldsRendered: [],
     lastRenderTimestamp: 0,
@@ -235,7 +235,7 @@ export const chartState = {
     },
 
     get renderableFields() {
-        if (!this.hasValidData) return [];
+        if (!this.hasValidData) {return [];}
 
         return Array.isArray(formatChartFields)
             ? formatChartFields.filter((field) => {
@@ -383,9 +383,9 @@ if (windowAny.Chart && !windowAny.Chart.registry.plugins.get("chartBackgroundCol
  * @returns {string} RGBA color string
  */
 export function hexToRgba(hex, alpha) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+    const r = parseInt(hex.slice(1, 3), 16),
+     g = parseInt(hex.slice(3, 5), 16),
+     b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
@@ -454,7 +454,7 @@ export async function renderChartJS(targetContainer) {
         setupZoneData(globalData);
 
         // Validate record messages (main time-series data)
-        const recordMesgs = globalData.recordMesgs;
+        const {recordMesgs} = globalData;
         if (!recordMesgs || !Array.isArray(recordMesgs) || recordMesgs.length === 0) {
             console.warn("[ChartJS] No record messages found in FIT data");
             showNotification("No chartable data found in this FIT file", "info");
@@ -518,11 +518,11 @@ export async function renderChartJS(targetContainer) {
             /** @type {HTMLElement} */ (targetContainer),
             recordMesgs,
             activityStartTime
-        );
+        ),
 
         // Log performance timing
-        const performanceEnd = performance.now();
-        const renderTime = performanceEnd - performanceStart;
+         performanceEnd = performance.now(),
+         renderTime = performanceEnd - performanceStart;
         console.log(`[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`);
 
         // Complete rendering process through state actions
@@ -638,8 +638,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
     // Get current settings through enhanced state management
     /** @type {ChartSettings} */
-    const settings = /** @type {any} */ (chartSettingsManager.getSettings());
-    const {
+    const settings = /** @type {any} */ (chartSettingsManager.getSettings()),
+     {
         maxpoints: maxPoints = "all",
         chartType = "line",
         interpolation = "linear",
@@ -651,10 +651,10 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         showFill = false,
         smoothing = 0.1,
         colors: customColors = [],
-    } = settings;
+    } = settings,
 
     // Convert boolean settings from strings (maintain backward compatibility)
-    const boolSettings = {
+     boolSettings = {
         showGrid: String(showGrid) !== "off" && showGrid !== false,
         showLegend: String(showLegend) !== "off" && showLegend !== false,
         showTitle: String(showTitle) !== "off" && showTitle !== false,
@@ -701,18 +701,18 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                 max: "original",
             },
         },
-    };
+    },
     // Get theme from options or fallback to system
-    const currentTheme = detectCurrentTheme();
+     currentTheme = detectCurrentTheme();
     console.log("[renderChartsWithData] Detected theme:", currentTheme);
 
     // Process data
-    const data = recordMesgs; // Use the record messages
-    const labels = data.map((row, i) => {
+    const data = recordMesgs, // Use the record messages
+     labels = data.map((row, i) => {
         // Convert timestamp to relative seconds from start time
         if (/** @type {any} */ (row).timestamp && startTime) {
-            let timestamp;
-            let startTimestamp;
+            let startTimestamp,
+             timestamp;
 
             // Handle different timestamp formats
             if (/** @type {any} */ (row).timestamp instanceof Date) {
@@ -724,7 +724,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                         ? /** @type {any} */ (row).timestamp / 1000
                         : /** @type {any} */ (row).timestamp;
             } else {
-                return i; // fallback to index if timestamp is invalid
+                return i; // Fallback to index if timestamp is invalid
             }
 
             if (typeof startTime === "number") {
@@ -732,18 +732,18 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             } else if (startTime && typeof startTime === "object" && "getTime" in startTime) {
                 startTimestamp = /** @type {Date} */ (startTime).getTime() / 1000;
             } else {
-                return i; // fallback to index if startTime is invalid
+                return i; // Fallback to index if startTime is invalid
             }
 
             return Math.round(timestamp - startTimestamp);
         }
-        return i; // fallback to index
+        return i; // Fallback to index
     }); // Define fields to process for charts - updated to match actual FIT file field names
     // Use formatChartFields imported from formatChartFields.js for consistency
     // (imported at the top: import { formatChartFields } from "../formatting/display/formatChartFields";)
     // Process each field using state-managed visibility settings
     let visibleFieldCount = 0;
-    const renderableFields = chartState.renderableFields;
+    const {renderableFields} = chartState;
 
     console.log(
         `[ChartJS] Processing ${renderableFields.length} visible fields out of ${Array.isArray(formatChartFields) ? formatChartFields.length : 0} total`
@@ -780,9 +780,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                 return isNaN(value) ? null : value;
             }
             return null;
-        });
+        }),
 
-        const validDataCount = numericData.filter((val) => val !== null).length;
+         validDataCount = numericData.filter((val) => val !== null).length;
         console.log(`[ChartJS] Field ${field}: ${validDataCount} valid data points out of ${numericData.length}`);
 
         // Skip if no valid data
@@ -880,7 +880,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         renderLapZoneCharts(
             chartContainer,
             /** @type {any} */ ({
-                // showGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
+                // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
                 showTitle: boolSettings.showTitle,
@@ -925,8 +925,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     }
 
     // Performance logging with state updates using updateState
-    const endTime = performance.now();
-    const renderTime = endTime - (startTime || performance.now());
+    const endTime = performance.now(),
+     renderTime = endTime - (startTime || performance.now());
     console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${renderTime.toFixed(2)}ms`);
 
     // Update performance metrics in state using updateState for efficiency
@@ -954,7 +954,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         console.log(`[ChartJS] Showing success notification: "${message}"`);
 
         // Use setTimeout to ensure notification shows after any DOM changes
-        setTimeout(function () {
+        setTimeout(() => {
             showNotification(message, "success", 3000);
         }, 100);
 
@@ -1157,19 +1157,15 @@ export function initializeChartStateManagement() {
         return data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0;
     });
 
-    /** @type {any} */ (computedStateManager).define?.("charts.renderableFieldCount", () => {
-        return chartState.renderableFields.length;
-    });
+    /** @type {any} */ (computedStateManager).define?.("charts.renderableFieldCount", () => chartState.renderableFields.length);
 
-    /** @type {any} */ (computedStateManager).define?.("charts.summary", () => {
-        return {
+    /** @type {any} */ (computedStateManager).define?.("charts.summary", () => ({
             isRendered: chartState.isRendered,
             hasData: chartState.hasValidData,
             fieldCount: chartState.renderableFields.length,
             chartCount: getState("charts.renderedCount") || 0,
             lastRender: getState("charts.lastRenderTime"),
-        };
-    });
+        }));
 
     // Set up state middleware for chart operations
     middlewareManager.register("chart-render", {
@@ -1232,8 +1228,8 @@ export const chartSettingsManager = {
      * @param {Object} newSettings - Settings to update
      */
     updateSettings(newSettings) {
-        const currentSettings = this.getSettings();
-        const updatedSettings = { ...currentSettings, ...newSettings };
+        const currentSettings = this.getSettings(),
+         updatedSettings = { ...currentSettings, ...newSettings };
 
         // Update through settings state manager for persistence
         /** @type {any} */ (settingsStateManager).updateChartSettings?.(updatedSettings);
@@ -1304,8 +1300,8 @@ export const chartPerformanceMonitor = {
      * @returns {string} Performance tracking ID
      */
     startTracking(operation) {
-        const trackingId = `chart-${operation}-${Date.now()}`;
-        const startTime = performance.now();
+        const trackingId = `chart-${operation}-${Date.now()}`,
+         startTime = performance.now();
 
         // Use updateState to efficiently add tracking data
         updateState(
@@ -1330,12 +1326,12 @@ export const chartPerformanceMonitor = {
      */
     endTracking(trackingId, additionalData = {}) {
         const trackingData = getState(`performance.tracking.${trackingId}`);
-        if (!trackingData) return;
+        if (!trackingData) {return;}
 
-        const endTime = performance.now();
-        const duration = endTime - trackingData.startTime;
+        const endTime = performance.now(),
+         duration = endTime - trackingData.startTime,
 
-        const performanceRecord = {
+         performanceRecord = {
             ...trackingData,
             endTime,
             duration,
@@ -1375,14 +1371,14 @@ export const chartPerformanceMonitor = {
      */
     getSummary() {
         const history = getState("performance.chartHistory") || [];
-        if (history.length === 0) return {};
+        if (history.length === 0) {return {};}
 
-        const durations = history.map((/** @type {any} */ record) => record.duration);
-        const avgDuration =
+        const durations = history.map((/** @type {any} */ record) => record.duration),
+         avgDuration =
             durations.reduce((/** @type {any} */ sum, /** @type {any} */ duration) => sum + duration, 0) /
-            durations.length;
-        const maxDuration = Math.max(...durations);
-        const minDuration = Math.min(...durations);
+            durations.length,
+         maxDuration = Math.max(...durations),
+         minDuration = Math.min(...durations);
 
         return {
             totalOperations: history.length,
@@ -1476,8 +1472,8 @@ if (typeof window !== "undefined") {
                 console.log("[ChartJS Dev] Testing state synchronization...");
 
                 // Test theme change
-                const currentTheme = getState("ui.theme");
-                const newTheme = currentTheme === "dark" ? "light" : "dark";
+                const currentTheme = getState("ui.theme"),
+                 newTheme = currentTheme === "dark" ? "light" : "dark";
                 setState("ui.theme", newTheme, { silent: false, source: "dev-test" });
 
                 setTimeout(() => {
@@ -1487,16 +1483,14 @@ if (typeof window !== "undefined") {
             },
 
             // Comprehensive state dump for debugging
-            dumpState: () => {
-                return {
+            dumpState: () => ({
                     charts: getState("charts"),
                     settings: getState("settings"),
                     performance: getState("performance"),
                     ui: getState("ui"),
-                    globalData: !!getState("globalData"),
+                    globalData: Boolean(getState("globalData")),
                     chartInstances: windowAny._chartjsInstances?.length || 0,
-                };
-            },
+                }),
         };
 
         console.log("[ChartJS] Enhanced development tools available at windowAny.__chartjs_dev");

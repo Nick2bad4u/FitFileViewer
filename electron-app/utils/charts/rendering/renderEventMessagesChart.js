@@ -20,12 +20,12 @@ export function renderEventMessagesChart(container, options, startTime) {
 
         // Get theme configuration
         /** @type {any} */
-        const themeConfig = getThemeConfig();
+        const themeConfig = getThemeConfig(),
 
         // Get user-defined color for event messages
-        const eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0"; // Purple default
+         eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0", // Purple default
 
-        const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("events", 0));
+         canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("events", 0));
 
         // Apply theme-aware canvas styling (background handled by plugin)
         canvas.style.borderRadius = "12px";
@@ -40,8 +40,8 @@ export function renderEventMessagesChart(container, options, startTime) {
 
             // Convert to relative seconds from start time
             if (timestamp && startTime) {
-                let eventTimestamp;
-                let startTimestamp;
+                let eventTimestamp,
+                 startTimestamp;
 
                 // Handle different timestamp formats
                 if (timestamp instanceof Date) {
@@ -71,16 +71,16 @@ export function renderEventMessagesChart(container, options, startTime) {
                 y: 1, // Events are just markers
                 event: event.event || event.message || event.eventType || "Event",
             };
-        });
+        }),
 
-        const config = {
+         config = {
             type: "scatter",
             data: {
                 datasets: [
                     {
                         label: "Events",
                         data: eventData,
-                        backgroundColor: eventColor + "CC", // Add transparency
+                        backgroundColor: `${eventColor  }CC`, // Add transparency
                         borderColor: eventColor,
                         pointRadius: 6,
                         pointHoverRadius: 8,
@@ -111,7 +111,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 const point = context.raw;
                                 return point.event || "Event";
                             },
@@ -138,7 +138,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                         ticks: {
                             color: themeConfig.colors.textPrimary,
                             /** @param {any} value */
-                            callback: function (value) {
+                            callback (value) {
                                 // Format seconds according to user's preferred units
                                 return formatTime(value, true);
                             },
@@ -150,12 +150,12 @@ export function renderEventMessagesChart(container, options, startTime) {
                 },
             },
             plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
-        };
+        },
 
-        const chart = new window.Chart(canvas, config);
+         chart = new window.Chart(canvas, config);
         if (chart) {
             updateChartAnimations(chart, "Event Messages");
-            if (!window._chartjsInstances) window._chartjsInstances = [];
+            if (!window._chartjsInstances) {window._chartjsInstances = [];}
             window._chartjsInstances.push(chart);
         }
     } catch (error) {

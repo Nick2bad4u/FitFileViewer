@@ -225,7 +225,7 @@ export function getOptionConfig(optionId) {
  */
 export function isValidOptionValue(optionId, value) {
     const option = getOptionConfig(optionId);
-    if (!option) return false;
+    if (!option) {return false;}
 
     switch (option.type) {
         case "select":

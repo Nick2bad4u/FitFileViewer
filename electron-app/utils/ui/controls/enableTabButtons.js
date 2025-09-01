@@ -1,7 +1,7 @@
-// utils/enableTabButtons.js
+// Utils/enableTabButtons.js
 // Utility to enable or disable all tab buttons (except Open FIT File)
 
-import { setState, getState } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 // Reuse central DOM helpers for safe narrowing
 import { isHTMLElement } from "../../dom/domHelpers.js";
 
@@ -22,12 +22,12 @@ export function setTabButtonsEnabled(enabled) {
     setState("ui.tabButtonsEnabled", enabled, { source: "setTabButtonsEnabled" });
 
     // Cache the tab buttons outside the function
-    const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button"));
+    const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button")),
 
-    const TAB_DISABLED_CLASS = "tab-disabled";
+     TAB_DISABLED_CLASS = "tab-disabled";
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) return;
+        if (!isHTMLElement(el)) {return;}
         const btn = /** @type {HTMLElement} */ (el);
         // Skip the open file button - it should always remain enabled
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
@@ -41,12 +41,14 @@ export function setTabButtonsEnabled(enabled) {
             buttonEl.disabled = true;
             btn.classList.add(TAB_DISABLED_CLASS);
             btn.setAttribute("disabled", "");
+            btn.setAttribute("aria-disabled", "true");
             btn.style.pointerEvents = "none";
         } else {
             // Enable the button - be more aggressive about removing all disabled states
             buttonEl.disabled = false;
             btn.classList.remove(TAB_DISABLED_CLASS);
             btn.removeAttribute("disabled");
+            btn.setAttribute("aria-disabled", "false");
 
             // Forcefully reset pointer events and styles that might be blocking clicks
             btn.style.pointerEvents = "auto"; // Explicitly set to auto instead of empty
@@ -55,7 +57,7 @@ export function setTabButtonsEnabled(enabled) {
             btn.style.opacity = "1";
 
             // Force a style recalculation
-            btn.offsetHeight; // triggers reflow
+            btn.offsetHeight; // Triggers reflow
         }
     });
 
@@ -63,7 +65,7 @@ export function setTabButtonsEnabled(enabled) {
     setTimeout(() => {
         console.log(`[TabButtons] Final state after ${enabled ? "enable" : "disable"}:`);
         tabButtons.forEach((el) => {
-            if (!isHTMLElement(el)) return;
+            if (!isHTMLElement(el)) {return;}
             const btn = /** @type {HTMLElement} */ (el);
             if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
                 return;
@@ -82,23 +84,24 @@ export function setTabButtonsEnabled(enabled) {
  * Initialize tab button state management
  */
 export function initializeTabButtonState() {
-    // TEMPORARY FIX: Always enable tabs, disable the disabling logic
-    console.log("[TabButtons] TEMPORARY: Always enabling tabs, disabling auto-disable logic");
-    setTabButtonsEnabled(true);
+    console.log("[TabButtons] Initializing proper tab button state management");
 
-    // DISABLED: Subscribe to data loading to automatically enable/disable tabs
+    // Start with tabs disabled initially (before any file is loaded)
+    setTabButtonsEnabled(false);
+
+    // Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
-    // subscribe("globalData", (data) => {
-    //     const hasData = data !== null && data !== undefined;
-    //     console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
-    //     console.log(`[TabButtons] Updating tabs based on globalData: ${hasData ? "enabling" : "disabling"}`);
-    //     setTabButtonsEnabled(hasData);
-    // });
+    subscribe("globalData", (/** @type {any} */ data) => {
+        const hasData = data !== null && data !== undefined;
+        console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
+        console.log(`[TabButtons] Updating tabs based on globalData: ${hasData ? "enabling" : "disabling"}`);
+        setTabButtonsEnabled(hasData);
+    });
 
     // NOTE: Removed ui.isLoading subscription to avoid conflicts
     // Tab state is now controlled ONLY by globalData presence
 
-    console.log("[TabButtons] State management initialized (tabs always enabled)");
+    console.log("[TabButtons] State management initialized - tabs disabled until file loaded");
 }
 
 /**
@@ -117,7 +120,7 @@ export function debugTabButtons() {
     const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button"));
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) return;
+        if (!isHTMLElement(el)) {return;}
         const btn = /** @type {HTMLElement} */ (el);
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             console.log(`[TabButtons] SKIPPING open file button: ${btn.id}`);
@@ -138,12 +141,12 @@ export function debugTabButtons() {
         });
     });
 
-    const globalData = getState("globalData");
-    const isLoading = getState("ui.isLoading");
-    const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
+    const globalData = getState("globalData"),
+     isLoading = getState("ui.isLoading"),
+     tabButtonsEnabled = getState("ui.tabButtonsEnabled");
 
     console.log("[TabButtons] Current state:", {
-        hasGlobalData: !!globalData,
+        hasGlobalData: Boolean(globalData),
         isLoading,
         tabButtonsEnabled,
         globalDataKeys: globalData ? Object.keys(globalData) : null,
@@ -158,7 +161,7 @@ export function forceEnableTabButtons() {
     const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button"));
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) return;
+        if (!isHTMLElement(el)) {return;}
         const btn = /** @type {HTMLElement} */ (el);
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             return;
@@ -194,7 +197,7 @@ export function testTabButtonClicks() {
     const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button"));
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) return;
+        if (!isHTMLElement(el)) {return;}
         const btn = /** @type {HTMLElement} */ (el);
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             return;
@@ -229,23 +232,23 @@ export function debugTabState() {
     const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button"));
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) return;
-        const btn = /** @type {HTMLElement} */ (el);
-        const isActive = btn.classList.contains("active");
-        const ariaSelected = btn.getAttribute("aria-selected");
+        if (!isHTMLElement(el)) {return;}
+        const btn = /** @type {HTMLElement} */ (el),
+         isActive = btn.classList.contains("active"),
+         ariaSelected = btn.getAttribute("aria-selected"),
 
-        const buttonEl = /** @type {HTMLButtonElement} */ (btn);
+         buttonEl = /** @type {HTMLButtonElement} */ (btn);
         console.log(
             `[TabButtons] ${btn.id}: active=${isActive}, aria-selected=${ariaSelected}, disabled=${buttonEl.disabled}`
         );
     });
 
-    const activeTab = getState("ui.activeTab");
-    const globalData = getState("globalData");
+    const activeTab = getState("ui.activeTab"),
+     globalData = getState("globalData");
 
     console.log("[TabButtons] State:", {
         activeTab,
-        hasGlobalData: !!globalData,
+        hasGlobalData: Boolean(globalData),
         tabButtonsEnabled: getState("ui.tabButtonsEnabled"),
     });
 }
@@ -258,7 +261,7 @@ export function forceFixTabButtons() {
     const tabButtons = /** @type {NodeListOf<Element>} */ (document.querySelectorAll(".tab-button"));
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) return;
+        if (!isHTMLElement(el)) {return;}
         const btn = /** @type {HTMLElement} */ (el);
         if (btn.id === "openFileBtn" || btn.id === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             return;

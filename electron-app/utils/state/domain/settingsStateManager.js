@@ -155,15 +155,15 @@ class SettingsStateManager {
             if (schema.type === "object") {
                 // Handle object-type settings (chart, ui, export, units)
                 /** @type {Record<string, any>} */
-                const settings = {};
-                const prefix = schema.key;
+                const settings = {},
+                 prefix = schema.key;
 
                 // Get all localStorage keys with this prefix
                 for (let i = 0; i < localStorage.length; i++) {
                     const storageKey = localStorage.key(i);
                     if (storageKey && storageKey.startsWith(prefix)) {
-                        const settingKey = storageKey.replace(prefix, "");
-                        const value = localStorage.getItem(storageKey);
+                        const settingKey = storageKey.replace(prefix, ""),
+                         value = localStorage.getItem(storageKey);
 
                         try {
                             // Try to parse as JSON, fallback to string
@@ -184,10 +184,10 @@ class SettingsStateManager {
                 }
 
                 return Object.keys(settings).length > 0 ? { ...schema.default, ...settings } : schema.default;
-            } else {
+            } 
                 // Handle simple settings (theme, mapTheme)
                 const value = localStorage.getItem(schema.key);
-                if (value === null) return schema.default;
+                if (value === null) {return schema.default;}
 
                 // Convert to correct type
                 if (schema.type === "boolean") {
@@ -196,7 +196,7 @@ class SettingsStateManager {
                     return parseFloat(value);
                 }
                 return value;
-            }
+            
         } catch (error) {
             console.error(`[SettingsState] Error getting setting ${category}:`, error);
             return schema.default;
@@ -236,8 +236,8 @@ class SettingsStateManager {
                 localStorage.setItem(storageKey, JSON.stringify(value));
 
                 // Update state
-                const rootState = /** @type {any} */ (getState("settings"));
-                const currentSettings = (rootState && rootState[category]) || {};
+                const rootState = /** @type {any} */ (getState("settings")),
+                 currentSettings = (rootState && rootState[category]) || {};
                 currentSettings[key] = value;
                 setState(`settings.${category}` /** @type {string} */, currentSettings, {
                     source: "SettingsStateManager.setSetting",
@@ -280,8 +280,8 @@ class SettingsStateManager {
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key && key.startsWith("chartjs_")) {
-                const settingKey = key.replace("chartjs_", "");
-                const value = localStorage.getItem(key);
+                const settingKey = key.replace("chartjs_", ""),
+                 value = localStorage.getItem(key);
 
                 try {
                     settings[settingKey] = value != null ? JSON.parse(value) : null;
@@ -484,7 +484,7 @@ class SettingsStateManager {
 
         // Listen for localStorage changes from other tabs/windows
         window.addEventListener("storage", (event) => {
-            const k = event.key || ""; // normalize for TS nullability
+            const k = event.key || ""; // Normalize for TS nullability
             if (k && Object.values(SETTINGS_SCHEMA).some((schema) => k.startsWith(schema.key))) {
                 console.log("[SettingsState] External localStorage change detected:", event.key);
 
@@ -503,8 +503,8 @@ class SettingsStateManager {
     syncFromLocalStorage() {
         try {
             Object.keys(SETTINGS_SCHEMA).forEach((category) => {
-                const cat = /** @type {SettingCategory} */ (category);
-                const currentValue = this.getSetting(cat);
+                const cat = /** @type {SettingCategory} */ (category),
+                 currentValue = this.getSetting(cat);
                 setState(`settings.${category}`, currentValue, {
                     source: "SettingsStateManager.syncFromLocalStorage",
                 });

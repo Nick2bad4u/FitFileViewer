@@ -26,8 +26,8 @@ let chartThemeListener = null;
 function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
     /** @type {(((e: Event) => void) & { timeout?: ReturnType<typeof setTimeout> })} */
     const handler = function (event) {
-        const custom = /** @type {ThemeChangeEvent | null} */ (event instanceof CustomEvent ? event : null);
-        const theme = custom?.detail && typeof custom.detail === "object" ? custom.detail.theme : undefined;
+        const custom = /** @type {ThemeChangeEvent | null} */ (event instanceof CustomEvent ? event : null),
+         theme = custom?.detail && typeof custom.detail === "object" ? custom.detail.theme : undefined;
         console.log("[ChartThemeListener] Theme changed to:", theme);
 
         // Debounce rapid theme changes
@@ -35,7 +35,7 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
             clearTimeout(handler.timeout);
         }
 
-        handler.timeout = setTimeout(function () {
+        handler.timeout = setTimeout(() => {
             // Re-render all charts with new theme using modern state management
             if (chartsContainer && window.globalData) {
                 console.log("[ChartThemeListener] Re-rendering charts for theme change");
@@ -104,19 +104,19 @@ function updateSettingsPanelTheme(settingsContainer) {
         const sliders = settingsContainer.querySelectorAll('input[type="range"]');
         sliders.forEach((sliderEl) => {
             const slider = /** @type {HTMLInputElement} */ (sliderEl);
-            if (!(slider instanceof HTMLInputElement)) return;
-            const max = Number(slider.max || 100);
-            const min = Number(slider.min || 0);
-            const current = Number(slider.value || 0);
-            const percentage = max === min ? 0 : ((current - min) / (max - min)) * 100;
+            if (!(slider instanceof HTMLInputElement)) {return;}
+            const max = Number(slider.max || 100),
+             min = Number(slider.min || 0),
+             current = Number(slider.value || 0),
+             percentage = max === min ? 0 : ((current - min) / (max - min)) * 100;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
         });
 
         // Update toggle switches
         const toggles = settingsContainer.querySelectorAll(".toggle-switch");
         toggles.forEach((toggleEl) => {
-            const toggle = /** @type {HTMLElement} */ (toggleEl);
-            const thumb = toggle.querySelector(".toggle-thumb");
+            const toggle = /** @type {HTMLElement} */ (toggleEl),
+             thumb = toggle.querySelector(".toggle-thumb");
             if (thumb instanceof HTMLElement && thumb.style.left === "26px") {
                 toggle.style.background = "var(--color-success)";
             } else {

@@ -4,7 +4,7 @@
  * Now integrated with centralized state management.
  */
 
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 /**
  * Sets the active tab by adding the 'active' class to the tab button with the given ID,
@@ -49,10 +49,10 @@ export function updateActiveTab(tabId) {
 function extractTabName(tabId) {
     // Common patterns for tab button IDs
     const patterns = [
-        /^tab-(.+)$/, // tab-summary -> summary
-        /^(.+)-tab$/, // summary-tab -> summary
-        /^btn-(.+)$/, // btn-chart -> chart
-        /^(.+)-btn$/, // chart-btn -> chart
+        /^tab-(.+)$/, // Tab-summary -> summary
+        /^(.+)-tab$/, // Summary-tab -> summary
+        /^btn-(.+)$/, // Btn-chart -> chart
+        /^(.+)-btn$/, // Chart-btn -> chart
     ];
 
     for (const pattern of patterns) {
@@ -78,7 +78,20 @@ export function initializeActiveTabState() {
     // Set up click listeners for tab buttons
     const tabButtons = document.querySelectorAll(".tab-button");
     tabButtons.forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+            // Check if button is disabled - same logic as TabStateManager
+            if (
+                !button ||
+                ("disabled" in button && /** @type {any} */ (button).disabled) ||
+                button.hasAttribute("disabled") ||
+                button.classList.contains("tab-disabled")
+            ) {
+                console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id}`);
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
             const tabName = extractTabName(button.id);
             if (tabName) {
                 setState("ui.activeTab", tabName, { source: "tabButtonClick" });
@@ -97,8 +110,8 @@ function updateTabButtonsFromState(activeTab) {
     const tabButtons = document.querySelectorAll(".tab-button");
 
     tabButtons.forEach((btn) => {
-        const tabName = extractTabName(btn.id);
-        const isActive = tabName === activeTab;
+        const tabName = extractTabName(btn.id),
+         isActive = tabName === activeTab;
 
         btn.classList.toggle("active", isActive);
         btn.setAttribute("aria-selected", isActive.toString());

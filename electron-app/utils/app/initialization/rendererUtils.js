@@ -3,7 +3,7 @@
  * Enhanced utilities for renderer.js with centralized state support
  */
 
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 /**
  * Displays a notification message in the UI with state tracking.
@@ -144,7 +144,7 @@ function updateLoadingUI(isLoading) {
  */
 function updateNotificationUI(notification) {
     const notif = document.getElementById("notification");
-    if (!notif) return;
+    if (!notif) {return;}
 
     notif.textContent = notification.message;
     notif.className = `notification ${notification.type}`;

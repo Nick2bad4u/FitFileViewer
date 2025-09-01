@@ -26,8 +26,8 @@ import { initializeCompleteStateSystem } from "../integration/stateIntegration.j
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
 import { computedStateManager, initializeCommonComputedValues } from "./computedStateManager.js";
-import { initializeDefaultMiddleware, cleanupMiddleware } from "./stateMiddleware.js";
-import { initializeStateDevTools, cleanupStateDevTools } from "../../debug/stateDevTools.js";
+import { cleanupMiddleware, initializeDefaultMiddleware } from "./stateMiddleware.js";
+import { cleanupStateDevTools, initializeStateDevTools } from "../../debug/stateDevTools.js";
 import { initializeRendererUtils, showNotification } from "../../app/initialization/rendererUtils.js";
 import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
@@ -340,12 +340,12 @@ export class MasterStateManager {
      */
     setupPerformanceMonitoring() {
         // Monitor state change frequency
-        let stateChangeCount = 0;
-        let lastResetTime = Date.now();
+        let stateChangeCount = 0,
+         lastResetTime = Date.now();
 
         // Use type assertion for window debug state
-        const windowExt = /** @type {ExtendedWindow} */ (window);
-        const originalSetState = windowExt.__state_debug?.setState;
+        const windowExt = /** @type {ExtendedWindow} */ (window),
+         originalSetState = windowExt.__state_debug?.setState;
         if (originalSetState) {
             // Wrap setState to count changes
             if (windowExt.__state_debug) {
@@ -358,8 +358,8 @@ export class MasterStateManager {
 
         // Reset counter every minute
         setInterval(() => {
-            const now = Date.now();
-            const elapsed = now - lastResetTime;
+            const now = Date.now(),
+             elapsed = now - lastResetTime;
 
             setState(
                 "system.performance",
@@ -434,16 +434,16 @@ export class MasterStateManager {
             // Ctrl/Cmd + T - Toggle theme
             if ((event.ctrlKey || event.metaKey) && event.key === "t") {
                 event.preventDefault();
-                const currentTheme = getState("ui.theme");
-                const newTheme = currentTheme === "light" ? "dark" : "light";
+                const currentTheme = getState("ui.theme"),
+                 newTheme = currentTheme === "light" ? "dark" : "light";
                 UIActions.setTheme(newTheme);
             }
 
             // Ctrl/Cmd + 1-4 - Switch tabs
             if ((event.ctrlKey || event.metaKey) && event.key >= "1" && event.key <= "4") {
                 event.preventDefault();
-                const tabNames = ["summary", "chart", "map", "data"];
-                const tabIndex = parseInt(event.key) - 1;
+                const tabNames = ["summary", "chart", "map", "data"],
+                 tabIndex = parseInt(event.key) - 1;
                 if (tabNames[tabIndex] && AppSelectors.hasData()) {
                     AppActions.switchTab(tabNames[tabIndex]);
                 }

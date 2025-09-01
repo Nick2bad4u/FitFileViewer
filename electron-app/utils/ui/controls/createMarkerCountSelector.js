@@ -24,20 +24,20 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 export function createMarkerCountSelector(onChange) {
     try {
         /** @type {ThemeColors} */
-        const themeColors = getThemeColors(); // theming values (index signature access is fine at runtime)
+        const themeColors = getThemeColors(), // Theming values (index signature access is fine at runtime)
 
         /** @type {HTMLDivElement} */
-        const container = document.createElement("div");
+         container = document.createElement("div");
         container.className = "map-action-btn marker-count-container";
 
         /** @type {HTMLLabelElement} */
         const label = document.createElement("label");
         label.innerHTML = `
         <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <rect x="1.5" y="8" width="2" height="7" rx="1" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="1.5"/>
-            <rect x="5" y="5" width="2" height="11" rx="1" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="1.5"/>
-            <rect x="8.5" y="2.5" width="2" height="14" rx="1" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="1.5"/>
-            <rect x="12" y="11" width="2" height="5" rx="1" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="1.5"/>
+            <rect x="1.5" y="8" width="2" height="7" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
+            <rect x="5" y="5" width="2" height="11" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
+            <rect x="8.5" y="2.5" width="2" height="14" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
+            <rect x="12" y="11" width="2" height="5" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
         </svg>
         <span>Data Points:</span>
         `;
@@ -63,8 +63,8 @@ export function createMarkerCountSelector(onChange) {
         /** @type {string} */
         let initial;
         /** @type {any} */
-        const g = window; // legacy global usage wrapper
-        const current = g.mapMarkerCount;
+        const g = window, // Legacy global usage wrapper
+         current = g.mapMarkerCount;
         if (typeof current !== "number") {
             g.mapMarkerCount = 50;
             initial = "50";
@@ -79,7 +79,7 @@ export function createMarkerCountSelector(onChange) {
         select.value = initial;
 
         // Handle selection changes
-        select.addEventListener("change", function () {
+        select.addEventListener("change", () => {
             try {
                 const val = select.value;
                 if (val === "all") {
@@ -109,8 +109,8 @@ export function createMarkerCountSelector(onChange) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const options = Array.from(select.options);
-                    let idx = select.selectedIndex;
+                    const options = Array.from(select.options),
+                     idx = select.selectedIndex;
 
                     if (e.deltaY > 0 && idx < options.length - 1) {
                         select.selectedIndex = idx + 1;

@@ -15,10 +15,10 @@
  */
 const path = require("path");
 const fs = require("fs");
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow } = require("electron"),
 
 // Constants for better maintainability
-const CONSTANTS = {
+ CONSTANTS = {
     FILES: {
         WINDOW_STATE: "window-state.json",
     },
@@ -72,14 +72,14 @@ const settingsPath = getSettingsPath();
  * @returns {state is WindowState}
  */
 function validateWindowState(state) {
-    if (!state || typeof state !== "object") return false;
-    const obj = /** @type {Record<string, unknown>} */ (state);
-    const width = obj["width"];
-    const height = obj["height"];
-    if (typeof width !== "number" || width <= 0) return false;
-    if (typeof height !== "number" || height <= 0) return false;
-    if ("x" in obj && obj["x"] !== undefined && typeof obj["x"] !== "number") return false;
-    if ("y" in obj && obj["y"] !== undefined && typeof obj["y"] !== "number") return false;
+    if (!state || typeof state !== "object") {return false;}
+    const obj = /** @type {Record<string, unknown>} */ (state),
+     {width} = obj,
+     {height} = obj;
+    if (typeof width !== "number" || width <= 0) {return false;}
+    if (typeof height !== "number" || height <= 0) {return false;}
+    if ("x" in obj && obj.x !== undefined && typeof obj.x !== "number") {return false;}
+    if ("y" in obj && obj.y !== undefined && typeof obj.y !== "number") {return false;}
     return true;
 }
 
@@ -89,7 +89,7 @@ function validateWindowState(state) {
  */
 function validateWindow(win) {
     return (
-        !!win &&
+        Boolean(win) &&
         typeof win === "object" &&
         typeof (/** @type {any} */ (win).isDestroyed) === "function" &&
         !/** @type {any} */ (win).isDestroyed()
@@ -105,8 +105,8 @@ function sanitizeWindowState(state) {
     if (!validateWindowState(state)) {
         return { ...CONSTANTS.DEFAULTS.WINDOW };
     }
-    const s = /** @type {WindowState} */ (state);
-    const sanitized = {
+    const s = /** @type {WindowState} */ (state),
+     sanitized = {
         width: Math.max(s.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
         height: Math.max(s.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
     };
@@ -138,8 +138,8 @@ function safeErrorMessage(error) {
  * @param {Record<string, any>} [context]
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] [windowStateUtils] ${message}`;
+    const timestamp = new Date().toISOString(),
+     logMessage = `[${timestamp}] [windowStateUtils] ${message}`;
 
     if (context && Object.keys(context).length > 0) {
         // @ts-ignore - dynamic console indexing with validated level string
@@ -170,8 +170,8 @@ function getWindowState() {
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
 
-        const state = JSON.parse(data);
-        const sanitizedState = sanitizeWindowState(state);
+        const state = JSON.parse(data),
+         sanitizedState = sanitizeWindowState(state);
 
         logWithContext("info", "Window state loaded successfully", { state: sanitizedState });
         return sanitizedState;
@@ -205,11 +205,11 @@ function saveWindowState(win) {
             return;
         }
 
-        const bounds = win.getBounds();
-        const state = sanitizeWindowState(bounds);
+        const bounds = win.getBounds(),
+         state = sanitizeWindowState(bounds),
 
         // Ensure directory exists
-        const dir = path.dirname(settingsPath);
+         dir = path.dirname(settingsPath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
@@ -233,11 +233,11 @@ function saveWindowState(win) {
  */
 function createWindow() {
     try {
-        const state = getWindowState();
+        const state = getWindowState(),
 
         // Enhanced window configuration
         /** @type {import('electron').BrowserWindowConstructorOptions} */
-        const windowConfig = {
+         windowConfig = {
             width: state.width,
             height: state.height,
             minWidth: CONSTANTS.DEFAULTS.WINDOW.minWidth,
@@ -366,7 +366,7 @@ module.exports = {
     CONSTANTS,
 
     // Development helpers (only in development)
-    ...(process.env["NODE_ENV"] === "development" && { devHelpers }),
+    ...(process.env.NODE_ENV === "development" && { devHelpers }),
 
     // Version information
     version: "1.0.0",

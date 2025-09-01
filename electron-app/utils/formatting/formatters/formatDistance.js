@@ -13,10 +13,10 @@ const CONVERSION_FACTORS = {
     METERS_PER_KILOMETER: 1000,
     METERS_PER_MILE: 1609.34,
     DECIMAL_PLACES: 2,
-};
+},
 
 // Validation constants
-const VALIDATION = {
+ VALIDATION = {
     MIN_DISTANCE: 0,
 };
 
@@ -73,8 +73,8 @@ export function formatDistance(meters) {
         return "";
     }
 
-    const kilometers = metersToKilometers(meters);
-    const miles = metersToMiles(meters);
+    const kilometers = metersToKilometers(meters),
+     miles = metersToMiles(meters);
 
     return `${kilometers.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
 }

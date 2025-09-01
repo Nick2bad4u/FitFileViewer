@@ -97,16 +97,16 @@ import { formatCapitalize } from "../../formatting/display/formatCapitalize.js";
 export function createUserDeviceInfoBox(container) {
     try {
         /** @type {UserProfileData} */
-        const userProfile = /** @type {any} */ (window).globalData?.userProfileMesgs?.[0] || {};
+        const userProfile = /** @type {any} */ (window).globalData?.userProfileMesgs?.[0] || {},
         /** @type {DeviceInfo[]} */
-        const deviceInfos = /** @type {any} */ (window).globalData?.deviceInfoMesgs || [];
+         deviceInfos = /** @type {any} */ (window).globalData?.deviceInfoMesgs || [],
 
         // Get theme configuration using the established theme system
         /** @type {ThemeConfig} */
-        const themeConfig = /** @type {ThemeConfig} */ (getThemeConfig());
+         themeConfig = /** @type {ThemeConfig} */ (getThemeConfig()),
         /** @type {ThemeColors} */
-        const colors = themeConfig.colors; // Create info box container with theme-aware styling and hover effects
-        const infoBox = document.createElement("div");
+         {colors} = themeConfig, // Create info box container with theme-aware styling and hover effects
+         infoBox = document.createElement("div");
         infoBox.className = "user-device-info-box chart-info-section";
         infoBox.style.cssText = `
             border: 2px solid ${colors.border};
@@ -255,8 +255,8 @@ export function createUserDeviceInfoBox(container) {
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0];
-        const sensors = deviceInfos.filter(
+            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+         sensors = deviceInfos.filter(
             (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
         );
         let deviceHtml = `

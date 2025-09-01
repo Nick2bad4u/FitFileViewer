@@ -1,10 +1,10 @@
-import { formatChartFields, fieldLabels, fieldColors } from "../../formatting/display/formatChartFields.js";
+import { fieldColors, fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { extractDeveloperFieldsList } from "../../data/processing/extractDeveloperFieldsList.js";
-import { resetAllSettings, reRenderChartsAfterSettingChange } from "../../app/initialization/getCurrentSettings.js";
+import { reRenderChartsAfterSettingChange, resetAllSettings } from "../../app/initialization/getCurrentSettings.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
@@ -117,10 +117,10 @@ export function createSettingsHeader(/** @type {HTMLElement} */ wrapper) {
         if (!success) {
             console.error("[ResetBtn] Reset failed");
         }
-    });
+    }),
 
     // Export all charts button
-    const exportAllBtn = createActionButton("📦 Export All", "Export all charts as images", () => {
+     exportAllBtn = createActionButton("📦 Export All", "Export all charts as images", () => {
         exportAllCharts();
     });
 
@@ -297,14 +297,14 @@ function createRangeControl(/** @type {ChartOption} */ option) {
             localStorage.setItem(`chartjs_${option.id}`, target.value);
 
             // Update slider background
-            const minVal = option.min || 0;
-            const maxVal = option.max || 100;
-            const percentage = ((Number(target.value) - minVal) / (maxVal - minVal)) * 100;
+            const minVal = option.min || 0,
+             maxVal = option.max || 100,
+             percentage = ((Number(target.value) - minVal) / (maxVal - minVal)) * 100;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
             // Debounced re-render using the same approach as the reset button
             clearTimeout(slider.timeout);
-            slider.timeout = setTimeout(function () {
+            slider.timeout = setTimeout(() => {
                 reRenderChartsAfterSettingChange(option.id, target.value);
             }, 300);
         }
@@ -312,9 +312,9 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 
     // Initialize slider background
     // Set initial background
-    const minVal = option.min || 0;
-    const maxVal = option.max || 100;
-    const initialPercentage = ((Number(slider.value) - minVal) / (maxVal - minVal)) * 100;
+    const minVal = option.min || 0,
+     maxVal = option.max || 100,
+     initialPercentage = ((Number(slider.value) - minVal) / (maxVal - minVal)) * 100;
     slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
 
     container.appendChild(valueDisplay);
@@ -480,8 +480,8 @@ function createSelectControl(/** @type {ChartOption} */ option) {
                 e.preventDefault();
                 const idx = option.options?.indexOf(select.value === "all" ? "all" : Number(select.value)) ?? -1;
                 let newIdx = idx + (e.deltaY > 0 ? 1 : -1);
-                if (newIdx < 0) newIdx = 0;
-                if (newIdx >= (option.options?.length ?? 0)) newIdx = (option.options?.length ?? 1) - 1;
+                if (newIdx < 0) {newIdx = 0;}
+                if (newIdx >= (option.options?.length ?? 0)) {newIdx = (option.options?.length ?? 1) - 1;}
                 select.value = option.options?.[newIdx] ?? "";
                 select.dispatchEvent(new Event("change"));
             },
@@ -573,10 +573,10 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 	`;
 
     validCharts.forEach((/** @type {any} */ chart, /** @type {number} */ index) => {
-        const dataset = chart.data.datasets[0];
-        const fieldName = dataset?.label || `Chart ${index + 1}`;
+        const dataset = chart.data.datasets[0],
+         fieldName = dataset?.label || `Chart ${index + 1}`,
 
-        const chartItem = document.createElement("button");
+         chartItem = document.createElement("button");
         chartItem.textContent = `📊 ${fieldName}`;
         chartItem.style.cssText = `
 			display: block;
@@ -729,9 +729,9 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 showChartSelectionModal(
                     "Save as PNG",
                     (/** @type {any} */ chart) => {
-                        const dataset = chart.data.datasets[0];
-                        const fieldName = dataset?.label || "chart";
-                        const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
+                        const dataset = chart.data.datasets[0],
+                         fieldName = dataset?.label || "chart",
+                         filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
                         exportUtils.downloadChartAsPNG(chart, filename);
                     },
                     (/** @type {any} */ charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
@@ -756,8 +756,8 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     (/** @type {any} */ chart) => {
                         const dataset = chart.data.datasets[0];
                         if (dataset && dataset.data) {
-                            const fieldName = dataset.label || "chart";
-                            const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.csv`;
+                            const fieldName = dataset.label || "chart",
+                             filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.csv`;
                             exportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
                         }
                     },
@@ -774,8 +774,8 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     (/** @type {any} */ chart) => {
                         const dataset = chart.data.datasets[0];
                         if (dataset && dataset.data) {
-                            const fieldName = dataset.label || "chart";
-                            const filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.json`;
+                            const fieldName = dataset.label || "chart",
+                             filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.json`;
                             exportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
                         }
                     },
@@ -791,11 +791,11 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                                     totalPoints: dataset?.data ? dataset.data.length : 0,
                                 };
                             }),
-                        };
-                        const blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
+                        },
+                         blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
                             type: "application/json;charset=utf-8;",
-                        });
-                        const link = document.createElement("a");
+                        }),
+                         link = document.createElement("a");
                         link.href = URL.createObjectURL(blob);
                         link.download = "combined-charts-data.json";
                         document.body.appendChild(link);
@@ -1000,8 +1000,8 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
 
     // Add lap zone chart toggles if data exists
     if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
-        const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs;
-        const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+        const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs,
+         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
@@ -1056,8 +1056,8 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
  * Creates individual field toggle controls
  */
 function createFieldToggle(/** @type {string} */ field) {
-    const themeConfig = getThemeConfig();
-    const container = document.createElement("div");
+    const themeConfig = getThemeConfig(),
+     container = document.createElement("div");
     container.className = "field-toggle";
 
     // Check if this field has valid data
@@ -1071,8 +1071,8 @@ function createFieldToggle(/** @type {string} */ field) {
 
         if (field === "gps_track") {
             hasValidData = data.some((row) => {
-                const lat = row.positionLat;
-                const long = row.positionLong;
+                const lat = row.positionLat,
+                 long = row.positionLong;
                 return (
                     (lat !== undefined && lat !== null && !isNaN(parseFloat(lat))) ||
                     (long !== undefined && long !== null && !isNaN(parseFloat(long)))
@@ -1088,18 +1088,18 @@ function createFieldToggle(/** @type {string} */ field) {
             const hasSpeed = data.some((row) => {
                 const speed = row.enhancedSpeed || row.speed;
                 return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
-            });
-            const hasDistance = data.some((row) => {
-                const distance = row.distance;
+            }),
+             hasDistance = data.some((row) => {
+                const {distance} = row;
                 return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
             });
             hasValidData = hasSpeed && hasDistance;
         } else if (field === "power_vs_hr") {
             const hasPower = data.some((row) => {
-                const power = row.power;
+                const {power} = row;
                 return power !== undefined && power !== null && !isNaN(parseFloat(power));
-            });
-            const hasHeartRate = data.some((row) => {
+            }),
+             hasHeartRate = data.some((row) => {
                 const hr = row.heartRate;
                 return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
             });
@@ -1112,17 +1112,17 @@ function createFieldToggle(/** @type {string} */ field) {
         } else if (field === "hr_lap_zone_stacked" || field === "hr_lap_zone_individual") {
             // Check for HR lap zone data
             if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs;
-                const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
-                const hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
+                const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs,
+                 lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+                 hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
                 hasValidData = hrLapZones.length > 0;
             }
         } else if (field === "power_lap_zone_stacked" || field === "power_lap_zone_individual") {
             // Check for Power lap zone data
             if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs;
-                const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
-                const powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
+                const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs,
+                 lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+                 powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
                 hasValidData = powerLapZones.length > 0;
             }
         } else if (field.includes("hr_zone")) {
@@ -1132,7 +1132,7 @@ function createFieldToggle(/** @type {string} */ field) {
             });
         } else if (field.includes("power_zone")) {
             hasValidData = data.some((row) => {
-                const power = row.power;
+                const {power} = row;
                 return power !== undefined && power !== null && !isNaN(parseFloat(power));
             });
         } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
@@ -1191,10 +1191,10 @@ function createFieldToggle(/** @type {string} */ field) {
 		color: var(--color-fg);
 		font-size: 14px;
 		cursor: pointer;	`; // Check if this is a zone chart - zone charts no longer get individual color pickers
-    const isHRZoneChart = field.includes("hr_zone");
-    const isPowerZoneChart = field.includes("power_zone");
-    const isZoneChart = isHRZoneChart || isPowerZoneChart;
-    const isLapZoneChart = field.includes("lap_zone");
+    const isHRZoneChart = field.includes("hr_zone"),
+     isPowerZoneChart = field.includes("power_zone"),
+     isZoneChart = isHRZoneChart || isPowerZoneChart,
+     isLapZoneChart = field.includes("lap_zone");
 
     if (isZoneChart) {
         // Zone charts now only get toggle and label - unified color picker is in their dedicated sections
@@ -1256,7 +1256,7 @@ function createFieldToggle(/** @type {string} */ field) {
         }
 
         // Update status indicators after a short delay to allow charts to render
-        setTimeout(function () {
+        setTimeout(() => {
             updateAllChartStatusIndicators();
         }, 100);
     });
@@ -1355,10 +1355,10 @@ export function applySettingsPanelStyles(/** @type {HTMLElement} */ wrapper) {
  */
 function toggleAllFields(enable) {
     try {
-        const visibility = enable ? "visible" : "hidden";
+        const visibility = enable ? "visible" : "hidden",
 
         // Get all possible field keys
-        const allFields = [
+         allFields = [
             .../** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)),
             "gps_track",
             "speed_vs_distance",
@@ -1411,7 +1411,7 @@ function toggleAllFields(enable) {
             renderChartJS("all"); // Fallback for compatibility
         }
 
-        setTimeout(function () {
+        setTimeout(() => {
             updateAllChartStatusIndicators();
         }, 100);
     } catch (error) {

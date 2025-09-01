@@ -18,8 +18,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             (row) =>
                 (row.speed !== undefined && row.speed !== null) ||
                 (row.enhancedSpeed !== undefined && row.enhancedSpeed !== null)
-        );
-        const hasDistance = data.some((row) => row.distance !== undefined && row.distance !== null);
+        ),
+         hasDistance = data.some((row) => row.distance !== undefined && row.distance !== null);
 
         if (!hasSpeed || !hasDistance) {
             return;
@@ -34,13 +34,13 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         const themeConfig = getThemeConfig();
         let chartData = data
             .map((row) => {
-                const speed = row.enhancedSpeed || row.speed;
-                const distance = row.distance;
+                const speed = row.enhancedSpeed || row.speed,
+                 {distance} = row;
 
                 if (speed !== undefined && speed !== null && distance !== undefined && distance !== null) {
                     // Apply unit conversion based on user preferences
-                    const convertedDistance = convertValueToUserUnits(distance, "distance");
-                    const convertedSpeed = convertValueToUserUnits(speed, "speed");
+                    const convertedDistance = convertValueToUserUnits(distance, "distance"),
+                     convertedSpeed = convertValueToUserUnits(speed, "speed");
 
                     return {
                         x: convertedDistance,
@@ -51,7 +51,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             })
             .filter((point) => point !== null);
 
-        if (chartData.length === 0) return;
+        if (chartData.length === 0) {return;}
 
         // Apply data point limiting
         if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
@@ -74,7 +74,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                     {
                         label: "Speed vs Distance",
                         data: chartData,
-                        backgroundColor: themeConfig.colors.warning + "99", // Yellow with alpha
+                        backgroundColor: `${themeConfig.colors.warning  }99`, // Yellow with alpha
                         borderColor: themeConfig.colors.warning,
                         pointRadius: options.showPoints ? 2 : 1,
                         pointHoverRadius: 4,
@@ -107,7 +107,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         borderWidth: 1,
                         callbacks: {
                             /** @param {any} context */
-                            label: function (context) {
+                            label (context) {
                                 // Chart values are in user's preferred units, but we need raw values for tooltip
                                 // Reverse convert to get raw meters/mps for the formatTooltipWithUnits function
                                 const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
@@ -143,8 +143,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             },
                             drag: {
                                 enabled: true,
-                                backgroundColor: themeConfig.colors.warning + "33", // Yellow with alpha
-                                borderColor: themeConfig.colors.warning + "CC", // Yellow with more opacity
+                                backgroundColor: `${themeConfig.colors.warning  }33`, // Yellow with alpha
+                                borderColor: `${themeConfig.colors.warning  }CC`, // Yellow with more opacity
                                 borderWidth: 2,
                                 modifierKey: "shift",
                             },
@@ -197,11 +197,11 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                 },
             },
             plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-        };
+        },
 
-        const chart = new /** @type {any} */ (window).Chart(canvas, config);
+         chart = new /** @type {any} */ (window).Chart(canvas, config);
         if (chart) {
-            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ (window)._chartjsInstances = [];
+            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ {(window)._chartjsInstances = [];}
             /** @type {any} */ (window)._chartjsInstances.push(chart);
             console.log("[ChartJS] Speed vs Distance chart created successfully");
         }
