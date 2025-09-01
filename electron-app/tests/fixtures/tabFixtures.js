@@ -19,7 +19,7 @@ export function createMockTabButtons() {
             <div id="table-content" class="tab-pane">Table content</div>
         </div>
     `;
-    
+
     document.body.appendChild(container);
     return container;
 }
@@ -27,7 +27,7 @@ export function createMockTabButtons() {
 export function createDisabledTabButtons() {
     const container = createMockTabButtons();
     const tabButtons = container.querySelectorAll('.tab-button');
-    
+
     // Disable all buttons except summary using different methods to test all cases
     tabButtons.forEach((button, index) => {
         if (button.id !== 'tab-summary') {
@@ -44,7 +44,7 @@ export function createDisabledTabButtons() {
             }
         }
     });
-    
+
     return container;
 }
 
@@ -55,13 +55,13 @@ export function cleanupDOM() {
 export function mockStateManager() {
     const state = new Map();
     const subscribers = new Map();
-    
+
     return {
         getState: vi.fn((/** @type {string} */ key) => state.get(key)),
         setState: vi.fn((/** @type {string} */ key, /** @type {any} */ value, /** @type {any} */ options = {}) => {
             const oldValue = state.get(key);
             state.set(key, value);
-            
+
             // Notify subscribers
             const keySubscribers = subscribers.get(key) || [];
             keySubscribers.forEach((/** @type {Function} */ callback) => callback(value, oldValue, options));
@@ -71,7 +71,7 @@ export function mockStateManager() {
                 subscribers.set(key, []);
             }
             subscribers.get(key).push(callback);
-            
+
             return () => {
                 const keySubscribers = subscribers.get(key) || [];
                 const index = keySubscribers.indexOf(callback);

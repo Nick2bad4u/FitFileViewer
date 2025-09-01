@@ -18,6 +18,11 @@ import { isHTMLElement } from "../../dom/domHelpers.js";
 export function setTabButtonsEnabled(enabled) {
     console.log(`[TabButtons] setTabButtonsEnabled(${enabled}) called`);
 
+    // Track current state globally for debugging
+    if (typeof window !== "undefined") {
+        /** @type {any} */ (window).tabButtonsCurrentlyEnabled = enabled;
+    }
+
     // Update state to track tab button status
     setState("ui.tabButtonsEnabled", enabled, { source: "setTabButtonsEnabled" });
 
@@ -44,20 +49,45 @@ export function setTabButtonsEnabled(enabled) {
             btn.setAttribute("aria-disabled", "true");
             btn.style.pointerEvents = "none";
         } else {
-            // Enable the button - be more aggressive about removing all disabled states
+            // Enable the button - use multiple approaches to ensure disabled state is fully removed
+            console.log(`[TabButtons] Enabling button ${btn.id || btn.textContent?.trim()}`);
+
+            // Approach 1: Standard property and attribute removal
             buttonEl.disabled = false;
             btn.classList.remove(TAB_DISABLED_CLASS);
             btn.removeAttribute("disabled");
             btn.setAttribute("aria-disabled", "false");
 
-            // Forcefully reset pointer events and styles that might be blocking clicks
-            btn.style.pointerEvents = "auto"; // Explicitly set to auto instead of empty
+            // Approach 2: Forceful attribute removal (in case standard removal fails)
+            if (btn.hasAttribute("disabled")) {
+                console.log(`[TabButtons] WARNING: disabled attribute still present on ${btn.id}, forcing removal`);
+                btn.removeAttribute("disabled");
+                // Try alternative approaches
+                btn.removeAttribute("disabled"); // Try again
+                // Nuclear option: recreate the element to force removal
+                if (btn.hasAttribute("disabled")) {
+                    console.log(`[TabButtons] CRITICAL: Using nuclear option for ${btn.id}`);
+                    const parent = btn.parentNode;
+                    const newBtn = /** @type {HTMLElement} */ (btn.cloneNode(true));
+                    newBtn.removeAttribute("disabled");
+                    if (parent) {
+                        parent.replaceChild(newBtn, btn);
+                    }
+                }
+            }
+
+            // Approach 3: Reset all visual and interaction styles
+            btn.style.pointerEvents = "auto";
             btn.style.cursor = "pointer";
             btn.style.filter = "none";
             btn.style.opacity = "1";
 
-            // Force a style recalculation
+            // Force a style recalculation and reflow
             btn.offsetHeight; // Triggers reflow
+
+            // Final verification
+            const finalBtn = /** @type {HTMLButtonElement} */ (btn);
+            console.log(`[TabButtons] Final state for ${btn.id}: disabled=${finalBtn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`);
         }
     });
 
@@ -85,6 +115,40 @@ export function setTabButtonsEnabled(enabled) {
  */
 export function initializeTabButtonState() {
     console.log("[TabButtons] Initializing proper tab button state management");
+
+    // Add MutationObserver to detect unauthorized disabled attribute additions
+    if (typeof window !== "undefined" && !/** @type {any} */ (window).tabButtonObserver) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
+                    const target = /** @type {HTMLElement} */ (mutation.target);
+                    if (target.classList.contains('tab-button')) {
+                        const hasDisabled = target.hasAttribute('disabled');
+                        const isEnabled = /** @type {any} */ (window).tabButtonsCurrentlyEnabled || false;
+
+                        if (hasDisabled && isEnabled) {
+                            console.warn(`[TabButtons] UNAUTHORIZED: disabled attribute added to ${target.id} when tabs should be enabled!`);
+                            console.trace('Stack trace for unauthorized disable:');
+                            // Force remove it
+                            target.removeAttribute('disabled');
+                            const buttonEl = /** @type {HTMLButtonElement} */ (target);
+                            buttonEl.disabled = false;
+                        }
+                    }
+                }
+            });
+        });
+
+        // Observe all tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            observer.observe(button, {
+                attributes: true,
+                attributeFilter: ['disabled']
+            });
+        });
+
+        /** @type {any} */ (window).tabButtonObserver = observer;
+    }
 
     // Start with tabs disabled initially (before any file is loaded)
     setTabButtonsEnabled(false);
