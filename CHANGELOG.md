@@ -7,9 +7,46 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[1e69eee](https://github.com/Nick2bad4u/FitFileViewer/commit/1e69eee67f491197fb0584efa140193cd666eacd)...
+[1e69eee](https://github.com/Nick2bad4u/FitFileViewer/commit/1e69eee67f491197fb0584efa140193cd666eacd)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/1e69eee67f491197fb0584efa140193cd666eacd...1e69eee67f491197fb0584efa140193cd666eacd))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 26.2.0 [`(1e69eee)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1e69eee67f491197fb0584efa140193cd666eacd)
+
+
+
+
+
+
+## [26.2.0] - 2025-09-02
+
+
 [[a812d0a](https://github.com/Nick2bad4u/FitFileViewer/commit/a812d0aa3e76c54b8ff7d33618e956b39f3adb13)...
-[a812d0a](https://github.com/Nick2bad4u/FitFileViewer/commit/a812d0aa3e76c54b8ff7d33618e956b39f3adb13)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a812d0aa3e76c54b8ff7d33618e956b39f3adb13...a812d0aa3e76c54b8ff7d33618e956b39f3adb13))
+[00ddc93](https://github.com/Nick2bad4u/FitFileViewer/commit/00ddc935371719c3cae062c189376b78f5302081)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/a812d0aa3e76c54b8ff7d33618e956b39f3adb13...00ddc935371719c3cae062c189376b78f5302081))
+
+
+### 💼 Other
+
+- Merge PR #146
+
+chore: format code with Prettier [skip-ci] [`(00ddc93)`](https://github.com/Nick2bad4u/FitFileViewer/commit/00ddc935371719c3cae062c189376b78f5302081)
+
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(3e9335c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3e9335c1ce434bda9160276bb07f665d148c06c4)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Format code with Prettier [skip-ci] [`(6184add)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6184addc2e500c6ace207e4df89a14b40d90fb0c)
+
+
+- Update changelogs for v26.1.0 [skip ci] [`(0bf5f35)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0bf5f3562fe35cdf512facbe363338e2458dd2d8)
+
 
 
 ### 📦 Dependencies
@@ -518,14 +555,17 @@ Replaces the previous lap map drawing implementation with a refactored and renam
 ## [24.9.0] - 2025-06-19
 
 
-[[233de74](https://github.com/Nick2bad4u/FitFileViewer/commit/233de74d1ca83ebd84c42b020e654bd736d3e57c)...
+[[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)...
 [31786a7](https://github.com/Nick2bad4u/FitFileViewer/commit/31786a751cb6a46bf61e3c6d9930da66ce2f6d79)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/233de74d1ca83ebd84c42b020e654bd736d3e57c...31786a751cb6a46bf61e3c6d9930da66ce2f6d79))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...31786a751cb6a46bf61e3c6d9930da66ce2f6d79))
 
 
 ### 🔀 Merge Commits
 
 - [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(31786a7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31786a751cb6a46bf61e3c6d9930da66ce2f6d79)
+
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(cf1c487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)
 
 
 
@@ -560,38 +600,6 @@ Unifies configuration patterns, adds constant definitions, and enhances document
 Introduces safer fallbacks, better logging, and modularizes formatting and conversion logic.
 Prepares utilities for easier extension and consistent UI/UX in data display and export. [`(233de74)`](https://github.com/Nick2bad4u/FitFileViewer/commit/233de74d1ca83ebd84c42b020e654bd736d3e57c)
 
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v24.8.0 [skip ci] [`(b88fee5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b88fee55b59feb90bcec62bd5d0b50af1c5204ec)
-
-
-
-### 📦 Dependencies
-
-- [dependency] Update version 24.8.0 [`(19d16ea)`](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)
-
-
-
-
-
-
-## [24.8.0] - 2025-06-19
-
-
-[[6ee65d7](https://github.com/Nick2bad4u/FitFileViewer/commit/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61)...
-[cf1c487](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6ee65d7a25377dcf8b2211cf566c5d2d6450dd61...cf1c487d88eb195d388ac2b0acb851c4855210ac))
-
-
-### 🔀 Merge Commits
-
-- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer [`(cf1c487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf1c487d88eb195d388ac2b0acb851c4855210ac)
-
-
-
-### 💼 Other
 
 - Unifies indentation for Markdown and improves code formatting
 
@@ -638,6 +646,9 @@ Enhances reliability and user feedback for version and system info display by in
 
 ### ⚙️ Miscellaneous Tasks
 
+- Update changelogs for v24.8.0 [skip ci] [`(b88fee5)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b88fee55b59feb90bcec62bd5d0b50af1c5204ec)
+
+
 - Update changelogs for v24.7.0 [skip ci] [`(5bdccc0)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5bdccc0d565378263a941f2205c746aa87ca2e1f)
 
 
@@ -646,6 +657,9 @@ Enhances reliability and user feedback for version and system info display by in
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 24.8.0 [`(19d16ea)`](https://github.com/Nick2bad4u/FitFileViewer/commit/19d16ea4242a4e19285f49b1c27b0ff35933c5ce)
+
 
 - [dependency] Update version 24.7.0 [`(623988a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/623988a1ee577c6555f1c6347de319f1ce41c008)
 
