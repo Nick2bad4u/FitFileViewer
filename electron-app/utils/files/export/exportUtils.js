@@ -534,7 +534,7 @@ export const exportUtils = {
     async authenticateWithGyazo() {
         const config = exportUtils.getGyazoConfig();
 
-        if (!/** @type {any} */ (config).clientId || !/** @type {any} */ (config).clientSecret) {
+        if (!(/** @type {any} */ (config).clientId) || !(/** @type {any} */ (config).clientSecret)) {
             exportUtils.showGyazoSetupGuide();
             throw new Error("Gyazo credentials not configured. Please complete the setup first.");
         }
@@ -1120,7 +1120,7 @@ export const exportUtils = {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
             }
-            if (typeof /** @type {any} */ (window).JSZip === "undefined") {
+            if (typeof (/** @type {any} */ (window).JSZip) === "undefined") {
                 throw new Error("JSZip library not loaded");
             }
 
@@ -1767,7 +1767,7 @@ export const exportUtils = {
     showGyazoAccountManager() {
         const isAuthenticated = exportUtils.isGyazoAuthenticated();
         const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!(/** @type {any} */ (config).clientId && /** @type {any} */ (config).clientSecret);
+        const hasCredentials = !!(/** @type {any} */ ((config).clientId && /** @type {any} */ (config).clientSecret));
 
         // Create modal overlay
         const overlay = document.createElement("div");
@@ -2201,7 +2201,7 @@ export const exportUtils = {
     updateGyazoAuthStatus(modal) {
         const isAuthenticated = exportUtils.isGyazoAuthenticated();
         const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!(/** @type {any} */ (config).clientId && /** @type {any} */ (config).clientSecret);
+        const hasCredentials = !!(/** @type {any} */ ((config).clientId && /** @type {any} */ (config).clientSecret));
 
         // Update auth status
         const authStatus = modal.querySelector("#auth-status");

@@ -256,8 +256,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background:
-        radial-gradient(circle at 20% 50%, rgb(255 255 255 / 2%) 0%, transparent 50%),
+    background: radial-gradient(circle at 20% 50%, rgb(255 255 255 / 2%) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgb(255 255 255 / 2%) 0%, transparent 50%),
         radial-gradient(circle at 40% 80%, rgb(255 255 255 / 1%) 0%, transparent 50%);
     pointer-events: none;
