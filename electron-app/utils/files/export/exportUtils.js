@@ -1767,7 +1767,7 @@ export const exportUtils = {
     showGyazoAccountManager() {
         const isAuthenticated = exportUtils.isGyazoAuthenticated();
         const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!(/** @type {any} */ ((config).clientId && /** @type {any} */ (config).clientSecret));
+        const hasCredentials = !!(/** @type {any} */ (config.clientId && /** @type {any} */ (config).clientSecret));
 
         // Create modal overlay
         const overlay = document.createElement("div");
@@ -2201,7 +2201,7 @@ export const exportUtils = {
     updateGyazoAuthStatus(modal) {
         const isAuthenticated = exportUtils.isGyazoAuthenticated();
         const config = exportUtils.getGyazoConfig();
-        const hasCredentials = !!(/** @type {any} */ ((config).clientId && /** @type {any} */ (config).clientSecret));
+        const hasCredentials = !!(/** @type {any} */ (config.clientId && /** @type {any} */ (config).clientSecret));
 
         // Update auth status
         const authStatus = modal.querySelector("#auth-status");

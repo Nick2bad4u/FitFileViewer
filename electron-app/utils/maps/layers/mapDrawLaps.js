@@ -343,7 +343,7 @@ export function mapDrawLaps(
                 i +=
                     /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                         ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
             ) {
                 const c = coords[i];
                 if (!c) continue;
@@ -512,7 +512,7 @@ export function mapDrawLaps(
                     i +=
                         /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                             ? 1
-                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
+                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
                 ) {
                     const c = coords[i];
                     if (!c) continue;
@@ -659,7 +659,7 @@ export function mapDrawLaps(
                                 ? 1
                                 : Math.max(
                                       1,
-                                      Math.floor(lapCoords.length / /** @type {any} */ ((win).mapMarkerCount || 1))
+                                      Math.floor(lapCoords.length / /** @type {any} */ (win.mapMarkerCount || 1))
                                   );
                         for (let j = 0; j < lapCoords.length; j += stepLap) {
                             const c = lapCoords[j];
@@ -850,7 +850,7 @@ export function mapDrawLaps(
             i +=
                 /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                     ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
         ) {
             const c = coords[i];
             if (!c) continue;
@@ -1018,7 +1018,7 @@ export function drawOverlayForFitFile({
         const stepOverlay =
             /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                 ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)));
+                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)));
         for (let i = 0; i < coords.length; i += stepOverlay) {
             const c = coords[i];
             if (!c) continue;
