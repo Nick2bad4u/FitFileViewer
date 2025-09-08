@@ -59,6 +59,14 @@
 	offering at-a-glance insight into the project's health checks and automation processes.
 -->
 
+<div align="center">
+    <img
+      src="https://i.gyazo.com/53479595b617c6f230773bca26f46014.png"
+      alt="FitFileViewer Mascot"
+      width="50%"
+    />
+</div>
+
 <details><summary>CI Badges</summary>
 
 [![ActionLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/ActionLint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/ActionLint.yml) 🧹
