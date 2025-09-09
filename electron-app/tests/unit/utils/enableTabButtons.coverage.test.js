@@ -3,8 +3,8 @@ import { JSDOM } from 'jsdom';
 
 // Test for uncovered lines in enableTabButtons.js
 describe('enableTabButtons.js - Coverage Completion', () => {
-    let mockWindow: any;
-    let mockDocument: any;
+    let mockWindow;
+    let mockDocument;
 
     beforeEach(() => {
         const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
@@ -64,7 +64,7 @@ describe('enableTabButtons.js - Coverage Completion', () => {
         });
 
         test('should cover MutationObserver unauthorized disable detection (lines 130-136)', async () => {
-            const { setTabButtonsEnabled } = await import('../../utils/ui/controls/enableTabButtons.js');
+            const { setTabButtonsEnabled } = await import('../../../utils/ui/controls/enableTabButtons.js');
 
             // Create a tab button
             const button = mockDocument.createElement('button');

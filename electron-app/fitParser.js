@@ -8,7 +8,7 @@
 
 /* eslint-env node */
 const { Buffer } = require("buffer");
-const { Conf } = require("electron-conf");
+// electron-conf imported dynamically in getConf() to avoid module loading issues in tests
 
 /**
  * ============================= Typedef Section =============================
@@ -82,14 +82,23 @@ const { Conf } = require("electron-conf");
 
 // State management integration
 /** @type {SettingsStateManager|null} */
-let fitFileStateManager = null,
 /** @type {FitFileStateManager|null} */
- performanceMonitor = null,
+let fitFileStateManager = null,
 /** @type {PerformanceMonitor|null} */
+ performanceMonitor = null,
+/** @type {SettingsStateManager|null} */
  settingsStateManager = null;
 
-// Fallback to electron-conf for backwards compatibility
-const conf = new Conf({ name: "settings" });
+// Fallback to electron-conf for backwards compatibility - lazy initialization
+/** @type {any} */
+let conf = null;
+function getConf() {
+    if (!conf) {
+        const { Conf } = require('electron-conf');
+        conf = new Conf({ name: "settings" });
+    }
+    return conf;
+}
 
 /**
  * Initialize state management integration for the FIT parser
@@ -313,7 +322,7 @@ function getPersistedDecoderOptions() {
     }
 
     // Fallback to electron-conf
-    const storedOptions = /** @type {Partial<DecoderOptions>} */ (conf.get("decoderOptions", defaults)),
+    const storedOptions = /** @type {Partial<DecoderOptions>} */ (getConf().get("decoderOptions", defaults)),
      validation = validateDecoderOptions(storedOptions);
     return validation.validatedOptions;
 }
@@ -547,12 +556,12 @@ function updateDecoderOptions(newOptions) {
                 "[FitParser] Failed to update decoder options in state manager, falling back to electron-conf:",
                 error
             );
-            conf.set("decoderOptions", validation.validatedOptions);
+            getConf().set("decoderOptions", validation.validatedOptions);
             return { success: true, options: validation.validatedOptions, fallback: true };
         }
     } else {
         // Fallback to electron-conf
-        conf.set("decoderOptions", validation.validatedOptions);
+        getConf().set("decoderOptions", validation.validatedOptions);
         return { success: true, options: validation.validatedOptions, fallback: true };
     }
 }

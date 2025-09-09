@@ -3,7 +3,23 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     test: {
         environment: "jsdom",
+        watch: false,
         setupFiles: ["./tests/setupVitest.js"],
+        pool: "forks",
+        poolOptions: {
+            forks: {
+                singleFork: true
+            }
+        },
+        globals: true,
+        restoreMocks: true,
+        clearMocks: true,
+        mockReset: true,
+        server: {
+            deps: {
+                inline: ['electron', 'electron-conf']
+            }
+        },
         exclude: [
             "libs/**",
             "../libs/**",
@@ -36,9 +52,5 @@ export default defineConfig({
                 },
             },
         },
-        globals: true,
-        restoreMocks: true,
-        clearMocks: true,
-        mockReset: true,
     },
 });

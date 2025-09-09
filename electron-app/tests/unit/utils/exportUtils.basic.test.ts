@@ -36,6 +36,19 @@ Object.defineProperty(global, 'localStorage', {
     writable: true
 });
 
+// Mock ClipboardItem for clipboard tests
+global.ClipboardItem = class MockClipboardItem {
+    constructor(data: Record<string, string | Blob | PromiseLike<string | Blob>>) {
+        this.data = data;
+    }
+
+    static supports(type: string): boolean {
+        return true;
+    }
+
+    data: Record<string, string | Blob | PromiseLike<string | Blob>>;
+} as any;
+
 // Set up DOM environment
 const dom = new JSDOM('<!DOCTYPE html><html><head></head><body></body></html>', {
     url: 'http://localhost',
@@ -63,10 +76,15 @@ describe('exportUtils.js - Basic Test Coverage', () => {
         const module = await import('../../../utils/files/export/exportUtils.js');
         exportUtils = module.exportUtils;
 
-        // Create mock chart and canvas
+        // Create mock chart and canvas with proper width/height tracking
+        let canvasWidth = 800;
+        let canvasHeight = 400;
+
         mockCanvas = {
-            width: 800,
-            height: 400,
+            get width() { return canvasWidth; },
+            set width(value) { canvasWidth = value; },
+            get height() { return canvasHeight; },
+            set height(value) { canvasHeight = value; },
             toDataURL: vi.fn(() => 'data:image/png;base64,mockdata'),
             getContext: vi.fn(() => mockContext)
         };
@@ -299,9 +317,15 @@ describe('exportUtils.js - Basic Test Coverage', () => {
         });
 
         it('should create combined image for multiple charts', async () => {
+            // Create a mock canvas that properly tracks width/height assignments
+            let canvasWidth = 0;
+            let canvasHeight = 0;
+
             const mockCombinedCanvas = {
-                width: 0,
-                height: 0,
+                get width() { return canvasWidth; },
+                set width(value) { canvasWidth = value; },
+                get height() { return canvasHeight; },
+                set height(value) { canvasHeight = value; },
                 getContext: vi.fn(() => mockContext),
                 toDataURL: vi.fn(() => 'data:image/png;base64,combined')
             };
@@ -312,9 +336,22 @@ describe('exportUtils.js - Basic Test Coverage', () => {
                 click: vi.fn()
             };
 
+            let canvasCallCount = 0;
             document.createElement = vi.fn((tagName: string) => {
                 if (tagName === 'canvas') {
-                    return mockCombinedCanvas;
+                    canvasCallCount++;
+                    if (canvasCallCount === 1) {
+                        // Return the combined canvas for the first call
+                        return mockCombinedCanvas;
+                    } else {
+                        // Return a separate temporary canvas for each chart
+                        return {
+                            width: 800,
+                            height: 400,
+                            getContext: vi.fn(() => mockContext),
+                            toDataURL: vi.fn(() => 'data:image/png;base64,temp')
+                        };
+                    }
                 } else if (tagName === 'a') {
                     return mockLink;
                 }
@@ -352,11 +389,15 @@ describe('exportUtils.js - Basic Test Coverage', () => {
         it('should copy valid chart to clipboard', async () => {
             // Mock navigator.clipboard
             const mockWriteBuffer = vi.fn().mockResolvedValue(undefined);
-            global.navigator = {
-                clipboard: {
-                    write: mockWriteBuffer
-                }
-            } as any;
+            Object.defineProperty(global, 'navigator', {
+                value: {
+                    clipboard: {
+                        write: mockWriteBuffer
+                    }
+                },
+                writable: true,
+                configurable: true
+            });
 
             // Mock canvas toBlob
             mockCanvas.toBlob = vi.fn((callback: any) => {
@@ -385,11 +426,15 @@ describe('exportUtils.js - Basic Test Coverage', () => {
         it('should handle clipboard write failure', async () => {
             // Mock navigator.clipboard
             const mockWriteBuffer = vi.fn().mockResolvedValue(undefined);
-            global.navigator = {
-                clipboard: {
-                    write: mockWriteBuffer
-                }
-            } as any;
+            Object.defineProperty(global, 'navigator', {
+                value: {
+                    clipboard: {
+                        write: mockWriteBuffer
+                    }
+                },
+                writable: true,
+                configurable: true
+            });
 
             // Mock canvas toBlob to return null blob
             mockCanvas.toBlob = vi.fn((callback: any) => {
@@ -407,11 +452,15 @@ describe('exportUtils.js - Basic Test Coverage', () => {
     describe('copyCombinedChartsToClipboard function', () => {
         beforeEach(() => {
             // Mock navigator.clipboard
-            global.navigator = {
-                clipboard: {
-                    write: vi.fn().mockResolvedValue(undefined)
-                }
-            } as any;
+            Object.defineProperty(global, 'navigator', {
+                value: {
+                    clipboard: {
+                        write: vi.fn().mockResolvedValue(undefined)
+                    }
+                },
+                writable: true,
+                configurable: true
+            });
         });
 
         it('should handle empty charts array', async () => {

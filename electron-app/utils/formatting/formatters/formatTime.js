@@ -56,8 +56,8 @@ export function formatTime(seconds, useUserUnits = false) {
  * @private
  */
 function formatWithUserUnits(seconds) {
-    const timeUnits = localStorage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY) || TIME_UNITS.SECONDS,
-     convertedValue = convertTimeUnits(seconds, timeUnits);
+    const timeUnits = localStorage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY) || TIME_UNITS.SECONDS;
+    const convertedValue = convertTimeUnits(seconds, timeUnits);
 
     switch (timeUnits) {
         case TIME_UNITS.HOURS:
@@ -78,15 +78,15 @@ function formatWithUserUnits(seconds) {
  * @private
  */
 function formatAsTimeString(seconds) {
-    const hours = Math.floor(seconds / TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR),
-     minutes = Math.floor(
+    const hours = Math.floor(seconds / TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR);
+    const minutes = Math.floor(
         (seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR) / TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE
-    ),
-     secs = Math.floor(seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE);
+    );
+    const secs = Math.floor(seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE);
 
     if (hours > 0) {
         return `${hours}:${minutes.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
-    } 
+    } else {
         return `${minutes}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
-    
+    }
 }

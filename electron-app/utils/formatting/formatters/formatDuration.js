@@ -12,10 +12,10 @@
 const TIME_CONSTANTS = {
     SECONDS_PER_MINUTE: 60,
     SECONDS_PER_HOUR: 3600,
-},
+};
 
 // Formatting thresholds
- THRESHOLDS = {
+const THRESHOLDS = {
     SECONDS_ONLY: TIME_CONSTANTS.SECONDS_PER_MINUTE,
     MINUTES_ONLY: TIME_CONSTANTS.SECONDS_PER_HOUR,
 };
@@ -74,8 +74,8 @@ function formatSecondsOnly(seconds) {
  * @returns {string} Formatted string like "5 min 30 sec"
  */
 function formatMinutesAndSeconds(seconds) {
-    const minutes = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_MINUTE),
-     remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+    const minutes = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
     return `${minutes} min ${remainingSeconds} sec`;
 }
 
@@ -85,11 +85,11 @@ function formatMinutesAndSeconds(seconds) {
  * @returns {string} Formatted string like "2 hrs 30 min"
  */
 function formatHoursAndMinutes(seconds) {
-    const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR),
-     remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR,
-     minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE),
+    const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR);
+    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR;
+    const minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
 
-     hourText = hours === 1 ? "hr" : "hrs";
+    const hourText = hours === 1 ? "hr" : "hrs";
     return `${hours} ${hourText} ${minutes} min`;
 }
 
@@ -135,7 +135,7 @@ export function formatDuration(seconds) {
         return formatSecondsOnly(normalizedSeconds);
     } else if (normalizedSeconds < THRESHOLDS.MINUTES_ONLY) {
         return formatMinutesAndSeconds(normalizedSeconds);
-    } 
+    } else {
         return formatHoursAndMinutes(normalizedSeconds);
-    
+    }
 }

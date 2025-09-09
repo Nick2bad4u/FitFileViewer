@@ -13,10 +13,10 @@ const CONVERSION_FACTORS = {
     METERS_PER_KILOMETER: 1000,
     METERS_PER_MILE: 1609.34,
     DECIMAL_PLACES: 2,
-},
+};
 
 // Validation constants
- VALIDATION = {
+const VALIDATION = {
     MIN_DISTANCE: 0,
 };
 
