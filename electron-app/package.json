@@ -1,7 +1,7 @@
 {
   "name": "fitfileviewer",
   "packageManager": "npm@11.4.2",
-  "version": "26.1.0",
+  "version": "26.3.0",
   "main": "main.js",
   "appid": "com.example.fitfileviewer",
   "displayName": "Fit File Viewer",
@@ -381,7 +381,7 @@
     "@types/mocha": "10.0.10",
     "@vitest/coverage-v8": "^3.2.4",
     "cross-env": "^10.0.0",
-    "electron": "37.2.5",
+    "electron": "37.4.0",
     "electron-builder": "^26.0.19",
     "electron-builder-squirrel-windows": "^26.0.19",
     "eslint": "^9.32.0",

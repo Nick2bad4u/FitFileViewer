@@ -417,9 +417,9 @@ export const exportUtils = {
             const data = await response.json();
             if (data.success) {
                 return data.data.link;
-            } 
+            }
                 throw new Error("Imgur upload failed");
-            
+
         } catch (error) {
             console.error("Error uploading to Imgur:", error);
             throw error;
@@ -534,7 +534,7 @@ export const exportUtils = {
     async authenticateWithGyazo() {
         const config = exportUtils.getGyazoConfig();
 
-        if (!/** @type {any} */ (config).clientId || !/** @type {any} */ (config).clientSecret) {
+        if (!(/** @type {any} */ (config).clientId) || !(/** @type {any} */ (config).clientSecret)) {
             exportUtils.showGyazoSetupGuide();
             throw new Error("Gyazo credentials not configured. Please complete the setup first.");
         }
@@ -921,9 +921,9 @@ export const exportUtils = {
             const data = await response.json();
             if (data.access_token) {
                 return data;
-            } 
+            }
                 throw new Error("No access token returned from Gyazo");
-            
+
         } catch (error) {
             console.error("Error exchanging code for token:", error);
             throw error;
@@ -978,9 +978,9 @@ export const exportUtils = {
                 return data.permalink_url;
             } else if (data.url) {
                 return data.url;
-            } 
+            }
                 throw new Error("No URL returned from Gyazo upload");
-            
+
         } catch (error) {
             console.error("Error uploading to Gyazo:", error);
 
@@ -1120,7 +1120,7 @@ export const exportUtils = {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
             }
-            if (typeof /** @type {any} */ (window).JSZip === "undefined") {
+            if (typeof (/** @type {any} */ (window).JSZip) === "undefined") {
                 throw new Error("JSZip library not loaded");
             }
 

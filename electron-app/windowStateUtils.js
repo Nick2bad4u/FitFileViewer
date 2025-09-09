@@ -92,7 +92,7 @@ function validateWindow(win) {
         Boolean(win) &&
         typeof win === "object" &&
         typeof (/** @type {any} */ (win).isDestroyed) === "function" &&
-        !/** @type {any} */ (win).isDestroyed()
+        !(/** @type {any} */ (win).isDestroyed())
     );
 }
 
