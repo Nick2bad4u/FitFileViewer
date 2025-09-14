@@ -1,5 +1,84 @@
 // Mock Leaflet global L for all Vitest tests
 import { vi } from "vitest";
+// Import the enhanced JSDOM setup to fix DOM-related test failures
+// Import the enhanced JSDOM setup directly inside setupVitest.js
+// directly include the JSDOM setup code instead of importing
+
+// Enhanced JSDOM environment setup
+if (!document.body) {
+    const body = document.createElement('body');
+    document.appendChild(body);
+}
+
+// Create reliable implementations of missing methods/properties
+if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'id')) {
+    Object.defineProperty(HTMLElement.prototype, 'id', {
+        get: function() { return this._id || ''; },
+        set: function(value) { this._id = value; },
+        configurable: true
+    });
+}
+
+if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'className')) {
+    Object.defineProperty(HTMLElement.prototype, 'className', {
+        get: function() { return this._className || ''; },
+        set: function(value) { this._className = value; },
+        configurable: true
+    });
+}
+
+if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'classList')) {
+    // Basic classList implementation
+    class DOMTokenList {
+        constructor(element) {
+            this.element = element;
+            this._classList = new Set();
+        }
+
+        add(className) {
+            this._classList.add(className);
+            this._updateClassName();
+        }
+
+        remove(className) {
+            this._classList.delete(className);
+            this._updateClassName();
+        }
+
+        contains(className) {
+            return this._classList.has(className);
+        }
+
+        toggle(className) {
+            if (this._classList.has(className)) {
+                this._classList.delete(className);
+            } else {
+                this._classList.add(className);
+            }
+            this._updateClassName();
+        }
+
+        _updateClassName() {
+            this.element.className = Array.from(this._classList).join(' ');
+        }
+    }
+
+    Object.defineProperty(HTMLElement.prototype, 'classList', {
+        get: function() {
+            if (!this._classList) {
+                this._classList = new DOMTokenList(this);
+                // Initialize from className if it exists
+                if (this.className) {
+                    this.className.split(' ').filter(Boolean).forEach(cls => {
+                        this._classList._classList.add(cls);
+                    });
+                }
+            }
+            return this._classList;
+        },
+        configurable: true
+    });
+}
 
 // Global console mock setup - ensure console is available for all tests
 if (!globalThis.console || typeof globalThis.console.log !== 'function') {

@@ -458,4 +458,3 @@ describe('renderChartJS.js - Comprehensive Utility Function Coverage', () => {
             expect(chartState.hasValidData).toBe(null);
         });
     });
-});

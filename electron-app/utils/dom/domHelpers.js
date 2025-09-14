@@ -69,8 +69,12 @@ export function setText(el, value) {
  * Add a class to an element if present.
  * @param {Element|null|undefined} el
  * @param {string} className
+ * @throws {Error} If className is empty
  */
 export function addClass(el, className) {
+    if (!className) {
+        throw new Error('Failed to execute \'add\' on \'DOMTokenList\': The token provided must not be empty.');
+    }
     if (isHTMLElement(el)) {
         el.classList.add(className);
     }
@@ -80,8 +84,12 @@ export function addClass(el, className) {
  * Remove a class from an element if present.
  * @param {Element|null|undefined} el
  * @param {string} className
+ * @throws {Error} If className is empty
  */
 export function removeClass(el, className) {
+    if (!className) {
+        throw new Error('Failed to execute \'remove\' on \'DOMTokenList\': The token provided must not be empty.');
+    }
     if (isHTMLElement(el)) {
         el.classList.remove(className);
     }

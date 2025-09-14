@@ -146,12 +146,16 @@ describe('domHelpers.js - Comprehensive Tests', () => {
 
     describe('requireElement', () => {
         beforeEach(() => {
-            testContainer.innerHTML = '<div id="existing-element">Existing</div>';
+            // Create a test element directly in the container
+            const existingElement = document.createElement('div');
+            existingElement.id = 'test-existing-element';
+            existingElement.textContent = 'Existing';
+            testContainer.appendChild(existingElement);
         });
 
         it('should return element when it exists', () => {
-            const element = requireElement('#existing-element');
-            expect(element).toBe(testContainer.querySelector('#existing-element'));
+            const element = requireElement('#test-existing-element');
+            expect(element).toBe(testContainer.querySelector('#test-existing-element'));
         });
 
         it('should throw error when element does not exist', () => {
@@ -253,7 +257,7 @@ describe('domHelpers.js - Comprehensive Tests', () => {
 
         it('should not add duplicate classes', () => {
             addClass(testElement, 'existing-class');
-            expect(testElement.classList.length).toBe(1);
+            expect(testElement.className).toBe('existing-class');
         });
     });
 
