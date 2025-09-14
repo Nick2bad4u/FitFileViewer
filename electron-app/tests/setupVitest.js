@@ -219,4 +219,35 @@ const leafletMock = {
 global.L = leafletMock;
 if (typeof window !== "undefined") {
     window.L = leafletMock;
+    // Ensure window.addEventListener is mocked
+    if (!window.addEventListener) {
+        window.addEventListener = vi.fn();
+        window.removeEventListener = vi.fn();
+    }
+}
+
+// Make sure JSDOM is properly initialized for tests
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+    // Only add body if it doesn't exist
+    if (!document.body) {
+        const body = document.createElement('body');
+        // Use appendChild which will work with JSDOM
+        document.appendChild(body);
+    }
+
+    // Mock window.alert since it's not implemented in JSDOM
+    if (typeof window.alert !== 'function') {
+        window.alert = vi.fn();
+    }
+
+    // Ensure querySelectorAll always returns at least an empty NodeList
+    const originalQuerySelectorAll = document.querySelectorAll;
+    /**
+     * @param {string} selector - The CSS selector string
+     * @returns {NodeList}
+     */
+    document.querySelectorAll = function(selector) {
+        const result = originalQuerySelectorAll.call(document, selector);
+        return result || [];
+    };
 }

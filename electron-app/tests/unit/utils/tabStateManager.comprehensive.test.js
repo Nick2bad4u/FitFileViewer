@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @file tabStateManager.comprehensive.test.js
  * @description Comprehensive test suite for tabStateManager.js with focus on exposing critical bugs
  *
@@ -91,6 +92,23 @@ describe('tabStateManager.js - Comprehensive Bug Detection Test Suite', () => {
             renderMap: vi.fn(),
             renderChartJS: vi.fn()
         };
+
+        // Mock document.querySelectorAll to return empty NodeList instead of undefined
+        const originalQuerySelectorAll = document.querySelectorAll;
+        document.querySelectorAll = vi.fn().mockImplementation((selector) => {
+            // Return actual results if available
+            const actual = originalQuerySelectorAll.call(document, selector);
+            if (actual && actual.length > 0) {
+                return actual;
+            }
+            // Otherwise return empty array-like object with forEach method
+            return {
+                length: 0,
+                forEach: () => {},
+                item: () => null,
+                [Symbol.iterator]: function* () {}
+            };
+        });
     });
 
     afterEach(() => {

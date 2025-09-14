@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @file setupTabButton.comprehensive.test.js
  * @description Comprehensive test suite for setupTabButton.js module with focus on exposing potential bugs
  *
@@ -20,6 +21,12 @@ describe('setupTabButton.js - Comprehensive Bug Detection Test Suite', () => {
     let consoleWarnSpy;
 
     beforeEach(() => {
+        // Ensure document.body exists
+        if (!document.body) {
+            const body = document.createElement('body');
+            document.appendChild(body);
+        }
+
         // Set up DOM container
         testContainer = document.createElement('div');
         testContainer.id = 'test-container';

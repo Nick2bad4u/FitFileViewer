@@ -266,7 +266,8 @@ describe('getErrorInfo.js - Error Information Extraction Utility', () => {
             const dateError = new Date('2023-01-01');
             const result = getErrorInfo(dateError);
 
-            expect(result.message).toContain('2023');
+            // The Date's string representation includes the year
+            expect(result.message).toContain(dateError.getFullYear().toString());
             expect(result.stack).toBeUndefined();
         });
 

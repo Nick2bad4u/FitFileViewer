@@ -3,6 +3,7 @@
 
 const { vi } = require('vitest');
 
+// Create mock objects for electron modules
 const app = {
     getPath: vi.fn((name) => {
         const paths = {
@@ -40,9 +41,12 @@ const contextBridge = {
     exposeInMainWorld: vi.fn()
 };
 
-// Export for CommonJS with destructuring support
-module.exports = {
+// Export as a single object with all modules
+const electronMock = {
     app,
     ipcRenderer,
     contextBridge
 };
+
+// Export for CommonJS
+module.exports = electronMock;

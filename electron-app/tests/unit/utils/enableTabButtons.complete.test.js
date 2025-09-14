@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * Comprehensive test suite for enableTabButtons module
  * Testing tab button state management, DOM manipulation, and debugging functions
  */
@@ -46,6 +47,12 @@ describe('enableTabButtons.js - Complete Test Suite', () => {
     beforeEach(() => {
         // Reset all mocks
         vi.clearAllMocks();
+
+        // Ensure document.body exists
+        if (!document.body) {
+            const body = document.createElement('body');
+            document.appendChild(body);
+        }
 
         // Set up DOM
         testContainer = document.createElement('div');

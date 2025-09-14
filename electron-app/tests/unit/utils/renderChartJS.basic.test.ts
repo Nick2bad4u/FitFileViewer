@@ -17,6 +17,16 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// Ensure window has necessary methods mocked
+if (typeof window !== 'undefined') {
+    if (!window.addEventListener) {
+        window.addEventListener = vi.fn();
+    }
+    if (!window.removeEventListener) {
+        window.removeEventListener = vi.fn();
+    }
+}
+
 // Mock all 26 dependencies comprehensively
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn((path) => {
