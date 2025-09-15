@@ -1,6 +1,6 @@
 ---
 mode: "agent"
-tools: ['Best Tools']
+tools: ["Best Tools"]
 description: "Generate 100% Test Coverage"
 ---
 
@@ -11,7 +11,7 @@ description: "Generate 100% Test Coverage"
 1. **Fix all broken tests first.**
 2. Run and check current test errors and warnings:
    - `npm run test`
-   *Do not move onto the next step until all tests pass with no errors or warnings.*
+     _Do not move onto the next step until all tests pass with no errors or warnings._
 3. Ensure all tests pass with no errors or warnings.
 4. Check coverage and create tests for files below 95% (or 100% if above 95%):
    - `npm run test:coverage`
@@ -122,7 +122,7 @@ description: "Generate 100% Test Coverage"
 - **Compute Constraint setting:** `unlimited`
 - **Thinking Mode setting:** `Super Think,` `Deep Think`
 - **Thinking Constraint Time setting:** `unlimited`
--- **Remember** This is a legacy app with a LOT of bugs and inconsistent behavior. You are expected to find bugs and FIX them as you test. NEVER update tests to match BROKEN source code. Always make sure the source code is correct and you're not testing broken behavior.
+  -- **Remember** This is a legacy app with a LOT of bugs and inconsistent behavior. You are expected to find bugs and FIX them as you test. NEVER update tests to match BROKEN source code. Always make sure the source code is correct and you're not testing broken behavior.
 
 ---
 

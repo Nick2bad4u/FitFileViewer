@@ -65,9 +65,8 @@ async function loadVersionFromElectron() {
             CONSTANTS.VERSION = version || "unknown";
             logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
             return CONSTANTS.VERSION;
-        } 
-            logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
-        
+        }
+        logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         logWithContext("warn", "Failed to load version from Electron API:", { error: errorMessage });
@@ -108,7 +107,7 @@ if (typeof window !== "undefined") {
  */
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString(),
-     logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
+        logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
 
     if (context && Object.keys(context).length > 0) {
         // @ts-expect-error - Dynamic console method access
@@ -231,7 +230,7 @@ function attachUtilitiesToWindow() {
                 // If the same function is already attached, skip it silently
                 // @ts-expect-error - Dynamic window property access
                 if (window[key] === fn) {
-                    attachmentResults.successful.push(`${key  } (already attached)`);
+                    attachmentResults.successful.push(`${key} (already attached)`);
                     continue;
                 }
 
@@ -241,7 +240,7 @@ function attachUtilitiesToWindow() {
                     // Functions with same name are likely the same, just re-exported
                     // @ts-expect-error - Dynamic window property access
                     if (window[key].name === fn.name && (window[key].name === key || window[key].name === "")) {
-                        attachmentResults.successful.push(`${key  } (updated)`);
+                        attachmentResults.successful.push(`${key} (updated)`);
                     } else {
                         // Only log if the functions are genuinely different
                         // @ts-expect-error - Dynamic window property access
@@ -355,11 +354,9 @@ const FitFileViewerUtils = {
      * @param {string} name - Utility name
      * @returns {boolean} Is utility available
      */
-    isUtilAvailable: (name) => 
+    isUtilAvailable: (name) =>
         // @ts-expect-error - Dynamic utils property access
-         Object.hasOwn(utils, name) && validateFunction(utils[name], name)
-    ,
-
+        Object.hasOwn(utils, name) && validateFunction(utils[name], name),
     /**
      * @param {string} name - Utility name
      * @returns {Function|null} The utility function or null

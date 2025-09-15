@@ -5,8 +5,8 @@ export default defineConfig({
         environment: "jsdom",
         environmentOptions: {
             jsdom: {
-                url: "http://localhost/"
-            }
+                url: "http://localhost/",
+            },
         },
         watch: false,
         setupFiles: ["./tests/setupVitest.js"],
@@ -16,8 +16,8 @@ export default defineConfig({
                 // Avoid running the entire suite in a single process to prevent
                 // cumulative memory growth across all test files. Allow Vitest
                 // to spin up a small pool of forked workers instead.
-                singleFork: false
-            }
+                singleFork: false,
+            },
         },
         globals: true,
         restoreMocks: true,
@@ -25,8 +25,8 @@ export default defineConfig({
         mockReset: true,
         server: {
             deps: {
-                inline: ['electron', 'electron-conf']
-            }
+                inline: ["electron", "electron-conf"],
+            },
         },
         exclude: [
             "libs/**",
@@ -39,18 +39,8 @@ export default defineConfig({
             provider: "v8",
             reporter: ["text", "html", "json"],
             reportsDirectory: "./coverage",
-            exclude: [
-                "node_modules/**",
-                "libs/**",
-                "tests/**",
-                "*.config.js",
-                "**/*.d.ts",
-                "coverage/**",
-            ],
-            include: [
-                "utils/**/*.js",
-                "*.js",
-            ],
+            exclude: ["node_modules/**", "libs/**", "tests/**", "*.config.js", "**/*.d.ts", "coverage/**"],
+            include: ["utils/**/*.js", "*.js"],
             thresholds: {
                 global: {
                     branches: 50,

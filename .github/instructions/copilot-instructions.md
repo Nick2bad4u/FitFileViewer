@@ -85,7 +85,6 @@ FitFileViewer is a desktop Electron application for viewing and analyzing FIT fi
 - **Auto-updater**: GitHub releases integration
 - **Testing**: Vitest/Jest for unit testing
 
-
 Thinking Mode Highest Level: Deep Think - Ultra Think - Think Harder - Super Think - Think Twice - Think More - Think Better
 
 You are an agent please keep going until the user’s query is completely resolved, before ending your turn and yielding back to the user.

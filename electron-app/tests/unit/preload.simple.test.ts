@@ -1,9 +1,9 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 /**
  * Simplified interface for ElectronAPI with only the methods we test
@@ -17,7 +17,7 @@ interface TestElectronAPI {
     [key: string]: any;
 }
 
-describe('Simple Electron Mock Test', () => {
+describe("Simple Electron Mock Test", () => {
     // Setup mocks
     let mockIpcRenderer: any;
     let mockContextBridge: any;
@@ -30,7 +30,7 @@ describe('Simple Electron Mock Test', () => {
 
         // Reset mocks
         mockIpcRenderer = {
-            invoke: vi.fn().mockResolvedValue('mock-result'),
+            invoke: vi.fn().mockResolvedValue("mock-result"),
             send: vi.fn(),
             on: vi.fn(),
             once: vi.fn(),
@@ -43,12 +43,12 @@ describe('Simple Electron Mock Test', () => {
         };
 
         consoleSpy = {
-            log: vi.spyOn(console, 'log').mockImplementation(() => {}),
-            error: vi.spyOn(console, 'error').mockImplementation(() => {}),
+            log: vi.spyOn(console, "log").mockImplementation(() => {}),
+            error: vi.spyOn(console, "error").mockImplementation(() => {}),
         };
 
         // Load preload script source
-        preloadCode = readFileSync(join(__dirname, '../../preload.js'), 'utf-8');
+        preloadCode = readFileSync(join(__dirname, "../../preload.js"), "utf-8");
     });
 
     afterEach(() => {
@@ -57,13 +57,13 @@ describe('Simple Electron Mock Test', () => {
 
     function createPreloadEnvironment(options = {}) {
         const env = {
-            NODE_ENV: 'test',
-            ...options
+            NODE_ENV: "test",
+            ...options,
         };
 
         // Create a virtual environment with our mocks
         const mockRequire = vi.fn((moduleName: string) => {
-            if (moduleName === 'electron') {
+            if (moduleName === "electron") {
                 return {
                     ipcRenderer: mockIpcRenderer,
                     contextBridge: mockContextBridge,
@@ -83,12 +83,7 @@ describe('Simple Electron Mock Test', () => {
         };
 
         // Execute preload script in controlled environment
-        const func = new Function(
-            'require',
-            'process',
-            'console',
-            preloadCode
-        );
+        const func = new Function("require", "process", "console", preloadCode);
 
         try {
             func(mockRequire, mockProcess, mockConsole);
@@ -104,44 +99,39 @@ describe('Simple Electron Mock Test', () => {
         };
     }
 
-    it('should load preload.js and expose electronAPI', () => {
+    it("should load preload.js and expose electronAPI", () => {
         const { exposedAPI } = createPreloadEnvironment();
 
         // Check that electronAPI was exposed
-        expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(
-            'electronAPI',
-            expect.any(Object)
-        );
+        expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith("electronAPI", expect.any(Object));
 
         expect(exposedAPI).toBeDefined();
     });
 
-    it('should provide core API methods', () => {
+    it("should provide core API methods", () => {
         const { exposedAPI } = createPreloadEnvironment();
 
         // Verify core API methods are available
         expect(exposedAPI).toBeDefined();
-        expect(typeof exposedAPI.openFile).toBe('function');
-        expect(typeof exposedAPI.readFile).toBe('function');
-        expect(typeof exposedAPI.parseFitFile).toBe('function');
+        expect(typeof exposedAPI.openFile).toBe("function");
+        expect(typeof exposedAPI.readFile).toBe("function");
+        expect(typeof exposedAPI.parseFitFile).toBe("function");
     });
 
-    it('should validate input parameters', async () => {
+    it("should validate input parameters", async () => {
         const { exposedAPI } = createPreloadEnvironment();
 
         expect(exposedAPI).toBeDefined();
 
         // Test parameter validation in invoke method with invalid value
-        mockIpcRenderer.invoke.mockRejectedValueOnce(new Error('Invalid channel'));
+        mockIpcRenderer.invoke.mockRejectedValueOnce(new Error("Invalid channel"));
 
         // Using invalid channel should throw
-        await expect(() =>
-            exposedAPI.invoke(null as unknown as string)
-        ).rejects.toThrow();
+        await expect(() => exposedAPI.invoke(null as unknown as string)).rejects.toThrow();
 
         // Invoke with valid parameters should work
-        mockIpcRenderer.invoke.mockResolvedValueOnce('test-response');
-        const result = await exposedAPI.invoke('valid-channel');
-        expect(result).toBe('test-response');
+        mockIpcRenderer.invoke.mockResolvedValueOnce("test-response");
+        const result = await exposedAPI.invoke("valid-channel");
+        expect(result).toBe("test-response");
     });
 });

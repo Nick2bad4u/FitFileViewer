@@ -6,7 +6,7 @@
  * It patches JSDOM's missing or incomplete functionality to ensure DOM tests work correctly.
  */
 
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 /**
  * Initializes and configures the JSDOM environment for tests
@@ -15,38 +15,46 @@ import { vi } from 'vitest';
 export function setupJSDOMEnvironment() {
     // Ensure document.body exists
     if (!document.body) {
-        const body = document.createElement('body');
+        const body = document.createElement("body");
         document.appendChild(body);
     }
 
     // Create a test container for elements
-    const testContainer = document.createElement('div');
-    testContainer.id = 'test-container';
+    const testContainer = document.createElement("div");
+    testContainer.id = "test-container";
     document.body.appendChild(testContainer);
 
     // Add a test element with id 'existing-element' for requireElement tests
-    const existingElement = document.createElement('div');
-    existingElement.id = 'existing-element';
+    const existingElement = document.createElement("div");
+    existingElement.id = "existing-element";
     testContainer.appendChild(existingElement);
 
     // Create reliable implementations of missing methods/properties
-    if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'id')) {
-        Object.defineProperty(HTMLElement.prototype, 'id', {
-            get: function() { return this._id || ''; },
-            set: function(value) { this._id = value; },
-            configurable: true
+    if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, "id")) {
+        Object.defineProperty(HTMLElement.prototype, "id", {
+            get: function () {
+                return this._id || "";
+            },
+            set: function (value) {
+                this._id = value;
+            },
+            configurable: true,
         });
     }
 
-    if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'className')) {
-        Object.defineProperty(HTMLElement.prototype, 'className', {
-            get: function() { return this._className || ''; },
-            set: function(value) { this._className = value; },
-            configurable: true
+    if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, "className")) {
+        Object.defineProperty(HTMLElement.prototype, "className", {
+            get: function () {
+                return this._className || "";
+            },
+            set: function (value) {
+                this._className = value;
+            },
+            configurable: true,
         });
     }
 
-    if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'classList')) {
+    if (!Object.getOwnPropertyDescriptor(HTMLElement.prototype, "classList")) {
         // Basic classList implementation
         class DOMTokenList {
             constructor(element) {
@@ -54,8 +62,10 @@ export function setupJSDOMEnvironment() {
                 this._classList = new Set();
 
                 // Define length property
-                Object.defineProperty(this, 'length', {
-                    get: function() { return this._classList.size; }
+                Object.defineProperty(this, "length", {
+                    get: function () {
+                        return this._classList.size;
+                    },
                 });
 
                 // Make sure length is a number
@@ -63,15 +73,18 @@ export function setupJSDOMEnvironment() {
 
                 // Initialize from className if it exists
                 if (element.className) {
-                    element.className.split(' ').filter(Boolean).forEach(cls => {
-                        this._classList.add(cls);
-                    });
+                    element.className
+                        .split(" ")
+                        .filter(Boolean)
+                        .forEach((cls) => {
+                            this._classList.add(cls);
+                        });
                 }
             }
 
             add(className) {
                 if (!className) {
-                    throw new Error('Failed to execute \'add\' on \'DOMTokenList\': The token provided must not be empty.');
+                    throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
                 }
                 this._classList.add(className);
                 this._updateClassName();
@@ -80,7 +93,9 @@ export function setupJSDOMEnvironment() {
 
             remove(className) {
                 if (!className) {
-                    throw new Error('Failed to execute \'remove\' on \'DOMTokenList\': The token provided must not be empty.');
+                    throw new Error(
+                        "Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty."
+                    );
                 }
                 this._classList.delete(className);
                 this._updateClassName();
@@ -93,7 +108,9 @@ export function setupJSDOMEnvironment() {
 
             toggle(className, force) {
                 if (!className) {
-                    throw new Error('Failed to execute \'toggle\' on \'DOMTokenList\': The token provided must not be empty.');
+                    throw new Error(
+                        "Failed to execute 'toggle' on 'DOMTokenList': The token provided must not be empty."
+                    );
                 }
 
                 if (force === true) {
@@ -111,7 +128,7 @@ export function setupJSDOMEnvironment() {
             }
 
             _updateClassName() {
-                this.element.className = Array.from(this._classList).join(' ');
+                this.element.className = Array.from(this._classList).join(" ");
                 this.length = this._classList.size;
             }
 
@@ -121,19 +138,19 @@ export function setupJSDOMEnvironment() {
             }
         }
 
-        Object.defineProperty(HTMLElement.prototype, 'classList', {
-            get: function() {
+        Object.defineProperty(HTMLElement.prototype, "classList", {
+            get: function () {
                 if (!this._classList) {
                     this._classList = new DOMTokenList(this);
                 }
                 return this._classList;
             },
-            configurable: true
+            configurable: true,
         });
     }
 
     // Mock window methods that JSDOM doesn't implement
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         // Custom MutationObserver implementation for testing
         const MockMutationObserver = class {
             constructor(callback) {
@@ -167,12 +184,12 @@ export function setupJSDOMEnvironment() {
 
         // Mock getComputedStyle if not available
         if (!window.getComputedStyle) {
-            window.getComputedStyle = function(_element) {
+            window.getComputedStyle = function (_element) {
                 const style = {
-                    getPropertyValue: (_prop) => '',
-                    pointerEvents: 'auto',
-                    cursor: 'pointer',
-                    opacity: '1'
+                    getPropertyValue: (_prop) => "",
+                    pointerEvents: "auto",
+                    cursor: "pointer",
+                    opacity: "1",
                 };
                 // Add additional style properties to prevent type errors
                 return style;
@@ -181,19 +198,19 @@ export function setupJSDOMEnvironment() {
 
         // Create mock implementations for methods used in tests
         if (!window.HTMLElement.prototype.focus) {
-            window.HTMLElement.prototype.focus = function() {};
+            window.HTMLElement.prototype.focus = function () {};
         }
 
         if (!window.HTMLElement.prototype.blur) {
-            window.HTMLElement.prototype.blur = function() {};
+            window.HTMLElement.prototype.blur = function () {};
         }
 
         if (!window.HTMLElement.prototype.scrollIntoView) {
-            window.HTMLElement.prototype.scrollIntoView = function() {};
+            window.HTMLElement.prototype.scrollIntoView = function () {};
         }
 
         if (!window.Element.prototype.closest) {
-            window.Element.prototype.closest = function(selector) {
+            window.Element.prototype.closest = function (selector) {
                 let el = this;
                 while (el) {
                     if (el.matches && el.matches(selector)) {
@@ -206,10 +223,10 @@ export function setupJSDOMEnvironment() {
         }
 
         if (!window.Element.prototype.matches) {
-            window.Element.prototype.matches = function(selector) {
+            window.Element.prototype.matches = function (selector) {
                 // Simplistic implementation - just check id and tag for basic tests
                 const selectorType = selector.charAt(0);
-                if (selectorType === '#' && this.id === selector.substring(1)) {
+                if (selectorType === "#" && this.id === selector.substring(1)) {
                     return true;
                 }
                 // Basic tag check
@@ -223,7 +240,7 @@ export function setupJSDOMEnvironment() {
         // Mock alert, confirm and prompt
         window.alert = window.alert || vi.fn();
         window.confirm = window.confirm || vi.fn().mockReturnValue(true);
-        window.prompt = window.prompt || vi.fn().mockReturnValue('');
+        window.prompt = window.prompt || vi.fn().mockReturnValue("");
     }
 
     // Return patched objects
@@ -240,23 +257,23 @@ export function createMockElement(tagName, props = {}) {
     const element = document.createElement(tagName);
 
     Object.entries(props).forEach(([key, value]) => {
-        if (key === 'id' || key === 'className') {
+        if (key === "id" || key === "className") {
             element[key] = value;
-        } else if (key === 'classList' && Array.isArray(value)) {
+        } else if (key === "classList" && Array.isArray(value)) {
             value.forEach((cls) => element.classList.add(cls));
-        } else if (key === 'attributes') {
+        } else if (key === "attributes") {
             Object.entries(value).forEach(([attrName, attrValue]) => {
                 element.setAttribute(attrName, String(attrValue));
             });
-        } else if (key === 'style' && typeof value === 'object') {
+        } else if (key === "style" && typeof value === "object") {
             Object.entries(value).forEach(([styleProp, styleValue]) => {
                 element.style[styleProp] = styleValue;
             });
-        } else if (key === 'dataset' && typeof value === 'object') {
+        } else if (key === "dataset" && typeof value === "object") {
             Object.entries(value).forEach(([dataKey, dataValue]) => {
                 element.dataset[dataKey] = String(dataValue);
             });
-        } else if (key === 'children' && Array.isArray(value)) {
+        } else if (key === "children" && Array.isArray(value)) {
             value.forEach((child) => element.appendChild(child));
         } else {
             element[key] = value;

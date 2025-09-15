@@ -1,6 +1,28 @@
 ---
 description: Beast Mode 3.1
-tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'extensions', 'todos', 'sequentialthinking', 'console-ninja', 'websearch']
+tools:
+ [
+  "edit",
+  "runNotebooks",
+  "search",
+  "new",
+  "runCommands",
+  "runTasks",
+  "usages",
+  "vscodeAPI",
+  "think",
+  "problems",
+  "changes",
+  "testFailure",
+  "openSimpleBrowser",
+  "fetch",
+  "githubRepo",
+  "extensions",
+  "todos",
+  "sequentialthinking",
+  "console-ninja",
+  "websearch",
+ ]
 ---
 
 # Beast Mode 3.1

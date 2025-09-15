@@ -1,1 +1,1 @@
-export * from '../electron-app/utils/ui/notifications/showNotification.js';
+export * from "../electron-app/utils/ui/notifications/showNotification.js";

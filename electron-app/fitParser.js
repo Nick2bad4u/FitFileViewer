@@ -84,17 +84,17 @@ const { Buffer } = require("buffer");
 /** @type {SettingsStateManager|null} */
 /** @type {FitFileStateManager|null} */
 let fitFileStateManager = null,
-/** @type {PerformanceMonitor|null} */
- performanceMonitor = null,
-/** @type {SettingsStateManager|null} */
- settingsStateManager = null;
+    /** @type {PerformanceMonitor|null} */
+    performanceMonitor = null,
+    /** @type {SettingsStateManager|null} */
+    settingsStateManager = null;
 
 // Fallback to electron-conf for backwards compatibility - lazy initialization
 /** @type {any} */
 let conf = null;
 function getConf() {
     if (!conf) {
-        const { Conf } = require('electron-conf');
+        const { Conf } = require("electron-conf");
         conf = new Conf({ name: "settings" });
     }
     return conf;
@@ -206,15 +206,15 @@ function getDefaultDecoderOptions() {
 function validateDecoderOptions(options) {
     /** @type {string[]} */
     const errors = [],
-    /** @type {DecoderOptions} */
-     validatedOptions = { ...getDefaultDecoderOptions() };
+        /** @type {DecoderOptions} */
+        validatedOptions = { ...getDefaultDecoderOptions() };
 
     if (options && typeof options === "object") {
         /** @type {(keyof DecoderOptions)[]} */
         const keys = /** @type {any} */ (Object.keys(DECODER_OPTIONS_SCHEMA));
         keys.forEach((key) => {
             const schema = DECODER_OPTIONS_SCHEMA[key],
-             value = /** @type {any} */ (options)[key];
+                value = /** @type {any} */ (options)[key];
             if (value !== undefined) {
                 if (typeof value !== schema.type) {
                     errors.push(`${String(key)} must be of type ${schema.type}, got ${typeof value}`);
@@ -252,15 +252,21 @@ function applyUnknownMessageLabels(messages) {
     const updated = { ...messages };
     Object.keys(unknownMessageMappings).forEach((msgNum) => {
         const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
-        if (!mapping) {return;} // Safety guard
+        if (!mapping) {
+            return;
+        } // Safety guard
         const possibleKeys = [`unknown_${msgNum}`, msgNum];
         possibleKeys.forEach((key) => {
             if (Object.hasOwn(updated, key)) {
                 const rows = /** @type {any[]} */ (updated[/** @type {any} */ (key)]);
-                if (!Array.isArray(rows)) {return;}
+                if (!Array.isArray(rows)) {
+                    return;
+                }
                 if (msgNum === "104") {
                     updated[mapping.name] = rows.map((row) => {
-                        if (!row || typeof row !== "object") {return row;}
+                        if (!row || typeof row !== "object") {
+                            return row;
+                        }
                         return {
                             timestamp: row[253],
                             battery_voltage: row[0],
@@ -271,7 +277,9 @@ function applyUnknownMessageLabels(messages) {
                     });
                 } else {
                     updated[mapping.name] = rows.map((row) => {
-                        if (!row || typeof row !== "object") {return row;}
+                        if (!row || typeof row !== "object") {
+                            return row;
+                        }
                         /** @type {Record<string, any>} */
                         const labeled = {};
                         if (mapping && Array.isArray(mapping.fields)) {
@@ -288,12 +296,11 @@ function applyUnknownMessageLabels(messages) {
     });
     Object.keys(unknownMessageMappings).forEach((msgNum) => {
         const mapping = unknownMessageMappings[/** @type {any} */ (msgNum)];
-        if (!mapping) {return;}
+        if (!mapping) {
+            return;
+        }
         const key = /** @type {any} */ (msgNum);
-        if (
-            Object.hasOwn(updated, key) &&
-            Object.hasOwn(updated, mapping.name)
-        ) {
+        if (Object.hasOwn(updated, key) && Object.hasOwn(updated, mapping.name)) {
             delete updated[key];
         }
     });
@@ -311,7 +318,7 @@ function getPersistedDecoderOptions() {
     if (settingsStateManager) {
         try {
             const decoderSettings = settingsStateManager.getCategory("decoder") || {},
-             validation = validateDecoderOptions({ ...defaults, ...decoderSettings });
+                validation = validateDecoderOptions({ ...defaults, ...decoderSettings });
             return validation.validatedOptions;
         } catch (error) {
             console.warn(
@@ -323,7 +330,7 @@ function getPersistedDecoderOptions() {
 
     // Fallback to electron-conf
     const storedOptions = /** @type {Partial<DecoderOptions>} */ (getConf().get("decoderOptions", defaults)),
-     validation = validateDecoderOptions(storedOptions);
+        validation = validateDecoderOptions(storedOptions);
     return validation.validatedOptions;
 }
 
@@ -378,11 +385,11 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
         /** @type {any} */
         // @ts-ignore - external library lacks bundled types; suppressed locally
         const sdk = fitsdk || (await import("@garmin/fitsdk")),
-        // @ts-ignore - typed as any due to missing declaration file
-         { Decoder, Stream } = /** @type {any} */ (sdk),
-         buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer),
-         stream = Stream.fromBuffer(buffer),
-         decoder = new Decoder(stream);
+            // @ts-ignore - typed as any due to missing declaration file
+            { Decoder, Stream } = /** @type {any} */ (sdk),
+            buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer),
+            stream = Stream.fromBuffer(buffer),
+            decoder = new Decoder(stream);
 
         // Update progress - SDK loaded
         if (fitFileStateManager) {
@@ -395,10 +402,10 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
 
         if (!decoder.checkIntegrity()) {
             const integrityErrors =
-                typeof decoder.getIntegrityErrors === "function"
-                    ? decoder.getIntegrityErrors()
-                    : "No additional details available",
-             msg = `FIT file integrity check failed. Details: ${integrityErrors}`;
+                    typeof decoder.getIntegrityErrors === "function"
+                        ? decoder.getIntegrityErrors()
+                        : "No additional details available",
+                msg = `FIT file integrity check failed. Details: ${integrityErrors}`;
             console.error(msg);
 
             const error = new FitDecodeError(msg, integrityErrors);
@@ -424,7 +431,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
 
         // Default decoder options from persistent store
         const persistedOptions = getPersistedDecoderOptions(),
-         readOptions = { ...persistedOptions, ...options};
+            readOptions = { ...persistedOptions, ...options };
 
         // Update progress - Starting decode
         if (fitFileStateManager) {

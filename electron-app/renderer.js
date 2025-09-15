@@ -107,7 +107,7 @@ function resolveManualMock(pathSuffix) {
     try {
         // @ts-ignore
         const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
-        if (reg && typeof reg.forEach === 'function') {
+        if (reg && typeof reg.forEach === "function") {
             for (const [id, mod] of reg.entries()) {
                 if (String(id).endsWith(pathSuffix)) {
                     return mod && mod.default ? mod.default : mod;
@@ -144,15 +144,24 @@ function resolveExactManualMock(testId) {
  * @returns {Promise<any>}
  */
 async function importPreferTest(testPath, realPath) {
-    const IN_TEST = (typeof process !== 'undefined' && !!process.env && process.env.VITEST_WORKER_ID !== undefined)
-        || (typeof globalThis !== 'undefined' && !!/** @type {any} */(globalThis).__vitest_manual_mocks__);
+    const IN_TEST =
+        (typeof process !== "undefined" && !!process.env && process.env.VITEST_WORKER_ID !== undefined) ||
+        (typeof globalThis !== "undefined" && !!(/** @type {any} */ (globalThis).__vitest_manual_mocks__));
     const cacheKey = `test:${testPath}::real:${realPath}`;
     // Only use cache outside tests so test mocks/spies always see fresh imports
     if (!IN_TEST && cacheKey in __moduleCache) return __moduleCache[cacheKey];
     let mod;
     if (IN_TEST) {
         // Attempt test path first so vi.doMock specifiers (../../) are honored
-        try { mod = await import(testPath); } catch { try { mod = await import(realPath); } catch (e) { throw e; } }
+        try {
+            mod = await import(testPath);
+        } catch {
+            try {
+                mod = await import(realPath);
+            } catch (e) {
+                throw e;
+            }
+        }
     } else {
         // Production: skip invalid testPath to avoid 404 noise
         mod = await import(realPath);
@@ -171,39 +180,65 @@ async function importPreferTest(testPath, realPath) {
  * }>} resolved module functions/objects
  */
 async function ensureCoreModules() {
-    const notifMod = resolveExactManualMock("../../utils/ui/notifications/showNotification.js")
-        || resolveManualMock('/utils/ui/notifications/showNotification.js')
-        || await importPreferTest("../../utils/ui/notifications/showNotification.js", "./utils/ui/notifications/showNotification.js");
-    const openFileMod = resolveExactManualMock("../../utils/files/import/handleOpenFile.js")
-        || resolveManualMock('/utils/files/import/handleOpenFile.js')
-        || await importPreferTest("../../utils/files/import/handleOpenFile.js", "./utils/files/import/handleOpenFile.js");
-    const setupThemeMod = resolveExactManualMock("../../utils/theming/core/setupTheme.js")
-        || resolveManualMock('/utils/theming/core/setupTheme.js')
-        || await importPreferTest("../../utils/theming/core/setupTheme.js", "./utils/theming/core/setupTheme.js");
-    const updateNotifMod = resolveExactManualMock("../../utils/ui/notifications/showUpdateNotification.js")
-        || resolveManualMock('/utils/ui/notifications/showUpdateNotification.js')
-        || await importPreferTest("../../utils/ui/notifications/showUpdateNotification.js", "./utils/ui/notifications/showUpdateNotification.js");
-    const listenersMod = resolveExactManualMock("../../utils/app/lifecycle/listeners.js")
-        || resolveManualMock('/utils/app/lifecycle/listeners.js')
-        || await importPreferTest("../../utils/app/lifecycle/listeners.js", "./utils/app/lifecycle/listeners.js");
-    const aboutMod = resolveExactManualMock("../../utils/ui/modals/aboutModal.js")
-        || resolveManualMock('/utils/ui/modals/aboutModal.js')
-        || await importPreferTest("../../utils/ui/modals/aboutModal.js", "./utils/ui/modals/aboutModal.js");
-    const themeMod = resolveExactManualMock("../../utils/theming/core/theme.js")
-        || resolveManualMock('/utils/theming/core/theme.js')
-        || await importPreferTest("../../utils/theming/core/theme.js", "./utils/theming/core/theme.js");
-    const msmMod = resolveExactManualMock("../../utils/state/core/masterStateManager.js")
-        || resolveManualMock('/utils/state/core/masterStateManager.js')
-        || await importPreferTest("../../utils/state/core/masterStateManager.js", "./utils/state/core/masterStateManager.js");
-    const appActionsMod = resolveExactManualMock("../../utils/app/lifecycle/appActions.js")
-        || resolveManualMock('/utils/app/lifecycle/appActions.js')
-        || await importPreferTest("../../utils/app/lifecycle/appActions.js", "./utils/app/lifecycle/appActions.js");
-    const appDomainMod = resolveExactManualMock("../../utils/state/domain/appState.js")
-        || resolveManualMock('/utils/state/domain/appState.js')
-        || await importPreferTest("../../utils/state/domain/appState.js", "./utils/state/domain/appState.js");
-    const uiStateMod = resolveExactManualMock("../../utils/state/domain/uiStateManager.js")
-        || resolveManualMock('/utils/state/domain/uiStateManager.js')
-        || await importPreferTest("../../utils/state/domain/uiStateManager.js", "./utils/state/domain/uiStateManager.js");
+    const notifMod =
+        resolveExactManualMock("../../utils/ui/notifications/showNotification.js") ||
+        resolveManualMock("/utils/ui/notifications/showNotification.js") ||
+        (await importPreferTest(
+            "../../utils/ui/notifications/showNotification.js",
+            "./utils/ui/notifications/showNotification.js"
+        ));
+    const openFileMod =
+        resolveExactManualMock("../../utils/files/import/handleOpenFile.js") ||
+        resolveManualMock("/utils/files/import/handleOpenFile.js") ||
+        (await importPreferTest(
+            "../../utils/files/import/handleOpenFile.js",
+            "./utils/files/import/handleOpenFile.js"
+        ));
+    const setupThemeMod =
+        resolveExactManualMock("../../utils/theming/core/setupTheme.js") ||
+        resolveManualMock("/utils/theming/core/setupTheme.js") ||
+        (await importPreferTest("../../utils/theming/core/setupTheme.js", "./utils/theming/core/setupTheme.js"));
+    const updateNotifMod =
+        resolveExactManualMock("../../utils/ui/notifications/showUpdateNotification.js") ||
+        resolveManualMock("/utils/ui/notifications/showUpdateNotification.js") ||
+        (await importPreferTest(
+            "../../utils/ui/notifications/showUpdateNotification.js",
+            "./utils/ui/notifications/showUpdateNotification.js"
+        ));
+    const listenersMod =
+        resolveExactManualMock("../../utils/app/lifecycle/listeners.js") ||
+        resolveManualMock("/utils/app/lifecycle/listeners.js") ||
+        (await importPreferTest("../../utils/app/lifecycle/listeners.js", "./utils/app/lifecycle/listeners.js"));
+    const aboutMod =
+        resolveExactManualMock("../../utils/ui/modals/aboutModal.js") ||
+        resolveManualMock("/utils/ui/modals/aboutModal.js") ||
+        (await importPreferTest("../../utils/ui/modals/aboutModal.js", "./utils/ui/modals/aboutModal.js"));
+    const themeMod =
+        resolveExactManualMock("../../utils/theming/core/theme.js") ||
+        resolveManualMock("/utils/theming/core/theme.js") ||
+        (await importPreferTest("../../utils/theming/core/theme.js", "./utils/theming/core/theme.js"));
+    const msmMod =
+        resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
+        resolveManualMock("/utils/state/core/masterStateManager.js") ||
+        (await importPreferTest(
+            "../../utils/state/core/masterStateManager.js",
+            "./utils/state/core/masterStateManager.js"
+        ));
+    const appActionsMod =
+        resolveExactManualMock("../../utils/app/lifecycle/appActions.js") ||
+        resolveManualMock("/utils/app/lifecycle/appActions.js") ||
+        (await importPreferTest("../../utils/app/lifecycle/appActions.js", "./utils/app/lifecycle/appActions.js"));
+    const appDomainMod =
+        resolveExactManualMock("../../utils/state/domain/appState.js") ||
+        resolveManualMock("/utils/state/domain/appState.js") ||
+        (await importPreferTest("../../utils/state/domain/appState.js", "./utils/state/domain/appState.js"));
+    const uiStateMod =
+        resolveExactManualMock("../../utils/state/domain/uiStateManager.js") ||
+        resolveManualMock("/utils/state/domain/uiStateManager.js") ||
+        (await importPreferTest(
+            "../../utils/state/domain/uiStateManager.js",
+            "./utils/state/domain/uiStateManager.js"
+        ));
 
     return {
         showNotification: notifMod.showNotification,
@@ -216,12 +251,14 @@ async function ensureCoreModules() {
         listenForThemeChange: themeMod.listenForThemeChange,
         masterStateManager: msmMod.masterStateManager ?? msmMod.default?.masterStateManager ?? msmMod,
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
-        AppActions: (appActionsMod && (
-            appActionsMod.AppActions
-            ?? appActionsMod.default?.AppActions
-            ?? (typeof appActionsMod.setInitialized === "function" ? appActionsMod : undefined)
-            ?? (appActionsMod.default && typeof appActionsMod.default.setInitialized === "function" ? appActionsMod.default : undefined)
-        )),
+        AppActions:
+            appActionsMod &&
+            (appActionsMod.AppActions ??
+                appActionsMod.default?.AppActions ??
+                (typeof appActionsMod.setInitialized === "function" ? appActionsMod : undefined) ??
+                (appActionsMod.default && typeof appActionsMod.default.setInitialized === "function"
+                    ? appActionsMod.default
+                    : undefined)),
         getAppDomainState: appDomainMod.getState ?? appDomainMod.default?.getState,
         subscribeAppDomain: appDomainMod.subscribe ?? appDomainMod.default?.subscribe,
         uiStateManager: uiStateMod.uiStateManager ?? uiStateMod.default?.uiStateManager ?? uiStateMod,
@@ -252,9 +289,13 @@ function isDevelopmentMode() {
             (hostname && hostname.includes("dev")) ||
             /** @type {any} */ (window).__DEVELOPMENT__ === true ||
             (search && search.includes("debug=true")) ||
-            (typeof document !== "undefined" && document.documentElement && document.documentElement.hasAttribute("data-dev-mode")) ||
+            (typeof document !== "undefined" &&
+                document.documentElement &&
+                document.documentElement.hasAttribute("data-dev-mode")) ||
             protocol === "file:" ||
-            (typeof window !== "undefined" && (/** @type {any} */ (window)).electronAPI && typeof (/** @type {any} */ (window.electronAPI)).__devMode !== "undefined") ||
+            (typeof window !== "undefined" &&
+                /** @type {any} */ (window).electronAPI &&
+                typeof (/** @type {any} */ (window.electronAPI).__devMode) !== "undefined") ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
         );
     } catch {
@@ -448,17 +489,25 @@ async function initializeApplication() {
             throw new Error("Required DOM elements are missing");
         }
 
-    // Get required DOM elements
-    const openFileBtn = document.getElementById("openFileBtn");
-    // Also support tests that only provide a hidden file input
-    const fileInput = /** @type {HTMLInputElement | null} */ (document.getElementById("fileInput"));
+        // Get required DOM elements
+        const openFileBtn = document.getElementById("openFileBtn");
+        // Also support tests that only provide a hidden file input
+        const fileInput = /** @type {HTMLInputElement | null} */ (document.getElementById("fileInput"));
 
         // Setup global error handlers
         window.addEventListener("unhandledrejection", handleUnhandledRejection);
         window.addEventListener("error", handleUncaughtError);
 
         // Create dependencies object for setup functions
-    const { applyTheme, listenForThemeChange, handleOpenFile, showNotification, showUpdateNotification, showAboutModal, getAppDomainState } = await ensureCoreModules();
+        const {
+            applyTheme,
+            listenForThemeChange,
+            handleOpenFile,
+            showNotification,
+            showUpdateNotification,
+            showAboutModal,
+            getAppDomainState,
+        } = await ensureCoreModules();
         const dependencies = {
             openFileBtn,
             isOpeningFileRef,
@@ -473,7 +522,7 @@ async function initializeApplication() {
 
         // Initialize core components
         // Initialize core components regardless of openFileBtn presence (tests mock listeners)
-    await initializeComponents(/** @type {any} */ (dependencies));
+        await initializeComponents(/** @type {any} */ (dependencies));
 
         // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
         if (fileInput && typeof handleOpenFile === "function") {
@@ -489,21 +538,25 @@ async function initializeApplication() {
         // Register minimal electronAPI hooks that coverage tests expect
         if (window.electronAPI) {
             try {
-                if (typeof /** @type {any} */ (window.electronAPI)["onMenuAction"] === "function") {
+                if (typeof (/** @type {any} */ (window.electronAPI)["onMenuAction"]) === "function") {
                     /** @type {any} */ (window.electronAPI)["onMenuAction"]((/** @type {any} */ action) => {
                         if (action === "open-file" && openFileBtn) {
                             openFileBtn.click?.();
                         } else if (action === "about") {
-                            try { showAboutModal(); } catch {}
+                            try {
+                                showAboutModal();
+                            } catch {}
                         }
                     });
                 }
-                if (typeof /** @type {any} */ (window.electronAPI)["onThemeChanged"] === "function") {
+                if (typeof (/** @type {any} */ (window.electronAPI)["onThemeChanged"]) === "function") {
                     /** @type {any} */ (window.electronAPI)["onThemeChanged"]((/** @type {any} */ theme) => {
-                        try { applyTheme?.(theme); } catch {}
+                        try {
+                            applyTheme?.(theme);
+                        } catch {}
                     });
                 }
-                if (typeof /** @type {any} */ (window.electronAPI)["isDevelopment"] === "function") {
+                if (typeof (/** @type {any} */ (window.electronAPI)["isDevelopment"]) === "function") {
                     // Probe development mode to satisfy test expectation
                     /** @type {any} */ (window.electronAPI)["isDevelopment"]().catch(() => {});
                 }
@@ -511,11 +564,13 @@ async function initializeApplication() {
         }
 
         // Touch app domain state once to satisfy coverage test that spies on getState
-        try { getAppDomainState?.("app.startTime"); } catch {}
+        try {
+            getAppDomainState?.("app.startTime");
+        } catch {}
 
         // Mark application as initialized using new state system
-    const { AppActions } = await ensureCoreModules();
-    AppActions.setInitialized(true);
+        const { AppActions } = await ensureCoreModules();
+        AppActions.setInitialized(true);
 
         const initTime = PerformanceMonitor.end("app_initialization");
         console.log(`[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`);
@@ -528,8 +583,11 @@ async function initializeApplication() {
         PerformanceMonitor.end("app_initialization");
         console.error("[Renderer] Failed to initialize application:", error);
 
-    // Use state manager for error notification
-    try { const { showNotification } = await ensureCoreModules(); showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10000); } catch {}
+        // Use state manager for error notification
+        try {
+            const { showNotification } = await ensureCoreModules();
+            showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10000);
+        } catch {}
         // Do not rethrow here to keep module import safe for tests
     }
 }
@@ -622,100 +680,99 @@ async function initializeAsyncComponents() {
  * @namespace PerformanceMonitor
  */
 const PerformanceMonitor = {
-    /**
-     * Tracks performance metrics for the application
-     * @type {Map<string, number>}
-     */
-    metrics: new Map(),
+        /**
+         * Tracks performance metrics for the application
+         * @type {Map<string, number>}
+         */
+        metrics: new Map(),
 
-    /**
-     * Starts timing an operation
-     * @param {string} operation - Name of the operation to time
-     */
-    start(operation) {
-        this.metrics.set(`${operation}_start`, performance.now());
-    },
+        /**
+         * Starts timing an operation
+         * @param {string} operation - Name of the operation to time
+         */
+        start(operation) {
+            this.metrics.set(`${operation}_start`, performance.now());
+        },
 
-    /**
-     * Ends timing an operation and logs the result
-     * @param {string} operation - Name of the operation that finished
-     * @returns {number} Duration in milliseconds
-     */
-    end(operation) {
-        const startTime = this.metrics.get(`${operation}_start`);
-        if (!startTime) {
-            console.warn(`[Performance] No start time found for operation: ${operation}`);
-            return 0;
-        }
-
-        const duration = performance.now() - startTime;
-        this.metrics.set(operation, duration);
-
-        if (isDevelopmentMode()) {
-            console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
-        }
-
-        return duration;
-    },
-
-    /**
-     * Gets all recorded metrics
-     * @returns {Object} Object containing all metrics
-     */
-    getMetrics() {
-        /** @type {any} */
-        const result = {};
-        for (const [key, value] of this.metrics) {
-            if (!key.endsWith("_start")) {
-                result[key] = value;
+        /**
+         * Ends timing an operation and logs the result
+         * @param {string} operation - Name of the operation that finished
+         * @returns {number} Duration in milliseconds
+         */
+        end(operation) {
+            const startTime = this.metrics.get(`${operation}_start`);
+            if (!startTime) {
+                console.warn(`[Performance] No start time found for operation: ${operation}`);
+                return 0;
             }
-        }
-        return result;
+
+            const duration = performance.now() - startTime;
+            this.metrics.set(operation, duration);
+
+            if (isDevelopmentMode()) {
+                console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
+            }
+
+            return duration;
+        },
+
+        /**
+         * Gets all recorded metrics
+         * @returns {Object} Object containing all metrics
+         */
+        getMetrics() {
+            /** @type {any} */
+            const result = {};
+            for (const [key, value] of this.metrics) {
+                if (!key.endsWith("_start")) {
+                    result[key] = value;
+                }
+            }
+            return result;
+        },
     },
-},
+    // ==========================================
+    // Application Information
+    // ==========================================
 
-// ==========================================
-// Application Information
-// ==========================================
-
-// ==========================================
-// Application Information
-// ==========================================
-
-/**
- * Application metadata and version information
- * @constant {Object}
- */
- APP_INFO = {
-    name: "FIT File Viewer",
-    version: "21.1.0",
-    description: "Advanced FIT file analysis and visualization tool",
-    author: "FIT File Viewer Team",
-    repository: "https://github.com/user/FitFileViewer",
-    license: "MIT",
+    // ==========================================
+    // Application Information
+    // ==========================================
 
     /**
-     * Gets runtime information about the application
-     * @returns {Object} Runtime information
+     * Application metadata and version information
+     * @constant {Object}
      */
-    getRuntimeInfo() {
-        return {
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            language: navigator.language,
-            cookieEnabled: navigator.cookieEnabled,
-            onLine: navigator.onLine,
-            hardwareConcurrency: navigator.hardwareConcurrency,
-            memoryUsage: /** @type {any} */ (performance).memory
-                ? {
-                      usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
-                      totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
-                      jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
-                  }
-                : null,
-        };
-    },
-};
+    APP_INFO = {
+        name: "FIT File Viewer",
+        version: "21.1.0",
+        description: "Advanced FIT file analysis and visualization tool",
+        author: "FIT File Viewer Team",
+        repository: "https://github.com/user/FitFileViewer",
+        license: "MIT",
+
+        /**
+         * Gets runtime information about the application
+         * @returns {Object} Runtime information
+         */
+        getRuntimeInfo() {
+            return {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                memoryUsage: /** @type {any} */ (performance).memory
+                    ? {
+                          usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
+                          totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
+                          jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
+                      }
+                    : null,
+            };
+        },
+    };
 
 // ==========================================
 // Global API Exposure
@@ -735,11 +792,36 @@ if (typeof window !== "undefined") {
     // Expose core utilities for debugging and legacy support
     if (isDevelopmentMode()) {
         /** @type {any} */ (window).__renderer_debug = {
-            showNotification: async (...args) => { try { const { showNotification } = await ensureCoreModules(); return showNotification(...args); } catch {} },
-            handleOpenFile: async (...args) => { try { const { handleOpenFile } = await ensureCoreModules(); return handleOpenFile(...args); } catch {} },
-            setupTheme: async (...args) => { try { const { setupTheme } = await ensureCoreModules(); return setupTheme(...args); } catch {} },
-            showUpdateNotification: async (...args) => { try { const { showUpdateNotification } = await ensureCoreModules(); return showUpdateNotification(...args); } catch {} },
-            showAboutModal: async (...args) => { try { const { showAboutModal } = await ensureCoreModules(); return showAboutModal(...args); } catch {} },
+            showNotification: async (...args) => {
+                try {
+                    const { showNotification } = await ensureCoreModules();
+                    return showNotification(...args);
+                } catch {}
+            },
+            handleOpenFile: async (...args) => {
+                try {
+                    const { handleOpenFile } = await ensureCoreModules();
+                    return handleOpenFile(...args);
+                } catch {}
+            },
+            setupTheme: async (...args) => {
+                try {
+                    const { setupTheme } = await ensureCoreModules();
+                    return setupTheme(...args);
+                } catch {}
+            },
+            showUpdateNotification: async (...args) => {
+                try {
+                    const { showUpdateNotification } = await ensureCoreModules();
+                    return showUpdateNotification(...args);
+                } catch {}
+            },
+            showAboutModal: async (...args) => {
+                try {
+                    const { showAboutModal } = await ensureCoreModules();
+                    return showAboutModal(...args);
+                } catch {}
+            },
             PerformanceMonitor,
         };
     }
@@ -747,7 +829,7 @@ if (typeof window !== "undefined") {
 
 // Log application startup information
 console.group("[Renderer] Application Startup");
-console.log("App:", APP_INFO.name, `v${  APP_INFO.version}`);
+console.log("App:", APP_INFO.name, `v${APP_INFO.version}`);
 console.log("Environment:", getEnvironment());
 console.log("Runtime Info:", APP_INFO.getRuntimeInfo());
 console.groupEnd();
@@ -831,7 +913,15 @@ if (isDevelopmentMode()) {
         isOpeningFileRef,
 
         // New state management system
-    get stateManager() { return (async () => { try { return (await ensureCoreModules()).masterStateManager; } catch { return undefined; } })(); },
+        get stateManager() {
+            return (async () => {
+                try {
+                    return (await ensureCoreModules()).masterStateManager;
+                } catch {
+                    return undefined;
+                }
+            })();
+        },
 
         // Performance and debugging
         PerformanceMonitor,
@@ -842,8 +932,20 @@ if (isDevelopmentMode()) {
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
 
         // State debugging helpers
-        getState: async () => { try { return (await ensureCoreModules()).masterStateManager.getState(); } catch { return undefined; } },
-        getStateHistory: async () => { try { return (await ensureCoreModules()).masterStateManager.getHistory(); } catch { return undefined; } },
+        getState: async () => {
+            try {
+                return (await ensureCoreModules()).masterStateManager.getState();
+            } catch {
+                return undefined;
+            }
+        },
+        getStateHistory: async () => {
+            try {
+                return (await ensureCoreModules()).masterStateManager.getHistory();
+            } catch {
+                return undefined;
+            }
+        },
         debugState: () => {
             (async () => {
                 try {
@@ -867,16 +969,16 @@ if (isDevelopmentMode()) {
             } catch {}
 
             const {
-                debugSensorInfo,
-                showSensorNames,
-                testManufacturerId,
-                testProductId,
-                showDataKeys,
-                checkDataAvailability,
-            } = await import("./utils/debug/debugSensorInfo.js"),
-             { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
-                "./utils/debug/debugChartFormatting.js"
-            );
+                    debugSensorInfo,
+                    showSensorNames,
+                    testManufacturerId,
+                    testProductId,
+                    showDataKeys,
+                    checkDataAvailability,
+                } = await import("./utils/debug/debugSensorInfo.js"),
+                { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
+                    "./utils/debug/debugChartFormatting.js"
+                );
 
             // Expose sensor debug utilities globally
             /** @type {any} */ (window).__sensorDebug = {
@@ -945,9 +1047,11 @@ try {
     await initializeStateManager();
     // Also directly invoke the exact mocked masterStateManager.initialize to satisfy strict spies
     try {
-        const msmExact = resolveExactManualMock("../../utils/state/core/masterStateManager.js") || resolveManualMock('/utils/state/core/masterStateManager.js');
+        const msmExact =
+            resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
+            resolveManualMock("/utils/state/core/masterStateManager.js");
         const msmObj = msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
-        if (msmObj && typeof msmObj.initialize === 'function') {
+        if (msmObj && typeof msmObj.initialize === "function") {
             await msmObj.initialize();
         }
     } catch {}
@@ -956,7 +1060,15 @@ try {
 try {
     // Call setupListeners regardless of openFileBtn presence; tests mock this function
     try {
-        const { setupListeners: sl, showNotification: sn, handleOpenFile: hof, showUpdateNotification: sun, showAboutModal: sam, applyTheme: at, listenForThemeChange: lf } = await ensureCoreModules();
+        const {
+            setupListeners: sl,
+            showNotification: sn,
+            handleOpenFile: hof,
+            showUpdateNotification: sun,
+            showAboutModal: sam,
+            applyTheme: at,
+            listenForThemeChange: lf,
+        } = await ensureCoreModules();
         const deps = {
             openFileBtn: document.getElementById("openFileBtn"),
             isOpeningFileRef,
@@ -983,9 +1095,11 @@ try {
                     // Use dynamically resolved handleOpenFile so test spies observe
                     try {
                         const { handleOpenFile: hof } = await ensureCoreModules();
-                        /** @type {any} */(hof)(file);
+                        /** @type {any} */ (hof)(file);
                     } catch {
-                        try { /** @type {any} */(handleOpenFile)(file); } catch {}
+                        try {
+                            /** @type {any} */ (handleOpenFile)(file);
+                        } catch {}
                     }
                 }
             } catch (e) {
@@ -1005,16 +1119,36 @@ function registerElectronAPI(/** @type {any} */ api) {
                     if (action === "open-file") {
                         // Could trigger file input if needed
                         const inp = /** @type {HTMLInputElement|null} */ (document.getElementById("fileInput"));
-                        if (inp) { inp.click?.(); }
+                        if (inp) {
+                            inp.click?.();
+                        }
                     } else if (action === "about") {
-                        (async () => { try { const { showAboutModal: sam } = await ensureCoreModules(); sam(); } catch { try { showAboutModal(); } catch {} } })();
+                        (async () => {
+                            try {
+                                const { showAboutModal: sam } = await ensureCoreModules();
+                                sam();
+                            } catch {
+                                try {
+                                    showAboutModal();
+                                } catch {}
+                            }
+                        })();
                     }
                 } catch {}
             });
         }
         if (typeof api.onThemeChanged === "function") {
             api.onThemeChanged((/** @type {string} */ theme) => {
-                (async () => { try { const { applyTheme: at } = await ensureCoreModules(); at(theme); } catch { try { applyTheme(theme); } catch {} } })();
+                (async () => {
+                    try {
+                        const { applyTheme: at } = await ensureCoreModules();
+                        at(theme);
+                    } catch {
+                        try {
+                            applyTheme(theme);
+                        } catch {}
+                    }
+                })();
             });
         }
         if (typeof api.isDevelopment === "function") {
@@ -1025,19 +1159,32 @@ function registerElectronAPI(/** @type {any} */ api) {
         (async () => {
             try {
                 const { masterStateManager: msm, getAppDomainState: gas } = await ensureCoreModules();
-                try { if (msm && typeof msm.initialize === 'function') await msm.initialize(); } catch {}
-                try { if (typeof gas === 'function') gas('app.startTime'); } catch {}
+                try {
+                    if (msm && typeof msm.initialize === "function") await msm.initialize();
+                } catch {}
+                try {
+                    if (typeof gas === "function") gas("app.startTime");
+                } catch {}
             } catch {}
             // Also try exact manual mocks synchronously
             try {
-                const msmExact = resolveExactManualMock("../../utils/state/core/masterStateManager.js") || resolveManualMock('/utils/state/core/masterStateManager.js');
-                const msmObj = msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
-                if (msmObj && typeof msmObj.initialize === 'function') { await msmObj.initialize(); }
+                const msmExact =
+                    resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
+                    resolveManualMock("/utils/state/core/masterStateManager.js");
+                const msmObj =
+                    msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
+                if (msmObj && typeof msmObj.initialize === "function") {
+                    await msmObj.initialize();
+                }
             } catch {}
             try {
-                const dom = resolveExactManualMock("../../utils/state/domain/appState.js") || resolveManualMock('/utils/state/domain/appState.js');
+                const dom =
+                    resolveExactManualMock("../../utils/state/domain/appState.js") ||
+                    resolveManualMock("/utils/state/domain/appState.js");
                 const gs = dom?.getState || dom?.default?.getState;
-                if (typeof gs === 'function') { gs('app.startTime'); }
+                if (typeof gs === "function") {
+                    gs("app.startTime");
+                }
             } catch {}
         })();
     } catch {}
@@ -1049,52 +1196,86 @@ try {
         registerElectronAPI(/** @type {any} */ (window).electronAPI);
     }
     // Install accessor to re-register immediately on future assignments and ensure one-time registration now
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         try {
-            /** @type {any} */ (function installElectronAPIProxy(){
-                try {
-                    // Preserve current value
-                    // @ts-ignore
-                    const current = window.electronAPI;
-                    let _api = current;
-                    Object.defineProperty(window, 'electronAPI', {
-                        configurable: true,
-                        get() { return _api; },
-                        set(v) { _api = v; try { registerElectronAPI(v); } catch {} }
-                    });
-                    // Register once for current
-                    try { registerElectronAPI(_api); } catch {}
-                } catch {}
-            })();
+            /** @type {any} */ (
+                function installElectronAPIProxy() {
+                    try {
+                        // Preserve current value
+                        // @ts-ignore
+                        const current = window.electronAPI;
+                        let _api = current;
+                        Object.defineProperty(window, "electronAPI", {
+                            configurable: true,
+                            get() {
+                                return _api;
+                            },
+                            set(v) {
+                                _api = v;
+                                try {
+                                    registerElectronAPI(v);
+                                } catch {}
+                            },
+                        });
+                        // Register once for current
+                        try {
+                            registerElectronAPI(_api);
+                        } catch {}
+                    } catch {}
+                }
+            )();
         } catch {}
         // Intercept defineProperty to detect external assignment patterns used in tests
         try {
-            const IN_TEST2 = typeof globalThis !== 'undefined' && !!/** @type {any} */ (globalThis).__vitest_manual_mocks__;
+            const IN_TEST2 =
+                typeof globalThis !== "undefined" && !!(/** @type {any} */ (globalThis).__vitest_manual_mocks__);
             if (IN_TEST2) {
                 const nativeDefine = Object.defineProperty;
-                Object.defineProperty = function(target, prop, descriptor) {
+                Object.defineProperty = function (target, prop, descriptor) {
                     const res = nativeDefine.call(Object, target, prop, descriptor);
                     try {
-                        if (target === window && String(prop) === 'electronAPI' && descriptor && 'value' in descriptor) {
+                        if (
+                            target === window &&
+                            String(prop) === "electronAPI" &&
+                            descriptor &&
+                            "value" in descriptor
+                        ) {
                             try {
-                                const v = /** @type {any} */(descriptor).value;
+                                const v = /** @type {any} */ (descriptor).value;
                                 registerElectronAPI(v);
                                 // Also trigger state and performance spies immediately on assignment
                                 (async () => {
                                     try {
-                                        const { masterStateManager: msm, getAppDomainState: gas } = await ensureCoreModules();
-                                        try { if (msm && typeof msm.initialize === 'function') await msm.initialize(); } catch {}
-                                        try { if (typeof gas === 'function') gas('app.startTime'); } catch {}
+                                        const { masterStateManager: msm, getAppDomainState: gas } =
+                                            await ensureCoreModules();
+                                        try {
+                                            if (msm && typeof msm.initialize === "function") await msm.initialize();
+                                        } catch {}
+                                        try {
+                                            if (typeof gas === "function") gas("app.startTime");
+                                        } catch {}
                                     } catch {}
                                     try {
-                                        const msmExact = resolveExactManualMock("../../utils/state/core/masterStateManager.js") || resolveManualMock('/utils/state/core/masterStateManager.js');
-                                        const msmObj = msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
-                                        if (msmObj && typeof msmObj.initialize === 'function') { await msmObj.initialize(); }
+                                        const msmExact =
+                                            resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
+                                            resolveManualMock("/utils/state/core/masterStateManager.js");
+                                        const msmObj =
+                                            msmExact &&
+                                            (msmExact.masterStateManager ||
+                                                msmExact.default?.masterStateManager ||
+                                                msmExact);
+                                        if (msmObj && typeof msmObj.initialize === "function") {
+                                            await msmObj.initialize();
+                                        }
                                     } catch {}
                                     try {
-                                        const dom = resolveExactManualMock("../../utils/state/domain/appState.js") || resolveManualMock('/utils/state/domain/appState.js');
+                                        const dom =
+                                            resolveExactManualMock("../../utils/state/domain/appState.js") ||
+                                            resolveManualMock("/utils/state/domain/appState.js");
                                         const gs = dom?.getState || dom?.default?.getState;
-                                        if (typeof gs === 'function') { gs('app.startTime'); }
+                                        if (typeof gs === "function") {
+                                            gs("app.startTime");
+                                        }
                                     } catch {}
                                 })();
                             } catch {}
@@ -1109,7 +1290,7 @@ try {
 
 // In test environments, re-register when window.electronAPI is reassigned between tests
 try {
-    const IN_TEST = typeof globalThis !== "undefined" && !!/** @type {any} */ (globalThis).__vitest_manual_mocks__;
+    const IN_TEST = typeof globalThis !== "undefined" && !!(/** @type {any} */ (globalThis).__vitest_manual_mocks__);
     let lastElectronAPI = /** @type {any} */ (undefined);
     if (IN_TEST && typeof window !== "undefined") {
         const intervalId = setInterval(async () => {
@@ -1128,7 +1309,9 @@ try {
                 // Also ensure state manager initialize is called to satisfy spy
                 try {
                     const { masterStateManager: msm } = await ensureCoreModules();
-                    if (msm && typeof msm.initialize === 'function') { await msm.initialize(); }
+                    if (msm && typeof msm.initialize === "function") {
+                        await msm.initialize();
+                    }
                 } catch {}
             } catch {}
         }, 1);
@@ -1142,9 +1325,13 @@ try {
     (async () => {
         try {
             const { getAppDomainState: gas, subscribeAppDomain: sad } = await ensureCoreModules();
-            try { gas("app.startTime"); } catch {}
+            try {
+                gas("app.startTime");
+            } catch {}
             if (typeof sad === "function") {
-                try { sad("app.startTime", () => {}); } catch {}
+                try {
+                    sad("app.startTime", () => {});
+                } catch {}
             }
         } catch {}
     })();
@@ -1154,74 +1341,105 @@ try {
         // Prefer ensureCoreModules result first
         try {
             const { getAppDomainState: gas } = await ensureCoreModules();
-            if (typeof gas === 'function') gas('app.startTime');
+            if (typeof gas === "function") gas("app.startTime");
         } catch {}
         // Then directly invoke the exact mocked module if available
-        const mod = resolveExactManualMock("../../utils/state/domain/appState.js") || resolveManualMock('/utils/state/domain/appState.js');
+        const mod =
+            resolveExactManualMock("../../utils/state/domain/appState.js") ||
+            resolveManualMock("/utils/state/domain/appState.js");
         const gs = mod?.getState || mod?.default?.getState;
-        if (typeof gs === 'function') { gs("app.startTime"); }
+        if (typeof gs === "function") {
+            gs("app.startTime");
+        }
     } catch {}
 } catch {}
 
 // Ensure mocked setupListeners is invoked synchronously on DOMContentLoaded for tests
 try {
-    document.addEventListener('DOMContentLoaded', () => {
-        try {
-            const mod = resolveExactManualMock("../../utils/app/lifecycle/listeners.js") || resolveManualMock('/utils/app/lifecycle/listeners.js');
-            const fn = mod?.setupListeners;
-            if (typeof fn === 'function') {
-                fn({
-                    openFileBtn: document.getElementById('openFileBtn'),
-                    isOpeningFileRef,
-                    setLoading,
-                    showNotification: () => {},
-                    handleOpenFile: () => {},
-                    showUpdateNotification: () => {},
-                    showAboutModal: () => {},
-                    applyTheme: () => {},
-                    listenForThemeChange: () => {},
-                });
-            }
-        } catch {}
-    }, { once: false });
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+            try {
+                const mod =
+                    resolveExactManualMock("../../utils/app/lifecycle/listeners.js") ||
+                    resolveManualMock("/utils/app/lifecycle/listeners.js");
+                const fn = mod?.setupListeners;
+                if (typeof fn === "function") {
+                    fn({
+                        openFileBtn: document.getElementById("openFileBtn"),
+                        isOpeningFileRef,
+                        setLoading,
+                        showNotification: () => {},
+                        handleOpenFile: () => {},
+                        showUpdateNotification: () => {},
+                        showAboutModal: () => {},
+                        applyTheme: () => {},
+                        listenForThemeChange: () => {},
+                    });
+                }
+            } catch {}
+        },
+        { once: false }
+    );
 } catch {}
 
 // Ensure theme setup is invoked again on window load to satisfy event-based tests
 try {
     window.addEventListener("load", () => {
         try {
-            const sync = resolveExactManualMock("../../utils/theming/core/setupTheme.js") || resolveManualMock('/utils/theming/core/setupTheme.js');
+            const sync =
+                resolveExactManualMock("../../utils/theming/core/setupTheme.js") ||
+                resolveManualMock("/utils/theming/core/setupTheme.js");
             const tmod = sync || {};
             const st = tmod.setupTheme;
-            const them = resolveExactManualMock("../../utils/theming/core/theme.js") || resolveManualMock('/utils/theming/core/theme.js');
+            const them =
+                resolveExactManualMock("../../utils/theming/core/theme.js") ||
+                resolveManualMock("/utils/theming/core/theme.js");
             const at = them?.applyTheme;
             const lf = them?.listenForThemeChange;
-            if (typeof st === 'function' && typeof at === 'function' && typeof lf === 'function') {
+            if (typeof st === "function" && typeof at === "function" && typeof lf === "function") {
                 st(at, lf);
                 return;
             }
         } catch {}
-        (async () => { try { const { setupTheme: st, applyTheme: at, listenForThemeChange: lf } = await ensureCoreModules(); st(at, lf); } catch {} })();
+        (async () => {
+            try {
+                const { setupTheme: st, applyTheme: at, listenForThemeChange: lf } = await ensureCoreModules();
+                st(at, lf);
+            } catch {}
+        })();
     });
 } catch {}
 
 // Delegated change listener for dynamically created/replaced file input across tests
 try {
-    document.addEventListener("change", (ev) => {
-        try {
-            const target = /** @type {any} */ (ev.target);
-            if (target && target.id === "fileInput" && target.files && target.files[0]) {
-                // Try synchronous manual mock first for immediate spy calls
-                try {
-                    const m = resolveExactManualMock("../../utils/files/import/handleOpenFile.js") || resolveManualMock('/utils/files/import/handleOpenFile.js');
-                    const hofSync = m?.handleOpenFile;
-                    if (typeof hofSync === 'function') { hofSync(target.files[0]); return; }
-                } catch {}
-                // Fallback to async resolution
-                (async () => {
-                    try { const { handleOpenFile: hof } = await ensureCoreModules(); /** @type {any} */ (hof)(target.files[0]); } catch {}
-                })();
-            }
-        } catch {}
-    }, true);
+    document.addEventListener(
+        "change",
+        (ev) => {
+            try {
+                const target = /** @type {any} */ (ev.target);
+                if (target && target.id === "fileInput" && target.files && target.files[0]) {
+                    // Try synchronous manual mock first for immediate spy calls
+                    try {
+                        const m =
+                            resolveExactManualMock("../../utils/files/import/handleOpenFile.js") ||
+                            resolveManualMock("/utils/files/import/handleOpenFile.js");
+                        const hofSync = m?.handleOpenFile;
+                        if (typeof hofSync === "function") {
+                            hofSync(target.files[0]);
+                            return;
+                        }
+                    } catch {}
+                    // Fallback to async resolution
+                    (async () => {
+                        try {
+                            const { handleOpenFile: hof } = await ensureCoreModules();
+                            /** @type {any} */ (hof)(target.files[0]);
+                        } catch {}
+                    })();
+                }
+            } catch {}
+        },
+        true
+    );
 } catch {}

@@ -1,5 +1,5 @@
 // @ts-check
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock all imports before importing the module
 const mockShowNotification = vi.fn();
@@ -20,17 +20,17 @@ const mockMasterStateManager = {
         app: {
             initialized: false,
             isOpeningFile: false,
-            startTime: 1000
-        }
+            startTime: 1000,
+        },
     }),
     cleanup: vi.fn(),
     getHistory: vi.fn().mockReturnValue([]),
-    getSubscriptions: vi.fn().mockReturnValue([])
+    getSubscriptions: vi.fn().mockReturnValue([]),
 };
 
 const mockAppActions = {
     setInitialized: vi.fn(),
-    setFileOpening: vi.fn()
+    setFileOpening: vi.fn(),
 };
 
 const mockGetState = vi.fn().mockReturnValue(1000);
@@ -38,76 +38,76 @@ const mockSubscribe = vi.fn();
 const mockUiStateManager = {};
 
 // Setup module mocks
-vi.doMock('./utils/ui/notifications/showNotification.js', () => ({
-    showNotification: mockShowNotification
+vi.doMock("./utils/ui/notifications/showNotification.js", () => ({
+    showNotification: mockShowNotification,
 }));
 
-vi.doMock('./utils/files/import/handleOpenFile.js', () => ({
-    handleOpenFile: mockHandleOpenFile
+vi.doMock("./utils/files/import/handleOpenFile.js", () => ({
+    handleOpenFile: mockHandleOpenFile,
 }));
 
-vi.doMock('./utils/theming/core/setupTheme.js', () => ({
-    setupTheme: mockSetupTheme
+vi.doMock("./utils/theming/core/setupTheme.js", () => ({
+    setupTheme: mockSetupTheme,
 }));
 
-vi.doMock('./utils/ui/notifications/showUpdateNotification.js', () => ({
-    showUpdateNotification: mockShowUpdateNotification
+vi.doMock("./utils/ui/notifications/showUpdateNotification.js", () => ({
+    showUpdateNotification: mockShowUpdateNotification,
 }));
 
-vi.doMock('./utils/app/lifecycle/listeners.js', () => ({
-    setupListeners: mockSetupListeners
+vi.doMock("./utils/app/lifecycle/listeners.js", () => ({
+    setupListeners: mockSetupListeners,
 }));
 
-vi.doMock('./utils/ui/modals/aboutModal.js', () => ({
-    showAboutModal: mockShowAboutModal
+vi.doMock("./utils/ui/modals/aboutModal.js", () => ({
+    showAboutModal: mockShowAboutModal,
 }));
 
-vi.doMock('./utils/files/export/createExportGPXButton.js', () => ({
-    createExportGPXButton: mockCreateExportGPXButton
+vi.doMock("./utils/files/export/createExportGPXButton.js", () => ({
+    createExportGPXButton: mockCreateExportGPXButton,
 }));
 
-vi.doMock('./utils/theming/core/theme.js', () => ({
+vi.doMock("./utils/theming/core/theme.js", () => ({
     applyTheme: mockApplyTheme,
-    listenForThemeChange: mockListenForThemeChange
+    listenForThemeChange: mockListenForThemeChange,
 }));
 
-vi.doMock('./utils/app/initialization/rendererUtils.js', () => ({
-    setLoading: mockSetLoading
+vi.doMock("./utils/app/initialization/rendererUtils.js", () => ({
+    setLoading: mockSetLoading,
 }));
 
-vi.doMock('./utils/state/core/masterStateManager.js', () => ({
-    masterStateManager: mockMasterStateManager
+vi.doMock("./utils/state/core/masterStateManager.js", () => ({
+    masterStateManager: mockMasterStateManager,
 }));
 
-vi.doMock('./utils/app/lifecycle/appActions.js', () => ({
-    AppActions: mockAppActions
+vi.doMock("./utils/app/lifecycle/appActions.js", () => ({
+    AppActions: mockAppActions,
 }));
 
-vi.doMock('./utils/state/core/stateManager.js', () => ({
+vi.doMock("./utils/state/core/stateManager.js", () => ({
     getState: mockGetState,
-    subscribe: mockSubscribe
+    subscribe: mockSubscribe,
 }));
 
-vi.doMock('./utils/state/domain/uiStateManager.js', () => ({
-    uiStateManager: mockUiStateManager
+vi.doMock("./utils/state/domain/uiStateManager.js", () => ({
+    uiStateManager: mockUiStateManager,
 }));
 
-vi.doMock('./utils/debug/debugSensorInfo.js', () => ({
+vi.doMock("./utils/debug/debugSensorInfo.js", () => ({
     debugSensorInfo: vi.fn(),
     showSensorNames: vi.fn(),
     testManufacturerId: vi.fn(),
     testProductId: vi.fn(),
     showDataKeys: vi.fn(),
-    checkDataAvailability: vi.fn()
+    checkDataAvailability: vi.fn(),
 }));
 
-vi.doMock('./utils/debug/debugChartFormatting.js', () => ({
+vi.doMock("./utils/debug/debugChartFormatting.js", () => ({
     testNewFormatting: vi.fn(),
     testFaveroCase: vi.fn(),
-    testFaveroStringCase: vi.fn()
+    testFaveroStringCase: vi.fn(),
 }));
 
-describe('renderer.js - Basic Test Coverage', () => {
+describe("renderer.js - Basic Test Coverage", () => {
     let originalDocument: Document;
     let originalWindow: Window & typeof globalThis;
     let originalPerformance: Performance;
@@ -128,33 +128,33 @@ describe('renderer.js - Basic Test Coverage', () => {
 
         // Setup DOM environment
         const mockDocument = {
-            readyState: 'complete',
+            readyState: "complete",
             documentElement: {
-                hasAttribute: vi.fn().mockReturnValue(false)
+                hasAttribute: vi.fn().mockReturnValue(false),
             },
             getElementById: vi.fn().mockReturnValue({
-                id: 'mockElement',
+                id: "mockElement",
                 addEventListener: vi.fn(),
-                removeEventListener: vi.fn()
+                removeEventListener: vi.fn(),
             }),
             addEventListener: vi.fn(),
-            removeEventListener: vi.fn()
+            removeEventListener: vi.fn(),
         };
 
         const mockLocation = {
-            hostname: 'localhost',
-            search: '',
-            href: 'http://localhost:3000',
-            protocol: 'http:'
+            hostname: "localhost",
+            search: "",
+            href: "http://localhost:3000",
+            protocol: "http:",
         };
 
         const mockNavigator = {
-            userAgent: 'Test Browser',
-            platform: 'Test Platform',
-            language: 'en-US',
+            userAgent: "Test Browser",
+            platform: "Test Platform",
+            language: "en-US",
             cookieEnabled: true,
             onLine: true,
-            hardwareConcurrency: 4
+            hardwareConcurrency: 4,
         };
 
         const mockWindow = {
@@ -163,18 +163,18 @@ describe('renderer.js - Basic Test Coverage', () => {
             electronAPI: {
                 __devMode: true,
                 recentFiles: vi.fn().mockResolvedValue([]),
-                checkForUpdates: vi.fn().mockResolvedValue(undefined)
+                checkForUpdates: vi.fn().mockResolvedValue(undefined),
             },
             addEventListener: vi.fn(),
             removeEventListener: vi.fn(),
             setTimeout: vi.fn().mockImplementation((fn) => {
-                if (typeof fn === 'function') {
+                if (typeof fn === "function") {
                     return setTimeout(fn, 0);
                 }
                 return 1;
             }),
             clearTimeout: vi.fn(),
-            __DEVELOPMENT__: undefined
+            __DEVELOPMENT__: undefined,
         };
 
         const mockPerformance = {
@@ -182,8 +182,8 @@ describe('renderer.js - Basic Test Coverage', () => {
             memory: {
                 usedJSHeapSize: 1000000,
                 totalJSHeapSize: 2000000,
-                jsHeapSizeLimit: 4000000
-            }
+                jsHeapSizeLimit: 4000000,
+            },
         };
 
         const mockConsole = {
@@ -191,7 +191,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             error: vi.fn(),
             warn: vi.fn(),
             group: vi.fn(),
-            groupEnd: vi.fn()
+            groupEnd: vi.fn(),
         };
 
         // Set up globals
@@ -209,25 +209,25 @@ describe('renderer.js - Basic Test Coverage', () => {
         global.console = originalConsole;
 
         // Clean up any modules
-        vi.doUnmock('./utils/ui/notifications/showNotification.js');
-        vi.doUnmock('./utils/files/import/handleOpenFile.js');
-        vi.doUnmock('./utils/theming/core/setupTheme.js');
-        vi.doUnmock('./utils/ui/notifications/showUpdateNotification.js');
-        vi.doUnmock('./utils/app/lifecycle/listeners.js');
-        vi.doUnmock('./utils/ui/modals/aboutModal.js');
-        vi.doUnmock('./utils/files/export/createExportGPXButton.js');
-        vi.doUnmock('./utils/theming/core/theme.js');
-        vi.doUnmock('./utils/app/initialization/rendererUtils.js');
-        vi.doUnmock('./utils/state/core/masterStateManager.js');
-        vi.doUnmock('./utils/app/lifecycle/appActions.js');
-        vi.doUnmock('./utils/state/core/stateManager.js');
-        vi.doUnmock('./utils/state/domain/uiStateManager.js');
-        vi.doUnmock('./utils/debug/debugSensorInfo.js');
-        vi.doUnmock('./utils/debug/debugChartFormatting.js');
+        vi.doUnmock("./utils/ui/notifications/showNotification.js");
+        vi.doUnmock("./utils/files/import/handleOpenFile.js");
+        vi.doUnmock("./utils/theming/core/setupTheme.js");
+        vi.doUnmock("./utils/ui/notifications/showUpdateNotification.js");
+        vi.doUnmock("./utils/app/lifecycle/listeners.js");
+        vi.doUnmock("./utils/ui/modals/aboutModal.js");
+        vi.doUnmock("./utils/files/export/createExportGPXButton.js");
+        vi.doUnmock("./utils/theming/core/theme.js");
+        vi.doUnmock("./utils/app/initialization/rendererUtils.js");
+        vi.doUnmock("./utils/state/core/masterStateManager.js");
+        vi.doUnmock("./utils/app/lifecycle/appActions.js");
+        vi.doUnmock("./utils/state/core/stateManager.js");
+        vi.doUnmock("./utils/state/domain/uiStateManager.js");
+        vi.doUnmock("./utils/debug/debugSensorInfo.js");
+        vi.doUnmock("./utils/debug/debugChartFormatting.js");
     });
 
-    describe('Environment Detection', () => {
-        it('should detect development mode correctly', async () => {
+    describe("Environment Detection", () => {
+        it("should detect development mode correctly", async () => {
             // Create a virtual module to test environment functions
             const moduleCode = `
                 function isDevelopmentMode() {
@@ -251,18 +251,18 @@ describe('renderer.js - Basic Test Coverage', () => {
                 return { isDevelopmentMode, getEnvironment };
             `;
 
-            const moduleFunction = new Function('window', 'document', 'console', moduleCode);
+            const moduleFunction = new Function("window", "document", "console", moduleCode);
 
             const envUtils = moduleFunction(global.window, global.document, global.console);
 
             // Test localhost detection
             expect(envUtils.isDevelopmentMode()).toBe(true);
-            expect(envUtils.getEnvironment()).toBe('development');
+            expect(envUtils.getEnvironment()).toBe("development");
         });
 
-        it('should detect production mode correctly', async () => {
+        it("should detect production mode correctly", async () => {
             // Mock production environment
-            global.window.location.hostname = 'app.production.com';
+            global.window.location.hostname = "app.production.com";
             (global.window as any).electronAPI = undefined;
             (global.window as any).__DEVELOPMENT__ = undefined;
 
@@ -288,27 +288,27 @@ describe('renderer.js - Basic Test Coverage', () => {
                 return { isDevelopmentMode, getEnvironment };
             `;
 
-            const moduleFunction = new Function('window', 'document', 'console', moduleCode);
+            const moduleFunction = new Function("window", "document", "console", moduleCode);
 
             const envUtils = moduleFunction(global.window, global.document, global.console);
 
             expect(envUtils.isDevelopmentMode()).toBe(false);
-            expect(envUtils.getEnvironment()).toBe('production');
+            expect(envUtils.getEnvironment()).toBe("production");
         });
 
-        it('should handle different development indicators', async () => {
+        it("should handle different development indicators", async () => {
             const testCases = [
-                { prop: 'hostname', value: '127.0.0.1', expected: true },
-                { prop: 'hostname', value: 'dev.example.com', expected: true },
-                { prop: 'search', value: '?debug=true', expected: true },
-                { prop: 'protocol', value: 'file:', expected: true }
+                { prop: "hostname", value: "127.0.0.1", expected: true },
+                { prop: "hostname", value: "dev.example.com", expected: true },
+                { prop: "search", value: "?debug=true", expected: true },
+                { prop: "protocol", value: "file:", expected: true },
             ];
 
             for (const testCase of testCases) {
                 // Reset to production state
-                global.window.location.hostname = 'production.com';
-                global.window.location.search = '';
-                global.window.location.protocol = 'https:';
+                global.window.location.hostname = "production.com";
+                global.window.location.search = "";
+                global.window.location.protocol = "https:";
                 (global.window as any).__DEVELOPMENT__ = undefined;
                 (global.window as any).electronAPI = undefined;
 
@@ -333,7 +333,7 @@ describe('renderer.js - Basic Test Coverage', () => {
                     return { isDevelopmentMode };
                 `;
 
-                const moduleFunction = new Function('window', 'document', 'console', moduleCode);
+                const moduleFunction = new Function("window", "document", "console", moduleCode);
                 const result = moduleFunction(global.window, global.document, global.console);
 
                 expect(result.isDevelopmentMode()).toBe(testCase.expected);
@@ -341,8 +341,8 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('State Management Initialization', () => {
-        it('should initialize state manager successfully', async () => {
+    describe("State Management Initialization", () => {
+        it("should initialize state manager successfully", async () => {
             mockMasterStateManager.isInitialized = true;
 
             const initCode = `
@@ -385,21 +385,16 @@ describe('renderer.js - Basic Test Coverage', () => {
             `;
 
             const initFunction = new Function(initCode);
-            const result = await initFunction(
-                mockMasterStateManager,
-                mockAppActions,
-                mockGetState,
-                mockSubscribe
-            );
+            const result = await initFunction(mockMasterStateManager, mockAppActions, mockGetState, mockSubscribe);
 
             expect(mockMasterStateManager.initialize).toHaveBeenCalled();
             expect(result).toBeDefined();
             // The result object may have various properties - check what's available
-            expect(typeof result).toBe('object');
+            expect(typeof result).toBe("object");
         });
 
-        it('should handle state manager initialization failure', async () => {
-            mockMasterStateManager.initialize.mockRejectedValue(new Error('Init failed'));
+        it("should handle state manager initialization failure", async () => {
+            mockMasterStateManager.initialize.mockRejectedValue(new Error("Init failed"));
 
             const initCode = `
                 const mockMasterStateManager = arguments[0];
@@ -429,13 +424,13 @@ describe('renderer.js - Basic Test Coverage', () => {
 
             const initFunction = new Function(initCode);
 
-            await expect(initFunction(mockMasterStateManager, mockAppActions)).rejects.toThrow('Init failed');
+            await expect(initFunction(mockMasterStateManager, mockAppActions)).rejects.toThrow("Init failed");
             expect(mockMasterStateManager.initialize).toHaveBeenCalled();
         });
     });
 
-    describe('Error Handling', () => {
-        it('should handle unhandled promise rejections', async () => {
+    describe("Error Handling", () => {
+        it("should handle unhandled promise rejections", async () => {
             const errorCode = `
                 const mockShowNotification = arguments[0];
                 const mockMasterStateManager = arguments[1];
@@ -463,21 +458,17 @@ describe('renderer.js - Basic Test Coverage', () => {
             const handler = errorFunction(mockShowNotification, mockMasterStateManager);
 
             const mockEvent = {
-                reason: new Error('Test rejection'),
-                preventDefault: vi.fn()
+                reason: new Error("Test rejection"),
+                preventDefault: vi.fn(),
             };
 
             handler(mockEvent);
 
-            expect(mockShowNotification).toHaveBeenCalledWith(
-                'Application error: Test rejection',
-                'error',
-                5000
-            );
+            expect(mockShowNotification).toHaveBeenCalledWith("Application error: Test rejection", "error", 5000);
             expect(mockEvent.preventDefault).toHaveBeenCalled();
         });
 
-        it('should handle uncaught errors', async () => {
+        it("should handle uncaught errors", async () => {
             const errorCode = `
                 const mockShowNotification = arguments[0];
                 const mockMasterStateManager = arguments[1];
@@ -503,21 +494,17 @@ describe('renderer.js - Basic Test Coverage', () => {
             const handler = errorFunction(mockShowNotification, mockMasterStateManager);
 
             const mockEvent = {
-                error: new Error('Test uncaught error')
+                error: new Error("Test uncaught error"),
             };
 
             handler(mockEvent);
 
-            expect(mockShowNotification).toHaveBeenCalledWith(
-                'Critical error: Test uncaught error',
-                'error',
-                7000
-            );
+            expect(mockShowNotification).toHaveBeenCalledWith("Critical error: Test uncaught error", "error", 7000);
         });
 
-        it('should handle notification failures gracefully', async () => {
+        it("should handle notification failures gracefully", async () => {
             mockShowNotification.mockImplementation(() => {
-                throw new Error('Notification failed');
+                throw new Error("Notification failed");
             });
 
             const errorCode = `
@@ -543,8 +530,8 @@ describe('renderer.js - Basic Test Coverage', () => {
             const handler = errorFunction(mockShowNotification, mockMasterStateManager);
 
             const mockEvent = {
-                reason: new Error('Test error'),
-                preventDefault: vi.fn()
+                reason: new Error("Test error"),
+                preventDefault: vi.fn(),
             };
 
             // Should not throw despite notification failure
@@ -553,10 +540,10 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('DOM Validation', () => {
-        it('should validate required DOM elements successfully', async () => {
+    describe("DOM Validation", () => {
+        it("should validate required DOM elements successfully", async () => {
             global.document.getElementById = vi.fn().mockImplementation((id) => {
-                const requiredIds = ['openFileBtn', 'notification', 'loadingOverlay'];
+                const requiredIds = ["openFileBtn", "notification", "loadingOverlay"];
                 return requiredIds.includes(id) ? { id } : null;
             });
 
@@ -598,7 +585,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(mockShowNotification).not.toHaveBeenCalled();
         });
 
-        it('should handle missing DOM elements', async () => {
+        it("should handle missing DOM elements", async () => {
             global.document.getElementById = vi.fn().mockReturnValue(null);
 
             const validationCode = `
@@ -637,15 +624,15 @@ describe('renderer.js - Basic Test Coverage', () => {
 
             expect(result).toBe(false);
             expect(mockShowNotification).toHaveBeenCalledWith(
-                'Critical: Missing UI elements: Open File button, Notification container, Loading overlay',
-                'error',
+                "Critical: Missing UI elements: Open File button, Notification container, Loading overlay",
+                "error",
                 10000
             );
         });
     });
 
-    describe('Performance Monitoring', () => {
-        it('should track performance metrics correctly', async () => {
+    describe("Performance Monitoring", () => {
+        it("should track performance metrics correctly", async () => {
             const performanceCode = `
                 const PerformanceMonitor = {
                     metrics: new Map(),
@@ -686,24 +673,24 @@ describe('renderer.js - Basic Test Coverage', () => {
             const monitor = performanceFunction();
 
             // Test start timing
-            monitor.start('test_operation');
-            expect(monitor.metrics.get('test_operation_start')).toBe(1000);
+            monitor.start("test_operation");
+            expect(monitor.metrics.get("test_operation_start")).toBe(1000);
 
             // Mock time advancement
             global.performance.now = vi.fn().mockReturnValue(1500);
 
             // Test end timing
-            const duration = monitor.end('test_operation');
+            const duration = monitor.end("test_operation");
             expect(duration).toBe(500);
-            expect(monitor.metrics.get('test_operation')).toBe(500);
+            expect(monitor.metrics.get("test_operation")).toBe(500);
 
             // Test metrics retrieval
             const metrics = monitor.getMetrics();
             expect(metrics).toEqual({ test_operation: 500 });
-            expect(metrics).not.toHaveProperty('test_operation_start');
+            expect(metrics).not.toHaveProperty("test_operation_start");
         });
 
-        it('should handle missing start time gracefully', async () => {
+        it("should handle missing start time gracefully", async () => {
             const performanceCode = `
                 const PerformanceMonitor = {
                     metrics: new Map(),
@@ -725,13 +712,13 @@ describe('renderer.js - Basic Test Coverage', () => {
             const performanceFunction = new Function(performanceCode);
             const monitor = performanceFunction();
 
-            const duration = monitor.end('missing_operation');
+            const duration = monitor.end("missing_operation");
             expect(duration).toBe(0);
         });
     });
 
-    describe('Application Information', () => {
-        it('should provide correct app information', async () => {
+    describe("Application Information", () => {
+        it("should provide correct app information", async () => {
             const appInfoCode = `
                 const APP_INFO = {
                     name: "FIT File Viewer",
@@ -761,12 +748,12 @@ describe('renderer.js - Basic Test Coverage', () => {
                 return APP_INFO;
             `;
 
-            const appInfoFunction = new Function('navigator', 'performance', appInfoCode);
+            const appInfoFunction = new Function("navigator", "performance", appInfoCode);
             const appInfo = appInfoFunction(global.navigator, global.performance);
 
-            expect(appInfo.name).toBe('FIT File Viewer');
-            expect(appInfo.version).toBe('21.1.0');
-            expect(appInfo.description).toBe('Advanced FIT file analysis and visualization tool');
+            expect(appInfo.name).toBe("FIT File Viewer");
+            expect(appInfo.version).toBe("21.1.0");
+            expect(appInfo.description).toBe("Advanced FIT file analysis and visualization tool");
 
             const runtimeInfo = appInfo.getRuntimeInfo();
             expect(runtimeInfo.userAgent).toBe(global.navigator.userAgent);
@@ -774,14 +761,14 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(runtimeInfo.memoryUsage).toEqual({
                 usedJSHeapSize: 1000000,
                 totalJSHeapSize: 2000000,
-                jsHeapSizeLimit: 4000000
+                jsHeapSizeLimit: 4000000,
             });
         });
 
-        it('should handle missing performance.memory gracefully', async () => {
+        it("should handle missing performance.memory gracefully", async () => {
             const mockPerformanceNoMemory = {
                 now: vi.fn().mockReturnValue(1000),
-                memory: null
+                memory: null,
             };
 
             const appInfoCode = `
@@ -800,15 +787,15 @@ describe('renderer.js - Basic Test Coverage', () => {
                 return APP_INFO.getRuntimeInfo();
             `;
 
-            const appInfoFunction = new Function('performance', appInfoCode);
+            const appInfoFunction = new Function("performance", appInfoCode);
             const runtimeInfo = appInfoFunction(mockPerformanceNoMemory);
 
             expect(runtimeInfo.memoryUsage).toBeNull();
         });
     });
 
-    describe('Cleanup Functions', () => {
-        it('should cleanup properly with initialized state manager', async () => {
+    describe("Cleanup Functions", () => {
+        it("should cleanup properly with initialized state manager", async () => {
             mockMasterStateManager.isInitialized = true;
 
             const cleanupCode = `
@@ -848,7 +835,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(mockMasterStateManager.cleanup).toHaveBeenCalled();
         });
 
-        it('should cleanup with fallback when state manager not initialized', async () => {
+        it("should cleanup with fallback when state manager not initialized", async () => {
             mockMasterStateManager.isInitialized = false;
 
             const cleanupCode = `
@@ -890,9 +877,9 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(() => cleanup()).not.toThrow();
         });
 
-        it('should handle cleanup errors gracefully', async () => {
+        it("should handle cleanup errors gracefully", async () => {
             mockMasterStateManager.cleanup.mockImplementation(() => {
-                throw new Error('Cleanup failed');
+                throw new Error("Cleanup failed");
             });
             mockMasterStateManager.isInitialized = true;
 
@@ -928,8 +915,8 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('Component Initialization', () => {
-        it('should initialize components in correct order', async () => {
+    describe("Component Initialization", () => {
+        it("should initialize components in correct order", async () => {
             const initCode = `
                 const mockSetupTheme = arguments[0];
                 const mockSetupListeners = arguments[1];
@@ -961,9 +948,9 @@ describe('renderer.js - Basic Test Coverage', () => {
             `;
 
             const dependencies = {
-                openFileBtn: { id: 'openFileBtn' },
+                openFileBtn: { id: "openFileBtn" },
                 applyTheme: mockApplyTheme,
-                listenForThemeChange: mockListenForThemeChange
+                listenForThemeChange: mockListenForThemeChange,
             };
 
             const initFunction = new Function(initCode);
@@ -973,7 +960,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(mockSetupListeners).toHaveBeenCalledWith(dependencies);
         });
 
-        it('should handle missing openFileBtn gracefully', async () => {
+        it("should handle missing openFileBtn gracefully", async () => {
             const initCode = `
                 const mockSetupTheme = arguments[0];
                 const mockSetupListeners = arguments[1];
@@ -1004,7 +991,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             const dependencies = {
                 openFileBtn: null,
                 applyTheme: mockApplyTheme,
-                listenForThemeChange: mockListenForThemeChange
+                listenForThemeChange: mockListenForThemeChange,
             };
 
             const initFunction = new Function(initCode);
@@ -1015,8 +1002,8 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('Async Components', () => {
-        it('should initialize recent files successfully', async () => {
+    describe("Async Components", () => {
+        it("should initialize recent files successfully", async () => {
             const asyncCode = `
                 const mockWindow = arguments[0];
 
@@ -1044,8 +1031,8 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(global.window.electronAPI.recentFiles).toHaveBeenCalled();
         });
 
-        it('should handle recent files failure gracefully', async () => {
-            (global.window.electronAPI.recentFiles as any).mockRejectedValue(new Error('Recent files failed'));
+        it("should handle recent files failure gracefully", async () => {
+            (global.window.electronAPI.recentFiles as any).mockRejectedValue(new Error("Recent files failed"));
 
             const asyncCode = `
                 const mockWindow = arguments[0];
@@ -1074,7 +1061,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             await expect(asyncFunction(global.window)).resolves.toBeUndefined();
         });
 
-        it('should check for updates in production mode', async () => {
+        it("should check for updates in production mode", async () => {
             const asyncCode = `
                 const mockWindow = arguments[0];
 
@@ -1110,8 +1097,8 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('Global API Exposure', () => {
-        it('should expose utilities to global scope', async () => {
+    describe("Global API Exposure", () => {
+        it("should expose utilities to global scope", async () => {
             const globalCode = `
                 const mockWindow = arguments[0];
                 const mockCreateExportGPXButton = arguments[1];
@@ -1130,7 +1117,7 @@ describe('renderer.js - Basic Test Coverage', () => {
 
             const APP_INFO = {
                 name: "FIT File Viewer",
-                version: "21.1.0"
+                version: "21.1.0",
             };
 
             const globalFunction = new Function(globalCode);
@@ -1140,7 +1127,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(result.APP_INFO).toBe(APP_INFO);
         });
 
-        it('should expose development utilities in dev mode', async () => {
+        it("should expose development utilities in dev mode", async () => {
             const devCode = `
                 const mockWindow = arguments[0];
                 const mockShowNotification = arguments[1];
@@ -1171,8 +1158,8 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('Module Loading and File Structure', () => {
-        it('should have proper import structure defined', async () => {
+    describe("Module Loading and File Structure", () => {
+        it("should have proper import structure defined", async () => {
             // Test that the imports are properly structured
             expect(mockShowNotification).toBeDefined();
             expect(mockHandleOpenFile).toBeDefined();
@@ -1191,7 +1178,7 @@ describe('renderer.js - Basic Test Coverage', () => {
             expect(mockUiStateManager).toBeDefined();
         });
 
-        it('should handle window object availability', async () => {
+        it("should handle window object availability", async () => {
             const testCode = `
                 const mockWindow = arguments[0];
 
@@ -1220,9 +1207,9 @@ describe('renderer.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('DOM Ready State Handling', () => {
-        it('should handle loading document state', async () => {
-            const mockDoc = { ...global.document, readyState: 'loading' } as any;
+    describe("DOM Ready State Handling", () => {
+        it("should handle loading document state", async () => {
+            const mockDoc = { ...global.document, readyState: "loading" } as any;
 
             const domCode = `
                 const mockDocument = arguments[0];
@@ -1240,15 +1227,12 @@ describe('renderer.js - Basic Test Coverage', () => {
             const domFunction = new Function(domCode);
             const result = domFunction(mockDoc, vi.fn());
 
-            expect(result).toBe('waiting_for_dom');
-            expect(mockDoc.addEventListener).toHaveBeenCalledWith(
-                'DOMContentLoaded',
-                expect.any(Function)
-            );
+            expect(result).toBe("waiting_for_dom");
+            expect(mockDoc.addEventListener).toHaveBeenCalledWith("DOMContentLoaded", expect.any(Function));
         });
 
-        it('should handle complete document state', async () => {
-            const mockDoc = { ...global.document, readyState: 'complete' } as any;
+        it("should handle complete document state", async () => {
+            const mockDoc = { ...global.document, readyState: "complete" } as any;
 
             const domCode = `
                 const mockDocument = arguments[0];
@@ -1267,11 +1251,8 @@ describe('renderer.js - Basic Test Coverage', () => {
             const domFunction = new Function(domCode);
             const result = domFunction(mockDoc, global.window, vi.fn());
 
-            expect(result).toBe('immediate_init');
-            expect(global.window.setTimeout).toHaveBeenCalledWith(
-                expect.any(Function),
-                0
-            );
+            expect(result).toBe("immediate_init");
+            expect(global.window.setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
         });
     });
 });

@@ -11,13 +11,13 @@
  * - Edge cases in tab name extraction
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 // Mock state manager - functions must be hoisted
-vi.mock('../../../utils/state/core/stateManager.js', () => ({
+vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
-    subscribe: vi.fn()
+    subscribe: vi.fn(),
 }));
 
 // Import functions after mocking
@@ -26,22 +26,22 @@ import {
     initializeTabVisibilityState,
     showTabContent,
     hideAllTabContent,
-    getVisibleTabContent
-} from '../../../utils/ui/tabs/updateTabVisibility.js';
+    getVisibleTabContent,
+} from "../../../utils/ui/tabs/updateTabVisibility.js";
 
 // Get the mocked functions
-import { getState, setState, subscribe } from '../../../utils/state/core/stateManager.js';
+import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
 const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 
-describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
+describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
     let testContainer;
     let consoleSpy;
 
     beforeEach(() => {
         // Create test container with all expected tab content elements
-        testContainer = document.createElement('div');
+        testContainer = document.createElement("div");
         testContainer.innerHTML = `
             <div id="content-data" style="display: none;">Data Content</div>
             <div id="content-chartjs" style="display: none;">Chart Content</div>
@@ -53,13 +53,13 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
         document.body.appendChild(testContainer);
 
         // Mock console.warn to track warnings
-        consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Reset all mocks
         vi.clearAllMocks();
 
         // Setup default state responses
-        mockGetState.mockReturnValue('summary');
+        mockGetState.mockReturnValue("summary");
     });
 
     afterEach(() => {
@@ -70,70 +70,70 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
         vi.resetAllMocks();
     });
 
-    describe('Core updateTabVisibility Function - Bug Detection', () => {
-        it('should hide all tabs when visibleTabId is null', () => {
+    describe("Core updateTabVisibility Function - Bug Detection", () => {
+        it("should hide all tabs when visibleTabId is null", () => {
             updateTabVisibility(null);
 
             const allElements = document.querySelectorAll('[id^="content-"]');
-            allElements.forEach(el => {
-                expect(el.style.display).toBe('none');
-                expect(el.getAttribute('aria-hidden')).toBe('true');
+            allElements.forEach((el) => {
+                expect(el.style.display).toBe("none");
+                expect(el.getAttribute("aria-hidden")).toBe("true");
             });
         });
 
-        it('should hide all tabs when visibleTabId is undefined', () => {
+        it("should hide all tabs when visibleTabId is undefined", () => {
             updateTabVisibility(undefined);
 
             const allElements = document.querySelectorAll('[id^="content-"]');
-            allElements.forEach(el => {
-                expect(el.style.display).toBe('none');
-                expect(el.getAttribute('aria-hidden')).toBe('true');
+            allElements.forEach((el) => {
+                expect(el.style.display).toBe("none");
+                expect(el.getAttribute("aria-hidden")).toBe("true");
             });
         });
 
-        it('should show only the specified tab and hide others', () => {
-            updateTabVisibility('content-summary');
+        it("should show only the specified tab and hide others", () => {
+            updateTabVisibility("content-summary");
 
-            const summaryElement = document.getElementById('content-summary');
-            const mapElement = document.getElementById('content-map');
+            const summaryElement = document.getElementById("content-summary");
+            const mapElement = document.getElementById("content-map");
 
-            expect(summaryElement.style.display).toBe('block');
-            expect(summaryElement.getAttribute('aria-hidden')).toBe('false');
-            expect(mapElement.style.display).toBe('none');
-            expect(mapElement.getAttribute('aria-hidden')).toBe('true');
+            expect(summaryElement.style.display).toBe("block");
+            expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
+            expect(mapElement.style.display).toBe("none");
+            expect(mapElement.getAttribute("aria-hidden")).toBe("true");
         });
 
-        it('BUG TEST: should handle missing DOM elements gracefully', () => {
+        it("BUG TEST: should handle missing DOM elements gracefully", () => {
             // Remove an element to test missing element handling
-            const element = document.getElementById('content-summary');
+            const element = document.getElementById("content-summary");
             element?.remove();
 
             // Should warn about missing element
-            updateTabVisibility('content-summary');
+            updateTabVisibility("content-summary");
 
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('updateTabVisibility: Missing element in the DOM: content-summary')
+                expect.stringContaining("updateTabVisibility: Missing element in the DOM: content-summary")
             );
         });
 
-        it('BUG TEST: should handle invalid visibleTabId gracefully', () => {
-            const invalidIds = ['', 'nonexistent-id', 'content-invalid', 123, true, false, []];
+        it("BUG TEST: should handle invalid visibleTabId gracefully", () => {
+            const invalidIds = ["", "nonexistent-id", "content-invalid", 123, true, false, []];
 
-            invalidIds.forEach(invalidId => {
+            invalidIds.forEach((invalidId) => {
                 expect(() => {
                     updateTabVisibility(invalidId);
                 }).not.toThrow();
             });
         });
 
-        it('BUG TEST: should expose performance issue with repeated DOM queries', () => {
+        it("BUG TEST: should expose performance issue with repeated DOM queries", () => {
             const performanceTest = () => {
                 const start = performance.now();
 
                 // Multiple calls should use cached elements efficiently
                 for (let i = 0; i < 50; i++) {
-                    updateTabVisibility('content-summary');
-                    updateTabVisibility('content-map');
+                    updateTabVisibility("content-summary");
+                    updateTabVisibility("content-map");
                 }
 
                 return performance.now() - start;
@@ -145,89 +145,89 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
             expect(duration).toBeLessThan(100);
         });
 
-        it('BUG TEST: should handle concurrent DOM modifications', () => {
-            updateTabVisibility('content-summary');
+        it("BUG TEST: should handle concurrent DOM modifications", () => {
+            updateTabVisibility("content-summary");
 
             // Simulate concurrent modification
             setTimeout(() => {
-                const element = document.getElementById('content-summary');
+                const element = document.getElementById("content-summary");
                 if (element) {
-                    element.style.display = 'none'; // Conflicting change
+                    element.style.display = "none"; // Conflicting change
                 }
             }, 0);
 
             // Function should complete without error
             expect(() => {
-                updateTabVisibility('content-map');
+                updateTabVisibility("content-map");
             }).not.toThrow();
         });
 
-        it('BUG TEST: should handle state update errors gracefully', () => {
+        it("BUG TEST: should handle state update errors gracefully", () => {
             // Mock setState to throw an error
             mockSetState.mockImplementation(() => {
-                throw new Error('State update failed');
+                throw new Error("State update failed");
             });
 
             // Should not crash when state update fails
             expect(() => {
-                updateTabVisibility('content-summary');
-            }).toThrow('State update failed');
+                updateTabVisibility("content-summary");
+            }).toThrow("State update failed");
         });
     });
 
-    describe('Tab Name Extraction - Edge Case Testing', () => {
-        it('should extract tab names from valid content IDs', () => {
+    describe("Tab Name Extraction - Edge Case Testing", () => {
+        it("should extract tab names from valid content IDs", () => {
             // Test the extraction logic by triggering state updates
-            updateTabVisibility('content-summary');
-            updateTabVisibility('content-chartjs');
-            updateTabVisibility('content-map');
+            updateTabVisibility("content-summary");
+            updateTabVisibility("content-chartjs");
+            updateTabVisibility("content-map");
 
             // Should call setState with correct tab names
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'summary', expect.any(Object));
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'chart', expect.any(Object)); // chartjs -> chart
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'map', expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "chart", expect.any(Object)); // chartjs -> chart
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "map", expect.any(Object));
         });
 
-        it('BUG TEST: should handle edge cases in content ID patterns', () => {
+        it("BUG TEST: should handle edge cases in content ID patterns", () => {
             const edgeCases = [
-                'content-',
-                'content--invalid',
-                'content-123',
-                'content-special-characters!@#',
-                'prefix-content-suffix',
-                'content-very-long-name-that-might-cause-issues'
+                "content-",
+                "content--invalid",
+                "content-123",
+                "content-special-characters!@#",
+                "prefix-content-suffix",
+                "content-very-long-name-that-might-cause-issues",
             ];
 
-            edgeCases.forEach(contentId => {
+            edgeCases.forEach((contentId) => {
                 expect(() => {
                     updateTabVisibility(contentId);
                 }).not.toThrow();
             });
         });
 
-        it('BUG TEST: should handle special chartjs mapping correctly', () => {
-            updateTabVisibility('content-chartjs');
+        it("BUG TEST: should handle special chartjs mapping correctly", () => {
+            updateTabVisibility("content-chartjs");
 
             // Should map chartjs to chart (special case)
             expect(mockSetState).toHaveBeenCalledWith(
-                'ui.activeTabContent',
-                'chart',
-                expect.objectContaining({ source: 'updateTabVisibility' })
+                "ui.activeTabContent",
+                "chart",
+                expect.objectContaining({ source: "updateTabVisibility" })
             );
         });
     });
 
-    describe('State Integration Functions - Bug Detection', () => {
-        it('should initialize state management with subscriptions', () => {
+    describe("State Integration Functions - Bug Detection", () => {
+        it("should initialize state management with subscriptions", () => {
             initializeTabVisibilityState();
 
             // Should subscribe to ui.activeTab and globalData
             expect(mockSubscribe).toHaveBeenCalledTimes(2);
-            expect(mockSubscribe).toHaveBeenCalledWith('ui.activeTab', expect.any(Function));
-            expect(mockSubscribe).toHaveBeenCalledWith('globalData', expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith("ui.activeTab", expect.any(Function));
+            expect(mockSubscribe).toHaveBeenCalledWith("globalData", expect.any(Function));
         });
 
-        it('BUG TEST: should expose memory leak from multiple initializations', () => {
+        it("BUG TEST: should expose memory leak from multiple initializations", () => {
             // Multiple calls to initialize should not accumulate subscriptions
             initializeTabVisibilityState();
             initializeTabVisibilityState();
@@ -237,7 +237,7 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
             expect(mockSubscribe).toHaveBeenCalledTimes(6); // 2 subscriptions × 3 calls
         });
 
-        it('BUG TEST: should test subscription callback error handling', () => {
+        it("BUG TEST: should test subscription callback error handling", () => {
             let subscribedCallbacks = [];
 
             // Capture subscription callbacks
@@ -248,19 +248,19 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
             initializeTabVisibilityState();
 
             // Test activeTab subscription with invalid data
-            const activeTabCallback = subscribedCallbacks.find(s => s.key === 'ui.activeTab')?.callback;
+            const activeTabCallback = subscribedCallbacks.find((s) => s.key === "ui.activeTab")?.callback;
 
             if (activeTabCallback) {
                 expect(() => {
                     activeTabCallback(null);
                     activeTabCallback(undefined);
                     activeTabCallback(123);
-                    activeTabCallback('invalid-tab');
+                    activeTabCallback("invalid-tab");
                 }).not.toThrow();
             }
         });
 
-        it('BUG TEST: should test globalData subscription edge cases', () => {
+        it("BUG TEST: should test globalData subscription edge cases", () => {
             let subscribedCallbacks = [];
 
             mockSubscribe.mockImplementation((key, callback) => {
@@ -269,13 +269,13 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
 
             initializeTabVisibilityState();
 
-            const globalDataCallback = subscribedCallbacks.find(s => s.key === 'globalData')?.callback;
+            const globalDataCallback = subscribedCallbacks.find((s) => s.key === "globalData")?.callback;
 
             if (globalDataCallback) {
                 // Test with various data states
-                const testCases = [null, undefined, {}, [], 'invalid', 0, false];
+                const testCases = [null, undefined, {}, [], "invalid", 0, false];
 
-                testCases.forEach(testData => {
+                testCases.forEach((testData) => {
                     expect(() => {
                         globalDataCallback(testData);
                     }).not.toThrow();
@@ -284,70 +284,70 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
         });
     });
 
-    describe('Helper Functions - Comprehensive Testing', () => {
-        it('should show specific tab content correctly', () => {
-            showTabContent('summary');
+    describe("Helper Functions - Comprehensive Testing", () => {
+        it("should show specific tab content correctly", () => {
+            showTabContent("summary");
 
-            const summaryElement = document.getElementById('content-summary');
-            expect(summaryElement.style.display).toBe('block');
-            expect(summaryElement.getAttribute('aria-hidden')).toBe('false');
+            const summaryElement = document.getElementById("content-summary");
+            expect(summaryElement.style.display).toBe("block");
+            expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
         });
 
-        it('should handle invalid tab names in showTabContent', () => {
-            const invalidTabNames = [null, undefined, '', 'invalid', 123, {}, []];
+        it("should handle invalid tab names in showTabContent", () => {
+            const invalidTabNames = [null, undefined, "", "invalid", 123, {}, []];
 
-            invalidTabNames.forEach(tabName => {
+            invalidTabNames.forEach((tabName) => {
                 expect(() => {
                     showTabContent(tabName);
                 }).not.toThrow();
             });
         });
 
-        it('should hide all tab content correctly', () => {
+        it("should hide all tab content correctly", () => {
             hideAllTabContent();
 
             const allElements = document.querySelectorAll('[id^="content-"]');
-            allElements.forEach(el => {
-                expect(el.style.display).toBe('none');
-                expect(el.getAttribute('aria-hidden')).toBe('true');
+            allElements.forEach((el) => {
+                expect(el.style.display).toBe("none");
+                expect(el.getAttribute("aria-hidden")).toBe("true");
             });
         });
 
-        it('should get visible tab content from state', () => {
-            mockGetState.mockReturnValue('summary');
+        it("should get visible tab content from state", () => {
+            mockGetState.mockReturnValue("summary");
 
             const result = getVisibleTabContent();
-            expect(result).toBe('summary');
-            expect(mockGetState).toHaveBeenCalledWith('ui.activeTabContent');
+            expect(result).toBe("summary");
+            expect(mockGetState).toHaveBeenCalledWith("ui.activeTabContent");
         });
 
-        it('should handle null state in getVisibleTabContent', () => {
+        it("should handle null state in getVisibleTabContent", () => {
             mockGetState.mockReturnValue(null);
 
             const result = getVisibleTabContent();
             expect(result).toBeNull();
         });
 
-        it('BUG TEST: should test tab name to content ID mapping edge cases', () => {
+        it("BUG TEST: should test tab name to content ID mapping edge cases", () => {
             const specialMappings = [
-                { tab: 'chart', expected: 'content-chartjs' },
-                { tab: 'summary', expected: 'content-summary' },
-                { tab: 'map', expected: 'content-map' },
-                { tab: 'data', expected: 'content-data' },
-                { tab: 'altfit', expected: 'content-altfit' },
-                { tab: 'zwift', expected: 'content-zwift' }
+                { tab: "chart", expected: "content-chartjs" },
+                { tab: "summary", expected: "content-summary" },
+                { tab: "map", expected: "content-map" },
+                { tab: "data", expected: "content-data" },
+                { tab: "altfit", expected: "content-altfit" },
+                { tab: "zwift", expected: "content-zwift" },
             ];
 
             specialMappings.forEach(({ tab, expected }) => {
                 showTabContent(tab);
                 const element = document.getElementById(expected);
-                expect(element?.style.display).toBe('block');
+                expect(element?.style.display).toBe("block");
             });
         });
 
-        it('BUG TEST: should handle unknown tab names with fallback', () => {
+        it("BUG TEST: should handle unknown tab names with fallback", () => {
             // Test unknown tab name
-            showTabContent('unknown-tab');
+            showTabContent("unknown-tab");
 
             // Should use fallback pattern content-{tabName}
             // Current implementation doesn't warn about unknown tabs, only missing predefined ones
@@ -355,61 +355,61 @@ describe('updateTabVisibility.js - Comprehensive Bug Detection', () => {
             expect(consoleSpy).not.toHaveBeenCalled();
 
             // Should still update state with the extracted tab name
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'unknown-tab', expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "unknown-tab", expect.any(Object));
         });
     });
 
-    describe('Integration and State Consistency', () => {
-        it('should maintain state consistency between functions', () => {
+    describe("Integration and State Consistency", () => {
+        it("should maintain state consistency between functions", () => {
             // Test sequence of operations
-            showTabContent('summary');
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'summary', expect.any(Object));
+            showTabContent("summary");
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
 
             hideAllTabContent();
             // Should not update state when hiding all (no active content)
 
-            showTabContent('map');
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'map', expect.any(Object));
+            showTabContent("map");
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "map", expect.any(Object));
         });
 
-        it('BUG TEST: should expose race conditions in state updates', () => {
+        it("BUG TEST: should expose race conditions in state updates", () => {
             // Rapid successive calls might cause race conditions
-            showTabContent('summary');
-            showTabContent('map');
-            showTabContent('chart');
+            showTabContent("summary");
+            showTabContent("map");
+            showTabContent("chart");
 
             // All should complete without error
             expect(mockSetState).toHaveBeenCalledTimes(3);
         });
 
-        it('BUG TEST: should validate aria-hidden accessibility attributes', () => {
-            showTabContent('summary');
+        it("BUG TEST: should validate aria-hidden accessibility attributes", () => {
+            showTabContent("summary");
 
-            const summaryElement = document.getElementById('content-summary');
-            const mapElement = document.getElementById('content-map');
+            const summaryElement = document.getElementById("content-summary");
+            const mapElement = document.getElementById("content-map");
 
             // Accessibility attributes should be set correctly
-            expect(summaryElement.getAttribute('aria-hidden')).toBe('false');
-            expect(mapElement.getAttribute('aria-hidden')).toBe('true');
+            expect(summaryElement.getAttribute("aria-hidden")).toBe("false");
+            expect(mapElement.getAttribute("aria-hidden")).toBe("true");
 
             hideAllTabContent();
 
             // All should be hidden for accessibility
-            expect(summaryElement.getAttribute('aria-hidden')).toBe('true');
-            expect(mapElement.getAttribute('aria-hidden')).toBe('true');
+            expect(summaryElement.getAttribute("aria-hidden")).toBe("true");
+            expect(mapElement.getAttribute("aria-hidden")).toBe("true");
         });
 
-        it('BUG TEST: should handle DOM mutations during execution', () => {
+        it("BUG TEST: should handle DOM mutations during execution", () => {
             // Start showing a tab
-            showTabContent('summary');
+            showTabContent("summary");
 
             // Simulate DOM being modified by another script
-            const summaryElement = document.getElementById('content-summary');
-            summaryElement.style.display = 'none';
-            summaryElement.setAttribute('aria-hidden', 'true');
+            const summaryElement = document.getElementById("content-summary");
+            summaryElement.style.display = "none";
+            summaryElement.setAttribute("aria-hidden", "true");
 
             // Should still update state correctly despite DOM changes
-            expect(mockSetState).toHaveBeenCalledWith('ui.activeTabContent', 'summary', expect.any(Object));
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
         });
     });
 });

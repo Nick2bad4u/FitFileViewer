@@ -81,7 +81,7 @@ export default defineConfig({
         // Timeout for complex tests
         testTimeout: 15000,
         // Concurrent test execution
-        pool: 'threads',
+        pool: "threads",
         maxConcurrency: 10,
     },
 });

@@ -1,1 +1,1 @@
-export * from '../../electron-app/utils/files/import/handleOpenFile.js';
+export * from "../../electron-app/utils/files/import/handleOpenFile.js";

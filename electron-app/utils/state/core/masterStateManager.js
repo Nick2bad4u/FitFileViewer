@@ -568,7 +568,7 @@ export class MasterStateManager {
                 protocol === "file:" ||
                 (typeof window !== "undefined" &&
                     /** @type {any} */ (window).electronAPI &&
-                    typeof /** @type {any} */ (window.electronAPI).__devMode !== "undefined") ||
+                    typeof (/** @type {any} */ (window.electronAPI).__devMode) !== "undefined") ||
                 (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
             );
         } catch {

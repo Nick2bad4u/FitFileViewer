@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Create a virtual main.js module for testing purposes
 const mainModuleMock = `
@@ -181,41 +181,41 @@ module.exports = {
 };
 `;
 
-describe('main.js - Basic Test Coverage', () => {
+describe("main.js - Basic Test Coverage", () => {
     // Mock all Electron modules
     const mockApp = {
         whenReady: vi.fn().mockResolvedValue(undefined),
         on: vi.fn(),
-        getVersion: vi.fn().mockReturnValue('1.0.0'),
-        getAppPath: vi.fn().mockReturnValue('/mock/app/path'),
-        quit: vi.fn()
+        getVersion: vi.fn().mockReturnValue("1.0.0"),
+        getAppPath: vi.fn().mockReturnValue("/mock/app/path"),
+        quit: vi.fn(),
     };
 
     const mockBrowserWindow = {
         getAllWindows: vi.fn().mockReturnValue([]),
         getFocusedWindow: vi.fn().mockReturnValue(null),
-        fromWebContents: vi.fn().mockReturnValue(null)
+        fromWebContents: vi.fn().mockReturnValue(null),
     };
 
     const mockDialog = {
         showOpenDialog: vi.fn(),
         showSaveDialog: vi.fn(),
-        showMessageBox: vi.fn()
+        showMessageBox: vi.fn(),
     };
 
     const mockIpcMain = {
         handle: vi.fn(),
-        on: vi.fn()
+        on: vi.fn(),
     };
 
     const mockMenu = {
         getApplicationMenu: vi.fn().mockReturnValue({
-            getMenuItemById: vi.fn().mockReturnValue({ enabled: true })
-        })
+            getMenuItemById: vi.fn().mockReturnValue({ enabled: true }),
+        }),
     };
 
     const mockShell = {
-        openExternal: vi.fn().mockResolvedValue(undefined)
+        openExternal: vi.fn().mockResolvedValue(undefined),
     };
 
     // Mock utility modules
@@ -223,11 +223,11 @@ describe('main.js - Basic Test Coverage', () => {
         webContents: {
             on: vi.fn(),
             send: vi.fn(),
-            executeJavaScript: vi.fn().mockResolvedValue('dark'),
-            isDestroyed: vi.fn().mockReturnValue(false)
+            executeJavaScript: vi.fn().mockResolvedValue("dark"),
+            isDestroyed: vi.fn().mockReturnValue(false),
         },
         isDestroyed: vi.fn().mockReturnValue(false),
-        setFullScreen: vi.fn()
+        setFullScreen: vi.fn(),
     });
 
     /** @type {any} */
@@ -238,49 +238,49 @@ describe('main.js - Basic Test Coverage', () => {
         vi.clearAllMocks();
 
         // Setup module mocks
-        vi.doMock('electron', () => ({
+        vi.doMock("electron", () => ({
             app: mockApp,
             BrowserWindow: mockBrowserWindow,
             dialog: mockDialog,
             ipcMain: mockIpcMain,
             Menu: mockMenu,
-            shell: mockShell
+            shell: mockShell,
         }));
 
-        vi.doMock('./windowStateUtils', () => ({
-            createWindow: mockCreateWindow
+        vi.doMock("./windowStateUtils", () => ({
+            createWindow: mockCreateWindow,
         }));
 
         // Mock process
-        vi.stubGlobal('process', {
-            platform: 'win32',
-            arch: 'x64',
-            versions: { electron: '13.0.0', node: '14.0.0', chrome: '91.0.0' },
-            env: { NODE_ENV: 'test' },
-            argv: []
+        vi.stubGlobal("process", {
+            platform: "win32",
+            arch: "x64",
+            versions: { electron: "13.0.0", node: "14.0.0", chrome: "91.0.0" },
+            env: { NODE_ENV: "test" },
+            argv: [],
         });
 
-        vi.stubGlobal('console', {
+        vi.stubGlobal("console", {
             log: vi.fn(),
             info: vi.fn(),
             warn: vi.fn(),
-            error: vi.fn()
+            error: vi.fn(),
         });
 
-        vi.stubGlobal('Buffer', {
-            from: vi.fn().mockReturnValue(new ArrayBuffer(8))
+        vi.stubGlobal("Buffer", {
+            from: vi.fn().mockReturnValue(new ArrayBuffer(8)),
         });
 
         // Create a mock module from our test implementation
-        const moduleFactory = new Function('require', 'module', 'exports', mainModuleMock);
+        const moduleFactory = new Function("require", "module", "exports", mainModuleMock);
         const mockModule = { exports: {} };
         // Provide a custom minimal CommonJS-like require so destructuring works
-    /**
-     * Minimal test require implementation.
-     * @param {string} id
-     */
-    const testRequire = (id) => {
-            if (id === 'electron') {
+        /**
+         * Minimal test require implementation.
+         * @param {string} id
+         */
+        const testRequire = (id) => {
+            if (id === "electron") {
                 return {
                     app: mockApp,
                     BrowserWindow: mockBrowserWindow,
@@ -290,78 +290,76 @@ describe('main.js - Basic Test Coverage', () => {
                     shell: mockShell,
                 };
             }
-            if (id === './windowStateUtils') {
+            if (id === "./windowStateUtils") {
                 return { createWindow: mockCreateWindow };
             }
-            throw new Error('Unexpected require in test module: ' + id);
+            throw new Error("Unexpected require in test module: " + id);
         };
         moduleFactory(testRequire, mockModule, mockModule.exports);
         mainModule = mockModule.exports;
     });
 
     afterEach(() => {
-        vi.doUnmock('electron');
-        vi.doUnmock('./windowStateUtils');
+        vi.doUnmock("electron");
+        vi.doUnmock("./windowStateUtils");
         vi.unstubAllGlobals();
     });
 
-    describe('Constants and Configuration', () => {
-        it('should define all required constants', () => {
+    describe("Constants and Configuration", () => {
+        it("should define all required constants", () => {
             expect(mainModule.CONSTANTS).toBeDefined();
-            expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe('dark');
-            expect(mainModule.CONSTANTS.THEME_STORAGE_KEY).toBe('ffv-theme');
+            expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe("dark");
+            expect(mainModule.CONSTANTS.THEME_STORAGE_KEY).toBe("ffv-theme");
             expect(mainModule.CONSTANTS.LOG_LEVELS).toBeDefined();
             expect(mainModule.CONSTANTS.PLATFORMS).toBeDefined();
         });
 
-        it('should have proper dialog filters', () => {
-            expect(mainModule.CONSTANTS.DIALOG_FILTERS.FIT_FILES).toEqual([
-                { name: "FIT Files", extensions: ["fit"] }
-            ]);
+        it("should have proper dialog filters", () => {
+            expect(mainModule.CONSTANTS.DIALOG_FILTERS.FIT_FILES).toEqual([{ name: "FIT Files", extensions: ["fit"] }]);
         });
     });
 
-    describe('Window Management Functions', () => {
-        it('should validate usable windows correctly', () => {
+    describe("Window Management Functions", () => {
+        it("should validate usable windows correctly", () => {
             const usableWindow = {
                 isDestroyed: () => false,
                 webContents: {
-                    isDestroyed: () => false
-                }
+                    isDestroyed: () => false,
+                },
             };
 
             expect(mainModule.isWindowUsable(usableWindow)).toBe(true);
         });
 
-        it('should reject destroyed windows', () => {
+        it("should reject destroyed windows", () => {
             const destroyedWindow = {
                 isDestroyed: () => true,
                 webContents: {
-                    isDestroyed: () => false
-                }
+                    isDestroyed: () => false,
+                },
             };
 
             expect(mainModule.isWindowUsable(destroyedWindow)).toBe(false);
         });
 
-        it('should reject null/undefined windows', () => {
+        it("should reject null/undefined windows", () => {
             expect(mainModule.isWindowUsable(null)).toBe(false);
             expect(mainModule.isWindowUsable(undefined)).toBe(false);
         });
 
-        it('should validate windows with context', () => {
+        it("should validate windows with context", () => {
             const validWindow = {
                 isDestroyed: () => false,
                 webContents: {
-                    isDestroyed: () => false
-                }
+                    isDestroyed: () => false,
+                },
             };
 
             expect(mainModule.validateWindow(validWindow, "test context")).toBe(true);
         });
 
-        it('should handle invalid windows gracefully', () => {
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        it("should handle invalid windows gracefully", () => {
+            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
             expect(mainModule.validateWindow(null, "test context")).toBe(false);
             expect(consoleSpy).toHaveBeenCalled();
@@ -370,36 +368,36 @@ describe('main.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('Theme Management Functions', () => {
-        it('should get theme from renderer successfully', async () => {
+    describe("Theme Management Functions", () => {
+        it("should get theme from renderer successfully", async () => {
             const mockWindow = {
                 isDestroyed: () => false,
                 webContents: {
                     isDestroyed: () => false,
-                    executeJavaScript: vi.fn().mockResolvedValue('light')
-                }
+                    executeJavaScript: vi.fn().mockResolvedValue("light"),
+                },
             };
 
             const theme = await mainModule.getThemeFromRenderer(mockWindow);
-            expect(theme).toBe('light');
+            expect(theme).toBe("light");
             expect(mockWindow.webContents.executeJavaScript).toHaveBeenCalled();
         });
 
-        it('should return default theme for invalid windows', async () => {
+        it("should return default theme for invalid windows", async () => {
             const theme = await mainModule.getThemeFromRenderer(null);
             expect(theme).toBe(mainModule.CONSTANTS.DEFAULT_THEME);
         });
 
-        it('should handle theme retrieval errors', async () => {
+        it("should handle theme retrieval errors", async () => {
             const mockWindow = {
                 isDestroyed: () => false,
                 webContents: {
                     isDestroyed: () => false,
-                    executeJavaScript: vi.fn().mockRejectedValue(new Error('JS execution failed'))
-                }
+                    executeJavaScript: vi.fn().mockRejectedValue(new Error("JS execution failed")),
+                },
             };
 
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
             const theme = await mainModule.getThemeFromRenderer(mockWindow);
             expect(theme).toBe(mainModule.CONSTANTS.DEFAULT_THEME);
@@ -408,13 +406,13 @@ describe('main.js - Basic Test Coverage', () => {
             consoleSpy.mockRestore();
         });
 
-        it('should return default theme when executeJavaScript returns null', async () => {
+        it("should return default theme when executeJavaScript returns null", async () => {
             const mockWindow = {
                 isDestroyed: () => false,
                 webContents: {
                     isDestroyed: () => false,
-                    executeJavaScript: vi.fn().mockResolvedValue(null)
-                }
+                    executeJavaScript: vi.fn().mockResolvedValue(null),
+                },
             };
 
             const theme = await mainModule.getThemeFromRenderer(mockWindow);
@@ -422,24 +420,24 @@ describe('main.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('IPC Communication Functions', () => {
-        it('should send messages to valid renderer', () => {
+    describe("IPC Communication Functions", () => {
+        it("should send messages to valid renderer", () => {
             const mockWindow = {
                 isDestroyed: () => false,
                 webContents: {
                     isDestroyed: () => false,
-                    send: vi.fn()
-                }
+                    send: vi.fn(),
+                },
             };
 
-            mainModule.sendToRenderer(mockWindow, 'test-channel', 'test-data');
-            expect(mockWindow.webContents.send).toHaveBeenCalledWith('test-channel', 'test-data');
+            mainModule.sendToRenderer(mockWindow, "test-channel", "test-data");
+            expect(mockWindow.webContents.send).toHaveBeenCalledWith("test-channel", "test-data");
         });
 
-        it('should not send messages to invalid windows', () => {
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        it("should not send messages to invalid windows", () => {
+            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-            mainModule.sendToRenderer(null, 'test-channel', 'test-data');
+            mainModule.sendToRenderer(null, "test-channel", "test-data");
 
             // Should not throw and should handle gracefully
             expect(consoleSpy).toHaveBeenCalled();
@@ -447,68 +445,68 @@ describe('main.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('Logging Functions', () => {
-        it('should log with context and timestamp', () => {
-            const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    describe("Logging Functions", () => {
+        it("should log with context and timestamp", () => {
+            const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
 
-            mainModule.logWithContext('info', 'Test message', { key: 'value' });
+            mainModule.logWithContext("info", "Test message", { key: "value" });
 
             expect(consoleSpy).toHaveBeenCalled();
             const logCall = consoleSpy.mock.calls[0];
-            expect(logCall[0]).toContain('[main.js] Test message');
+            expect(logCall[0]).toContain("[main.js] Test message");
             expect(logCall[1]).toBe('{"key":"value"}');
 
             consoleSpy.mockRestore();
         });
 
-        it('should handle logging without context', () => {
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        it("should handle logging without context", () => {
+            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-            mainModule.logWithContext('warn', 'Test warning');
+            mainModule.logWithContext("warn", "Test warning");
 
             expect(consoleSpy).toHaveBeenCalled();
             const logCall = consoleSpy.mock.calls[0];
-            expect(logCall[0]).toContain('[main.js] Test warning');
-            expect(logCall[1]).toBe('');
+            expect(logCall[0]).toContain("[main.js] Test warning");
+            expect(logCall[1]).toBe("");
 
             consoleSpy.mockRestore();
         });
     });
 
-    describe('Auto-Updater Functions', () => {
-        it('should setup auto-updater with valid window', () => {
+    describe("Auto-Updater Functions", () => {
+        it("should setup auto-updater with valid window", () => {
             const mockWindow = {
                 isDestroyed: () => false,
                 webContents: {
-                    isDestroyed: () => false
-                }
+                    isDestroyed: () => false,
+                },
             };
 
             expect(() => mainModule.setupAutoUpdater(mockWindow)).not.toThrow();
         });
 
-        it('should handle auto-updater setup with invalid window', () => {
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        it("should handle auto-updater setup with invalid window", () => {
+            const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
             mainModule.setupAutoUpdater(null);
 
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Cannot setup auto-updater: main window is not usable')
+                expect.stringContaining("Cannot setup auto-updater: main window is not usable")
             );
             consoleSpy.mockRestore();
         });
     });
 
-    describe('Application Initialization', () => {
-        it('should initialize application successfully', async () => {
+    describe("Application Initialization", () => {
+        it("should initialize application successfully", async () => {
             // We'll manually create a mock window and implement the function ourselves
             // to ensure the test passes, since the mock module setup isn't working as expected
             const mockWindow = {
-                id: 'test-window',
+                id: "test-window",
                 webContents: {
                     on: vi.fn(),
-                    send: vi.fn()
-                }
+                    send: vi.fn(),
+                },
             };
             mockCreateWindow.mockReturnValue(mockWindow);
 
@@ -521,108 +519,108 @@ describe('main.js - Basic Test Coverage', () => {
         });
     });
 
-    describe('IPC Handler Setup', () => {
-        it('should setup dialog open file handler', () => {
+    describe("IPC Handler Setup", () => {
+        it("should setup dialog open file handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith('dialog:openFile', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith("dialog:openFile", expect.any(Function));
         });
 
-        it('should setup file read handler', () => {
+        it("should setup file read handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith('file:read', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith("file:read", expect.any(Function));
         });
 
-        it('should setup shell external handler', () => {
+        it("should setup shell external handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith('shell:openExternal', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
         });
     });
 
-    describe('Event Handler Setup', () => {
-        it('should setup theme change handler', () => {
+    describe("Event Handler Setup", () => {
+        it("should setup theme change handler", () => {
             mainModule.setupMenuAndEventHandlers();
 
-            expect(mockIpcMain.on).toHaveBeenCalledWith('theme-changed', expect.any(Function));
+            expect(mockIpcMain.on).toHaveBeenCalledWith("theme-changed", expect.any(Function));
         });
     });
 
-    describe('Application Event Handlers', () => {
-        it('should setup app activate handler', () => {
+    describe("Application Event Handlers", () => {
+        it("should setup app activate handler", () => {
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith('activate', expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith("activate", expect.any(Function));
         });
 
-        it('should setup window all closed handler', () => {
+        it("should setup window all closed handler", () => {
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith('window-all-closed', expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith("window-all-closed", expect.any(Function));
         });
     });
 
-    describe('Gyazo OAuth Server Functions', () => {
-        it('should start Gyazo OAuth server', async () => {
+    describe("Gyazo OAuth Server Functions", () => {
+        it("should start Gyazo OAuth server", async () => {
             const result = await mainModule.startGyazoOAuthServer(3000);
 
             expect(result.success).toBe(true);
             expect(result.port).toBe(3000);
-            expect(result.message).toContain('OAuth callback server started');
+            expect(result.message).toContain("OAuth callback server started");
         });
 
-        it('should start server with default port', async () => {
+        it("should start server with default port", async () => {
             const result = await mainModule.startGyazoOAuthServer();
 
             expect(result.success).toBe(true);
             expect(result.port).toBe(3000);
         });
 
-        it('should stop Gyazo OAuth server', async () => {
+        it("should stop Gyazo OAuth server", async () => {
             const result = await mainModule.stopGyazoOAuthServer();
 
             expect(result.success).toBe(true);
-            expect(result.message).toBe('OAuth callback server stopped');
+            expect(result.message).toBe("OAuth callback server stopped");
         });
     });
 
-    describe('Error Handling', () => {
-        it('should handle dialog errors gracefully', async () => {
-            mockDialog.showOpenDialog.mockRejectedValue(new Error('Dialog failed'));
+    describe("Error Handling", () => {
+        it("should handle dialog errors gracefully", async () => {
+            mockDialog.showOpenDialog.mockRejectedValue(new Error("Dialog failed"));
 
             try {
                 mainModule.setupIPCHandlers(mockCreateWindow());
                 // This tests the setup, actual error handling would be in the handler
-                expect(mockIpcMain.handle).toHaveBeenCalledWith('dialog:openFile', expect.any(Function));
+                expect(mockIpcMain.handle).toHaveBeenCalledWith("dialog:openFile", expect.any(Function));
             } catch (error) {
                 // Should not reach here in normal operation
                 expect(true).toBe(false);
             }
         });
 
-        it('should validate URLs in shell handler', () => {
+        it("should validate URLs in shell handler", () => {
             mainModule.setupIPCHandlers(mockCreateWindow());
 
-            expect(mockIpcMain.handle).toHaveBeenCalledWith('shell:openExternal', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
 
             // The URL validation logic is tested through the handler setup
             expect(true).toBe(true);
         });
     });
 
-    describe('Platform-Specific Behavior', () => {
-        it('should handle different platforms in window close', () => {
+    describe("Platform-Specific Behavior", () => {
+        it("should handle different platforms in window close", () => {
             // Test setup verifies the handler registration
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith('window-all-closed', expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith("window-all-closed", expect.any(Function));
         });
 
-        it('should handle app activation', () => {
+        it("should handle app activation", () => {
             mainModule.setupApplicationEventHandlers();
 
-            expect(mockApp.on).toHaveBeenCalledWith('activate', expect.any(Function));
+            expect(mockApp.on).toHaveBeenCalledWith("activate", expect.any(Function));
         });
     });
 });

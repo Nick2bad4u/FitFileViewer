@@ -1,33 +1,27 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
-		{
-			"label": "run vitest in electron-app",
-			"type": "shell",
-			"command": "npm",
-			"args": [
-				"--prefix",
-				"electron-app",
-				"test"
-			],
-			"isBackground": false,
-			"problemMatcher": [
-				"$eslint-stylish"
-			],
-			"group": "build"
-		}
-	]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "npm",
+            "script": "watch",
+            "problemMatcher": "$tsc-watch",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "never"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "run vitest in electron-app",
+            "type": "shell",
+            "command": "npm",
+            "args": ["--prefix", "electron-app", "test"],
+            "isBackground": false,
+            "problemMatcher": ["$eslint-stylish"],
+            "group": "build"
+        }
+    ]
 }

@@ -11,43 +11,42 @@ const { autoUpdater: _autoUpdater } = require("electron-updater");
 const { loadRecentFiles, addRecentFile } = require("./utils/files/recent/recentFiles");
 const { createAppMenu } = require("./utils/app/menu/createAppMenu");
 const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager"),
-
-// Constants
- CONSTANTS = {
-    DEFAULT_THEME: "dark",
-    THEME_STORAGE_KEY: "ffv-theme",
-    SETTINGS_CONFIG_NAME: "settings",
-    LOG_LEVELS: {
-        INFO: "info",
-        WARN: "warn",
-        ERROR: "error",
-    },
-    PLATFORMS: {
-        DARWIN: "darwin",
-        LINUX: "linux",
-        WIN32: "win32",
-    },
-    DIALOG_FILTERS: {
-        FIT_FILES: [{ name: "FIT Files", extensions: ["fit"] }],
-        EXPORT_FILES: [
-            { name: "CSV (Summary Table)", extensions: ["csv"] },
-            { name: "GPX (Track)", extensions: ["gpx"] },
-            { name: "All Files", extensions: ["*"] },
-        ],
-        ALL_FILES: [
-            { name: "FIT Files", extensions: ["fit"] },
-            { name: "All Files", extensions: ["*"] },
-        ],
-    },
-    UPDATE_EVENTS: {
-        CHECKING: "update-checking",
-        AVAILABLE: "update-available",
-        NOT_AVAILABLE: "update-not-available",
-        ERROR: "update-error",
-        DOWNLOAD_PROGRESS: "update-download-progress",
-        DOWNLOADED: "update-downloaded",
-    },
-};
+    // Constants
+    CONSTANTS = {
+        DEFAULT_THEME: "dark",
+        THEME_STORAGE_KEY: "ffv-theme",
+        SETTINGS_CONFIG_NAME: "settings",
+        LOG_LEVELS: {
+            INFO: "info",
+            WARN: "warn",
+            ERROR: "error",
+        },
+        PLATFORMS: {
+            DARWIN: "darwin",
+            LINUX: "linux",
+            WIN32: "win32",
+        },
+        DIALOG_FILTERS: {
+            FIT_FILES: [{ name: "FIT Files", extensions: ["fit"] }],
+            EXPORT_FILES: [
+                { name: "CSV (Summary Table)", extensions: ["csv"] },
+                { name: "GPX (Track)", extensions: ["gpx"] },
+                { name: "All Files", extensions: ["*"] },
+            ],
+            ALL_FILES: [
+                { name: "FIT Files", extensions: ["fit"] },
+                { name: "All Files", extensions: ["*"] },
+            ],
+        },
+        UPDATE_EVENTS: {
+            CHECKING: "update-checking",
+            AVAILABLE: "update-available",
+            NOT_AVAILABLE: "update-not-available",
+            ERROR: "update-error",
+            DOWNLOAD_PROGRESS: "update-download-progress",
+            DOWNLOADED: "update-downloaded",
+        },
+    };
 
 // State getters and setters using the new state management system
 /**
@@ -72,9 +71,10 @@ function setAppState(path, value, options = {}) {
 function isWindowUsable(win) {
     if (!win) return false;
     try {
-        const hasWebContents = !!(win.webContents);
-        const wcd = hasWebContents && typeof win.webContents.isDestroyed === 'function' ? win.webContents.isDestroyed() : true;
-        const wd = typeof win.isDestroyed === 'function' ? win.isDestroyed() : true;
+        const hasWebContents = !!win.webContents;
+        const wcd =
+            hasWebContents && typeof win.webContents.isDestroyed === "function" ? win.webContents.isDestroyed() : true;
+        const wd = typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
         return Boolean(!wd && hasWebContents && !wcd);
     } catch {
         return false;
@@ -104,7 +104,9 @@ function validateWindow(win, context = "unknown operation") {
  * @param {any} win
  */
 async function getThemeFromRenderer(win) {
-    if (!validateWindow(win, "theme retrieval")) {return CONSTANTS.DEFAULT_THEME;}
+    if (!validateWindow(win, "theme retrieval")) {
+        return CONSTANTS.DEFAULT_THEME;
+    }
 
     try {
         const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
@@ -132,7 +134,7 @@ function sendToRenderer(win, channel, ...args) {
  */
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString(),
-     hasContext = context && typeof context === 'object' && Object.keys(context).length > 0;
+        hasContext = context && typeof context === "object" && Object.keys(context).length > 0;
     if (hasContext) {
         /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, JSON.stringify(context));
     } else {
@@ -295,7 +297,9 @@ function setupIPCHandlers(mainWindow) {
                 filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                 properties: ["openFile"],
             });
-            if (canceled || filePaths.length === 0) {return null;}
+            if (canceled || filePaths.length === 0) {
+                return null;
+            }
 
             if (filePaths[0]) {
                 addRecentFile(filePaths[0]);
@@ -390,7 +394,7 @@ function setupIPCHandlers(mainWindow) {
     ipcMain.handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
             const fitParser = require("./fitParser"),
-             buffer = Buffer.from(arrayBuffer);
+                buffer = Buffer.from(arrayBuffer);
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:parse:", {
@@ -403,7 +407,7 @@ function setupIPCHandlers(mainWindow) {
     ipcMain.handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
             const fitParser = require("./fitParser"),
-             buffer = Buffer.from(arrayBuffer);
+                buffer = Buffer.from(arrayBuffer);
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:decode:", {
@@ -417,12 +421,12 @@ function setupIPCHandlers(mainWindow) {
     const infoHandlers = {
         "theme:get": async () => {
             const { Conf } = require("electron-conf"),
-             conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+                conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("theme", CONSTANTS.DEFAULT_THEME);
         },
         "map-tab:get": async () => {
             const { Conf } = require("electron-conf"),
-             conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+                conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("selectedMapTab", "map");
         },
         getAppVersion: async () => app.getVersion(),
@@ -436,7 +440,7 @@ function setupIPCHandlers(mainWindow) {
         getLicenseInfo: async () => {
             try {
                 const packageJsonPath = path.join(app.getAppPath(), "package.json"),
-                 packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+                    packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
                 return packageJson.license || "Unknown";
             } catch (err) {
                 logWithContext("error", "Failed to read license from package.json:", {
@@ -607,8 +611,10 @@ function setupMenuAndEventHandlers() {
     const fileMenuHandlers = {
         "menu-save-as": async (/** @type {any} */ event) => {
             const win = BrowserWindow.fromWebContents(event.sender),
-             loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) {return;}
+                loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath || !win) {
+                return;
+            }
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(/** @type {any} */ (win), {
@@ -628,8 +634,10 @@ function setupMenuAndEventHandlers() {
         },
         "menu-export": async (/** @type {any} */ event) => {
             const win = BrowserWindow.fromWebContents(event.sender),
-             loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) {return;}
+                loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath || !win) {
+                return;
+            }
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(/** @type {any} */ (win), {
@@ -665,8 +673,8 @@ function setupMenuAndEventHandlers() {
         "devtools-inject-menu",
         (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
             const win = BrowserWindow.fromWebContents(event.sender),
-             t = theme || CONSTANTS.DEFAULT_THEME,
-             f = fitFilePath || null;
+                t = theme || CONSTANTS.DEFAULT_THEME,
+                f = fitFilePath || null;
             logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
             if (win) {
                 createAppMenu(/** @type {any} */ (win), t, f);

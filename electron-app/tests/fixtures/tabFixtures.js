@@ -1,10 +1,10 @@
 /**
  * DOM test fixtures for tab functionality tests
  */
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 export function createMockTabButtons() {
-    const container = document.createElement('div');
+    const container = document.createElement("div");
     container.innerHTML = `
         <div class="tab-container">
             <button id="tab-summary" class="tab-button active" aria-selected="true">Summary</button>
@@ -26,20 +26,20 @@ export function createMockTabButtons() {
 
 export function createDisabledTabButtons() {
     const container = createMockTabButtons();
-    const tabButtons = container.querySelectorAll('.tab-button');
+    const tabButtons = container.querySelectorAll(".tab-button");
 
     // Disable all buttons except summary using different methods to test all cases
     tabButtons.forEach((button, index) => {
-        if (button.id !== 'tab-summary') {
+        if (button.id !== "tab-summary") {
             switch (index % 3) {
                 case 0:
                     /** @type {HTMLButtonElement} */ (button).disabled = true;
                     break;
                 case 1:
-                    button.setAttribute('disabled', 'true');
+                    button.setAttribute("disabled", "true");
                     break;
                 case 2:
-                    button.classList.add('tab-disabled');
+                    button.classList.add("tab-disabled");
                     break;
             }
         }
@@ -49,7 +49,7 @@ export function createDisabledTabButtons() {
 }
 
 export function cleanupDOM() {
-    document.body.innerHTML = '';
+    document.body.innerHTML = "";
 }
 
 export function mockStateManager() {
