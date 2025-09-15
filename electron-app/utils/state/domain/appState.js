@@ -533,17 +533,19 @@ const appState = new AppStateManager();
 
 // Expose convenience methods globally (following your existing patterns)
 if (typeof window !== "undefined") {
-    // Backward compatibility with existing globalData usage
-    Object.defineProperty(window, "globalData", {
-        get() {
-            return appState.get("data.globalData");
-        },
-        set(value) {
-            appState.set("data.globalData", value);
-        },
-        configurable: true,
-        enumerable: true,
-    });
+    // Backward compatibility with existing globalData usage.
+    // Guard against re-definition if another module already defined it (e.g., multiple imports of renderer/main-ui during tests).
+    try {
+        const desc = Object.getOwnPropertyDescriptor(window, "globalData");
+        if (!desc || desc.configurable) {
+            Object.defineProperty(window, "globalData", {
+                get() { return appState.get("data.globalData"); },
+                set(value) { appState.set("data.globalData", value); },
+                configurable: true,
+                enumerable: true,
+            });
+        }
+    } catch {/* ignore */}
 
     // Expose app state for debugging
     window.__appState = appState;

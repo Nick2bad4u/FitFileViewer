@@ -69,14 +69,17 @@ const CONSTANTS = {
  eventListeners = new Map();
 
 // Make globalData available on window for backwards compatibility
-Object.defineProperty(window, "globalData", {
-    get() {
-        return getState("globalData");
-    },
-    set(value) {
-        setState("globalData", value, { silent: false, source: "main-ui.js" });
-    },
-});
+try {
+    const existing = Object.getOwnPropertyDescriptor(window, "globalData");
+    if (!existing || existing.configurable) {
+        Object.defineProperty(window, "globalData", {
+            get() { return getState("globalData"); },
+            set(value) { setState("globalData", value, { silent: false, source: "main-ui.js" }); },
+            configurable: true,
+            enumerable: true,
+        });
+    }
+} catch {/* ignore redefinition issues */}
 
 // Event listener management with state integration
 /**
@@ -401,7 +404,7 @@ class DragDropHandler {
                 showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
                 const errorMessage =
-                    `Unable to process the FIT file. Please try again or check the file format. Details: ${ 
+                    `Unable to process the FIT file. Please try again or check the file format. Details: ${
                     fitData.error || "Unknown error"}`;
                 alert(errorMessage);
                 showNotification("Failed to load FIT file", "error");

@@ -144,16 +144,21 @@ function resolveExactManualMock(testId) {
  * @returns {Promise<any>}
  */
 async function importPreferTest(testPath, realPath) {
-    const IN_TEST = typeof globalThis !== 'undefined' && !!/** @type {any} */(globalThis).__vitest_manual_mocks__;
+    const IN_TEST = (typeof process !== 'undefined' && !!process.env && process.env.VITEST_WORKER_ID !== undefined)
+        || (typeof globalThis !== 'undefined' && !!/** @type {any} */(globalThis).__vitest_manual_mocks__);
     const cacheKey = `test:${testPath}::real:${realPath}`;
+    // Only use cache outside tests so test mocks/spies always see fresh imports
     if (!IN_TEST && cacheKey in __moduleCache) return __moduleCache[cacheKey];
-    try {
-        const mod = await import(testPath);
-        if (!IN_TEST) __moduleCache[cacheKey] = mod; return mod;
-    } catch {
-        const mod = await import(realPath);
-        if (!IN_TEST) __moduleCache[cacheKey] = mod; return mod;
+    let mod;
+    if (IN_TEST) {
+        // Attempt test path first so vi.doMock specifiers (../../) are honored
+        try { mod = await import(testPath); } catch { try { mod = await import(realPath); } catch (e) { throw e; } }
+    } else {
+        // Production: skip invalid testPath to avoid 404 noise
+        mod = await import(realPath);
     }
+    if (!IN_TEST) __moduleCache[cacheKey] = mod;
+    return mod;
 }
 
 /**
