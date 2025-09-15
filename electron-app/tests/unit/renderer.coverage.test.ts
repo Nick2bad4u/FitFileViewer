@@ -100,55 +100,55 @@ afterEach(() => {
 });
 
 // Mock all the required modules
-vi.doMock('../../utils/ui/notifications/showNotification.js', () => ({
+vi.doMock('../utils/ui/notifications/showNotification.js', () => ({
     showNotification: mockShowNotification
 }));
 
-vi.doMock('../../utils/files/import/handleOpenFile.js', () => ({
+vi.doMock('../utils/files/import/handleOpenFile.js', () => ({
     handleOpenFile: mockHandleOpenFile
 }));
 
-vi.doMock('../../utils/theming/core/setupTheme.js', () => ({
+vi.doMock('../utils/theming/core/setupTheme.js', () => ({
     setupTheme: mockSetupTheme
 }));
 
-vi.doMock('../../utils/ui/notifications/showUpdateNotification.js', () => ({
+vi.doMock('../utils/ui/notifications/showUpdateNotification.js', () => ({
     showUpdateNotification: mockShowUpdateNotification
 }));
 
-vi.doMock('../../utils/app/lifecycle/listeners.js', () => ({
+vi.doMock('../utils/app/lifecycle/listeners.js', () => ({
     setupListeners: mockSetupListeners
 }));
 
-vi.doMock('../../utils/ui/modals/aboutModal.js', () => ({
+vi.doMock('../utils/ui/modals/aboutModal.js', () => ({
     showAboutModal: mockShowAboutModal
 }));
 
-vi.doMock('../../utils/files/export/createExportGPXButton.js', () => ({
+vi.doMock('../utils/files/export/createExportGPXButton.js', () => ({
     createExportGPXButton: mockCreateExportGPXButton
 }));
 
-vi.doMock('../../utils/theming/core/theme.js', () => ({
+vi.doMock('../utils/theming/core/theme.js', () => ({
     applyTheme: mockApplyTheme,
     listenForThemeChange: mockListenForThemeChange
 }));
 
-vi.doMock('../../utils/ui/components/LoadingOverlay.js', () => ({
+vi.doMock('../utils/ui/components/LoadingOverlay.js', () => ({
     setLoading: mockSetLoading
 }));
 
-vi.doMock('../../utils/state/core/masterStateManager.js', () => ({
+vi.doMock('../utils/state/core/masterStateManager.js', () => ({
     masterStateManager: mockMasterStateManager
 }));
 
-vi.doMock('../../utils/app/lifecycle/appActions.js', () => mockAppActions);
+vi.doMock('../utils/app/lifecycle/appActions.js', () => mockAppActions);
 
-vi.doMock('../../utils/state/domain/appState.js', () => ({
+vi.doMock('../utils/state/domain/appState.js', () => ({
     getState: mockGetState,
     subscribe: mockSubscribe
 }));
 
-vi.doMock('../../utils/state/domain/uiStateManager.js', () => ({}));
+vi.doMock('../utils/state/domain/uiStateManager.js', () => ({}));
 
 describe('renderer.js - Coverage Test', () => {
     it('should execute renderer.js file for coverage tracking', async () => {
