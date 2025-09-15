@@ -25,7 +25,7 @@ const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 
 describe('updateActiveTab.js - Complete Test Suite', () => {
-    let testContainer: HTMLDivElement;
+    let testContainer;
 
     beforeEach(() => {
         // Reset all mocks

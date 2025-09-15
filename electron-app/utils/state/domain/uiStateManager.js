@@ -34,7 +34,7 @@ export class UIStateManager {
      */
     setupEventListeners() {
         // Tab switching
-        const tabButtons = document.querySelectorAll("[data-tab]");
+        const tabButtons = /** @type {Element[]} */ (Array.from(document.querySelectorAll("[data-tab]") || []));
         tabButtons.forEach((button) => {
             const tabName = button.getAttribute("data-tab");
             button.addEventListener("click", () => {
@@ -45,7 +45,7 @@ export class UIStateManager {
         });
 
         // Theme toggle buttons
-        const themeButtons = document.querySelectorAll("[data-theme]");
+        const themeButtons = /** @type {Element[]} */ (Array.from(document.querySelectorAll("[data-theme]") || []));
         themeButtons.forEach((button) => {
             const theme = button.getAttribute("data-theme");
             button.addEventListener("click", () => {
@@ -108,7 +108,7 @@ export class UIStateManager {
      * @param {string} activeTab - The currently active tab
      */
     updateTabVisibility(activeTab) {
-        const tabContents = document.querySelectorAll(".tab-content");
+        const tabContents = /** @type {Element[]} */ (Array.from(document.querySelectorAll(".tab-content") || []));
 
         tabContents.forEach((content) => {
             const tabName = content.getAttribute("data-tab-content"),
@@ -126,7 +126,7 @@ export class UIStateManager {
      * @param {string} activeTab - The currently active tab
      */
     updateTabButtons(activeTab) {
-        const tabButtons = document.querySelectorAll("[data-tab]");
+        const tabButtons = /** @type {Element[]} */ (Array.from(document.querySelectorAll("[data-tab]") || []));
 
         tabButtons.forEach((button) => {
             const tabName = button.getAttribute("data-tab"),
@@ -148,18 +148,28 @@ export class UIStateManager {
             // Remove explicit theme and use system preference
             root.removeAttribute("data-theme");
 
-            // Listen for system theme changes
-            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)"),
-             systemTheme = mediaQuery.matches ? "dark" : "light";
-            root.setAttribute("data-theme", systemTheme);
+            // Listen for system theme changes if supported
+            if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+                const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)"),
+                 systemTheme = mediaQuery.matches ? "dark" : "light";
+                root.setAttribute("data-theme", systemTheme);
 
-            // Update on system theme change
-            if (!this.systemThemeListener) {
-                this.systemThemeListener = (/** @type {*} */ e) => {
-                    const newSystemTheme = e.matches ? "dark" : "light";
-                    root.setAttribute("data-theme", newSystemTheme);
-                };
-                mediaQuery.addEventListener("change", this.systemThemeListener);
+                // Update on system theme change
+                if (!this.systemThemeListener) {
+                    this.systemThemeListener = (/** @type {*} */ e) => {
+                        const newSystemTheme = e.matches ? "dark" : "light";
+                        root.setAttribute("data-theme", newSystemTheme);
+                    };
+                    if (typeof mediaQuery.addEventListener === "function") {
+                        mediaQuery.addEventListener("change", this.systemThemeListener);
+                    } else if (typeof mediaQuery.addListener === "function") {
+                        // Older API fallback
+                        mediaQuery.addListener(this.systemThemeListener);
+                    }
+                }
+            } else {
+                // Fallback when matchMedia is not available (e.g., jsdom)
+                root.setAttribute("data-theme", "light");
             }
         } else {
             // Apply explicit theme
@@ -167,14 +177,20 @@ export class UIStateManager {
 
             // Remove system theme listener if it exists
             if (this.systemThemeListener) {
-                const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-                mediaQuery.removeEventListener("change", this.systemThemeListener);
+                if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+                    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+                    if (typeof mediaQuery.removeEventListener === "function") {
+                        mediaQuery.removeEventListener("change", this.systemThemeListener);
+                    } else if (typeof mediaQuery.removeListener === "function") {
+                        mediaQuery.removeListener(this.systemThemeListener);
+                    }
+                }
                 this.systemThemeListener = null;
             }
         }
 
         // Update theme toggle buttons
-        const themeButtons = document.querySelectorAll("[data-theme]");
+        const themeButtons = /** @type {Element[]} */ (Array.from(document.querySelectorAll("[data-theme]") || []));
         themeButtons.forEach((button) => {
             const buttonTheme = button.getAttribute("data-theme");
             button.classList.toggle("active", buttonTheme === theme);

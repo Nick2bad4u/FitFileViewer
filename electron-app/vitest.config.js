@@ -3,6 +3,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     test: {
         environment: "jsdom",
+        environmentOptions: {
+            jsdom: {
+                url: "http://localhost/"
+            }
+        },
         watch: false,
         setupFiles: ["./tests/setupVitest.js"],
         pool: "forks",

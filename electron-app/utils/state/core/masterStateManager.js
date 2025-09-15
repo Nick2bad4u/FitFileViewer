@@ -541,26 +541,34 @@ export class MasterStateManager {
      * @returns {boolean} True if in development mode
      */
     isDevelopmentMode() {
-        // Check for development indicators
-        return (
-            // Check if localhost or dev domains
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1" ||
-            window.location.hostname.includes("dev") ||
-            // Check for dev tools being open
-            window.__DEVELOPMENT__ === true ||
-            // Check for debug flag in URL
-            window.location.search.includes("debug=true") ||
-            window.location.hash.includes("debug") ||
-            // Check for development build indicators
-            document.documentElement.hasAttribute("data-dev-mode") ||
-            // Check if running from file:// protocol (dev mode indicator)
-            window.location.protocol === "file:" ||
-            // Check if electron dev tools are available
-            (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
-            // Check console availability and development-specific globals
-            (typeof console !== "undefined" && window.location.href.includes("electron"))
-        );
+        try {
+            // Safely access window/document properties (jsdom/tests can stub or omit parts)
+            const loc = /** @type {any} */ (typeof window !== "undefined" ? window.location : undefined) || {};
+            const hostname = typeof loc.hostname === "string" ? loc.hostname : "";
+            const search = typeof loc.search === "string" ? loc.search : "";
+            const hash = typeof loc.hash === "string" ? loc.hash : "";
+            const protocol = typeof loc.protocol === "string" ? loc.protocol : "";
+            const href = typeof loc.href === "string" ? loc.href : "";
+
+            const hasDevAttr = (typeof document !== "undefined" && document.documentElement &&
+                typeof document.documentElement.hasAttribute === "function" &&
+                document.documentElement.hasAttribute("data-dev-mode")) || false;
+
+            return (
+                hostname === "localhost" ||
+                hostname === "127.0.0.1" ||
+                (hostname && hostname.includes("dev")) ||
+                /** @type {any} */ (window).__DEVELOPMENT__ === true ||
+                (search && search.includes("debug=true")) ||
+                (hash && hash.includes("debug")) ||
+                hasDevAttr ||
+                protocol === "file:" ||
+                (typeof window !== "undefined" && (/** @type {any} */ (window)).electronAPI && typeof (/** @type {any} */ (window.electronAPI)).__devMode !== "undefined") ||
+                (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
+            );
+        } catch {
+            return false;
+        }
     } /**
      * Clean up all state management
      */

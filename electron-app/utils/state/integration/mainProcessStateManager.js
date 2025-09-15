@@ -143,7 +143,9 @@ class MainProcessState {
         this.listeners = new Map();
         /** @type {Array<Function>} */
         this.middleware = [];
-        this.devMode = (process.env && process.env.NODE_ENV) === "development" || process.argv.includes("--dev");
+        this.devMode = (
+            typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development"
+        ) || (typeof process !== "undefined" && Array.isArray(process.argv) && process.argv.includes("--dev"));
 
         this.setupIPCHandlers();
     }
@@ -611,9 +613,11 @@ class MainProcessState {
         const serializable = {};
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
+            const isBrowserWindow =
+                typeof BrowserWindow === "function" && value instanceof BrowserWindow;
             if (
                 typeof value === "function" ||
-                value instanceof BrowserWindow ||
+                isBrowserWindow ||
                 value instanceof Map ||
                 value instanceof Set ||
                 (value && typeof value === "object" && value.constructor && value.constructor.name === "Server")

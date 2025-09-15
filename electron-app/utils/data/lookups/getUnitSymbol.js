@@ -73,7 +73,16 @@ const STORAGE_KEYS = {
  */
 function getUserPreference(key, fallback) {
     try {
-        return localStorage.getItem(key) || fallback;
+        // Prefer window.localStorage when available for jsdom/test environments
+        /** @type {any} */
+        const w = typeof window !== 'undefined' ? /** @type {any} */ (window) : undefined;
+        /** @type {Storage|undefined} */
+        const storage = (w && w.localStorage) ? w.localStorage : (typeof localStorage !== 'undefined' ? localStorage : undefined);
+        if (!storage || typeof storage.getItem !== 'function') {
+            return fallback;
+        }
+        const val = storage.getItem(key);
+        return val != null ? val : fallback;
     } catch (error) {
         console.warn(`[UnitSymbol] Error reading localStorage key "${key}":`, error);
         return fallback;

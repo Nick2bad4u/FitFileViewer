@@ -25,6 +25,10 @@ export function isHTMLElement(el) {
  * @returns {HTMLElement|null}
  */
 export function query(selector, root = document) {
+    if (typeof selector !== 'string' || selector.length === 0) {
+        // Match native behavior: throw on empty/invalid selector input
+        throw new Error('Failed to execute "querySelector" on "Document": The provided selector is empty.');
+    }
     const el = root.querySelector(selector);
     return isHTMLElement(el) ? el : null;
 }
@@ -36,7 +40,12 @@ export function query(selector, root = document) {
  * @returns {HTMLElement[]}
  */
 export function queryAll(selector, root = document) {
-    return Array.from(root.querySelectorAll(selector)).filter(isHTMLElement);
+    if (typeof selector !== 'string' || selector.length === 0) {
+        // Match native behavior and test expectation to throw on invalid selectors
+        throw new Error('Failed to execute "querySelectorAll" on "Document": The provided selector is empty.');
+    }
+    const list = root.querySelectorAll(selector);
+    return Array.from(list).filter(isHTMLElement);
 }
 
 /**

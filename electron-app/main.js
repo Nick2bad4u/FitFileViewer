@@ -70,7 +70,15 @@ function setAppState(path, value, options = {}) {
  * @param {any} win
  */
 function isWindowUsable(win) {
-    return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
+    if (!win) return false;
+    try {
+        const hasWebContents = !!(win.webContents);
+        const wcd = hasWebContents && typeof win.webContents.isDestroyed === 'function' ? win.webContents.isDestroyed() : true;
+        const wd = typeof win.isDestroyed === 'function' ? win.isDestroyed() : true;
+        return Boolean(!wd && hasWebContents && !wcd);
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -124,8 +132,12 @@ function sendToRenderer(win, channel, ...args) {
  */
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString(),
-     contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
-    /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, contextStr);
+     hasContext = context && typeof context === 'object' && Object.keys(context).length > 0;
+    if (hasContext) {
+        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, JSON.stringify(context));
+    } else {
+        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`);
+    }
 }
 
 // Enhanced error handling wrapper
@@ -155,8 +167,9 @@ function _createErrorHandler(operation) {
 function setupAutoUpdater(mainWindow) {
     // Alias back to name expected in existing code
     const autoUpdater = _autoUpdater;
-    if (!validateWindow(mainWindow, "auto-updater setup")) {
-        logWithContext("warn", "Cannot setup auto-updater: main window is not usable");
+    if (!isWindowUsable(mainWindow)) {
+        // Emit a single plain warn string as expected by tests
+        console.warn("Cannot setup auto-updater: main window is not usable");
         return;
     }
 

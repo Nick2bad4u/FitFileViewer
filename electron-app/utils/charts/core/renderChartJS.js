@@ -371,10 +371,15 @@ if (typeof window !== "undefined") {
 }
 
 // Register the background color plugin globally
-if (windowAny.Chart && !windowAny.Chart.registry.plugins.get("chartBackgroundColorPlugin")) {
-    windowAny.Chart.register(chartBackgroundColorPlugin);
-    console.log("[ChartJS] chartBackgroundColorPlugin registered");
-}
+try {
+    const ChartRef = windowAny.Chart;
+    const hasRegistry = !!(ChartRef && ChartRef.registry && ChartRef.registry.plugins && typeof ChartRef.registry.plugins.get === 'function');
+    const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
+    if (ChartRef && typeof ChartRef.register === 'function' && !already) {
+        ChartRef.register(chartBackgroundColorPlugin);
+        console.log("[ChartJS] chartBackgroundColorPlugin registered");
+    }
+} catch {}
 
 // Utility function to convert hex to rgba
 /**

@@ -56,7 +56,12 @@ export function formatTime(seconds, useUserUnits = false) {
  * @private
  */
 function formatWithUserUnits(seconds) {
-    const timeUnits = localStorage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY) || TIME_UNITS.SECONDS;
+    // Prefer window.localStorage if available (jsdom/tests override window), fallback to global
+    /** @type {any} */
+    const storage = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage : (typeof localStorage !== 'undefined' ? localStorage : null);
+    const timeUnits = storage && typeof storage.getItem === 'function'
+        ? storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY) || TIME_UNITS.SECONDS
+        : TIME_UNITS.SECONDS;
     const convertedValue = convertTimeUnits(seconds, timeUnits);
 
     switch (timeUnits) {
