@@ -11,7 +11,7 @@ export async function loadSingleOverlayFile(file) {
         reader.onload = async function (event) {
             try {
                 const target = /** @type {FileReader|null} */ (event.target),
-                 arrayBuffer = target && target.result;
+                    arrayBuffer = target && target.result;
 
                 if (!arrayBuffer || !window.electronAPI?.decodeFitFile) {
                     resolve({ success: false, error: "No file data or decoder not available" });

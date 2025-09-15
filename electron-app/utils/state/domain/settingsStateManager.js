@@ -156,14 +156,14 @@ class SettingsStateManager {
                 // Handle object-type settings (chart, ui, export, units)
                 /** @type {Record<string, any>} */
                 const settings = {},
-                 prefix = schema.key;
+                    prefix = schema.key;
 
                 // Get all localStorage keys with this prefix
                 for (let i = 0; i < localStorage.length; i++) {
                     const storageKey = localStorage.key(i);
                     if (storageKey && storageKey.startsWith(prefix)) {
                         const settingKey = storageKey.replace(prefix, ""),
-                         value = localStorage.getItem(storageKey);
+                            value = localStorage.getItem(storageKey);
 
                         try {
                             // Try to parse as JSON, fallback to string
@@ -184,19 +184,20 @@ class SettingsStateManager {
                 }
 
                 return Object.keys(settings).length > 0 ? { ...schema.default, ...settings } : schema.default;
-            } 
-                // Handle simple settings (theme, mapTheme)
-                const value = localStorage.getItem(schema.key);
-                if (value === null) {return schema.default;}
+            }
+            // Handle simple settings (theme, mapTheme)
+            const value = localStorage.getItem(schema.key);
+            if (value === null) {
+                return schema.default;
+            }
 
-                // Convert to correct type
-                if (schema.type === "boolean") {
-                    return value === "true";
-                } else if (schema.type === "number") {
-                    return parseFloat(value);
-                }
-                return value;
-            
+            // Convert to correct type
+            if (schema.type === "boolean") {
+                return value === "true";
+            } else if (schema.type === "number") {
+                return parseFloat(value);
+            }
+            return value;
         } catch (error) {
             console.error(`[SettingsState] Error getting setting ${category}:`, error);
             return schema.default;
@@ -237,7 +238,7 @@ class SettingsStateManager {
 
                 // Update state
                 const rootState = /** @type {any} */ (getState("settings")),
-                 currentSettings = (rootState && rootState[category]) || {};
+                    currentSettings = (rootState && rootState[category]) || {};
                 currentSettings[key] = value;
                 setState(`settings.${category}` /** @type {string} */, currentSettings, {
                     source: "SettingsStateManager.setSetting",
@@ -281,7 +282,7 @@ class SettingsStateManager {
             const key = localStorage.key(i);
             if (key && key.startsWith("chartjs_")) {
                 const settingKey = key.replace("chartjs_", ""),
-                 value = localStorage.getItem(key);
+                    value = localStorage.getItem(key);
 
                 try {
                     settings[settingKey] = value != null ? JSON.parse(value) : null;
@@ -504,7 +505,7 @@ class SettingsStateManager {
         try {
             Object.keys(SETTINGS_SCHEMA).forEach((category) => {
                 const cat = /** @type {SettingCategory} */ (category),
-                 currentValue = this.getSetting(cat);
+                    currentValue = this.getSetting(cat);
                 setState(`settings.${category}`, currentValue, {
                     source: "SettingsStateManager.syncFromLocalStorage",
                 });

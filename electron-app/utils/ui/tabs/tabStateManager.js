@@ -21,23 +21,23 @@ const getDoc = () => {
     // Prefer the current test's document first
     try {
         // @ts-ignore
-        if (!d && typeof document !== 'undefined' && document && typeof document.getElementById === 'function') {
+        if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
             // @ts-ignore
             d = /** @type {any} */ (document);
         }
     } catch {}
     try {
-        if (!d && typeof window !== 'undefined' && window.document) d = /** @type {any} */ (window.document);
+        if (!d && typeof window !== "undefined" && window.document) d = /** @type {any} */ (window.document);
     } catch {}
     try {
-        if (!d && typeof globalThis !== 'undefined' && /** @type {any} */ (globalThis).document) {
-            d = /** @type {any} */ ((/** @type {any} */ (globalThis)).document);
+        if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+            d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
     } catch {}
     // Fallback to canonical test harness document
     try {
         // @ts-ignore
-        if (!d && typeof __vitest_effective_document__ !== 'undefined' && __vitest_effective_document__) {
+        if (!d && typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
@@ -47,17 +47,20 @@ const getDoc = () => {
         d = /** @type {any} */ (document);
     }
     try {
-        if (!(d && typeof d.getElementById === 'function' && typeof d.querySelectorAll === 'function')) {
+        if (!(d && typeof d.getElementById === "function" && typeof d.querySelectorAll === "function")) {
             // Prefer current doc/window, then global, then canonical
             // @ts-ignore
-            if (typeof document !== 'undefined' && document && typeof document.getElementById === 'function') {
+            if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
-            } else if (typeof window !== 'undefined' && window.document) {
+            } else if (typeof window !== "undefined" && window.document) {
                 d = /** @type {any} */ (window.document);
-            } else if (typeof globalThis !== 'undefined' && /** @type {any} */ (globalThis).document) {
-                d = /** @type {any} */ ((/** @type {any} */ (globalThis)).document);
-            } else if (typeof __vitest_effective_document__ !== 'undefined' && /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))) {
+            } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+                d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
+            } else if (
+                typeof __vitest_effective_document__ !== "undefined" &&
+                /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))
+            ) {
                 // @ts-ignore
                 d = /** @type {any} */ (__vitest_effective_document__);
             }
@@ -73,20 +76,22 @@ import { showNotification } from "../notifications/showNotification.js";
 const getStateMgr = () => {
     try {
         const sm = /** @type {any} */ (__StateMgr);
-        const getState = sm && typeof sm.getState === 'function' ? sm.getState : undefined;
-        const setState = sm && typeof sm.setState === 'function' ? sm.setState : undefined;
-        const subscribe = sm && typeof sm.subscribe === 'function' ? sm.subscribe : undefined;
+        const getState = sm && typeof sm.getState === "function" ? sm.getState : undefined;
+        const setState = sm && typeof sm.setState === "function" ? sm.setState : undefined;
+        const subscribe = sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
     } catch {}
     try {
         // @ts-ignore
-        const eff = typeof __vitest_effective_stateManager__ !== 'undefined' && /** @type {any} */ (__vitest_effective_stateManager__);
-        if (eff && typeof eff === 'object') {
-            const getState = typeof eff.getState === 'function' ? eff.getState : __StateMgr.getState;
-            const setState = typeof eff.setState === 'function' ? eff.setState : __StateMgr.setState;
-            const subscribe = typeof eff.subscribe === 'function' ? eff.subscribe : __StateMgr.subscribe;
+        const eff =
+            typeof __vitest_effective_stateManager__ !== "undefined" &&
+            /** @type {any} */ (__vitest_effective_stateManager__);
+        if (eff && typeof eff === "object") {
+            const getState = typeof eff.getState === "function" ? eff.getState : __StateMgr.getState;
+            const setState = typeof eff.setState === "function" ? eff.setState : __StateMgr.setState;
+            const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
     } catch {}
@@ -168,7 +173,12 @@ class TabStateManager {
         // Stable click handler reference to prevent accumulating listeners
         /** @type {(event: Event) => void} */
         this._buttonClickHandler = (event) => {
-            try { console.log(`[TabStateManager] Click detected on button: ${/** @type {any} */(event?.currentTarget)?.id || ''}`, event); } catch {}
+            try {
+                console.log(
+                    `[TabStateManager] Click detected on button: ${/** @type {any} */ (event?.currentTarget)?.id || ""}`,
+                    event
+                );
+            } catch {}
             this.handleTabButtonClick(event);
         };
         // Reference to DOMContentLoaded setup function so we can remove it in cleanup
@@ -186,18 +196,31 @@ class TabStateManager {
      */
     initializeSubscriptions() {
         // Subscribe to active tab changes
-    const unsubActive = getStateMgr().subscribe("ui.activeTab", (/** @type {string} */ newTab, /** @type {string} */ oldTab) => {
-            if (newTab !== oldTab) {
-                this.handleTabChange(newTab, oldTab);
+        const unsubActive = getStateMgr().subscribe(
+            "ui.activeTab",
+            (/** @type {string} */ newTab, /** @type {string} */ oldTab) => {
+                if (newTab !== oldTab) {
+                    this.handleTabChange(newTab, oldTab);
+                }
             }
-        });
-        if (typeof unsubActive === 'function') this._unsubscribes.push(() => { try { unsubActive(); } catch {} });
+        );
+        if (typeof unsubActive === "function")
+            this._unsubscribes.push(() => {
+                try {
+                    unsubActive();
+                } catch {}
+            });
 
         // Subscribe to data changes to enable/disable tabs
-    const unsubData = getStateMgr().subscribe("globalData", (/** @type {any} */ newData) => {
+        const unsubData = getStateMgr().subscribe("globalData", (/** @type {any} */ newData) => {
             this.updateTabAvailability(newData);
         });
-        if (typeof unsubData === 'function') this._unsubscribes.push(() => { try { unsubData(); } catch {} });
+        if (typeof unsubData === "function")
+            this._unsubscribes.push(() => {
+                try {
+                    unsubData();
+                } catch {}
+            });
 
         this.isInitialized = true;
     }
@@ -212,9 +235,13 @@ class TabStateManager {
 
             tabButtons.forEach((button) => {
                 // Remove existing stable listener (if any) to prevent duplicates
-                try { button.removeEventListener("click", this._buttonClickHandler); } catch {}
+                try {
+                    button.removeEventListener("click", this._buttonClickHandler);
+                } catch {}
                 // Add stable listener
-                try { button.addEventListener("click", this._buttonClickHandler); } catch {}
+                try {
+                    button.addEventListener("click", this._buttonClickHandler);
+                } catch {}
             });
 
             console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
@@ -223,7 +250,9 @@ class TabStateManager {
         if (document.readyState === "loading") {
             // Store reference so we can remove it during cleanup
             this._setupHandlersFn = setupHandlers;
-            try { getDoc().addEventListener("DOMContentLoaded", this._setupHandlersFn); } catch {}
+            try {
+                getDoc().addEventListener("DOMContentLoaded", this._setupHandlersFn);
+            } catch {}
         } else {
             setupHandlers();
         }
@@ -235,7 +264,7 @@ class TabStateManager {
      */
     handleTabButtonClick = (event) => {
         const button = event.currentTarget instanceof HTMLElement ? event.currentTarget : null,
-         tabId = button?.id || "";
+            tabId = button?.id || "";
 
         // Check if button is disabled
         if (
@@ -273,7 +302,7 @@ class TabStateManager {
         }
 
         // Update state - this will trigger the subscription handler
-    getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.buttonClick" });
+        getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.buttonClick" });
     };
 
     /**
@@ -301,19 +330,19 @@ class TabStateManager {
      * @param {string} activeTab - Currently active tab name
      */
     updateTabButtonStates(activeTab) {
-    const tabButtons = getDoc().querySelectorAll(".tab-button");
+        const tabButtons = getDoc().querySelectorAll(".tab-button");
 
         tabButtons.forEach((button) => {
             try {
                 const tabName = this.extractTabName(button.id),
-                 isActive = tabName === activeTab;
+                    isActive = tabName === activeTab;
 
                 // Defensive: ensure classList exists
-                if (button && button.classList && typeof button.classList.toggle === 'function') {
+                if (button && button.classList && typeof button.classList.toggle === "function") {
                     button.classList.toggle("active", isActive);
                 }
                 // Always set aria-selected for both active and inactive to maintain consistency
-                if (button && typeof button.setAttribute === 'function') {
+                if (button && typeof button.setAttribute === "function") {
                     button.setAttribute("aria-selected", isActive ? "true" : "false");
                 }
             } catch {
@@ -342,7 +371,7 @@ class TabStateManager {
         });
 
         // Show active content area
-    const activeContent = getDoc().getElementById(tabConfig.contentId);
+        const activeContent = getDoc().getElementById(tabConfig.contentId);
         if (activeContent) {
             activeContent.style.display = "block";
         }
@@ -354,9 +383,11 @@ class TabStateManager {
      */
     async handleTabSpecificLogic(tabName) {
         const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
-        if (!tabConfig) {return;}
+        if (!tabConfig) {
+            return;
+        }
 
-    const globalData = getStateMgr().getState("globalData");
+        const globalData = getStateMgr().getState("globalData");
 
         try {
             switch (tabName) {
@@ -402,7 +433,7 @@ class TabStateManager {
         }
 
         // Let the chart state manager handle the rendering with proper state integration
-    const chartState = getStateMgr().getState("charts");
+        const chartState = getStateMgr().getState("charts");
 
         if (!chartState?.isRendered) {
             console.log("[TabStateManager] Chart tab activated - triggering initial render through state system");
@@ -421,10 +452,12 @@ class TabStateManager {
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleMapTab(globalData) {
-        if (!globalData || !globalData.recordMesgs) {return;}
+        if (!globalData || !globalData.recordMesgs) {
+            return;
+        }
 
         // Check if map is already rendered
-    const mapState = getStateMgr().getState("map");
+        const mapState = getStateMgr().getState("map");
         if (!mapState?.isRendered && /** @type {any} */ (window).renderMap) {
             console.log("[TabStateManager] Rendering map for first time");
             /** @type {any} */ (window).renderMap();
@@ -438,16 +471,20 @@ class TabStateManager {
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleSummaryTab(globalData) {
-        if (!globalData || !(/** @type {any} */ (window).renderSummary)) {return;}
+        if (!globalData || !(/** @type {any} */ (window).renderSummary)) {
+            return;
+        }
 
         // Check if we need to re-render summary
-    const previousData = getStateMgr().getState("summary.lastDataHash"),
-         currentDataHash = this.hashData(globalData);
+        const previousData = getStateMgr().getState("summary.lastDataHash"),
+            currentDataHash = this.hashData(globalData);
 
         if (previousData !== currentDataHash) {
             console.log("[TabStateManager] Rendering summary with new data");
             /** @type {any} */ (window).renderSummary(globalData);
-            getStateMgr().setState("summary.lastDataHash", currentDataHash, { source: "TabStateManager.handleSummaryTab" });
+            getStateMgr().setState("summary.lastDataHash", currentDataHash, {
+                source: "TabStateManager.handleSummaryTab",
+            });
         }
     }
 
@@ -457,11 +494,13 @@ class TabStateManager {
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
     async handleDataTab(globalData) {
-        if (!globalData || !(/** @type {any} */ (window).createTables)) {return;}
+        if (!globalData || !(/** @type {any} */ (window).createTables)) {
+            return;
+        }
 
         // Check for background-rendered data first
-    const bgContainer = getDoc().getElementById("background-data-container"),
-     visibleContainer = getDoc().getElementById("content-data");
+        const bgContainer = getDoc().getElementById("background-data-container"),
+            visibleContainer = getDoc().getElementById("content-data");
 
         if (bgContainer && bgContainer.childNodes && bgContainer.childNodes.length > 0 && visibleContainer) {
             // Move pre-rendered content
@@ -480,12 +519,16 @@ class TabStateManager {
      * Handle alternative FIT viewer tab activation
      */
     handleAltFitTab() {
-    const el = getDoc().getElementById("altfit-iframe");
+        const el = getDoc().getElementById("altfit-iframe");
         // Avoid cross-realm instanceof checks; rely on tagName and presence of src
-        if (el && typeof /** @type {any} */(el).tagName === 'string' && /** @type {any} */(el).tagName.toUpperCase() === 'IFRAME') {
+        if (
+            el &&
+            typeof (/** @type {any} */ (el).tagName) === "string" &&
+            /** @type {any} */ (el).tagName.toUpperCase() === "IFRAME"
+        ) {
             const iframe = /** @type {any} */ (el);
-            if (typeof iframe.src === 'string' && !iframe.src.includes('libs/ffv/index.html')) {
-                iframe.src = 'libs/ffv/index.html';
+            if (typeof iframe.src === "string" && !iframe.src.includes("libs/ffv/index.html")) {
+                iframe.src = "libs/ffv/index.html";
             }
         }
     }
@@ -499,15 +542,19 @@ class TabStateManager {
         const hasData = Boolean(globalData && globalData.recordMesgs);
 
         Object.entries(TAB_CONFIG).forEach(([, config]) => {
-            if (!config.requiresData) {return;}
+            if (!config.requiresData) {
+                return;
+            }
             const el = getDoc().getElementById(config.id);
             if (el) {
                 // Avoid cross-realm instanceof by duck-typing
                 /** @type {any} */
                 const button = /** @type {any} */ (el);
-                if (typeof button.classList?.toggle === 'function') {
-                    if ('disabled' in button) button.disabled = !hasData;
-                    try { button.classList.toggle('disabled', !hasData); } catch {}
+                if (typeof button.classList?.toggle === "function") {
+                    if ("disabled" in button) button.disabled = !hasData;
+                    try {
+                        button.classList.toggle("disabled", !hasData);
+                    } catch {}
                 }
             }
         });
@@ -546,13 +593,15 @@ class TabStateManager {
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} data */
     hashData(data) {
-        if (!data) {return "";}
+        if (!data) {
+            return "";
+        }
 
         // Simple hash based on data size and some key fields
         const recordMesgs = data.recordMesgs || [],
-         size = recordMesgs.length || 0,
-         firstRecord = recordMesgs[0] || {},
-         lastRecord = recordMesgs[size - 1] || {};
+            size = recordMesgs.length || 0,
+            firstRecord = recordMesgs[0] || {},
+            lastRecord = recordMesgs[size - 1] || {};
 
         return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
     }
@@ -567,7 +616,7 @@ class TabStateManager {
             return false;
         }
 
-    getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.switchToTab" });
+        getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.switchToTab" });
         return true;
     }
 
@@ -579,7 +628,9 @@ class TabStateManager {
         try {
             if (Array.isArray(this._unsubscribes) && this._unsubscribes.length) {
                 for (const unsub of this._unsubscribes.splice(0, this._unsubscribes.length)) {
-                    try { typeof unsub === 'function' && unsub(); } catch {}
+                    try {
+                        typeof unsub === "function" && unsub();
+                    } catch {}
                 }
             }
         } catch {}
@@ -594,7 +645,9 @@ class TabStateManager {
         try {
             const tabButtons = getDoc().querySelectorAll(".tab-button");
             tabButtons.forEach((button) => {
-                try { button.removeEventListener("click", this._buttonClickHandler); } catch {}
+                try {
+                    button.removeEventListener("click", this._buttonClickHandler);
+                } catch {}
             });
         } catch {}
         // Mark uninitialized so tests can re-init if they re-import or call setup explicitly
@@ -607,8 +660,8 @@ class TabStateManager {
      * @returns {Object} Active tab information
      */
     getActiveTabInfo() {
-    const activeTab = getStateMgr().getState("ui.activeTab"),
-         config = TAB_CONFIG[activeTab];
+        const activeTab = getStateMgr().getState("ui.activeTab"),
+            config = TAB_CONFIG[activeTab];
 
         return {
             name: activeTab,

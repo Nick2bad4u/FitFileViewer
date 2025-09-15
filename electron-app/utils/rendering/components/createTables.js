@@ -52,8 +52,12 @@ export function createTables(dataFrames, containerOverride) {
 
     // Sort keys so 'recordMesgs' appears first, then alphabetically
     keys.sort((a, b) => {
-        if (a === "recordMesgs") {return -1;}
-        if (b === "recordMesgs") {return 1;}
+        if (a === "recordMesgs") {
+            return -1;
+        }
+        if (b === "recordMesgs") {
+            return 1;
+        }
         return a.localeCompare(b);
     });
 

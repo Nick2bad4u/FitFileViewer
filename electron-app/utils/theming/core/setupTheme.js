@@ -66,11 +66,10 @@ async function fetchThemeFromMainProcess() {
     try {
         // Add timeout to prevent hanging
         const themePromise = window.electronAPI.getTheme(),
-         timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("Theme fetch timeout")), TIMEOUT.THEME_FETCH);
-        }),
-
-         theme = await Promise.race([themePromise, timeoutPromise]);
+            timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error("Theme fetch timeout")), TIMEOUT.THEME_FETCH);
+            }),
+            theme = await Promise.race([themePromise, timeoutPromise]);
 
         if (!isValidTheme(theme)) {
             logWithContext(`Invalid theme received: ${theme}, using default`, "warn");

@@ -95,7 +95,7 @@ function validateWindow(win) {
  */
 function logWithContext(level, message, context = {}) {
     const timestamp = new Date().toISOString(),
-     contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
+        contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
     // Narrowed level union keeps TS happy accessing console methods
     console[level](`[${timestamp}] [mainProcessStateManager] ${message}`, contextStr);
 }
@@ -143,9 +143,9 @@ class MainProcessState {
         this.listeners = new Map();
         /** @type {Array<Function>} */
         this.middleware = [];
-        this.devMode = (
-            typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development"
-        ) || (typeof process !== "undefined" && Array.isArray(process.argv) && process.argv.includes("--dev"));
+        this.devMode =
+            (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
+            (typeof process !== "undefined" && Array.isArray(process.argv) && process.argv.includes("--dev"));
 
         this.setupIPCHandlers();
     }
@@ -269,7 +269,9 @@ class MainProcessState {
      */
     updateOperation(operationId, updates) {
         const currentOp = this.get(`operations.${operationId}`);
-        if (!currentOp) {return;}
+        if (!currentOp) {
+            return;
+        }
 
         const updatedOp = {
             ...currentOp,
@@ -292,7 +294,9 @@ class MainProcessState {
      */
     completeOperation(operationId, result = {}) {
         const operation = this.get(`operations.${operationId}`);
-        if (!operation) {return;}
+        if (!operation) {
+            return;
+        }
 
         const completedOp = {
             ...operation,
@@ -323,24 +327,25 @@ class MainProcessState {
      */
     failOperation(operationId, error) {
         const operation = this.get(`operations.${operationId}`);
-        if (!operation) {return;}
+        if (!operation) {
+            return;
+        }
 
         const errorObj =
-            error instanceof Error
-                ? {
-                      message: error.message,
-                      stack: error.stack,
-                      name: error.name,
-                  }
-                : { message: String(error) },
-
-         failedOp = {
-            ...operation,
-            status: "failed",
-            endTime: Date.now(),
-            duration: Date.now() - operation.startTime,
-            error: errorObj,
-        };
+                error instanceof Error
+                    ? {
+                          message: error.message,
+                          stack: error.stack,
+                          name: error.name,
+                      }
+                    : { message: String(error) },
+            failedOp = {
+                ...operation,
+                status: "failed",
+                endTime: Date.now(),
+                duration: Date.now() - operation.startTime,
+                error: errorObj,
+            };
 
         this.set(`operations.${operationId}`, failedOp);
         this.notifyRenderers("operation-failed", { operationId, operation: failedOp });
@@ -375,15 +380,14 @@ class MainProcessState {
      */
     addError(error, context = {}) {
         const errorObj = {
-            id: Date.now().toString(),
-            timestamp: Date.now(),
-            message: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : null,
-            context,
-            source: "mainProcess",
-        },
-
-         errors = this.get("errors") || [];
+                id: Date.now().toString(),
+                timestamp: Date.now(),
+                message: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : null,
+                context,
+                source: "mainProcess",
+            },
+            errors = this.get("errors") || [];
         errors.unshift(errorObj); // Add to beginning
 
         // Keep only last 100 errors
@@ -434,7 +438,7 @@ class MainProcessState {
      */
     unregisterEventHandler(handlerId) {
         const eventHandlers = this.get("eventHandlers") || new Map(),
-         handlerInfo = eventHandlers.get(handlerId);
+            handlerInfo = eventHandlers.get(handlerId);
 
         if (handlerInfo) {
             const { emitter, event, handler } = handlerInfo;
@@ -479,7 +483,7 @@ class MainProcessState {
      */
     recordMetric(metric, value, metadata = {}) {
         const metrics = this.get("metrics") || {},
-         operationTimes = metrics.operationTimes || new Map();
+            operationTimes = metrics.operationTimes || new Map();
 
         operationTimes.set(metric, {
             value,
@@ -598,10 +602,14 @@ class MainProcessState {
      * @returns {*}
      */
     makeSerializable(data) {
-        if (data === null || data === undefined) {return data;}
+        if (data === null || data === undefined) {
+            return data;
+        }
 
         // Handle primitive types
-        if (typeof data !== "object") {return data;}
+        if (typeof data !== "object") {
+            return data;
+        }
 
         // Handle arrays
         if (Array.isArray(data)) {
@@ -613,8 +621,7 @@ class MainProcessState {
         const serializable = {};
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
-            const isBrowserWindow =
-                typeof BrowserWindow === "function" && value instanceof BrowserWindow;
+            const isBrowserWindow = typeof BrowserWindow === "function" && value instanceof BrowserWindow;
             if (
                 typeof value === "function" ||
                 isBrowserWindow ||
@@ -650,8 +657,7 @@ class MainProcessState {
         ipcMain.handle("main-state:set", (_event, path, value, options) => {
             // Only allow certain paths to be set from renderer
             const allowedPaths = ["loadedFitFilePath", "operations"],
-
-             rootPath = path.split(".")[0];
+                rootPath = path.split(".")[0];
             if (allowedPaths.includes(rootPath)) {
                 this.set(path, value, { ...options, source: "renderer" });
                 return true;
@@ -663,7 +669,7 @@ class MainProcessState {
 
         // Listen to main process state changes
         ipcMain.handle("main-state:listen", (event, path) => {
-            const {sender} = event;
+            const { sender } = event;
             this.listen(path, (change) => {
                 try {
                     sender.send("main-state-change", change);
@@ -718,7 +724,9 @@ class MainProcessState {
      * @returns {*}
      */
     getByPath(obj, path) {
-        if (!path) {return obj;}
+        if (!path) {
+            return obj;
+        }
         return path.split(".").reduce((current, key) => {
             if (current && typeof current === "object" && Object.hasOwn(current, key)) {
                 // @ts-ignore index signature loosened at runtime
@@ -734,21 +742,23 @@ class MainProcessState {
      * @param {*} value
      */
     setByPath(obj, path, value) {
-        if (!path) {return;}
+        if (!path) {
+            return;
+        }
         const keys = path.split("."),
-         lastKey = keys.pop(),
-         target = keys.reduce((current, key) => {
-            if (current && typeof current === "object") {
-                // @ts-ignore dynamic expansion
-                if (current[key] === undefined) {
+            lastKey = keys.pop(),
+            target = keys.reduce((current, key) => {
+                if (current && typeof current === "object") {
                     // @ts-ignore dynamic expansion
-                    current[key] = {};
+                    if (current[key] === undefined) {
+                        // @ts-ignore dynamic expansion
+                        current[key] = {};
+                    }
+                    // @ts-ignore dynamic expansion
+                    return current[key];
                 }
-                // @ts-ignore dynamic expansion
-                return current[key];
-            }
-            return {};
-        }, /** @type {any} */ (obj));
+                return {};
+            }, /** @type {any} */ (obj));
         if (lastKey) {
             // @ts-ignore dynamic expansion
             target[lastKey] = value;

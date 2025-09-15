@@ -139,7 +139,7 @@ export function moveHRZoneControlsToSection() {
         return;
     } // Find existing HR zone controls in the field toggles section
     const hrZoneFields = ["hr_zone_doughnut", "hr_lap_zone_stacked", "hr_lap_zone_individual"],
-     movedControls = [];
+        movedControls = [];
 
     hrZoneFields.forEach((fieldName) => {
         // Look for the toggle by ID
@@ -205,7 +205,9 @@ function addUnifiedHRZoneColorPicker(container) {
  */
 export function updateHRZoneControlsVisibility(hasData) {
     const controls = document.getElementById("hr-zone-controls");
-    if (!controls) {return;}
+    if (!controls) {
+        return;
+    }
 
     if (hasData) {
         controls.style.display = "block";

@@ -19,24 +19,24 @@ const getDoc = () => {
     // Prefer the current test's document first
     try {
         // @ts-ignore
-        if (!d && typeof document !== 'undefined' && document && typeof document.getElementById === 'function') {
+        if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
             // @ts-ignore
             d = /** @type {any} */ (document);
         }
     } catch {}
     try {
-        if (!d && typeof window !== 'undefined' && window.document) d = /** @type {any} */ (window.document);
+        if (!d && typeof window !== "undefined" && window.document) d = /** @type {any} */ (window.document);
     } catch {}
     try {
         // Then prefer the current global document
-        if (!d && typeof globalThis !== 'undefined' && /** @type {any} */ (globalThis).document) {
-            d = /** @type {any} */ ((/** @type {any} */ (globalThis)).document);
+        if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+            d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
     } catch {}
     // Fallback: canonical test document
     try {
         // @ts-ignore
-        if (!d && typeof __vitest_effective_document__ !== 'undefined' && __vitest_effective_document__) {
+        if (!d && typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
@@ -46,17 +46,20 @@ const getDoc = () => {
         d = /** @type {any} */ (document);
     }
     try {
-        if (!(d && typeof d.getElementById === 'function' && typeof d.querySelectorAll === 'function')) {
+        if (!(d && typeof d.getElementById === "function" && typeof d.querySelectorAll === "function")) {
             // Prefer current doc/window, then global, then canonical
             // @ts-ignore
-            if (typeof document !== 'undefined' && document && typeof document.getElementById === 'function') {
+            if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
-            } else if (typeof window !== 'undefined' && window.document) {
+            } else if (typeof window !== "undefined" && window.document) {
                 d = /** @type {any} */ (window.document);
-            } else if (typeof globalThis !== 'undefined' && /** @type {any} */ (globalThis).document) {
-                d = /** @type {any} */ ((/** @type {any} */ (globalThis)).document);
-            } else if (typeof __vitest_effective_document__ !== 'undefined' && /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))) {
+            } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+                d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
+            } else if (
+                typeof __vitest_effective_document__ !== "undefined" &&
+                /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))
+            ) {
                 // @ts-ignore
                 d = /** @type {any} */ (__vitest_effective_document__);
             }
@@ -71,20 +74,22 @@ const getDoc = () => {
 const getStateMgr = () => {
     try {
         const sm = /** @type {any} */ (__StateMgr);
-        const getState = sm && typeof sm.getState === 'function' ? sm.getState : undefined;
-        const setState = sm && typeof sm.setState === 'function' ? sm.setState : undefined;
-        const subscribe = sm && typeof sm.subscribe === 'function' ? sm.subscribe : undefined;
+        const getState = sm && typeof sm.getState === "function" ? sm.getState : undefined;
+        const setState = sm && typeof sm.setState === "function" ? sm.setState : undefined;
+        const subscribe = sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
     } catch {}
     try {
         // @ts-ignore
-        const eff = typeof __vitest_effective_stateManager__ !== 'undefined' && /** @type {any} */ (__vitest_effective_stateManager__);
-        if (eff && typeof eff === 'object') {
-            const getState = typeof eff.getState === 'function' ? eff.getState : __StateMgr.getState;
-            const setState = typeof eff.setState === 'function' ? eff.setState : __StateMgr.setState;
-            const subscribe = typeof eff.subscribe === 'function' ? eff.subscribe : __StateMgr.subscribe;
+        const eff =
+            typeof __vitest_effective_stateManager__ !== "undefined" &&
+            /** @type {any} */ (__vitest_effective_stateManager__);
+        if (eff && typeof eff === "object") {
+            const getState = typeof eff.getState === "function" ? eff.getState : __StateMgr.getState;
+            const setState = typeof eff.setState === "function" ? eff.setState : __StateMgr.setState;
+            const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
     } catch {}
@@ -105,19 +110,18 @@ const getStateMgr = () => {
  */
 export function updateTabVisibility(visibleTabId) {
     const tabContentIds = [
-        "content-data",
-        "content-chartjs",
-        "content-map",
-        "content-summary",
-        "content-altfit",
-        "content-zwift",
-    ],
-
-    // Cache DOM elements in a map for better performance
-     elementMap = {};
+            "content-data",
+            "content-chartjs",
+            "content-map",
+            "content-summary",
+            "content-altfit",
+            "content-zwift",
+        ],
+        // Cache DOM elements in a map for better performance
+        elementMap = {};
     for (let i = 0; i < tabContentIds.length; i++) {
-    const id = tabContentIds[i],
-     el = getDoc().getElementById(/** @type {string} */ (id));
+        const id = tabContentIds[i],
+            el = getDoc().getElementById(/** @type {string} */ (id));
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
@@ -129,7 +133,7 @@ export function updateTabVisibility(visibleTabId) {
 
     // Define constants for display styles
     const DISPLAY_BLOCK = "block",
-     DISPLAY_NONE = "none";
+        DISPLAY_NONE = "none";
 
     // Toggle visibility using the cached elements
     Object.entries(elementMap).forEach(([id, el]) => {
@@ -155,7 +159,10 @@ export function updateTabVisibility(visibleTabId) {
 function extractTabNameFromContentId(contentId) {
     // CRITICAL BUG FIX: Type validation for contentId
     if (!contentId || typeof contentId !== "string") {
-        console.warn("extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:", contentId);
+        console.warn(
+            "extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:",
+            contentId
+        );
         return null;
     }
 
@@ -211,7 +218,7 @@ export function initializeTabVisibilityState() {
         "globalData",
         /** @param {any} data */ (data) => {
             const hasData = data !== null && data !== undefined,
-             currentTab = getStateMgr().getState("ui.activeTab") || "summary";
+                currentTab = getStateMgr().getState("ui.activeTab") || "summary";
 
             if (!hasData && currentTab !== "summary") {
                 // If no data, switch to summary tab

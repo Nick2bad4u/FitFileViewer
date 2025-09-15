@@ -37,7 +37,7 @@
 // Notification queue for managing multiple notifications
 /** @type {QueuedNotification[]} */
 let notificationQueue = [],
- isShowingNotification = false;
+    isShowingNotification = false;
 
 // Notification type configurations with icons and default durations
 /**
@@ -84,20 +84,19 @@ export async function showNotification(message, type = "info", duration, options
 
     /** @type {NotificationTypeConfig} */
     const config = NOTIFICATION_TYPES[type],
-     finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration,
-
-    // Create notification object
-    /** @type {QueuedNotification} */
-     notification = {
-        message,
-        type,
-        duration: finalDuration,
-        icon: options.icon ?? config.icon,
-        ariaLabel: config.ariaLabel,
-        onClick: options.onClick,
-        actions: options.actions || [],
-        timestamp: Date.now(),
-    };
+        finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration,
+        // Create notification object
+        /** @type {QueuedNotification} */
+        notification = {
+            message,
+            type,
+            duration: finalDuration,
+            icon: options.icon ?? config.icon,
+            ariaLabel: config.ariaLabel,
+            onClick: options.onClick,
+            actions: options.actions || [],
+            timestamp: Date.now(),
+        };
 
     // Add to queue
     notificationQueue.push(notification);
@@ -252,7 +251,9 @@ async function buildNotificationContent(element, notification) {
             button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
             button.onclick = (e) => {
                 e.stopPropagation();
-                if (action.onClick) {action.onClick();}
+                if (action.onClick) {
+                    action.onClick();
+                }
                 hideNotification(element);
             };
             actionsContainer.appendChild(button);

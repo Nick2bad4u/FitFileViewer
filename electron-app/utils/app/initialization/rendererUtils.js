@@ -144,7 +144,9 @@ function updateLoadingUI(isLoading) {
  */
 function updateNotificationUI(notification) {
     const notif = document.getElementById("notification");
-    if (!notif) {return;}
+    if (!notif) {
+        return;
+    }
 
     notif.textContent = notification.message;
     notif.className = `notification ${notification.type}`;

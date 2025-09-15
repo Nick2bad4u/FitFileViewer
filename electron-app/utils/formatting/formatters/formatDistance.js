@@ -74,7 +74,7 @@ export function formatDistance(meters) {
     }
 
     const kilometers = metersToKilometers(meters),
-     miles = metersToMiles(meters);
+        miles = metersToMiles(meters);
 
     return `${kilometers.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
 }

@@ -40,7 +40,9 @@ export function getLapColor(lapIdx) {
         "#388e3c",
         "#f57c00",
     ];
-    if (lapIdx === "all") {return "blue";}
+    if (lapIdx === "all") {
+        return "blue";
+    }
     const lapIndex = Number(lapIdx);
     if (isNaN(lapIndex)) {
         throw new Error(`Invalid lapIdx: ${lapIdx}`);

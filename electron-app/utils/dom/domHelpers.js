@@ -25,7 +25,7 @@ export function isHTMLElement(el) {
  * @returns {HTMLElement|null}
  */
 export function query(selector, root = document) {
-    if (typeof selector !== 'string' || selector.length === 0) {
+    if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior: throw on empty/invalid selector input
         throw new Error('Failed to execute "querySelector" on "Document": The provided selector is empty.');
     }
@@ -40,15 +40,15 @@ export function query(selector, root = document) {
  * @returns {HTMLElement[]}
  */
 export function queryAll(selector, root = document) {
-    if (typeof selector !== 'string' || selector.length === 0) {
+    if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior and test expectation to throw on invalid selectors
         throw new Error('Failed to execute "querySelectorAll" on "Document": The provided selector is empty.');
     }
     /** @type {NodeListOf<Element>|ArrayLike<Element>|null|undefined} */
     let list;
     try {
-        if (root && typeof /** @type {any} */(root).querySelectorAll === 'function') {
-            list = /** @type {any} */(root).querySelectorAll(selector);
+        if (root && typeof (/** @type {any} */ (root).querySelectorAll) === "function") {
+            list = /** @type {any} */ (root).querySelectorAll(selector);
         } else {
             list = null;
         }
@@ -56,17 +56,21 @@ export function queryAll(selector, root = document) {
         // If a mocked implementation throws, return empty list for safety
         list = null;
     }
-    if (!list) { return []; }
+    if (!list) {
+        return [];
+    }
     try {
         return Array.from(list).filter(isHTMLElement);
     } catch {
         // In case Array.from fails on exotic list objects
         const result = [];
         const anyList = /** @type {any} */ (list);
-        const length = typeof anyList.length === 'number' ? anyList.length : 0;
+        const length = typeof anyList.length === "number" ? anyList.length : 0;
         for (let i = 0; i < length; i++) {
             const el = anyList[i];
-            if (isHTMLElement(el)) { result.push(el); }
+            if (isHTMLElement(el)) {
+                result.push(el);
+            }
         }
         return result;
     }
@@ -106,7 +110,7 @@ export function setText(el, value) {
  */
 export function addClass(el, className) {
     if (!className) {
-        throw new Error('Failed to execute \'add\' on \'DOMTokenList\': The token provided must not be empty.');
+        throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
     }
     if (isHTMLElement(el)) {
         el.classList.add(className);
@@ -121,7 +125,7 @@ export function addClass(el, className) {
  */
 export function removeClass(el, className) {
     if (!className) {
-        throw new Error('Failed to execute \'remove\' on \'DOMTokenList\': The token provided must not be empty.');
+        throw new Error("Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty.");
     }
     if (isHTMLElement(el)) {
         el.classList.remove(className);
@@ -209,7 +213,9 @@ export function setStyle(el, prop, value) {
  */
 export function clearElement(el) {
     if (isHTMLElement(el)) {
-        while (el.firstChild) {el.removeChild(el.firstChild);}
+        while (el.firstChild) {
+            el.removeChild(el.firstChild);
+        }
     }
 }
 

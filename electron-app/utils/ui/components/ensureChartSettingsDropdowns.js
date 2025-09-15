@@ -28,7 +28,7 @@ function toggleChartControls() {
 
     // Use state management system to toggle controls visibility
     const currentVisibility = getState("charts.controlsVisible"),
-     newVisibility = !currentVisibility;
+        newVisibility = !currentVisibility;
 
     setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
     wrapper.style.display = newVisibility ? "block" : "none";
@@ -143,8 +143,8 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
             toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
         } else if (chartContainer.parentNode instanceof HTMLElement) {
-                chartContainer.parentNode.insertBefore(wrapper, chartContainer);
-            } // Initialize settings sections only once
+            chartContainer.parentNode.insertBefore(wrapper, chartContainer);
+        } // Initialize settings sections only once
         createSettingsHeader(wrapper);
         createControlsSection(wrapper);
         createExportSection(wrapper);

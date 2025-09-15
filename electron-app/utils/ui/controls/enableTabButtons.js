@@ -87,16 +87,25 @@ export function setTabButtonsEnabled(enabled) {
 
     // Cache the tab buttons using safe accessors for consistency in jsdom/tests/mocks
     const tabButtons = safeQueryTabButtons(),
-
-     TAB_DISABLED_CLASS = "tab-disabled";
+        TAB_DISABLED_CLASS = "tab-disabled";
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) {return;}
+        if (!isHTMLElement(el)) {
+            return;
+        }
         const btn = /** @type {HTMLElement} */ (el),
-         // Derive a robust identifier for logging and matching regardless of environment quirks
-         btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "",
-         btnText = (btn.textContent || "").trim().toLowerCase(),
-         isOpenFile = btnId === "openFileBtn" || btnId === "open-file-btn" || btn.classList.contains("open-file-btn") || btnText.includes("open file");
+            // Derive a robust identifier for logging and matching regardless of environment quirks
+            btnId =
+                btn.id ||
+                (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                btn.textContent?.trim() ||
+                "",
+            btnText = (btn.textContent || "").trim().toLowerCase(),
+            isOpenFile =
+                btnId === "openFileBtn" ||
+                btnId === "open-file-btn" ||
+                btn.classList.contains("open-file-btn") ||
+                btnText.includes("open file");
         // Skip the open file button - it should always remain enabled
         if (isOpenFile) {
             return;
@@ -133,7 +142,9 @@ export function setTabButtonsEnabled(enabled) {
                     const parent = btn.parentNode;
                     const newBtn = /** @type {HTMLElement} */ (btn.cloneNode(true));
                     // Ensure id is preserved even if clone implementation is quirky
-                    if (!newBtn.id && btnId) {newBtn.id = btnId;}
+                    if (!newBtn.id && btnId) {
+                        newBtn.id = btnId;
+                    }
                     newBtn.removeAttribute("disabled");
                     if (parent) {
                         parent.replaceChild(newBtn, btn);
@@ -152,7 +163,9 @@ export function setTabButtonsEnabled(enabled) {
 
             // Final verification
             const finalBtn = /** @type {HTMLButtonElement} */ (btn);
-            console.log(`[TabButtons] Final state for ${btnId}: disabled=${finalBtn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`);
+            console.log(
+                `[TabButtons] Final state for ${btnId}: disabled=${finalBtn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`
+            );
         }
     });
 
@@ -160,11 +173,21 @@ export function setTabButtonsEnabled(enabled) {
     setTimeout(() => {
         console.log(`[TabButtons] Final state after ${enabled ? "enable" : "disable"}:`);
         tabButtons.forEach((el) => {
-            if (!isHTMLElement(el)) {return;}
+            if (!isHTMLElement(el)) {
+                return;
+            }
             const btn = /** @type {HTMLElement} */ (el),
-             btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "",
-             btnText = (btn.textContent || "").trim().toLowerCase(),
-             isOpenFile = btnId === "openFileBtn" || btnId === "open-file-btn" || btn.classList.contains("open-file-btn") || btnText.includes("open file");
+                btnId =
+                    btn.id ||
+                    (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                    btn.textContent?.trim() ||
+                    "",
+                btnText = (btn.textContent || "").trim().toLowerCase(),
+                isOpenFile =
+                    btnId === "openFileBtn" ||
+                    btnId === "open-file-btn" ||
+                    btn.classList.contains("open-file-btn") ||
+                    btnText.includes("open file");
             if (isOpenFile) {
                 return;
             }
@@ -192,7 +215,7 @@ export function initializeTabButtonState() {
 
     // Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
-    if (typeof subscribe === 'function') {
+    if (typeof subscribe === "function") {
         subscribe("globalData", (/** @type {any} */ data) => {
             const hasData = data !== null && data !== undefined;
             console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
@@ -200,7 +223,7 @@ export function initializeTabButtonState() {
             setTabButtonsEnabled(hasData);
         });
     } else {
-        console.warn('[TabButtons] subscribe is not available; skipping globalData subscription');
+        console.warn("[TabButtons] subscribe is not available; skipping globalData subscription");
     }
 
     // NOTE: Removed ui.isLoading subscription to avoid conflicts
@@ -213,24 +236,28 @@ export function initializeTabButtonState() {
  * Ensure MutationObserver is installed and observing current tab buttons
  */
 function ensureObserverInstalled() {
-    if (typeof window === "undefined") {return;}
+    if (typeof window === "undefined") {
+        return;
+    }
     const w = /** @type {any} */ (window);
-    if (!w.tabButtonObserver && typeof MutationObserver !== 'undefined') {
+    if (!w.tabButtonObserver && typeof MutationObserver !== "undefined") {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
+                if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
                     const target = /** @type {HTMLElement} */ (mutation.target);
-                    if (target.classList.contains('tab-button')) {
-                        const hasDisabled = target.hasAttribute('disabled');
+                    if (target.classList.contains("tab-button")) {
+                        const hasDisabled = target.hasAttribute("disabled");
                         const isEnabled = w.tabButtonsCurrentlyEnabled || false;
 
                         if (hasDisabled && isEnabled) {
-                            console.warn(`[TabButtons] UNAUTHORIZED: disabled attribute added to ${target.id} when tabs should be enabled!`);
-                            if (typeof console.trace === 'function') {
-                                console.trace('Stack trace for unauthorized disable:');
+                            console.warn(
+                                `[TabButtons] UNAUTHORIZED: disabled attribute added to ${target.id} when tabs should be enabled!`
+                            );
+                            if (typeof console.trace === "function") {
+                                console.trace("Stack trace for unauthorized disable:");
                             }
                             // Force remove it
-                            target.removeAttribute('disabled');
+                            target.removeAttribute("disabled");
                             const buttonEl = /** @type {HTMLButtonElement} */ (target);
                             buttonEl.disabled = false;
                         }
@@ -247,8 +274,8 @@ function ensureObserverInstalled() {
         const buttons = /** @type {Element[]} */ (safeQueryTabButtons());
         buttons.forEach((button) => {
             try {
-                if (button && typeof observer.observe === 'function') {
-                    observer.observe(button, { attributes: true, attributeFilter: ['disabled'] });
+                if (button && typeof observer.observe === "function") {
+                    observer.observe(button, { attributes: true, attributeFilter: ["disabled"] });
                 }
             } catch {}
         });
@@ -271,9 +298,15 @@ export function debugTabButtons() {
     const tabButtons = safeQueryTabButtons();
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) {return;}
+        if (!isHTMLElement(el)) {
+            return;
+        }
         const btn = /** @type {HTMLElement} */ (el),
-         btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "";
+            btnId =
+                btn.id ||
+                (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                btn.textContent?.trim() ||
+                "";
         if (btnId === "openFileBtn" || btnId === "open-file-btn" || btn.classList.contains("open-file-btn")) {
             console.log(`[TabButtons] SKIPPING open file button: ${btnId}`);
             return;
@@ -308,8 +341,8 @@ export function debugTabButtons() {
     });
 
     const globalData = getState("globalData"),
-     isLoading = getState("ui.isLoading"),
-     tabButtonsEnabled = getState("ui.tabButtonsEnabled");
+        isLoading = getState("ui.isLoading"),
+        tabButtonsEnabled = getState("ui.tabButtonsEnabled");
 
     console.log("[TabButtons] Current state:", {
         hasGlobalData: Boolean(globalData),
@@ -327,11 +360,21 @@ export function forceEnableTabButtons() {
     const tabButtons = safeQueryTabButtons();
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) {return;}
+        if (!isHTMLElement(el)) {
+            return;
+        }
         const btn = /** @type {HTMLElement} */ (el),
-         btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "",
-         btnText = (btn.textContent || "").trim().toLowerCase(),
-         isOpenFile = btnId === "openFileBtn" || btnId === "open-file-btn" || btn.classList.contains("open-file-btn") || btnText.includes("open file");
+            btnId =
+                btn.id ||
+                (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                btn.textContent?.trim() ||
+                "",
+            btnText = (btn.textContent || "").trim().toLowerCase(),
+            isOpenFile =
+                btnId === "openFileBtn" ||
+                btnId === "open-file-btn" ||
+                btn.classList.contains("open-file-btn") ||
+                btnText.includes("open file");
         if (isOpenFile) {
             return;
         }
@@ -366,11 +409,21 @@ export function testTabButtonClicks() {
     const tabButtons = safeQueryTabButtons();
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) {return;}
+        if (!isHTMLElement(el)) {
+            return;
+        }
         const btn = /** @type {HTMLElement} */ (el),
-         btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "",
-         btnText = (btn.textContent || "").trim().toLowerCase(),
-         isOpenFile = btnId === "openFileBtn" || btnId === "open-file-btn" || btn.classList.contains("open-file-btn") || btnText.includes("open file");
+            btnId =
+                btn.id ||
+                (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                btn.textContent?.trim() ||
+                "",
+            btnText = (btn.textContent || "").trim().toLowerCase(),
+            isOpenFile =
+                btnId === "openFileBtn" ||
+                btnId === "open-file-btn" ||
+                btn.classList.contains("open-file-btn") ||
+                btnText.includes("open file");
         if (isOpenFile) {
             return;
         }
@@ -388,7 +441,7 @@ export function testTabButtonClicks() {
 
         btn.addEventListener("click", testHandler);
 
-    console.log(`[TabButtons] Added test handler to: ${btnId}`);
+        console.log(`[TabButtons] Added test handler to: ${btnId}`);
 
         // Remove the test handler after 30 seconds
         setTimeout(() => {
@@ -408,20 +461,25 @@ export function debugTabState() {
     const tabButtons = /** @type {Element[]} */ (safeQueryTabButtons());
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) {return;}
-    const btn = /** @type {HTMLElement} */ (el),
-     btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "",
-     isActive = btn.classList.contains("active"),
-         ariaSelected = btn.getAttribute("aria-selected"),
-
-         buttonEl = /** @type {HTMLButtonElement} */ (btn);
+        if (!isHTMLElement(el)) {
+            return;
+        }
+        const btn = /** @type {HTMLElement} */ (el),
+            btnId =
+                btn.id ||
+                (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                btn.textContent?.trim() ||
+                "",
+            isActive = btn.classList.contains("active"),
+            ariaSelected = btn.getAttribute("aria-selected"),
+            buttonEl = /** @type {HTMLButtonElement} */ (btn);
         console.log(
             `[TabButtons] ${btnId}: active=${isActive}, aria-selected=${ariaSelected}, disabled=${buttonEl.disabled}`
         );
     });
 
     const activeTab = getState("ui.activeTab"),
-     globalData = getState("globalData");
+        globalData = getState("globalData");
 
     console.log("[TabButtons] State:", {
         activeTab,
@@ -438,17 +496,27 @@ export function forceFixTabButtons() {
     const tabButtons = /** @type {Element[]} */ (safeQueryTabButtons());
 
     tabButtons.forEach((el) => {
-        if (!isHTMLElement(el)) {return;}
+        if (!isHTMLElement(el)) {
+            return;
+        }
         const btn = /** @type {HTMLElement} */ (el),
-         btnId = btn.id || (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") || btn.textContent?.trim() || "",
-         btnText = (btn.textContent || "").trim().toLowerCase(),
-         isOpenFile = btnId === "openFileBtn" || btnId === "open-file-btn" || btn.classList.contains("open-file-btn") || btnText.includes("open file");
+            btnId =
+                btn.id ||
+                (typeof btn.getAttribute === "function" ? btn.getAttribute("id") : "") ||
+                btn.textContent?.trim() ||
+                "",
+            btnText = (btn.textContent || "").trim().toLowerCase(),
+            isOpenFile =
+                btnId === "openFileBtn" ||
+                btnId === "open-file-btn" ||
+                btn.classList.contains("open-file-btn") ||
+                btnText.includes("open file");
         if (isOpenFile) {
             return;
         }
 
         const buttonEl = /** @type {HTMLButtonElement} */ (btn);
-    console.log(`[TabButtons] BEFORE FIX: ${btnId} disabled=${buttonEl.disabled}`);
+        console.log(`[TabButtons] BEFORE FIX: ${btnId} disabled=${buttonEl.disabled}`);
 
         // Force set to enabled
         buttonEl.disabled = false;

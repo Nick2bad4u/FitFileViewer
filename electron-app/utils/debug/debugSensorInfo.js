@@ -185,11 +185,11 @@ export function debugSensorInfo() {
             }
         } // Test formatting
         const formattedName = formatSensorName(sensor),
-         formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer),
-         formattedProduct =
-            (manufacturerId || sensor.manufacturer) && productField
-                ? formatProduct(manufacturerId || sensor.manufacturer, productField)
-                : productField;
+            formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer),
+            formattedProduct =
+                (manufacturerId || sensor.manufacturer) && productField
+                    ? formatProduct(manufacturerId || sensor.manufacturer, productField)
+                    : productField;
 
         console.log(`    🎨 Formatted Name: "${formattedName}"`);
         console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);
@@ -225,7 +225,7 @@ export function showSensorNames() {
     }
 
     const data = window.globalData,
-     sensors = [];
+        sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
         sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceInfoMesgs" })));
@@ -264,8 +264,8 @@ export function showSensorNames() {
  */
 export function testManufacturerId(manufacturerId) {
     const id = parseInt(String(manufacturerId), 10),
-     resolved = getManufacturerName(id),
-     formatted = formatManufacturer(resolved);
+        resolved = getManufacturerName(id),
+        formatted = formatManufacturer(resolved);
 
     console.log(`🧪 TESTING MANUFACTURER ID: ${id}`);
     console.log(`    Resolved to: "${resolved}"`);
@@ -281,10 +281,10 @@ export function testManufacturerId(manufacturerId) {
  */
 export function testProductId(manufacturerId, productId) {
     const mfgId = parseInt(String(manufacturerId), 10),
-     prodId = parseInt(String(productId), 10),
-     resolvedProduct = getProductName(mfgId, prodId),
-     formattedProduct = formatProduct(mfgId, prodId),
-     manufacturerName = getManufacturerName(mfgId);
+        prodId = parseInt(String(productId), 10),
+        resolvedProduct = getProductName(mfgId, prodId),
+        formattedProduct = formatProduct(mfgId, prodId),
+        manufacturerName = getManufacturerName(mfgId);
 
     console.log(`🧪 TESTING PRODUCT ID: ${prodId} for manufacturer ${mfgId}`);
     console.log(`    Manufacturer: "${manufacturerName}"`);

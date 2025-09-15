@@ -25,9 +25,8 @@ export function createMarkerCountSelector(onChange) {
     try {
         /** @type {ThemeColors} */
         const themeColors = getThemeColors(), // Theming values (index signature access is fine at runtime)
-
-        /** @type {HTMLDivElement} */
-         container = document.createElement("div");
+            /** @type {HTMLDivElement} */
+            container = document.createElement("div");
         container.className = "map-action-btn marker-count-container";
 
         /** @type {HTMLLabelElement} */
@@ -64,7 +63,7 @@ export function createMarkerCountSelector(onChange) {
         let initial;
         /** @type {any} */
         const g = window, // Legacy global usage wrapper
-         current = g.mapMarkerCount;
+            current = g.mapMarkerCount;
         if (typeof current !== "number") {
             g.mapMarkerCount = 50;
             initial = "50";
@@ -110,7 +109,7 @@ export function createMarkerCountSelector(onChange) {
                     e.stopPropagation();
 
                     const options = Array.from(select.options),
-                     idx = select.selectedIndex;
+                        idx = select.selectedIndex;
 
                     if (e.deltaY > 0 && idx < options.length - 1) {
                         select.selectedIndex = idx + 1;

@@ -59,10 +59,14 @@ export const LoadingOverlay = {
         }
 
         const textDiv = document.getElementById("fitfile-loading-text");
-        if (textDiv) {textDiv.textContent = progressText || "Loading...";}
+        if (textDiv) {
+            textDiv.textContent = progressText || "Loading...";
+        }
 
         const fileDiv = document.getElementById("fitfile-loading-filename");
-        if (fileDiv) {fileDiv.textContent = fileName ? `File: ${fileName}` : "";}
+        if (fileDiv) {
+            fileDiv.textContent = fileName ? `File: ${fileName}` : "";
+        }
     },
 
     /**
@@ -70,6 +74,8 @@ export const LoadingOverlay = {
      */
     hide() {
         const overlay = document.getElementById("fitfile-loading-overlay");
-        if (overlay) {overlay.remove();}
+        if (overlay) {
+            overlay.remove();
+        }
     },
 };

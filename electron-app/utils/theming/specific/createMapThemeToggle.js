@@ -19,9 +19,9 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 
 // Constants for map theme management
 const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted", // Note: "inverted" now means "dark map theme"
- MAP_THEME_EVENTS = {
-    CHANGED: "mapThemeChanged",
-};
+    MAP_THEME_EVENTS = {
+        CHANGED: "mapThemeChanged",
+    };
 
 /**
  * Gets the current map theme preference
@@ -86,10 +86,9 @@ export function createMapThemeToggle() {
         const updateButtonState = () => {
             try {
                 const isInverted = getMapThemeInverted(),
-                 isDarkMode = document.body.classList.contains("theme-dark"),
-
-                // Apply theme colors for button styling
-                 themeColors = getThemeColors();
+                    isDarkMode = document.body.classList.contains("theme-dark"),
+                    // Apply theme colors for button styling
+                    themeColors = getThemeColors();
                 // Update icon and tooltip based on current map theme state
                 if (isInverted) {
                     // Map is inverted/dark - show moon icon
@@ -129,7 +128,7 @@ export function createMapThemeToggle() {
         button.addEventListener("click", () => {
             try {
                 const currentInverted = getMapThemeInverted(),
-                 newInverted = !currentInverted;
+                    newInverted = !currentInverted;
 
                 setMapThemeInverted(newInverted);
                 updateButtonState();

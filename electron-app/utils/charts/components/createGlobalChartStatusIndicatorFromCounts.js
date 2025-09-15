@@ -16,7 +16,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
 
         // Calculate status
         const isAllVisible = counts.visible === counts.available,
-         hasHiddenCharts = counts.available > counts.visible;
+            hasHiddenCharts = counts.available > counts.visible;
 
         globalIndicator.style.cssText = `
             position: sticky;
@@ -95,7 +95,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
                 const wrapper = document.getElementById("chartjs-settings-wrapper"),
-                 toggleBtn = document.getElementById("chart-controls-toggle");
+                    toggleBtn = document.getElementById("chart-controls-toggle");
                 if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
                     wrapper.style.display = "block";
                     toggleBtn.textContent = "▼ Hide Controls";

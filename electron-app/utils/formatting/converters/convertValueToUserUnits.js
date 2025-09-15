@@ -6,18 +6,17 @@ import { TEMPERATURE_UNITS, convertTemperatureUnits } from "./convertTemperature
  * @readonly
  */
 const UNIT_STORAGE_KEYS = {
-    DISTANCE: "chartjs_distanceUnits",
-    TEMPERATURE: "chartjs_temperatureUnits",
-},
-
-/**
- * Field categorization for unit conversion
- * @readonly
- */
- FIELD_CATEGORIES = {
-    DISTANCE: ["distance", "altitude", "enhancedAltitude"],
-    TEMPERATURE: ["temperature"],
-};
+        DISTANCE: "chartjs_distanceUnits",
+        TEMPERATURE: "chartjs_temperatureUnits",
+    },
+    /**
+     * Field categorization for unit conversion
+     * @readonly
+     */
+    FIELD_CATEGORIES = {
+        DISTANCE: ["distance", "altitude", "enhancedAltitude"],
+        TEMPERATURE: ["temperature"],
+    };
 
 /**
  * Converts values according to user's preferred units based on field type

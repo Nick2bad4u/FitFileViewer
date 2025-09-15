@@ -46,12 +46,11 @@ export function formatSpeedTooltip(mps) {
     try {
         // Convert to different units
         const kmh = convertMpsToKmh(mps),
-         mph = convertMpsToMph(mps),
-
-        // Format with consistent decimal places
-         mpsStr = mps.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
-         kmhStr = kmh.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
-         mphStr = mph.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES);
+            mph = convertMpsToMph(mps),
+            // Format with consistent decimal places
+            mpsStr = mps.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
+            kmhStr = kmh.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
+            mphStr = mph.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES);
 
         return `${mpsStr} ${SPEED_FORMAT_CONFIG.UNITS.MPS} (${kmhStr} ${SPEED_FORMAT_CONFIG.UNITS.KMH}, ${mphStr} ${SPEED_FORMAT_CONFIG.UNITS.MPH})`;
     } catch (error) {

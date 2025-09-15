@@ -12,14 +12,13 @@ export function createChartStatusIndicator() {
     try {
         /** @type {import('../core/getChartCounts.js').ChartCounts} */
         const counts = getChartCounts(),
-
-         indicator = document.createElement("div");
+            indicator = document.createElement("div");
         indicator.className = "chart-status-indicator";
         indicator.id = "chart-status-indicator";
 
         // Calculate status
         const isAllVisible = counts.visible === counts.available,
-         hasHiddenCharts = counts.available > counts.visible;
+            hasHiddenCharts = counts.available > counts.visible;
 
         indicator.style.cssText = `
         display: flex;

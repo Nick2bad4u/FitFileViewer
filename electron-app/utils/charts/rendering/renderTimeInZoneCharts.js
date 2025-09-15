@@ -11,18 +11,19 @@ import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneContr
  */
 export function renderTimeInZoneCharts(container, options = {}) {
     try {
-        if (!container) {return;}
+        if (!container) {
+            return;
+        }
         console.log("[ChartJS] renderTimeInZoneCharts called");
 
         /** @type {ZoneInfo[]|undefined} */
         const hrZones = Array.isArray(window.heartRateZones) ? window.heartRateZones : undefined,
-        /** @type {ZoneInfo[]|undefined} */
-         powerZones = Array.isArray(window.powerZones) ? window.powerZones : undefined,
-
-        /** @type {ZoneVisibilitySettings} */
-         hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || {
-            doughnutVisible: true,
-        };
+            /** @type {ZoneInfo[]|undefined} */
+            powerZones = Array.isArray(window.powerZones) ? window.powerZones : undefined,
+            /** @type {ZoneVisibilitySettings} */
+            hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || {
+                doughnutVisible: true,
+            };
         if (hrZoneSettings.doughnutVisible && hrZones && hrZones.length > 0) {
             console.log("[ChartJS] Rendering HR zone chart with data:", hrZones);
             renderZoneChart(container, "HR Zone Distribution (Doughnut)", hrZones, "heart-rate-zones", options);

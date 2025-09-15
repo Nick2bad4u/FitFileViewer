@@ -140,7 +140,7 @@ export function movePowerZoneControlsToSection() {
 
     // Find existing power zone controls in the field toggles section
     const powerZoneFields = ["power_zone_doughnut"],
-     movedControls = [];
+        movedControls = [];
 
     powerZoneFields.forEach((fieldName) => {
         // Look for the toggle by ID
@@ -178,7 +178,9 @@ export function movePowerZoneControlsToSection() {
  */
 export function updatePowerZoneControlsVisibility(hasData) {
     const controls = document.getElementById("power-zone-controls");
-    if (!controls) {return;}
+    if (!controls) {
+        return;
+    }
 
     if (hasData) {
         controls.style.display = "block";

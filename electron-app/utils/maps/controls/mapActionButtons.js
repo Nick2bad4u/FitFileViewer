@@ -212,7 +212,7 @@ function _centerMapOnMainFile() {
                 setTimeout(() => {
                     try {
                         const center = w._leafletMapInstance.getCenter(),
-                         zoom = w._leafletMapInstance.getZoom();
+                            zoom = w._leafletMapInstance.getZoom();
                         console.log(`[mapActionButtons] Map centered at ${center.lat}, ${center.lng}, zoom: ${zoom}`);
                     } catch {
                         console.warn("[mapActionButtons] Error getting map state after centering (details suppressed)");
@@ -236,7 +236,7 @@ function _centerMapOnMainFile() {
 (function initializeActiveFileName() {
     try {
         const targetElement = document.getElementById("activeFileName"),
-         parent = targetElement?.parentNode;
+            parent = targetElement?.parentNode;
 
         if (!parent) {
             console.log("[mapActionButtons] Active filename parent not found for observer");
@@ -270,7 +270,7 @@ function _centerMapOnMainFile() {
 (function patchUpdateShownFilesList() {
     try {
         const w = /** @type {any} */ (window),
-         origUpdateShownFilesList = w.updateShownFilesList;
+            origUpdateShownFilesList = w.updateShownFilesList;
 
         w.updateShownFilesList = function () {
             try {

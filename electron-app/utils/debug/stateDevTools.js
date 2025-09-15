@@ -94,7 +94,9 @@ class StatePerformanceMonitor {
      * Enable performance monitoring
      */
     enable() {
-        if (this.isEnabled) {return;}
+        if (this.isEnabled) {
+            return;
+        }
 
         this.isEnabled = true;
         console.log("[StateMonitor] Performance monitoring enabled");
@@ -112,7 +114,9 @@ class StatePerformanceMonitor {
      * Disable performance monitoring
      */
     disable() {
-        if (!this.isEnabled) {return;}
+        if (!this.isEnabled) {
+            return;
+        }
 
         this.isEnabled = false;
         console.log("[StateMonitor] Performance monitoring disabled");
@@ -128,7 +132,9 @@ class StatePerformanceMonitor {
      * @param {string} operationId - Unique identifier for the operation
      */
     startTimer(operationId) {
-        if (!this.isEnabled) {return;}
+        if (!this.isEnabled) {
+            return;
+        }
         this.timers.set(operationId, performance.now());
     }
 
@@ -141,9 +147,13 @@ class StatePerformanceMonitor {
      * @returns {number|undefined}
      */
     endTimer(operationId) {
-        if (!this.isEnabled) {return undefined;}
+        if (!this.isEnabled) {
+            return undefined;
+        }
         const startTime = this.timers.get(operationId);
-        if (!startTime) {return undefined;}
+        if (!startTime) {
+            return undefined;
+        }
         const duration = performance.now() - startTime;
         this.timers.delete(operationId);
         if (duration > PERFORMANCE_CONFIG.slowOperationThreshold) {
@@ -184,19 +194,21 @@ class StatePerformanceMonitor {
      * Record memory usage
      */
     recordMemoryUsage() {
-        if (!this.isEnabled) {return;}
+        if (!this.isEnabled) {
+            return;
+        }
 
         try {
             // Use performance.memory if available (Chrome/Edge)
             if (typeof performance !== "undefined" && "memory" in performance && performance.memory) {
                 const mem = /** @type {any} */ (performance.memory),
-                /** @type {MemoryUsageRecord} */
-                 record = {
-                    timestamp: Date.now(),
-                    usedJSHeapSize: mem.usedJSHeapSize,
-                    totalJSHeapSize: mem.totalJSHeapSize,
-                    jsHeapSizeLimit: mem.jsHeapSizeLimit,
-                };
+                    /** @type {MemoryUsageRecord} */
+                    record = {
+                        timestamp: Date.now(),
+                        usedJSHeapSize: mem.usedJSHeapSize,
+                        totalJSHeapSize: mem.totalJSHeapSize,
+                        jsHeapSizeLimit: mem.jsHeapSizeLimit,
+                    };
 
                 this.metrics.memoryUsage.push(record);
 
@@ -284,7 +296,7 @@ class StatePerformanceMonitor {
      */
     getReport() {
         const metrics = this.getMetrics(),
-         latestMemory = metrics.memoryUsage[metrics.memoryUsage.length - 1];
+            latestMemory = metrics.memoryUsage[metrics.memoryUsage.length - 1];
 
         return `
 State Performance Report
@@ -388,12 +400,12 @@ class StateDebugUtilities {
      */
     validateState() {
         const state = getState(""),
-        /** @type {ValidationResult} */
-         validation = {
-            isValid: true,
-            errors: [],
-            warnings: [],
-        };
+            /** @type {ValidationResult} */
+            validation = {
+                isValid: true,
+                errors: [],
+                warnings: [],
+            };
 
         try {
             // Check for circular references
@@ -515,17 +527,15 @@ class StateDebugUtilities {
     compareSnapshots(snapshot1, snapshot2) {
         /** @type {SnapshotComparison} */
         const diff = {
-            timestamp: Date.now(),
-            timeDelta: snapshot2.timestamp - snapshot1.timestamp,
-            stateChanges: /** @type {SnapshotDiffStateChange[]} */ ([]),
-            memoryDelta: null,
-        },
-
-        // Simple state comparison (could be enhanced with deep diff)
-         keys1 = Object.keys(snapshot1.state),
-         keys2 = Object.keys(snapshot2.state),
-
-         allKeys = new Set([...keys1, ...keys2]);
+                timestamp: Date.now(),
+                timeDelta: snapshot2.timestamp - snapshot1.timestamp,
+                stateChanges: /** @type {SnapshotDiffStateChange[]} */ ([]),
+                memoryDelta: null,
+            },
+            // Simple state comparison (could be enhanced with deep diff)
+            keys1 = Object.keys(snapshot1.state),
+            keys2 = Object.keys(snapshot2.state),
+            allKeys = new Set([...keys1, ...keys2]);
 
         allKeys.forEach((key) => {
             if (snapshot1.state[key] !== snapshot2.state[key]) {
@@ -602,7 +612,7 @@ export async function measureStateOperation(operationName, operation) {
 
     try {
         const result = await operation(),
-         duration = performanceMonitor.endTimer(operationName);
+            duration = performanceMonitor.endTimer(operationName);
 
         if (debugUtilities.isDebugMode) {
             console.log(`[StateDebug] Operation "${operationName}" completed in ${duration?.toFixed(2)}ms`);

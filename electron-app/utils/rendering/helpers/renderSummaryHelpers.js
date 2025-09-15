@@ -67,7 +67,9 @@ export function getStorageKey(data, _allKeys) {
     } catch {
         // Ignore
     }
-    if (fpath) {return `summaryColSel_${encodeURIComponent(String(fpath))}`;}
+    if (fpath) {
+        return `summaryColSel_${encodeURIComponent(String(fpath))}`;
+    }
     return "summaryColSel_default";
 }
 
@@ -202,12 +204,12 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
         try {
             /** @type {string[]} */
             const rows = [],
-             sortedVisible = [LABEL_COL, ...visibleColumns];
+                sortedVisible = [LABEL_COL, ...visibleColumns];
             rows.push(sortedVisible.map((k) => (k === LABEL_COL ? "Type" : k)).join(","));
             // Summary row
             if (filterValue === "All" || filterValue === "Summary") {
                 const summaryRows = getSummaryRows(data),
-                 summary = summaryRows && summaryRows[0] ? summaryRows[0] : {};
+                    summary = summaryRows && summaryRows[0] ? summaryRows[0] : {};
                 rows.push(
                     sortedVisible
                         .map((k) =>
@@ -246,9 +248,9 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
     const table = document.createElement("table");
     table.classList.add("display");
     const thead = document.createElement("thead"),
-     tbody = document.createElement("tbody"),
-     sortedVisible = [LABEL_COL, ...visibleColumns],
-     headerRow = document.createElement("tr");
+        tbody = document.createElement("tbody"),
+        sortedVisible = [LABEL_COL, ...visibleColumns],
+        headerRow = document.createElement("tr");
     sortedVisible.forEach((key) => {
         const th = document.createElement("th");
         th.textContent = key === LABEL_COL ? "Type" : key;
@@ -258,12 +260,14 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
         const summaryRows = getSummaryRows(data),
-         summaryRow = document.createElement("tr"),
-         summaryRec = summaryRows[0] || {};
+            summaryRow = document.createElement("tr"),
+            summaryRec = summaryRows[0] || {};
         sortedVisible.forEach((key, idx) => {
             const td = document.createElement("td");
             td.textContent = key === LABEL_COL ? "Summary" : summaryRec[key] !== undefined ? summaryRec[key] : "";
-            if (idx === 0) {td.classList.add("summary-row");}
+            if (idx === 0) {
+                td.classList.add("summary-row");
+            }
             summaryRow.appendChild(td);
         });
         tbody.appendChild(summaryRow);
@@ -308,10 +312,10 @@ function getSummaryRows(data) {
         const raw = { ...data.sessionMesgs[0] };
         patchSummaryFields(raw);
         if (raw.total_ascent != null && !isNaN(raw.total_ascent)) {
-            raw.total_ascent_ft = `${(raw.total_ascent * 3.28084).toFixed(0)  } ft`;
+            raw.total_ascent_ft = `${(raw.total_ascent * 3.28084).toFixed(0)} ft`;
         }
         if (raw.total_descent != null && !isNaN(raw.total_descent)) {
-            raw.total_descent_ft = `${(raw.total_descent * 3.28084).toFixed(0)  } ft`;
+            raw.total_descent_ft = `${(raw.total_descent * 3.28084).toFixed(0)} ft`;
         }
         return [raw];
     }
@@ -323,19 +327,19 @@ function getSummaryRows(data) {
     ) {
         try {
             const aq = /** @type {AugmentedWindow} */ (window).aq,
-             table = aq.from(data.recordMesgs),
-            /** @type {SummaryStats} */
-             stats = {
-                total_records: table.numRows(),
-                start_time: table.get(0, "timestamp"),
-                end_time: table.get(table.numRows() - 1, "timestamp"),
-            };
+                table = aq.from(data.recordMesgs),
+                /** @type {SummaryStats} */
+                stats = {
+                    total_records: table.numRows(),
+                    start_time: table.get(0, "timestamp"),
+                    end_time: table.get(table.numRows() - 1, "timestamp"),
+                };
             if (table.columnNames().includes("distance")) {
                 stats.total_distance = table.get(table.numRows() - 1, "distance");
             }
             if (table.columnNames().includes("timestamp")) {
                 const startTs = new Date(table.get(0, "timestamp")).getTime(),
-                 endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime();
+                    endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime();
                 if (Number.isFinite(startTs) && Number.isFinite(endTs)) {
                     const sec = Math.round((endTs - startTs) / 1000);
                     stats.duration = sec;
@@ -378,7 +382,9 @@ function getSummaryRows(data) {
 export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, setVisibleColumns, renderTable }) {
     // Remove any existing modal
     const old = document.querySelector(".summary-col-modal-overlay");
-    if (old) {old.remove();}
+    if (old) {
+        old.remove();
+    }
     const overlay = document.createElement("div");
     overlay.className = "summary-col-modal-overlay";
     const modal = document.createElement("div");
@@ -392,11 +398,13 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
      * @param {string[]} cols
      */
     const updateVisibleColumns = (cols) => {
-        visibleColumns = [...cols];
-        if (typeof setVisibleColumns === "function") {setVisibleColumns(visibleColumns);}
-    },
-    // Select/Deselect All
-     selectAllBtn = document.createElement("button");
+            visibleColumns = [...cols];
+            if (typeof setVisibleColumns === "function") {
+                setVisibleColumns(visibleColumns);
+            }
+        },
+        // Select/Deselect All
+        selectAllBtn = document.createElement("button");
     selectAllBtn.className = "select-all-btn themed-btn";
     /**
      * Refresh checkbox list based on current visibleColumns
@@ -406,7 +414,7 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
         colList.innerHTML = "";
         // Always show label column as checked and disabled
         const label = document.createElement("label"),
-         cb = document.createElement("input");
+            cb = document.createElement("input");
         cb.type = "checkbox";
         cb.checked = true;
         cb.disabled = true;
@@ -415,7 +423,7 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
         colList.appendChild(label);
         allKeys.forEach((key, idx) => {
             const label = document.createElement("label"),
-             cb = document.createElement("input");
+                cb = document.createElement("input");
             cb.type = "checkbox";
             cb.checked = visibleColumns.includes(key);
             cb.tabIndex = 0;
@@ -426,14 +434,20 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     e.preventDefault();
                     const start = Math.min(lastCheckedIndex, idx),
-                     end = Math.max(lastCheckedIndex, idx),
-                     shouldCheck = !visibleColumns.includes(key);
+                        end = Math.max(lastCheckedIndex, idx),
+                        shouldCheck = !visibleColumns.includes(key);
                     let newCols = [...visibleColumns];
                     for (let i = start; i <= end; ++i) {
                         const k = allKeys[i];
-                        if (typeof k !== "string") {continue;}
-                        if (shouldCheck && !newCols.includes(k)) {newCols.push(k);}
-                        if (!shouldCheck && newCols.includes(k)) {newCols = newCols.filter((x) => x !== k);}
+                        if (typeof k !== "string") {
+                            continue;
+                        }
+                        if (shouldCheck && !newCols.includes(k)) {
+                            newCols.push(k);
+                        }
+                        if (!shouldCheck && newCols.includes(k)) {
+                            newCols = newCols.filter((x) => x !== k);
+                        }
                     }
                     newCols = allKeys.filter((k) => newCols.includes(k));
                     updateVisibleColumns(newCols);
@@ -446,11 +460,15 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
              * @param {Event & { shiftKey?: boolean}} e
              */
             cb.onchange = (e) => {
-                if (e.shiftKey && lastCheckedIndex !== null) {return;} // Handled in onmousedown
+                if (e.shiftKey && lastCheckedIndex !== null) {
+                    return;
+                } // Handled in onmousedown
                 lastCheckedIndex = idx;
                 let newCols = [...visibleColumns];
                 if (cb.checked) {
-                    if (!newCols.includes(key)) {newCols.push(key);}
+                    if (!newCols.includes(key)) {
+                        newCols.push(key);
+                    }
                 } else {
                     newCols = newCols.filter((k) => k !== key);
                 }

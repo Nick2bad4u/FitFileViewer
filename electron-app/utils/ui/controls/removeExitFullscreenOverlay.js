@@ -3,20 +3,19 @@
  * @readonly
  */
 const OVERLAY_CONFIG = {
-    CSS_CLASS: "exit-fullscreen-overlay",
-    MESSAGES: {
-        INVALID_CONTAINER: "Container must be a valid DOM element",
-        OVERLAY_NOT_FOUND: "No exit fullscreen overlay found in container",
-        REMOVAL_FAILED: "Failed to remove exit fullscreen overlay:",
+        CSS_CLASS: "exit-fullscreen-overlay",
+        MESSAGES: {
+            INVALID_CONTAINER: "Container must be a valid DOM element",
+            OVERLAY_NOT_FOUND: "No exit fullscreen overlay found in container",
+            REMOVAL_FAILED: "Failed to remove exit fullscreen overlay:",
+        },
     },
-},
-
-/**
- * Cache for storing overlay references to improve performance
- * Uses WeakMap for automatic garbage collection when containers are removed
- * @private
- */
- overlayCache = new WeakMap();
+    /**
+     * Cache for storing overlay references to improve performance
+     * Uses WeakMap for automatic garbage collection when containers are removed
+     * @private
+     */
+    overlayCache = new WeakMap();
 
 /**
  * Removes the exit fullscreen overlay button from the specified container

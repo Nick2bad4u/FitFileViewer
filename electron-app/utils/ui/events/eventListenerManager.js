@@ -19,13 +19,13 @@ const registeredListeners = new Set();
  * @returns {Function} A function to remove this specific event listener
  */
 export function addEventListenerWithCleanup(element, eventType, handler, options = false) {
-    if (!element || typeof element.addEventListener !== 'function') {
-        console.warn('[EventListenerManager] Invalid element provided to addEventListenerWithCleanup');
+    if (!element || typeof element.addEventListener !== "function") {
+        console.warn("[EventListenerManager] Invalid element provided to addEventListenerWithCleanup");
         return () => {}; // Return a no-op cleanup function
     }
 
-    if (typeof handler !== 'function') {
-        console.warn('[EventListenerManager] Invalid handler provided to addEventListenerWithCleanup');
+    if (typeof handler !== "function") {
+        console.warn("[EventListenerManager] Invalid handler provided to addEventListenerWithCleanup");
         return () => {}; // Return a no-op cleanup function
     }
 
@@ -38,7 +38,7 @@ export function addEventListenerWithCleanup(element, eventType, handler, options
             element.removeEventListener(eventType, /** @type {EventListener} */ (handler), options);
             registeredListeners.delete(cleanup);
         } catch (error) {
-            console.warn('[EventListenerManager] Error removing event listener:', error);
+            console.warn("[EventListenerManager] Error removing event listener:", error);
         }
     };
 
@@ -62,7 +62,7 @@ export function cleanupEventListeners() {
             cleanup();
             cleanedCount++;
         } catch (error) {
-            console.warn('[EventListenerManager] Error during cleanup:', error);
+            console.warn("[EventListenerManager] Error during cleanup:", error);
         }
     }
 
@@ -98,30 +98,30 @@ export function addDragDropListeners(handlers, target = globalThis.window) {
 
     if (handlers.onDragEnter) {
         cleanupFunctions.push(
-            addEventListenerWithCleanup(target, 'dragenter', /** @type {EventListener} */ (handlers.onDragEnter))
+            addEventListenerWithCleanup(target, "dragenter", /** @type {EventListener} */ (handlers.onDragEnter))
         );
     }
 
     if (handlers.onDragLeave) {
         cleanupFunctions.push(
-            addEventListenerWithCleanup(target, 'dragleave', /** @type {EventListener} */ (handlers.onDragLeave))
+            addEventListenerWithCleanup(target, "dragleave", /** @type {EventListener} */ (handlers.onDragLeave))
         );
     }
 
     if (handlers.onDragOver) {
         cleanupFunctions.push(
-            addEventListenerWithCleanup(target, 'dragover', /** @type {EventListener} */ (handlers.onDragOver))
+            addEventListenerWithCleanup(target, "dragover", /** @type {EventListener} */ (handlers.onDragOver))
         );
     }
 
     if (handlers.onDrop) {
         cleanupFunctions.push(
-            addEventListenerWithCleanup(target, 'drop', /** @type {EventListener} */ (handlers.onDrop))
+            addEventListenerWithCleanup(target, "drop", /** @type {EventListener} */ (handlers.onDrop))
         );
     }
 
     // Return a function that cleans up all the drag and drop listeners
     return () => {
-        cleanupFunctions.forEach(cleanup => cleanup());
+        cleanupFunctions.forEach((cleanup) => cleanup());
     };
 }

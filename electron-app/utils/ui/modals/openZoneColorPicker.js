@@ -19,9 +19,9 @@ export function openZoneColorPicker(field) {
 
         // Determine zone type, data source, and chart-specific details
         let zoneData = null,
-         zoneType = "",
-         chartType = "",
-         defaultColors = [];
+            zoneType = "",
+            chartType = "",
+            defaultColors = [];
 
         if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
             zoneType = "Heart Rate";
@@ -29,20 +29,30 @@ export function openZoneColorPicker(field) {
             defaultColors = DEFAULT_HR_ZONE_COLORS;
 
             // Determine specific chart type for HR zones
-            if (field === "hr_zone_doughnut") {chartType = "Doughnut Chart";}
-            else if (field === "hr_lap_zone_stacked") {chartType = "Lap Stacked Chart";}
-            else if (field === "hr_lap_zone_individual") {chartType = "Lap Individual Chart";}
-            else {chartType = "Zone Charts";}
+            if (field === "hr_zone_doughnut") {
+                chartType = "Doughnut Chart";
+            } else if (field === "hr_lap_zone_stacked") {
+                chartType = "Lap Stacked Chart";
+            } else if (field === "hr_lap_zone_individual") {
+                chartType = "Lap Individual Chart";
+            } else {
+                chartType = "Zone Charts";
+            }
         } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
             zoneType = "Power";
             zoneData = window.powerZones;
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
 
             // Determine specific chart type for Power zones
-            if (field === "power_zone_doughnut") {chartType = "Doughnut Chart";}
-            else if (field === "power_lap_zone_stacked") {chartType = "Lap Stacked Chart";}
-            else if (field === "power_lap_zone_individual") {chartType = "Lap Individual Chart";}
-            else {chartType = "Zone Charts";}
+            if (field === "power_zone_doughnut") {
+                chartType = "Doughnut Chart";
+            } else if (field === "power_lap_zone_stacked") {
+                chartType = "Lap Stacked Chart";
+            } else if (field === "power_lap_zone_individual") {
+                chartType = "Lap Individual Chart";
+            } else {
+                chartType = "Zone Charts";
+            }
         } else {
             console.warn(`[ChartJS] Unknown zone field type: ${field}`);
             showNotification("Unknown zone type", "error");
@@ -195,8 +205,8 @@ export function openZoneColorPicker(field) {
 
             // Color preview
             const colorPreview = document.createElement("div"),
-             zoneIndex = (zone.zone || index + 1) - 1, // Convert to 0-based index
-             currentColor = getChartSpecificZoneColor(field, zoneIndex);
+                zoneIndex = (zone.zone || index + 1) - 1, // Convert to 0-based index
+                currentColor = getChartSpecificZoneColor(field, zoneIndex);
 
             colorPreview.style.cssText = `
 							width: 32px;
@@ -402,7 +412,7 @@ export function openZoneColorPicker(field) {
             } catch (err) {
                 if (typeof window.showNotification === "function") {
                     window.showNotification(
-                        `Failed to reset zone colors: ${  /** @type {Error} */ (err).message}`,
+                        `Failed to reset zone colors: ${/** @type {Error} */ (err).message}`,
                         "error"
                     );
                 }

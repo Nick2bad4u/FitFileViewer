@@ -10,7 +10,7 @@ export function createChartStatusIndicatorFromCounts(counts) {
 
         // Calculate status
         const isAllVisible = counts.visible === counts.available,
-         hasHiddenCharts = counts.available > counts.visible;
+            hasHiddenCharts = counts.available > counts.visible;
 
         indicator.style.cssText = `
             display: flex;

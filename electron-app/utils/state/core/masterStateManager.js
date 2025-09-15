@@ -341,11 +341,11 @@ export class MasterStateManager {
     setupPerformanceMonitoring() {
         // Monitor state change frequency
         let stateChangeCount = 0,
-         lastResetTime = Date.now();
+            lastResetTime = Date.now();
 
         // Use type assertion for window debug state
         const windowExt = /** @type {ExtendedWindow} */ (window),
-         originalSetState = windowExt.__state_debug?.setState;
+            originalSetState = windowExt.__state_debug?.setState;
         if (originalSetState) {
             // Wrap setState to count changes
             if (windowExt.__state_debug) {
@@ -359,7 +359,7 @@ export class MasterStateManager {
         // Reset counter every minute
         setInterval(() => {
             const now = Date.now(),
-             elapsed = now - lastResetTime;
+                elapsed = now - lastResetTime;
 
             setState(
                 "system.performance",
@@ -435,7 +435,7 @@ export class MasterStateManager {
             if ((event.ctrlKey || event.metaKey) && event.key === "t") {
                 event.preventDefault();
                 const currentTheme = getState("ui.theme"),
-                 newTheme = currentTheme === "light" ? "dark" : "light";
+                    newTheme = currentTheme === "light" ? "dark" : "light";
                 UIActions.setTheme(newTheme);
             }
 
@@ -443,7 +443,7 @@ export class MasterStateManager {
             if ((event.ctrlKey || event.metaKey) && event.key >= "1" && event.key <= "4") {
                 event.preventDefault();
                 const tabNames = ["summary", "chart", "map", "data"],
-                 tabIndex = parseInt(event.key) - 1;
+                    tabIndex = parseInt(event.key) - 1;
                 if (tabNames[tabIndex] && AppSelectors.hasData()) {
                     AppActions.switchTab(tabNames[tabIndex]);
                 }
@@ -550,9 +550,12 @@ export class MasterStateManager {
             const protocol = typeof loc.protocol === "string" ? loc.protocol : "";
             const href = typeof loc.href === "string" ? loc.href : "";
 
-            const hasDevAttr = (typeof document !== "undefined" && document.documentElement &&
-                typeof document.documentElement.hasAttribute === "function" &&
-                document.documentElement.hasAttribute("data-dev-mode")) || false;
+            const hasDevAttr =
+                (typeof document !== "undefined" &&
+                    document.documentElement &&
+                    typeof document.documentElement.hasAttribute === "function" &&
+                    document.documentElement.hasAttribute("data-dev-mode")) ||
+                false;
 
             return (
                 hostname === "localhost" ||
@@ -563,7 +566,9 @@ export class MasterStateManager {
                 (hash && hash.includes("debug")) ||
                 hasDevAttr ||
                 protocol === "file:" ||
-                (typeof window !== "undefined" && (/** @type {any} */ (window)).electronAPI && typeof (/** @type {any} */ (window.electronAPI)).__devMode !== "undefined") ||
+                (typeof window !== "undefined" &&
+                    /** @type {any} */ (window).electronAPI &&
+                    typeof /** @type {any} */ (window.electronAPI).__devMode !== "undefined") ||
                 (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
             );
         } catch {

@@ -60,16 +60,24 @@ function formatWithUserUnits(seconds) {
     // the runtime/tests have stubbed. Prefer globalThis, then window, then bare localStorage.
     /** @type {any} */
     const storages = [];
-    try { if (typeof globalThis !== 'undefined' && /** @type {any} */(globalThis).localStorage) storages.push(/** @type {any} */(globalThis).localStorage); } catch {}
-    try { if (typeof window !== 'undefined' && /** @type {any} */(window).localStorage) storages.push(/** @type {any} */(window).localStorage); } catch {}
-    try { if (typeof localStorage !== 'undefined') storages.push(/** @type {any} */(localStorage)); } catch {}
+    try {
+        if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
+            storages.push(/** @type {any} */ (globalThis).localStorage);
+    } catch {}
+    try {
+        if (typeof window !== "undefined" && /** @type {any} */ (window).localStorage)
+            storages.push(/** @type {any} */ (window).localStorage);
+    } catch {}
+    try {
+        if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
+    } catch {}
 
     /** @type {string} */
     let timeUnits = TIME_UNITS.SECONDS;
     try {
         for (const storage of storages) {
             try {
-                if (storage && typeof storage.getItem === 'function') {
+                if (storage && typeof storage.getItem === "function") {
                     const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
                     if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
                         timeUnits = stored;

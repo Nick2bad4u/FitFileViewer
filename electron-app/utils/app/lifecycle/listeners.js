@@ -33,14 +33,18 @@ export function setupListeners({
     // Recent Files Context Menu
     openFileBtn.addEventListener("contextmenu", async (event) => {
         /** @type {MouseEvent} */ (event).preventDefault();
-        if (!window.electronAPI?.recentFiles) {return;}
+        if (!window.electronAPI?.recentFiles) {
+            return;
+        }
         const recentFiles = await window.electronAPI.recentFiles();
         if (!recentFiles || recentFiles.length === 0) {
             showNotification("No recent files found.", "info", 2000);
             return;
         }
         const oldMenu = document.getElementById("recent-files-menu");
-        if (oldMenu) {oldMenu.remove();}
+        if (oldMenu) {
+            oldMenu.remove();
+        }
         /** @type {HTMLDivElement} */
         const menu = document.createElement("div");
         menu.id = "recent-files-menu";
@@ -69,10 +73,12 @@ export function setupListeners({
         const items = [];
         recentFiles.forEach((file, idx) => {
             const parts = file.split(/\\|\//g),
-             shortName =
-                parts.length >= 2 ? `${parts[parts.length - 2]}\\${parts[parts.length - 1]}` : parts[parts.length - 1],
-            /** @type {HTMLDivElement} */
-             item = document.createElement("div");
+                shortName =
+                    parts.length >= 2
+                        ? `${parts[parts.length - 2]}\\${parts[parts.length - 1]}`
+                        : parts[parts.length - 1],
+                /** @type {HTMLDivElement} */
+                item = document.createElement("div");
             // TextContent expects string | null; ensure fallback string
             item.textContent = shortName || "";
             item.title = file;
@@ -97,7 +103,7 @@ export function setupListeners({
                 setLoading(true);
                 try {
                     const arrayBuffer = await window.electronAPI.readFile(file),
-                     result = await window.electronAPI.parseFitFile(arrayBuffer);
+                        result = await window.electronAPI.parseFitFile(arrayBuffer);
                     if (result && result.error) {
                         showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                     } else {
@@ -126,7 +132,9 @@ export function setupListeners({
             items.forEach((el, i) => {
                 el.style.background = i === idx ? "var(--color-glass-border)" : "transparent";
                 el.style.color = i === idx ? "var(--color-fg-alt)" : "var(--color-fg)";
-                if (i === idx) {el.focus();}
+                if (i === idx) {
+                    el.focus();
+                }
             });
             focusedIndex = idx;
         }
@@ -148,7 +156,7 @@ export function setupListeners({
         setTimeout(() => focusItem(0), 0);
         /** @param {MouseEvent} e */
         const removeMenu = (e) => {
-            const {target} = e;
+            const { target } = e;
             if (target instanceof Node && !menu.contains(target) && target !== menu) {
                 menu.remove();
                 document.removeEventListener("mousedown", removeMenu);
@@ -158,7 +166,9 @@ export function setupListeners({
 
         // Helper to remove menu and cleanup event listener
         function cleanupMenu() {
-            if (document.body.contains(menu)) {menu.remove();}
+            if (document.body.contains(menu)) {
+                menu.remove();
+            }
             document.removeEventListener("mousedown", removeMenu);
         }
 
@@ -193,7 +203,9 @@ export function setupListeners({
             document.getElementById("tab-chart")?.classList.contains("active") ||
             document.getElementById("tab-chartjs")?.classList.contains("active")
         ) {
-            if (chartRenderTimeout) {clearTimeout(chartRenderTimeout);}
+            if (chartRenderTimeout) {
+                clearTimeout(chartRenderTimeout);
+            }
             chartRenderTimeout = setTimeout(() => {
                 // Use modern chart state management for resize handling
                 if (window.ChartUpdater && window.ChartUpdater.updateCharts) {
@@ -218,7 +230,7 @@ export function setupListeners({
             setLoading(true);
             try {
                 const arrayBuffer = await window.electronAPI.readFile(filePath),
-                 result = await window.electronAPI.parseFitFile(arrayBuffer);
+                    result = await window.electronAPI.parseFitFile(arrayBuffer);
                 if (result && result.error) {
                     showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                 } else {
@@ -272,15 +284,17 @@ export function setupListeners({
         window.electronAPI.onIpc(
             "export-file",
             /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
-                if (!window.globalData) {return;}
+                if (!window.globalData) {
+                    return;
+                }
                 const safePath = filePath || "",
-                 ext = safePath.split(".").pop()?.toLowerCase() || "";
+                    ext = safePath.split(".").pop()?.toLowerCase() || "";
                 if (ext === "csv") {
                     const container = document.getElementById("content-summary");
                     if (/** @type {any} */ (window).copyTableAsCSV && container) {
                         const csv = /** @type {any} */ (window).copyTableAsCSV({ container, data: window.globalData }),
-                         blob = new Blob([csv], { type: "text/csv" }),
-                         a = document.createElement("a");
+                            blob = new Blob([csv], { type: "text/csv" }),
+                            a = document.createElement("a");
                         a.href = URL.createObjectURL(blob);
                         a.download = safePath.split(/[\\/]/).pop() || "export.csv";
                         document.body.appendChild(a);
@@ -313,7 +327,7 @@ export function setupListeners({
                             });
                             gpx += "\n</trkseg></trk></gpx>";
                             const blob = new Blob([gpx], { type: "application/gpx+xml" }),
-                             a = document.createElement("a");
+                                a = document.createElement("a");
                             a.href = URL.createObjectURL(blob);
                             a.download = safePath.split(/[\\/]/).pop() || "export.gpx";
                             document.body.appendChild(a);
@@ -334,20 +348,28 @@ export function setupListeners({
         window.electronAPI.onIpc(
             "show-notification",
             (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
-                if (typeof showNotification === "function") {showNotification(msg, type || "info", 3000);}
+                if (typeof showNotification === "function") {
+                    showNotification(msg, type || "info", 3000);
+                }
             }
         );
         window.electronAPI.onIpc("menu-print", () => {
             window.print();
         });
         window.electronAPI.onIpc("menu-check-for-updates", () => {
-            if (window.electronAPI.send) {window.electronAPI.send("menu-check-for-updates");}
+            if (window.electronAPI.send) {
+                window.electronAPI.send("menu-check-for-updates");
+            }
         });
         window.electronAPI.onIpc("menu-save-as", () => {
-            if (window.electronAPI.send) {window.electronAPI.send("menu-save-as");}
+            if (window.electronAPI.send) {
+                window.electronAPI.send("menu-save-as");
+            }
         });
         window.electronAPI.onIpc("menu-export", () => {
-            if (window.electronAPI.send) {window.electronAPI.send("menu-export");}
+            if (window.electronAPI.send) {
+                window.electronAPI.send("menu-export");
+            }
         });
         window.electronAPI.onIpc("menu-about", async () => {
             // Show the about modal without any content since the styled system info
@@ -414,7 +436,7 @@ export function setupListeners({
             showUpdateNotification("You are using the latest version.", "success", 4000);
         });
         window.electronAPI.onUpdateEvent("update-error", (/** @type {any} */ err) => {
-            showUpdateNotification(`Update error: ${  err}`, "error", 7000);
+            showUpdateNotification(`Update error: ${err}`, "error", 7000);
         });
         window.electronAPI.onUpdateEvent("update-download-progress", (/** @type {any} */ progress) => {
             if (progress && typeof progress.percent === "number") {

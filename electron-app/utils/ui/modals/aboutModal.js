@@ -245,9 +245,11 @@ function createSystemInfoContent() {
  */
 function toggleInfoSection() {
     const toggleSection = document.getElementById("info-toggle-section"),
-     toggleButton = document.getElementById("toggle-info-btn");
+        toggleButton = document.getElementById("toggle-info-btn");
 
-    if (!toggleSection || !toggleButton) {return;}
+    if (!toggleSection || !toggleButton) {
+        return;
+    }
 
     showingFeatures = !showingFeatures;
 
@@ -259,17 +261,25 @@ function toggleInfoSection() {
             // Show features
             toggleSection.innerHTML = createFeaturesContent();
             const buttonIcon = toggleButton.querySelector(".btn-icon"),
-             buttonText = toggleButton.querySelector(".btn-text");
-            if (buttonIcon) {buttonIcon.textContent = "🔧";}
-            if (buttonText) {buttonText.textContent = "System Info";}
+                buttonText = toggleButton.querySelector(".btn-text");
+            if (buttonIcon) {
+                buttonIcon.textContent = "🔧";
+            }
+            if (buttonText) {
+                buttonText.textContent = "System Info";
+            }
             toggleButton.setAttribute("aria-label", "View system information");
         } else {
             // Show system info
             toggleSection.innerHTML = createSystemInfoContent();
             const buttonIcon = toggleButton.querySelector(".btn-icon"),
-             buttonText = toggleButton.querySelector(".btn-text");
-            if (buttonIcon) {buttonIcon.textContent = "✨";}
-            if (buttonText) {buttonText.textContent = "Features";}
+                buttonText = toggleButton.querySelector(".btn-text");
+            if (buttonIcon) {
+                buttonIcon.textContent = "✨";
+            }
+            if (buttonText) {
+                buttonText.textContent = "Features";
+            }
             toggleButton.setAttribute("aria-label", "View detailed features");
 
             // Reload system info data after switching back
@@ -301,13 +311,17 @@ function hideAboutModal() {
             // Reset to system info state when closing
             showingFeatures = false;
             const toggleSection = document.getElementById("info-toggle-section"),
-             toggleButton = document.getElementById("toggle-info-btn");
+                toggleButton = document.getElementById("toggle-info-btn");
             if (toggleSection && toggleButton) {
                 toggleSection.innerHTML = createSystemInfoContent();
                 const buttonIcon = toggleButton.querySelector(".btn-icon"),
-                 buttonText = toggleButton.querySelector(".btn-text");
-                if (buttonIcon) {buttonIcon.textContent = "✨";}
-                if (buttonText) {buttonText.textContent = "Features";}
+                    buttonText = toggleButton.querySelector(".btn-text");
+                if (buttonIcon) {
+                    buttonIcon.textContent = "✨";
+                }
+                if (buttonText) {
+                    buttonText.textContent = "Features";
+                }
                 toggleButton.setAttribute("aria-label", "View detailed features");
                 // Reload system info
                 try {
@@ -350,8 +364,8 @@ export function showAboutModal(html = "") {
     const modal = document.getElementById("about-modal");
     if (modal) {
         const body = document.getElementById("about-modal-body"),
-         closeBtn = document.getElementById("about-modal-close"),
-         toggleBtn = document.getElementById("toggle-info-btn");
+            closeBtn = document.getElementById("about-modal-close"),
+            toggleBtn = document.getElementById("toggle-info-btn");
 
         if (body && closeBtn) {
             // Set content
@@ -496,10 +510,14 @@ const devHelpers = {
      */
     reset: () => {
         const existingModal = document.getElementById("about-modal"),
-         existingStyles = document.getElementById("about-modal-styles");
+            existingStyles = document.getElementById("about-modal-styles");
 
-        if (existingModal) {existingModal.remove();}
-        if (existingStyles) {existingStyles.remove();}
+        if (existingModal) {
+            existingModal.remove();
+        }
+        if (existingStyles) {
+            existingStyles.remove();
+        }
 
         ensureAboutModal();
     },

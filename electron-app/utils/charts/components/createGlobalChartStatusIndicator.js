@@ -64,8 +64,8 @@ const CONSTANTS = {
  */
 function logWithContext(level, message, context) {
     const timestamp = new Date().toISOString(),
-     logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`,
-     hasContext = context && Object.keys(context).length > 0;
+        logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`,
+        hasContext = context && Object.keys(context).length > 0;
     switch (level) {
         case "info":
             hasContext ? console.info(logMessage, context) : console.info(logMessage);
@@ -102,8 +102,8 @@ function getElementSafely(id, description) {
  */
 function calculateChartStatus(counts) {
     const isAllVisible = counts.visible === counts.available,
-     hasHiddenCharts = counts.available > counts.visible,
-     hasNoCharts = counts.available === 0;
+        hasHiddenCharts = counts.available > counts.visible,
+        hasNoCharts = counts.available === 0;
 
     return {
         isAllVisible,
@@ -177,7 +177,7 @@ function createStatusText(status) {
 function handleSettingsToggle() {
     try {
         const wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper"),
-         toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button");
+            toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button");
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = "block";
@@ -339,8 +339,8 @@ export function createGlobalChartStatusIndicator() {
         // Get chart counts and calculate status
         /** @type {ChartCounts} */
         const counts = getChartCounts(),
-        /** @type {ChartStatus} */
-         status = calculateChartStatus(counts);
+            /** @type {ChartStatus} */
+            status = calculateChartStatus(counts);
 
         logWithContext("info", "Chart status calculated", { status });
 
@@ -362,8 +362,8 @@ export function createGlobalChartStatusIndicator() {
 
         // Create and add status components
         const statusIcon = createStatusIcon(status),
-         statusText = createStatusText(status),
-         quickAction = createQuickActionButton(status);
+            statusText = createStatusText(status),
+            quickAction = createQuickActionButton(status);
 
         // Assemble the indicator
         statusInfo.appendChild(statusIcon);

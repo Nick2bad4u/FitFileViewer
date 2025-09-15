@@ -139,7 +139,7 @@ export function movePowerZoneControlsToSection() {
         return;
     } // Find existing power zone controls in the field toggles section
     const powerZoneFields = ["power_zone_doughnut", "power_lap_zone_stacked", "power_lap_zone_individual"],
-     movedControls = [];
+        movedControls = [];
 
     powerZoneFields.forEach((fieldName) => {
         // Look for the toggle by ID
@@ -205,7 +205,9 @@ function addUnifiedPowerZoneColorPicker(container) {
  */
 export function updatePowerZoneControlsVisibility(hasData) {
     const controls = document.getElementById("power-zone-controls");
-    if (!controls) {return;}
+    if (!controls) {
+        return;
+    }
 
     if (hasData) {
         controls.style.display = "block";

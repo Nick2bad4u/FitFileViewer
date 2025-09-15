@@ -347,3 +347,4 @@ vscode-extension/*
 #Ignore vscode AI rules
 .github\copilot-instructions.md
 .codacy/cli.sh
+electron-app/utils/.prettier-cache

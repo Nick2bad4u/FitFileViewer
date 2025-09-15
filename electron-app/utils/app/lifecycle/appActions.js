@@ -444,11 +444,10 @@ stateMiddleware.use((path, value, oldValue) => {
  */
 export function useState(path, defaultValue = undefined) {
     const currentValue = getState(path) ?? defaultValue,
-
-    /** @type {(newValue: any) => void} */
-     setter = (newValue) => {
-        setState(path, newValue, { source: "useState" });
-    };
+        /** @type {(newValue: any) => void} */
+        setter = (newValue) => {
+            setState(path, newValue, { source: "useState" });
+        };
 
     return /** @type {[any, (newValue: any) => void]} */ ([currentValue, setter]);
 }
@@ -469,22 +468,21 @@ export function useState(path, defaultValue = undefined) {
 export function useComputed(computeFn, dependencies = []) {
     /** @type {T} */
     let cachedValue,
-     isValid = false;
+        isValid = false;
 
     // Subscribe to dependency changes
     const unsubscribers = dependencies.map((dep) =>
-        subscribe(dep, () => {
-            isValid = false;
-        })
-    ),
-
-     getComputedValue = () => {
-        if (!isValid) {
-            cachedValue = computeFn();
-            isValid = true;
-        }
-        return cachedValue;
-    };
+            subscribe(dep, () => {
+                isValid = false;
+            })
+        ),
+        getComputedValue = () => {
+            if (!isValid) {
+                cachedValue = computeFn();
+                isValid = true;
+            }
+            return cachedValue;
+        };
 
     // Cleanup function
     getComputedValue.cleanup = () => {

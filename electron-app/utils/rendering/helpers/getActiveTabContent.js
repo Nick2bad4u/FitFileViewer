@@ -10,16 +10,14 @@
 
 // DOM selectors
 const SELECTORS = {
-    TAB_CONTENT: ".tab-content",
-},
-
-// CSS display states
- DISPLAY_STATES = {
-    VISIBLE: "block",
-    HIDDEN: "none",
-},
-
- LOG_PREFIX = "[ActiveTabContent]";
+        TAB_CONTENT: ".tab-content",
+    },
+    // CSS display states
+    DISPLAY_STATES = {
+        VISIBLE: "block",
+        HIDDEN: "none",
+    },
+    LOG_PREFIX = "[ActiveTabContent]";
 
 /**
  * Gets the currently active (visible) tab content element

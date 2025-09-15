@@ -35,14 +35,16 @@ export function getChartOverlayColorPalette(array) {
                     .map((/** @type {string} */ ch) => ch + ch)
                     .join("");
             }
-            if (!/^[0-9a-f]{6}$/.test(cleaned)) {return [0, 0, 0];}
+            if (!/^[0-9a-f]{6}$/.test(cleaned)) {
+                return [0, 0, 0];
+            }
             const num = parseInt(cleaned, 16),
-            /** @type {[number, number, number]} */
-             rgb = [num >> 16, (num >> 8) & 255, num & 255];
+                /** @type {[number, number, number]} */
+                rgb = [num >> 16, (num >> 8) & 255, num & 255];
             return rgb;
         }
         const [r1, g1, b1] = hexToRgb(c1),
-         [r2, g2, b2] = hexToRgb(c2);
+            [r2, g2, b2] = hexToRgb(c2);
         return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
     }
 

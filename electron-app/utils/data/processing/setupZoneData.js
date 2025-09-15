@@ -23,13 +23,13 @@ import { updateHRZoneControlsVisibility } from "../../ui/controls/createHRZoneCo
  */
 export function setupZoneData(globalData) {
     /** @type {ZoneEntry[]} */ let heartRateZones = Array.isArray(window.heartRateZones)
-        ? /** @type {ZoneEntry[]} */ (window.heartRateZones)
-        : [],
-    /** @type {ZoneEntry[]} */  powerZones = Array.isArray(window.powerZones)
-        ? /** @type {ZoneEntry[]} */ (window.powerZones)
-        : [],
-     hasPowerZoneData = powerZones.length > 0,
-     hasHRZoneData = heartRateZones.length > 0;
+            ? /** @type {ZoneEntry[]} */ (window.heartRateZones)
+            : [],
+        /** @type {ZoneEntry[]} */ powerZones = Array.isArray(window.powerZones)
+            ? /** @type {ZoneEntry[]} */ (window.powerZones)
+            : [],
+        hasPowerZoneData = powerZones.length > 0,
+        hasHRZoneData = heartRateZones.length > 0;
 
     try {
         if (!globalData) {
@@ -114,7 +114,7 @@ export function setupZoneData(globalData) {
         ) {
             console.log("[ChartJS] Aggregating zone data from lapMesgs");
             /** @type {number[]} */ const hrZoneTimes = [],
-            /** @type {number[]} */  powerZoneTimes = [];
+                /** @type {number[]} */ powerZoneTimes = [];
             globalData.lapMesgs.forEach((lap) => {
                 if (Array.isArray(lap?.time_in_hr_zone)) {
                     lap.time_in_hr_zone.forEach((t, i) => {

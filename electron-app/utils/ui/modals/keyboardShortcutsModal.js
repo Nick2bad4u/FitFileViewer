@@ -2,7 +2,7 @@
 
 /** @type {any} */
 let lastFocusedElement = null,
- modalAnimationDuration = 300; // Animation duration in milliseconds
+    modalAnimationDuration = 300; // Animation duration in milliseconds
 
 /**
  * Creates the enhanced keyboard shortcuts modal content with modern styling
@@ -128,7 +128,9 @@ function ensureKeyboardShortcutsModal() {
  * Injects enhanced CSS styles for the keyboard shortcuts modal
  */
 function injectKeyboardShortcutsModalStyles() {
-    if (document.getElementById("keyboard-shortcuts-modal-styles")) {return;}
+    if (document.getElementById("keyboard-shortcuts-modal-styles")) {
+        return;
+    }
     const style = document.createElement("style");
     style.id = "keyboard-shortcuts-modal-styles";
     style.textContent = `
@@ -550,7 +552,9 @@ function showKeyboardShortcutsModal() {
  */
 function closeKeyboardShortcutsModal() {
     const modal = document.getElementById("keyboard-shortcuts-modal");
-    if (!modal || modal.style.display === "none") {return;}
+    if (!modal || modal.style.display === "none") {
+        return;
+    }
 
     // Start closing animation
     modal.classList.remove("show");
@@ -579,16 +583,20 @@ function trapFocusInModal(modal) {
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
 
-    if (focusableElements.length === 0) {return;}
+    if (focusableElements.length === 0) {
+        return;
+    }
 
     const firstElement = focusableElements[0],
-     lastElement = focusableElements[focusableElements.length - 1];
+        lastElement = focusableElements[focusableElements.length - 1];
 
     /**
      * @param {any} e
      */
     function handleTabKey(e) {
-        if (e.key !== "Tab") {return;}
+        if (e.key !== "Tab") {
+            return;
+        }
 
         if (e.shiftKey) {
             if (document.activeElement === firstElement) {
@@ -596,9 +604,9 @@ function trapFocusInModal(modal) {
                 lastElement.focus();
             }
         } else if (document.activeElement === lastElement) {
-                e.preventDefault();
-                firstElement.focus();
-            }
+            e.preventDefault();
+            firstElement.focus();
+        }
     }
 
     modal.addEventListener("keydown", handleTabKey);

@@ -10,12 +10,15 @@
 export function logWithLevel(level, message, context) {
     try {
         // Allow tests that mock Object.keys to throw to reach our error path by opting in
-    try { if (typeof globalThis !== 'undefined') /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = true; } catch {}
+        try {
+            if (typeof globalThis !== "undefined")
+                /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = true;
+        } catch {}
         const timestamp = new Date().toISOString(),
-         prefix = `[FFV]`,
-         base = `${timestamp} ${prefix} ${String(message)}`;
+            prefix = `[FFV]`,
+            base = `${timestamp} ${prefix} ${String(message)}`;
         // Only treat context as an object if it's a plain object
-        const isObject = context != null && typeof context === 'object' && !Array.isArray(context);
+        const isObject = context != null && typeof context === "object" && !Array.isArray(context);
         /** @type {any} */
         let payload = undefined;
         if (isObject) {
@@ -46,7 +49,7 @@ export function logWithLevel(level, message, context) {
                     }
                 }
             }
-            payload = (hasProps && hasAny) ? clone : undefined;
+            payload = hasProps && hasAny ? clone : undefined;
         }
 
         switch (level) {
@@ -64,10 +67,16 @@ export function logWithLevel(level, message, context) {
         }
     } catch {
         // Fallback minimal logging if something unexpected occurs
-        try { console.log("[FFV][logWithLevel] Logging failure"); } catch { /* no-op */ }
-    }
-    finally {
+        try {
+            console.log("[FFV][logWithLevel] Logging failure");
+        } catch {
+            /* no-op */
+        }
+    } finally {
         // Reset throw-through flag to keep test runner stable
-    try { if (typeof globalThis !== 'undefined') /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = false; } catch {}
+        try {
+            if (typeof globalThis !== "undefined")
+                /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = false;
+        } catch {}
     }
 }

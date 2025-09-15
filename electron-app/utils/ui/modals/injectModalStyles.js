@@ -5,7 +5,9 @@ import { modalAnimationDuration } from "./aboutModal.js";
  */
 export function injectModalStyles() {
     // Prevent duplicate style injection
-    if (document.getElementById("about-modal-styles")) {return;}
+    if (document.getElementById("about-modal-styles")) {
+        return;
+    }
 
     const style = document.createElement("style");
     style.id = "about-modal-styles";

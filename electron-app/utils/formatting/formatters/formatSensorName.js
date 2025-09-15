@@ -102,7 +102,7 @@ function hasManufacturerAndProduct(sensor) {
  */
 function formatManufacturerProduct(sensor) {
     const manufacturerName = formatManufacturer(/** @type {any} */ (sensor).manufacturer),
-     productName = formatProduct(/** @type {any} */ (sensor).manufacturer, /** @type {any} */ (sensor).product);
+        productName = formatProduct(/** @type {any} */ (sensor).manufacturer, /** @type {any} */ (sensor).product);
 
     // Avoid duplication if product name already includes manufacturer
     if (productName.toLowerCase().includes(manufacturerName.toLowerCase())) {

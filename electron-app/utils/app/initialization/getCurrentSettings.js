@@ -34,31 +34,28 @@ function isResettable(el) {
 
 // Storage key prefixes
 const STORAGE_PREFIXES = {
-    CHART_OPTION: "chartjs_",
-    FIELD_COLOR: "chartjs_color_",
-    FIELD_VISIBILITY: "chartjs_field_",
-    HR_ZONE_COLOR: "chartjs_hr_zone_",
-    POWER_ZONE_COLOR: "chartjs_power_zone_",
-},
-
-// Special field types for zone charts
- ZONE_CHART_FIELDS = [
-    "gps_track",
-    "speed_vs_distance",
-    "power_vs_hr",
-    "altitude_profile",
-    "hr_zone_doughnut",
-    "power_zone_doughnut",
-    "hr_lap_zone_stacked",
-    "hr_lap_zone_individual",
-    "power_lap_zone_stacked",
-    "power_lap_zone_individual",
-],
-
- UNIT_TYPES = ["timeUnits", "distanceUnits", "temperatureUnits"],
- MAX_ZONE_COUNT = 5,
-
- LOG_PREFIX = "[ChartSettings]";
+        CHART_OPTION: "chartjs_",
+        FIELD_COLOR: "chartjs_color_",
+        FIELD_VISIBILITY: "chartjs_field_",
+        HR_ZONE_COLOR: "chartjs_hr_zone_",
+        POWER_ZONE_COLOR: "chartjs_power_zone_",
+    },
+    // Special field types for zone charts
+    ZONE_CHART_FIELDS = [
+        "gps_track",
+        "speed_vs_distance",
+        "power_vs_hr",
+        "altitude_profile",
+        "hr_zone_doughnut",
+        "power_zone_doughnut",
+        "hr_lap_zone_stacked",
+        "hr_lap_zone_individual",
+        "power_lap_zone_stacked",
+        "power_lap_zone_individual",
+    ],
+    UNIT_TYPES = ["timeUnits", "distanceUnits", "temperatureUnits"],
+    MAX_ZONE_COUNT = 5,
+    LOG_PREFIX = "[ChartSettings]";
 
 /**
  * @typedef {Object} ChartOptionConfig
@@ -127,7 +124,9 @@ function parseStoredValue(stored, option) {
  * @param {*} value - Value to set
  */
 function updateUIControl(control, option, value) {
-    if (!isHTMLElement(control)) {return;}
+    if (!isHTMLElement(control)) {
+        return;
+    }
 
     try {
         /** @type {ChartOptionConfig} */
@@ -137,7 +136,9 @@ function updateUIControl(control, option, value) {
             case "select": {
                 /** @type {HTMLElement|null} */
                 let selectEl = control.tagName === "SELECT" ? control : control.querySelector("select");
-                if (!selectEl) {selectEl = query(`#chartjs-${opt.id}-dropdown`);}
+                if (!selectEl) {
+                    selectEl = query(`#chartjs-${opt.id}-dropdown`);
+                }
                 if (selectEl && selectEl.tagName === "SELECT") {
                     // @ts-ignore value exists
                     selectEl.value = value;
@@ -171,7 +172,9 @@ function updateUIControl(control, option, value) {
                     "type" in control && control.type === "range"
                         ? control
                         : control.querySelector("input[type='range']");
-                if (!sliderEl) {sliderEl = query(`#chartjs-${opt.id}-slider`);}
+                if (!sliderEl) {
+                    sliderEl = query(`#chartjs-${opt.id}-slider`);
+                }
                 if (sliderEl && "type" in sliderEl && sliderEl.type === "range") {
                     // @ts-ignore value exists
                     sliderEl.value = value;
@@ -204,15 +207,15 @@ function updateUIControl(control, option, value) {
 function updateRangeSliderStyling(control, option, value) {
     try {
         const themeConfig = getThemeConfig(),
-        /** @type {any} */
-         theme = themeConfig || {},
-         accentColor = theme.colors?.accent || "var(--color-accent, #3b82f6)",
-         borderLight = theme.colors?.borderLight || "var(--color-border, #e5e7eb)",
-        /** @type {any} */
-         optRange = option || {},
-         min = optRange && optRange.min != null ? optRange.min : 0,
-         max = optRange && optRange.max != null ? optRange.max : 1,
-         percentage = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+            /** @type {any} */
+            theme = themeConfig || {},
+            accentColor = theme.colors?.accent || "var(--color-accent, #3b82f6)",
+            borderLight = theme.colors?.borderLight || "var(--color-border, #e5e7eb)",
+            /** @type {any} */
+            optRange = option || {},
+            min = optRange && optRange.min != null ? optRange.min : 0,
+            max = optRange && optRange.max != null ? optRange.max : 1,
+            percentage = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
 
         if (isHTMLElement(control)) {
             control.style.background = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${percentage}%, ${borderLight} ${percentage}%, ${borderLight} 100%)`;
@@ -631,8 +634,8 @@ export function getDefaultSettings() {
 export function getCurrentSettings() {
     try {
         const themeConfig = getThemeConfig(),
-        /** @type {Record<string, any> & { colors: Record<string,string> }} */
-         settings = { colors: {} };
+            /** @type {Record<string, any> & { colors: Record<string,string> }} */
+            settings = { colors: {} };
 
         // Get chart option settings
         (chartOptionsConfig || []).forEach((opt) => {
@@ -679,7 +682,9 @@ export function resetAllSettings() {
         clearAllStorageItems(); // Reset UI controls with a small delay to ensure DOM is ready
         setTimeout(() => {
             const wrapper = document.getElementById("chartjs-settings-wrapper");
-            if (wrapper) {resetUIControlsToDefaults(wrapper);}
+            if (wrapper) {
+                resetUIControlsToDefaults(wrapper);
+            }
 
             // Second pass for any controls that might not have been found initially
             setTimeout(() => {

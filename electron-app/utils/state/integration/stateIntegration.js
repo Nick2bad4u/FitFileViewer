@@ -45,10 +45,14 @@ function isDevelopmentMode() {
             /** @type {any} */ (window).__DEVELOPMENT__ === true ||
             (search && search.includes("debug=true")) ||
             (hash && hash.includes("debug")) ||
-            (typeof document !== "undefined" && document.documentElement && document.documentElement.hasAttribute("data-dev-mode")) ||
+            (typeof document !== "undefined" &&
+                document.documentElement &&
+                document.documentElement.hasAttribute("data-dev-mode")) ||
             protocol === "file:" ||
             /** @type {any} */ (
-                typeof window !== "undefined" && (window).electronAPI && typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined"
+                typeof window !== "undefined" &&
+                    window.electronAPI &&
+                    typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined"
             ) ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
         );
@@ -192,9 +196,8 @@ function setupStateDebugging() {
                 console.log(`[StateDebug] Triggering action: ${actionName}`, args);
                 return actions[actionName](...args);
             }
-                console.warn(`[StateDebug] Unknown action: ${actionName}`);
-                return undefined;
-
+            console.warn(`[StateDebug] Unknown action: ${actionName}`);
+            return undefined;
         },
     };
 
@@ -408,7 +411,7 @@ function getNestedValue(obj, path) {
  */
 export function setupStatePerformanceMonitoring() {
     let stateChangeCount = 0,
-     lastResetTime = Date.now();
+        lastResetTime = Date.now();
 
     // Monitor state change frequency
     subscribe("", () => {

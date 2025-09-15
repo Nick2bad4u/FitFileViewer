@@ -19,14 +19,18 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
 
     chartCanvases.forEach((canvas) => {
-        if (!(canvas instanceof HTMLElement)) {return;}
+        if (!(canvas instanceof HTMLElement)) {
+            return;
+        }
         // Skip if hover effects already added
         if (canvas.dataset && canvas.dataset.hoverEffectsAdded) {
             return;
         }
 
         // Mark as having hover effects
-        if (canvas.dataset) {canvas.dataset.hoverEffectsAdded = "true";} // Create a wrapper div for the chart to handle hover effects properly
+        if (canvas.dataset) {
+            canvas.dataset.hoverEffectsAdded = "true";
+        } // Create a wrapper div for the chart to handle hover effects properly
         const wrapper = document.createElement("div");
         wrapper.className = "chart-wrapper";
         const colors = /** @type {any} */ (themeConfig.colors || {});
@@ -84,7 +88,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
 
         // Add chart title overlay for better visual hierarchy
         const chartTitle = canvas.getAttribute("aria-label") || "Chart",
-         titleOverlay = document.createElement("div");
+            titleOverlay = document.createElement("div");
         titleOverlay.className = "chart-title-overlay";
         titleOverlay.style.cssText = `
             position: absolute;
@@ -146,10 +150,10 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         // Add click ripple effect
         wrapper.addEventListener("click", (e) => {
             const ripple = document.createElement("div"),
-             rect = wrapper.getBoundingClientRect(),
-             size = Math.max(rect.width, rect.height),
-             x = e.clientX - rect.left - size / 2,
-             y = e.clientY - rect.top - size / 2;
+                rect = wrapper.getBoundingClientRect(),
+                size = Math.max(rect.width, rect.height),
+                x = e.clientX - rect.left - size / 2,
+                y = e.clientY - rect.top - size / 2;
 
             ripple.style.cssText = `
                 position: absolute;
@@ -224,11 +228,13 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
  * @param {HTMLElement} chartContainer - Container with chart canvases
  */
 export function removeChartHoverEffects(chartContainer) {
-    if (!chartContainer) {return;}
+    if (!chartContainer) {
+        return;
+    }
 
     const themeConfig = /** @type {any} */ (getThemeConfig()),
-     colors = /** @type {any} */ (themeConfig && themeConfig.colors ? themeConfig.colors : {}),
-     chartWrappers = chartContainer.querySelectorAll(".chart-wrapper");
+        colors = /** @type {any} */ (themeConfig && themeConfig.colors ? themeConfig.colors : {}),
+        chartWrappers = chartContainer.querySelectorAll(".chart-wrapper");
     chartWrappers.forEach((wrapper) => {
         const canvas = wrapper.querySelector(".chart-canvas");
         if (canvas instanceof HTMLElement && wrapper.parentNode instanceof HTMLElement) {
@@ -250,7 +256,9 @@ export function removeChartHoverEffects(chartContainer) {
                 canvas.style.position = "";
                 canvas.style.boxSizing = "";
             }
-            if (canvas.dataset) {delete canvas.dataset.hoverEffectsAdded;}
+            if (canvas.dataset) {
+                delete canvas.dataset.hoverEffectsAdded;
+            }
         }
     });
 

@@ -19,12 +19,11 @@ export function updateAllChartStatusIndicators() {
     try {
         // Use a single call to get counts to ensure consistency
         const counts = getChartCounts(),
-
-        // Update settings indicator
-         settingsIndicator = document.getElementById("chart-status-indicator");
+            // Update settings indicator
+            settingsIndicator = document.getElementById("chart-status-indicator");
         if (settingsIndicator) {
             const newSettingsIndicator = createChartStatusIndicatorFromCounts(counts),
-             parent = settingsIndicator.parentNode;
+                parent = settingsIndicator.parentNode;
             if (parent && newSettingsIndicator) {
                 parent.replaceChild(newSettingsIndicator, settingsIndicator);
             }
@@ -62,7 +61,7 @@ export function updateChartStatusIndicator(indicator = null) {
 
         // Replace the entire indicator with a new one
         const newIndicator = createChartStatusIndicator(),
-         parent = target.parentNode;
+            parent = target.parentNode;
         if (parent && newIndicator) {
             parent.replaceChild(newIndicator, target);
         }

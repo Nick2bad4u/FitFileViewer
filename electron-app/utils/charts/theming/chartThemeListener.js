@@ -27,7 +27,7 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
     /** @type {(((e: Event) => void) & { timeout?: ReturnType<typeof setTimeout> })} */
     const handler = function (event) {
         const custom = /** @type {ThemeChangeEvent | null} */ (event instanceof CustomEvent ? event : null),
-         theme = custom?.detail && typeof custom.detail === "object" ? custom.detail.theme : undefined;
+            theme = custom?.detail && typeof custom.detail === "object" ? custom.detail.theme : undefined;
         console.log("[ChartThemeListener] Theme changed to:", theme);
 
         // Debounce rapid theme changes
@@ -104,11 +104,13 @@ function updateSettingsPanelTheme(settingsContainer) {
         const sliders = settingsContainer.querySelectorAll('input[type="range"]');
         sliders.forEach((sliderEl) => {
             const slider = /** @type {HTMLInputElement} */ (sliderEl);
-            if (!(slider instanceof HTMLInputElement)) {return;}
+            if (!(slider instanceof HTMLInputElement)) {
+                return;
+            }
             const max = Number(slider.max || 100),
-             min = Number(slider.min || 0),
-             current = Number(slider.value || 0),
-             percentage = max === min ? 0 : ((current - min) / (max - min)) * 100;
+                min = Number(slider.min || 0),
+                current = Number(slider.value || 0),
+                percentage = max === min ? 0 : ((current - min) / (max - min)) * 100;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
         });
 
@@ -116,7 +118,7 @@ function updateSettingsPanelTheme(settingsContainer) {
         const toggles = settingsContainer.querySelectorAll(".toggle-switch");
         toggles.forEach((toggleEl) => {
             const toggle = /** @type {HTMLElement} */ (toggleEl),
-             thumb = toggle.querySelector(".toggle-thumb");
+                thumb = toggle.querySelector(".toggle-thumb");
             if (thumb instanceof HTMLElement && thumb.style.left === "26px") {
                 toggle.style.background = "var(--color-success)";
             } else {

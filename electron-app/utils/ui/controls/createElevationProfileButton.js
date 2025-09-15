@@ -19,8 +19,8 @@ export function createElevationProfileButton() {
     const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
     btn.className = "map-action-btn";
     const themeColorsInit = getThemeColors(),
-    // Use bracket notation because themeColorsInit comes from an index signature
-     p = themeColorsInit.primary || "#3b82f6";
+        // Use bracket notation because themeColorsInit comes from an index signature
+        p = themeColorsInit.primary || "#3b82f6";
     btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
     btn.title = "Show Elevation Profile";
 
@@ -39,8 +39,8 @@ export function createElevationProfileButton() {
             ];
         }
         const isDark = document.body.classList.contains("theme-dark"),
-         themeColors = getThemeColors(),
-         chartWin = window.open("", "Elevation Profile", "width=900,height=600");
+            themeColors = getThemeColors(),
+            chartWin = window.open("", "Elevation Profile", "width=900,height=600");
         if (!chartWin) {
             // Popup likely blocked; fail silently or optionally notify
             return;

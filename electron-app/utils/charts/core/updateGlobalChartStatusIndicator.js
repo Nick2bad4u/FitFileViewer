@@ -13,11 +13,10 @@ import { createGlobalChartStatusIndicator } from "../components/createGlobalChar
 
 // DOM element IDs and selectors
 const ELEMENT_IDS = {
-    STATUS_INDICATOR: "global-chart-status",
-    STATUS_CONTAINER: "global-chart-status-container",
-},
-
- LOG_PREFIX = "[ChartStatusUpdater]";
+        STATUS_INDICATOR: "global-chart-status",
+        STATUS_CONTAINER: "global-chart-status-container",
+    },
+    LOG_PREFIX = "[ChartStatusUpdater]";
 
 /**
  * Finds suitable container for chart status indicator
@@ -39,10 +38,9 @@ function replaceExistingIndicator(newIndicator, existingIndicator) {
             existingIndicator.parentNode.replaceChild(newIndicator, existingIndicator);
             console.log(`${LOG_PREFIX} Replaced existing status indicator`);
             return true;
-        } 
-            console.warn(`${LOG_PREFIX} Existing indicator has no parent node`);
-            return false;
-        
+        }
+        console.warn(`${LOG_PREFIX} Existing indicator has no parent node`);
+        return false;
     } catch (error) {
         console.error(`${LOG_PREFIX} Error replacing existing indicator:`, error);
         return false;

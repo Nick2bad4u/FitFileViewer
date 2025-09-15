@@ -12,7 +12,7 @@
 export function convertArrayBufferToBase64(buffer) {
     // Input validation
     if (!(buffer instanceof ArrayBuffer)) {
-        throw new TypeError(`Expected ArrayBuffer, received ${  typeof buffer}`);
+        throw new TypeError(`Expected ArrayBuffer, received ${typeof buffer}`);
     }
 
     if (buffer.byteLength === 0) {
@@ -20,13 +20,13 @@ export function convertArrayBufferToBase64(buffer) {
     }
 
     const bytes = new Uint8Array(buffer),
-     binaryChunks = [],
-     CHUNK_SIZE = 0x8000; // 32KB chunks to prevent stack overflow
+        binaryChunks = [],
+        CHUNK_SIZE = 0x8000; // 32KB chunks to prevent stack overflow
 
     // Process in chunks to handle large buffers efficiently
     for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
         const chunk = bytes.subarray(i, i + CHUNK_SIZE),
-         chunkString = String.fromCharCode(...chunk);
+            chunkString = String.fromCharCode(...chunk);
         binaryChunks.push(chunkString);
     }
 

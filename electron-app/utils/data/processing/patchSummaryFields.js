@@ -112,7 +112,9 @@ function logWithContext(message, level = "info") {
  * @private
  */
 function safeToNumber(value, fieldName = "value") {
-    if (value == null) {return null;}
+    if (value == null) {
+        return null;
+    }
 
     const num = Number(value);
     if (!Number.isFinite(num)) {
@@ -141,7 +143,7 @@ function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
     for (const fieldName of fieldNames) {
         if (Object.hasOwn(obj, fieldName) && obj[fieldName] != null) {
             const raw = obj[fieldName],
-             value = safeToNumber(raw, fieldName);
+                value = safeToNumber(raw, fieldName);
             if (value !== null) {
                 try {
                     obj[fieldName] = formatter(value);
@@ -280,8 +282,8 @@ function patchTime(obj) {
 /** @param {number} val */
 function formatSpeed(val) {
     const mps = Number(val),
-     kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT),
-     mph = (mps * 2.23694).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+        kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT),
+        mph = (mps * 2.23694).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
     return `${kmh} km/h / ${mph} mph`;
 }
 
@@ -337,9 +339,9 @@ function patchTemperatureModern(obj) {
 
 // Replace old implementations with modern ones
 const patchPower = patchPowerModern,
- patchHeartRate = patchHeartRateModern,
- patchCadence = patchCadenceModern,
- patchTemperature = patchTemperatureModern;
+    patchHeartRate = patchHeartRateModern,
+    patchCadence = patchCadenceModern,
+    patchTemperature = patchTemperatureModern;
 
 // Stub implementations for missing functions that aren't in FIELD_MAPPINGS
 /** @param {SummaryRecord} obj */

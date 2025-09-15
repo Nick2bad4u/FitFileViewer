@@ -18,7 +18,7 @@ export function setupTabButton(id, handler) {
 
     // Cast function to any to access/initialize lazy static cache property without TS checkJs error
     const fn = /** @type {any} */ (setupTabButton),
-     cache = (fn.cache ||= new Map());
+        cache = (fn.cache ||= new Map());
     let btn = cache.get(id);
 
     if (!btn) {

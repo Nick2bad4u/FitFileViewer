@@ -261,7 +261,7 @@ export class FitFileStateManager {
      */
     handleFileLoadingError(/** @type {unknown} */ error) {
         const err = /** @type {{message?: string}} */ (error) || {},
-         message = err.message || "Unknown error";
+            message = err.message || "Unknown error";
         setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
         setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
 
@@ -300,7 +300,9 @@ export class FitFileStateManager {
      * @returns {number}
      */
     getRecordCount(/** @type {RawFitData} */ data) {
-        if (!data || !data.recordMesgs) {return 0;}
+        if (!data || !data.recordMesgs) {
+            return 0;
+        }
         return Array.isArray(data.recordMesgs) ? data.recordMesgs.length : 0;
     }
 
@@ -314,7 +316,9 @@ export class FitFileStateManager {
         }
 
         const session = data.sessionMesgs[0];
-        if (!session) {return null;}
+        if (!session) {
+            return null;
+        }
         return {
             startTime: session.start_time,
             totalElapsedTime: session.total_elapsed_time,
@@ -336,7 +340,9 @@ export class FitFileStateManager {
         }
 
         const device = data.device_infos[0];
-        if (!device) {return null;}
+        if (!device) {
+            return null;
+        }
         return {
             manufacturer: device.manufacturer,
             product: device.product,
@@ -357,7 +363,9 @@ export class FitFileStateManager {
         }
 
         const activity = data.activities[0];
-        if (!activity) {return null;}
+        if (!activity) {
+            return null;
+        }
         return {
             timestamp: activity.timestamp,
             totalTimerTime: activity.total_timer_time,
@@ -388,17 +396,17 @@ export class FitFileStateManager {
         }
 
         const records = data.recordMesgs,
-         totalRecords = records.length;
+            totalRecords = records.length;
 
         if (totalRecords === 0) {
             quality.issues.push("No records in file");
             return quality;
         }
         let altitudeCount = 0,
-         cadenceCount = 0,
-         gpsCount = 0,
-         hrCount = 0,
-         powerCount = 0;
+            cadenceCount = 0,
+            gpsCount = 0,
+            hrCount = 0,
+            powerCount = 0;
 
         records.forEach((record) => {
             if (record.position_lat && record.position_long) {
@@ -505,7 +513,9 @@ export class FitFileStateManager {
      * @param {Object} processedData - Processed file data
      */
     updateFileMetrics(/** @type {ProcessedData|null} */ processedData) {
-        if (!processedData) {return;}
+        if (!processedData) {
+            return;
+        }
         updateState(
             "fitFile.metrics",
             {

@@ -11,7 +11,9 @@
  */
 function getLeaflet() {
     const g = /** @type {any} */ (globalThis);
-    if (g && g.L && g.L.tileLayer) {return g.L;}
+    if (g && g.L && g.L.tileLayer) {
+        return g.L;
+    }
     return {
         tileLayer: () => ({}),
         maplibreGL: () => ({}),

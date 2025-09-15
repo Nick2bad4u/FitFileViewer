@@ -7,7 +7,9 @@ import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
  */
 export function ensureAboutModal() {
     const existingModal = document.getElementById("about-modal");
-    if (existingModal) {return;}
+    if (existingModal) {
+        return;
+    }
 
     const modal = document.createElement("div");
     modal.id = "about-modal";

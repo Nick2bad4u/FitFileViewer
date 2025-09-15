@@ -101,28 +101,27 @@ export function createSettingsHeader(/** @type {HTMLElement} */ wrapper) {
 
     // Reset to defaults button
     const resetBtn = createActionButton("↻ Reset", "Reset all settings to defaults", () => {
-        // Provide immediate visual feedback
-        resetBtn.style.opacity = "0.6";
-        resetBtn.disabled = true;
+            // Provide immediate visual feedback
+            resetBtn.style.opacity = "0.6";
+            resetBtn.disabled = true;
 
-        // Perform the reset
-        const success = resetAllSettings();
+            // Perform the reset
+            const success = resetAllSettings();
 
-        // Re-enable button after reset completes
-        setTimeout(() => {
-            resetBtn.style.opacity = "1";
-            resetBtn.disabled = false;
-        }, 200);
+            // Re-enable button after reset completes
+            setTimeout(() => {
+                resetBtn.style.opacity = "1";
+                resetBtn.disabled = false;
+            }, 200);
 
-        if (!success) {
-            console.error("[ResetBtn] Reset failed");
-        }
-    }),
-
-    // Export all charts button
-     exportAllBtn = createActionButton("📦 Export All", "Export all charts as images", () => {
-        exportAllCharts();
-    });
+            if (!success) {
+                console.error("[ResetBtn] Reset failed");
+            }
+        }),
+        // Export all charts button
+        exportAllBtn = createActionButton("📦 Export All", "Export all charts as images", () => {
+            exportAllCharts();
+        });
 
     globalActions.appendChild(resetBtn);
     globalActions.appendChild(exportAllBtn);
@@ -298,8 +297,8 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 
             // Update slider background
             const minVal = option.min || 0,
-             maxVal = option.max || 100,
-             percentage = ((Number(target.value) - minVal) / (maxVal - minVal)) * 100;
+                maxVal = option.max || 100,
+                percentage = ((Number(target.value) - minVal) / (maxVal - minVal)) * 100;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
             // Debounced re-render using the same approach as the reset button
@@ -313,8 +312,8 @@ function createRangeControl(/** @type {ChartOption} */ option) {
     // Initialize slider background
     // Set initial background
     const minVal = option.min || 0,
-     maxVal = option.max || 100,
-     initialPercentage = ((Number(slider.value) - minVal) / (maxVal - minVal)) * 100;
+        maxVal = option.max || 100,
+        initialPercentage = ((Number(slider.value) - minVal) / (maxVal - minVal)) * 100;
     slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
 
     container.appendChild(valueDisplay);
@@ -480,8 +479,12 @@ function createSelectControl(/** @type {ChartOption} */ option) {
                 e.preventDefault();
                 const idx = option.options?.indexOf(select.value === "all" ? "all" : Number(select.value)) ?? -1;
                 let newIdx = idx + (e.deltaY > 0 ? 1 : -1);
-                if (newIdx < 0) {newIdx = 0;}
-                if (newIdx >= (option.options?.length ?? 0)) {newIdx = (option.options?.length ?? 1) - 1;}
+                if (newIdx < 0) {
+                    newIdx = 0;
+                }
+                if (newIdx >= (option.options?.length ?? 0)) {
+                    newIdx = (option.options?.length ?? 1) - 1;
+                }
                 select.value = option.options?.[newIdx] ?? "";
                 select.dispatchEvent(new Event("change"));
             },
@@ -574,9 +577,8 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
     validCharts.forEach((/** @type {any} */ chart, /** @type {number} */ index) => {
         const dataset = chart.data.datasets[0],
-         fieldName = dataset?.label || `Chart ${index + 1}`,
-
-         chartItem = document.createElement("button");
+            fieldName = dataset?.label || `Chart ${index + 1}`,
+            chartItem = document.createElement("button");
         chartItem.textContent = `📊 ${fieldName}`;
         chartItem.style.cssText = `
 			display: block;
@@ -730,8 +732,8 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     "Save as PNG",
                     (/** @type {any} */ chart) => {
                         const dataset = chart.data.datasets[0],
-                         fieldName = dataset?.label || "chart",
-                         filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
+                            fieldName = dataset?.label || "chart",
+                            filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
                         exportUtils.downloadChartAsPNG(chart, filename);
                     },
                     (/** @type {any} */ charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
@@ -757,7 +759,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                         const dataset = chart.data.datasets[0];
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
-                             filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.csv`;
+                                filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.csv`;
                             exportUtils.exportChartDataAsCSV(dataset.data, fieldName, filename);
                         }
                     },
@@ -775,27 +777,27 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                         const dataset = chart.data.datasets[0];
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
-                             filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.json`;
+                                filename = `${fieldName.replace(/\s+/g, "-").toLowerCase()}-data.json`;
                             exportUtils.exportChartDataAsJSON(dataset.data, fieldName, filename);
                         }
                     },
                     (/** @type {any} */ charts) => {
                         const allChartsData = {
-                            exportedAt: new Date().toISOString(),
-                            charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
-                                const dataset = chart.data.datasets[0];
-                                return {
-                                    field: dataset?.label || `chart-${index}`,
-                                    data: dataset?.data || [],
-                                    type: chart.config.type,
-                                    totalPoints: dataset?.data ? dataset.data.length : 0,
-                                };
+                                exportedAt: new Date().toISOString(),
+                                charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
+                                    const dataset = chart.data.datasets[0];
+                                    return {
+                                        field: dataset?.label || `chart-${index}`,
+                                        data: dataset?.data || [],
+                                        type: chart.config.type,
+                                        totalPoints: dataset?.data ? dataset.data.length : 0,
+                                    };
+                                }),
+                            },
+                            blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
+                                type: "application/json;charset=utf-8;",
                             }),
-                        },
-                         blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
-                            type: "application/json;charset=utf-8;",
-                        }),
-                         link = document.createElement("a");
+                            link = document.createElement("a");
                         link.href = URL.createObjectURL(blob);
                         link.download = "combined-charts-data.json";
                         document.body.appendChild(link);
@@ -1001,7 +1003,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     // Add lap zone chart toggles if data exists
     if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
         const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs,
-         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+            lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
@@ -1057,7 +1059,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
  */
 function createFieldToggle(/** @type {string} */ field) {
     const themeConfig = getThemeConfig(),
-     container = document.createElement("div");
+        container = document.createElement("div");
     container.className = "field-toggle";
 
     // Check if this field has valid data
@@ -1072,7 +1074,7 @@ function createFieldToggle(/** @type {string} */ field) {
         if (field === "gps_track") {
             hasValidData = data.some((row) => {
                 const lat = row.positionLat,
-                 long = row.positionLong;
+                    long = row.positionLong;
                 return (
                     (lat !== undefined && lat !== null && !isNaN(parseFloat(lat))) ||
                     (long !== undefined && long !== null && !isNaN(parseFloat(long)))
@@ -1086,23 +1088,23 @@ function createFieldToggle(/** @type {string} */ field) {
             );
         } else if (field === "speed_vs_distance") {
             const hasSpeed = data.some((row) => {
-                const speed = row.enhancedSpeed || row.speed;
-                return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
-            }),
-             hasDistance = data.some((row) => {
-                const {distance} = row;
-                return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
-            });
+                    const speed = row.enhancedSpeed || row.speed;
+                    return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
+                }),
+                hasDistance = data.some((row) => {
+                    const { distance } = row;
+                    return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
+                });
             hasValidData = hasSpeed && hasDistance;
         } else if (field === "power_vs_hr") {
             const hasPower = data.some((row) => {
-                const {power} = row;
-                return power !== undefined && power !== null && !isNaN(parseFloat(power));
-            }),
-             hasHeartRate = data.some((row) => {
-                const hr = row.heartRate;
-                return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
-            });
+                    const { power } = row;
+                    return power !== undefined && power !== null && !isNaN(parseFloat(power));
+                }),
+                hasHeartRate = data.some((row) => {
+                    const hr = row.heartRate;
+                    return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
+                });
             hasValidData = hasPower && hasHeartRate;
         } else if (field === "altitude_profile") {
             hasValidData = data.some((row) => {
@@ -1113,16 +1115,16 @@ function createFieldToggle(/** @type {string} */ field) {
             // Check for HR lap zone data
             if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
                 const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs,
-                 lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                 hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
+                    lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+                    hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
                 hasValidData = hrLapZones.length > 0;
             }
         } else if (field === "power_lap_zone_stacked" || field === "power_lap_zone_individual") {
             // Check for Power lap zone data
             if (/** @type {WindowExtensions} */ (window).globalData?.timeInZoneMesgs) {
                 const timeInZoneMesgs = /** @type {WindowExtensions} */ (window).globalData.timeInZoneMesgs,
-                 lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                 powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
+                    lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+                    powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
                 hasValidData = powerLapZones.length > 0;
             }
         } else if (field.includes("hr_zone")) {
@@ -1132,7 +1134,7 @@ function createFieldToggle(/** @type {string} */ field) {
             });
         } else if (field.includes("power_zone")) {
             hasValidData = data.some((row) => {
-                const {power} = row;
+                const { power } = row;
                 return power !== undefined && power !== null && !isNaN(parseFloat(power));
             });
         } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
@@ -1192,9 +1194,9 @@ function createFieldToggle(/** @type {string} */ field) {
 		font-size: 14px;
 		cursor: pointer;	`; // Check if this is a zone chart - zone charts no longer get individual color pickers
     const isHRZoneChart = field.includes("hr_zone"),
-     isPowerZoneChart = field.includes("power_zone"),
-     isZoneChart = isHRZoneChart || isPowerZoneChart,
-     isLapZoneChart = field.includes("lap_zone");
+        isPowerZoneChart = field.includes("power_zone"),
+        isZoneChart = isHRZoneChart || isPowerZoneChart,
+        isLapZoneChart = field.includes("lap_zone");
 
     if (isZoneChart) {
         // Zone charts now only get toggle and label - unified color picker is in their dedicated sections
@@ -1356,22 +1358,21 @@ export function applySettingsPanelStyles(/** @type {HTMLElement} */ wrapper) {
 function toggleAllFields(enable) {
     try {
         const visibility = enable ? "visible" : "hidden",
-
-        // Get all possible field keys
-         allFields = [
-            .../** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)),
-            "gps_track",
-            "speed_vs_distance",
-            "power_vs_hr",
-            "altitude_profile",
-            "hr_zone_doughnut",
-            "power_zone_doughnut",
-            "event_messages",
-            "hr_lap_zone_stacked",
-            "hr_lap_zone_individual",
-            "power_lap_zone_stacked",
-            "power_lap_zone_individual",
-        ];
+            // Get all possible field keys
+            allFields = [
+                .../** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)),
+                "gps_track",
+                "speed_vs_distance",
+                "power_vs_hr",
+                "altitude_profile",
+                "hr_zone_doughnut",
+                "power_zone_doughnut",
+                "event_messages",
+                "hr_lap_zone_stacked",
+                "hr_lap_zone_individual",
+                "power_lap_zone_stacked",
+                "power_lap_zone_individual",
+            ];
 
         // Add developer fields if they exist
         if (

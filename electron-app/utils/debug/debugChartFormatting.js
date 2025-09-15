@@ -70,12 +70,12 @@ export function testNewFormatting() {
         // Test individual components
         if (testCase.sensor.manufacturer && testCase.sensor.manufacturer !== testCase.sensor.garminProduct) {
             const mfgName = getManufacturerName(testCase.sensor.manufacturer),
-             formattedMfg = formatManufacturer(testCase.sensor.manufacturer);
+                formattedMfg = formatManufacturer(testCase.sensor.manufacturer);
             console.log(`    Manufacturer: ${testCase.sensor.manufacturer} → "${mfgName}" → "${formattedMfg}"`);
 
             if (testCase.sensor.product) {
                 const prodName = getProductName(testCase.sensor.manufacturer, testCase.sensor.product),
-                 formattedProd = formatProduct(testCase.sensor.manufacturer, testCase.sensor.product);
+                    formattedProd = formatProduct(testCase.sensor.manufacturer, testCase.sensor.product);
                 console.log(`    Product: ${testCase.sensor.product} → "${prodName}" → "${formattedProd}"`);
             }
         }
@@ -119,7 +119,7 @@ export function testFaveroCase() {
     console.log(`Step 5 - Final sensor name: "${finalResult}"`);
 
     const expected = "Favero Electronics Assioma Duo",
-     success = finalResult === expected;
+        success = finalResult === expected;
 
     console.log(`\n${success ? "✅" : "❌"} Result: ${success ? "SUCCESS" : "FAILED"}`);
     console.log(`Expected: "${expected}"`);
@@ -160,7 +160,7 @@ export function testFaveroStringCase() {
     console.log(`Step 5 - Final sensor name: "${finalResult}"`);
 
     const expected = "Favero Electronics Assioma Duo",
-     success = finalResult === expected;
+        success = finalResult === expected;
 
     console.log(`\n${success ? "✅" : "❌"} Result: ${success ? "SUCCESS" : "FAILED"}`);
     console.log(`Expected: "${expected}"`);

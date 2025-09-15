@@ -53,8 +53,9 @@ export const chartBackgroundColorPlugin = {
                 // Access via bracket notation to satisfy index signature constraints under exactOptionalPropertyTypes
                 const pluginCfg =
                     chart?.options && chart.options.plugins && chart.options.plugins.chartBackgroundColorPlugin;
-                if (pluginCfg && typeof pluginCfg.backgroundColor === "string")
-                    {backgroundColor = pluginCfg.backgroundColor;}
+                if (pluginCfg && typeof pluginCfg.backgroundColor === "string") {
+                    backgroundColor = pluginCfg.backgroundColor;
+                }
             } catch {
                 /* Ignore */
             }
@@ -64,7 +65,9 @@ export const chartBackgroundColorPlugin = {
                 const cssBg = chart?.canvas
                     ? getComputedStyle(chart.canvas).getPropertyValue("--bg-primary")?.trim()
                     : "";
-                if (cssBg) {backgroundColor = cssBg;}
+                if (cssBg) {
+                    backgroundColor = cssBg;
+                }
             } catch {
                 /* Ignore */
             }
@@ -75,8 +78,8 @@ export const chartBackgroundColorPlugin = {
             backgroundColor = "#23263a";
         }
         const ctx = chart?.ctx,
-         width = chart?.canvas?.width || 0,
-         height = chart?.canvas?.height || 0;
+            width = chart?.canvas?.width || 0,
+            height = chart?.canvas?.height || 0;
         if (!ctx) {
             console.warn("[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw.");
             return;

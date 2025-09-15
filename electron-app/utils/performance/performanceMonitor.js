@@ -6,7 +6,7 @@
 class PerformanceMonitor {
     constructor() {
         this.timers = new Map();
-        this.enabled = process.env.NODE_ENV === 'development' || process.env.PERFORMANCE_MONITORING === 'true';
+        this.enabled = process.env.NODE_ENV === "development" || process.env.PERFORMANCE_MONITORING === "true";
     }
 
     /**
@@ -27,7 +27,7 @@ class PerformanceMonitor {
         this.timers.set(operationId, {
             start: performance.now(),
             end: null,
-            duration: null
+            duration: null,
         });
     }
 

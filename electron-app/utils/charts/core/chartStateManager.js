@@ -85,7 +85,9 @@ class ChartStateManager {
      */
     handleThemeChange(/** @type {string|undefined} */ newTheme) {
         const chartState = getState("charts");
-        if (!chartState) {return;}
+        if (!chartState) {
+            return;
+        }
         // Only re-render if charts are currently rendered and visible
         if (chartState.isRendered && this.isChartTabActive()) {
             this.debouncedRender(newTheme ? `Theme change to ${newTheme}` : "Theme change");
@@ -97,7 +99,7 @@ class ChartStateManager {
      */
     handleTabActivation() {
         const chartState = getState("charts"),
-         globalData = getState("globalData");
+            globalData = getState("globalData");
 
         console.log("[ChartStateManager] Chart tab activated");
 

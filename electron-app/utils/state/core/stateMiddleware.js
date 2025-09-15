@@ -177,17 +177,23 @@ class StateMiddlewareManager {
      * @returns {Promise<MiddlewareContext>}
      */
     async execute(phase, context) {
-        if (!this.isEnabled) {return context;}
+        if (!this.isEnabled) {
+            return context;
+        }
 
         let currentContext = { ...context };
 
         for (const middlewareName of this.executionOrder) {
             const middleware = this.middleware.get(middlewareName);
 
-            if (!middleware || !middleware.isEnabled) {continue;}
+            if (!middleware || !middleware.isEnabled) {
+                continue;
+            }
 
             const handler = middleware.handlers[phase];
-            if (!handler) {continue;}
+            if (!handler) {
+                continue;
+            }
 
             try {
                 const result = await handler(currentContext);
@@ -231,10 +237,14 @@ class StateMiddlewareManager {
         for (const middlewareName of this.executionOrder) {
             const middleware = this.middleware.get(middlewareName);
 
-            if (!middleware || !middleware.isEnabled) {continue;}
+            if (!middleware || !middleware.isEnabled) {
+                continue;
+            }
 
             const errorHandler = middleware.handlers[MIDDLEWARE_PHASES.ON_ERROR];
-            if (!errorHandler) {continue;}
+            if (!errorHandler) {
+                continue;
+            }
 
             try {
                 // Some middlewares define onError(error) while others may accept (error, context)
@@ -274,8 +284,7 @@ class StateMiddlewareManager {
 
             try {
                 const result = await handler(context),
-
-                 duration = performance.now() - startTime;
+                    duration = performance.now() - startTime;
                 if (duration > 5) {
                     console.warn(
                         `[StateMiddleware] Slow middleware "${middlewareName}.${phase}": ${duration.toFixed(2)}ms`
@@ -298,9 +307,9 @@ class StateMiddlewareManager {
     updateExecutionOrder() {
         this.executionOrder = Array.from(this.middleware.keys()).sort((a, b) => {
             const mwA = this.middleware.get(a),
-             mwB = this.middleware.get(b),
-             priorityA = mwA ? mwA.priority : 100,
-             priorityB = mwB ? mwB.priority : 100;
+                mwB = this.middleware.get(b),
+                priorityA = mwA ? mwA.priority : 100,
+                priorityB = mwB ? mwB.priority : 100;
             return priorityA - priorityB;
         });
     }

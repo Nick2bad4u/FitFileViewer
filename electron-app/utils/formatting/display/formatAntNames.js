@@ -24,9 +24,8 @@ export function getManufacturerName(manufacturerId) {
  */
 export function getProductName(manufacturerId, productId) {
     const mfgId = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId,
-     prodId = typeof productId === "string" ? parseInt(productId, 10) : productId,
-
-     manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
+        prodId = typeof productId === "string" ? parseInt(productId, 10) : productId,
+        manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
     if (manufacturerProducts && manufacturerProducts[prodId]) {
         return manufacturerProducts[prodId];
     }
@@ -42,7 +41,7 @@ export function getProductName(manufacturerId, productId) {
  */
 export function getManufacturerAndProduct(manufacturerId, productId = /** @type {string|number|null} */ (null)) {
     const manufacturerName = getManufacturerName(manufacturerId),
-     productName = productId !== null ? getProductName(manufacturerId, productId) : null;
+        productName = productId !== null ? getProductName(manufacturerId, productId) : null;
 
     return {
         manufacturerName,
@@ -62,15 +61,14 @@ export function getManufacturerIdFromName(manufacturerName) {
 
     // Normalize the manufacturer name for comparison
     const normalizedInput = manufacturerName.toLowerCase(),
-
-    // Create common variations to check
-     variations = [
-        normalizedInput,
-        normalizedInput.replace(/([A-Z])/g, "_$1").toLowerCase(), // CamelCase to snake_case
-        normalizedInput.replace(/_/g, ""), // Remove underscores
-        normalizedInput.replace(/electronics/g, "_electronics"), // Add underscore before electronics
-        normalizedInput.replace(/electronics/g, "electronics"), // Ensure electronics is present
-    ];
+        // Create common variations to check
+        variations = [
+            normalizedInput,
+            normalizedInput.replace(/([A-Z])/g, "_$1").toLowerCase(), // CamelCase to snake_case
+            normalizedInput.replace(/_/g, ""), // Remove underscores
+            normalizedInput.replace(/electronics/g, "_electronics"), // Add underscore before electronics
+            normalizedInput.replace(/electronics/g, "electronics"), // Ensure electronics is present
+        ];
 
     // Search through all manufacturer IDs to find a match
     for (const [id, name] of Object.entries(dataAntManufacturerIDs)) {

@@ -13,29 +13,27 @@ import { throttledAnimLog } from "../../debug/lastAnimLog.js";
 
 // Animation configuration constants
 const ANIMATION_CONFIG = {
-    DURATION: {
-        DEFAULT: 1200,
-        TENSION: 1500,
-        COLORS: 1000,
+        DURATION: {
+            DEFAULT: 1200,
+            TENSION: 1500,
+            COLORS: 1000,
+        },
+        EASING: {
+            DEFAULT: "easeInOutQuart",
+            TENSION: "easeOutQuart",
+            COLORS: "easeOutQuart",
+        },
+        LINE_TENSION: {
+            FROM: 0,
+            TO: 0.4,
+        },
     },
-    EASING: {
-        DEFAULT: "easeInOutQuart",
-        TENSION: "easeOutQuart",
-        COLORS: "easeOutQuart",
+    CHART_TYPES = {
+        LINE: "line",
+        BAR: "bar",
+        DOUGHNUT: "doughnut",
     },
-    LINE_TENSION: {
-        FROM: 0,
-        TO: 0.4,
-    },
-},
-
- CHART_TYPES = {
-    LINE: "line",
-    BAR: "bar",
-    DOUGHNUT: "doughnut",
-},
-
- LOG_PREFIX = "[ChartAnimations]";
+    LOG_PREFIX = "[ChartAnimations]";
 
 /**
  * Creates progress callback for chart animations
@@ -68,7 +66,9 @@ function createCompletionCallback(type) {
  * @param {string} chartType - Type of chart (line, bar, doughnut)
  */
 function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
-    if (!chart.options || typeof chart.options !== "object") {return;}
+    if (!chart.options || typeof chart.options !== "object") {
+        return;
+    }
     if (!chart.options.animations) {
         chart.options.animations = {};
     }

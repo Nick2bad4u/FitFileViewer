@@ -154,7 +154,7 @@ export class UIStateManager {
 
         tabContents.forEach((content) => {
             const tabName = content.getAttribute("data-tab-content"),
-             isActive = tabName === activeTab;
+                isActive = tabName === activeTab;
 
             /** @type {HTMLElement} */ (content).style.display = isActive ? "block" : "none";
             content.setAttribute("aria-hidden", (!isActive).toString());
@@ -185,7 +185,7 @@ export class UIStateManager {
 
         tabButtons.forEach((button) => {
             const tabName = button.getAttribute("data-tab"),
-             isActive = tabName === activeTab;
+                isActive = tabName === activeTab;
 
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-selected", isActive.toString());
@@ -206,7 +206,7 @@ export class UIStateManager {
             // Listen for system theme changes if supported
             if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
                 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)"),
-                 systemTheme = mediaQuery.matches ? "dark" : "light";
+                    systemTheme = mediaQuery.matches ? "dark" : "light";
                 root.setAttribute("data-theme", systemTheme);
 
                 // Update on system theme change
@@ -248,7 +248,9 @@ export class UIStateManager {
         const themeButtons = (() => {
             try {
                 return /** @type {Element[]} */ (Array.from(document.querySelectorAll("[data-theme]") || []));
-            } catch { return []; }
+            } catch {
+                return [];
+            }
         })();
         themeButtons.forEach((button) => {
             const buttonTheme = button.getAttribute("data-theme");
@@ -263,8 +265,20 @@ export class UIStateManager {
      * @param {boolean} isLoading - Whether the app is loading
      */
     updateLoadingIndicator(isLoading) {
-        const loadingIndicator = (() => { try { return document.getElementById("loading-indicator"); } catch { return null; }})();
-        const mainContent = (() => { try { return document.getElementById("main-content"); } catch { return null; }})();
+        const loadingIndicator = (() => {
+            try {
+                return document.getElementById("loading-indicator");
+            } catch {
+                return null;
+            }
+        })();
+        const mainContent = (() => {
+            try {
+                return document.getElementById("main-content");
+            } catch {
+                return null;
+            }
+        })();
 
         if (loadingIndicator) {
             loadingIndicator.style.display = isLoading ? "block" : "none";
@@ -286,8 +300,20 @@ export class UIStateManager {
      * @param {boolean} isVisible - Whether controls are visible
      */
     updateChartControlsUI(isVisible) {
-        const wrapper = (() => { try { return document.getElementById("chartjs-settings-wrapper"); } catch { return null; }})();
-        const toggleBtn = (() => { try { return document.getElementById("chart-controls-toggle"); } catch { return null; }})();
+        const wrapper = (() => {
+            try {
+                return document.getElementById("chartjs-settings-wrapper");
+            } catch {
+                return null;
+            }
+        })();
+        const toggleBtn = (() => {
+            try {
+                return document.getElementById("chart-controls-toggle");
+            } catch {
+                return null;
+            }
+        })();
 
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";
@@ -303,8 +329,20 @@ export class UIStateManager {
      * @param {*} isActive - Whether measurement mode is active
      */
     updateMeasurementModeUI(isActive) {
-        const toggleBtn = (() => { try { return document.getElementById("measurement-mode-toggle"); } catch { return null; }})();
-        const mapContainer = (() => { try { return document.getElementById("map-container"); } catch { return null; }})();
+        const toggleBtn = (() => {
+            try {
+                return document.getElementById("measurement-mode-toggle");
+            } catch {
+                return null;
+            }
+        })();
+        const mapContainer = (() => {
+            try {
+                return document.getElementById("map-container");
+            } catch {
+                return null;
+            }
+        })();
 
         if (toggleBtn) {
             toggleBtn.classList.toggle("active", isActive);
@@ -369,12 +407,12 @@ export class UIStateManager {
      */
     toggleSidebar(collapsed = undefined) {
         const currentState = getState("ui.sidebarCollapsed"),
-         newState = collapsed !== undefined ? collapsed : !currentState;
+            newState = collapsed !== undefined ? collapsed : !currentState;
 
         setState("ui.sidebarCollapsed", newState, { source: "UIStateManager.toggleSidebar" });
 
         const sidebar = document.getElementById("sidebar"),
-         mainContent = document.getElementById("main-content");
+            mainContent = document.getElementById("main-content");
 
         if (sidebar) {
             sidebar.classList.toggle("collapsed", newState);

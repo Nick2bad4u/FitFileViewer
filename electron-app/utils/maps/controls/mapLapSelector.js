@@ -47,8 +47,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         !windowWithData.globalData ||
         !Array.isArray(windowWithData.globalData.lapMesgs) ||
         windowWithData.globalData.lapMesgs.length === 0
-    )
-        {return;}
+    ) {
+        return;
+    }
 
     const lapControl = document.createElement("div");
     lapControl.className = "custom-lap-control-container leaflet-bottom leaflet-left";
@@ -99,8 +100,8 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     container.appendChild(lapControl);
 
     const lapSelect = /** @type {HTMLSelectElement} */ (lapControl.querySelector("#lap-select")),
-     multiLapToggle = /** @type {HTMLButtonElement} */ (lapControl.querySelector("#multi-lap-toggle")),
-     deselectAllBtn = /** @type {HTMLButtonElement} */ (lapControl.querySelector("#deselect-all-btn"));
+        multiLapToggle = /** @type {HTMLButtonElement} */ (lapControl.querySelector("#multi-lap-toggle")),
+        deselectAllBtn = /** @type {HTMLButtonElement} */ (lapControl.querySelector("#deselect-all-btn"));
     let multiSelectMode = false;
 
     /**
@@ -126,9 +127,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
                 themeColors.accent || themeColors.primary
             }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
             </svg>`;
-        } 
-            // Inactive: single-lap mode icon (stopwatch/lap circle, primary color)
-            return `<svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
+        }
+        // Inactive: single-lap mode icon (stopwatch/lap circle, primary color)
+        return `<svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
             <circle cx="10" cy="11" r="6" fill="${themeColors.surface}" stroke="${
                 themeColors.primary
             }" stroke-width="1.5"/>
@@ -141,7 +142,6 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             }" stroke-width="1.3" stroke-linecap="round"/>
             <circle cx="10" cy="11" r="1.2" fill="${themeColors.accent || themeColors.primary}" />
             </svg>`;
-        
     }
 
     /**
@@ -156,7 +156,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             lapSelect.size = Math.min(windowWithData.globalData.lapMesgs.length + 1, 6);
             multiLapToggle?.classList.add("active");
             lapControl.classList.add("multi-select-active");
-            if (deselectAllBtn) {deselectAllBtn.style.display = "";}
+            if (deselectAllBtn) {
+                deselectAllBtn.style.display = "";
+            }
             multiLapToggle.innerHTML = getMultiLapIcon(true);
             multiLapToggle.title = "Return to single-lap mode";
         } else {
@@ -164,7 +166,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             lapSelect.size = 1;
             multiLapToggle?.classList.remove("active");
             lapControl.classList.remove("multi-select-active");
-            if (deselectAllBtn) {deselectAllBtn.style.display = "none";}
+            if (deselectAllBtn) {
+                deselectAllBtn.style.display = "none";
+            }
             multiLapToggle.innerHTML = getMultiLapIcon(false);
             multiLapToggle.title =
                 "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
@@ -181,7 +185,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
 
     if (deselectAllBtn) {
         deselectAllBtn.onclick = () => {
-            for (const opt of lapSelect.options) {opt.selected = false;}
+            for (const opt of lapSelect.options) {
+                opt.selected = false;
+            }
             lapSelect.selectedIndex = 0;
             lapSelect.dispatchEvent(new Event("change"));
         };
@@ -193,7 +199,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         let selected = Array.from(lapSelect.selectedOptions).map((/** @type {HTMLOptionElement} */ opt) => opt.value);
         if (multiSelectMode) {
             if (selected.includes("all") && selected.length > 1) {
-                for (const opt of lapSelect.options) {opt.selected = opt.value === "all";}
+                for (const opt of lapSelect.options) {
+                    opt.selected = opt.value === "all";
+                }
                 selected = ["all"];
             }
             if (!selected.length) {
@@ -206,16 +214,16 @@ export function addLapSelector(_map, container, mapDrawLaps) {
                 mapDrawLaps(selected);
             }
         } else if (selected[0] === "all") {
-                mapDrawLaps("all");
-            } else {
-                mapDrawLaps([selected[0]]);
-            }
+            mapDrawLaps("all");
+        } else {
+            mapDrawLaps([selected[0]]);
+        }
     });
 
     // Multi-lap mode: click to select/deselect laps (no hotkey needed)
     // Drag-to-select logic
     let dragSelectValue = /** @type {boolean | null} */ (null),
-     dragSelecting = false;
+        dragSelecting = false;
     lapSelect.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
         const target = /** @type {HTMLElement} */ (e.target);
         if (multiSelectMode && target && target.tagName === "OPTION") {
@@ -224,10 +232,14 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             const opt = /** @type {HTMLOptionElement} */ (target);
             dragSelectValue = !opt.selected;
             if (opt.value === "all") {
-                for (const o of lapSelect.options) {o.selected = o.value === "all";}
+                for (const o of lapSelect.options) {
+                    o.selected = o.value === "all";
+                }
             } else {
                 opt.selected = dragSelectValue;
-                if (lapSelect.options[0]) {lapSelect.options[0].selected = false;}
+                if (lapSelect.options[0]) {
+                    lapSelect.options[0].selected = false;
+                }
             }
             lapSelect.dispatchEvent(new Event("change"));
         }
@@ -238,7 +250,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             const opt = /** @type {HTMLOptionElement} */ (target);
             if (opt.value !== "all") {
                 opt.selected = /** @type {boolean} */ (dragSelectValue);
-                if (lapSelect.options[0]) {lapSelect.options[0].selected = false;}
+                if (lapSelect.options[0]) {
+                    lapSelect.options[0].selected = false;
+                }
                 lapSelect.dispatchEvent(new Event("change"));
             }
         }
@@ -256,7 +270,9 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             e.stopPropagation();
             const options = Array.from(lapSelect.options);
             let idx = lapSelect.selectedIndex;
-            if (idx === -1) {idx = 0;}
+            if (idx === -1) {
+                idx = 0;
+            }
             if (e.deltaY > 0 && idx < options.length - 1) {
                 lapSelect.selectedIndex = idx + 1;
             } else if (e.deltaY < 0 && idx > 0) {

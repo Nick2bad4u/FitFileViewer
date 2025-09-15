@@ -18,14 +18,14 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 export function addSimpleMeasureTool(map, controlsDiv) {
     /** @type {Array<{lat:number,lng:number}>} */
     let measurePoints = [],
-    /** @type {any} */
-     measureLine = null,
-    /** @type {any[]} */
-     measureMarkers = [],
-    /** @type {any} */
-     measureLabel = null,
-    /** @type {boolean} */
-     measuring = false;
+        /** @type {any} */
+        measureLine = null,
+        /** @type {any[]} */
+        measureMarkers = [],
+        /** @type {any} */
+        measureLabel = null,
+        /** @type {boolean} */
+        measuring = false;
 
     function clearMeasure() {
         measurePoints = [];
@@ -60,7 +60,9 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         if (e.key === "Escape") {
             clearMeasure();
             // Also disable measurement mode if active
-            if (measuring) {disableMeasure(measureBtnRef);}
+            if (measuring) {
+                disableMeasure(measureBtnRef);
+            }
         }
     });
 
@@ -94,17 +96,19 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         if (measurePoints.length === 2) {
             measureLine = L.polyline(measurePoints, { color: "#222", dashArray: "4,6", weight: 3 }).addTo(map);
             const p0 = measurePoints[0],
-             p1 = measurePoints[1];
+                p1 = measurePoints[1];
             // Defensive: ensure both points exist (should by length check)
-            if (!p0 || !p1) {return;}
+            if (!p0 || !p1) {
+                return;
+            }
             const dist = map.distance(p0, p1),
-             distKm = dist / 1000,
-             distMi = dist / 1609.344,
-             mid = L.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2);
+                distKm = dist / 1000,
+                distMi = dist / 1609.344,
+                mid = L.latLng((p0.lat + p1.lat) / 2, (p0.lng + p1.lng) / 2);
             measureLabel = L.marker(mid, {
                 icon: L.divIcon({
                     className: "measure-label",
-                    html: `<div class="measure-label-content">${createExitButton()}${dist >= 1000 ? `${distKm.toFixed(2)  } km` : `${dist.toFixed(1)  } m`}<br>${distMi.toFixed(2)} mi</div>`,
+                    html: `<div class="measure-label-content">${createExitButton()}${dist >= 1000 ? `${distKm.toFixed(2)} km` : `${dist.toFixed(1)} m`}<br>${distMi.toFixed(2)} mi</div>`,
                 }),
                 iconSize: [120, 38],
                 iconAnchor: [60, 19],
@@ -125,7 +129,9 @@ export function addSimpleMeasureTool(map, controlsDiv) {
      * @param {HTMLButtonElement | null | undefined} measureBtn
      */
     function enableSimpleMeasure(measureBtn) {
-        if (measuring) {return;}
+        if (measuring) {
+            return;
+        }
         measuring = true;
         map.on("click", onMapClickMeasure);
         if (measureBtn) {
@@ -137,7 +143,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
 
     // Get theme colors for button styling
     const themeColors = getThemeColors(),
-     measureBtn = document.createElement("button");
+        measureBtn = document.createElement("button");
     measureBtn.className = "map-action-btn";
     measureBtn.innerHTML = `
         <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
