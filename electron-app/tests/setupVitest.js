@@ -338,6 +338,31 @@ if (typeof window !== "undefined") {
         window.addEventListener = vi.fn();
         window.removeEventListener = vi.fn();
     }
+    // Ensure window.dispatchEvent exists for jsdom-like environments
+    if (typeof window.dispatchEvent !== 'function') {
+        try {
+            // Bind to EventTarget prototype if available
+            // @ts-ignore
+            const et = typeof EventTarget !== 'undefined' ? EventTarget.prototype.dispatchEvent : undefined;
+            if (typeof et === 'function') {
+                // @ts-ignore
+                window.dispatchEvent = /** @type {(event: Event) => boolean} */ (et.bind(window));
+            } else {
+                // Fallback no-op to avoid hard failures in tests that call dispatchEvent
+                /** @type {(event: Event) => boolean} */
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const noop = (_event) => true;
+                // @ts-ignore
+                window.dispatchEvent = noop;
+            }
+        } catch {
+            /** @type {(event: Event) => boolean} */
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const noop = (_event) => true;
+            // @ts-ignore
+            window.dispatchEvent = noop;
+        }
+    }
 }
 
 // Helper to install guards on a specific Document instance (handles reassignments)
@@ -345,121 +370,14 @@ if (typeof window !== "undefined") {
  * @param {Document} doc
  */
 function installDocumentGuards(doc) {
+    // No-op guard: avoid overriding core DOM APIs to keep JSDOM behavior intact.
     if (!doc) return;
-    // Ensure body exists
     if (!doc.body) {
         try {
             const body = doc.createElement('body');
             doc.appendChild(body);
         } catch {}
     }
-
-    // Resilient and mockable querySelectorAll wrapper for this document
-    try {
-        // Reuse previously installed wrappers to avoid creating new vi.fn per test
-        const originalQSA = doc.querySelectorAll.bind(doc);
-    const gkey = '__ffvGuards__';
-    /** @type {{ safeQSA?: any, assignedOverrideQSA?: any, safeCreate?: any, assignedOverrideCreate?: any }} */
-    const state = (/** @type {any} */(doc))[gkey] ||= {};
-        if (!state.safeQSA) {
-            /** @type {((selector: string) => any) | null} */
-            state.assignedOverrideQSA = null;
-            /**
-             * @param {string} selector
-             */
-            state.safeQSA = function safeQuerySelectorAll(selector) {
-                const assignedOverrideQSA = state.assignedOverrideQSA;
-                if (typeof assignedOverrideQSA === 'function') {
-                    try {
-                        const res = assignedOverrideQSA(selector);
-                        if (res && typeof res.length === 'number') return res;
-                        if (res && typeof res[Symbol.iterator] === 'function') return res;
-                        if (res && typeof res.forEach === 'function') return res; // NodeList-like
-                    } catch {}
-                }
-                return originalQSA(selector);
-            };
-            // minimal vi.fn-like helpers so tests can do document.querySelectorAll.mockReturnValue([...])
-            Object.defineProperties(state.safeQSA, {
-                mockReturnValue: {
-                    /** @param {any} val */
-                    value: (val) => { state.assignedOverrideQSA = () => val; return state.safeQSA; }, configurable: true
-                },
-                mockImplementation: {
-                    /** @param {any} fn */
-                    value: (fn) => { state.assignedOverrideQSA = (typeof fn === 'function') ? fn.bind(doc) : null; return state.safeQSA; }, configurable: true
-                },
-                mockClear: {
-                    value: () => { state.assignedOverrideQSA = null; return state.safeQSA; }, configurable: true
-                }
-            });
-        }
-        // Assign a setter-friendly wrapper that keeps vi.fn for tests that call .mockReturnValue
-        Object.defineProperty(doc, 'querySelectorAll', {
-            configurable: true,
-            get() { return state.safeQSA; },
-            set(fn) {
-                if (typeof fn === 'function') state.assignedOverrideQSA = fn.bind(doc);
-                else state.assignedOverrideQSA = null;
-            }
-        });
-    } catch {}
-
-    // Simplified, robust createElement wrapper for this document.
-    // Always prefer the native Document.prototype implementation and provide safe fallbacks.
-    try {
-        const nativeCreate = /** @type {any} */ ((Document && Document.prototype && typeof Document.prototype.createElement === 'function')
-            ? Document.prototype.createElement
-            : null);
-        /**
-         * @param {any} tagName
-         * @param {any} [options]
-         */
-        const safeCreate = function(tagName, options) {
-            // 1) Try the native prototype method bound to this document
-            if (nativeCreate) {
-                try {
-                    // @ts-ignore - DOM lib typings vary under Electron/JSDOM
-                    const el = nativeCreate.call(doc, tagName, options);
-                    if (el) return el;
-                } catch {}
-            }
-            // 2) Try the current document's own method (in case prototype is unavailable)
-            try {
-                // @ts-ignore - call with possible options
-                const el2 = doc.createElement(tagName, options);
-                if (el2) return el2;
-            } catch {}
-            // 3) Namespace fallback
-            try { return doc.createElementNS('http://www.w3.org/1999/xhtml', String(tagName || 'div')); } catch {}
-            // 4) Temporary document fallback
-            try {
-                const tmpDoc = (doc.implementation && typeof doc.implementation.createHTMLDocument === 'function')
-                    ? doc.implementation.createHTMLDocument('ffv-temp')
-                    : (typeof document !== 'undefined' && document.implementation && typeof document.implementation.createHTMLDocument === 'function')
-                        ? document.implementation.createHTMLDocument('ffv-temp')
-                        : null;
-                if (tmpDoc) {
-                    const tmpEl = tmpDoc.createElement(String(tagName || 'div'));
-                    try { if (typeof doc.adoptNode === 'function') return doc.adoptNode(tmpEl); } catch {}
-                    try { if (typeof doc.importNode === 'function') return doc.importNode(tmpEl, true); } catch {}
-                    return tmpEl;
-                }
-            } catch {}
-            // 5) Final absolute fallback
-            try {
-                // @ts-ignore - typings for createElement can be overly specific in Electron
-                return nativeCreate ? nativeCreate.call(doc, 'div') : document.createElement('div');
-            } catch {}
-            return /** @type {any} */ ({}); // never undefined to avoid crashes; treated as non-HTMLElement by helpers
-        };
-        // Assign directly; keep configurable so tests can stub if needed
-        Object.defineProperty(doc, 'createElement', {
-            value: /** @type {any} */ (safeCreate),
-            writable: true,
-            configurable: true
-        });
-    } catch {}
 }
 
 // Make sure JSDOM is properly initialized for tests and guards are installed
@@ -640,56 +558,109 @@ vitestAfterEach(() => {
     } catch {}
 });
 
-// --- Make virtual module tests that pass a bare vi.fn as `require` work ---
-// Some tests evaluate strings with new Function('require', ...) and pass `vi.fn` instead of a real require.
-// We capture vi.doMock calls and store their factories' return values in a registry, then return those
-// modules when such a bare vi.fn is invoked with a module ID (e.g., 'electron').
-try {
+// Intentionally avoid overriding vi.doMock or vi.fn to preserve Vitest internals and snapshot stability
+
+// ------------------------------------------------------------
+// Manual mock registry to support custom module factories that
+// use CommonJS-style `require()` inside dynamically created
+// functions (new Function('require', 'module', 'exports', ...)).
+// We capture vi.doMock factories and expose a global synchronous
+// require shim so those dynamic modules can resolve the same
+// mocked modules used by Vitest.
+// ------------------------------------------------------------
+(() => {
     /** @type {Map<string, any>} */
-    const __ffvMockRegistry = new Map();
+    const manualMockRegistry = new Map();
+    const originalDoMock = vi.doMock ? vi.doMock.bind(vi) : undefined;
+    if (originalDoMock) {
+        // Wrap vi.doMock to record factory results for direct lookup
+        // We still call through to Vitest so normal mocking works.
+        // Note: The factory is executed here to capture references to
+        // test-local mock objects.
+        // Override with a looser-typed function; cast to any to satisfy TS
+        /**
+         * @param {string} id
+         * @param {(() => any)=} factory
+         * @param {any=} options
+         */
+        /** @type {any} */
+    /** @type {(id: any, factory?: any, options?: any) => any} */
+    (vi).doMock = (id, factory, options) => {
+            try {
+                if (typeof factory === 'function') {
+                    const result = /** @type {any} */ (factory());
+                    // Prefer default export if present, else the object itself
+                    manualMockRegistry.set(String(id), result && result.default ? result.default : result);
+                }
+            } catch {
+                // Ignore factory execution errors here; Vitest will execute it later as well
+            }
+            // Call through to original doMock using appropriate arity
+            try {
+                if (typeof options !== 'undefined') {
+                    // @ts-ignore - allow 3rd arg by casting
+                    return /** @type {any} */ (originalDoMock)(id, factory, options);
+                }
+                return /** @type {any} */ (originalDoMock)(id, factory);
+            } catch {
+                return /** @type {any} */ (originalDoMock)(id, factory);
+            }
+        };
+    }
 
-    const originalDoMock = vi.doMock.bind(vi);
+    // Expose a minimal synchronous require that fetches from the registry
+    // This is used by patched dynamic modules created via new Function
+    // in certain tests (e.g., main.basic.test.ts).
     /**
-     * Override doMock while keeping Vitest's call signatures compatible.
-     * @param {string|Promise<any>} idOrPromise
-     * @param {any} [factoryOrOptions]
+     * @param {string} id
      */
-    // @ts-ignore - widen signature slightly but delegate to original to preserve behavior
-    vi.doMock = (idOrPromise, factoryOrOptions) => {
-        // Record the mock module eagerly so a later bare vi.fn('moduleId') can return it
-        try {
-            if (typeof idOrPromise === 'string' && typeof factoryOrOptions === 'function') {
-                const mod = factoryOrOptions();
-                __ffvMockRegistry.set(idOrPromise, mod);
-            }
-        } catch {}
-        // Call through to original (supports both (string, factory?) and (Promise, factory?))
-        // @ts-ignore - widen signature for runtime compatibility
-        return originalDoMock(idOrPromise, factoryOrOptions);
+    const syncRequire = (id) => {
+        return manualMockRegistry.get(String(id));
     };
+    // Make available globally
+    // @ts-ignore
+    globalThis.__vitest_manual_mocks__ = manualMockRegistry;
+    // @ts-ignore
+    globalThis.__vitest_require__ = syncRequire;
 
-    // Wrap vi.fn so returned mocks can act as a simple `require` if called with a module id string.
-    // IMPORTANT: Preserve the original mock function object so Vitest still recognizes it as a spy.
-    const originalViFn = vi.fn.bind(vi);
-    vi.fn = /** @type {typeof vi.fn} */ ((...args) => {
-        // Create the native mock function first (this is a real Vitest spy)
-        const nativeMock = originalViFn(...args);
+    // Patch global Function constructor to rewrite specific dynamic module
+    // sources so that `require('electron')` and similar calls map to our
+    // synchronous mock require above. Keep this surgical to avoid side effects
+    // and only rewrite when there is an actual manual mock registered. This
+    // prevents hijacking tests that pass a custom require implementation.
+    // eslint-disable-next-line no-new-func
+    const NativeFunction = Function;
+    // @ts-ignore
+    globalThis.Function = function (...args) {
         try {
-            // Only set a default implementation if none was provided
-            // The default impl maps string ids to modules from our registry; otherwise returns undefined
-            if (!nativeMock.getMockImplementation || !nativeMock.getMockImplementation()) {
-                // Some Vitest versions don't expose getMockImplementation; defensively set impl anyway
-                nativeMock.mockImplementation((/** @type {any[]} */ ...callArgs) => {
-                    try {
-                        const first = callArgs && callArgs[0];
-                        if (typeof first === 'string' && __ffvMockRegistry.has(first)) {
-                            return __ffvMockRegistry.get(first);
-                        }
-                    } catch {}
-                    return undefined;
-                });
+            const src = /** @type {unknown} */ (args[args.length - 1]);
+            const params = args.slice(0, -1).map(String);
+            if (typeof src === 'string' && params.length >= 1 && params[0] === 'require') {
+                // Only patch if there is a corresponding manual mock registered
+                /** @type {Map<string, any> | undefined} */
+                const reg = /** @type {any} */ (globalThis).__vitest_manual_mocks__;
+                let didPatch = false;
+                let patched = src;
+                if (reg && typeof reg.has === 'function') {
+                    if ((src.includes("require('electron')") || src.includes('require("electron")')) && reg.has('electron')) {
+                        patched = patched.replace(/require\(["']electron["']\)/g, "globalThis.__vitest_require__('electron')");
+                        didPatch = true;
+                    }
+                    if ((src.includes("require('./windowStateUtils')") || src.includes('require("./windowStateUtils")')) && reg.has('./windowStateUtils')) {
+                        patched = patched.replace(/require\(["']\.\/windowStateUtils["']\)/g, "globalThis.__vitest_require__('./windowStateUtils')");
+                        didPatch = true;
+                    }
+                }
+                if (didPatch) {
+                    const f = /** @type {any} */ (NativeFunction.apply(null, [...params, patched]));
+                    return f;
+                }
             }
-        } catch {}
-        return nativeMock;
-    });
-} catch {}
+        } catch {
+            // Fall through to native behavior on any unexpected error
+        }
+        // Default native construction
+        // @ts-ignore
+        return NativeFunction.apply(null, args);
+    };
+})();

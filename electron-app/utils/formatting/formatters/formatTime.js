@@ -56,13 +56,33 @@ export function formatTime(seconds, useUserUnits = false) {
  * @private
  */
 function formatWithUserUnits(seconds) {
-    // Prefer window.localStorage if available (jsdom/tests override window), fallback to global
+    // Prefer globalThis.localStorage to align with test stubs, then window/local fallback
     /** @type {any} */
-    const storage = (typeof window !== 'undefined' && window.localStorage) ? window.localStorage : (typeof localStorage !== 'undefined' ? localStorage : null);
-    const timeUnits = storage && typeof storage.getItem === 'function'
-        ? storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY) || TIME_UNITS.SECONDS
-        : TIME_UNITS.SECONDS;
-    const convertedValue = convertTimeUnits(seconds, timeUnits);
+    const storage = (typeof globalThis !== 'undefined' && /** @type {any} */(globalThis).localStorage)
+        || (typeof window !== 'undefined' ? /** @type {any} */(window).localStorage : undefined)
+        || (typeof localStorage !== 'undefined' ? /** @type {any} */(localStorage) : undefined);
+
+    /** @type {string} */
+    let timeUnits = TIME_UNITS.SECONDS;
+    try {
+        if (storage && typeof storage.getItem === 'function') {
+            const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
+            if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
+                timeUnits = stored;
+            }
+        }
+    } catch (e) {
+        // Tests expect failures in storage access to be handled gracefully upstream
+        throw e;
+    }
+
+    let convertedValue;
+    try {
+        convertedValue = convertTimeUnits(seconds, timeUnits);
+    } catch (e) {
+        // Propagate to top-level handler which will log and return "0:00"
+        throw e;
+    }
 
     switch (timeUnits) {
         case TIME_UNITS.HOURS:
