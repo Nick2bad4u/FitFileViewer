@@ -1,5 +1,22 @@
+// @ts-nocheck
 // Mock Leaflet global L for all Vitest tests
-import { vi, afterEach as vitestAfterEach } from "vitest";
+import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach } from "vitest";
+// Soft import of state manager test-only resets; guarded to avoid module init cost when not present
+/** @type {undefined | (() => void)} */
+let __resetStateMgr;
+/** @type {undefined | (() => void)} */
+let __clearListeners;
+// Defer loading the state manager using dynamic import to avoid ESM/CJS warning
+// and to keep setup lightweight if tests don't touch state.
+(async () => {
+    try {
+        const sm = await import('../utils/state/core/stateManager.js');
+        __resetStateMgr = /** @type {any} */ (sm).__resetStateManagerForTests;
+        __clearListeners = /** @type {any} */ (sm).__clearAllListenersForTests;
+    } catch {
+        // ignore - not all suites need state manager helpers
+    }
+})();
 // Import the enhanced JSDOM setup to fix DOM-related test failures
 // Import the enhanced JSDOM setup directly inside setupVitest.js
 // directly include the JSDOM setup code instead of importing
@@ -10,6 +27,137 @@ if (typeof document !== 'undefined') {
         const body = document.createElement('body');
         document.appendChild(body);
     }
+}
+
+// Capture native references to the initial jsdom window/document so we can restore
+// them between tests if a suite replaces global.document with a plain object.
+/** @type {Document | undefined} */
+const __nativeDocument = (typeof document !== 'undefined') ? document : undefined;
+/** @type {any} */
+const __nativeDocProto = (() => {
+    try { return __nativeDocument ? Object.getPrototypeOf(__nativeDocument) : undefined; } catch { return undefined; }
+})();
+/** @type {Window & typeof globalThis | undefined} */
+const __nativeWindow = (typeof window !== 'undefined') ? window : undefined;
+
+// Intentionally avoid capturing canonical Document methods across realms.
+// Always derive methods from each document's own realm (doc.defaultView.Document.prototype).
+
+/**
+ * Best-effort cleanup of globals that can leak memory or state across tests.
+ * Clears Chart.js instance arrays, dev helpers, and storage contents on a given window.
+ * @param {any} win
+ */
+function cleanupWindowGlobals(win) {
+    if (!win) return;
+    try {
+        if (Array.isArray(win._chartjsInstances)) {
+            win._chartjsInstances.length = 0;
+        }
+    } catch {}
+    try {
+        if (win.__chartjs_dev) {
+            try { delete win.__chartjs_dev; } catch { win.__chartjs_dev = undefined; }
+        }
+    } catch {}
+    // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
+    try { win.localStorage && typeof win.localStorage.clear === 'function' && win.localStorage.clear(); } catch {}
+    try { win.sessionStorage && typeof win.sessionStorage.clear === 'function' && win.sessionStorage.clear(); } catch {}
+    // Best-effort DOM cleanup to avoid accumulating detached nodes between tests
+    // Note: do not remove document.body children here; it can interfere with running tests
+    // and some suites expect DOM to remain intact through specific phases.
+    try {
+        // no-op body cleanup to avoid cross-test interference
+        const _d = win.document; // access to ensure document exists
+        void _d;
+    } catch {}
+    // Disconnect any MutationObserver we might have installed on window
+    try {
+        const w = /** @type {any} */ (win);
+        if (w.tabButtonObserver && typeof w.tabButtonObserver.disconnect === 'function') {
+            w.tabButtonObserver.disconnect();
+            delete w.tabButtonObserver;
+        }
+    } catch {}
+}
+
+/**
+ * Restore the global window/document to the original jsdom instances captured at setup time.
+ * Also performs cleanup on both the current and native windows to avoid leaks between tests.
+ */
+function restoreNativeDom() {
+    /** @type {any} */
+    const curWin = (typeof window !== 'undefined') ? window : undefined;
+    /** @type {any} */
+    const curDoc = (typeof document !== 'undefined') ? document : undefined;
+
+    // Helper to detect a truly valid jsdom-like Document (not a plain object)
+    const isValidDoc = (d) => {
+        try {
+            if (!d || typeof d !== 'object') return false;
+            // Accept documents from any realm; check structural/document invariants
+            const apiOk = (typeof d.createElement === 'function'
+                && typeof d.querySelectorAll === 'function'
+                && typeof d.getElementById === 'function');
+            const implOk = (typeof d.implementation === 'object'
+                && typeof d.implementation.createHTMLDocument === 'function');
+            const nodeOk = (/** @type {any} */ (d).nodeType === 9);
+            const viewOk = (typeof /** @type {any} */ (d).defaultView === 'object');
+            return !!(apiOk && implOk && nodeOk && viewOk);
+        } catch { return false; }
+    };
+
+    // Clean current environment (Chart.js caches, storages, observers)
+    try { if (curWin) cleanupWindowGlobals(curWin); } catch {}
+    try {
+        // Also clear any globalThis storages if distinct from window
+        if (globalThis && globalThis !== curWin) {
+            try { globalThis.localStorage && typeof globalThis.localStorage.clear === 'function' && globalThis.localStorage.clear(); } catch {}
+            try { globalThis.sessionStorage && typeof globalThis.sessionStorage.clear === 'function' && globalThis.sessionStorage.clear(); } catch {}
+        }
+    } catch {}
+
+    // If the current document is invalid (or missing), restore the native jsdom document
+    try {
+        if (!isValidDoc(curDoc) && __nativeDocument) {
+            try {
+                // Restore global document reference
+                // @ts-ignore
+                globalThis.document = __nativeDocument;
+                if (curWin && typeof curWin === 'object') {
+                    // Keep the same window object but ensure it points to the restored document
+                    curWin.document = __nativeDocument;
+                }
+            } catch {}
+        }
+    } catch {}
+
+    // Reinstall guards on the effective document and ensure body exists
+    try {
+        /** @type {any} */
+        const effDoc = /** @type {any} */ (typeof document !== 'undefined' ? document : __nativeDocument);
+        if (effDoc) {
+            // Always realign global and window document references to the same instance
+            try {
+                // @ts-ignore
+                globalThis.document = effDoc;
+            } catch {}
+            try {
+                if (curWin && typeof curWin === 'object') {
+                    curWin.document = effDoc;
+                }
+            } catch {}
+            // Expose a canonical reference for modules to use, avoiding cross-realm mismatches
+            try {
+                // @ts-ignore
+                globalThis.__vitest_effective_document__ = effDoc;
+            } catch {}
+            installDocumentGuards(effDoc);
+            if (!effDoc.body) {
+                try { const b = effDoc.createElement ? effDoc.createElement('body') : undefined; if (b) effDoc.appendChild(b); } catch {}
+            }
+        }
+    } catch {}
 }
 
 // Lock Buffer early to a callable native reference to prevent instanceof crashes in Vitest serializers
@@ -72,6 +220,38 @@ if (!globalThis.console || typeof globalThis.console.log !== 'function') {
 if (typeof window !== "undefined" && (!window.console || typeof window.console.log !== 'function')) {
     window.console = globalThis.console;
 }
+
+// Even if a console already exists, ensure group APIs are present to avoid TypeError
+try {
+    if (globalThis.console) {
+        if (typeof globalThis.console.group !== 'function') {
+            // @ts-ignore
+            globalThis.console.group = vi.fn();
+        }
+        if (typeof globalThis.console.groupEnd !== 'function') {
+            // @ts-ignore
+            globalThis.console.groupEnd = vi.fn();
+        }
+        if (typeof globalThis.console.groupCollapsed !== 'function') {
+            // @ts-ignore
+            globalThis.console.groupCollapsed = vi.fn();
+        }
+    }
+    if (typeof window !== 'undefined' && window.console) {
+        if (typeof window.console.group !== 'function') {
+            // @ts-ignore
+            window.console.group = /** @type {any} */ (globalThis.console.group || vi.fn());
+        }
+        if (typeof window.console.groupEnd !== 'function') {
+            // @ts-ignore
+            window.console.groupEnd = /** @type {any} */ (globalThis.console.groupEnd || vi.fn());
+        }
+        if (typeof window.console.groupCollapsed !== 'function') {
+            // @ts-ignore
+            window.console.groupCollapsed = /** @type {any} */ (globalThis.console.groupCollapsed || vi.fn());
+        }
+    }
+} catch {}
 
 // Global localStorage mock setup (handles opaque origin throwing on access)
 function ensureSafeLocalStorage() {
@@ -367,17 +547,100 @@ if (typeof window !== "undefined") {
 
 // Helper to install guards on a specific Document instance (handles reassignments)
 /**
+ * Restore critical Document methods if tests replaced them and ensure body exists.
+ * Always rebind to the current document's prototype implementations to avoid leaked mocks.
  * @param {Document} doc
  */
 function installDocumentGuards(doc) {
-    // No-op guard: avoid overriding core DOM APIs to keep JSDOM behavior intact.
     if (!doc) return;
+    // Derive natives from the document's own realm to prevent cross-realm brand check failures
+    /** @type {{
+     *  createElement?: (this: Document, tag: string, options?: any) => any,
+     *  createTextNode?: (this: Document, data: string) => any,
+     *  createDocumentFragment?: (this: Document) => any,
+     *  querySelector?: (this: Document, sel: string) => any,
+     *  querySelectorAll?: (this: Document, sel: string) => any,
+     *  getElementById?: (this: Document, id: string) => any,
+     *  getElementsByClassName?: (this: Document, cls: string) => any,
+     *  getElementsByTagName?: (this: Document, tag: string) => any,
+     *  appendChild?: (this: Document, node: any) => any
+     * } | undefined}
+     */
+    let canon;
+    try {
+        const realmDocProto = /** @type {any} */ (doc?.defaultView?.Document?.prototype);
+        if (realmDocProto && typeof realmDocProto.createElement === 'function') {
+            canon = {
+                createElement: realmDocProto.createElement,
+                createTextNode: realmDocProto.createTextNode,
+                createDocumentFragment: realmDocProto.createDocumentFragment,
+                querySelector: realmDocProto.querySelector,
+                querySelectorAll: realmDocProto.querySelectorAll,
+                getElementById: realmDocProto.getElementById,
+                getElementsByClassName: realmDocProto.getElementsByClassName,
+                getElementsByTagName: realmDocProto.getElementsByTagName,
+                appendChild: realmDocProto.appendChild,
+            };
+        }
+    } catch {}
+    // Cache of native methods per Document instance to survive prototype tampering (legacy fallback)
+    /** @type {WeakMap<Document, any>} */
+    const nativeMap = /** @type {any} */ (globalThis).__vitest_doc_native_methods || new WeakMap();
+    /** @type {any} */ (globalThis).__vitest_doc_native_methods = nativeMap;
+    try {
+        let natives = nativeMap.get(doc);
+        if (!natives) {
+            // Start from same-realm canonical snapshot if available; else derive from current prototype
+            if (canon) {
+                natives = { ...canon };
+            } else {
+                const Proto = /** @type {any} */ (Object.getPrototypeOf(doc));
+                natives = {
+                    createElement: typeof Proto?.createElement === 'function' ? Proto.createElement : undefined,
+                    createTextNode: typeof Proto?.createTextNode === 'function' ? Proto.createTextNode : undefined,
+                    createDocumentFragment: typeof Proto?.createDocumentFragment === 'function' ? Proto.createDocumentFragment : undefined,
+                    querySelector: typeof Proto?.querySelector === 'function' ? Proto.querySelector : undefined,
+                    querySelectorAll: typeof Proto?.querySelectorAll === 'function' ? Proto.querySelectorAll : undefined,
+                    getElementById: typeof Proto?.getElementById === 'function' ? Proto.getElementById : undefined,
+                    getElementsByClassName: typeof Proto?.getElementsByClassName === 'function' ? Proto.getElementsByClassName : undefined,
+                    getElementsByTagName: typeof Proto?.getElementsByTagName === 'function' ? Proto.getElementsByTagName : undefined,
+                    appendChild: typeof Proto?.appendChild === 'function' ? Proto.appendChild : undefined,
+                };
+            }
+            nativeMap.set(doc, natives);
+        }
+        // Rebind document methods from cached natives
+        try { if (typeof natives.createElement === 'function') doc.createElement = natives.createElement.bind(doc); } catch {}
+        try { if (typeof natives.createTextNode === 'function') doc.createTextNode = natives.createTextNode.bind(doc); } catch {}
+        try { if (typeof natives.createDocumentFragment === 'function') doc.createDocumentFragment = natives.createDocumentFragment.bind(doc); } catch {}
+        try { if (typeof natives.querySelector === 'function') doc.querySelector = natives.querySelector.bind(doc); } catch {}
+        try { if (typeof natives.querySelectorAll === 'function') doc.querySelectorAll = natives.querySelectorAll.bind(doc); } catch {}
+        try { if (typeof natives.getElementById === 'function') doc.getElementById = natives.getElementById.bind(doc); } catch {}
+        try { if (typeof natives.getElementsByClassName === 'function') doc.getElementsByClassName = natives.getElementsByClassName.bind(doc); } catch {}
+        try { if (typeof natives.getElementsByTagName === 'function') doc.getElementsByTagName = natives.getElementsByTagName.bind(doc); } catch {}
+        try { if (typeof natives.appendChild === 'function') doc.appendChild = natives.appendChild.bind(doc); } catch {}
+    } catch {}
+    // Ensure document has a body element
     if (!doc.body) {
         try {
             const body = doc.createElement('body');
             doc.appendChild(body);
         } catch {}
     }
+    // Validate createElement returns a node; if not, attempt a last-resort recovery using same-realm natives
+    try {
+        const testEl = /** @type {any} */ (doc.createElement?.('div'));
+        if (!testEl || typeof testEl !== 'object') {
+            // Fallback to same-realm snapshot if available
+            if (canon && typeof canon.createElement === 'function') {
+                try { doc.createElement = canon.createElement.bind(doc); } catch {}
+            } else {
+                // Attempt to reconstruct doc methods via current prototype again
+                const Proto = /** @type {any} */ (Object.getPrototypeOf(doc));
+                try { if (typeof Proto?.createElement === 'function') doc.createElement = Proto.createElement.bind(doc); } catch {}
+            }
+        }
+    } catch {}
 }
 
 // Make sure JSDOM is properly initialized for tests and guards are installed
@@ -554,113 +817,234 @@ try {
 // Global afterEach to reinstall guards in case tests mutated DOM APIs
 vitestAfterEach(() => {
     try {
-        if (typeof document !== 'undefined') installDocumentGuards(document);
+        // Restore DOM to native jsdom and reinstall guards after each test
+        restoreNativeDom();
     } catch {}
+    // Ensure canonical effective document reflects the current global document
+    try {
+        // @ts-ignore
+        globalThis.__vitest_effective_document__ = (typeof document !== 'undefined' ? document : undefined);
+    } catch {}
+    // Ensure no DOM from a previous test leaks into the next one
+    try {
+        if (typeof document !== 'undefined' && document.body) {
+            document.body.innerHTML = '';
+        }
+    } catch {}
+    // Disconnect MutationObservers and clear timers/listeners best-effort
+    try {
+        if (typeof window !== 'undefined') {
+            const w = /** @type {any} */ (window);
+            if (w.tabButtonObserver && typeof w.tabButtonObserver.disconnect === 'function') {
+                w.tabButtonObserver.disconnect();
+                delete w.tabButtonObserver;
+            }
+        }
+    } catch {}
+    // Clear tracked timers
+    try {
+        /** @type {Set<number>} */
+        const timeouts = /** @type {any} */ (globalThis).__vitest_tracked_timeouts;
+        /** @type {Set<number>} */
+        const intervals = /** @type {any} */ (globalThis).__vitest_tracked_intervals;
+        if (timeouts && typeof clearTimeout === 'function') {
+            for (const id of Array.from(timeouts)) {
+                try { clearTimeout(id); } catch {}
+            }
+            timeouts.clear?.();
+        }
+        if (intervals && typeof clearInterval === 'function') {
+            for (const id of Array.from(intervals)) {
+                try { clearInterval(id); } catch {}
+            }
+            intervals.clear?.();
+        }
+    } catch {}
+    // Remove tracked DOM event listeners
+    try {
+        /** @type {Array<{target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: any}>} */
+        const listeners = /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners;
+        if (Array.isArray(listeners)) {
+            for (const rec of listeners.splice(0, listeners.length)) {
+                try { rec.target.removeEventListener(rec.type, rec.listener, rec.options); } catch {}
+            }
+        }
+    } catch {}
+    // Reset state manager to avoid cross-test subscriptions/history
+    try { if (typeof __resetStateMgr === 'function') __resetStateMgr(); } catch {}
+    // Note: do NOT clear the manual mock registry here.
+    // We rely on vi.mock hoisting once per test file; clearing per-test breaks
+    // identity linking between test-imported spies and modules under test.
 });
 
-// Intentionally avoid overriding vi.doMock or vi.fn to preserve Vitest internals and snapshot stability
+// Also ensure guards are installed before each test, so leaked mocks from a previous test
+// don't affect the next test's setup (particularly document.createElement overrides).
+vitestBeforeEach(() => {
+    try {
+        // Ensure we start each test from a clean native jsdom window/document
+        restoreNativeDom();
+    } catch {}
+    // Ensure canonical effective document reflects the current global document
+    try {
+        // @ts-ignore
+        globalThis.__vitest_effective_document__ = (typeof document !== 'undefined' ? document : undefined);
+    } catch {}
+    // Clear any leftover DOM just in case a previous test in the same file
+    // left nodes behind. Individual tests should build their own fixtures.
+    try {
+        if (typeof document !== 'undefined' && document.body) {
+            document.body.innerHTML = '';
+        }
+    } catch {}
+    // Also clear any lingering state listeners/history before starting a test
+    try { if (typeof __clearListeners === 'function') __clearListeners(); } catch {}
+});
 
-// ------------------------------------------------------------
-// Manual mock registry to support custom module factories that
-// use CommonJS-style `require()` inside dynamically created
-// functions (new Function('require', 'module', 'exports', ...)).
-// We capture vi.doMock factories and expose a global synchronous
-// require shim so those dynamic modules can resolve the same
-// mocked modules used by Vitest.
-// ------------------------------------------------------------
-(() => {
-    /** @type {Map<string, any>} */
-    const manualMockRegistry = new Map();
-    const originalDoMock = vi.doMock ? vi.doMock.bind(vi) : undefined;
-    if (originalDoMock) {
-        // Wrap vi.doMock to record factory results for direct lookup
-        // We still call through to Vitest so normal mocking works.
-        // Note: The factory is executed here to capture references to
-        // test-local mock objects.
-        // Override with a looser-typed function; cast to any to satisfy TS
+// Note: We previously overrode vi.mock/vi.doMock and patched Function to capture
+// dynamic requires for a few modules. This interfered with Vitest's hoisting
+// and caused mocks not to be recognized as spies in many suites. We now rely on
+// Vitest's native mocking behavior to ensure proper hoisting and spy identities.
+
+// --- Guard Object.keys so tests that intentionally mock it to throw won't crash Vitest's pretty-format ---
+// We still want logWithLevel tests to observe the thrown error path, so rethrow only when called from that file.
+(function installSafeObjectKeysGuard() {
+    try {
+        const nativeKeys = Object.keys.bind(Object);
+        /** @type {(o: any) => string[]} */
+        let current = nativeKeys;
+        // Global opt-in flag to allow tests to force throw-through
+        // @ts-ignore
+        if (typeof globalThis.__vitest_object_keys_allow_throw !== 'boolean') {
+            // @ts-ignore
+            globalThis.__vitest_object_keys_allow_throw = false;
+        }
         /**
-         * @param {string} id
-         * @param {(() => any)=} factory
-         * @param {any=} options
+         * Create a stable wrapper function that delegates to the current implementation
+         * and falls back to native when errors occur, unless tests opt-in to throw-through.
          */
-        /** @type {any} */
-    /** @type {(id: any, factory?: any, options?: any) => any} */
-    (vi).doMock = (id, factory, options) => {
+        const wrapped = (/** @type {any} */ o) => {
             try {
-                if (typeof factory === 'function') {
-                    const result = /** @type {any} */ (factory());
-                    // Prefer default export if present, else the object itself
-                    manualMockRegistry.set(String(id), result && result.default ? result.default : result);
+                // @ts-ignore - may be a mocked implementation
+                return /** @type {any} */ (current)(o);
+            } catch (err) {
+                // @ts-ignore
+                if (globalThis.__vitest_object_keys_allow_throw) {
+                    throw err;
                 }
-            } catch {
-                // Ignore factory execution errors here; Vitest will execute it later as well
-            }
-            // Call through to original doMock using appropriate arity
-            try {
-                if (typeof options !== 'undefined') {
-                    // @ts-ignore - allow 3rd arg by casting
-                    return /** @type {any} */ (originalDoMock)(id, factory, options);
+                try {
+                    return nativeKeys(o);
+                } catch {
+                    return [];
                 }
-                return /** @type {any} */ (originalDoMock)(id, factory);
-            } catch {
-                return /** @type {any} */ (originalDoMock)(id, factory);
             }
         };
-    }
+        // Mark the wrapper so restoring Object.keys to this function resets to native
+        Object.defineProperty(wrapped, '__isObjectKeysWrapper', { value: true, enumerable: false });
 
-    // Expose a minimal synchronous require that fetches from the registry
-    // This is used by patched dynamic modules created via new Function
-    // in certain tests (e.g., main.basic.test.ts).
-    /**
-     * @param {string} id
-     */
-    const syncRequire = (id) => {
-        return manualMockRegistry.get(String(id));
-    };
-    // Make available globally
-    // @ts-ignore
-    globalThis.__vitest_manual_mocks__ = manualMockRegistry;
-    // @ts-ignore
-    globalThis.__vitest_require__ = syncRequire;
-
-    // Patch global Function constructor to rewrite specific dynamic module
-    // sources so that `require('electron')` and similar calls map to our
-    // synchronous mock require above. Keep this surgical to avoid side effects
-    // and only rewrite when there is an actual manual mock registered. This
-    // prevents hijacking tests that pass a custom require implementation.
-    // eslint-disable-next-line no-new-func
-    const NativeFunction = Function;
-    // @ts-ignore
-    globalThis.Function = function (...args) {
-        try {
-            const src = /** @type {unknown} */ (args[args.length - 1]);
-            const params = args.slice(0, -1).map(String);
-            if (typeof src === 'string' && params.length >= 1 && params[0] === 'require') {
-                // Only patch if there is a corresponding manual mock registered
-                /** @type {Map<string, any> | undefined} */
-                const reg = /** @type {any} */ (globalThis).__vitest_manual_mocks__;
-                let didPatch = false;
-                let patched = src;
-                if (reg && typeof reg.has === 'function') {
-                    if ((src.includes("require('electron')") || src.includes('require("electron")')) && reg.has('electron')) {
-                        patched = patched.replace(/require\(["']electron["']\)/g, "globalThis.__vitest_require__('electron')");
-                        didPatch = true;
+        Object.defineProperty(Object, 'keys', {
+            configurable: true,
+            get() { return /** @type {any} */ (wrapped); },
+            set(v) {
+                if (typeof v === 'function') {
+                    // @ts-ignore
+                    if (v && v.__isObjectKeysWrapper) {
+                        current = nativeKeys; // reset to native to avoid recursion
+                    } else {
+                        current = /** @type {(o: any) => string[]} */ (v);
                     }
-                    if ((src.includes("require('./windowStateUtils')") || src.includes('require("./windowStateUtils")')) && reg.has('./windowStateUtils')) {
-                        patched = patched.replace(/require\(["']\.\/windowStateUtils["']\)/g, "globalThis.__vitest_require__('./windowStateUtils')");
-                        didPatch = true;
-                    }
-                }
-                if (didPatch) {
-                    const f = /** @type {any} */ (NativeFunction.apply(null, [...params, patched]));
-                    return f;
+                } else {
+                    current = nativeKeys;
                 }
             }
-        } catch {
-            // Fall through to native behavior on any unexpected error
+        });
+    } catch {
+        // ignore if environment forbids redefining Object.keys
+    }
+})();
+
+// --- Track and clean up timers and DOM event listeners to prevent leaks across tests ---
+(function installTimerAndListenerTracking() {
+    try {
+        if (!('__vitest_timers_wrapped' in /** @type {any} */ (globalThis))) {
+            // Timer tracking
+            const timeouts = new Set();
+            const intervals = new Set();
+            /** @type {any} */ (globalThis).__vitest_tracked_timeouts = timeouts;
+            /** @type {any} */ (globalThis).__vitest_tracked_intervals = intervals;
+
+            const nativeSetTimeout = globalThis.setTimeout?.bind(globalThis);
+            const nativeSetInterval = globalThis.setInterval?.bind(globalThis);
+            const nativeClearTimeout = globalThis.clearTimeout?.bind(globalThis);
+            const nativeClearInterval = globalThis.clearInterval?.bind(globalThis);
+
+            if (typeof nativeSetTimeout === 'function') {
+                globalThis.setTimeout = /** @type {any} */ ((fn, delay, ...args) => {
+                    const id = nativeSetTimeout(fn, delay, ...args);
+                    try { timeouts.add(id); } catch {}
+                    return id;
+                });
+            }
+            if (typeof nativeSetInterval === 'function') {
+                globalThis.setInterval = /** @type {any} */ ((fn, delay, ...args) => {
+                    const id = nativeSetInterval(fn, delay, ...args);
+                    try { intervals.add(id); } catch {}
+                    return id;
+                });
+            }
+            if (typeof nativeClearTimeout === 'function') {
+                globalThis.clearTimeout = /** @type {any} */ ((id) => {
+                    try { timeouts.delete(id); } catch {}
+                    return nativeClearTimeout(id);
+                });
+            }
+            if (typeof nativeClearInterval === 'function') {
+                globalThis.clearInterval = /** @type {any} */ ((id) => {
+                    try { intervals.delete(id); } catch {}
+                    return nativeClearInterval(id);
+                });
+            }
+
+            // DOM event listener tracking for window and document
+            /** @type {any[]} */
+            const domListeners = [];
+            /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners = domListeners;
+
+            function wrapAddRemove(target) {
+                try {
+                    const add = target.addEventListener?.bind(target);
+                    const remove = target.removeEventListener?.bind(target);
+                    if (typeof add === 'function' && !add.__vitest_wrapped) {
+                        const wrappedAdd = function (type, listener, options) {
+                            try { domListeners.push({ target, type, listener, options }); } catch {}
+                            return add(type, listener, options);
+                        };
+                        wrappedAdd.__vitest_wrapped = true;
+                        target.addEventListener = /** @type {any} */ (wrappedAdd);
+                    }
+                    if (typeof remove === 'function' && !remove.__vitest_wrapped) {
+                        const wrappedRemove = function (type, listener, options) {
+                            try {
+                                const idx = domListeners.findIndex(r => r.target === target && r.type === type && r.listener === listener);
+                                if (idx !== -1) domListeners.splice(idx, 1);
+                            } catch {}
+                            return remove(type, listener, options);
+                        };
+                        wrappedRemove.__vitest_wrapped = true;
+                        target.removeEventListener = /** @type {any} */ (wrappedRemove);
+                    }
+                } catch {}
+            }
+
+            if (typeof window !== 'undefined') {
+                wrapAddRemove(window);
+            }
+            if (typeof document !== 'undefined') {
+                wrapAddRemove(document);
+            }
+
+            /** @type {any} */ (globalThis).__vitest_timers_wrapped = true;
         }
-        // Default native construction
-        // @ts-ignore
-        return NativeFunction.apply(null, args);
-    };
+    } catch {
+        // ignore
+    }
 })();

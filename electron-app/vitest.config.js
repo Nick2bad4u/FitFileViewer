@@ -13,7 +13,10 @@ export default defineConfig({
         pool: "forks",
         poolOptions: {
             forks: {
-                singleFork: true
+                // Avoid running the entire suite in a single process to prevent
+                // cumulative memory growth across all test files. Allow Vitest
+                // to spin up a small pool of forked workers instead.
+                singleFork: false
             }
         },
         globals: true,

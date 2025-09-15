@@ -56,23 +56,33 @@ export function formatTime(seconds, useUserUnits = false) {
  * @private
  */
 function formatWithUserUnits(seconds) {
-    // Prefer globalThis.localStorage to align with test stubs, then window/local fallback
+    // Attempt to read from multiple storage locations to honor whichever
+    // the runtime/tests have stubbed. Prefer globalThis, then window, then bare localStorage.
     /** @type {any} */
-    const storage = (typeof globalThis !== 'undefined' && /** @type {any} */(globalThis).localStorage)
-        || (typeof window !== 'undefined' ? /** @type {any} */(window).localStorage : undefined)
-        || (typeof localStorage !== 'undefined' ? /** @type {any} */(localStorage) : undefined);
+    const storages = [];
+    try { if (typeof globalThis !== 'undefined' && /** @type {any} */(globalThis).localStorage) storages.push(/** @type {any} */(globalThis).localStorage); } catch {}
+    try { if (typeof window !== 'undefined' && /** @type {any} */(window).localStorage) storages.push(/** @type {any} */(window).localStorage); } catch {}
+    try { if (typeof localStorage !== 'undefined') storages.push(/** @type {any} */(localStorage)); } catch {}
 
     /** @type {string} */
     let timeUnits = TIME_UNITS.SECONDS;
     try {
-        if (storage && typeof storage.getItem === 'function') {
-            const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
-            if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
-                timeUnits = stored;
+        for (const storage of storages) {
+            try {
+                if (storage && typeof storage.getItem === 'function') {
+                    const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
+                    if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
+                        timeUnits = stored;
+                        break;
+                    }
+                }
+            } catch (e) {
+                // Surface storage access errors to the top-level handler for logging
+                throw e;
             }
         }
     } catch (e) {
-        // Tests expect failures in storage access to be handled gracefully upstream
+        // Propagate to top-level handler which will log and return "0:00"
         throw e;
     }
 

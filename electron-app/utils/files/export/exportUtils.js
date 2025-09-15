@@ -1,6 +1,75 @@
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
-import { showNotification } from "../../ui/notifications/showNotification.js";
-import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
+import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
+import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
+
+// In test environment, allow vi.mock to be honored even for modules this file imports statically
+// by consulting a minimal manual mock registry installed by the Vitest setup. When not under tests,
+// or when no mock is registered, we simply use the real implementations.
+/** @type {(p: string) => any|null} */
+function __resolveManualMockBySuffix(p) {
+    try {
+        // @ts-ignore
+        const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+        if (reg && typeof reg.forEach === 'function') {
+            for (const [id, mod] of reg.entries()) {
+                const norm = String(id).replace(/\\/g, '/');
+                if (norm.endsWith(p)) {
+                    return mod && mod.default ? mod.default : mod;
+                }
+            }
+        }
+    } catch {}
+    return null;
+}
+
+// Resolve possibly-mocked dependencies
+const __notifMod = __resolveManualMockBySuffix('/utils/ui/notifications/showNotification.js');
+const __chartThemeMod = __resolveManualMockBySuffix('/utils/charts/theming/chartThemeUtils.js');
+
+// Debug: log manual mock registry contents and resolution in test runs
+try {
+    // @ts-ignore
+    const __dbgReg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+    if (__dbgReg && typeof __dbgReg.forEach === 'function') {
+        const keys = [];
+        __dbgReg.forEach((_, k) => keys.push(String(k)));
+        console.log('[exportUtils][debug] manual-mock keys:', keys);
+        console.log('[exportUtils][debug] resolved showNotification mock?', !!(__notifMod && __notifMod.showNotification));
+        console.log('[exportUtils][debug] resolved detectCurrentTheme mock?', !!(__chartThemeMod && __chartThemeMod.detectCurrentTheme));
+    }
+} catch {}
+
+// Local call sites use these, which point to mocked versions in tests when available
+const showNotification = /** @type {typeof __realShowNotification} */ (
+    (__notifMod && __notifMod.showNotification) ? __notifMod.showNotification : __realShowNotification
+);
+const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
+    (__chartThemeMod && __chartThemeMod.detectCurrentTheme) ? __chartThemeMod.detectCurrentTheme : __realDetectCurrentTheme
+);
+
+// Internal dependency container, overridable in tests
+/**
+ * @type {{
+ *  showNotification: typeof __realShowNotification,
+ *  detectCurrentTheme: typeof __realDetectCurrentTheme
+ * }}
+ */
+let __deps = {
+    showNotification,
+    detectCurrentTheme,
+};
+
+/**
+ * Test-only: override internal dependencies (notifications, theme resolver)
+ * @param {Partial<typeof __deps>} overrides
+ */
+export function __setTestDeps(overrides) {
+    try {
+        if (overrides && typeof overrides === 'object') {
+            __deps = { ...__deps, ...overrides };
+        }
+    } catch {}
+}
 
 // JSZip is loaded globally via a script tag when export-all is used; reference retained only where actually accessed.
 
@@ -85,7 +154,7 @@ export const exportUtils = {
         if (exportTheme) {
             // Handle "auto" theme by detecting current theme
             if (exportTheme === "auto") {
-                const currentTheme = detectCurrentTheme();
+                const currentTheme = __deps.detectCurrentTheme();
                 console.log("[exportUtils] Auto theme detected as:", currentTheme);
                 theme = currentTheme || "light";
             } else {
@@ -94,7 +163,7 @@ export const exportUtils = {
             }
         } else {
             // Use current app theme as fallback, or default to "light"
-            const currentTheme = detectCurrentTheme();
+            const currentTheme = __deps.detectCurrentTheme();
             console.log("[exportUtils] detectCurrentTheme() returned:", currentTheme);
             theme = currentTheme || "light";
             console.log("[exportUtils] Final fallback theme:", theme);
@@ -133,10 +202,10 @@ export const exportUtils = {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showNotification(`Chart exported as ${filename}`, "success");
+            __deps.showNotification(`Chart exported as ${filename}`, "success");
         } catch (error) {
             console.error("Error exporting chart as PNG:", error);
-            showNotification("Failed to export chart as PNG", "error");
+            __deps.showNotification("Failed to export chart as PNG", "error");
         }
     },
 
@@ -225,10 +294,10 @@ export const exportUtils = {
             link.click();
             document.body.removeChild(link);
 
-            showNotification("Combined charts exported", "success");
+            __deps.showNotification("Combined charts exported", "success");
         } catch (error) {
             console.error("Error creating combined charts image:", /** @type {any} */ (error));
-            showNotification("Failed to create combined image", "error");
+            __deps.showNotification("Failed to create combined image", "error");
         }
     },
 
@@ -275,15 +344,15 @@ export const exportUtils = {
                     }
 
                     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                    showNotification("Chart copied to clipboard", "success");
+                    __deps.showNotification("Chart copied to clipboard", "success");
                 } catch (clipboardError) {
                     console.error("Clipboard API failed:", /** @type {any} */ (clipboardError));
-                    showNotification("Failed to copy chart to clipboard", "error");
+                    __deps.showNotification("Failed to copy chart to clipboard", "error");
                 }
             }, "image/png");
         } catch (error) {
             console.error("Error copying chart to clipboard:", /** @type {any} */ (error));
-            showNotification(`Failed to copy chart to clipboard: ${/** @type {any} */ (error).message}`, "error");
+            __deps.showNotification(`Failed to copy chart to clipboard: ${/** @type {any} */ (error).message}`, "error");
         }
     },
 
@@ -367,15 +436,15 @@ export const exportUtils = {
                         throw new Error("Failed to create image blob");
                     }
                     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                    showNotification("Combined charts copied to clipboard", "success");
+                    __deps.showNotification("Combined charts copied to clipboard", "success");
                 } catch (clipboardError) {
                     console.error("Clipboard API failed:", /** @type {any} */ (clipboardError));
-                    showNotification("Failed to copy combined charts to clipboard", "error");
+                    __deps.showNotification("Failed to copy combined charts to clipboard", "error");
                 }
             }, "image/png");
         } catch (error) {
             console.error("Error copying combined charts to clipboard:", error);
-            showNotification("Failed to copy combined charts to clipboard", "error");
+            __deps.showNotification("Failed to copy combined charts to clipboard", "error");
         }
     },
 

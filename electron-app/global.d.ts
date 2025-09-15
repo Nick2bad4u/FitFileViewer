@@ -82,6 +82,10 @@ interface ElectronAPI {
 }
 
 declare global {
+    /** Canonical document reference provided by the Vitest setup harness */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    var __vitest_effective_document__: any | undefined;
+
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
         electronAPI: ElectronAPI & { _summaryColListenerAdded?: boolean; __devMode?: boolean };

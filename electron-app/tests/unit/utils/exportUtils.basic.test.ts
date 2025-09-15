@@ -1,7 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { JSDOM } from 'jsdom';
-
-// Mock the dependencies that are imported
+// Hoist mocks BEFORE any imports so Vitest applies them to static imports
+// Use global `vi` (globals enabled) to avoid needing the import first
 vi.mock('../../../utils/ui/components/createSettingsHeader.js', () => ({
     showChartSelectionModal: vi.fn()
 }));
@@ -14,13 +12,12 @@ vi.mock('../../../utils/charts/theming/chartThemeUtils.js', () => ({
     detectCurrentTheme: vi.fn(() => 'light')
 }));
 
-// Import the mocked functions
-import { showNotification } from '../../../utils/ui/notifications/showNotification.js';
-import { detectCurrentTheme } from '../../../utils/charts/theming/chartThemeUtils.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { JSDOM } from 'jsdom';
 
-// Get the mocked functions
-const mockShowNotification = vi.mocked(showNotification);
-const mockDetectCurrentTheme = vi.mocked(detectCurrentTheme);
+// Import modules as namespaces to allow spying regardless of mock wiring
+import * as Notifications from '../../../utils/ui/notifications/showNotification.js';
+import * as ThemeUtils from '../../../utils/charts/theming/chartThemeUtils.js';
 
 // Mock localStorage
 const localStorageMock = {
@@ -66,6 +63,8 @@ describe('exportUtils.js - Basic Test Coverage', () => {
     let mockChart: any;
     let mockCanvas: any;
     let mockContext: any;
+    let notifySpy: any;
+    let detectThemeSpy: any;
 
     beforeEach(async () => {
         // Clear all mocks
@@ -75,6 +74,15 @@ describe('exportUtils.js - Basic Test Coverage', () => {
         // Import the module after mocks are set up
         const module = await import('../../../utils/files/export/exportUtils.js');
         exportUtils = module.exportUtils;
+        // Fresh spies each test; defaults: detectTheme -> 'light'
+        notifySpy = vi.fn(async () => undefined);
+        detectThemeSpy = vi.fn(() => 'light');
+        if (typeof module.__setTestDeps === 'function') {
+            module.__setTestDeps({
+                showNotification: notifySpy,
+                detectCurrentTheme: detectThemeSpy,
+            });
+        }
 
         // Create mock chart and canvas with proper width/height tracking
         let canvasWidth = 800;
@@ -203,7 +211,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
         it('should handle auto theme by detecting current theme', () => {
             localStorageMock.getItem.mockReturnValue('auto');
-            mockDetectCurrentTheme.mockReturnValue('dark');
+            detectThemeSpy.mockReturnValue('dark');
 
             const result = exportUtils.getExportThemeBackground();
             expect(result).toBe('#1a1a1a');
@@ -211,7 +219,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
         it('should handle auto theme correctly by using detectCurrentTheme result', () => {
             localStorageMock.getItem.mockReturnValue('auto');
-            mockDetectCurrentTheme.mockReturnValue('light');
+            detectThemeSpy.mockReturnValue('light');
 
             const result = exportUtils.getExportThemeBackground();
             expect(result).toBe('#ffffff');
@@ -265,7 +273,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.downloadChartAsPNG(mockChart);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to export chart as PNG', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to export chart as PNG', 'error');
         });
     });
 
@@ -275,7 +283,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.createCombinedChartsImage([]);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to create combined image', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to create combined image', 'error');
         });
 
         it('should throw error for null charts parameter', async () => {
@@ -283,7 +291,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.createCombinedChartsImage(null);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to create combined image', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to create combined image', 'error');
         });
 
         it('should create combined image for single chart', async () => {
@@ -381,7 +389,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.createCombinedChartsImage([mockChart]);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to create combined image', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to create combined image', 'error');
         });
     });
 
@@ -409,7 +417,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.copyChartToClipboard(mockChart);
 
-            expect(showNotification).toHaveBeenCalledWith('Chart copied to clipboard', 'success');
+            expect(notifySpy).toHaveBeenCalledWith('Chart copied to clipboard', 'success');
         });
 
         it('should handle invalid chart gracefully', async () => {
@@ -417,7 +425,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.copyChartToClipboard(null);
 
-            expect(showNotification).toHaveBeenCalledWith(
+            expect(notifySpy).toHaveBeenCalledWith(
                 expect.stringContaining('Failed to copy chart to clipboard'),
                 'error'
             );
@@ -445,7 +453,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.copyChartToClipboard(mockChart);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to copy chart to clipboard', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to copy chart to clipboard', 'error');
         });
     });
 
@@ -468,7 +476,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.copyCombinedChartsToClipboard([]);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to copy combined charts to clipboard', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to copy combined charts to clipboard', 'error');
         });
 
         it('should handle null charts parameter', async () => {
@@ -476,7 +484,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.copyCombinedChartsToClipboard(null);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to copy combined charts to clipboard', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to copy combined charts to clipboard', 'error');
         });
 
         it('should copy combined charts successfully', async () => {
@@ -495,7 +503,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.copyCombinedChartsToClipboard([mockChart]);
 
-            expect(showNotification).toHaveBeenCalledWith('Combined charts copied to clipboard', 'success');
+            expect(notifySpy).toHaveBeenCalledWith('Combined charts copied to clipboard', 'success');
         });
     });
 
@@ -512,7 +520,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.createCombinedChartsImage([mockChart]);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to create combined image', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to create combined image', 'error');
         });
 
         it('should handle transparent background in combined charts', async () => {
@@ -559,7 +567,7 @@ describe('exportUtils.js - Basic Test Coverage', () => {
 
             await exportUtils.downloadChartAsPNG(invalidChart);
 
-            expect(showNotification).toHaveBeenCalledWith('Failed to export chart as PNG', 'error');
+            expect(notifySpy).toHaveBeenCalledWith('Failed to export chart as PNG', 'error');
         });
     });
 });

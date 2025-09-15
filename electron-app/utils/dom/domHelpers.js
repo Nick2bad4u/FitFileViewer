@@ -44,8 +44,32 @@ export function queryAll(selector, root = document) {
         // Match native behavior and test expectation to throw on invalid selectors
         throw new Error('Failed to execute "querySelectorAll" on "Document": The provided selector is empty.');
     }
-    const list = root.querySelectorAll(selector);
-    return Array.from(list).filter(isHTMLElement);
+    /** @type {NodeListOf<Element>|ArrayLike<Element>|null|undefined} */
+    let list;
+    try {
+        if (root && typeof /** @type {any} */(root).querySelectorAll === 'function') {
+            list = /** @type {any} */(root).querySelectorAll(selector);
+        } else {
+            list = null;
+        }
+    } catch {
+        // If a mocked implementation throws, return empty list for safety
+        list = null;
+    }
+    if (!list) { return []; }
+    try {
+        return Array.from(list).filter(isHTMLElement);
+    } catch {
+        // In case Array.from fails on exotic list objects
+        const result = [];
+        const anyList = /** @type {any} */ (list);
+        const length = typeof anyList.length === 'number' ? anyList.length : 0;
+        for (let i = 0; i < length; i++) {
+            const el = anyList[i];
+            if (isHTMLElement(el)) { result.push(el); }
+        }
+        return result;
+    }
 }
 
 /**

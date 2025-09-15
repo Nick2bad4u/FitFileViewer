@@ -455,6 +455,37 @@ export function clearStateHistory() {
 }
 
 /**
+ * TEST-ONLY: Clear all registered state listeners.
+ * This helps ensure unit tests don't leak subscriptions across suites.
+ */
+export function __clearAllListenersForTests() {
+    try {
+        stateListeners.clear();
+        console.log("[StateManager] All listeners cleared (tests)");
+    } catch (error) {
+        console.warn("[StateManager] Failed to clear listeners:", error);
+    }
+}
+
+/**
+ * TEST-ONLY: Fully reset the state manager.
+ * - Clears all listeners
+ * - Clears history
+ * - Resets AppState to initial values
+ */
+export function __resetStateManagerForTests() {
+    try {
+        __clearAllListenersForTests();
+    } catch {}
+    try {
+        clearStateHistory();
+    } catch {}
+    try {
+        resetState();
+    } catch {}
+}
+
+/**
  * Persist state to localStorage
  * @param {Array<string>} paths - Array of state paths to persist
  */

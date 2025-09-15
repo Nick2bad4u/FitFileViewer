@@ -15,7 +15,7 @@
  * - Export and utility functions
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest';
 
 // Ensure window has necessary methods mocked
 if (typeof window !== 'undefined') {
@@ -227,26 +227,25 @@ const mockChart = {
     canvas: { width: 800, height: 400 }
 };
 
-Object.defineProperty(global, 'window', {
-    value: {
-        Chart: {
-            register: vi.fn(),
-            registry: { plugins: new Map() },
-            Zoom: { zoom: vi.fn(), resetZoom: vi.fn() }
-        },
-        chartjsPluginZoom: { zoom: vi.fn() },
-        ChartZoom: { zoom: vi.fn() },
-        _fitFileViewerChartListener: false,
-        _chartjsInstances: [],
-        getThemeConfig: vi.fn(() => ({ colors: {} })),
-        addHoverEffectsToExistingCharts: vi.fn(),
-        __chartjs_dev: { version: '4.0.0' },
-        JSZip: vi.fn(() => ({
-            file: vi.fn(),
-            generateAsync: vi.fn(() => Promise.resolve(new Blob()))
-        }))
+// Important: don't replace the jsdom window object (keeps document, DOM APIs, etc.).
+// Instead, augment it with the properties we need for Chart.js tests.
+Object.assign(window, {
+    Chart: {
+        register: vi.fn(),
+        registry: { plugins: new Map() },
+        Zoom: { zoom: vi.fn(), resetZoom: vi.fn() }
     },
-    writable: true
+    chartjsPluginZoom: { zoom: vi.fn() },
+    ChartZoom: { zoom: vi.fn() },
+    _fitFileViewerChartListener: false,
+    _chartjsInstances: [],
+    getThemeConfig: vi.fn(() => ({ colors: {} })),
+    addHoverEffectsToExistingCharts: vi.fn(),
+    __chartjs_dev: { version: '4.0.0' },
+    JSZip: vi.fn(() => ({
+        file: vi.fn(),
+        generateAsync: vi.fn(() => Promise.resolve(new Blob()))
+    }))
 });
 
 // Add theme module mocks
@@ -265,22 +264,37 @@ vi.mock("../../../utils/theming/core/theme.js", () => ({
     getCurrentTheme: vi.fn(() => 'light')
 }));
 
-// Import the module under test after setting up mocks
-import {
-    previousChartState,
-    chartState,
-    chartActions,
-    hexToRgba,
-    renderChartJS,
-    updatePreviousChartState,
-    resetChartNotificationState,
-    refreshChartsIfNeeded,
-    getChartStatus,
-    exportChartsWithState,
-    initializeChartStateManagement,
-    chartSettingsManager,
-    chartPerformanceMonitor
-} from '../../../utils/charts/core/renderChartJS.js';
+// Dynamically import the module under test AFTER environment setup to avoid ESM hoisting issues
+let previousChartState: any;
+let chartState: any;
+let chartActions: any;
+let hexToRgba: any;
+let renderChartJS: any;
+let updatePreviousChartState: any;
+let resetChartNotificationState: any;
+let refreshChartsIfNeeded: any;
+let getChartStatus: any;
+let exportChartsWithState: any;
+let initializeChartStateManagement: any;
+let chartSettingsManager: any;
+let chartPerformanceMonitor: any;
+
+beforeAll(async () => {
+    const mod = await import('../../../utils/charts/core/renderChartJS.js');
+    previousChartState = mod.previousChartState;
+    chartState = mod.chartState;
+    chartActions = mod.chartActions;
+    hexToRgba = mod.hexToRgba;
+    renderChartJS = mod.renderChartJS;
+    updatePreviousChartState = mod.updatePreviousChartState;
+    resetChartNotificationState = mod.resetChartNotificationState;
+    refreshChartsIfNeeded = mod.refreshChartsIfNeeded;
+    getChartStatus = mod.getChartStatus;
+    exportChartsWithState = mod.exportChartsWithState;
+    initializeChartStateManagement = mod.initializeChartStateManagement;
+    chartSettingsManager = mod.chartSettingsManager;
+    chartPerformanceMonitor = mod.chartPerformanceMonitor;
+});
 
 describe('renderChartJS.js - Basic Test Coverage', () => {
     beforeEach(() => {
@@ -466,7 +480,8 @@ describe('renderChartJS.js - Basic Test Coverage', () => {
         it('should include standard status properties', () => {
             const status = getChartStatus();
             expect(status).toHaveProperty('isRendering');
-            expect(typeof status.isRendering).toBe('boolean');
+            // Cast to any for type-safe inspection in tests
+            expect(typeof (status as any).isRendering).toBe('boolean');
         });
     });
 
