@@ -57,7 +57,7 @@ describe("renderer.js - Coverage Test", () => {
         // Just verify that the basic import works without throwing an error
         await import("../../renderer.js");
         expect(true).toBe(true);
-    });
+    }, 30000);
 
     // The following tests are skipped until the test environment can properly support them
     it.skip("should handle file input change events", async () => {

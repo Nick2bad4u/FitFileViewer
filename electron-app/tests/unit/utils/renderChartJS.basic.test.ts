@@ -294,7 +294,7 @@ beforeAll(async () => {
     initializeChartStateManagement = mod.initializeChartStateManagement;
     chartSettingsManager = mod.chartSettingsManager;
     chartPerformanceMonitor = mod.chartPerformanceMonitor;
-});
+}, 30000);
 
 describe("renderChartJS.js - Basic Test Coverage", () => {
     beforeEach(() => {

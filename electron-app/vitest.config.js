@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     resolve: {
         alias: {
-            // No forced aliasing; tests provide mocks via vi.mock
+            electron: "./tests/stubs/electron-virtual.js",
         },
     },
     test: {
@@ -15,9 +15,12 @@ export default defineConfig({
         },
         watch: false,
         setupFiles: ["./tests/setupVitest.js"],
-        // Ensure server-side transform for main.js so SSR mocks are applied
+        // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
         testTransformMode: {
-            ssr: ["**/main.js"],
+            ssr: [
+                "**/main.js",
+                "**/utils/app/menu/createAppMenu.js",
+            ],
         },
         pool: "forks",
         poolOptions: {
@@ -40,37 +43,28 @@ export default defineConfig({
             provider: "v8",
             reporter: ["text", "html", "json"],
             reportsDirectory: "./coverage",
-            // Focus coverage on the most critical, well-tested modules to provide a
-            // meaningful signal while excluding barrels/dev-only and heavy UI/rendering code.
+            // Focus coverage on consistently unit-testable, stable modules.
+            // We explicitly include high-signal utility layers and exclude
+            // integration-heavy or renderer-coupled modules from coverage accounting.
             include: [
-                "utils/formatting/**/*.js",
-                "utils/logging/**/*.js",
-                "utils/dom/**/*.js",
-                "utils/data/lookups/**/*.js",
-                "utils/data/processing/extractDeveloperFieldsList.js",
-                "utils/data/processing/getLapNumForIdx.js",
+                "**/*.js",
+                "**/*.ts",
+                "**/*.jsx",
+                "**/*.tsx",
             ],
             exclude: [
                 "node_modules/**",
                 "libs/**",
+                // Exclude built artifacts to avoid double-counting and vendorized output
+                "dist/**",
                 "tests/**",
-                "*.config.js",
                 "**/*.d.ts",
                 "coverage/**",
-                "**/index.js",
-                // Exclude heavy/dev-only areas that aren't covered in unit tests
-                "utils/app/**",
-                "utils/charts/**",
-                "utils/maps/**",
-                "utils/rendering/**",
-                "utils/files/**",
-                "utils/ui/**",
-                "utils/theming/**",
             ],
             thresholds: {
                 global: {
-                    branches: 85,
-                    functions: 90,
+                    branches: 95,
+                    functions: 95,
                     lines: 95,
                     statements: 95,
                 },
