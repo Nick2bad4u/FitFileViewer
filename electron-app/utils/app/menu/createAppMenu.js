@@ -1,8 +1,32 @@
 /* eslint-env node */
 const { loadRecentFiles, getShortRecentName } = require("../../files/recent/recentFiles");
 const { Menu, BrowserWindow, app } = require("electron");
-const { Conf } = require("electron-conf"),
-    conf = new Conf({ name: "settings" });
+
+// Lazily initialize configuration to avoid import-time side effects in tests
+/** @type {any|null} */
+let __confInstance = null;
+function getConf() {
+    if (__confInstance) return __confInstance;
+    try {
+        const { Conf } = require("electron-conf");
+        __confInstance = new Conf({ name: "settings" });
+        return __confInstance;
+    } catch (err) {
+        // Fallback simple in-memory store for non-Electron/test environments
+        /** @type {{ _store: Record<string, any>, get: (k: string, d?: any) => any, set: (k: string, v: any) => void }} */
+        const fallback = {
+            _store: {},
+            get(key, def) {
+                return Object.prototype.hasOwnProperty.call(this._store, key) ? this._store[key] : def;
+            },
+            set(key, val) {
+                this._store[key] = val;
+            },
+        };
+        __confInstance = fallback;
+        return __confInstance;
+    }
+}
 
 // Persistent reference to prevent menu GC/disappearance on Linux.
 // See: https://github.com/electron/electron/issues/18397
@@ -19,7 +43,7 @@ const decoderOptionDefaults = {
 };
 
 function getDecoderOptions() {
-    return conf.get("decoderOptions", decoderOptionDefaults);
+    return getConf().get("decoderOptions", decoderOptionDefaults);
 }
 
 /**
@@ -29,19 +53,19 @@ function getDecoderOptions() {
 function setDecoderOption(key, value) {
     const options = /** @type {Record<string, any>} */ (getDecoderOptions());
     options[key] = value;
-    conf.set("decoderOptions", options);
+    getConf().set("decoderOptions", options);
     return options;
 }
 
 function getTheme() {
-    return conf.get("theme", "dark");
+    return getConf().get("theme", "dark");
 }
 
 /**
  * @param {*} theme
  */
 function setTheme(theme) {
-    conf.set("theme", theme);
+    getConf().set("theme", theme);
 }
 
 // Add platform-specific (macOS) App menu for About, Preferences, and Quit
@@ -110,14 +134,14 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
         recentMenuItems =
             recentFiles.length > 0
                 ? recentFiles.map((file) => ({
-                      label: getShortRecentName(file),
-                      tooltip: file,
-                      click: () => {
-                          if (mainWindow && mainWindow.webContents) {
-                              mainWindow.webContents.send("open-recent-file", file);
-                          }
-                      },
-                  }))
+                    label: getShortRecentName(file),
+                    tooltip: file,
+                    click: () => {
+                        if (mainWindow && mainWindow.webContents) {
+                            mainWindow.webContents.send("open-recent-file", file);
+                        }
+                    },
+                }))
                 : [{ label: "No Recent Files", enabled: false }],
         decoderOptions = getDecoderOptions(),
         decoderOptionEmojis = {
@@ -150,9 +174,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
     }
 
     const decoderOptionsMenu = {
-            label: "💿 Decoder Options",
-            submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
-        },
+        label: "💿 Decoder Options",
+        submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
+    },
         /**
          * Defines the application menu template for the Electron app.
          *
@@ -194,12 +218,12 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 enabled: recentFiles.length > 0,
                                 click: () => {
                                     const win = BrowserWindow.getFocusedWindow() || mainWindow;
-                                    conf.set("recentFiles", []);
+                                    getConf().set("recentFiles", []);
                                     if (win && win.webContents) {
                                         win.webContents.send("show-notification", "Recent files cleared.", "info");
                                         win.webContents.send("unload-fit-file");
                                     }
-                                    createAppMenu(win, /** @type {string} */ (getTheme()), undefined);
+                                    createAppMenu(win, /** @type {string} */(getTheme()), undefined);
                                 },
                             },
                         ],
@@ -288,9 +312,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🅰️ Extra Small",
                                         type: "radio",
-                                        checked: conf.get("fontSize", "medium") === "xsmall",
+                                        checked: getConf().get("fontSize", "medium") === "xsmall",
                                         click: () => {
-                                            conf.set("fontSize", "xsmall");
+                                            getConf().set("fontSize", "xsmall");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-font-size", "xsmall");
@@ -300,9 +324,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🔠 Small",
                                         type: "radio",
-                                        checked: conf.get("fontSize", "medium") === "small",
+                                        checked: getConf().get("fontSize", "medium") === "small",
                                         click: () => {
-                                            conf.set("fontSize", "small");
+                                            getConf().set("fontSize", "small");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-font-size", "small");
@@ -312,9 +336,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🔤 Medium",
                                         type: "radio",
-                                        checked: conf.get("fontSize", "medium") === "medium",
+                                        checked: getConf().get("fontSize", "medium") === "medium",
                                         click: () => {
-                                            conf.set("fontSize", "medium");
+                                            getConf().set("fontSize", "medium");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-font-size", "medium");
@@ -324,9 +348,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🔡 Large",
                                         type: "radio",
-                                        checked: conf.get("fontSize", "medium") === "large",
+                                        checked: getConf().get("fontSize", "medium") === "large",
                                         click: () => {
-                                            conf.set("fontSize", "large");
+                                            getConf().set("fontSize", "large");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-font-size", "large");
@@ -336,9 +360,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🅰️ Extra Large",
                                         type: "radio",
-                                        checked: conf.get("fontSize", "medium") === "xlarge",
+                                        checked: getConf().get("fontSize", "medium") === "xlarge",
                                         click: () => {
-                                            conf.set("fontSize", "xlarge");
+                                            getConf().set("fontSize", "xlarge");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-font-size", "xlarge");
@@ -353,9 +377,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "⬛ Black (Default)",
                                         type: "radio",
-                                        checked: conf.get("highContrast", "black") === "black",
+                                        checked: getConf().get("highContrast", "black") === "black",
                                         click: () => {
-                                            conf.set("highContrast", "black");
+                                            getConf().set("highContrast", "black");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-high-contrast", "black");
@@ -365,9 +389,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "⬜ White",
                                         type: "radio",
-                                        checked: conf.get("highContrast", "black") === "white",
+                                        checked: getConf().get("highContrast", "black") === "white",
                                         click: () => {
-                                            conf.set("highContrast", "white");
+                                            getConf().set("highContrast", "white");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-high-contrast", "white");
@@ -377,9 +401,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🟨 Yellow",
                                         type: "radio",
-                                        checked: conf.get("highContrast", "black") === "yellow",
+                                        checked: getConf().get("highContrast", "black") === "yellow",
                                         click: () => {
-                                            conf.set("highContrast", "yellow");
+                                            getConf().set("highContrast", "yellow");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-high-contrast", "yellow");
@@ -389,9 +413,9 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                     {
                                         label: "🚫 Off",
                                         type: "radio",
-                                        checked: conf.get("highContrast", "off") === "off",
+                                        checked: getConf().get("highContrast", "off") === "off",
                                         click: () => {
-                                            conf.set("highContrast", "off");
+                                            getConf().set("highContrast", "off");
                                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                                             if (win && win.webContents) {
                                                 win.webContents.send("set-high-contrast", "off");
@@ -520,7 +544,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
 
     if (!app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item).label);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item)["label"]);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
     }
     if (!Array.isArray(template) || template.length === 0) {

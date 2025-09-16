@@ -7,7 +7,15 @@
  * @module mainProcessStateManager
  */
 
-const { ipcMain, BrowserWindow } = require("electron");
+// Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs
+function safeElectron() {
+    try {
+        // eslint-disable-next-line global-require
+        return require("electron");
+    } catch (_e) {
+        return /** @type {any} */ ({});
+    }
+}
 
 /**
  * @typedef {'log'|'info'|'warn'|'error'|'debug'} ConsoleLevel
@@ -332,13 +340,13 @@ class MainProcessState {
         }
 
         const errorObj =
-                error instanceof Error
-                    ? {
-                          message: error.message,
-                          stack: error.stack,
-                          name: error.name,
-                      }
-                    : { message: String(error) },
+            error instanceof Error
+                ? {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name,
+                }
+                : { message: String(error) },
             failedOp = {
                 ...operation,
                 status: "failed",
@@ -380,13 +388,13 @@ class MainProcessState {
      */
     addError(error, context = {}) {
         const errorObj = {
-                id: Date.now().toString(),
-                timestamp: Date.now(),
-                message: error instanceof Error ? error.message : String(error),
-                stack: error instanceof Error ? error.stack : null,
-                context,
-                source: "mainProcess",
-            },
+            id: Date.now().toString(),
+            timestamp: Date.now(),
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : null,
+            context,
+            source: "mainProcess",
+        },
             errors = this.get("errors") || [];
         errors.unshift(errorObj); // Add to beginning
 
@@ -577,7 +585,11 @@ class MainProcessState {
         // Filter out non-serializable data for IPC
         const serializableData = this.makeSerializable(data);
 
-        BrowserWindow.getAllWindows().forEach((win) => {
+        const { BrowserWindow } = safeElectron();
+        const allWins = (BrowserWindow && typeof BrowserWindow.getAllWindows === "function")
+            ? BrowserWindow.getAllWindows()
+            : [];
+        allWins.forEach((/** @type {import('electron').BrowserWindow} */ win) => {
             if (validateWindow(win)) {
                 try {
                     win.webContents.send(channel, serializableData);
@@ -619,9 +631,11 @@ class MainProcessState {
         // Handle objects
         /** @type {Record<string, any>} */
         const serializable = {};
+        const { BrowserWindow } = safeElectron();
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
-            const isBrowserWindow = typeof BrowserWindow === "function" && value instanceof BrowserWindow;
+            const isBrowserWindow =
+                typeof BrowserWindow === "function" && value instanceof BrowserWindow;
             if (
                 typeof value === "function" ||
                 isBrowserWindow ||
@@ -647,51 +661,76 @@ class MainProcessState {
      * Set up IPC handlers for renderer communication
      */
     setupIPCHandlers() {
+        const { ipcMain } = safeElectron();
+        // If not running under Electron (e.g., unit tests without mocks), no-op safely
+        if (!ipcMain || typeof ipcMain.handle !== "function") {
+            logWithContext("warn", "ipcMain not available; skipping IPC handler setup");
+            return;
+        }
+
         // Get main process state
-        ipcMain.handle("main-state:get", (_event, path) => {
-            const data = path ? this.get(path) : this.data;
-            return this.makeSerializable(data);
-        });
+        ipcMain.handle(
+            "main-state:get",
+            (/** @type {any} */ _event, /** @type {string} */ path) => {
+                const data = path ? this.get(path) : this.data;
+                return this.makeSerializable(data);
+            }
+        );
 
         // Set main process state (restricted)
-        ipcMain.handle("main-state:set", (_event, path, value, options) => {
-            // Only allow certain paths to be set from renderer
-            const allowedPaths = ["loadedFitFilePath", "operations"],
-                rootPath = path.split(".")[0];
-            if (allowedPaths.includes(rootPath)) {
-                this.set(path, value, { ...options, source: "renderer" });
-                return true;
-            }
+        ipcMain.handle(
+            "main-state:set",
+            (
+                /** @type {any} */ _event,
+                /** @type {string} */ path,
+                /** @type {any} */ value,
+                /** @type {any} */ options
+            ) => {
+                // Only allow certain paths to be set from renderer
+                const allowedPaths = ["loadedFitFilePath", "operations"],
+                    rootPath = path.split(".")[0] || "";
+                if (allowedPaths.includes(rootPath)) {
+                    this.set(path, value, { ...options, source: "renderer" });
+                    return true;
+                }
 
-            logWithContext("warn", "Renderer attempted to set restricted path", { path });
-            return false;
-        });
+                logWithContext("warn", "Renderer attempted to set restricted path", { path });
+                return false;
+            }
+        );
 
         // Listen to main process state changes
-        ipcMain.handle("main-state:listen", (event, path) => {
-            const { sender } = event;
-            this.listen(path, (change) => {
-                try {
-                    sender.send("main-state-change", change);
-                } catch (error) {
-                    const err = /** @type {any} */ (error);
-                    logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
-                }
-            });
-            // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
-            // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
+        ipcMain.handle(
+            "main-state:listen",
+            (/** @type {any} */ event, /** @type {string} */ path) => {
+                const { sender } = event;
+                this.listen(path, (change) => {
+                    try {
+                        sender.send("main-state-change", change);
+                    } catch (error) {
+                        const err = /** @type {any} */ (error);
+                        logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
+                    }
+                });
+                // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
+                // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
 
-            return true;
-        });
+                return true;
+            }
+        );
 
         // Get operation status
-        ipcMain.handle("main-state:operation", (_event, operationId) => this.get(`operations.${operationId}`));
+        ipcMain.handle(
+            "main-state:operation",
+            (/** @type {any} */ _event, /** @type {string} */ operationId) =>
+                this.get(`operations.${operationId}`)
+        );
 
         // Get all operations
         ipcMain.handle("main-state:operations", () => this.get("operations") || {});
 
         // Get errors
-        ipcMain.handle("main-state:errors", (_event, limit = 50) => {
+        ipcMain.handle("main-state:errors", (/** @type {any} */ _event, /** @type {number} */ limit = 50) => {
             const errors = this.get("errors") || [];
             return errors.slice(0, limit);
         });
@@ -733,7 +772,7 @@ class MainProcessState {
                 return current[key];
             }
             return undefined;
-        }, /** @type {any} */ (obj));
+        }, /** @type {any} */(obj));
     }
 
     /**
@@ -758,7 +797,7 @@ class MainProcessState {
                     return current[key];
                 }
                 return {};
-            }, /** @type {any} */ (obj));
+            }, /** @type {any} */(obj));
         if (lastKey) {
             // @ts-ignore dynamic expansion
             target[lastKey] = value;
