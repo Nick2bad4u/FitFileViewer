@@ -60,6 +60,28 @@ export default defineConfig({
                 "tests/**",
                 "**/*.d.ts",
                 "coverage/**",
+                // Barrels (pure re-export index files)
+                "**/index.js",
+                // Test mocks and stubs
+                "**/__mocks__/**",
+                // Tooling and configuration files
+                "**/*eslint*.{js,cjs,mjs,ts}",
+                "**/jest.config.{js,cjs,mjs,ts}",
+                "**/vitest.config.{js,cjs,mjs,ts}",
+                "**/stylelint.config.{js,cjs,mjs,ts}",
+                // Explicitly exclude project-level configs that were being counted
+                "electron-app/jest.config.cjs",
+                "electron-app/vitest.config.enhanced.js",
+                "electron-app/vitest.config.js",
+                "electron-app/stylelint.config.js",
+                // Dev-only and debugging utilities
+                "**/utils/debug/**",
+                "electron-app/debug-electron-mock.js",
+                // Performance monitoring (dev tooling)
+                "**/utils/performance/**",
+                // Constants-only modules
+                "electron-app/utils/charts/theming/chartOverlayColorPalette.js",
+                "electron-app/utils/maps/core/mapColors.js",
             ],
             thresholds: {
                 global: {

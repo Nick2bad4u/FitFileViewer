@@ -349,3 +349,4 @@ vscode-extension/*
 .codacy/cli.sh
 electron-app/utils/.prettier-cache
 **/.prettier-cache
+electron-app/coverage-report.json

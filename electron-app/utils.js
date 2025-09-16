@@ -54,24 +54,46 @@ const CONSTANTS = /** @type {ConstantsType} */ ({
     VERSION: "unknown", // Default version
 });
 
-// Function to get version from electronAPI
+// Version loading idempotency guards
+/** @type {boolean} */
+let versionLoadStarted = false;
+/** @type {Promise<string>|null} */
+let versionLoadPromise = null;
+/** @type {number|undefined} */
+let electronAPICheckTimerId;
+
+// Function to get version from electronAPI (idempotent)
 async function loadVersionFromElectron() {
-    try {
-        if (
-            /** @type {any} */ (window).electronAPI &&
-            typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
-        ) {
-            const version = await /** @type {any} */ (window).electronAPI.getAppVersion();
-            CONSTANTS.VERSION = version || "unknown";
-            logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
-            return CONSTANTS.VERSION;
-        }
-        logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        logWithContext("warn", "Failed to load version from Electron API:", { error: errorMessage });
+    if (versionLoadStarted) {
+        return versionLoadPromise ?? Promise.resolve(CONSTANTS.VERSION);
     }
-    return CONSTANTS.VERSION;
+    versionLoadStarted = true;
+    // If a polling timer was set, cancel it since we're proceeding now
+    if (typeof electronAPICheckTimerId === "number") {
+        clearTimeout(electronAPICheckTimerId);
+        electronAPICheckTimerId = undefined;
+    }
+
+    versionLoadPromise = (async () => {
+        try {
+            if (
+            /** @type {any} */ (window).electronAPI &&
+                typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+            ) {
+                const version = await /** @type {any} */ (window).electronAPI.getAppVersion();
+                CONSTANTS.VERSION = version || "unknown";
+                logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
+                return CONSTANTS.VERSION;
+            }
+            logWithContext("warn", "electronAPI.getAppVersion not available, keeping default version");
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            logWithContext("warn", "Failed to load version from Electron API:", { error: errorMessage });
+        }
+        return CONSTANTS.VERSION;
+    })();
+
+    return versionLoadPromise;
 }
 
 // Initialize version asynchronously when electronAPI becomes available
@@ -81,21 +103,32 @@ if (typeof window !== "undefined") {
         /** @type {any} */ (window).electronAPI &&
         typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
     ) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         loadVersionFromElectron();
     } else {
         // Wait for electronAPI to be available
         const checkForElectronAPI = () => {
+            if (versionLoadStarted) {
+                // Already loading or loaded; stop polling
+                electronAPICheckTimerId = undefined;
+                return;
+            }
             if (
                 /** @type {any} */ (window).electronAPI &&
                 typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
             ) {
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 loadVersionFromElectron();
             } else {
                 // Keep checking periodically for a short time
-                setTimeout(checkForElectronAPI, 100);
+                electronAPICheckTimerId = /** @type {number} */ (
+                    /** @type {unknown} */ (setTimeout(checkForElectronAPI, 100))
+                );
             }
         };
-        setTimeout(checkForElectronAPI, 100);
+        electronAPICheckTimerId = /** @type {number} */ (
+            /** @type {unknown} */ (setTimeout(checkForElectronAPI, 100))
+        );
     }
 }
 
@@ -304,7 +337,7 @@ function attachUtilitiesToWindow() {
 
         // Log failures in development
         const isDevelopment =
-            (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
+            (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
             (typeof window !== "undefined" && window.location && window.location.protocol === "file:");
         if (isDevelopment) {
             if (attachmentResults.failed.length > 0) {
@@ -436,7 +469,7 @@ window.FitFileViewerUtils = FitFileViewerUtils;
 
 // Development mode enhancements
 const isDevelopment =
-    (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
+    (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
     (typeof window !== "undefined" && window.location && window.location.protocol === "file:");
 if (isDevelopment) {
     // Expose additional development helpers

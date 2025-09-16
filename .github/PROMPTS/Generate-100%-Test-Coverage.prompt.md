@@ -1,6 +1,6 @@
 ---
-mode: "agent"
-tools: ["Best Tools"]
+mode: "BeastMode"
+tools: ['createFile', 'createDirectory', 'editFiles', 'search', 'runCommands', 'runTasks', 'usages', 'think', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'runTests', 'sequentialthinking', 'review', 'reviewStaged', 'reviewUnstaged', 'websearch']
 description: "Generate 100% Test Coverage"
 ---
 
@@ -11,18 +11,24 @@ description: "Generate 100% Test Coverage"
 1. **Fix all broken tests first.**
 2. Run and check current test errors and warnings:
    - `npm run test`
-     _Do not move onto the next step until all tests pass with no errors or warnings._
+   - `npm run test:electron`
+   - `npm run test:shared`
+   - `npm run type-check:test`
+   *Do not move onto the next step until all tests pass with no errors or warnings.*
 3. Ensure all tests pass with no errors or warnings.
 4. Check coverage and create tests for files below 95% (or 100% if above 95%):
    - `npm run test:coverage`
+   - `npm run test:electron:coverage`
+   - `npm run test:shared:coverage`
 5. Scan source code to create intelligent tests for all branches and edge cases.
 6. Ensure comprehensive tests for all edge cases.
 7. Use unlimited requests and time as needed.
 8. **Do not skip any files**, regardless of size or perceived triviality.
 9. Continue until all files reach 95% (or 100% if above 95%) coverage for branch, line, function, and statement.
 10. Do not stop, even if the process is lengthy.
-11. Always start with the files with the lowest coverage first, and work your way up to the highest coverage files.
-12. Some files may have low coverage due to being development only features, console statements, or logging. These should be ignored for coverage purposes. (If you find a way to ignore those coverage lines in the report, even better!)
+11. All new test files should be created in `tests/strictTests/` directory, under electron, shared, or src directories as appropriate.
+12. Always start with the files with the lowest coverage first, and work your way up to the highest coverage files.
+13. Some files may have low coverage due to being development only features, console statements, or logging. These should be ignored for coverage purposes. (If you find a way to ignore those coverage lines in the report, even better!)
 
 ## Test Creation Rules
 
@@ -118,13 +124,68 @@ description: "Generate 100% Test Coverage"
 ### Important AI Note
 
 - **Time constraint setting:** `unlimited`
-- **Compute Resource setting:** `unlimited`
-- **Compute Constraint setting:** `unlimited`
-- **Thinking Mode setting:** `Super Think,` `Deep Think`
-- **Thinking Constraint Time setting:** `unlimited`
-  -- **Remember** This is a legacy app with a LOT of bugs and inconsistent behavior. You are expected to find bugs and FIX them as you test. NEVER update tests to match BROKEN source code. Always make sure the source code is correct and you're not testing broken behavior.
+- **Compute Resource setting:** `unlimited` and `high` and `maximum`
+- **Compute Constraint setting:** `unlimited` and `high` and `maximum`
+- **Request constraint setting:** `unlimited` and `high` and `maximum`
+- **Thinking Mode setting:** `Super Think` and `Deep Think` and `Think Harder` and `Think Twice`
+- **Thinking Constraint Time setting:** `unlimited` and `high` and `maximum`
+- **Thinking Constraint Compute setting:** `unlimited` and `high` and `maximum`
+- **Thinking Constraint Requests setting:** `unlimited` and `high` and `maximum`
 
 ---
+
+## All Possible Test API to Use
+
+### Test
+
+- `test.extend`
+- `test.skip`
+- `test.skipIf`
+- `test.runIf`
+- `test.only`
+- `test.concurrent`
+- `test.sequential`
+- `test.todo`
+- `test.fails`
+- `test.each`
+- `test.for`
+
+### Bench
+
+- `bench`
+- `bench.skip`
+- `bench.only`
+- `bench.todo`
+
+### Describe
+
+- `describe`
+- `describe.skip`
+- `describe.skipIf`
+- `describe.runIf`
+- `describe.only`
+- `describe.concurrent`
+- `describe.sequential`
+- `describe.shuffle`
+- `describe.todo`
+- `describe.each`
+- `describe.for`
+
+### Setup and Teardown
+
+- `beforeEach`
+- `afterEach`
+- `beforeAll`
+- `afterAll`
+
+### Test Hooks
+
+- `onTestFinished`
+- `onTestFailed`
+
+## Test Assertions
+
+- A long list can be found here: [Vitest Test Assertion API](https://vitest.dev/api/assert.html)
 
 You cannot stop until you eliminate all of these test warnings:
 
@@ -135,4 +196,4 @@ I REPEAT: You cannot stop until you eliminate all of these test warnings:
 "ERROR: Coverage for statements does not meet global threshold (95%)"
 "ERROR: Coverage for branches does not meet global threshold (95%)"
 
-I REPEAT: You cannot stop until you eliminate all of these test warnings above!!
+I REPEAT: You cannot stop until you eliminate all of these test warnings above for both Front AND Backend tests.

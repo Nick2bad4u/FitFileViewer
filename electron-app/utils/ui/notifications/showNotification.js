@@ -29,6 +29,7 @@
  * @property {Function|undefined} onClick
  * @property {NotificationAction[]} actions
  * @property {number} timestamp
+ * @property {(() => void) | undefined} resolveShown
  */
 /**
  * @typedef {HTMLElement & { hideTimeout?: number }} NotificationElement
@@ -83,28 +84,41 @@ export async function showNotification(message, type = "info", duration, options
     }
 
     /** @type {NotificationTypeConfig} */
-    const config = NOTIFICATION_TYPES[type],
-        finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration,
-        // Create notification object
-        /** @type {QueuedNotification} */
-        notification = {
-            message,
-            type,
-            duration: finalDuration,
-            icon: options.icon ?? config.icon,
-            ariaLabel: config.ariaLabel,
-            onClick: options.onClick,
-            actions: options.actions || [],
-            timestamp: Date.now(),
-        };
+    const config = NOTIFICATION_TYPES[type];
+    const finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration;
+
+    // Promise that resolves when THIS notification becomes visible
+    /** @type {(value?: void) => void} */
+    let resolveShown = () => { };
+    const shownPromise = new Promise((resolve) => {
+        resolveShown = /** @type {(value?: void) => void} */ (resolve);
+    });
+
+    // Create notification object
+    /** @type {QueuedNotification} */
+    const notification = {
+        message,
+        type,
+        duration: finalDuration,
+        icon: options.icon ?? config.icon,
+        ariaLabel: config.ariaLabel,
+        onClick: options.onClick,
+        actions: options.actions || [],
+        timestamp: Date.now(),
+        resolveShown,
+    };
 
     // Add to queue
     notificationQueue.push(notification);
 
     // Process queue if not already showing
     if (!isShowingNotification) {
-        await processNotificationQueue();
+        // Kick the queue without blocking the caller; the returned promise resolves when shown
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        processNotificationQueue();
     }
+
+    return shownPromise;
 }
 
 /**
@@ -117,8 +131,7 @@ async function processNotificationQueue() {
     }
 
     if (isShowingNotification) {
-        // If already showing, wait a bit and try again
-        setTimeout(() => processNotificationQueue(), 500);
+        // Already showing; next item will be processed when current one completes
         return;
     }
 
@@ -137,9 +150,10 @@ async function processNotificationQueue() {
     // Reset flag and process next notification
     isShowingNotification = false;
 
-    // Process next notification after a short delay
+    // Immediately process the next notification if queued
     if (notificationQueue.length > 0) {
-        setTimeout(() => processNotificationQueue(), 50);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        processNotificationQueue();
     }
 }
 
@@ -177,6 +191,15 @@ async function displayNotification(notification) {
         notificationElement.classList.add("show");
     });
 
+    // Resolve the external promise to indicate the notification is now visible
+    if (typeof notification.resolveShown === "function") {
+        try {
+            notification.resolveShown();
+        } finally {
+            notification.resolveShown = undefined;
+        }
+    }
+
     // Set up auto-hide if not persistent
     if (notification.duration) {
         // Cast via unknown to satisfy differing Node vs browser timer return types
@@ -189,9 +212,9 @@ async function displayNotification(notification) {
         );
     }
 
-    // Return a promise that resolves after the display duration + animation time
-    const totalTime = notification.duration ? notification.duration + 500 : 1000; // Extra time for animations
-    // Explicitly annotate resolve parameter for TS inference
+    // Return a promise that resolves after the display duration + transition time (used to serialize the queue)
+    // Match hideNotification's 300ms transition to ensure proper sequencing in tests
+    const totalTime = notification.duration ? notification.duration + 300 : 1000;
     return new Promise((resolve) => {
         setTimeout(() => resolve(undefined), totalTime);
     });
@@ -378,7 +401,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     persistent: (message, type = "info", options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
             ...options,
             persistent: true,
         }),
@@ -391,7 +414,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     withActions: (message, type = "info", actions = [], options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
             ...options,
             actions,
             persistent: true,

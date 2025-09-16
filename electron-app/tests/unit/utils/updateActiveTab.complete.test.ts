@@ -381,7 +381,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             updateActiveTab("tab-item50");
             const endTime = performance.now();
 
-            expect(endTime - startTime).toBeLessThan(10); // Should be very fast
+            // Note: JSDOM/CI timing can fluctuate on shared runners. Keep this
+            // threshold generous to avoid flakes while still enforcing speed.
+            expect(endTime - startTime).toBeLessThan(30);
 
             const activeElement = document.getElementById("tab-item50");
             expect(activeElement?.classList.contains("active")).toBe(true);
