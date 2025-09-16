@@ -28,9 +28,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         vi.clearAllMocks();
 
         // Mock console methods to prevent errors
-        vi.spyOn(console, "log").mockImplementation(() => {});
-        vi.spyOn(console, "warn").mockImplementation(() => {});
-        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "log").mockImplementation(() => { });
+        vi.spyOn(console, "warn").mockImplementation(() => { });
+        vi.spyOn(console, "error").mockImplementation(() => { });
 
         // Set up DOM
         testContainer = document.createElement("div");
@@ -346,7 +346,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             document.getElementById = vi.fn().mockReturnValue(mockElement);
 
             // Spy on console.error to verify graceful error handling
-            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => { });
 
             // Should handle gracefully (not throw)
             expect(() => updateActiveTab("tab-test")).not.toThrow();
@@ -389,6 +389,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         });
 
         it("should handle memory cleanup properly", () => {
+            // Ensure a clean DOM to avoid scanning large trees from previous tests
+            document.body.innerHTML = "";
+
             // This test ensures no memory leaks with repeated operations
             for (let i = 0; i < 1000; i++) {
                 // Create proper tab button elements with .tab-button class
@@ -397,7 +400,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
                 button.className = "tab-button";
                 button.textContent = "Test";
                 document.body.appendChild(button);
+
                 updateActiveTab(`tab-test${i}`);
+
+                // Remove the element to keep DOM size stable and avoid performance degradation
+                document.body.removeChild(button);
             }
 
             expect(mockSetState).toHaveBeenCalledTimes(1000);

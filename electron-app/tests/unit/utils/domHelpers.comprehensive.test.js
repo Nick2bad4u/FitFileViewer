@@ -205,10 +205,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            setText(null, "Text");
-            setText(undefined, "Text");
-            setText("not-element", "Text");
-            // Should not throw errors
+            expect(() => {
+                setText(null, "Text");
+                setText(undefined, "Text");
+                setText("not-element", "Text");
+            }).not.toThrow();
         });
 
         it("should convert non-string values to strings", () => {
@@ -242,10 +243,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            addClass(null, "test-class");
-            addClass(undefined, "test-class");
-            addClass("not-element", "test-class");
-            // Should not throw errors
+            expect(() => {
+                addClass(null, "test-class");
+                addClass(undefined, "test-class");
+                addClass("not-element", "test-class");
+            }).not.toThrow();
         });
 
         it("should throw for empty class names", () => {
@@ -286,10 +288,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            removeClass(null, "test-class");
-            removeClass(undefined, "test-class");
-            removeClass("not-element", "test-class");
-            // Should not throw errors
+            expect(() => {
+                removeClass(null, "test-class");
+                removeClass(undefined, "test-class");
+                removeClass("not-element", "test-class");
+            }).not.toThrow();
         });
 
         it("should handle non-existing classes gracefully", () => {
@@ -343,10 +346,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            setDisabled(null, true);
-            setDisabled(undefined, true);
-            setDisabled("not-element", true);
-            // Should not throw errors
+            expect(() => {
+                setDisabled(null, true);
+                setDisabled(undefined, true);
+                setDisabled("not-element", true);
+            }).not.toThrow();
         });
 
         it("should handle non-form elements gracefully (no disabled property)", () => {
@@ -458,10 +462,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            setValue(null, "value");
-            setValue(undefined, "value");
-            setValue("not-element", "value");
-            // Should not throw errors
+            expect(() => {
+                setValue(null, "value");
+                setValue(undefined, "value");
+                setValue("not-element", "value");
+            }).not.toThrow();
         });
 
         it("should handle non-form elements gracefully (no value property)", () => {
@@ -515,10 +520,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            setChecked(null, true);
-            setChecked(undefined, true);
-            setChecked("not-element", true);
-            // Should not throw errors
+            expect(() => {
+                setChecked(null, true);
+                setChecked(undefined, true);
+                setChecked("not-element", true);
+            }).not.toThrow();
         });
 
         it("should handle non-checkable elements gracefully", () => {
@@ -600,10 +606,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            setStyle(null, "color", "red");
-            setStyle(undefined, "color", "red");
-            setStyle("not-element", "color", "red");
-            // Should not throw errors
+            expect(() => {
+                setStyle(null, "color", "red");
+                setStyle(undefined, "color", "red");
+                setStyle("not-element", "color", "red");
+            }).not.toThrow();
         });
 
         it("should handle various CSS properties", () => {
@@ -643,10 +650,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            clearElement(null);
-            clearElement(undefined);
-            clearElement("not-element");
-            // Should not throw errors
+            expect(() => {
+                clearElement(null);
+                clearElement(undefined);
+                clearElement("not-element");
+            }).not.toThrow();
         });
 
         it("should handle already empty elements", () => {
@@ -695,10 +703,11 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            on(null, "click", mockHandler);
-            on(undefined, "click", mockHandler);
-            on("not-element", "click", mockHandler);
-            // Should not throw errors
+            expect(() => {
+                on(null, "click", mockHandler);
+                on(undefined, "click", mockHandler);
+                on("not-element", "click", mockHandler);
+            }).not.toThrow();
         });
 
         it("should handle custom events", () => {
@@ -713,8 +722,9 @@ describe("domHelpers.js - Comprehensive Tests", () => {
 
         it("should handle elements without addEventListener method", () => {
             const mockElement = {};
-            on(mockElement, "click", mockHandler);
-            // Should not throw error
+            expect(() => {
+                on(mockElement, "click", mockHandler);
+            }).not.toThrow();
         });
 
         it("should pass event object to handler", () => {
@@ -785,16 +795,18 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            setData(null, "testKey", "value");
-            setData(undefined, "testKey", "value");
-            setData("not-element", "testKey", "value");
-            // Should not throw errors
+            expect(() => {
+                setData(null, "testKey", "value");
+                setData(undefined, "testKey", "value");
+                setData("not-element", "testKey", "value");
+            }).not.toThrow();
         });
 
         it("should handle elements without dataset property", () => {
             const mockElement = {};
-            setData(mockElement, "testKey", "value");
-            // Should not throw error
+            expect(() => {
+                setData(mockElement, "testKey", "value");
+            }).not.toThrow();
         });
 
         it("should convert values to strings", () => {
@@ -838,15 +850,17 @@ describe("domHelpers.js - Comprehensive Tests", () => {
         });
 
         it("should do nothing for invalid elements", () => {
-            focus(null);
-            focus(undefined);
-            focus("not-element");
-            // Should not throw errors
+            expect(() => {
+                focus(null);
+                focus(undefined);
+                focus("not-element");
+            }).not.toThrow();
         });
 
         it("should handle elements without focus method", () => {
-            focus(nonFocusableElement);
-            // Should not throw error even though div might not have focus method
+            expect(() => {
+                focus(nonFocusableElement);
+            }).not.toThrow();
         });
 
         it("should not handle elements with focus method that throws", () => {
@@ -964,7 +978,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
                 setChecked(invalid, true);
                 setStyle(invalid, "color", "red");
                 clearElement(invalid);
-                on(invalid, "click", () => {});
+                on(invalid, "click", () => { });
                 setData(invalid, "key", "value");
                 focus(invalid);
 

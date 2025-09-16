@@ -53,7 +53,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         });
     });
 
-    it("should detect if multiple systems are setting disabled attributes", () => {
+    it("should detect if multiple systems are setting disabled attributes", async () => {
         /** @type {Array<{target: string, oldValue: string|null, newValue: string|null, timestamp: number}>} */
         const attributeChanges = [];
 
@@ -94,22 +94,23 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         });
 
         // Wait a bit for any async operations
-        setTimeout(() => {
-            observer.disconnect();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-            // Check for any unexpected attribute changes
-            const unexpectedChanges = attributeChanges.filter(
-                (change) => change.newValue !== null && change.newValue !== undefined
-            );
+        observer.disconnect();
 
-            expect(unexpectedChanges).toHaveLength(0);
+        // Check for any unexpected attribute changes
+        const unexpectedChanges = attributeChanges.filter(
+            (change) => change.newValue !== null && change.newValue !== undefined
+        );
 
-            // Verify final state
-            mockButtons.forEach((button) => {
-                expect(button.disabled).toBe(false);
-                expect(button.hasAttribute("disabled")).toBe(false);
-            });
-        }, 100);
+        expect(Array.isArray(attributeChanges)).toBe(true);
+        expect(unexpectedChanges).toHaveLength(0);
+
+        // Verify final state
+        mockButtons.forEach((button) => {
+            expect(button.disabled).toBe(false);
+            expect(button.hasAttribute("disabled")).toBe(false);
+        });
     });
 
     it("should test with the exact same DOM structure as real app", () => {

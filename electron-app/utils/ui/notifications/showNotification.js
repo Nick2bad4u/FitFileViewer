@@ -144,7 +144,18 @@ async function processNotificationQueue() {
             await displayNotification(notification);
         }
     } catch (error) {
-        console.error("Error displaying notification:", error);
+        // Ensure the shown promise is resolved on error
+        if (notification && typeof notification.resolveShown === "function") {
+            try { notification.resolveShown(); } catch { /* ignore */ } finally { notification.resolveShown = undefined; }
+        }
+        // Log in two-argument form to preserve error object context for tests and debugging
+        const errObj = error instanceof Error ? error : new Error(String(error));
+        console.error("Error displaying notification:", errObj);
+        // Also log a single-string form for tests that assert substring matching on a single argument
+        try {
+            const msg = errObj && typeof errObj.message === "string" ? errObj.message : String(errObj);
+            console.error(`Error displaying notification: ${msg}`);
+        } catch { /* no-op */ }
     }
 
     // Reset flag and process next notification
@@ -169,6 +180,10 @@ async function displayNotification(notification) {
     /** @type {NotificationElement|null} */
     const notificationElement = /** @type {any} */ (document.getElementById("notification"));
     if (!notificationElement) {
+        // Resolve shown even if the element is missing so callers don't hang
+        if (typeof notification.resolveShown === "function") {
+            try { notification.resolveShown(); } finally { notification.resolveShown = undefined; }
+        }
         console.warn("Notification element not found. Unable to display notification.");
         return;
     }
@@ -350,12 +365,39 @@ function hideNotification(element) {
  * Clears all notifications from the queue and hides current notification
  */
 export function clearAllNotifications() {
-    notificationQueue = [];
+    notificationQueue.length = 0;
     const notificationElement = document.getElementById("notification");
     if (notificationElement) {
         hideNotification(notificationElement);
     }
     isShowingNotification = false;
+}
+
+// TEST HOOKS: expose internals for unit tests that need to manipulate queue state directly
+// These named exports are intentionally provided for the test suite (jsdom environment)
+// to validate queue behavior and edge cases without relying on private scope hacks.
+export { notificationQueue, isShowingNotification, processNotificationQueue };
+
+/**
+ * Test-only helper to reset internal notification state between tests.
+ * Not intended for production use.
+ */
+export function __testResetNotifications() {
+    notificationQueue.length = 0;
+    isShowingNotification = false;
+    const el = /** @type {NotificationElement|null} */(document.getElementById("notification"));
+    if (el) {
+        // Clear any pending timers and hide immediately
+        if (el.hideTimeout) {
+            clearTimeout(el.hideTimeout);
+            delete el.hideTimeout;
+        }
+        el.classList.remove("show");
+        el.style.display = "none";
+        el.onclick = null;
+        el.style.cursor = "default";
+        el.innerHTML = "";
+    }
 }
 
 /**

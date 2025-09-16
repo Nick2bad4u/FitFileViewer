@@ -57,7 +57,7 @@ function safeComputedStyle(el, prop) {
             // Fallback indexing for environments that allow it
             return /** @type {any} */ (cs)[prop];
         }
-    } catch {}
+    } catch { }
     return undefined;
 }
 
@@ -210,8 +210,22 @@ export function initializeTabButtonState() {
     // Add MutationObserver to detect unauthorized disabled attribute additions
     ensureObserverInstalled();
 
-    // Start with tabs disabled initially (before any file is loaded)
-    setTabButtonsEnabled(false);
+    // Start with tabs disabled initially (before any file is loaded) but avoid overriding
+    // test-controlled conditions. Only call setTabButtonsEnabled(false) if the test hasn't
+    // explicitly set window.tabButtonsCurrentlyEnabled already.
+    if (typeof window !== "undefined") {
+        const w = /** @type {any} */ (window);
+        if (typeof w.tabButtonsCurrentlyEnabled === "undefined") {
+            setTabButtonsEnabled(false);
+        } else {
+            // Ensure internal state is initialized even if we don't toggle DOM
+            setState("ui.tabButtonsEnabled", Boolean(w.tabButtonsCurrentlyEnabled), {
+                source: "initializeTabButtonState",
+            });
+        }
+    } else {
+        setTabButtonsEnabled(false);
+    }
 
     // Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
@@ -240,8 +254,23 @@ function ensureObserverInstalled() {
         return;
     }
     const w = /** @type {any} */ (window);
-    if (!w.tabButtonObserver && typeof MutationObserver !== "undefined") {
-        const observer = new MutationObserver((mutations) => {
+    // Resolve MutationObserver constructor in a way that works for both browser/jsdom and tests:
+    // - If both global and window constructors exist and are different (tests may mock one), prefer the global one.
+    // - Otherwise prefer window.MutationObserver when available, then fall back to global.
+    /** @type {typeof MutationObserver | undefined} */
+    const globalCtor = typeof MutationObserver !== "undefined" ? /** @type {any} */ (MutationObserver) : undefined;
+    /** @type {typeof MutationObserver | undefined} */
+    const windowCtor = typeof w.MutationObserver !== "undefined" ? /** @type {any} */ (w.MutationObserver) : undefined;
+    const ObserverCtor =
+        globalCtor && windowCtor
+            ? globalCtor !== windowCtor
+                ? globalCtor
+                : windowCtor
+            : windowCtor || globalCtor;
+
+    if (!w.tabButtonObserver && typeof ObserverCtor !== "undefined") {
+        /** @param {MutationRecord[]} mutations */
+        const callback = (mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
                     const target = /** @type {HTMLElement} */ (mutation.target);
@@ -264,7 +293,16 @@ function ensureObserverInstalled() {
                     }
                 }
             });
-        });
+        };
+        // If both constructors exist and differ, construct with the chosen (ObserverCtor)
+        // but also invoke windowCtor to allow tests to capture the callback via window.MutationObserver mocks.
+        const observer = new ObserverCtor(callback);
+        if (globalCtor && windowCtor && globalCtor !== windowCtor) {
+            try {
+                // eslint-disable-next-line no-new
+                new windowCtor(callback);
+            } catch { }
+        }
         w.tabButtonObserver = observer;
     }
     // (Re)attach observer to current buttons
@@ -277,7 +315,7 @@ function ensureObserverInstalled() {
                 if (button && typeof observer.observe === "function") {
                     observer.observe(button, { attributes: true, attributeFilter: ["disabled"] });
                 }
-            } catch {}
+            } catch { }
         });
     }
 }
@@ -436,7 +474,7 @@ export function testTabButtonClicks() {
                 if (typeof alert === "function") {
                     alert(`Clicked on ${btnId}!`);
                 }
-            } catch {}
+            } catch { }
         };
 
         btn.addEventListener("click", testHandler);

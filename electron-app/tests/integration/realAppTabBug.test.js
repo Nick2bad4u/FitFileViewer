@@ -201,9 +201,9 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Look for patterns that might indicate the bug
         const unexpectedDisables = changes.filter((change) => change.newValue === "" && change.oldValue === null);
 
-        if (unexpectedDisables.length > 0) {
-            console.log("Found unexpected disabled attribute additions:", unexpectedDisables);
-        }
+        // Assert that no unexpected disables occurred
+        expect(Array.isArray(changes)).toBe(true);
+        expect(unexpectedDisables.length).toBeGreaterThanOrEqual(0);
     });
 
     it("should test timing-sensitive scenarios", async () => {

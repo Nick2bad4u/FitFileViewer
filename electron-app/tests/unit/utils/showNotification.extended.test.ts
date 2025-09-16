@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import { showNotification, notify, clearAllNotifications, __testResetNotifications } from "../../../utils/ui/notifications/showNotification.js";
 
 // Access internal variables and functions for testing
 // @ts-ignore - Accessing internals for testing
@@ -18,12 +18,8 @@ describe("showNotification.js - extended coverage", () => {
         // Mock requestAnimationFrame to execute immediately
         window.requestAnimationFrame = (cb) => { cb(0); return 0; };
         document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
-
-        // Clear any existing queue from previous tests
-        // @ts-ignore - Modifying internals for testing
-        while (notificationQueue.length > 0) notificationQueue.pop();
-        // @ts-ignore - Modifying internals for testing
-        isShowingNotification = false;
+        // Reset internal notification state using provided test helper
+        __testResetNotifications();
     });
 
     afterEach(() => {

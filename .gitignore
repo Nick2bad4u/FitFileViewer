@@ -350,3 +350,4 @@ vscode-extension/*
 electron-app/utils/.prettier-cache
 **/.prettier-cache
 electron-app/coverage-report.json
+electron-app/html/

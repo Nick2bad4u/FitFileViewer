@@ -62,8 +62,8 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         // Mock console methods to reduce noise
         originalConsoleLog = console.log;
         originalConsoleWarn = console.warn;
-        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
 
         // Mock isHTMLElement to return true for HTMLElements
         mockIsHTMLElement.mockImplementation((el) => el instanceof HTMLElement);
@@ -600,8 +600,12 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
             initializeTabButtonState();
 
-            // Simulate unauthorized disabled attribute addition
+            // Sanity check to satisfy requireAssertions and ensure setup is correct
             const testBtn = document.getElementById("tab-test");
+            expect(testBtn).not.toBeNull();
+            expect(mutationCallback).toBeDefined();
+
+            // Simulate unauthorized disabled attribute addition
             if (testBtn && mutationCallback) {
                 const mockMutation = {
                     type: "attributes",

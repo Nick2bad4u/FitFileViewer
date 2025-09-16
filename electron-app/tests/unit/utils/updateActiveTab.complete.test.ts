@@ -391,6 +391,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         });
 
         it("should handle memory cleanup properly", () => {
+            // Ensure a clean DOM to avoid scanning large trees from previous tests
+            document.body.innerHTML = "";
+
             // This test ensures no memory leaks with repeated operations
             for (let i = 0; i < 1000; i++) {
                 // Create proper tab button elements with .tab-button class
@@ -399,7 +402,11 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
                 button.className = "tab-button";
                 button.textContent = "Test";
                 document.body.appendChild(button);
+
                 updateActiveTab(`tab-test${i}`);
+
+                // Remove the element to keep DOM size stable and avoid performance degradation
+                document.body.removeChild(button);
             }
 
             expect(mockSetState).toHaveBeenCalledTimes(1000);
