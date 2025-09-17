@@ -79,79 +79,79 @@
  * @type {AppStateShape}
  */
 const AppState = {
-        // Application lifecycle state
-        app: {
-            initialized: false,
-            isOpeningFile: false,
-            startTime: performance.now(),
-        },
+    // Application lifecycle state
+    app: {
+        initialized: false,
+        isOpeningFile: false,
+        startTime: performance.now(),
+    },
 
-        // Core application data
-        globalData: null,
-        currentFile: null,
-        isLoading: false,
+    // Core application data
+    globalData: null,
+    currentFile: null,
+    isLoading: false,
 
-        // UI state
-        ui: {
-            activeTab: "summary",
-            sidebarCollapsed: false,
-            theme: "system",
-            isFullscreen: false,
-            windowState: {
-                width: 1200,
-                height: 800,
-                x: null,
-                y: null,
-                maximized: false,
-            },
-        },
-
-        // Chart state
-        charts: {
-            isRendered: false,
-            controlsVisible: true,
-            selectedChart: "elevation",
-            zoomLevel: 1,
-            chartData: null,
-            chartOptions: {},
-        },
-
-        // Map state
-        map: {
-            isRendered: false,
-            center: null,
-            zoom: 13,
-            selectedLap: 0,
-            showElevationProfile: true,
-            trackVisible: true,
-            baseLayer: "openstreetmap",
-            measurementMode: false,
-        },
-
-        // Table state
-        tables: {
-            isRendered: false,
-            sortColumn: null,
-            sortDirection: "asc",
-            pageSize: 50,
-            currentPage: 1,
-            filters: {},
-        },
-        // Performance metrics
-        performance: {
-            lastLoadTime: null,
-            renderTimes: {},
-            memoryUsage: null,
-        },
-
-        // System information
-        system: {
-            version: null,
-            startupTime: null,
-            mode: "production",
-            initialized: false,
+    // UI state
+    ui: {
+        activeTab: "summary",
+        sidebarCollapsed: false,
+        theme: "system",
+        isFullscreen: false,
+        windowState: {
+            width: 1200,
+            height: 800,
+            x: null,
+            y: null,
+            maximized: false,
         },
     },
+
+    // Chart state
+    charts: {
+        isRendered: false,
+        controlsVisible: true,
+        selectedChart: "elevation",
+        zoomLevel: 1,
+        chartData: null,
+        chartOptions: {},
+    },
+
+    // Map state
+    map: {
+        isRendered: false,
+        center: null,
+        zoom: 13,
+        selectedLap: 0,
+        showElevationProfile: true,
+        trackVisible: true,
+        baseLayer: "openstreetmap",
+        measurementMode: false,
+    },
+
+    // Table state
+    tables: {
+        isRendered: false,
+        sortColumn: null,
+        sortDirection: "asc",
+        pageSize: 50,
+        currentPage: 1,
+        filters: {},
+    },
+    // Performance metrics
+    performance: {
+        lastLoadTime: null,
+        renderTimes: {},
+        memoryUsage: null,
+    },
+
+    // System information
+    system: {
+        version: null,
+        startupTime: null,
+        mode: "production",
+        initialized: false,
+    },
+},
     /**
      * Event listeners for state changes
      * @type {Map<string, Set<Function>>}
@@ -173,7 +173,7 @@ const AppState = {
  * @param {Function} callback - Function to call when state changes
  * @returns {Function} Unsubscribe function
  */
-export function subscribe(path, callback) {
+function subscribe(path, callback) {
     if (!stateListeners.has(path)) {
         stateListeners.set(path, new Set());
     }
@@ -201,7 +201,7 @@ export function subscribe(path, callback) {
  * @param {string} path - Dot notation path to state property
  * @returns {*} State value
  */
-export function getState(path) {
+function getState(path) {
     if (!path) {
         return AppState;
     }
@@ -237,7 +237,7 @@ export function getState(path) {
  * @param {*} value - New value to set
  * @param {StateUpdateOptions} [options] - Optional update options
  */
-export function setState(path, value, options = {}) {
+function setState(path, value, options = {}) {
     const { silent = false, source = "unknown", merge = false } = options,
         // Get the old value for comparison
         oldValue = getState(path),
@@ -309,7 +309,7 @@ export function setState(path, value, options = {}) {
  * @param {Object} updates - Object to merge with existing state
  * @param {StateUpdateOptions} [options] - Optional update options
  */
-export function updateState(path, updates, options = {}) {
+function updateState(path, updates, options = {}) {
     // Force merge semantics; caller may still override silent/source
     setState(path, updates, { ...options, merge: true });
 }
@@ -357,7 +357,7 @@ function notifyListeners(path, newValue, oldValue) {
  * Reset state to initial values
  * @param {string} [path] - Optional path to reset only part of state
  */
-export function resetState(path) {
+function resetState(path) {
     if (path) {
         const keys = path.split(".");
         /** @type {any} */
@@ -445,14 +445,14 @@ export function resetState(path) {
  * Get state change history for debugging
  * @returns {Array<Object>} Array of state changes
  */
-export function getStateHistory() {
+function getStateHistory() {
     return [...stateHistory];
 }
 
 /**
  * Clear state change history
  */
-export function clearStateHistory() {
+function clearStateHistory() {
     stateHistory.length = 0;
     console.log("[StateManager] State history cleared");
 }
@@ -461,7 +461,7 @@ export function clearStateHistory() {
  * TEST-ONLY: Clear all registered state listeners.
  * This helps ensure unit tests don't leak subscriptions across suites.
  */
-export function __clearAllListenersForTests() {
+function __clearAllListenersForTests() {
     try {
         stateListeners.clear();
         console.log("[StateManager] All listeners cleared (tests)");
@@ -476,23 +476,23 @@ export function __clearAllListenersForTests() {
  * - Clears history
  * - Resets AppState to initial values
  */
-export function __resetStateManagerForTests() {
+function __resetStateManagerForTests() {
     try {
         __clearAllListenersForTests();
-    } catch {}
+    } catch { }
     try {
         clearStateHistory();
-    } catch {}
+    } catch { }
     try {
         resetState();
-    } catch {}
+    } catch { }
 }
 
 /**
  * Persist state to localStorage
  * @param {Array<string>} paths - Array of state paths to persist
  */
-export function persistState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
+function persistState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
     const stateToSave = {};
 
     paths.forEach((path) => {
@@ -514,7 +514,7 @@ export function persistState(paths = ["ui", "charts.controlsVisible", "map.baseL
  * Load persisted state from localStorage
  * @param {Array<string>} paths - Array of state paths to load
  */
-export function loadPersistedState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
+function loadPersistedState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
     try {
         const savedState = localStorage.getItem("fitFileViewer_state");
         if (!savedState) {
@@ -598,7 +598,7 @@ function getNestedValue(obj, path) {
  * @param {string} propertyName - Name of the property to create
  * @param {string} statePath - Path in state to bind to
  */
-export function createReactiveProperty(propertyName, statePath) {
+function createReactiveProperty(propertyName, statePath) {
     try {
         // Check if property already exists
         const descriptor = Object.getOwnPropertyDescriptor(window, propertyName);
@@ -640,7 +640,7 @@ export function createReactiveProperty(propertyName, statePath) {
 /**
  * Initialize state manager with default reactive properties
  */
-export function initializeStateManager() {
+function initializeStateManager() {
     // Create reactive properties for backward compatibility
     createReactiveProperty("globalData", "globalData");
     createReactiveProperty("isChartRendered", "charts.isRendered");
@@ -656,5 +656,23 @@ export function initializeStateManager() {
     console.log("[StateManager] Initialized with reactive properties and persistence");
 }
 
-// Export the raw state for debugging (read-only)
-export const __debugState = AppState;
+// Debug state object
+const __debugState = AppState;
+
+// Export all functions using CommonJS module.exports
+module.exports = {
+    subscribe,
+    getState,
+    setState,
+    updateState,
+    resetState,
+    getStateHistory,
+    clearStateHistory,
+    __clearAllListenersForTests,
+    __resetStateManagerForTests,
+    persistState,
+    loadPersistedState,
+    createReactiveProperty,
+    initializeStateManager,
+    __debugState
+};

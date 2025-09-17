@@ -194,6 +194,13 @@ export function mapDrawLaps(
     /** @type {Array<CoordTuple>} */
     let coords = [];
     // Replace window global data access comments
+
+    // DEBUG: Log what we're seeing
+    console.log("[mapDrawLaps] DEBUG win =", win);
+    console.log("[mapDrawLaps] DEBUG win.globalData =", win.globalData);
+    console.log("[mapDrawLaps] DEBUG win.globalData?.lapMesgs =", win.globalData?.lapMesgs);
+    console.log("[mapDrawLaps] DEBUG win.globalData?.recordMesgs =", win.globalData?.recordMesgs);
+
     const lapMesgs = /** @type {Array<LapMesg>} */ (/** @type {any} */ (win).globalData?.lapMesgs || []),
         recordMesgs = /** @type {Array<RecordMesg>} */ (/** @type {any} */ (win).globalData?.recordMesgs || []);
 
@@ -321,7 +328,7 @@ export function mapDrawLaps(
                 typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
             map.invalidateSize();
             if (/** @type {any} */ (win)._mainPolylineOriginalBounds) {
-                map.fitBounds(/** @type {any} */ (win)._mainPolylineOriginalBounds, { padding: [20, 20] });
+                map.fitBounds(/** @type {any} */(win)._mainPolylineOriginalBounds, { padding: [20, 20] });
             }
 
             const start = coords[0],
@@ -349,8 +356,8 @@ export function mapDrawLaps(
                 i < coords.length;
                 i +=
                     /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
-                        ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
+                    ? 1
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
             ) {
                 const c = coords[i];
                 if (!c) {
@@ -376,7 +383,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (win).loadedFitFiles &&
-            Array.isArray(/** @type {any} */ (win).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */(win).loadedFitFiles) &&
             /** @type {any} */ (win).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -483,21 +490,21 @@ export function mapDrawLaps(
                 const polyColor = getLapColor("all");
                 console.log("[mapDrawLaps] Drawing polyline for all laps, coords.length =", coords.length);
                 const polyline = L.polyline(
-                        coords.map((c) => [c[0], c[1]]),
-                        {
-                            color: polyColor,
-                            weight: 4,
-                            opacity: 0.9,
-                            dashArray: "6, 8",
-                        }
-                    ).addTo(map),
+                    coords.map((c) => [c[0], c[1]]),
+                    {
+                        color: polyColor,
+                        weight: 4,
+                        opacity: 0.9,
+                        dashArray: "6, 8",
+                    }
+                ).addTo(map),
                     // --- Store original bounds for main polyline ---
                     origBounds = polyline.getBounds();
                 /** @type {any} */ (win)._mainPolylineOriginalBounds =
                     typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
                 map.invalidateSize();
                 if (/** @type {any} */ (win)._mainPolylineOriginalBounds) {
-                    map.fitBounds(/** @type {any} */ (win)._mainPolylineOriginalBounds, { padding: [20, 20] });
+                    map.fitBounds(/** @type {any} */(win)._mainPolylineOriginalBounds, { padding: [20, 20] });
                 }
 
                 const start = coords[0],
@@ -525,8 +532,8 @@ export function mapDrawLaps(
                     i < coords.length;
                     i +=
                         /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
-                            ? 1
-                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
+                        ? 1
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
                 ) {
                     const c = coords[i];
                     if (!c) {
@@ -552,7 +559,7 @@ export function mapDrawLaps(
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
             if (
                 /** @type {any} */ (win).loadedFitFiles &&
-                Array.isArray(/** @type {any} */ (win).loadedFitFiles) &&
+                Array.isArray(/** @type {any} */(win).loadedFitFiles) &&
                 /** @type {any} */ (win).loadedFitFiles.length > 1
             ) {
                 const colorPalette = chartOverlayColorPalette;
@@ -683,9 +690,9 @@ export function mapDrawLaps(
                             /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                                 ? 1
                                 : Math.max(
-                                      1,
-                                      Math.floor(lapCoords.length / /** @type {any} */ (win.mapMarkerCount || 1))
-                                  );
+                                    1,
+                                    Math.floor(lapCoords.length / /** @type {any} */ (win.mapMarkerCount || 1))
+                                );
                         for (let j = 0; j < lapCoords.length; j += stepLap) {
                             const c = lapCoords[j];
                             if (!c) {
@@ -721,7 +728,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (win).loadedFitFiles &&
-            Array.isArray(/** @type {any} */ (win).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */(win).loadedFitFiles) &&
             /** @type {any} */ (win).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -811,9 +818,8 @@ export function mapDrawLaps(
                 return;
             }
         } else {
-            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${
-                lap && lap.startPositionLat
-            }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${lap && lap.startPositionLat
+                }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
             return;
         }
     } else {
@@ -845,25 +851,41 @@ export function mapDrawLaps(
     }
 
     if (coords.length > 0) {
-        const polyColor = getLapColor(lapIdx),
-            polyline = L.polyline(
-                coords.map((c) => [c[0], c[1]]),
-                {
-                    color: polyColor,
-                    weight: 4,
-                    opacity: 0.9,
-                    dashArray: lapIdx === "all" ? "6, 8" : null,
-                }
-            ).addTo(map),
-            // --- Store original bounds for main polyline ---
-            origBounds = polyline.getBounds();
+        const polyColor = getLapColor(lapIdx);
+
+        console.log("[mapDrawLaps] DEBUG About to create polyline with L.polyline");
+        const polylineResult = L.polyline(
+            coords.map((c) => [c[0], c[1]]),
+            {
+                color: polyColor,
+                weight: 4,
+                opacity: 0.9,
+                dashArray: lapIdx === "all" ? "6, 8" : null,
+            }
+        );
+        console.log("[mapDrawLaps] DEBUG L.polyline() returned:", polylineResult);
+
+        const polylineWithMap = polylineResult.addTo(map);
+        console.log("[mapDrawLaps] DEBUG .addTo(map) returned:", polylineWithMap);
+
+        const polyline = polylineWithMap;
+        console.log("[mapDrawLaps] DEBUG final polyline:", polyline);
+        console.log("[mapDrawLaps] DEBUG polyline.getBounds exists?", typeof polyline?.getBounds);
+
+        if (!polyline) {
+            console.error("[mapDrawLaps] ERROR: polyline is null/undefined after chaining");
+            return;
+        }
+
+        // --- Store original bounds for main polyline ---
+        const origBounds = polyline.getBounds();
         /** @type {any} */ (win)._mainPolylineOriginalBounds =
             typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
 
         // Fix: Ensure map is sized before fitBounds
         map.invalidateSize();
         if (/** @type {any} */ (win)._mainPolylineOriginalBounds) {
-            map.fitBounds(/** @type {any} */ (win)._mainPolylineOriginalBounds, { padding: [20, 20] });
+            map.fitBounds(/** @type {any} */(win)._mainPolylineOriginalBounds, { padding: [20, 20] });
         }
 
         const start = coords[0],
@@ -881,8 +903,8 @@ export function mapDrawLaps(
             i < coords.length;
             i +=
                 /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
-                    ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
+                ? 1
+                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
         ) {
             const c = coords[i];
             if (!c) {
@@ -907,7 +929,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (win).loadedFitFiles &&
-            Array.isArray(/** @type {any} */ (win).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */(win).loadedFitFiles) &&
             /** @type {any} */ (win).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -1008,11 +1030,11 @@ export function drawOverlayForFitFile({
 
     if (coords.length > 0) {
         const isHighlighted =
-                typeof overlayIdx === "number" && /** @type {any} */ (win)._highlightedOverlayIdx === overlayIdx,
+            typeof overlayIdx === "number" && /** @type {any} */ (win)._highlightedOverlayIdx === overlayIdx,
             paletteColor =
                 Array.isArray(chartOverlayColorPalette) &&
-                chartOverlayColorPalette.length > 0 &&
-                typeof overlayIdx === "number"
+                    chartOverlayColorPalette.length > 0 &&
+                    typeof overlayIdx === "number"
                     ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
                     : "#1976d2", // Default fallback color
             polyline = L.polyline(
@@ -1078,7 +1100,7 @@ export function drawOverlayForFitFile({
 
             let lapDisplay;
             if (getLapNumForIdx && fitData && Array.isArray(fitData.lapMesgs) && fitData.lapMesgs.length > 0) {
-                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */ (fitData.lapMesgs));
+                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */(fitData.lapMesgs));
             } else {
                 lapDisplay = c[8] || 1;
             }
@@ -1105,7 +1127,7 @@ export function drawOverlayForFitFile({
     if (!(/** @type {any} */ (win)._overlayPolylines)) {
         return;
     }
-    Object.entries(/** @type {any} */ (win)._overlayPolylines).forEach(([idx, polyline]) => {
+    Object.entries(/** @type {any} */(win)._overlayPolylines).forEach(([idx, polyline]) => {
         const isHighlighted = Number(idx) === /** @type {any} */ (win)._highlightedOverlayIdx;
         polyline.setStyle({
             weight: isHighlighted ? 10 : 4,

@@ -156,7 +156,9 @@ beforeEach(() => {
   // reset state and spies
   for (const k of Object.keys(state)) delete state[k];
   Object.values(spies).forEach((fn) => (fn as any).mockClear?.());
-  localStorage.clear();
+  if (typeof localStorage !== 'undefined') {
+    localStorage.clear();
+  }
   delete (window as any)._chartjsInstances;
   delete (window as any).globalData;
 });

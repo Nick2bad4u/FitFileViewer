@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
 
 // Setup global test environment flags
 vi.stubGlobal("__VITEST__", true);
@@ -15,39 +15,40 @@ if (typeof process === "undefined") {
     process.env.VITEST_WORKER_ID = "1";
 }
 
-// Create DOM elements needed by renderer
-document.body.innerHTML = `
-    <div id="loading" style="display: block;">Loading...</div>
-    <div id="notification-container"></div>
-    <div id="tab-summary"></div>
-    <div id="tab-chart"></div>
-    <div id="tab-map"></div>
-    <div id="tab-table"></div>
-    <div id="app-content" style="display: none;"></div>
-    <input type="file" id="fileInput" style="display: none;" />
-    <div id="about-modal" style="display: none;"></div>
-`;
-
-// Setup window.electronAPI
-Object.defineProperty(window, "electronAPI", {
-    value: {
-        onMenuAction: vi.fn(),
-        onThemeChanged: vi.fn(),
-        getSystemInfo: vi.fn().mockResolvedValue({
-            platform: "win32",
-            arch: "x64",
-            version: "10.0.19042",
-        }),
-        showMessageBox: vi.fn(),
-        getAppVersion: vi.fn().mockResolvedValue("1.0.0"),
-        isDevelopment: vi.fn().mockResolvedValue(false),
-    },
-    writable: true,
-    configurable: true,
-});
-
 // Test suite
 describe("renderer.js - Coverage Test", () => {
+    beforeAll(() => {
+        // Create DOM elements needed by renderer
+        document.body.innerHTML = `
+            <div id="loading" style="display: block;">Loading...</div>
+            <div id="notification-container"></div>
+            <div id="tab-summary"></div>
+            <div id="tab-chart"></div>
+            <div id="tab-map"></div>
+            <div id="tab-table"></div>
+            <div id="app-content" style="display: none;"></div>
+            <input type="file" id="fileInput" style="display: none;" />
+            <div id="about-modal" style="display: none;"></div>
+        `;
+
+        // Setup window.electronAPI
+        Object.defineProperty(window, "electronAPI", {
+            value: {
+                onMenuAction: vi.fn(),
+                onThemeChanged: vi.fn(),
+                getSystemInfo: vi.fn().mockResolvedValue({
+                    platform: "win32",
+                    arch: "x64",
+                    version: "10.0.19042",
+                }),
+                showMessageBox: vi.fn(),
+                getAppVersion: vi.fn().mockResolvedValue("1.0.0"),
+                isDevelopment: vi.fn().mockResolvedValue(false),
+            },
+            writable: true,
+            configurable: true,
+        });
+    });
     it("should execute renderer.js file for coverage tracking", async () => {
         // Mock console methods to reduce test noise
         vi.spyOn(console, "log").mockImplementation(() => {});

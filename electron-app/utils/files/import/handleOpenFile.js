@@ -3,7 +3,12 @@
  * Provides secure file opening with comprehensive error handling and state management integration
  */
 
-import { setState } from "../../state/core/stateManager.js";
+// Import stateManager module
+const stateManager = require("../../state/core/stateManager.js");
+
+// Export stateManager for testing
+// Only used in tests, never in production code
+const __TEST_ONLY_exposedStateManager = stateManager;
 
 // Constants for better maintainability
 const FILE_OPEN_CONSTANTS = {
@@ -91,10 +96,12 @@ function updateUIState(uiElements, isLoading, isOpening) {
             isOpeningFileRef.value = isOpening;
         }
 
-        // Update state management
+        // Update state management - log first for better test traceability
         console.log(`[HandleOpenFile] Setting ui.isLoading=${isLoading}, ui.isOpening=${isOpening}`);
-        setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
-        setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
+
+        // Use direct calls to stateManager.setState for both state updates
+        stateManager.setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
+        stateManager.setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
     } catch (error) {
         logWithContext(`Error updating UI state: ${error instanceof Error ? error.message : String(error)}`, "error");
     }
@@ -124,7 +131,7 @@ function updateUIState(uiElements, isLoading, isOpening) {
  *
  * @public
  */
-export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification }, options = {}) {
+async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification }, options = {}) {
     const config = {
         timeout: 30000,
         validateFileSize: true,
@@ -256,4 +263,11 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
 }
 
 // Export functions for testing
-export { logWithContext, validateElectronAPI, updateUIState };
+module.exports = {
+    handleOpenFile,
+    logWithContext,
+    validateElectronAPI,
+    updateUIState,
+    // Only used in tests, never in production code
+    __TEST_ONLY_exposedStateManager
+};

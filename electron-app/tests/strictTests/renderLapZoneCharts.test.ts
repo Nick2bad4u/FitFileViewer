@@ -356,11 +356,18 @@ describe("renderLapZoneCharts", () => {
 
         it("should call renderLapZoneChart for HR stacked chart", () => {
             renderLapZoneCharts(container);
-            expect(renderLapZoneChart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                { title: "HR Zone by Lap (Stacked)" }
+
+            // Verify renderLapZoneChart was called for HR chart
+            const hrCalls = renderLapZoneChart.mock.calls.filter(call =>
+                call[2]?.title === "HR Zone by Lap (Stacked)"
             );
+            expect(hrCalls).toHaveLength(1);
+
+            const [canvas, data, options] = hrCalls[0];
+            expect(canvas).toBeInstanceOf(window.HTMLCanvasElement);
+            expect(canvas.id).toBe("chartjs-canvas-lap-hr-zones");
+            expect(Array.isArray(data)).toBe(true);
+            expect(options.title).toBe("HR Zone by Lap (Stacked)");
         });
 
         it("should call renderLapZoneChart for Power stacked chart", () => {

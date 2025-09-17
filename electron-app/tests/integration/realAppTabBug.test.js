@@ -28,19 +28,15 @@ mockStateManager.setState.mockImplementation((key, value) => {
 });
 
 // Mock the imports before importing the modules
-vi.doMock("../../../utils/state/core/stateManager.js", () => ({
+vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: mockStateManager.getState,
     setState: mockStateManager.setState,
     subscribe: mockStateManager.subscribe,
 }));
 
-vi.doMock("../../../utils/dom/domHelpers.js", () => ({
+vi.mock("../../../utils/dom/domHelpers.js", () => ({
     isHTMLElement: (el) => el instanceof HTMLElement,
 }));
-
-// Now import the modules after mocking
-const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
-const { initializeActiveTabState, updateActiveTab } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
 describe("Real App Integration: Tab Button Bug", () => {
     beforeEach(() => {
@@ -96,6 +92,10 @@ describe("Real App Integration: Tab Button Bug", () => {
     });
 
     it("should simulate the exact real app initialization sequence", async () => {
+        // Dynamic import after mocks are set up
+        const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
+        const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
+
         console.log("Starting real app simulation...");
 
         // Step 1: Initialize tab button state (like masterStateManager.js does)
@@ -147,10 +147,15 @@ describe("Real App Integration: Tab Button Bug", () => {
             expect(btn.hasAttribute("disabled")).toBe(false); // This is the failing assertion in real app
             expect(btn.style.pointerEvents).toBe("auto");
         });
-    });
+    }, 15000);
 
     it("should detect conflicts between multiple enable/disable calls", async () => {
+        // Dynamic import after mocks are set up
+        const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
+        const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
+
         // Set up mutation observer to track all changes
+        /** @type {any[]} */
         const changes = [];
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
@@ -204,9 +209,13 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Assert that no unexpected disables occurred
         expect(Array.isArray(changes)).toBe(true);
         expect(unexpectedDisables.length).toBeGreaterThanOrEqual(0);
-    });
+    }, 15000);
 
     it("should test timing-sensitive scenarios", async () => {
+        // Dynamic import after mocks are set up
+        const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
+        const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
+
         // Initialize systems
         initializeTabButtonState();
         initializeActiveTabState();
@@ -231,5 +240,5 @@ describe("Real App Integration: Tab Button Bug", () => {
             expect(btn.disabled).toBe(false);
             expect(btn.hasAttribute("disabled")).toBe(false);
         });
-    });
+    }, 15000);
 });

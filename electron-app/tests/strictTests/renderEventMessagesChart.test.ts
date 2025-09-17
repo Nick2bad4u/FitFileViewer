@@ -79,7 +79,8 @@ beforeEach(() => {
         resize: vi.fn()
     };
 
-    global.window = Object.assign(global.window || {}, {
+    // Ensure window and global.window reference the same object
+    Object.assign(window, {
         Chart: vi.fn(() => mockChart),
         _chartjsInstances: [],
         globalData: {
@@ -101,6 +102,9 @@ beforeEach(() => {
             ]
         }
     });
+
+    // Ensure global.window references the same object as window
+    global.window = window;
 
     // Mock console.error
     mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -125,15 +129,15 @@ beforeEach(() => {
 afterEach(() => {
     vi.clearAllMocks();
     mockConsoleError.mockRestore();
-    delete (global.window as any).Chart;
-    delete (global.window as any)._chartjsInstances;
-    delete (global.window as any).globalData;
+    delete window.Chart;
+    delete window._chartjsInstances;
+    delete window.globalData;
 });
 
 describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
     describe('Data Validation and Processing', () => {
         test('should return early when eventMesgs is not available', () => {
-            (global.window as any).globalData = null;
+            window.globalData = null as any;
             const container = document.createElement('div');
 
             renderEventMessagesChart(container, {}, new Date());
@@ -143,7 +147,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should return early when eventMesgs is not an array', () => {
-            (global.window as any).globalData = { eventMesgs: 'invalid' };
+            window.globalData = { eventMesgs: 'invalid' } as any;
             const container = document.createElement('div');
 
             renderEventMessagesChart(container, {}, new Date());
@@ -153,7 +157,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should return early when eventMesgs array is empty', () => {
-            (global.window as any).globalData = { eventMesgs: [] };
+            window.globalData = { eventMesgs: [] };
             const container = document.createElement('div');
 
             renderEventMessagesChart(container, {}, new Date());
@@ -174,7 +178,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should handle missing globalData gracefully', () => {
-            delete (global.window as any).globalData;
+            delete window.globalData;
             const container = document.createElement('div');
 
             renderEventMessagesChart(container, {}, new Date());
@@ -184,7 +188,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should extract event names from different fields', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { timestamp: new Date('2023-01-01T10:00:00Z'), event: 'Event Field' },
                     { timestamp: new Date('2023-01-01T10:01:00Z'), message: 'Message Field' },
@@ -224,7 +228,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should handle number timestamps in seconds', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { timestamp: 1672570800, event: 'Event 1' }, // Unix timestamp in seconds
                     { timestamp: 1672571100, event: 'Event 2' }  // 5 minutes later
@@ -243,7 +247,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should handle number timestamps in milliseconds', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { timestamp: 1672570800000, event: 'Event 1' }, // Unix timestamp in milliseconds
                     { timestamp: 1672571100000, event: 'Event 2' }  // 5 minutes later
@@ -262,7 +266,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should handle mixed timestamp formats', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { timestamp: new Date('2023-01-01T10:00:00Z'), event: 'Event 1' },
                     { timestamp: 1672570800, event: 'Event 2' },
@@ -282,7 +286,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should fallback to x:0 for invalid timestamp formats', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { timestamp: 'invalid', event: 'Event 1' },
                     { timestamp: null, event: 'Event 2' },
@@ -614,7 +618,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
 
     describe('Edge Cases', () => {
         test('should handle empty event messages array', () => {
-            (global.window as any).globalData = { eventMesgs: [] };
+            window.globalData = { eventMesgs: [] };
             const container = document.createElement('div');
 
             renderEventMessagesChart(container, {}, new Date());
@@ -641,7 +645,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should handle events with all timestamp variations', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { time: new Date('2023-01-01T10:00:00Z'), event: 'Event 1' },
                     { timestamp: 1672570800, event: 'Event 2' },
@@ -668,7 +672,7 @@ describe('renderEventMessagesChart.js - Event Messages Chart Utility', () => {
         });
 
         test('should handle very large timestamp values', () => {
-            (global.window as any).globalData = {
+            window.globalData = {
                 eventMesgs: [
                     { timestamp: Number.MAX_SAFE_INTEGER, event: 'Large Event' },
                     { timestamp: -Number.MAX_SAFE_INTEGER, event: 'Negative Event' }

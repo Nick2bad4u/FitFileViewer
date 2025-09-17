@@ -57,6 +57,14 @@ describe("createChartStatusIndicatorFromCounts", () => {
         global.window = dom.window as unknown as Window & typeof globalThis;
         global.HTMLElement = dom.window.HTMLElement;
         global.Element = dom.window.Element;
+
+        // Setup fake timers for timeout tests
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        // Reset timers after each test
+        vi.useRealTimers();
     });
 
     describe("Basic Functionality", () => {
@@ -411,8 +419,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
             const indicator = createChartStatusIndicatorFromCounts(counts);
             indicator.click();
 
-            // Fast-forward time
-            await new Promise(resolve => setTimeout(resolve, 2100));
+            // Advance timers to trigger the setTimeout
+            vi.advanceTimersByTime(2100);
 
             expect(fieldsSection.style.outline).toBe("none");
             expect(fieldsSection.style.outlineOffset).toBe("0");

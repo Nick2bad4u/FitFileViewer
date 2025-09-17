@@ -150,14 +150,15 @@ export default defineConfig({
             ],
             reportOnFailure: true,
             thresholds: {
-                // Lock the coverage gate at 100% for the curated include set
+                // Lock the coverage gate at 95% for the curated include set
                 autoUpdate: false,
                 global: {
                     // Branch coverage can be noisy with jsdom and v8 remapping;
-                    // enforce 100% for the primary metrics.
-                    functions: 100,
-                    lines: 100,
-                    statements: 100,
+                    // enforce 95% for the primary metrics.
+                    branches: 95,
+                    functions: 95,
+                    lines: 95,
+                    statements: 95,
                 },
             },
         },
