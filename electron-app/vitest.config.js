@@ -47,6 +47,14 @@ export default defineConfig({
             poll: { interval: 50, timeout: 15_000 },
             requireAssertions: true,
         },
+        server: {
+            deps: {
+                inline: [
+                    "utils/files/import/handleOpenFile.js",
+                    "utils/state/core/stateManager.js"
+                ]
+            }
+        },
         exclude: [
             "libs/**",
             "../libs/**",

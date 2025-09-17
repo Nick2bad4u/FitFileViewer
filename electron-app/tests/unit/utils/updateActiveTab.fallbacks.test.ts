@@ -87,6 +87,30 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     expect(el.classList.contains("active")).toBe(true);
   });
 
+  it("uses window.document when document is undefined (window fallback)", async () => {
+    // Prepare a fresh JSDOM to simulate window.document while document is undefined
+    const dom = new JSDOM(
+      "<!doctype html><html><body><button id=\"tab-win\" class=\"tab-button\">Win</button></body></html>"
+    );
+
+    // Invalidate document; provide window.document only
+    (globalThis as any).document = undefined;
+    (globalThis as any).window = { document: dom.window.document } as unknown as Window;
+
+    const setState = vi.fn();
+    const getState = vi.fn().mockReturnValue("win");
+    const subscribe = vi.fn();
+    vi.doMock("../../../utils/state/core/stateManager.js", () => ({ setState, getState, subscribe }));
+
+    const { updateActiveTab } = await import("../../../utils/ui/tabs/updateActiveTab.js");
+    const ok = updateActiveTab("tab-win");
+
+    expect(ok).toBe(true);
+    expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", { source: "updateActiveTab" });
+    const el = (globalThis as any).window.document.getElementById("tab-win");
+    expect(el.classList.contains("active")).toBe(true);
+  });
+
   it("subscribes and updates aria-selected via state callback (valid path)", async () => {
     // Standard DOM with two buttons
     document.body.innerHTML = `

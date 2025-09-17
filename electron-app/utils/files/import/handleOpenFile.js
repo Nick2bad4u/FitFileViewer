@@ -57,7 +57,7 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */ (method) => typeof (/** @type {*} */ (window.electronAPI)[method]) !== "function"
+        /** @param {string} method */(method) => typeof (/** @type {*} */ (window.electronAPI)[method]) !== "function"
     );
 
     if (missingMethods.length > 0) {
@@ -134,6 +134,10 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
     // Prevent multiple simultaneous file opening operations
     if (/** @type {*} */ (isOpeningFileRef)?.value) {
         logWithContext("File opening already in progress", "warn");
+        showNotification(
+            "File opening is already in progress. Please wait.",
+            "warning"
+        );
         return false;
     }
 
@@ -228,14 +232,16 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
         }
         if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
             console.log("[DEBUG] FIT parse result:", result);
+            const sessionCount = result.data?.sessions?.length || 0;
+            console.log(`[HandleOpenFile] Debug: Parsed FIT data contains ${sessionCount} sessions`);
         }
         try {
             const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
             if (window.showFitData) {
-                window.showFitData(result, filePathString);
+                window.showFitData(result.data, filePathString);
             }
             if (/** @type {*} */ (window).sendFitFileToAltFitReader) {
-                /** @type {*} */ (window).sendFitFileToAltFitReader(arrayBuffer);
+                /** @type {*} */ (window).sendFitFileToAltFitReader(filePathString);
             }
         } catch (err) {
             showNotification(`Error displaying FIT data: ${err}`, "error");
@@ -243,8 +249,11 @@ export async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading
 
         // Update UI state to indicate loading is complete
         updateUIState(uiElements, false, false);
-        return false; // Return false if we reach this point without success
+        return true; // Return true on successful processing
     } finally {
         /** @type {*} */ (isOpeningFileRef).value = false;
     }
 }
+
+// Export functions for testing
+export { logWithContext, validateElectronAPI, updateUIState };

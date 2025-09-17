@@ -351,3 +351,5 @@ electron-app/utils/.prettier-cache
 **/.prettier-cache
 electron-app/coverage-report.json
 electron-app/html/
+electron-app/coverage_output.txt
+electron-app/coverage-temp.json

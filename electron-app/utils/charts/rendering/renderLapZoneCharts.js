@@ -44,7 +44,8 @@ export function renderLapZoneCharts(container, options = {}) {
         const { timeInZoneMesgs } = window.globalData,
             lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
             // Get theme configuration
-            themeConfig = /** @type {any} */ (getThemeConfig() || {});
+            themeConfig = /** @type {any} */ (getThemeConfig() || {}),
+            themeColors = themeConfig.colors || { bgPrimary: "#ffffff", shadow: "none" };
         if (themeConfig && typeof themeConfig === "object" && themeConfig.name) {
             console.log("[renderLapZoneCharts] Using theme config:", themeConfig.name);
         }
@@ -61,11 +62,11 @@ export function renderLapZoneCharts(container, options = {}) {
             options && options.visibilitySettings
                 ? options.visibilitySettings
                 : {
-                      hrStackedVisible: true,
-                      hrIndividualVisible: true,
-                      powerStackedVisible: true,
-                      powerIndividualVisible: true,
-                  };
+                    hrStackedVisible: true,
+                    hrIndividualVisible: true,
+                    powerStackedVisible: true,
+                    powerIndividualVisible: true,
+                };
 
         console.log("[ChartJS] Found lap zone data:", lapZoneMsgs);
 
@@ -95,20 +96,20 @@ export function renderLapZoneCharts(container, options = {}) {
 
         // Process HR zone data for laps
         const hrZoneDataRaw = lapZoneMsgs
-                .filter((/** @type {any} */ msg) => msg.timeInHrZone)
-                .map((/** @type {any} */ msg, /** @type {number} */ index) => {
-                    const zones = safeParseArray(msg.timeInHrZone);
-                    return {
-                        lapLabel: `Lap ${msg.referenceIndex || index + 1}`,
-                        zones: zones.slice(1).map((value, zoneIndex) => ({
-                            label: `HR Zone ${zoneIndex + 1}`,
-                            value: value || 0,
-                            color: getZoneColor("hr", zoneIndex),
-                            zoneIndex,
-                        })),
-                    };
-                })
-                .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
+            .filter((/** @type {any} */ msg) => msg.timeInHrZone)
+            .map((/** @type {any} */ msg, /** @type {number} */ index) => {
+                const zones = safeParseArray(msg.timeInHrZone);
+                return {
+                    lapLabel: `Lap ${msg.referenceIndex || index + 1}`,
+                    zones: zones.slice(1).map((value, zoneIndex) => ({
+                        label: `HR Zone ${zoneIndex + 1}`,
+                        value: value || 0,
+                        color: getZoneColor("hr", zoneIndex),
+                        zoneIndex,
+                    })),
+                };
+            })
+            .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
             // Find which HR zones have any meaningful data across all laps
             /** @type {Record<number, number>} */
             hrZoneTotals = {};
@@ -122,8 +123,8 @@ export function renderLapZoneCharts(container, options = {}) {
             });
         });
         const meaningfulHRZones = Object.keys(hrZoneTotals)
-                .filter((zoneIndex) => (hrZoneTotals[Number(zoneIndex)] || 0) > 0)
-                .map(Number),
+            .filter((zoneIndex) => (hrZoneTotals[Number(zoneIndex)] || 0) > 0)
+            .map(Number),
             // Filter to only include meaningful zones
             hrZoneData = hrZoneDataRaw
                 .map((/** @type {LapZoneEntry} */ lap) => ({
@@ -137,20 +138,20 @@ export function renderLapZoneCharts(container, options = {}) {
 
         // Process Power zone data for laps
         const pwrZoneDataRaw = lapZoneMsgs
-                .filter((/** @type {any} */ msg) => msg.timeInPowerZone)
-                .map((/** @type {any} */ msg, /** @type {number} */ index) => {
-                    const zones = safeParseArray(msg.timeInPowerZone);
-                    return {
-                        lapLabel: `Lap ${msg.referenceIndex || index + 1}`,
-                        zones: zones.slice(1).map((value, zoneIndex) => ({
-                            label: `Power Zone ${zoneIndex + 1}`,
-                            value: value || 0,
-                            color: getZoneColor("power", zoneIndex),
-                            zoneIndex,
-                        })),
-                    };
-                })
-                .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
+            .filter((/** @type {any} */ msg) => msg.timeInPowerZone)
+            .map((/** @type {any} */ msg, /** @type {number} */ index) => {
+                const zones = safeParseArray(msg.timeInPowerZone);
+                return {
+                    lapLabel: `Lap ${msg.referenceIndex || index + 1}`,
+                    zones: zones.slice(1).map((value, zoneIndex) => ({
+                        label: `Power Zone ${zoneIndex + 1}`,
+                        value: value || 0,
+                        color: getZoneColor("power", zoneIndex),
+                        zoneIndex,
+                    })),
+                };
+            })
+            .filter((/** @type {LapZoneEntry} */ lap) => Array.isArray(lap.zones) && lap.zones.length > 0),
             // Find which Power zones have any meaningful data across all laps
             /** @type {Record<number, number>} */
             pwrZoneTotals = {};
@@ -164,8 +165,8 @@ export function renderLapZoneCharts(container, options = {}) {
             });
         });
         const meaningfulPowerZones = Object.keys(pwrZoneTotals)
-                .filter((zoneIndex) => (pwrZoneTotals[Number(zoneIndex)] || 0) > 0)
-                .map(Number),
+            .filter((zoneIndex) => (pwrZoneTotals[Number(zoneIndex)] || 0) > 0)
+            .map(Number),
             // Filter to only include meaningful zones
             pwrZoneData = pwrZoneDataRaw
                 .map((/** @type {LapZoneEntry} */ lap) => ({
@@ -181,9 +182,9 @@ export function renderLapZoneCharts(container, options = {}) {
             canvas1.id = "chartjs-canvas-lap-hr-zones";
             canvas1.style.marginBottom = "32px";
             canvas1.style.maxHeight = "400px";
-            canvas1.style.background = themeConfig.colors.bgPrimary;
+            canvas1.style.background = themeColors.bgPrimary;
             canvas1.style.borderRadius = "12px";
-            canvas1.style.boxShadow = themeConfig.colors.shadow;
+            canvas1.style.boxShadow = themeColors.shadow;
             container.appendChild(canvas1);
 
             const hrChart = renderLapZoneChart(canvas1, hrZoneData, {
@@ -203,9 +204,9 @@ export function renderLapZoneCharts(container, options = {}) {
             canvas2.id = "chartjs-canvas-lap-power-zones";
             canvas2.style.marginBottom = "32px";
             canvas2.style.maxHeight = "400px";
-            canvas2.style.background = themeConfig.colors.bgPrimary;
+            canvas2.style.background = themeColors.bgPrimary;
             canvas2.style.borderRadius = "12px";
-            canvas2.style.boxShadow = themeConfig.colors.shadow;
+            canvas2.style.boxShadow = themeColors.shadow;
             container.appendChild(canvas2);
             const pwrChart = renderLapZoneChart(canvas2, pwrZoneData, {
                 title: "Power Zone by Lap (Stacked)",
@@ -266,9 +267,9 @@ export function renderLapZoneCharts(container, options = {}) {
                 canvas3.id = "chartjs-canvas-single-lap-hr";
                 canvas3.style.marginBottom = "32px";
                 canvas3.style.maxHeight = "350px";
-                canvas3.style.background = themeConfig.colors.bgPrimary;
+                canvas3.style.background = themeColors.bgPrimary;
                 canvas3.style.borderRadius = "12px";
-                canvas3.style.boxShadow = themeConfig.colors.shadow;
+                canvas3.style.boxShadow = themeColors.shadow;
                 container.appendChild(canvas3);
 
                 const singleHRChart = renderSingleHRZoneBar(canvas3, sessionHRZones, {
@@ -333,14 +334,14 @@ export function renderLapZoneCharts(container, options = {}) {
                 canvas4.id = "chartjs-canvas-single-lap-power";
                 canvas4.style.marginBottom = "32px";
                 canvas4.style.maxHeight = "350px";
-                canvas4.style.background = themeConfig.colors.bgPrimary;
+                canvas4.style.background = themeColors.bgPrimary;
                 canvas4.style.borderRadius = "12px";
-                canvas4.style.boxShadow = themeConfig.colors.shadow;
+                canvas4.style.boxShadow = themeColors.shadow;
                 container.appendChild(canvas4);
 
                 const singlePwrChart = renderSinglePowerZoneBar(
                     canvas4,
-                    /** @type {{label:string,value:number,color:string}[]} */ (sessionPowerZones),
+                    /** @type {{label:string,value:number,color:string}[]} */(sessionPowerZones),
                     {
                         title: "Power Zone by Lap (Individual)",
                     }
