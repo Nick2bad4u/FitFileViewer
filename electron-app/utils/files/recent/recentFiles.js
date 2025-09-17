@@ -47,8 +47,8 @@ const { app } = require("electron");
 
 /** @type {string|undefined} */
 let RECENT_FILES_PATH;
-if (process.env.RECENT_FILES_PATH) {
-    RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
+if (process.env['RECENT_FILES_PATH']) {
+    RECENT_FILES_PATH = process.env['RECENT_FILES_PATH'];
 } else {
     let userDataPath;
     try {
@@ -61,7 +61,20 @@ if (process.env.RECENT_FILES_PATH) {
         RECENT_FILES_PATH = path.join(userDataPath, "recent-files.json");
     } else {
         // Fallback for tests or non-Electron environments
-        RECENT_FILES_PATH = path.join(process.cwd(), "recent-files-test.json");
+        // Create a temp directory in the user's temp folder or process.cwd()/temp-test-files
+        const tempDir = process.env['TEMP'] || process.env['TMP'] ||
+            path.join(process.cwd(), 'temp-test-files');
+
+        // Ensure the temp directory exists
+        try {
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+        } catch (err) {
+            console.error("Failed to create temp directory:", err);
+        }
+
+        RECENT_FILES_PATH = path.join(tempDir, "recent-files-test.json");
     }
 }
 // Maximum number of recent files to retain
@@ -77,8 +90,8 @@ const MAX_RECENT_FILES = 10;
  */
 function loadRecentFiles() {
     try {
-        if (fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
-            const data = fs.readFileSync(/** @type {string} */ (RECENT_FILES_PATH), "utf-8");
+        if (fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
+            const data = fs.readFileSync(/** @type {string} */(RECENT_FILES_PATH), "utf-8");
             return JSON.parse(data);
         }
     } catch (err) {
@@ -96,7 +109,7 @@ function loadRecentFiles() {
 function saveRecentFiles(list) {
     try {
         fs.writeFileSync(
-            /** @type {string} */ (RECENT_FILES_PATH),
+            /** @type {string} */(RECENT_FILES_PATH),
             JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
             "utf-8"
         );

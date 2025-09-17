@@ -9,6 +9,7 @@ export default defineConfig({
     },
 
     test: {
+        globalSetup: ["./tests/globalSetup.js"],
         environment: "jsdom",
         environmentOptions: {
             jsdom: {
@@ -33,12 +34,8 @@ export default defineConfig({
                 "**/utils/app/menu/createAppMenu.js",
             ],
         },
+        // Use forks pool to avoid tinypool worker stdout requiring console before globalSetup
         pool: "forks",
-        poolOptions: {
-            forks: {
-                singleFork: false,
-            },
-        },
 
         restoreMocks: true,
         clearMocks: true,
@@ -51,7 +48,9 @@ export default defineConfig({
             deps: {
                 inline: [
                     "utils/files/import/handleOpenFile.js",
-                    "utils/state/core/stateManager.js"
+                    "utils/state/core/stateManager.js",
+                    "utils/ui/controls/createElevationProfileButton.js",
+                    "utils/charts/theming/getThemeColors.js"
                 ]
             }
         },
@@ -112,8 +111,8 @@ export default defineConfig({
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
             experimentalAstAwareRemapping: false, // Temporarily disabled due to ast-v8-to-istanbul column parsing error
             ignoreEmptyLines: true, // Ignore empty lines, comments, and TypeScript interfaces
-            // Curated include set: target modules with stable, complete tests
-            // so that a strict 100% gate is meaningful and green.
+            // Curated include set: target modules with stable, complete unit tests
+            // so that a strict ≥95% gate is meaningful and consistently achievable.
             // Paths are relative to the electron-app directory.
             include: [
                 "**/*.js",

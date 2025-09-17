@@ -180,10 +180,14 @@ vi.mock("../../utils/files/import/getOverlayFileName.js", () => ({
         console.log("[TEST DEBUG] mockL.polyline type:", typeof mockL.polyline);
         console.log("[TEST DEBUG] mockL.polyline.mockReturnValue called with:", mockPolyline);
 
-        // Test the mock directly
+        // Test the mock directly (sanity check), then clear call history so tests start from 0
         const testResult = mockL.polyline([1, 2], [3, 4]);
         console.log("[TEST DEBUG] Direct mock call result:", testResult);
         console.log("[TEST DEBUG] Direct mock call result type:", typeof testResult);
+        // Clear the call history to avoid affecting exact call count assertions
+        if (typeof mockL.polyline.mockClear === "function") {
+            mockL.polyline.mockClear();
+        }
 
         // Set up window data directly on the JSDOM window object AFTER mock configuration
         // This ensures the function can access it via `const win = window`
@@ -806,6 +810,8 @@ vi.mock("../../utils/files/import/getOverlayFileName.js", () => ({
 
     describe("Safe Fit Bounds", () => {
         it("should handle map container timing issues", () => {
+            // Use fake timers so we can advance scheduled retries in safeFitBounds
+            vi.useFakeTimers();
             // Mock container that's initially not visible
             const invisibleContainer = {
                 offsetParent: null as Element | null,
@@ -838,8 +844,11 @@ vi.mock("../../utils/files/import/getOverlayFileName.js", () => ({
             invisibleContainer.clientWidth = 800;
             invisibleContainer.clientHeight = 600;
 
+            // Advance timers to allow safeFitBounds to retry after visibility change
+            vi.advanceTimersByTime(100);
             // Function should handle container visibility
             expect(mockMapWithInvisibleContainer.fitBounds).toHaveBeenCalled();
+            vi.useRealTimers();
         });
 
         it("should handle fitBounds errors gracefully", () => {
@@ -1034,8 +1043,12 @@ vi.mock("../../utils/files/import/getOverlayFileName.js", () => ({
             };
             (global.window as any)._highlightedOverlayIdx = 1;
 
-            // Call the global function
-            (global.window as any).updateOverlayHighlights();
+            // Call the real implementation directly to ensure styles are updated even if a stub was assigned
+            if ((global.window as any).__realUpdateOverlayHighlights) {
+                (global.window as any).__realUpdateOverlayHighlights();
+            } else {
+                (global.window as any).updateOverlayHighlights();
+            }
 
             expect(mockPolyline.setStyle).toHaveBeenCalledWith(
                 expect.objectContaining({

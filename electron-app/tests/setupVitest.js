@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Mock Leaflet global L for all Vitest tests
-import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach } from "vitest";
+import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach, afterAll as vitestAfterAll } from "vitest";
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
 /** @type {undefined | (() => void)} */
 let __resetStateMgr;
@@ -17,6 +17,46 @@ let __clearListeners;
         // ignore - not all suites need state manager helpers
     }
 })();
+
+// Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
+function ensureConsoleAlive() {
+    try {
+        const noop = () => { };
+        /** @type {any} */
+        const current = /** @type {any} */ (globalThis.console);
+        if (!current) {
+            // No console at all – install a full base one
+            /** @type {any} */
+            const base = {
+                log: vi.fn() || noop, warn: vi.fn() || noop, error: vi.fn() || noop, info: vi.fn() || noop, debug: vi.fn() || noop,
+                assert: vi.fn() || noop, clear: vi.fn() || noop, count: vi.fn() || noop, countReset: vi.fn() || noop, dir: vi.fn() || noop, dirxml: vi.fn() || noop,
+                group: vi.fn() || noop, groupCollapsed: vi.fn() || noop, groupEnd: vi.fn() || noop, table: vi.fn() || noop, time: vi.fn() || noop, timeEnd: vi.fn() || noop,
+                timeLog: vi.fn() || noop, timeStamp: vi.fn() || noop, trace: vi.fn() || noop, profile: vi.fn() || noop, profileEnd: vi.fn() || noop,
+            };
+            try { Object.defineProperty(globalThis, "console", { configurable: true, writable: true, enumerable: true, value: base }); } catch { /* ignore */ }
+            if (typeof window !== "undefined") {
+                try { Object.defineProperty(window, "console", { configurable: true, writable: true, enumerable: true, value: base }); } catch { /* ignore */ }
+            }
+            return;
+        }
+        // Console exists – only polyfill missing methods to avoid clobbering test spies
+        if (typeof current.log !== "function") {
+            try { current.log = noop; } catch { /* ignore */ }
+        }
+        const ensure = (name) => { if (typeof current[name] !== "function") { try { current[name] = noop; } catch { /* ignore */ } } };
+        [
+            "warn", "error", "info", "debug", "assert", "clear", "count", "countReset", "dir", "dirxml",
+            "group", "groupCollapsed", "groupEnd", "table", "time", "timeEnd", "timeLog", "timeStamp", "trace", "profile", "profileEnd",
+        ].forEach(ensure);
+        if (typeof window !== "undefined" && window.console && window.console !== current) {
+            try { window.console = current; } catch { /* ignore */ }
+        }
+    } catch { /* ignore */ }
+}
+
+vitestBeforeEach(() => ensureConsoleAlive());
+vitestAfterEach(() => ensureConsoleAlive());
+vitestAfterAll(() => ensureConsoleAlive());
 // Import the enhanced JSDOM setup to fix DOM-related test failures
 // Import the enhanced JSDOM setup directly inside setupVitest.js
 // directly include the JSDOM setup code instead of importing
@@ -221,41 +261,46 @@ function restoreNativeDom() {
 
 // Rely on JSDOM's native HTMLElement/Element implementations for id/className/classList
 
-// Global console mock setup - ensure console is available for all tests
-if (!globalThis.console || typeof globalThis.console.log !== "function") {
+// Global console mock setup - ensure console is available for all tests and cannot be unset to undefined
+(() => {
     // Create a comprehensive console implementation for testing
-    const mockConsole = {
-        log: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-        info: vi.fn(),
-        debug: vi.fn(),
-        assert: vi.fn(),
-        clear: vi.fn(),
-        count: vi.fn(),
-        countReset: vi.fn(),
-        dir: vi.fn(),
-        dirxml: vi.fn(),
-        group: vi.fn(),
-        groupCollapsed: vi.fn(),
-        groupEnd: vi.fn(),
-        table: vi.fn(),
-        time: vi.fn(),
-        timeEnd: vi.fn(),
-        timeLog: vi.fn(),
-        timeStamp: vi.fn(),
-        trace: vi.fn(),
-        Console: vi.fn(),
-        profile: vi.fn(),
-        profileEnd: vi.fn(),
+    const baseConsole = {
+        log: vi.fn(), warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(),
+        assert: vi.fn(), clear: vi.fn(), count: vi.fn(), countReset: vi.fn(), dir: vi.fn(), dirxml: vi.fn(),
+        group: vi.fn(), groupCollapsed: vi.fn(), groupEnd: vi.fn(), table: vi.fn(), time: vi.fn(), timeEnd: vi.fn(),
+        timeLog: vi.fn(), timeStamp: vi.fn(), trace: vi.fn(), Console: vi.fn(), profile: vi.fn(), profileEnd: vi.fn(),
     };
-    globalThis.console = mockConsole;
-}
-
-// Also ensure window.console exists for browser-like environments
-if (typeof window !== "undefined" && (!window.console || typeof window.console.log !== "function")) {
-    window.console = globalThis.console;
-}
+    /** @type {any} */
+    let currentConsole = (globalThis.console && typeof globalThis.console.log === "function") ? globalThis.console : baseConsole;
+    try {
+        Object.defineProperty(globalThis, "console", {
+            configurable: true,
+            enumerable: true,
+            get() { return currentConsole; },
+            set(v) {
+                if (v && typeof v === "object" && typeof v.log === "function") {
+                    currentConsole = /** @type {any} */ (v);
+                }
+                // Ignore attempts to set undefined/null which break worker stdout hooks
+            },
+        });
+    } catch { }
+    // Also ensure window.console exists for browser-like environments and is guarded similarly
+    if (typeof window !== "undefined") {
+        try {
+            Object.defineProperty(window, "console", {
+                configurable: true,
+                enumerable: true,
+                get() { return currentConsole; },
+                set(v) {
+                    if (v && typeof v === "object" && typeof v.log === "function") {
+                        currentConsole = /** @type {any} */ (v);
+                    }
+                },
+            });
+        } catch { }
+    }
+})();
 
 // Even if a console already exists, ensure group APIs are present to avoid TypeError
 try {
