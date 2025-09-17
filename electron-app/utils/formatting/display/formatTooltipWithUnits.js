@@ -13,8 +13,8 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 export function formatTooltipWithUnits(value, field) {
     // Distance fields - show both metric and imperial
     if (field === "distance" || field === "altitude" || field === "enhancedAltitude") {
-        const km = convertDistanceUnits(value, "kilometers");
-        const miles = convertDistanceUnits(value, "miles");
+        const km = convertDistanceUnits(value, "kilometers"),
+            miles = convertDistanceUnits(value, "miles");
         return `${km.toFixed(2)} km (${miles.toFixed(2)} mi)`;
     }
 
@@ -25,13 +25,13 @@ export function formatTooltipWithUnits(value, field) {
 
     // Temperature fields - show both scales
     if (field === "temperature") {
-        const celsius = value; // Assuming input is Celsius
-        const fahrenheit = convertTemperatureUnits(celsius, "fahrenheit");
+        const celsius = value, // Assuming input is Celsius
+            fahrenheit = convertTemperatureUnits(celsius, "fahrenheit");
         return `${celsius.toFixed(1)}°C (${fahrenheit.toFixed(1)}°F)`;
     }
 
     // Default formatting for other fields
-    const unitSymbol = getUnitSymbol(field);
-    const convertedValue = convertValueToUserUnits(value, field);
-    return `${convertedValue.toFixed(2)}${unitSymbol ? " " + unitSymbol : ""}`;
+    const unitSymbol = getUnitSymbol(field),
+        convertedValue = convertValueToUserUnits(value, field);
+    return `${convertedValue.toFixed(2)}${unitSymbol ? ` ${unitSymbol}` : ""}`;
 }

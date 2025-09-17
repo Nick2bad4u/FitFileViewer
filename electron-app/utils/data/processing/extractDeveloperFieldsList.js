@@ -12,7 +12,9 @@
  * @returns {string[]} Array of developer field names (unique)
  */
 export function extractDeveloperFieldsList(recordMesgs) {
-    if (!Array.isArray(recordMesgs)) return [];
+    if (!Array.isArray(recordMesgs)) {
+        return [];
+    }
     const fieldSet = new Set();
 
     recordMesgs.forEach((row) => {

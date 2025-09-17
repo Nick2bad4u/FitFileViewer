@@ -122,7 +122,7 @@ export function isModernChartSystemAvailable() {
 export function getChartUpdateSystemStatus() {
     return {
         modernSystemAvailable: isModernChartSystemAvailable(),
-        chartStateManager: !!chartStateManager,
+        chartStateManager: Boolean(chartStateManager),
         renderChartJSAvailable: typeof renderChartJS === "function",
         globalRenderChartJS: typeof window.renderChartJS === "function",
         timestamp: new Date().toISOString(),

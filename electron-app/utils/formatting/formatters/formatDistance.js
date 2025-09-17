@@ -73,8 +73,8 @@ export function formatDistance(meters) {
         return "";
     }
 
-    const kilometers = metersToKilometers(meters);
-    const miles = metersToMiles(meters);
+    const kilometers = metersToKilometers(meters),
+        miles = metersToMiles(meters);
 
     return `${kilometers.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
 }

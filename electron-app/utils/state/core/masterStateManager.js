@@ -26,8 +26,8 @@ import { initializeCompleteStateSystem } from "../integration/stateIntegration.j
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
 import { computedStateManager, initializeCommonComputedValues } from "./computedStateManager.js";
-import { initializeDefaultMiddleware, cleanupMiddleware } from "./stateMiddleware.js";
-import { initializeStateDevTools, cleanupStateDevTools } from "../../debug/stateDevTools.js";
+import { cleanupMiddleware, initializeDefaultMiddleware } from "./stateMiddleware.js";
+import { cleanupStateDevTools, initializeStateDevTools } from "../../debug/stateDevTools.js";
 import { initializeRendererUtils, showNotification } from "../../app/initialization/rendererUtils.js";
 import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
@@ -340,12 +340,12 @@ export class MasterStateManager {
      */
     setupPerformanceMonitoring() {
         // Monitor state change frequency
-        let stateChangeCount = 0;
-        let lastResetTime = Date.now();
+        let stateChangeCount = 0,
+            lastResetTime = Date.now();
 
         // Use type assertion for window debug state
-        const windowExt = /** @type {ExtendedWindow} */ (window);
-        const originalSetState = windowExt.__state_debug?.setState;
+        const windowExt = /** @type {ExtendedWindow} */ (window),
+            originalSetState = windowExt.__state_debug?.setState;
         if (originalSetState) {
             // Wrap setState to count changes
             if (windowExt.__state_debug) {
@@ -358,8 +358,8 @@ export class MasterStateManager {
 
         // Reset counter every minute
         setInterval(() => {
-            const now = Date.now();
-            const elapsed = now - lastResetTime;
+            const now = Date.now(),
+                elapsed = now - lastResetTime;
 
             setState(
                 "system.performance",
@@ -434,16 +434,16 @@ export class MasterStateManager {
             // Ctrl/Cmd + T - Toggle theme
             if ((event.ctrlKey || event.metaKey) && event.key === "t") {
                 event.preventDefault();
-                const currentTheme = getState("ui.theme");
-                const newTheme = currentTheme === "light" ? "dark" : "light";
+                const currentTheme = getState("ui.theme"),
+                    newTheme = currentTheme === "light" ? "dark" : "light";
                 UIActions.setTheme(newTheme);
             }
 
             // Ctrl/Cmd + 1-4 - Switch tabs
             if ((event.ctrlKey || event.metaKey) && event.key >= "1" && event.key <= "4") {
                 event.preventDefault();
-                const tabNames = ["summary", "chart", "map", "data"];
-                const tabIndex = parseInt(event.key) - 1;
+                const tabNames = ["summary", "chart", "map", "data"],
+                    tabIndex = parseInt(event.key) - 1;
                 if (tabNames[tabIndex] && AppSelectors.hasData()) {
                     AppActions.switchTab(tabNames[tabIndex]);
                 }
@@ -541,26 +541,39 @@ export class MasterStateManager {
      * @returns {boolean} True if in development mode
      */
     isDevelopmentMode() {
-        // Check for development indicators
-        return (
-            // Check if localhost or dev domains
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1" ||
-            window.location.hostname.includes("dev") ||
-            // Check for dev tools being open
-            window.__DEVELOPMENT__ === true ||
-            // Check for debug flag in URL
-            window.location.search.includes("debug=true") ||
-            window.location.hash.includes("debug") ||
-            // Check for development build indicators
-            document.documentElement.hasAttribute("data-dev-mode") ||
-            // Check if running from file:// protocol (dev mode indicator)
-            window.location.protocol === "file:" ||
-            // Check if electron dev tools are available
-            (window.electronAPI && typeof window.electronAPI.__devMode !== "undefined") ||
-            // Check console availability and development-specific globals
-            (typeof console !== "undefined" && window.location.href.includes("electron"))
-        );
+        try {
+            // Safely access window/document properties (jsdom/tests can stub or omit parts)
+            const loc = /** @type {any} */ (typeof window !== "undefined" ? window.location : undefined) || {};
+            const hostname = typeof loc.hostname === "string" ? loc.hostname : "";
+            const search = typeof loc.search === "string" ? loc.search : "";
+            const hash = typeof loc.hash === "string" ? loc.hash : "";
+            const protocol = typeof loc.protocol === "string" ? loc.protocol : "";
+            const href = typeof loc.href === "string" ? loc.href : "";
+
+            const hasDevAttr =
+                (typeof document !== "undefined" &&
+                    document.documentElement &&
+                    typeof document.documentElement.hasAttribute === "function" &&
+                    document.documentElement.hasAttribute("data-dev-mode")) ||
+                false;
+
+            return (
+                hostname === "localhost" ||
+                hostname === "127.0.0.1" ||
+                (hostname && hostname.includes("dev")) ||
+                /** @type {any} */ (window).__DEVELOPMENT__ === true ||
+                (search && search.includes("debug=true")) ||
+                (hash && hash.includes("debug")) ||
+                hasDevAttr ||
+                protocol === "file:" ||
+                (typeof window !== "undefined" &&
+                    /** @type {any} */ (window).electronAPI &&
+                    typeof (/** @type {any} */ (window.electronAPI).__devMode) !== "undefined") ||
+                (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
+            );
+        } catch {
+            return false;
+        }
     } /**
      * Clean up all state management
      */

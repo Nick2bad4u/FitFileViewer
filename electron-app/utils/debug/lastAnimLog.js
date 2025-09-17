@@ -49,7 +49,7 @@ export const throttledAnimLog = (() => {
         // Additional development mode check
         const isDevelopment =
             (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev) ||
-            process?.env?.["NODE_ENV"] === "development";
+            process?.env?.NODE_ENV === "development";
 
         if (!isDevelopment) {
             return;
@@ -89,7 +89,7 @@ export const criticalAnimLog = (message) => {
 
     const isDevelopment =
         (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev) ||
-        process?.env?.["NODE_ENV"] === "development";
+        process?.env?.NODE_ENV === "development";
 
     if (!isDevelopment) {
         return;
@@ -133,7 +133,7 @@ export const perfAnimLog = (() => {
 
         const isDevelopment =
             (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev) ||
-            process?.env?.["NODE_ENV"] === "development";
+            process?.env?.NODE_ENV === "development";
 
         if (!isDevelopment) {
             return;

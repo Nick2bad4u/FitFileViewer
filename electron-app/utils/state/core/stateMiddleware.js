@@ -96,7 +96,7 @@ class StateMiddlewareManager {
 
         // Wrap each phase handler with error handling
         Object.values(MIDDLEWARE_PHASES).forEach((phase) => {
-            // dynamic index access – cast to any for safety
+            // Dynamic index access – cast to any for safety
             const original = /** @type {any} */ (middleware)[phase];
             if (original && typeof original === "function") {
                 wrappedMiddleware.handlers[phase] = this.wrapHandler(name, phase, original);
@@ -177,17 +177,23 @@ class StateMiddlewareManager {
      * @returns {Promise<MiddlewareContext>}
      */
     async execute(phase, context) {
-        if (!this.isEnabled) return context;
+        if (!this.isEnabled) {
+            return context;
+        }
 
         let currentContext = { ...context };
 
         for (const middlewareName of this.executionOrder) {
             const middleware = this.middleware.get(middlewareName);
 
-            if (!middleware || !middleware.isEnabled) continue;
+            if (!middleware || !middleware.isEnabled) {
+                continue;
+            }
 
             const handler = middleware.handlers[phase];
-            if (!handler) continue;
+            if (!handler) {
+                continue;
+            }
 
             try {
                 const result = await handler(currentContext);
@@ -231,10 +237,14 @@ class StateMiddlewareManager {
         for (const middlewareName of this.executionOrder) {
             const middleware = this.middleware.get(middlewareName);
 
-            if (!middleware || !middleware.isEnabled) continue;
+            if (!middleware || !middleware.isEnabled) {
+                continue;
+            }
 
             const errorHandler = middleware.handlers[MIDDLEWARE_PHASES.ON_ERROR];
-            if (!errorHandler) continue;
+            if (!errorHandler) {
+                continue;
+            }
 
             try {
                 // Some middlewares define onError(error) while others may accept (error, context)
@@ -273,9 +283,8 @@ class StateMiddlewareManager {
             const startTime = performance.now();
 
             try {
-                const result = await handler(context);
-
-                const duration = performance.now() - startTime;
+                const result = await handler(context),
+                    duration = performance.now() - startTime;
                 if (duration > 5) {
                     console.warn(
                         `[StateMiddleware] Slow middleware "${middlewareName}.${phase}": ${duration.toFixed(2)}ms`
@@ -297,10 +306,10 @@ class StateMiddlewareManager {
     /** @returns {void} */
     updateExecutionOrder() {
         this.executionOrder = Array.from(this.middleware.keys()).sort((a, b) => {
-            const mwA = this.middleware.get(a);
-            const mwB = this.middleware.get(b);
-            const priorityA = mwA ? mwA.priority : 100;
-            const priorityB = mwB ? mwB.priority : 100;
+            const mwA = this.middleware.get(a),
+                mwB = this.middleware.get(b),
+                priorityA = mwA ? mwA.priority : 100,
+                priorityB = mwB ? mwB.priority : 100;
             return priorityA - priorityB;
         });
     }
@@ -352,7 +361,7 @@ export const loggingMiddleware = {
 
     /** @param {MiddlewareContext} context */
     beforeSet(context) {
-        if (context.options && context.options["source"] !== "internal") {
+        if (context.options && context.options.source !== "internal") {
             console.log(`[StateLog] Setting "${context.path}" to:`, context.value);
         }
         return context;
@@ -360,7 +369,7 @@ export const loggingMiddleware = {
 
     /** @param {MiddlewareContext} context */
     afterSet(context) {
-        if (context.options && context.options["source"] !== "internal") {
+        if (context.options && context.options.source !== "internal") {
             console.log(`[StateLog] Set "${context.path}" completed`);
         }
         return context;
@@ -390,7 +399,7 @@ export const validationMiddleware = {
     /** @param {MiddlewareContext} context */
     beforeSet(context) {
         // Prevent setting undefined values
-        if (context.value === undefined && !(context.options && context.options["allowUndefined"])) {
+        if (context.value === undefined && !(context.options && context.options.allowUndefined)) {
             console.warn(`[StateValidation] Preventing undefined value for "${context.path}"`);
             return false; // Stop execution
         }

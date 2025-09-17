@@ -25,7 +25,7 @@ const CONSTANTS = {
 // Module state
 /** @type {HTMLElement|null} */
 let lastFocusedElement = null;
-export let modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
+export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
 let showingFeatures = false; // Track whether features or system info is currently displayed
 
 /**
@@ -244,32 +244,42 @@ function createSystemInfoContent() {
  * Toggles between features and system info display
  */
 function toggleInfoSection() {
-    const toggleSection = document.getElementById("info-toggle-section");
-    const toggleButton = document.getElementById("toggle-info-btn");
+    const toggleSection = document.getElementById("info-toggle-section"),
+        toggleButton = document.getElementById("toggle-info-btn");
 
-    if (!toggleSection || !toggleButton) return;
+    if (!toggleSection || !toggleButton) {
+        return;
+    }
 
     showingFeatures = !showingFeatures;
 
     // Add transition effect
     toggleSection.style.opacity = "0.5";
 
-    setTimeout(function () {
+    setTimeout(() => {
         if (showingFeatures) {
             // Show features
             toggleSection.innerHTML = createFeaturesContent();
-            const buttonIcon = toggleButton.querySelector(".btn-icon");
-            const buttonText = toggleButton.querySelector(".btn-text");
-            if (buttonIcon) buttonIcon.textContent = "🔧";
-            if (buttonText) buttonText.textContent = "System Info";
+            const buttonIcon = toggleButton.querySelector(".btn-icon"),
+                buttonText = toggleButton.querySelector(".btn-text");
+            if (buttonIcon) {
+                buttonIcon.textContent = "🔧";
+            }
+            if (buttonText) {
+                buttonText.textContent = "System Info";
+            }
             toggleButton.setAttribute("aria-label", "View system information");
         } else {
             // Show system info
             toggleSection.innerHTML = createSystemInfoContent();
-            const buttonIcon = toggleButton.querySelector(".btn-icon");
-            const buttonText = toggleButton.querySelector(".btn-text");
-            if (buttonIcon) buttonIcon.textContent = "✨";
-            if (buttonText) buttonText.textContent = "Features";
+            const buttonIcon = toggleButton.querySelector(".btn-icon"),
+                buttonText = toggleButton.querySelector(".btn-text");
+            if (buttonIcon) {
+                buttonIcon.textContent = "✨";
+            }
+            if (buttonText) {
+                buttonText.textContent = "Features";
+            }
             toggleButton.setAttribute("aria-label", "View detailed features");
 
             // Reload system info data after switching back
@@ -295,19 +305,23 @@ function hideAboutModal() {
         modal.classList.remove("show");
 
         // Wait for animation to complete before hiding
-        setTimeout(function () {
+        setTimeout(() => {
             modal.style.display = "none";
 
             // Reset to system info state when closing
             showingFeatures = false;
-            const toggleSection = document.getElementById("info-toggle-section");
-            const toggleButton = document.getElementById("toggle-info-btn");
+            const toggleSection = document.getElementById("info-toggle-section"),
+                toggleButton = document.getElementById("toggle-info-btn");
             if (toggleSection && toggleButton) {
                 toggleSection.innerHTML = createSystemInfoContent();
-                const buttonIcon = toggleButton.querySelector(".btn-icon");
-                const buttonText = toggleButton.querySelector(".btn-text");
-                if (buttonIcon) buttonIcon.textContent = "✨";
-                if (buttonText) buttonText.textContent = "Features";
+                const buttonIcon = toggleButton.querySelector(".btn-icon"),
+                    buttonText = toggleButton.querySelector(".btn-text");
+                if (buttonIcon) {
+                    buttonIcon.textContent = "✨";
+                }
+                if (buttonText) {
+                    buttonText.textContent = "Features";
+                }
                 toggleButton.setAttribute("aria-label", "View detailed features");
                 // Reload system info
                 try {
@@ -349,9 +363,9 @@ export function showAboutModal(html = "") {
     ensureAboutModal();
     const modal = document.getElementById("about-modal");
     if (modal) {
-        const body = document.getElementById("about-modal-body");
-        const closeBtn = document.getElementById("about-modal-close");
-        const toggleBtn = document.getElementById("toggle-info-btn");
+        const body = document.getElementById("about-modal-body"),
+            closeBtn = document.getElementById("about-modal-close"),
+            toggleBtn = document.getElementById("toggle-info-btn");
 
         if (body && closeBtn) {
             // Set content
@@ -439,7 +453,7 @@ export function showAboutModal(html = "") {
             }
 
             // Focus management - focus close button after animation
-            setTimeout(function () {
+            setTimeout(() => {
                 closeBtn.focus();
             }, modalAnimationDuration);
 
@@ -495,18 +509,22 @@ const devHelpers = {
      * Reset all styles and recreate modal
      */
     reset: () => {
-        const existingModal = document.getElementById("about-modal");
-        const existingStyles = document.getElementById("about-modal-styles");
+        const existingModal = document.getElementById("about-modal"),
+            existingStyles = document.getElementById("about-modal-styles");
 
-        if (existingModal) existingModal.remove();
-        if (existingStyles) existingStyles.remove();
+        if (existingModal) {
+            existingModal.remove();
+        }
+        if (existingStyles) {
+            existingStyles.remove();
+        }
 
         ensureAboutModal();
     },
 };
 
 // Export development helpers in development mode
-if (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") {
+if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") {
     window.aboutModalDevHelpers = devHelpers;
 }
 

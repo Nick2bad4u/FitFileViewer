@@ -1,7 +1,7 @@
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { getZoneTypeFromField, getChartZoneColors } from "../../data/zones/chartZoneColorUtils.js";
+import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chartZoneColorUtils.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 
@@ -27,14 +27,12 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
 
     /** @type {any} */
-    const themeConfig = getThemeConfig();
-    const currentTheme = detectCurrentTheme();
-
-    // Determine chart type from options or default to doughnut
-    const chartType = options.chartType || "doughnut";
-
-    // createChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
-    const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0));
+    const themeConfig = getThemeConfig(),
+        currentTheme = detectCurrentTheme(),
+        // Determine chart type from options or default to doughnut
+        chartType = options.chartType || "doughnut",
+        // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
+        canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0));
 
     // Apply theme-aware canvas styling (background handled by plugin)
     canvas.style.borderRadius = "12px";
@@ -57,8 +55,8 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
     console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
-    const ChartCtor = /** @type {any} */ (window.Chart);
-    const chart = ChartCtor ? new ChartCtor(canvas, config) : null;
+    const ChartCtor = /** @type {any} */ (window.Chart),
+        chart = ChartCtor ? new ChartCtor(canvas, config) : null;
     if (chart && Array.isArray(window._chartjsInstances)) {
         console.log(`[ChartJS] Zone chart created successfully for ${title}`);
         window._chartjsInstances.push(chart);
@@ -95,9 +93,8 @@ function createChartConfig(chartType, zoneData, colors, title, options, currentT
 
     if (chartType === "bar") {
         return createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
-    } else {
-        return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
     }
+    return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
 }
 
 /**
@@ -124,9 +121,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     borderJoinStyle: "round",
                     hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
                         // Lighten the color on hover
-                        const r = parseInt(color.slice(1, 3), 16);
-                        const g = parseInt(color.slice(3, 5), 16);
-                        const b = parseInt(color.slice(5, 7), 16);
+                        const r = parseInt(color.slice(1, 3), 16),
+                            g = parseInt(color.slice(3, 5), 16),
+                            b = parseInt(color.slice(5, 7), 16);
                         return `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, 0.9)`;
                     }),
                     hoverBorderColor: "#ffffff",
@@ -164,11 +161,11 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                      * @param {any} legendItem
                      * @param {any} legend
                      */
-                    onClick: function (_event, legendItem, legend) {
+                    onClick(_event, legendItem, legend) {
                         // Get the chart instance and dataset meta
-                        const chart = legend.chart;
-                        const index = legendItem.index;
-                        const meta = chart.getDatasetMeta(0);
+                        const { chart } = legend,
+                            { index } = legendItem,
+                            meta = chart.getDatasetMeta(0);
 
                         // Toggle visibility
                         meta.data[index].hidden = !meta.data[index].hidden;
@@ -184,20 +181,20 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         usePointStyle: true,
                         pointStyle: "circle",
                         /** @param {any} chart */
-                        generateLabels: function (chart) {
-                            const data = chart.data;
+                        generateLabels(chart) {
+                            const { data } = chart;
                             if (data.labels.length && data.datasets.length) {
-                                const dataset = data.datasets[0];
-                                const total = dataset.data.reduce(
-                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                    0
-                                );
+                                const dataset = data.datasets[0],
+                                    total = dataset.data.reduce(
+                                        (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                        0
+                                    );
 
                                 return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
-                                    const value = dataset.data[i];
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    const meta = chart.getDatasetMeta(0);
-                                    const hidden = meta.data[i] && meta.data[i].hidden;
+                                    const value = dataset.data[i],
+                                        percentage = ((value / total) * 100).toFixed(1),
+                                        meta = chart.getDatasetMeta(0),
+                                        hidden = meta.data[i] && meta.data[i].hidden;
                                     return {
                                         text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
                                         fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
@@ -208,7 +205,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                               ? "#ffffff"
                                               : "#333333",
                                         lineWidth: 1,
-                                        hidden: hidden,
+                                        hidden,
                                         index: i,
                                         pointStyle: "circle",
                                     };
@@ -230,18 +227,18 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     displayColors: true,
                     callbacks: {
                         /** @param {any} context */
-                        label: function (context) {
-                            const value = context.parsed;
-                            const total = context.dataset.data.reduce(
-                                (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                0
-                            );
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            const timeFormatted = formatTime(context.parsed, true);
+                        label(context) {
+                            const value = context.parsed,
+                                total = context.dataset.data.reduce(
+                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                    0
+                                ),
+                                percentage = ((value / total) * 100).toFixed(1),
+                                timeFormatted = formatTime(context.parsed, true);
                             return [`Time: ${timeFormatted}`, `Percentage: ${percentage}%`];
                         },
                         /** @param {any} context */
-                        labelColor: function (context) {
+                        labelColor(context) {
                             return {
                                 borderColor: context.dataset.borderColor,
                                 backgroundColor: context.dataset.backgroundColor[context.dataIndex],
@@ -309,9 +306,9 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                     borderSkipped: false,
                     hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
                         // Lighten the color on hover
-                        const r = parseInt(color.slice(1, 3), 16);
-                        const g = parseInt(color.slice(3, 5), 16);
-                        const b = parseInt(color.slice(5, 7), 16);
+                        const r = parseInt(color.slice(1, 3), 16),
+                            g = parseInt(color.slice(3, 5), 16),
+                            b = parseInt(color.slice(5, 7), 16);
                         return `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, 0.9)`;
                     }),
                     hoverBorderColor: colors.slice(0, zoneData.length),
@@ -347,13 +344,13 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                     displayColors: true,
                     callbacks: {
                         /** @param {any} context */
-                        label: function (context) {
-                            const value = context.parsed.y;
-                            const timeFormatted = formatTime(value, true);
+                        label(context) {
+                            const value = context.parsed.y,
+                                timeFormatted = formatTime(value, true);
                             return `Time: ${timeFormatted}`;
                         },
                         /** @param {any} context */
-                        labelColor: function (context) {
+                        labelColor(context) {
                             return {
                                 borderColor: context.dataset.borderColor,
                                 backgroundColor: context.dataset.backgroundColor[context.dataIndex],
@@ -380,7 +377,7 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                             size: 12,
                         },
                         /** @param {any} value */
-                        callback: function (value) {
+                        callback(value) {
                             return formatTime(value, true);
                         },
                     },

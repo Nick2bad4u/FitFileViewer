@@ -22,7 +22,7 @@ export async function setupWindow() {
         await setupTheme(applyTheme, listenForThemeChange);
 
         // Initialize state managers in proper order
-        // tabStateManager and chartStateManager are initialized automatically via constructors
+        // TabStateManager and chartStateManager are initialized automatically via constructors
         chartTabIntegration.initialize();
 
         // Set default tab to summary

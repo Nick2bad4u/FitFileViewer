@@ -31,9 +31,9 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 function getDefaultZoneColors(zoneType) {
     const themeConfig = /** @type {ThemeConfig} */ (getThemeConfig());
     if (zoneType === "power") {
-        return /** @type {string[]} */ (themeConfig["colors"]?.powerZoneColors || []);
+        return /** @type {string[]} */ (themeConfig.colors?.powerZoneColors || []);
     }
-    return /** @type {string[]} */ (themeConfig["colors"]?.heartRateZoneColors || []);
+    return /** @type {string[]} */ (themeConfig.colors?.heartRateZoneColors || []);
 }
 
 /**
@@ -54,8 +54,8 @@ export const DEFAULT_POWER_ZONE_COLORS = getDefaultZoneColors("power");
  * @returns {string} Hex color code
  */
 export function getZoneColor(zoneType, zoneIndex) {
-    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
-    const savedColor = localStorage.getItem(storageKey);
+    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`,
+        savedColor = localStorage.getItem(storageKey);
 
     if (savedColor) {
         return savedColor;
@@ -158,8 +158,8 @@ export function getChartZoneColors(zoneType, zoneCount, colorScheme = "custom") 
     // Use predefined color scheme
     const schemes = /** @type {ColorSchemes} */ (chartColorSchemes);
     if (schemes[colorScheme] && schemes[colorScheme][zoneType]) {
-        const schemeColors = schemes[colorScheme][zoneType];
-        const colors = [];
+        const schemeColors = schemes[colorScheme][zoneType],
+            colors = [];
         for (let i = 0; i < zoneCount; i++) {
             colors.push(schemeColors[i] || schemeColors[i % schemeColors.length] || "#808080");
         }
@@ -196,8 +196,8 @@ export function getColorSchemes() {
  * @returns {string} Hex color code
  */
 export function getChartSpecificZoneColor(chartField, zoneIndex) {
-    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
-    const savedColor = localStorage.getItem(storageKey);
+    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`,
+        savedColor = localStorage.getItem(storageKey);
 
     if (savedColor) {
         return savedColor;
@@ -239,8 +239,8 @@ export function getChartSpecificZoneColors(chartField, zoneCount) {
  * @param {number} zoneCount - Number of zones to reset
  */
 export function resetChartSpecificZoneColors(chartField, zoneCount) {
-    const zoneType = chartField.includes("hr") ? "hr" : "power";
-    const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
+    const zoneType = chartField.includes("hr") ? "hr" : "power",
+        defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
 
     // Set color scheme to custom when resetting zone colors
     localStorage.setItem(`chartjs_${chartField}_color_scheme`, "custom");

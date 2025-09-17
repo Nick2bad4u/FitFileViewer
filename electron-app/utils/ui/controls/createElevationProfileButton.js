@@ -18,9 +18,9 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 export function createElevationProfileButton() {
     const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
     btn.className = "map-action-btn";
-    const themeColorsInit = getThemeColors();
-    // Use bracket notation because themeColorsInit comes from an index signature
-    const p = themeColorsInit["primary"] || "#3b82f6";
+    const themeColorsInit = getThemeColors(),
+        // Use bracket notation because themeColorsInit comes from an index signature
+        p = themeColorsInit.primary || "#3b82f6";
     btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
     btn.title = "Show Elevation Profile";
 
@@ -38,14 +38,14 @@ export function createElevationProfileButton() {
                 },
             ];
         }
-        const isDark = document.body.classList.contains("theme-dark");
-        const themeColors = getThemeColors();
-        const chartWin = window.open("", "Elevation Profile", "width=900,height=600");
+        const isDark = document.body.classList.contains("theme-dark"),
+            themeColors = getThemeColors(),
+            chartWin = window.open("", "Elevation Profile", "width=900,height=600");
         if (!chartWin) {
             // Popup likely blocked; fail silently or optionally notify
             return;
         }
-        let chartHtml = `
+        const chartHtml = `
 		<html>
 		<head>
 			<title>Elevation Profiles</title>
@@ -57,16 +57,16 @@ export function createElevationProfileButton() {
 					margin: 0;
 					padding: 0;
 					font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-					background: ${themeColors["background"]};
-					color: ${themeColors["text"]};
+					background: ${themeColors.background};
+					color: ${themeColors.text};
 				}
 				header {
 					display: flex;
 					align-items: center;
 					justify-content: space-between;
 					padding: 24px 32px 0 32px;
-					background: ${themeColors["surface"]};
-					box-shadow: 0 2px 12px ${themeColors["shadowLight"]};
+					background: ${themeColors.surface};
+					box-shadow: 0 2px 12px ${themeColors.shadowLight};
 					border-radius: 0 0 18px 18px;
 				}
 				#elevChartsContainer {
@@ -78,19 +78,19 @@ export function createElevationProfileButton() {
 					padding: 32px 32px 32px 32px;
 				}
 				.elev-profile-block {
-					background: ${themeColors["surface"]};
+					background: ${themeColors.surface};
 					border-radius: 14px;
-					box-shadow: 0 4px 24px ${themeColors["shadowMedium"]};
+					box-shadow: 0 4px 24px ${themeColors.shadowMedium};
 					padding: 24px 24px 18px 24px;
 					display: flex;
 					flex-direction: column;
 					align-items: stretch;
 					transition: box-shadow 0.2s;
-					border: 1px solid ${themeColors["border"]};
+					border: 1px solid ${themeColors.border};
 				}
 				.elev-profile-block:hover {
-					box-shadow: 0 8px 32px ${themeColors["primaryShadow"]};
-					border-color: ${themeColors["primary"]};
+					box-shadow: 0 8px 32px ${themeColors.primaryShadow};
+					border-color: ${themeColors.primary};
 				}
 				.elev-profile-label {
 					font-weight: 600;
@@ -109,8 +109,8 @@ export function createElevationProfileButton() {
 					height: 14px;
 					border-radius: 50%;
 					margin-right: 2px;
-					box-shadow: 0 0 0 2px ${themeColors["borderLight"]}, 0 1px 4px ${themeColors["shadowMedium"]};
-					border: 2px solid ${themeColors["surface"]};
+					box-shadow: 0 0 0 2px ${themeColors.borderLight}, 0 1px 4px ${themeColors.shadowMedium};
+					border: 2px solid ${themeColors.surface};
 				}
 				.elev-profile-canvas {
 					width: 100%;
@@ -119,20 +119,20 @@ export function createElevationProfileButton() {
 					height: 200px;
 					background: inherit;
 					border-radius: 8px;
-					box-shadow: 0 2px 8px ${themeColors["shadowLight"]};
+					box-shadow: 0 2px 8px ${themeColors.shadowLight};
 				}
 				.no-altitude-data {
-					color: ${themeColors["textSecondary"]};
+					color: ${themeColors.textSecondary};
 					font-size: 1em;
 					margin-top: 12px;
 					text-align: center;
 				}
 				::-webkit-scrollbar {
 					width: 10px;
-					background: ${themeColors["surface"]};
+					background: ${themeColors.surface};
 				}
 				::-webkit-scrollbar-thumb {
-					background: ${themeColors["border"]};
+					background: ${themeColors.border};
 					border-radius: 6px;
 				}
 				@media (max-width: 700px) {

@@ -25,7 +25,9 @@ import { getStorageKey, loadColPrefs, renderTable, showColModal } from "../helpe
  */
 export function renderSummary(data) {
     const container = document.getElementById("content-summary");
-    if (!container) return; // Guard: container missing
+    if (!container) {
+        return;
+    } // Guard: container missing
     container.innerHTML = "";
 
     // Build superset of keys from session, lap, record messages for column selection.

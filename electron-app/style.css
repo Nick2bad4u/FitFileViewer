@@ -58,7 +58,6 @@
 
     /* Leaflet control background */
     --leaflet-control-bg: var(--color-bg-alt-solid);
-
     --backdrop-blur: blur(12px);
     --border-radius: 16px;
     --border-radius-small: 8px;
@@ -256,7 +255,8 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 20% 50%, rgb(255 255 255 / 2%) 0%, transparent 50%),
+    background:
+        radial-gradient(circle at 20% 50%, rgb(255 255 255 / 2%) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgb(255 255 255 / 2%) 0%, transparent 50%),
         radial-gradient(circle at 40% 80%, rgb(255 255 255 / 1%) 0%, transparent 50%);
     pointer-events: none;
@@ -2035,7 +2035,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     overflow-wrap: break-word;
 }
 
@@ -2267,7 +2267,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 .summary-filter-bar select:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.33);
+    box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb), 0.33);
     transition:
         border-color 0.2s,
         box-shadow 0.2s;

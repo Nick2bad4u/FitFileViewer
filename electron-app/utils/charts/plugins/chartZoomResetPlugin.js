@@ -27,23 +27,26 @@ export const chartZoomResetPlugin = {
     id: "chartZoomResetPlugin",
     afterDraw(chart) {
         try {
-            if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) return;
-            const ctx = chart?.ctx;
-            const canvas = chart?.canvas;
-            if (!ctx || !canvas) return;
-            const btnW = 100;
-            const btnH = 30;
-            const x = (canvas.width || 0) - btnW - 12;
-            const y = 12;
-
-            const themeConfig = getThemeConfig() || /** @type {any} */ ({});
-            const colors = /** @type {any} */ ((themeConfig && /** @type {any} */ (themeConfig)["colors"]) || {});
-            const accent = typeof colors.accent === "string" ? colors.accent : "#667eea";
-            const textPrimary = typeof colors.textPrimary === "string" ? colors.textPrimary : "#ffffff";
+            if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) {
+                return;
+            }
+            const ctx = chart?.ctx,
+                canvas = chart?.canvas;
+            if (!ctx || !canvas) {
+                return;
+            }
+            const btnW = 100,
+                btnH = 30,
+                x = (canvas.width || 0) - btnW - 12,
+                y = 12,
+                themeConfig = getThemeConfig() || /** @type {any} */ ({}),
+                colors = /** @type {any} */ ((themeConfig && /** @type {any} */ (themeConfig).colors) || {}),
+                accent = typeof colors.accent === "string" ? colors.accent : "#667eea",
+                textPrimary = typeof colors.textPrimary === "string" ? colors.textPrimary : "#ffffff";
 
             ctx.save();
             ctx.globalAlpha = 0.9;
-            ctx.fillStyle = accent + "CC"; // Add alpha to accent color
+            ctx.fillStyle = `${accent}CC`; // Add alpha to accent color
             ctx.strokeStyle = accent;
             ctx.lineWidth = 2;
             if (typeof ctx.roundRect === "function") {
@@ -79,29 +82,41 @@ export const chartZoomResetPlugin = {
 
     afterEvent(chart, args) {
         try {
-            if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) return;
-            const evtWrapper = args?.event;
-            const e = evtWrapper?.native;
-            if (!e) return;
+            if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) {
+                return;
+            }
+            const evtWrapper = args?.event,
+                e = evtWrapper?.native;
+            if (!e) {
+                return;
+            }
 
             const canvas = chart?.canvas;
-            if (!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (e.clientX || 0) - rect.left;
-            const mouseY = (e.clientY || 0) - rect.top;
-            const btn = chart._zoomResetBtnBounds;
-            if (!btn) return;
+            if (!canvas) {
+                return;
+            }
+            const rect = canvas.getBoundingClientRect(),
+                mouseX = (e.clientX || 0) - rect.left,
+                mouseY = (e.clientY || 0) - rect.top,
+                btn = chart._zoomResetBtnBounds;
+            if (!btn) {
+                return;
+            }
 
-            const type = evtWrapper.type;
+            const { type } = evtWrapper;
             if (
                 (type === "click" || type === "touchend") &&
-                mouseX >= btn["x"] &&
-                mouseX <= btn["x"] + btn["w"] &&
-                mouseY >= btn["y"] &&
-                mouseY <= btn["y"] + btn["h"]
+                mouseX >= btn.x &&
+                mouseX <= btn.x + btn.w &&
+                mouseY >= btn.y &&
+                mouseY <= btn.y + btn.h
             ) {
-                if (e.stopPropagation) e.stopPropagation();
-                if (e.preventDefault) e.preventDefault();
+                if (e.stopPropagation) {
+                    e.stopPropagation();
+                }
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
 
                 if (typeof chart.resetZoom === "function") {
                     chart.resetZoom();

@@ -120,7 +120,9 @@ export function getLapNumForIdx(idx, lapMesgs) {
         // Search through laps to find matching index
         for (let i = 0; i < lapMesgs.length; i++) {
             const lap = lapMesgs[i];
-            if (!lap) continue;
+            if (!lap) {
+                continue;
+            }
 
             // Validate lap structure
             if (!isValidLap(lap, i)) {

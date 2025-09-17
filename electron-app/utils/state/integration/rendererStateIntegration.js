@@ -46,22 +46,30 @@ function setupStateAwareEventHandlers() {
     // Tab switching (if not handled by UIStateManager)
     document.addEventListener("click", (event) => {
         const target = event.target instanceof Element ? event.target : null;
-        if (!target) return;
+        if (!target) {
+            return;
+        }
         const tabButton = target.closest("[data-tab]");
         if (tabButton) {
             const tabName = tabButton.getAttribute("data-tab");
-            if (tabName) AppActions.switchTab(tabName);
+            if (tabName) {
+                AppActions.switchTab(tabName);
+            }
         }
     });
 
     // Theme switching
     document.addEventListener("click", (event) => {
         const target = event.target instanceof Element ? event.target : null;
-        if (!target) return;
+        if (!target) {
+            return;
+        }
         const themeButton = target.closest("[data-theme]");
         if (themeButton) {
             const theme = themeButton.getAttribute("data-theme");
-            if (theme) AppActions.switchTheme(theme);
+            if (theme) {
+                AppActions.switchTheme(theme);
+            }
         }
     });
 }
@@ -115,7 +123,9 @@ function setupReactiveUI() {
 
     // Update theme when it changes
     subscribe("ui.theme", (/** @type {string} */ theme) => {
-        if (theme) document.documentElement.setAttribute("data-theme", theme);
+        if (theme) {
+            document.documentElement.setAttribute("data-theme", theme);
+        }
     });
 
     // Update chart controls visibility
@@ -165,14 +175,16 @@ function handleTabChange(activeTab) {
  */
 async function loadChartTab() {
     const globalData = getState("globalData");
-    if (!globalData) return;
+    if (!globalData) {
+        return;
+    }
 
     try {
         setState("isLoading", true, { silent: false, source: "loadChartTab" });
 
         // Your existing chart rendering logic here
-        // const chartData = await processChartData(globalData);
-        // const chartOptions = getChartOptions();
+        // Const chartData = await processChartData(globalData);
+        // Const chartOptions = getChartOptions();
 
         // AppActions.renderChart(chartData, chartOptions);
 
@@ -189,14 +201,16 @@ async function loadChartTab() {
  */
 async function loadMapTab() {
     const globalData = getState("globalData");
-    if (!globalData) return;
+    if (!globalData) {
+        return;
+    }
 
     try {
         setState("isLoading", true, { silent: false, source: "loadMapTab" });
 
         // Your existing map rendering logic here
-        // const mapCenter = calculateMapCenter(globalData);
-        // const mapZoom = getOptimalZoom(globalData);
+        // Const mapCenter = calculateMapCenter(globalData);
+        // Const mapZoom = getOptimalZoom(globalData);
 
         // AppActions.renderMap(mapCenter, mapZoom);
 
@@ -213,15 +227,17 @@ async function loadMapTab() {
  */
 async function loadTableTab() {
     const globalData = getState("globalData");
-    if (!globalData) return;
+    if (!globalData) {
+        return;
+    }
 
     try {
         setState("isLoading", true, { silent: false, source: "loadTableTab" });
 
         // Your existing table rendering logic here
-        // const tableConfig = {
-        //     pageSize: getState('tables.pageSize'),
-        //     sortColumn: getState('tables.sortColumn')
+        // Const tableConfig = {
+        //     PageSize: getState('tables.pageSize'),
+        //     SortColumn: getState('tables.sortColumn')
         // };
 
         // AppActions.renderTable(tableConfig);
@@ -268,9 +284,9 @@ function updateSummaryTab(data) {
  */
 export function exampleStateUsage() {
     // Getting state
-    const currentTheme = getState("ui.theme");
-    const isLoading = getState("isLoading");
-    const activeTab = getState("ui.activeTab");
+    const currentTheme = getState("ui.theme"),
+        isLoading = getState("isLoading"),
+        activeTab = getState("ui.activeTab");
 
     console.log("Current state:", { currentTheme, isLoading, activeTab });
 

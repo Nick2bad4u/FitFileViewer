@@ -5,83 +5,82 @@ import { getManufacturerName } from "../display/formatAntNames.js";
  * @readonly
  */
 const MANUFACTURER_MAP = {
-    garmin: "Garmin",
-    faveroElectronics: "Favero Electronics",
-    development: "Development",
-    wahoo: "Wahoo",
-    polar: "Polar",
-    suunto: "Suunto",
-    cateye: "CatEye",
-    stages: "Stages Cycling",
-    sram: "SRAM",
-    shimano: "Shimano",
-    giant: "Giant",
-    trek: "Trek",
-    specialized: "Specialized",
-    cannondale: "Cannondale",
-    tacx: "Tacx",
-    elite: "Elite",
-    kinetic: "Kinetic",
-    cycleops: "CycleOps",
-    zwift: "Zwift",
-    trainerroad: "TrainerRoad",
-    sufferfest: "The Sufferfest",
-    computrainer: "CompuTrainer",
-    kickr: "Wahoo KICKR",
-    neo: "Tacx NEO",
-    flux: "Tacx Flux",
-    vortex: "Tacx Vortex",
-    bushido: "Tacx Bushido",
-    genius: "Tacx Genius",
-    direto: "Elite Direto",
-    suito: "Elite Suito",
-    novo: "Elite Novo",
-    rampa: "Elite Rampa",
-    turbo: "Elite Turbo",
-    rock: "Kinetic Rock",
-    road: "Kinetic Road",
-    inride: "Kinetic inRide",
-    fluid2: "CycleOps Fluid2",
-    magnus: "CycleOps Magnus",
-    hammer: "CycleOps Hammer",
-    h3: "CycleOps H3",
-    powertap: "PowerTap",
-    quarq: "Quarq",
-    srm: "SRM",
-    pioneer: "Pioneer",
-    rotor: "Rotor",
-    look: "Look",
-    speedplay: "Speedplay",
-    time: "Time",
-    crankbrothers: "Crankbrothers",
-    magene: "Magene",
-    igpsport: "iGPSPORT",
-    bryton: "Bryton",
-    lezyne: "Lezyne",
-    sigma: "Sigma Sport",
-    bontrager: "Bontrager",
-    kask: "Kask",
-    giro: "Giro",
-    bell: "Bell",
-    poc: "POC",
-    lazer: "Lazer",
-    met: "MET",
-    oakley: "Oakley",
-    smith: "Smith",
-    uvex: "Uvex",
-};
-
-/**
- * Configuration for manufacturer formatting
- * @readonly
- */
-const MANUFACTURER_CONFIG = {
-    ERROR_MESSAGES: {
-        FORMATTING_ERROR: "Error formatting manufacturer:",
-        ID_LOOKUP_ERROR: "Error looking up manufacturer by ID:",
+        garmin: "Garmin",
+        faveroElectronics: "Favero Electronics",
+        development: "Development",
+        wahoo: "Wahoo",
+        polar: "Polar",
+        suunto: "Suunto",
+        cateye: "CatEye",
+        stages: "Stages Cycling",
+        sram: "SRAM",
+        shimano: "Shimano",
+        giant: "Giant",
+        trek: "Trek",
+        specialized: "Specialized",
+        cannondale: "Cannondale",
+        tacx: "Tacx",
+        elite: "Elite",
+        kinetic: "Kinetic",
+        cycleops: "CycleOps",
+        zwift: "Zwift",
+        trainerroad: "TrainerRoad",
+        sufferfest: "The Sufferfest",
+        computrainer: "CompuTrainer",
+        kickr: "Wahoo KICKR",
+        neo: "Tacx NEO",
+        flux: "Tacx Flux",
+        vortex: "Tacx Vortex",
+        bushido: "Tacx Bushido",
+        genius: "Tacx Genius",
+        direto: "Elite Direto",
+        suito: "Elite Suito",
+        novo: "Elite Novo",
+        rampa: "Elite Rampa",
+        turbo: "Elite Turbo",
+        rock: "Kinetic Rock",
+        road: "Kinetic Road",
+        inride: "Kinetic inRide",
+        fluid2: "CycleOps Fluid2",
+        magnus: "CycleOps Magnus",
+        hammer: "CycleOps Hammer",
+        h3: "CycleOps H3",
+        powertap: "PowerTap",
+        quarq: "Quarq",
+        srm: "SRM",
+        pioneer: "Pioneer",
+        rotor: "Rotor",
+        look: "Look",
+        speedplay: "Speedplay",
+        time: "Time",
+        crankbrothers: "Crankbrothers",
+        magene: "Magene",
+        igpsport: "iGPSPORT",
+        bryton: "Bryton",
+        lezyne: "Lezyne",
+        sigma: "Sigma Sport",
+        bontrager: "Bontrager",
+        kask: "Kask",
+        giro: "Giro",
+        bell: "Bell",
+        poc: "POC",
+        lazer: "Lazer",
+        met: "MET",
+        oakley: "Oakley",
+        smith: "Smith",
+        uvex: "Uvex",
     },
-    FALLBACK_NAME: "Unknown Manufacturer",
-};
+    /**
+     * Configuration for manufacturer formatting
+     * @readonly
+     */
+    MANUFACTURER_CONFIG = {
+        ERROR_MESSAGES: {
+            FORMATTING_ERROR: "Error formatting manufacturer:",
+            ID_LOOKUP_ERROR: "Error looking up manufacturer by ID:",
+        },
+        FALLBACK_NAME: "Unknown Manufacturer",
+    };
 
 /**
  * Formats manufacturer names for consistent display across the application
@@ -157,6 +156,8 @@ export function getAllManufacturerMappings() {
  * const hasMapping = hasManufacturerMapping("garmin"); // true
  */
 export function hasManufacturerMapping(manufacturer) {
-    if (typeof manufacturer !== "string") return false;
+    if (typeof manufacturer !== "string") {
+        return false;
+    }
     return manufacturer.toLowerCase().trim() in MANUFACTURER_MAP;
 }

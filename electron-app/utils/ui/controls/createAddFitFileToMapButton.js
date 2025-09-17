@@ -15,7 +15,7 @@ export function createAddFitFileToMapButton() {
         const themeColors = getThemeColors();
         addOverlayBtn.innerHTML = `
             <svg class="icon" viewBox="0 0 20 20" width="18" height="18">
-                <path d="M10 2v16M2 10h16" stroke="${themeColors["primary"]}" stroke-width="2" fill="none"/>
+                <path d="M10 2v16M2 10h16" stroke="${themeColors.primary}" stroke-width="2" fill="none"/>
             </svg>
             <span>Add FIT File(s) to Map</span>
         `;

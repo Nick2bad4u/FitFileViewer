@@ -18,13 +18,12 @@ import { getChartCounts } from "../core/getChartCounts.js";
 export function updateAllChartStatusIndicators() {
     try {
         // Use a single call to get counts to ensure consistency
-        const counts = getChartCounts();
-
-        // Update settings indicator
-        const settingsIndicator = document.getElementById("chart-status-indicator");
+        const counts = getChartCounts(),
+            // Update settings indicator
+            settingsIndicator = document.getElementById("chart-status-indicator");
         if (settingsIndicator) {
-            const newSettingsIndicator = createChartStatusIndicatorFromCounts(counts);
-            const parent = settingsIndicator.parentNode;
+            const newSettingsIndicator = createChartStatusIndicatorFromCounts(counts),
+                parent = settingsIndicator.parentNode;
             if (parent && newSettingsIndicator) {
                 parent.replaceChild(newSettingsIndicator, settingsIndicator);
             }
@@ -61,8 +60,8 @@ export function updateChartStatusIndicator(indicator = null) {
         }
 
         // Replace the entire indicator with a new one
-        const newIndicator = createChartStatusIndicator();
-        const parent = target.parentNode;
+        const newIndicator = createChartStatusIndicator(),
+            parent = target.parentNode;
         if (parent && newIndicator) {
             parent.replaceChild(newIndicator, target);
         }
@@ -80,7 +79,7 @@ export function setupChartStatusUpdates() {
         // Listen for storage changes (field toggles)
         window.addEventListener("storage", (e) => {
             if (e.key && e.key.startsWith("chartjs_field_")) {
-                setTimeout(function () {
+                setTimeout(() => {
                     try {
                         updateAllChartStatusIndicators();
                     } catch (error) {
@@ -92,7 +91,7 @@ export function setupChartStatusUpdates() {
 
         // Listen for custom field toggle events (real-time updates in same window)
         window.addEventListener("fieldToggleChanged", () => {
-            setTimeout(function () {
+            setTimeout(() => {
                 try {
                     updateAllChartStatusIndicators();
                 } catch (error) {
@@ -102,7 +101,7 @@ export function setupChartStatusUpdates() {
         }); // Listen for custom events when charts are rendered
         document.addEventListener("chartsRendered", () => {
             // Use setTimeout to ensure DOM updates don't interfere with chart rendering
-            setTimeout(function () {
+            setTimeout(() => {
                 try {
                     updateAllChartStatusIndicators();
                 } catch (error) {
@@ -124,7 +123,7 @@ export function setupChartStatusUpdates() {
                     },
                     set(value) {
                         /** @type {any} */ (window).___ffv_globalData = value;
-                        setTimeout(function () {
+                        setTimeout(() => {
                             try {
                                 updateAllChartStatusIndicators();
                             } catch (error) {
@@ -148,7 +147,7 @@ export function setupChartStatusUpdates() {
                 // Fallback: just monitor for manual updates
             }
         } // Create global indicator on initial setup
-        setTimeout(function () {
+        setTimeout(() => {
             try {
                 createGlobalChartStatusIndicator();
             } catch (error) {

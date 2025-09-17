@@ -15,12 +15,11 @@ import { addExitFullscreenOverlay } from "./addExitFullscreenOverlay.js";
 import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
 
 // Global reference to screenfull library
-const screenfull = window.screenfull;
-
-// Constants for better maintainability
-const FULLSCREEN_BUTTON_ID = "global-fullscreen-btn";
-const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
-const REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"];
+const { screenfull } = window,
+    // Constants for better maintainability
+    FULLSCREEN_BUTTON_ID = "global-fullscreen-btn",
+    FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper",
+    REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"];
 
 /**
  * Logs messages with context for fullscreen operations
@@ -247,8 +246,8 @@ export function setupFullscreenListeners() {
  */
 function handleFullscreenStateChange() {
     try {
-        const activeContent = getActiveTabContent();
-        const globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
+        const activeContent = getActiveTabContent(),
+            globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
 
         if (screenfull.isFullscreen) {
             // Entering fullscreen
@@ -263,7 +262,7 @@ function handleFullscreenStateChange() {
             }
 
             // Update any content-specific buttons
-            const contentBtn = activeContent && document.getElementById(activeContent.id + "-fullscreen-btn");
+            const contentBtn = activeContent && document.getElementById(`${activeContent.id}-fullscreen-btn`);
             if (contentBtn) {
                 updateButtonState(contentBtn, true);
             }
@@ -280,7 +279,7 @@ function handleFullscreenStateChange() {
             }
 
             // Update any content-specific buttons
-            const contentBtn = activeContent && document.getElementById(activeContent.id + "-fullscreen-btn");
+            const contentBtn = activeContent && document.getElementById(`${activeContent.id}-fullscreen-btn`);
             if (contentBtn) {
                 updateButtonState(contentBtn, false);
             }

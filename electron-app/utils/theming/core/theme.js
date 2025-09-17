@@ -59,7 +59,7 @@ export function applyTheme(theme, withTransition = true) {
 
     // Remove transition class after animation completes
     if (withTransition) {
-        setTimeout(function () {
+        setTimeout(() => {
             document.body.classList.remove(THEME_TRANSITION_CLASS);
         }, 300);
     }
@@ -75,7 +75,7 @@ export function getSystemTheme() {
     if (typeof window !== "undefined" && window.matchMedia) {
         return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     }
-    return "dark"; // fallback
+    return "dark"; // Fallback
 }
 
 /**
@@ -106,9 +106,9 @@ export function loadTheme() {
  * @param {boolean} withTransition - Whether to animate the theme change
  */
 export function toggleTheme(withTransition = true) {
-    const currentTheme = loadTheme();
-    const effectiveTheme = getEffectiveTheme(currentTheme);
-    const newTheme = effectiveTheme === "dark" ? "light" : "dark";
+    const currentTheme = loadTheme(),
+        effectiveTheme = getEffectiveTheme(currentTheme),
+        newTheme = effectiveTheme === "dark" ? "light" : "dark";
     applyTheme(newTheme, withTransition);
 }
 
@@ -142,14 +142,13 @@ export function listenForThemeChange(onThemeChange) {
  */
 export function listenForSystemThemeChange() {
     if (typeof window !== "undefined" && window.matchMedia) {
-        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-        const handleSystemThemeChange = () => {
-            const currentTheme = loadTheme();
-            if (currentTheme === THEME_MODES.AUTO) {
-                applyTheme(THEME_MODES.AUTO, true);
-            }
-        };
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)"),
+            handleSystemThemeChange = () => {
+                const currentTheme = loadTheme();
+                if (currentTheme === THEME_MODES.AUTO) {
+                    applyTheme(THEME_MODES.AUTO, true);
+                }
+            };
 
         // Use the newer addEventListener if available, fallback to addListener
         if (mediaQuery.addEventListener) {
@@ -188,8 +187,8 @@ function dispatchThemeChangeEvent(theme) {
  * @param {string} theme - The theme to update for
  */
 function updateMetaThemeColor(theme) {
-    const effectiveTheme = getEffectiveTheme(theme);
-    let themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
+    const effectiveTheme = getEffectiveTheme(theme),
+        themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
 
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
@@ -221,7 +220,9 @@ export function initializeTheme() {
  * Inject CSS for smooth theme transitions
  */
 function injectThemeTransitionCSS() {
-    if (document.getElementById("theme-transition-styles")) return;
+    if (document.getElementById("theme-transition-styles")) {
+        return;
+    }
 
     const style = document.createElement("style");
     style.id = "theme-transition-styles";
@@ -251,69 +252,84 @@ function injectThemeTransitionCSS() {
  * @returns {Object} Theme configuration object
  */
 export function getThemeConfig() {
-    const effectiveTheme = getEffectiveTheme();
-
-    // Map CSS variable names to JS color keys for both dark and light themes
-    const cssVars = [
-        // Backgrounds
-        "color-bg",
-        "color-bg-solid",
-        "color-bg-alt",
-        "color-bg-alt-solid",
-        // Foregrounds
-        "color-fg",
-        "color-fg-alt",
-        // Accents
-        "color-accent",
-        "color-accent-secondary",
-        "color-accent-hover",
-        // Shadows
-        "color-shadow",
-        "color-box-shadow",
-        "color-box-shadow-light",
-        // Headers, tables, titles
-        "color-header",
-        "color-table-header",
-        "color-table-row-even",
-        "color-table-row-odd",
-        "color-table-hover",
-        "color-title",
-        // Borders
-        "color-border",
-        "color-border-light",
-        "color-glass-border",
-        // Buttons, modals
-        "color-btn-bg",
-        "color-btn-bg-solid",
-        "color-btn-hover",
-        "color-modal-bg",
-        "color-modal-fg",
-        // Misc
-        "color-svg-icon-stroke",
-        "color-credits",
-        "color-filename",
-        "color-glass",
-        "color-overlay-bg",
-        // Status
-        "color-error",
-        "color-success",
-        "color-warning",
-        "color-info",
-        // Effects
-        "backdrop-blur",
-        "border-radius",
-        "border-radius-small",
-        "transition-smooth",
-        "transition-bounce",
-    ];
-
-    // Helper to get CSS variable value
-    /** @param {string} name */
-    const getVar = (name) => getComputedStyle(document.body).getPropertyValue(`--${name}`)?.trim();
-
-    // Build color map from CSS variables
-    /** @type {Record<string, string>} */
-    const cssColors = {};
+    const effectiveTheme = getEffectiveTheme(),
+        // Map CSS variable names to JS color keys for both dark and light themes
+        cssVars = [
+            // Backgrounds
+            "color-bg",
+            "color-bg-solid",
+            "color-bg-alt",
+            "color-bg-alt-solid",
+            // Foregrounds
+            "color-fg",
+            "color-fg-alt",
+            // Accents
+            "color-accent",
+            "color-accent-secondary",
+            "color-accent-hover",
+            // Shadows
+            "color-shadow",
+            "color-box-shadow",
+            "color-box-shadow-light",
+            // Headers, tables, titles
+            "color-header",
+            "color-table-header",
+            "color-table-row-even",
+            "color-table-row-odd",
+            "color-table-hover",
+            "color-title",
+            // Borders
+            "color-border",
+            "color-border-light",
+            "color-glass-border",
+            // Buttons, modals
+            "color-btn-bg",
+            "color-btn-bg-solid",
+            "color-btn-hover",
+            "color-modal-bg",
+            "color-modal-fg",
+            // Misc
+            "color-svg-icon-stroke",
+            "color-credits",
+            "color-filename",
+            "color-glass",
+            "color-overlay-bg",
+            // Status
+            "color-error",
+            "color-success",
+            "color-warning",
+            "color-info",
+            // Effects
+            "backdrop-blur",
+            "border-radius",
+            "border-radius-small",
+            "transition-smooth",
+            "transition-bounce",
+        ],
+        // Helper to get CSS variable value
+        /** @type {(name: string) => string} */
+        getVar = (name) => {
+            try {
+                // Guard for environments where document/body or getComputedStyle may be unavailable or mocked
+                if (typeof document === "undefined" || !document || !document.body) {
+                    return "";
+                }
+                if (typeof getComputedStyle !== "function") {
+                    return "";
+                }
+                // Some tests may replace body with non-Element. Accessing computed style would throw.
+                const body = /** @type {any} */ (document.body);
+                if (!body || typeof body.nodeType !== "number" || body.nodeType !== 1) {
+                    return "";
+                }
+                return getComputedStyle(body).getPropertyValue(`--${name}`)?.trim() || "";
+            } catch {
+                return "";
+            }
+        },
+        // Build color map from CSS variables
+        /** @type {Record<string, string>} */
+        cssColors = {};
     cssVars.forEach((key) => {
         cssColors[key.replace(/^color-/, "")] = getVar(key);
     });

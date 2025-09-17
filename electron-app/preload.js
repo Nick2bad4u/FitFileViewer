@@ -3,104 +3,103 @@
  * Preload script exposes a typed, secure IPC API to the renderer via contextBridge.
  * Incremental typing is applied using JSDoc so strict TypeScript checking over allowJs passes.
  */
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron"),
+    /**
+     * @typedef {Object} GyazoServerStartResult
+     * @property {boolean} success
+     * @property {number} port
+     * @property {string} [message]
+     */
+    /**
+     * @typedef {Object} GyazoServerStopResult
+     * @property {boolean} success
+     * @property {string} [message]
+     */
+    /**
+     * @typedef {Object} ChannelInfo
+     * @property {Record<string,string>} channels
+     * @property {Record<string,string>} events
+     * @property {number} totalChannels
+     * @property {number} totalEvents
+     */
+    /**
+     * @typedef {Object} PlatformInfo
+     * @property {string} platform
+     * @property {string} arch
+     */
+    /**
+     * @typedef {Object} ElectronAPI
+     * @property {() => Promise<string[]>} openFile
+     * @property {() => Promise<string[]>} openFileDialog
+     * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
+     * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} parseFitFile
+     * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} decodeFitFile
+     * @property {() => Promise<string[]>} recentFiles
+     * @property {(filePath: string) => Promise<string[]>} addRecentFile
+     * @property {() => Promise<string>} getTheme
+     * @property {(theme: string) => void} sendThemeChanged
+     * @property {() => Promise<string>} getAppVersion
+     * @property {() => Promise<string>} getElectronVersion
+     * @property {() => Promise<string>} getNodeVersion
+     * @property {() => Promise<string>} getChromeVersion
+     * @property {() => Promise<string>} getLicenseInfo
+     * @property {() => Promise<PlatformInfo>} getPlatformInfo
+     * @property {(url: string) => Promise<boolean>} openExternal
+     * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
+     * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
+     * @property {(callback: Function) => void} onMenuOpenFile
+     * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
+     * @property {(callback: (theme: string) => void) => void} onSetTheme
+     * @property {(callback: Function) => void} onOpenSummaryColumnSelector
+     * @property {(eventName: string, callback: Function) => void} onUpdateEvent
+     * @property {() => void} checkForUpdates
+     * @property {() => void} installUpdate
+     * @property {(flag: boolean) => void} setFullScreen
+     * @property {(channel: string, callback: Function) => void} onIpc
+     * @property {(channel: string, ...args: any[]) => void} send
+     * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
+     * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
+     * @property {() => ChannelInfo} getChannelInfo
+     * @property {() => boolean} validateAPI
+     */
 
-/**
- * @typedef {Object} GyazoServerStartResult
- * @property {boolean} success
- * @property {number} port
- * @property {string} [message]
- */
-/**
- * @typedef {Object} GyazoServerStopResult
- * @property {boolean} success
- * @property {string} [message]
- */
-/**
- * @typedef {Object} ChannelInfo
- * @property {Record<string,string>} channels
- * @property {Record<string,string>} events
- * @property {number} totalChannels
- * @property {number} totalEvents
- */
-/**
- * @typedef {Object} PlatformInfo
- * @property {string} platform
- * @property {string} arch
- */
-/**
- * @typedef {Object} ElectronAPI
- * @property {() => Promise<string[]>} openFile
- * @property {() => Promise<string[]>} openFileDialog
- * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
- * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} parseFitFile
- * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} decodeFitFile
- * @property {() => Promise<string[]>} recentFiles
- * @property {(filePath: string) => Promise<string[]>} addRecentFile
- * @property {() => Promise<string>} getTheme
- * @property {(theme: string) => void} sendThemeChanged
- * @property {() => Promise<string>} getAppVersion
- * @property {() => Promise<string>} getElectronVersion
- * @property {() => Promise<string>} getNodeVersion
- * @property {() => Promise<string>} getChromeVersion
- * @property {() => Promise<string>} getLicenseInfo
- * @property {() => Promise<PlatformInfo>} getPlatformInfo
- * @property {(url: string) => Promise<boolean>} openExternal
- * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
- * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
- * @property {(callback: Function) => void} onMenuOpenFile
- * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
- * @property {(callback: (theme: string) => void) => void} onSetTheme
- * @property {(callback: Function) => void} onOpenSummaryColumnSelector
- * @property {(eventName: string, callback: Function) => void} onUpdateEvent
- * @property {() => void} checkForUpdates
- * @property {() => void} installUpdate
- * @property {(flag: boolean) => void} setFullScreen
- * @property {(channel: string, callback: Function) => void} onIpc
- * @property {(channel: string, ...args: any[]) => void} send
- * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
- * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
- * @property {() => ChannelInfo} getChannelInfo
- * @property {() => boolean} validateAPI
- */
-
-// Constants for better maintainability
-const CONSTANTS = {
-    CHANNELS: {
-        DIALOG_OPEN_FILE: "dialog:openFile",
-        FILE_READ: "file:read",
-        FIT_PARSE: "fit:parse",
-        FIT_DECODE: "fit:decode",
-        RECENT_FILES_GET: "recentFiles:get",
-        RECENT_FILES_ADD: "recentFiles:add",
-        THEME_GET: "theme:get",
-        APP_VERSION: "getAppVersion",
-        ELECTRON_VERSION: "getElectronVersion",
-        NODE_VERSION: "getNodeVersion",
-        CHROME_VERSION: "getChromeVersion",
-        LICENSE_INFO: "getLicenseInfo",
-        PLATFORM_INFO: "getPlatformInfo",
-        DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
-        SHELL_OPEN_EXTERNAL: "shell:openExternal",
-        // Gyazo OAuth server channels
-        GYAZO_SERVER_START: "gyazo:server:start",
-        GYAZO_SERVER_STOP: "gyazo:server:stop",
-    },
-    EVENTS: {
-        MENU_OPEN_FILE: "menu-open-file",
-        OPEN_RECENT_FILE: "open-recent-file",
-        SET_THEME: "set-theme",
-        THEME_CHANGED: "theme-changed",
-        OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
-        MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
-        INSTALL_UPDATE: "install-update",
-        SET_FULLSCREEN: "set-fullscreen",
-    },
-    DEFAULT_VALUES: {
-        THEME: null,
-        FIT_FILE_PATH: null,
-    },
-};
+    // Constants for better maintainability
+    CONSTANTS = {
+        CHANNELS: {
+            DIALOG_OPEN_FILE: "dialog:openFile",
+            FILE_READ: "file:read",
+            FIT_PARSE: "fit:parse",
+            FIT_DECODE: "fit:decode",
+            RECENT_FILES_GET: "recentFiles:get",
+            RECENT_FILES_ADD: "recentFiles:add",
+            THEME_GET: "theme:get",
+            APP_VERSION: "getAppVersion",
+            ELECTRON_VERSION: "getElectronVersion",
+            NODE_VERSION: "getNodeVersion",
+            CHROME_VERSION: "getChromeVersion",
+            LICENSE_INFO: "getLicenseInfo",
+            PLATFORM_INFO: "getPlatformInfo",
+            DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
+            SHELL_OPEN_EXTERNAL: "shell:openExternal",
+            // Gyazo OAuth server channels
+            GYAZO_SERVER_START: "gyazo:server:start",
+            GYAZO_SERVER_STOP: "gyazo:server:stop",
+        },
+        EVENTS: {
+            MENU_OPEN_FILE: "menu-open-file",
+            OPEN_RECENT_FILE: "open-recent-file",
+            SET_THEME: "set-theme",
+            THEME_CHANGED: "theme-changed",
+            OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
+            MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
+            INSTALL_UPDATE: "install-update",
+            SET_FULLSCREEN: "set-fullscreen",
+        },
+        DEFAULT_VALUES: {
+            THEME: null,
+            FIT_FILE_PATH: null,
+        },
+    };
 
 // Enhanced error handling and validation
 /**
@@ -172,7 +171,9 @@ function createSafeSendHandler(channel, methodName) {
  */
 function createSafeEventHandler(channel, methodName, transform) {
     return (callback) => {
-        if (!validateCallback(callback, methodName)) return;
+        if (!validateCallback(callback, methodName)) {
+            return;
+        }
 
         try {
             if (transform) {
@@ -362,8 +363,12 @@ const electronAPI = {
      * @param {Function} callback - Callback function to handle the event
      */
     onUpdateEvent: (eventName, callback) => {
-        if (!validateCallback(callback, "onUpdateEvent")) return;
-        if (!validateString(eventName, "eventName", "onUpdateEvent")) return;
+        if (!validateCallback(callback, "onUpdateEvent")) {
+            return;
+        }
+        if (!validateString(eventName, "eventName", "onUpdateEvent")) {
+            return;
+        }
 
         try {
             ipcRenderer.on(eventName, (_event, ...args) => {
@@ -401,8 +406,12 @@ const electronAPI = {
      * @param {Function} callback - Callback function to handle the event
      */
     onIpc: (channel, callback) => {
-        if (!validateString(channel, "channel", "onIpc")) return;
-        if (!validateCallback(callback, "onIpc")) return;
+        if (!validateString(channel, "channel", "onIpc")) {
+            return;
+        }
+        if (!validateCallback(callback, "onIpc")) {
+            return;
+        }
 
         try {
             ipcRenderer.on(channel, (event, ...args) => {
@@ -423,7 +432,9 @@ const electronAPI = {
      * @param {...any} args - Arguments to send
      */
     send: (channel, ...args) => {
-        if (!validateString(channel, "channel", "send")) return;
+        if (!validateString(channel, "channel", "send")) {
+            return;
+        }
 
         try {
             ipcRenderer.send(channel, ...args);
@@ -462,8 +473,12 @@ const electronAPI = {
         theme = CONSTANTS.DEFAULT_VALUES.THEME,
         fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH
     ) => {
-        if (!validateString(theme, "theme", "injectMenu")) return false;
-        if (!validateString(fitFilePath, "fitFilePath", "injectMenu")) return false;
+        if (!validateString(theme, "theme", "injectMenu")) {
+            return false;
+        }
+        if (!validateString(fitFilePath, "fitFilePath", "injectMenu")) {
+            return false;
+        }
 
         try {
             return await ipcRenderer.invoke(CONSTANTS.CHANNELS.DEVTOOLS_INJECT_MENU, theme, fitFilePath);
@@ -495,9 +510,9 @@ const electronAPI = {
     validateAPI: () => {
         try {
             // Test basic functionality
-            const hasIpcRenderer = typeof ipcRenderer !== "undefined";
-            const hasContextBridge = typeof contextBridge !== "undefined";
-            const hasConstants = typeof CONSTANTS !== "undefined";
+            const hasIpcRenderer = typeof ipcRenderer !== "undefined",
+                hasContextBridge = typeof contextBridge !== "undefined",
+                hasConstants = typeof CONSTANTS !== "undefined";
 
             console.log("[preload.js] API Validation:", {
                 hasIpcRenderer,
@@ -523,12 +538,12 @@ try {
         console.log("[preload.js] Successfully exposed electronAPI to main world");
 
         // Log API structure in development
-        if (process.env["NODE_ENV"] === "development") {
-            const apiKeys = Object.keys(electronAPI);
-            /** @type {string[]} */
-            const methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function");
-            /** @type {string[]} */
-            const properties = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) !== "function");
+        if (process.env.NODE_ENV === "development") {
+            const apiKeys = Object.keys(electronAPI),
+                /** @type {string[]} */
+                methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function"),
+                /** @type {string[]} */
+                properties = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) !== "function");
             console.log("[preload.js] API Structure:", {
                 methods,
                 properties,
@@ -543,7 +558,7 @@ try {
 }
 
 // Development helpers - only available in development mode
-if (process.env["NODE_ENV"] === "development") {
+if (process.env.NODE_ENV === "development") {
     try {
         contextBridge.exposeInMainWorld("devTools", {
             /**

@@ -4,29 +4,28 @@
  * @readonly
  */
 const FIELD_COLOR_MAP = {
-    heartRate: "#EF4444", // Red - heart rate data
-    cadence: "#10B981", // Green - cadence/RPM data
-    speed: "#3b82f665", // Blue (transparent) - speed data
-    power: "#F59E0B", // Orange - power/watts data
-    altitude: "#8B5CF6", // Purple - elevation data
-    temperature: "#EC4899", // Pink - temperature data
-    grade: "#06B6D4", // Cyan - gradient/slope data
-    distance: "#84CC16", // Lime - distance data
-    enhancedSpeed: "#009688", // Teal - enhanced speed data
-    enhancedAltitude: "#cddc39", // Light green - enhanced altitude data
-    resistance: "#795548", // Brown - resistance data
-    flow: "#c42196", // Magenta - flow data
-    grit: "#6e1cbb", // Dark purple - grit data
-    positionLat: "#ff5722", // Deep orange - latitude data
-    positionLong: "#3f51b5", // Indigo - longitude data
-    gps_track: "#4caf50", // Green - GPS track data
-};
-
-/**
- * Default color for unmapped fields
- * @readonly
- */
-const DEFAULT_FIELD_COLOR = "#6B7280"; // Gray
+        heartRate: "#EF4444", // Red - heart rate data
+        cadence: "#10B981", // Green - cadence/RPM data
+        speed: "#3b82f665", // Blue (transparent) - speed data
+        power: "#F59E0B", // Orange - power/watts data
+        altitude: "#8B5CF6", // Purple - elevation data
+        temperature: "#EC4899", // Pink - temperature data
+        grade: "#06B6D4", // Cyan - gradient/slope data
+        distance: "#84CC16", // Lime - distance data
+        enhancedSpeed: "#009688", // Teal - enhanced speed data
+        enhancedAltitude: "#cddc39", // Light green - enhanced altitude data
+        resistance: "#795548", // Brown - resistance data
+        flow: "#c42196", // Magenta - flow data
+        grit: "#6e1cbb", // Dark purple - grit data
+        positionLat: "#ff5722", // Deep orange - latitude data
+        positionLong: "#3f51b5", // Indigo - longitude data
+        gps_track: "#4caf50", // Green - GPS track data
+    },
+    /**
+     * Default color for unmapped fields
+     * @readonly
+     */
+    DEFAULT_FIELD_COLOR = "#6B7280"; // Gray
 
 /**
  * Gets the standardized color for a given field type

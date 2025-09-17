@@ -7,14 +7,14 @@ import { defineConfig } from "eslint/config";
 
 // NOTE: The project currently has residual references to @typescript-eslint rules in built JS (dist) files.
 // We are not linting TypeScript specifically here; to suppress missing rule errors inside generated dist files,
-// we ensure those files are ignored (see ignores below). If future TS linting is needed, add:
-// import tseslint from 'typescript-eslint'; and extend its configs.
+// We ensure those files are ignored (see ignores below). If future TS linting is needed, add:
+// Import tseslint from 'typescript-eslint'; and extend its configs.
 
 export default defineConfig([
     {
         files: ["**/*.{js,mjs,cjs,ts}"],
-        plugins: { js: js },
-        extends: ["js/recommended"],
+        plugins: { js },
+        extends: ["js/all"],
         rules: {
             // Allow intentionally unused parameters prefixed with underscore (common for Electron event placeholders)
             "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
@@ -59,8 +59,8 @@ export default defineConfig([
             "tests/**",
             "electron-app/libs/**",
             "**/node_modules/**",
-            "dist/**", // built output (contains many vendor + d.ts artifacts not meant for linting)
-            "**/*.d.ts", // skip type declaration files (parsed as JS currently)
+            "dist/**", // Built output (contains many vendor + d.ts artifacts not meant for linting)
+            "**/*.d.ts", // Skip type declaration files (parsed as JS currently)
         ],
     },
 ]);

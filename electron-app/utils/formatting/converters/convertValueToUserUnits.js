@@ -1,23 +1,22 @@
-import { convertDistanceUnits, DISTANCE_UNITS } from "./convertDistanceUnits.js";
-import { convertTemperatureUnits, TEMPERATURE_UNITS } from "./convertTemperatureUnits.js";
+import { DISTANCE_UNITS, convertDistanceUnits } from "./convertDistanceUnits.js";
+import { TEMPERATURE_UNITS, convertTemperatureUnits } from "./convertTemperatureUnits.js";
 
 /**
  * User unit preference storage keys
  * @readonly
  */
 const UNIT_STORAGE_KEYS = {
-    DISTANCE: "chartjs_distanceUnits",
-    TEMPERATURE: "chartjs_temperatureUnits",
-};
-
-/**
- * Field categorization for unit conversion
- * @readonly
- */
-const FIELD_CATEGORIES = {
-    DISTANCE: ["distance", "altitude", "enhancedAltitude"],
-    TEMPERATURE: ["temperature"],
-};
+        DISTANCE: "chartjs_distanceUnits",
+        TEMPERATURE: "chartjs_temperatureUnits",
+    },
+    /**
+     * Field categorization for unit conversion
+     * @readonly
+     */
+    FIELD_CATEGORIES = {
+        DISTANCE: ["distance", "altitude", "enhancedAltitude"],
+        TEMPERATURE: ["temperature"],
+    };
 
 /**
  * Converts values according to user's preferred units based on field type

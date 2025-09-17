@@ -151,70 +151,70 @@ class AppStateManager {
          * @param {*} initialValue - Initial value for the property
          */
         const createReactiveProperty = (obj, path, initialValue) => {
-            const keys = path.split(".");
-            /** @type {any} */
-            let current = obj;
+                const keys = path.split(".");
+                /** @type {any} */
+                let current = obj;
 
-            // Navigate to parent object
-            for (let i = 0; i < keys.length - 1; i++) {
-                const key = keys[i];
-                if (key && !current[key]) {
-                    current[key] = {};
-                }
-                if (key) {
-                    current = current[key];
-                }
-            }
-
-            const finalKey = keys[keys.length - 1];
-            if (!finalKey) return;
-
-            let value = initialValue;
-
-            const self = this;
-            Object.defineProperty(current, finalKey, {
-                get() {
-                    return value;
-                },
-                /**
-                 * @param {*} newValue - New value to set
-                 */
-                set(newValue) {
-                    const oldValue = value;
-
-                    // Validate if validator exists
-                    const validator = self.validators.get(path);
-                    if (validator && !validator(newValue, oldValue)) {
-                        console.warn(`[AppState] Validation failed for ${path}:`, newValue);
-                        return;
+                // Navigate to parent object
+                for (let i = 0; i < keys.length - 1; i++) {
+                    const key = keys[i];
+                    if (key && !current[key]) {
+                        current[key] = {};
                     }
+                    if (key) {
+                        current = current[key];
+                    }
+                }
 
-                    value = newValue;
+                const finalKey = keys[keys.length - 1];
+                if (!finalKey) {
+                    return;
+                }
 
-                    // Emit change event
-                    self.emit(`${path}-changed`, {
-                        path,
-                        newValue,
-                        oldValue,
-                        timestamp: Date.now(),
-                    }); // Emit specific events based on path
-                    self.emitSpecificEvents(path, newValue, oldValue);
-                },
-                configurable: true,
-                enumerable: true,
-            });
-        };
+                let value = initialValue;
 
-        // Setup reactive properties for key state paths
-        const reactivePaths = [
-            "data.globalData",
-            "data.isLoaded",
-            "file.isOpening",
-            "ui.activeTab",
-            "ui.theme",
-            "charts.controlsVisible",
-            "charts.isRendered",
-        ];
+                const self = this;
+                Object.defineProperty(current, finalKey, {
+                    get() {
+                        return value;
+                    },
+                    /**
+                     * @param {*} newValue - New value to set
+                     */
+                    set(newValue) {
+                        const oldValue = value,
+                            // Validate if validator exists
+                            validator = self.validators.get(path);
+                        if (validator && !validator(newValue, oldValue)) {
+                            console.warn(`[AppState] Validation failed for ${path}:`, newValue);
+                            return;
+                        }
+
+                        value = newValue;
+
+                        // Emit change event
+                        self.emit(`${path}-changed`, {
+                            path,
+                            newValue,
+                            oldValue,
+                            timestamp: Date.now(),
+                        }); // Emit specific events based on path
+                        self.emitSpecificEvents(path, newValue, oldValue);
+                    },
+                    configurable: true,
+                    enumerable: true,
+                });
+            },
+            // Setup reactive properties for key state paths
+            reactivePaths = [
+                "data.globalData",
+                "data.isLoaded",
+                "file.isOpening",
+                "ui.activeTab",
+                "ui.theme",
+                "charts.controlsVisible",
+                "charts.isRendered",
+            ];
 
         reactivePaths.forEach((path) => {
             const keys = path.split(".");
@@ -433,8 +433,8 @@ class AppStateManager {
     loadPersistedState() {
         try {
             PERSISTENCE_CONFIG.PERSISTENT_KEYS.forEach((path) => {
-                const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path;
-                const stored = localStorage.getItem(key);
+                const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path,
+                    stored = localStorage.getItem(key);
 
                 if (stored !== null) {
                     try {
@@ -461,8 +461,8 @@ class AppStateManager {
         }
 
         try {
-            const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path;
-            const value = this.get(path);
+            const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path,
+                value = this.get(path);
 
             if (value !== undefined) {
                 localStorage.setItem(key, JSON.stringify(value));
@@ -533,17 +533,25 @@ const appState = new AppStateManager();
 
 // Expose convenience methods globally (following your existing patterns)
 if (typeof window !== "undefined") {
-    // Backward compatibility with existing globalData usage
-    Object.defineProperty(window, "globalData", {
-        get() {
-            return appState.get("data.globalData");
-        },
-        set(value) {
-            appState.set("data.globalData", value);
-        },
-        configurable: true,
-        enumerable: true,
-    });
+    // Backward compatibility with existing globalData usage.
+    // Guard against re-definition if another module already defined it (e.g., multiple imports of renderer/main-ui during tests).
+    try {
+        const desc = Object.getOwnPropertyDescriptor(window, "globalData");
+        if (!desc || desc.configurable) {
+            Object.defineProperty(window, "globalData", {
+                get() {
+                    return appState.get("data.globalData");
+                },
+                set(value) {
+                    appState.set("data.globalData", value);
+                },
+                configurable: true,
+                enumerable: true,
+            });
+        }
+    } catch {
+        /* ignore */
+    }
 
     // Expose app state for debugging
     window.__appState = appState;
@@ -564,7 +572,7 @@ export function setGlobalData(data) {
     const fitData = data;
     appState.update({
         "data.globalData": data,
-        "data.isLoaded": !!data,
+        "data.isLoaded": Boolean(data),
         "data.lastModified": Date.now(),
         "data.recordCount": fitData?.recordMesgs?.length || 0,
     });
@@ -626,14 +634,13 @@ export function setTheme(theme) {
  */
 export function addError(error, context = "") {
     const errorObj = {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        context,
-        timestamp: Date.now(),
-    };
-
-    const currentErrors = appState.get("errors.current") || [];
-    const errorHistory = appState.get("errors.history") || [];
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            context,
+            timestamp: Date.now(),
+        },
+        currentErrors = appState.get("errors.current") || [],
+        errorHistory = appState.get("errors.history") || [];
 
     appState.update({
         "errors.current": [...currentErrors, errorObj],

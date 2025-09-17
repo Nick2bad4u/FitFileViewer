@@ -5,20 +5,18 @@
 
 // Constants for better maintainability
 const NOTIFICATION_CONSTANTS = {
-    DEFAULT_DURATION: 6000,
-    DEFAULT_TYPE: "info",
-    NOTIFICATION_ID: "notification",
-    BUTTON_CLASS: "themed-btn",
-    UPDATE_DOWNLOADED: "update-downloaded",
-    BUTTON_MARGIN: "10px",
-};
-
-const BUTTON_TEXTS = {
-    RESTART_UPDATE: "Restart & Update",
-    LATER: "Later",
-};
-
-const LOG_PREFIX = "[ShowUpdateNotification]";
+        DEFAULT_DURATION: 6000,
+        DEFAULT_TYPE: "info",
+        NOTIFICATION_ID: "notification",
+        BUTTON_CLASS: "themed-btn",
+        UPDATE_DOWNLOADED: "update-downloaded",
+        BUTTON_MARGIN: "10px",
+    },
+    BUTTON_TEXTS = {
+        RESTART_UPDATE: "Restart & Update",
+        LATER: "Later",
+    },
+    LOG_PREFIX = "[ShowUpdateNotification]";
 
 /**
  * Enhanced logging with context
@@ -27,8 +25,8 @@ const LOG_PREFIX = "[ShowUpdateNotification]";
  * @param {Object} context - Additional context
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
+    const timestamp = new Date().toISOString(),
+        logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
 
     if (context && Object.keys(context).length > 0) {
         /** @type {Record<string, any>} */ (console)[level](logMessage, context);
@@ -145,12 +143,11 @@ function hideNotification(notification) {
 function createUpdateDownloadedButtons(notification) {
     try {
         // Restart & Update button
-        const restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall);
-
-        // Later button
-        const laterBtn = createThemedButton(BUTTON_TEXTS.LATER, () => hideNotification(notification), {
-            marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
-        });
+        const restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, handleUpdateInstall),
+            // Later button
+            laterBtn = createThemedButton(BUTTON_TEXTS.LATER, () => hideNotification(notification), {
+                marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
+            });
 
         if (restartBtn && laterBtn) {
             notification.appendChild(restartBtn);

@@ -47,12 +47,12 @@ const { app } = require("electron");
 
 /** @type {string|undefined} */
 let RECENT_FILES_PATH;
-if (process.env["RECENT_FILES_PATH"]) {
-    RECENT_FILES_PATH = process.env["RECENT_FILES_PATH"];
+if (process.env.RECENT_FILES_PATH) {
+    RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
 } else {
     let userDataPath;
     try {
-        // app may be undefined in test environments
+        // App may be undefined in test environments
         userDataPath = app && typeof app.getPath === "function" ? app.getPath("userData") : null;
     } catch {
         userDataPath = null;
@@ -60,7 +60,7 @@ if (process.env["RECENT_FILES_PATH"]) {
     if (userDataPath) {
         RECENT_FILES_PATH = path.join(userDataPath, "recent-files.json");
     } else {
-        // fallback for tests or non-Electron environments
+        // Fallback for tests or non-Electron environments
         RECENT_FILES_PATH = path.join(process.cwd(), "recent-files-test.json");
     }
 }

@@ -1,12 +1,12 @@
 import { getState, setState, updateState } from "../../state/core/stateManager.js";
 import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
-import { getDefaultSettings, getCurrentSettings } from "../../app/initialization/getCurrentSettings.js";
+import { getCurrentSettings, getDefaultSettings } from "../../app/initialization/getCurrentSettings.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
 import {
-    createSettingsHeader,
     createControlsSection,
     createExportSection,
     createFieldTogglesSection,
+    createSettingsHeader,
 } from "./createSettingsHeader.js";
 import { createPowerZoneControls, movePowerZoneControlsToSection } from "../controls/createPowerZoneControls.js";
 import { createHRZoneControls, moveHRZoneControlsToSection } from "../controls/createHRZoneControls.js";
@@ -27,8 +27,8 @@ function toggleChartControls() {
     updateControlsState();
 
     // Use state management system to toggle controls visibility
-    const currentVisibility = getState("charts.controlsVisible");
-    const newVisibility = !currentVisibility;
+    const currentVisibility = getState("charts.controlsVisible"),
+        newVisibility = !currentVisibility;
 
     setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
     wrapper.style.display = newVisibility ? "block" : "none";
@@ -113,7 +113,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         setState("charts.controlsVisible", true, { source: "ensureChartSettingsDropdowns.init" });
     }
 
-    let chartContainer = targetContainer
+    const chartContainer = targetContainer
         ? typeof targetContainer === "string"
             ? document.getElementById(targetContainer)
             : targetContainer
@@ -142,10 +142,8 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         const toggleBtn = document.getElementById("chart-controls-toggle");
         if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
             toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
-        } else {
-            if (chartContainer.parentNode instanceof HTMLElement) {
-                chartContainer.parentNode.insertBefore(wrapper, chartContainer);
-            }
+        } else if (chartContainer.parentNode instanceof HTMLElement) {
+            chartContainer.parentNode.insertBefore(wrapper, chartContainer);
         } // Initialize settings sections only once
         createSettingsHeader(wrapper);
         createControlsSection(wrapper);
@@ -158,7 +156,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
         createHRZoneControls(wrapper);
 
         // Move zone controls after a short delay to ensure field toggles are rendered
-        setTimeout(function () {
+        setTimeout(() => {
             movePowerZoneControlsToSection();
             moveHRZoneControlsToSection();
         }, 100);

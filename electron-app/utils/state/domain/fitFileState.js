@@ -3,7 +3,7 @@
  * Specialized state management for FIT file operations and data
  */
 
-import { setState, getState, subscribe, updateState } from "../core/stateManager.js";
+import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../app/initialization/rendererUtils.js";
 
@@ -179,7 +179,7 @@ export class FitFileStateManager {
 
         // Handle file loading errors
         subscribe("fitFile.loadingError", (/** @type {Error} */ error) => {
-            this.handleFileLoadingError(error); // error originates from fit parser integration
+            this.handleFileLoadingError(error); // Error originates from fit parser integration
         });
     }
 
@@ -260,8 +260,8 @@ export class FitFileStateManager {
      * @param {Error} error - Loading error
      */
     handleFileLoadingError(/** @type {unknown} */ error) {
-        const err = /** @type {{message?: string}} */ (error) || {};
-        const message = err.message || "Unknown error";
+        const err = /** @type {{message?: string}} */ (error) || {},
+            message = err.message || "Unknown error";
         setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
         setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
 
@@ -300,7 +300,9 @@ export class FitFileStateManager {
      * @returns {number}
      */
     getRecordCount(/** @type {RawFitData} */ data) {
-        if (!data || !data.recordMesgs) return 0;
+        if (!data || !data.recordMesgs) {
+            return 0;
+        }
         return Array.isArray(data.recordMesgs) ? data.recordMesgs.length : 0;
     }
 
@@ -314,7 +316,9 @@ export class FitFileStateManager {
         }
 
         const session = data.sessionMesgs[0];
-        if (!session) return null;
+        if (!session) {
+            return null;
+        }
         return {
             startTime: session.start_time,
             totalElapsedTime: session.total_elapsed_time,
@@ -336,7 +340,9 @@ export class FitFileStateManager {
         }
 
         const device = data.device_infos[0];
-        if (!device) return null;
+        if (!device) {
+            return null;
+        }
         return {
             manufacturer: device.manufacturer,
             product: device.product,
@@ -357,7 +363,9 @@ export class FitFileStateManager {
         }
 
         const activity = data.activities[0];
-        if (!activity) return null;
+        if (!activity) {
+            return null;
+        }
         return {
             timestamp: activity.timestamp,
             totalTimerTime: activity.total_timer_time,
@@ -387,18 +395,18 @@ export class FitFileStateManager {
             return quality;
         }
 
-        const records = data.recordMesgs;
-        const totalRecords = records.length;
+        const records = data.recordMesgs,
+            totalRecords = records.length;
 
         if (totalRecords === 0) {
             quality.issues.push("No records in file");
             return quality;
         }
-        let gpsCount = 0;
-        let hrCount = 0;
-        let powerCount = 0;
-        let cadenceCount = 0;
-        let altitudeCount = 0;
+        let altitudeCount = 0,
+            cadenceCount = 0,
+            gpsCount = 0,
+            hrCount = 0,
+            powerCount = 0;
 
         records.forEach((record) => {
             if (record.position_lat && record.position_long) {
@@ -505,14 +513,16 @@ export class FitFileStateManager {
      * @param {Object} processedData - Processed file data
      */
     updateFileMetrics(/** @type {ProcessedData|null} */ processedData) {
-        if (!processedData) return;
+        if (!processedData) {
+            return;
+        }
         updateState(
             "fitFile.metrics",
             {
                 lastUpdated: Date.now(),
                 recordCount: processedData.recordCount,
-                hasSession: !!processedData.sessionInfo,
-                hasDevice: !!processedData.deviceInfo,
+                hasSession: Boolean(processedData.sessionInfo),
+                hasDevice: Boolean(processedData.deviceInfo),
                 dataQualityScore: processedData.dataQuality?.completeness || 0,
             },
             { source: "FitFileStateManager.updateFileMetrics" }
@@ -579,7 +589,7 @@ export const FitFileSelectors = {
     isFileValid() {
         /** @type {ValidationResult|null} */
         const validation = /** @type {any} */ (this.getValidation());
-        return validation ? !!validation.isValid : false;
+        return validation ? Boolean(validation.isValid) : false;
     },
 
     /**
@@ -615,7 +625,7 @@ export const FitFileSelectors = {
     hasGPS() {
         /** @type {DataQuality|null} */
         const quality = /** @type {any} */ (this.getDataQuality());
-        return quality ? !!quality.hasGPS : false;
+        return quality ? Boolean(quality.hasGPS) : false;
     },
 
     /**
@@ -625,7 +635,7 @@ export const FitFileSelectors = {
     hasHeartRate() {
         /** @type {DataQuality|null} */
         const quality = /** @type {any} */ (this.getDataQuality());
-        return quality ? !!quality.hasHeartRate : false;
+        return quality ? Boolean(quality.hasHeartRate) : false;
     },
 
     /**
@@ -635,7 +645,7 @@ export const FitFileSelectors = {
     hasPower() {
         /** @type {DataQuality|null} */
         const quality = /** @type {any} */ (this.getDataQuality());
-        return quality ? !!quality.hasPower : false;
+        return quality ? Boolean(quality.hasPower) : false;
     },
 
     /**

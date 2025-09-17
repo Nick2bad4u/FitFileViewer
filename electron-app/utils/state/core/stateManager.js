@@ -79,96 +79,93 @@
  * @type {AppStateShape}
  */
 const AppState = {
-    // Application lifecycle state
-    app: {
-        initialized: false,
-        isOpeningFile: false,
-        startTime: performance.now(),
-    },
+        // Application lifecycle state
+        app: {
+            initialized: false,
+            isOpeningFile: false,
+            startTime: performance.now(),
+        },
 
-    // Core application data
-    globalData: null,
-    currentFile: null,
-    isLoading: false,
+        // Core application data
+        globalData: null,
+        currentFile: null,
+        isLoading: false,
 
-    // UI state
-    ui: {
-        activeTab: "summary",
-        sidebarCollapsed: false,
-        theme: "system",
-        isFullscreen: false,
-        windowState: {
-            width: 1200,
-            height: 800,
-            x: null,
-            y: null,
-            maximized: false,
+        // UI state
+        ui: {
+            activeTab: "summary",
+            sidebarCollapsed: false,
+            theme: "system",
+            isFullscreen: false,
+            windowState: {
+                width: 1200,
+                height: 800,
+                x: null,
+                y: null,
+                maximized: false,
+            },
+        },
+
+        // Chart state
+        charts: {
+            isRendered: false,
+            controlsVisible: true,
+            selectedChart: "elevation",
+            zoomLevel: 1,
+            chartData: null,
+            chartOptions: {},
+        },
+
+        // Map state
+        map: {
+            isRendered: false,
+            center: null,
+            zoom: 13,
+            selectedLap: 0,
+            showElevationProfile: true,
+            trackVisible: true,
+            baseLayer: "openstreetmap",
+            measurementMode: false,
+        },
+
+        // Table state
+        tables: {
+            isRendered: false,
+            sortColumn: null,
+            sortDirection: "asc",
+            pageSize: 50,
+            currentPage: 1,
+            filters: {},
+        },
+        // Performance metrics
+        performance: {
+            lastLoadTime: null,
+            renderTimes: {},
+            memoryUsage: null,
+        },
+
+        // System information
+        system: {
+            version: null,
+            startupTime: null,
+            mode: "production",
+            initialized: false,
         },
     },
-
-    // Chart state
-    charts: {
-        isRendered: false,
-        controlsVisible: true,
-        selectedChart: "elevation",
-        zoomLevel: 1,
-        chartData: null,
-        chartOptions: {},
-    },
-
-    // Map state
-    map: {
-        isRendered: false,
-        center: null,
-        zoom: 13,
-        selectedLap: 0,
-        showElevationProfile: true,
-        trackVisible: true,
-        baseLayer: "openstreetmap",
-        measurementMode: false,
-    },
-
-    // Table state
-    tables: {
-        isRendered: false,
-        sortColumn: null,
-        sortDirection: "asc",
-        pageSize: 50,
-        currentPage: 1,
-        filters: {},
-    },
-    // Performance metrics
-    performance: {
-        lastLoadTime: null,
-        renderTimes: {},
-        memoryUsage: null,
-    },
-
-    // System information
-    system: {
-        version: null,
-        startupTime: null,
-        mode: "production",
-        initialized: false,
-    },
-};
-
-/**
- * Event listeners for state changes
- * @type {Map<string, Set<Function>>}
- */
-const stateListeners = new Map();
-
-/**
- * State change history for debugging
- * @type {Array<Object>}
- */
-const stateHistory = [];
-
-/**
- * Maximum number of state changes to keep in history
- */
-const MAX_HISTORY_SIZE = 50;
+    /**
+     * Event listeners for state changes
+     * @type {Map<string, Set<Function>>}
+     */
+    stateListeners = new Map(),
+    /**
+     * State change history for debugging
+     * @type {Array<Object>}
+     */
+    stateHistory = [],
+    /**
+     * Maximum number of state changes to keep in history
+     */
+    MAX_HISTORY_SIZE = 50;
 
 /**
  * Subscribe to state changes for a specific path
@@ -189,7 +186,9 @@ export function subscribe(path, callback) {
     // Return unsubscribe function
     return () => {
         const current = stateListeners.get(path);
-        if (!current) return;
+        if (!current) {
+            return;
+        }
         current.delete(callback);
         if (current.size === 0) {
             stateListeners.delete(path);
@@ -203,16 +202,20 @@ export function subscribe(path, callback) {
  * @returns {*} State value
  */
 export function getState(path) {
-    if (!path) return AppState;
+    if (!path) {
+        return AppState;
+    }
 
     const keys = path.split(".");
     /** @type {any} */
     let value = AppState;
     for (let i = 0; i < keys.length; i++) {
         const key = /** @type {string} */ (keys[i]);
-        if (value == null) return undefined;
+        if (value == null) {
+            return undefined;
+        }
         const container = /** @type {Record<string, any>} */ (value);
-        if (Object.prototype.hasOwnProperty.call(container, key)) {
+        if (Object.hasOwn(container, key)) {
             value = container[key];
         } else {
             return undefined;
@@ -235,25 +238,23 @@ export function getState(path) {
  * @param {StateUpdateOptions} [options] - Optional update options
  */
 export function setState(path, value, options = {}) {
-    const { silent = false, source = "unknown", merge = false } = options;
-
-    // Get the old value for comparison
-    const oldValue = getState(path);
-
-    // Set / merge the new value
-    const keys = path.split(".");
+    const { silent = false, source = "unknown", merge = false } = options,
+        // Get the old value for comparison
+        oldValue = getState(path),
+        // Set / merge the new value
+        keys = path.split(".");
     let target = AppState;
 
     for (let i = 0; i < keys.length - 1; i++) {
         const key = /** @type {string} */ (keys[i]);
-        if (!key) continue; // defensive
-        if (typeof target !== "object" || target == null) break;
+        if (!key) {
+            continue;
+        } // Defensive
+        if (typeof target !== "object" || target == null) {
+            break;
+        }
         const container = /** @type {Record<string, any>} */ (target);
-        if (
-            !Object.prototype.hasOwnProperty.call(container, key) ||
-            typeof container[key] !== "object" ||
-            container[key] === null
-        ) {
+        if (!Object.hasOwn(container, key) || typeof container[key] !== "object" || container[key] === null) {
             container[key] = {};
         }
         target = container[key];
@@ -336,8 +337,8 @@ function notifyListeners(path, newValue, oldValue) {
     // Notify parent path listeners
     const pathParts = path.split(".");
     for (let i = pathParts.length - 1; i > 0; i--) {
-        const parentPath = pathParts.slice(0, i).join(".");
-        const parentListeners = stateListeners.get(parentPath);
+        const parentPath = pathParts.slice(0, i).join("."),
+            parentListeners = stateListeners.get(parentPath);
 
         if (parentListeners) {
             const parentValue = getState(parentPath);
@@ -363,8 +364,10 @@ export function resetState(path) {
         let target = AppState;
         for (let i = 0; i < keys.length - 1; i++) {
             const k = /** @type {string} */ (keys[i]);
-            if (target == null) return;
-            if (Object.prototype.hasOwnProperty.call(target, k)) {
+            if (target == null) {
+                return;
+            }
+            if (Object.hasOwn(target, k)) {
                 target = target[k];
             } else {
                 return;
@@ -373,7 +376,7 @@ export function resetState(path) {
         const finalKey = keys[keys.length - 1];
         if (finalKey && target) {
             const rec = /** @type {Record<string, any>} */ (target);
-            if (Object.prototype.hasOwnProperty.call(rec, finalKey)) {
+            if (Object.hasOwn(rec, finalKey)) {
                 delete rec[finalKey];
             }
         }
@@ -455,6 +458,37 @@ export function clearStateHistory() {
 }
 
 /**
+ * TEST-ONLY: Clear all registered state listeners.
+ * This helps ensure unit tests don't leak subscriptions across suites.
+ */
+export function __clearAllListenersForTests() {
+    try {
+        stateListeners.clear();
+        console.log("[StateManager] All listeners cleared (tests)");
+    } catch (error) {
+        console.warn("[StateManager] Failed to clear listeners:", error);
+    }
+}
+
+/**
+ * TEST-ONLY: Fully reset the state manager.
+ * - Clears all listeners
+ * - Clears history
+ * - Resets AppState to initial values
+ */
+export function __resetStateManagerForTests() {
+    try {
+        __clearAllListenersForTests();
+    } catch {}
+    try {
+        clearStateHistory();
+    } catch {}
+    try {
+        resetState();
+    } catch {}
+}
+
+/**
  * Persist state to localStorage
  * @param {Array<string>} paths - Array of state paths to persist
  */
@@ -483,7 +517,9 @@ export function persistState(paths = ["ui", "charts.controlsVisible", "map.baseL
 export function loadPersistedState(paths = ["ui", "charts.controlsVisible", "map.baseLayer"]) {
     try {
         const savedState = localStorage.getItem("fitFileViewer_state");
-        if (!savedState) return;
+        if (!savedState) {
+            return;
+        }
 
         const parsedState = JSON.parse(savedState);
 
@@ -513,14 +549,14 @@ function setNestedValue(obj, path, value) {
     let target = obj;
     for (let i = 0; i < keys.length - 1; i++) {
         const key = /** @type {string} */ (keys[i]);
-        if (!key) continue;
-        if (target == null || typeof target !== "object") return;
+        if (!key) {
+            continue;
+        }
+        if (target == null || typeof target !== "object") {
+            return;
+        }
         const container = /** @type {Record<string, any>} */ (target);
-        if (
-            !Object.prototype.hasOwnProperty.call(container, key) ||
-            typeof container[key] !== "object" ||
-            container[key] === null
-        ) {
+        if (!Object.hasOwn(container, key) || typeof container[key] !== "object" || container[key] === null) {
             container[key] = {};
         }
         target = container[key];
@@ -544,9 +580,11 @@ function getNestedValue(obj, path) {
     let value = obj;
     for (let i = 0; i < keys.length; i++) {
         const key = /** @type {string} */ (keys[i]);
-        if (value == null) return undefined;
+        if (value == null) {
+            return undefined;
+        }
         const container = /** @type {Record<string, any>} */ (value);
-        if (Object.prototype.hasOwnProperty.call(container, key)) {
+        if (Object.hasOwn(container, key)) {
             value = container[key];
         } else {
             return undefined;

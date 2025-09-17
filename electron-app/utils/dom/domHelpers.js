@@ -15,7 +15,7 @@
  * @returns {el is HTMLElement}
  */
 export function isHTMLElement(el) {
-    return !!el && typeof el === "object" && el.nodeType === 1;
+    return Boolean(el) && typeof el === "object" && el.nodeType === 1;
 }
 
 /**
@@ -25,6 +25,10 @@ export function isHTMLElement(el) {
  * @returns {HTMLElement|null}
  */
 export function query(selector, root = document) {
+    if (typeof selector !== "string" || selector.length === 0) {
+        // Match native behavior: throw on empty/invalid selector input
+        throw new Error('Failed to execute "querySelector" on "Document": The provided selector is empty.');
+    }
     const el = root.querySelector(selector);
     return isHTMLElement(el) ? el : null;
 }
@@ -36,7 +40,40 @@ export function query(selector, root = document) {
  * @returns {HTMLElement[]}
  */
 export function queryAll(selector, root = document) {
-    return Array.from(root.querySelectorAll(selector)).filter(isHTMLElement);
+    if (typeof selector !== "string" || selector.length === 0) {
+        // Match native behavior and test expectation to throw on invalid selectors
+        throw new Error('Failed to execute "querySelectorAll" on "Document": The provided selector is empty.');
+    }
+    /** @type {NodeListOf<Element>|ArrayLike<Element>|null|undefined} */
+    let list;
+    try {
+        if (root && typeof (/** @type {any} */ (root).querySelectorAll) === "function") {
+            list = /** @type {any} */ (root).querySelectorAll(selector);
+        } else {
+            list = null;
+        }
+    } catch {
+        // If a mocked implementation throws, return empty list for safety
+        list = null;
+    }
+    if (!list) {
+        return [];
+    }
+    try {
+        return Array.from(list).filter(isHTMLElement);
+    } catch {
+        // In case Array.from fails on exotic list objects
+        const result = [];
+        const anyList = /** @type {any} */ (list);
+        const length = typeof anyList.length === "number" ? anyList.length : 0;
+        for (let i = 0; i < length; i++) {
+            const el = anyList[i];
+            if (isHTMLElement(el)) {
+                result.push(el);
+            }
+        }
+        return result;
+    }
 }
 
 /**
@@ -69,8 +106,12 @@ export function setText(el, value) {
  * Add a class to an element if present.
  * @param {Element|null|undefined} el
  * @param {string} className
+ * @throws {Error} If className is empty
  */
 export function addClass(el, className) {
+    if (!className) {
+        throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
+    }
     if (isHTMLElement(el)) {
         el.classList.add(className);
     }
@@ -80,8 +121,12 @@ export function addClass(el, className) {
  * Remove a class from an element if present.
  * @param {Element|null|undefined} el
  * @param {string} className
+ * @throws {Error} If className is empty
  */
 export function removeClass(el, className) {
+    if (!className) {
+        throw new Error("Failed to execute 'remove' on 'DOMTokenList': The token provided must not be empty.");
+    }
     if (isHTMLElement(el)) {
         el.classList.remove(className);
     }
@@ -96,7 +141,7 @@ export function removeClass(el, className) {
 export function setDisabled(el, disabled) {
     if (isHTMLElement(el) && "disabled" in el) {
         // @ts-ignore - guarded by 'disabled' in el
-        el.disabled = !!disabled;
+        el.disabled = Boolean(disabled);
     }
 }
 
@@ -133,7 +178,7 @@ export function setValue(el, value) {
 export function setChecked(el, checked) {
     if (isHTMLElement(el) && "checked" in el) {
         // @ts-ignore - runtime guarded
-        el.checked = !!checked;
+        el.checked = Boolean(checked);
     }
 }
 
@@ -145,7 +190,7 @@ export function setChecked(el, checked) {
 export function getChecked(el) {
     if (isHTMLElement(el) && "checked" in el) {
         // @ts-ignore - runtime guarded
-        return !!el.checked;
+        return Boolean(el.checked);
     }
     return undefined;
 }
@@ -168,7 +213,9 @@ export function setStyle(el, prop, value) {
  */
 export function clearElement(el) {
     if (isHTMLElement(el)) {
-        while (el.firstChild) el.removeChild(el.firstChild);
+        while (el.firstChild) {
+            el.removeChild(el.firstChild);
+        }
     }
 }
 

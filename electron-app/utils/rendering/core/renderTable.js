@@ -11,8 +11,8 @@ import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
  * renderTable(document.body, 'My Table', myTableObject, 0);
  */
 export function renderTable(container, title, table, index) {
-    const tableId = "datatable_" + index;
-    const section = document.createElement("div");
+    const tableId = `datatable_${index}`,
+        section = document.createElement("div");
     section.classList.add("table-section");
     const header = document.createElement("div");
     header.classList.add("table-header");
@@ -36,15 +36,17 @@ export function renderTable(container, title, table, index) {
     header.appendChild(leftSpan);
     header.appendChild(rightContainer);
     header.onclick = () => {
-        const content = document.getElementById(tableId + "_content");
-        const currentDisplay = window.getComputedStyle(/** @type {Element} */ (content)).display;
-        const isVisible = currentDisplay === "block";
-        if (content) content.style.display = isVisible ? "none" : "block";
+        const content = document.getElementById(`${tableId}_content`),
+            currentDisplay = window.getComputedStyle(/** @type {Element} */ (content)).display,
+            isVisible = currentDisplay === "block";
+        if (content) {
+            content.style.display = isVisible ? "none" : "block";
+        }
         icon.textContent = isVisible ? "➕" : "➖";
     };
     const content = document.createElement("div");
     content.classList.add("table-content");
-    content.id = tableId + "_content";
+    content.id = `${tableId}_content`;
     content.style.display = "none";
     const tableElement = document.createElement("table");
     tableElement.id = tableId;
@@ -56,11 +58,11 @@ export function renderTable(container, title, table, index) {
     container.appendChild(section);
     if (/** @type {any} */ (window).jQuery) {
         const jQ = /** @type {any} */ (window).jQuery;
-        jQ(document).ready(function () {
-            setTimeout(function () {
+        jQ(document).ready(() => {
+            setTimeout(() => {
                 try {
                     if (jQ.fn.DataTable) {
-                        const tableSelector = "#" + tableId;
+                        const tableSelector = `#${tableId}`;
                         // Destroy existing DataTable instance if it exists
                         if (jQ.fn.DataTable.isDataTable(tableSelector)) {
                             console.log(`[DEBUG] Destroying existing DataTable for ${tableSelector}`);
@@ -88,7 +90,7 @@ export function renderTable(container, title, table, index) {
         });
     } else {
         console.warn("[WARNING] jQuery is not available. Falling back to native DOM methods.");
-        setTimeout(function () {
+        setTimeout(() => {
             const tableElement = document.getElementById(tableId);
             if (tableElement) {
                 console.log(`[DEBUG] DataTable initialization skipped for #${tableId}`);

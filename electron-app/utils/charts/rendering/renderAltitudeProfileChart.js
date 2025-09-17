@@ -46,7 +46,9 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             })
             .filter((point) => point !== null);
 
-        if (chartData.length === 0) return;
+        if (chartData.length === 0) {
+            return;
+        }
 
         // Apply data point limiting
         if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
@@ -63,134 +65,135 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
         container.appendChild(canvas);
 
         const config = {
-            type: "line",
-            data: {
-                datasets: [
-                    {
-                        label: "Altitude Profile",
-                        data: chartData,
-                        backgroundColor: themeConfig.colors.success + "4D", // Green with alpha
-                        borderColor: themeConfig.colors.success,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        borderWidth: 2,
-                        fill: "origin",
-                        tension: 0.1,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: options.showLegend,
-                        labels: { color: themeConfig.colors.textPrimary },
-                    },
-                    title: {
-                        display: options.showTitle,
-                        text: "Altitude Profile",
-                        font: { size: 16, weight: "bold" },
-                        color: themeConfig.colors.textPrimary,
-                    },
-                    tooltip: {
-                        backgroundColor: themeConfig.colors.chartSurface,
-                        titleColor: themeConfig.colors.textPrimary,
-                        bodyColor: themeConfig.colors.textPrimary,
-                        borderColor: themeConfig.colors.chartBorder,
-                        borderWidth: 1,
-                        callbacks: {
-                            /** @param {any[]} context */
-                            title: function (context) {
-                                return `Time: ${formatTime(context[0].parsed.x)}`;
-                            },
-                            /** @param {any} context */
-                            label: function (context) {
-                                return `Altitude: ${context.parsed.y.toFixed(1)} m`;
-                            },
+                type: "line",
+                data: {
+                    datasets: [
+                        {
+                            label: "Altitude Profile",
+                            data: chartData,
+                            backgroundColor: `${themeConfig.colors.success}4D`, // Green with alpha
+                            borderColor: themeConfig.colors.success,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            borderWidth: 2,
+                            fill: "origin",
+                            tension: 0.1,
                         },
-                    },
-                    zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: "x",
-                            modifierKey: null,
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: options.showLegend,
+                            labels: { color: themeConfig.colors.textPrimary },
+                        },
+                        title: {
+                            display: options.showTitle,
+                            text: "Altitude Profile",
+                            font: { size: 16, weight: "bold" },
+                            color: themeConfig.colors.textPrimary,
+                        },
+                        tooltip: {
+                            backgroundColor: themeConfig.colors.chartSurface,
+                            titleColor: themeConfig.colors.textPrimary,
+                            bodyColor: themeConfig.colors.textPrimary,
+                            borderColor: themeConfig.colors.chartBorder,
+                            borderWidth: 1,
+                            callbacks: {
+                                /** @param {any[]} context */
+                                title(context) {
+                                    return `Time: ${formatTime(context[0].parsed.x)}`;
+                                },
+                                /** @param {any} context */
+                                label(context) {
+                                    return `Altitude: ${context.parsed.y.toFixed(1)} m`;
+                                },
+                            },
                         },
                         zoom: {
-                            wheel: {
+                            pan: {
                                 enabled: true,
-                                speed: 0.1,
+                                mode: "x",
+                                modifierKey: null,
                             },
-                            pinch: {
-                                enabled: true,
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                    speed: 0.1,
+                                },
+                                pinch: {
+                                    enabled: true,
+                                },
+                                drag: {
+                                    enabled: true,
+                                    backgroundColor: themeConfig.colors.primaryAlpha,
+                                    borderColor: `${themeConfig.colors.primary}CC`, // Primary with more opacity
+                                    borderWidth: 2,
+                                    modifierKey: "shift",
+                                },
+                                mode: "x",
                             },
-                            drag: {
-                                enabled: true,
-                                backgroundColor: themeConfig.colors.primaryAlpha,
-                                borderColor: themeConfig.colors.primary + "CC", // Primary with more opacity
-                                borderWidth: 2,
-                                modifierKey: "shift",
+                            limits: {
+                                x: {
+                                    min: "original",
+                                    max: "original",
+                                },
+                                y: {
+                                    min: "original",
+                                    max: "original",
+                                },
                             },
-                            mode: "x",
                         },
-                        limits: {
-                            x: {
-                                min: "original",
-                                max: "original",
-                            },
-                            y: {
-                                min: "original",
-                                max: "original",
-                            },
+                        chartBackgroundColorPlugin: {
+                            backgroundColor: themeConfig.colors.chartBackground,
                         },
                     },
-                    chartBackgroundColorPlugin: {
-                        backgroundColor: themeConfig.colors.chartBackground,
+                    scales: {
+                        x: {
+                            type: "linear",
+                            display: true,
+                            grid: {
+                                display: options.showGrid,
+                                color: themeConfig.colors.chartGrid,
+                            },
+                            title: {
+                                display: true,
+                                text: `Time (${getUnitSymbol("time", "time")})`,
+                                color: themeConfig.colors.textPrimary,
+                            },
+                            ticks: {
+                                color: themeConfig.colors.textPrimary,
+                                /** @param {any} value */
+                                callback(value) {
+                                    return formatTime(value, true);
+                                },
+                            },
+                        },
+                        y: {
+                            type: "linear",
+                            display: true,
+                            grid: {
+                                display: options.showGrid,
+                                color: themeConfig.colors.chartGrid,
+                            },
+                            title: {
+                                display: true,
+                                text: "Altitude (m)",
+                                color: themeConfig.colors.textPrimary,
+                            },
+                            ticks: { color: themeConfig.colors.textPrimary },
+                        },
                     },
                 },
-                scales: {
-                    x: {
-                        type: "linear",
-                        display: true,
-                        grid: {
-                            display: options.showGrid,
-                            color: themeConfig.colors.chartGrid,
-                        },
-                        title: {
-                            display: true,
-                            text: `Time (${getUnitSymbol("time", "time")})`,
-                            color: themeConfig.colors.textPrimary,
-                        },
-                        ticks: {
-                            color: themeConfig.colors.textPrimary,
-                            /** @param {any} value */
-                            callback: function (value) {
-                                return formatTime(value, true);
-                            },
-                        },
-                    },
-                    y: {
-                        type: "linear",
-                        display: true,
-                        grid: {
-                            display: options.showGrid,
-                            color: themeConfig.colors.chartGrid,
-                        },
-                        title: {
-                            display: true,
-                            text: "Altitude (m)",
-                            color: themeConfig.colors.textPrimary,
-                        },
-                        ticks: { color: themeConfig.colors.textPrimary },
-                    },
-                },
+                plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
             },
-            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-        };
-
-        const chart = new /** @type {any} */ (window).Chart(canvas, config);
+            chart = new /** @type {any} */ (window).Chart(canvas, config);
         if (chart) {
-            if (!(/** @type {any} */ (window)._chartjsInstances)) /** @type {any} */ (window)._chartjsInstances = [];
+            if (!(/** @type {any} */ (window)._chartjsInstances)) {
+                /** @type {any} */ window._chartjsInstances = [];
+            }
             /** @type {any} */ (window)._chartjsInstances.push(chart);
             console.log("[ChartJS] Altitude Profile chart created successfully");
         }

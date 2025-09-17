@@ -3,7 +3,7 @@
  * Helps migrate from existing state patterns to the new centralized system
  */
 
-import { initializeStateManager, setState, getState, subscribe } from "../core/stateManager.js";
+import { getState, initializeStateManager, setState, subscribe } from "../core/stateManager.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { uiStateManager } from "../domain/uiStateManager.js";
 
@@ -29,28 +29,37 @@ import { uiStateManager } from "../domain/uiStateManager.js";
  * @returns {boolean} True if in development mode
  */
 function isDevelopmentMode() {
-    // Check for development indicators
-    return (
-        // Check if localhost or dev domains
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1" ||
-        window.location.hostname.includes("dev") ||
-        // Check for dev tools being open
-        /** @type {any} */ (window).__DEVELOPMENT__ === true ||
-        // Check for debug flag in URL
-        window.location.search.includes("debug=true") ||
-        window.location.hash.includes("debug") ||
-        // Check for development build indicators
-        document.documentElement.hasAttribute("data-dev-mode") ||
-        // Check if running from file:// protocol (dev mode indicator)
-        window.location.protocol === "file:" ||
-        // Check if electron dev tools are available
-        /** @type {any} */ (
-            window.electronAPI && typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined"
-        ) ||
-        // Check console availability and development-specific globals
-        (typeof console !== "undefined" && window.location.href.includes("electron"))
-    );
+    // Guarded access for jsdom/mocked environments
+    try {
+        const loc = /** @type {any} */ (typeof window !== "undefined" ? window.location : undefined) || {};
+        const hostname = typeof loc.hostname === "string" ? loc.hostname : "";
+        const search = typeof loc.search === "string" ? loc.search : "";
+        const hash = typeof loc.hash === "string" ? loc.hash : "";
+        const protocol = typeof loc.protocol === "string" ? loc.protocol : "";
+        const href = typeof loc.href === "string" ? loc.href : "";
+
+        return (
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            (hostname && hostname.includes("dev")) ||
+            /** @type {any} */ (window).__DEVELOPMENT__ === true ||
+            (search && search.includes("debug=true")) ||
+            (hash && hash.includes("debug")) ||
+            (typeof document !== "undefined" &&
+                document.documentElement &&
+                document.documentElement.hasAttribute("data-dev-mode")) ||
+            protocol === "file:" ||
+            /** @type {any} */ (
+                typeof window !== "undefined" &&
+                    window.electronAPI &&
+                    typeof (/** @type {any} */ (window).electronAPI.__devMode) !== "undefined"
+            ) ||
+            (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
+        );
+    } catch {
+        // Default to non-dev on any unexpected error
+        return false;
+    }
 }
 
 /**
@@ -186,10 +195,9 @@ function setupStateDebugging() {
             if (actions[actionName]) {
                 console.log(`[StateDebug] Triggering action: ${actionName}`, args);
                 return actions[actionName](...args);
-            } else {
-                console.warn(`[StateDebug] Unknown action: ${actionName}`);
-                return undefined;
             }
+            console.warn(`[StateDebug] Unknown action: ${actionName}`);
+            return undefined;
         },
     };
 
@@ -282,9 +290,7 @@ export function integrateWithRendererUtils() {
 
         // Example: if there's a getGlobalData function
         if (originalUtils.getGlobalData) {
-            /** @type {any} */ (window).rendererUtils.getGlobalData = () => {
-                return getState("globalData");
-            };
+            /** @type {any} */ (window).rendererUtils.getGlobalData = () => getState("globalData");
         }
 
         console.log("[StateIntegration] rendererUtils integration completed");
@@ -404,8 +410,8 @@ function getNestedValue(obj, path) {
  * Set up performance monitoring for state changes
  */
 export function setupStatePerformanceMonitoring() {
-    let stateChangeCount = 0;
-    let lastResetTime = Date.now();
+    let stateChangeCount = 0,
+        lastResetTime = Date.now();
 
     // Monitor state change frequency
     subscribe("", () => {

@@ -23,19 +23,18 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
  */
 export function getChartCounts() {
     const counts /** @type {ChartCounts} */ = {
-        total: 0,
-        visible: 0,
-        available: 0,
-        categories: {
-            metrics: { total: 0, visible: 0, available: 0 },
-            analysis: { total: 0, visible: 0, available: 0 },
-            zones: { total: 0, visible: 0, available: 0 },
-            gps: { total: 0, visible: 0, available: 0 },
+            total: 0,
+            visible: 0,
+            available: 0,
+            categories: {
+                metrics: { total: 0, visible: 0, available: 0 },
+                analysis: { total: 0, visible: 0, available: 0 },
+                zones: { total: 0, visible: 0, available: 0 },
+                gps: { total: 0, visible: 0, available: 0 },
+            },
         },
-    };
-
-    // Check if we have data
-    const hasData = window.globalData && window.globalData.recordMesgs && window.globalData.recordMesgs.length > 0;
+        // Check if we have data
+        hasData = window.globalData && window.globalData.recordMesgs && window.globalData.recordMesgs.length > 0;
     if (!hasData) {
         return counts;
     }
@@ -58,15 +57,14 @@ export function getChartCounts() {
 
             // Check if this field has valid numeric data (same logic as renderChartJS)
             const numericData = data.map((/** @type {any} */ row) => {
-                if (row[field] !== undefined && row[field] !== null) {
-                    const value = parseFloat(row[field]);
-                    return isNaN(value) ? null : value;
-                }
-                return null;
-            });
-
-            // Only count as available if there's at least one valid data point
-            const hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
+                    if (row[field] !== undefined && row[field] !== null) {
+                        const value = parseFloat(row[field]);
+                        return isNaN(value) ? null : value;
+                    }
+                    return null;
+                }),
+                // Only count as available if there's at least one valid data point
+                hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
             if (hasValidData) {
                 counts.available++;
                 counts.categories.metrics.available++;
@@ -80,8 +78,8 @@ export function getChartCounts() {
             }
         }); // GPS track chart (counted separately from lat/long individual charts)
         const hasGPSData = data.some((/** @type {any} */ row) => {
-            const lat = row.positionLat;
-            const long = row.positionLong;
+            const lat = row.positionLat,
+                long = row.positionLong;
             return (
                 (lat !== undefined && lat !== null && !isNaN(parseFloat(lat))) ||
                 (long !== undefined && long !== null && !isNaN(parseFloat(long)))
@@ -109,25 +107,25 @@ export function getChartCounts() {
             switch (chartType) {
                 case "speed_vs_distance": {
                     const hasSpeed = data.some((/** @type {any} */ row) => {
-                        const speed = row.enhancedSpeed || row.speed;
-                        return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
-                    });
-                    const hasDistance = data.some((/** @type {any} */ row) => {
-                        const distance = row.distance;
-                        return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
-                    });
+                            const speed = row.enhancedSpeed || row.speed;
+                            return speed !== undefined && speed !== null && !isNaN(parseFloat(speed));
+                        }),
+                        hasDistance = data.some((/** @type {any} */ row) => {
+                            const { distance } = row;
+                            return distance !== undefined && distance !== null && !isNaN(parseFloat(distance));
+                        });
                     hasRequiredData = hasSpeed && hasDistance;
                     break;
                 }
                 case "power_vs_hr": {
                     const hasPower = data.some((/** @type {any} */ row) => {
-                        const power = row.power;
-                        return power !== undefined && power !== null && !isNaN(parseFloat(power));
-                    });
-                    const hasHeartRate = data.some((/** @type {any} */ row) => {
-                        const hr = row.heartRate;
-                        return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
-                    });
+                            const { power } = row;
+                            return power !== undefined && power !== null && !isNaN(parseFloat(power));
+                        }),
+                        hasHeartRate = data.some((/** @type {any} */ row) => {
+                            const hr = row.heartRate;
+                            return hr !== undefined && hr !== null && !isNaN(parseFloat(hr));
+                        });
                     hasRequiredData = hasPower && hasHeartRate;
                     break;
                 }
@@ -165,7 +163,7 @@ export function getChartCounts() {
                 });
             } else if (chartType.includes("power_zone")) {
                 hasRequiredData = data.some((/** @type {any} */ row) => {
-                    const power = row.power;
+                    const { power } = row;
                     return power !== undefined && power !== null && !isNaN(parseFloat(power));
                 });
             }
@@ -201,8 +199,8 @@ export function getChartCounts() {
 
         // No need to count separately as they use the same visibility toggles        // Lap zone charts (from renderLapZoneCharts - up to 4 charts possible)
         if (window.globalData?.timeInZoneMesgs) {
-            const timeInZoneMesgs = window.globalData.timeInZoneMesgs;
-            const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+            const { timeInZoneMesgs } = window.globalData,
+                lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
             if (lapZoneMsgs.length > 0) {
                 // Check for HR lap zone charts (2 charts: stacked bar and individual bars)
@@ -214,8 +212,8 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for HR lap zone charts
-                    const hrStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked");
-                    const hrIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual");
+                    const hrStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked"),
+                        hrIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual");
 
                     if (hrStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -236,8 +234,8 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for Power lap zone charts
-                    const powerStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked");
-                    const powerIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual");
+                    const powerStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked"),
+                        powerIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual");
 
                     if (powerStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -253,26 +251,25 @@ export function getChartCounts() {
 
         // Only count fields that are not already in formatChartFields and have meaningful data
         if (window.globalData?.recordMesgs && window.globalData.recordMesgs.length > 0) {
-            const sampleRecord = window.globalData.recordMesgs[0];
-            const excludedFields = ["timestamp", "distance", "fractional_cadence", "positionLat", "positionLong"];
-            const developerFields = Object.keys(sampleRecord).filter(
-                (key) =>
-                    !metricFields.includes(key) &&
-                    !excludedFields.includes(key) &&
-                    (key.startsWith("developer_") || key.includes("_"))
-            );
+            const sampleRecord = window.globalData.recordMesgs[0],
+                excludedFields = ["timestamp", "distance", "fractional_cadence", "positionLat", "positionLong"],
+                developerFields = Object.keys(sampleRecord).filter(
+                    (key) =>
+                        !metricFields.includes(key) &&
+                        !excludedFields.includes(key) &&
+                        (key.startsWith("developer_") || key.includes("_"))
+                );
             developerFields.forEach((/** @type {string} */ field) => {
                 // Check if this field has valid numeric data (same logic as renderChartJS)
                 const numericData = data.map((/** @type {any} */ row) => {
-                    if (row[field] !== undefined && row[field] !== null) {
-                        const value = parseFloat(row[field]);
-                        return isNaN(value) ? null : value;
-                    }
-                    return null;
-                });
-
-                // Only count as available if there's at least one valid data point
-                const hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
+                        if (row[field] !== undefined && row[field] !== null) {
+                            const value = parseFloat(row[field]);
+                            return isNaN(value) ? null : value;
+                        }
+                        return null;
+                    }),
+                    // Only count as available if there's at least one valid data point
+                    hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
                 if (hasValidData) {
                     counts.total++;
                     counts.available++;

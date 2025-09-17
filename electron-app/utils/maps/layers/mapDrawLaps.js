@@ -74,10 +74,9 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
  */
 
 /** @type {Window & WindowExtensions} */
-const win = /** @type {any} */ (window);
-
-/** @type {any} */
-const L = /** @type {any} */ (globalThis.L || win.L);
+const win = /** @type {any} */ (window),
+    /** @type {any} */
+    L = /** @type {any} */ (globalThis.L || win.L);
 
 /**
  * Helper to find the index in recordMesgs closest to a given lat/lon
@@ -87,14 +86,14 @@ const L = /** @type {any} */ (globalThis.L || win.L);
  * @returns {number} Index of closest record
  */
 function findClosestRecordIndexByLatLon(lat, lon, records) {
-    let minDist = Infinity;
-    let minIdx = -1;
+    let minDist = Infinity,
+        minIdx = -1;
     for (let i = 0; i < records.length; ++i) {
         const r = records[i];
         if (r && typeof r.positionLat === "number" && typeof r.positionLong === "number") {
-            const dLat = r.positionLat - lat;
-            const dLon = r.positionLong - lon;
-            const dist = dLat * dLat + dLon * dLon;
+            const dLat = r.positionLat - lat,
+                dLon = r.positionLong - lon,
+                dist = dLat * dLat + dLon * dLon;
             if (dist < minDist) {
                 minDist = dist;
                 minIdx = i;
@@ -126,7 +125,9 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                     recordMesgs
                 );
                 let endIdx = findClosestRecordIndexByLatLon(lap.endPositionLat, lap.endPositionLong, recordMesgs);
-                if (endIdx === -1) endIdx = recordMesgs.length - 1;
+                if (endIdx === -1) {
+                    endIdx = recordMesgs.length - 1;
+                }
                 lap.start_index = startIdx;
                 lap.end_index = endIdx;
                 console.log(`[patchLapIndices] Lap ${i + 1}: start_index=${startIdx}, end_index=${endIdx}`);
@@ -166,7 +167,9 @@ export function mapDrawLaps(
             map.removeLayer(layer);
         }
     });
-    if (markerClusterGroup) markerClusterGroup.clearLayers();
+    if (markerClusterGroup) {
+        markerClusterGroup.clearLayers();
+    }
 
     // --- If switching main files, ensure overlays are cleared and only the new main file is plotted ---
     if (
@@ -191,8 +194,8 @@ export function mapDrawLaps(
     /** @type {Array<CoordTuple>} */
     let coords = [];
     // Replace window global data access comments
-    const lapMesgs = /** @type {Array<LapMesg>} */ (/** @type {any} */ (win).globalData?.lapMesgs || []);
-    const recordMesgs = /** @type {Array<RecordMesg>} */ (/** @type {any} */ (win).globalData?.recordMesgs || []);
+    const lapMesgs = /** @type {Array<LapMesg>} */ (/** @type {any} */ (win).globalData?.lapMesgs || []),
+        recordMesgs = /** @type {Array<RecordMesg>} */ (/** @type {any} */ (win).globalData?.recordMesgs || []);
 
     patchLapIndices(lapMesgs, recordMesgs);
 
@@ -257,7 +260,9 @@ export function mapDrawLaps(
                         let lapNum = 1;
                         if (getLapNumForIdx) {
                             lapNum = getLapNumForIdx(idx, lapMesgs);
-                            if (!lapNum || isNaN(lapNum)) lapNum = 1;
+                            if (!lapNum || isNaN(lapNum)) {
+                                lapNum = 1;
+                            }
                         }
                         if (idx < 10 || idx > recordMesgs.length - 10) {
                             console.log(
@@ -305,7 +310,9 @@ export function mapDrawLaps(
             ).addTo(map);
 
             // --- Assign main file polyline to win._overlayPolylines[0] ---
-            if (!(/** @type {any} */ (win)._overlayPolylines)) /** @type {any} */ (win)._overlayPolylines = {};
+            if (!(/** @type {any} */ (win)._overlayPolylines)) {
+                /** @type {any} */ win._overlayPolylines = {};
+            }
             /** @type {any} */ (win)._overlayPolylines[0] = polyline;
 
             // --- Store original bounds for main polyline ---
@@ -317,8 +324,8 @@ export function mapDrawLaps(
                 map.fitBounds(/** @type {any} */ (win)._mainPolylineOriginalBounds, { padding: [20, 20] });
             }
 
-            const start = coords[0];
-            const end = coords[coords.length - 1];
+            const start = coords[0],
+                end = coords[coords.length - 1];
             if (startIcon && endIcon && start && end) {
                 L.marker([start[0], start[1]], {
                     title: "Start",
@@ -343,12 +350,16 @@ export function mapDrawLaps(
                 i +=
                     /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                         ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
             ) {
                 const c = coords[i];
-                if (!c) continue;
+                if (!c) {
+                    continue;
+                }
                 let lapDisplay = c[8];
-                if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+                if (!lapDisplay || isNaN(lapDisplay)) {
+                    lapDisplay = 1;
+                }
                 const marker = L.circleMarker([c[0], c[1]], {
                     radius: 4,
                     color: polyColor,
@@ -369,30 +380,32 @@ export function mapDrawLaps(
             /** @type {any} */ (win).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
-            let overlayIdx = 0;
-            /** @type {any} */ let lastOverlayBounds = null;
+            let lastOverlayBounds = null,
+                /** @type {any} */ overlayIdx = 0;
             const loaded = /** @type {any} */ (win).loadedFitFiles;
             for (let i = 1; i < loaded.length; ++i) {
                 const overlay = /** @type {{data?: any, filePath?: string}} */ (loaded[i]);
-                if (!overlay || !overlay.data) continue;
-                const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName =
-                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
-                const bounds = drawOverlayForFitFile({
-                    fitData: {
-                        recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
-                        lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
-                    },
-                    map,
-                    color: color || "#1976d2",
-                    markerClusterGroup,
-                    startIcon,
-                    endIcon,
-                    formatTooltipData,
-                    getLapNumForIdx,
-                    fileName,
-                    overlayIdx: i,
-                });
+                if (!overlay || !overlay.data) {
+                    continue;
+                }
+                const color = colorPalette[overlayIdx % colorPalette.length],
+                    fileName =
+                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
+                    bounds = drawOverlayForFitFile({
+                        fitData: {
+                            recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
+                            lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
+                        },
+                        map,
+                        color: color || "#1976d2",
+                        markerClusterGroup,
+                        startIcon,
+                        endIcon,
+                        formatTooltipData,
+                        getLapNumForIdx,
+                        fileName,
+                        overlayIdx: i,
+                    });
                 if (bounds) {
                     let safeBounds = bounds;
                     if (
@@ -431,7 +444,9 @@ export function mapDrawLaps(
                         let lapNum = 1;
                         if (getLapNumForIdx) {
                             lapNum = getLapNumForIdx(idx, lapMesgs);
-                            if (!lapNum || isNaN(lapNum)) lapNum = 1;
+                            if (!lapNum || isNaN(lapNum)) {
+                                lapNum = 1;
+                            }
                         }
                         if (idx < 10 || idx > recordMesgs.length - 10) {
                             console.log(
@@ -468,17 +483,16 @@ export function mapDrawLaps(
                 const polyColor = getLapColor("all");
                 console.log("[mapDrawLaps] Drawing polyline for all laps, coords.length =", coords.length);
                 const polyline = L.polyline(
-                    coords.map((c) => [c[0], c[1]]),
-                    {
-                        color: polyColor,
-                        weight: 4,
-                        opacity: 0.9,
-                        dashArray: "6, 8",
-                    }
-                ).addTo(map);
-
-                // --- Store original bounds for main polyline ---
-                const origBounds = polyline.getBounds();
+                        coords.map((c) => [c[0], c[1]]),
+                        {
+                            color: polyColor,
+                            weight: 4,
+                            opacity: 0.9,
+                            dashArray: "6, 8",
+                        }
+                    ).addTo(map),
+                    // --- Store original bounds for main polyline ---
+                    origBounds = polyline.getBounds();
                 /** @type {any} */ (win)._mainPolylineOriginalBounds =
                     typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
                 map.invalidateSize();
@@ -486,8 +500,8 @@ export function mapDrawLaps(
                     map.fitBounds(/** @type {any} */ (win)._mainPolylineOriginalBounds, { padding: [20, 20] });
                 }
 
-                const start = coords[0];
-                const end = coords[coords.length - 1];
+                const start = coords[0],
+                    end = coords[coords.length - 1];
                 if (startIcon && endIcon && start && end) {
                     L.marker([start[0], start[1]], {
                         title: "Start",
@@ -512,12 +526,16 @@ export function mapDrawLaps(
                     i +=
                         /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                             ? 1
-                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
+                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
                 ) {
                     const c = coords[i];
-                    if (!c) continue;
+                    if (!c) {
+                        continue;
+                    }
                     let lapDisplay = c[8];
-                    if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+                    if (!lapDisplay || isNaN(lapDisplay)) {
+                        lapDisplay = 1;
+                    }
                     const marker = L.circleMarker([c[0], c[1]], {
                         radius: 4,
                         color: polyColor,
@@ -538,30 +556,32 @@ export function mapDrawLaps(
                 /** @type {any} */ (win).loadedFitFiles.length > 1
             ) {
                 const colorPalette = chartOverlayColorPalette;
-                let overlayIdx = 0;
-                /** @type {any} */ let lastOverlayBounds = null;
+                let lastOverlayBounds = null,
+                    /** @type {any} */ overlayIdx = 0;
                 const loaded = /** @type {any} */ (win).loadedFitFiles;
                 for (let i = 1; i < loaded.length; ++i) {
                     const overlay = /** @type {{data?: any, filePath?: string}} */ (loaded[i]);
-                    if (!overlay || !overlay.data) continue;
-                    const color = colorPalette[overlayIdx % colorPalette.length];
-                    const fileName =
-                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
-                    const bounds = drawOverlayForFitFile({
-                        fitData: {
-                            recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
-                            lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
-                        },
-                        map,
-                        color: color || "#1976d2",
-                        markerClusterGroup,
-                        startIcon,
-                        endIcon,
-                        formatTooltipData,
-                        getLapNumForIdx,
-                        fileName,
-                        overlayIdx: i,
-                    });
+                    if (!overlay || !overlay.data) {
+                        continue;
+                    }
+                    const color = colorPalette[overlayIdx % colorPalette.length],
+                        fileName =
+                            typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
+                        bounds = drawOverlayForFitFile({
+                            fitData: {
+                                recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
+                                lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
+                            },
+                            map,
+                            color: color || "#1976d2",
+                            markerClusterGroup,
+                            startIcon,
+                            endIcon,
+                            formatTooltipData,
+                            getLapNumForIdx,
+                            fileName,
+                            overlayIdx: i,
+                        });
                     if (bounds) {
                         let safeBounds = bounds;
                         if (
@@ -587,7 +607,9 @@ export function mapDrawLaps(
         let bounds = null;
         const showIcons = lapIdx.length === 1 || (lapIdx.length === 1 && lapIdx[0] === "all");
         lapIdx.forEach((lapVal) => {
-            if (lapVal === "all") return;
+            if (lapVal === "all") {
+                return;
+            }
             const lap = lapMesgs[Number(lapVal)];
             if (
                 lap &&
@@ -607,44 +629,47 @@ export function mapDrawLaps(
                     endIdx = recordMesgs.length - 1;
                 }
                 if (startIdx !== -1 && endIdx !== -1 && startIdx <= endIdx) {
-                    const lapRecords = recordMesgs.slice(startIdx, endIdx + 1);
-                    const lapCoords = lapRecords
-                        .map((row, idx) => {
-                            if (typeof row.positionLat === "number" && typeof row.positionLong === "number") {
-                                /** @type {CoordTuple} */
-                                const coordTuple = [
-                                    Number((row.positionLat / 2 ** 31) * 180),
-                                    Number((row.positionLong / 2 ** 31) * 180),
-                                    row.timestamp || null,
-                                    row.altitude || null,
-                                    row.heartRate || null,
-                                    row.speed || null,
-                                    startIdx + idx,
-                                    row,
-                                    Number(lapVal) + 1,
-                                ];
-                                return coordTuple;
-                            }
-                            return null;
-                        })
-                        .filter((coord) => coord !== null);
+                    const lapRecords = recordMesgs.slice(startIdx, endIdx + 1),
+                        lapCoords = lapRecords
+                            .map((row, idx) => {
+                                if (typeof row.positionLat === "number" && typeof row.positionLong === "number") {
+                                    /** @type {CoordTuple} */
+                                    const coordTuple = [
+                                        Number((row.positionLat / 2 ** 31) * 180),
+                                        Number((row.positionLong / 2 ** 31) * 180),
+                                        row.timestamp || null,
+                                        row.altitude || null,
+                                        row.heartRate || null,
+                                        row.speed || null,
+                                        startIdx + idx,
+                                        row,
+                                        Number(lapVal) + 1,
+                                    ];
+                                    return coordTuple;
+                                }
+                                return null;
+                            })
+                            .filter((coord) => coord !== null);
 
                     if (lapCoords.length > 0) {
-                        const polyColor = getLapColor(Number(lapVal));
-                        const polyline = L.polyline(
-                            lapCoords.map((c) => [c[0], c[1]]),
-                            {
-                                color: polyColor,
-                                weight: 4,
-                                opacity: 0.9,
-                                dashArray: null,
-                            }
-                        ).addTo(map);
-                        if (!bounds) bounds = polyline.getBounds();
-                        else bounds.extend(polyline.getBounds());
+                        const polyColor = getLapColor(Number(lapVal)),
+                            polyline = L.polyline(
+                                lapCoords.map((c) => [c[0], c[1]]),
+                                {
+                                    color: polyColor,
+                                    weight: 4,
+                                    opacity: 0.9,
+                                    dashArray: null,
+                                }
+                            ).addTo(map);
+                        if (!bounds) {
+                            bounds = polyline.getBounds();
+                        } else {
+                            bounds.extend(polyline.getBounds());
+                        }
 
-                        const start = lapCoords[0];
-                        const end = lapCoords[lapCoords.length - 1];
+                        const start = lapCoords[0],
+                            end = lapCoords[lapCoords.length - 1];
                         if (showIcons && start && end) {
                             L.marker([start[0], start[1]], { title: "Start", icon: startIcon, zIndexOffset: 2000 })
                                 .addTo(map)
@@ -659,13 +684,17 @@ export function mapDrawLaps(
                                 ? 1
                                 : Math.max(
                                       1,
-                                      Math.floor(lapCoords.length / /** @type {any} */ ((win).mapMarkerCount || 1))
+                                      Math.floor(lapCoords.length / /** @type {any} */ (win.mapMarkerCount || 1))
                                   );
                         for (let j = 0; j < lapCoords.length; j += stepLap) {
                             const c = lapCoords[j];
-                            if (!c) continue;
+                            if (!c) {
+                                continue;
+                            }
                             let lapDisplay = c[8];
-                            if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+                            if (!lapDisplay || isNaN(lapDisplay)) {
+                                lapDisplay = 1;
+                            }
                             const marker = L.circleMarker([c[0], c[1]], {
                                 radius: 4,
                                 color: polyColor,
@@ -685,7 +714,9 @@ export function mapDrawLaps(
             }
         });
 
-        if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
+        if (bounds) {
+            map.fitBounds(bounds, { padding: [20, 20] });
+        }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
@@ -694,30 +725,32 @@ export function mapDrawLaps(
             /** @type {any} */ (win).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
-            let overlayIdx = 0;
-            /** @type {any} */
-            let lastOverlayBounds = null;
+            let lastOverlayBounds = null,
+                /** @type {any} */
+                overlayIdx = 0;
             for (let i = 1; i < /** @type {any} */ (win).loadedFitFiles.length; ++i) {
                 const overlay = /** @type {any} */ (win).loadedFitFiles[i];
-                if (!overlay || !overlay.data) continue;
-                const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName =
-                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
-                const bounds = drawOverlayForFitFile({
-                    fitData: {
-                        recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
-                        lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
-                    },
-                    map,
-                    color: color || "#1976d2",
-                    markerClusterGroup,
-                    startIcon,
-                    endIcon,
-                    formatTooltipData,
-                    getLapNumForIdx,
-                    fileName,
-                    overlayIdx: i,
-                });
+                if (!overlay || !overlay.data) {
+                    continue;
+                }
+                const color = colorPalette[overlayIdx % colorPalette.length],
+                    fileName =
+                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
+                    bounds = drawOverlayForFitFile({
+                        fitData: {
+                            recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
+                            lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
+                        },
+                        map,
+                        color: color || "#1976d2",
+                        markerClusterGroup,
+                        startIcon,
+                        endIcon,
+                        formatTooltipData,
+                        getLapNumForIdx,
+                        fileName,
+                        overlayIdx: i,
+                    });
                 if (bounds) {
                     // Defensive: ensure bounds is a valid LatLngBounds object
                     let safeBounds = bounds;
@@ -812,19 +845,18 @@ export function mapDrawLaps(
     }
 
     if (coords.length > 0) {
-        const polyColor = getLapColor(lapIdx);
-        const polyline = L.polyline(
-            coords.map((c) => [c[0], c[1]]),
-            {
-                color: polyColor,
-                weight: 4,
-                opacity: 0.9,
-                dashArray: lapIdx === "all" ? "6, 8" : null,
-            }
-        ).addTo(map);
-
-        // --- Store original bounds for main polyline ---
-        const origBounds = polyline.getBounds();
+        const polyColor = getLapColor(lapIdx),
+            polyline = L.polyline(
+                coords.map((c) => [c[0], c[1]]),
+                {
+                    color: polyColor,
+                    weight: 4,
+                    opacity: 0.9,
+                    dashArray: lapIdx === "all" ? "6, 8" : null,
+                }
+            ).addTo(map),
+            // --- Store original bounds for main polyline ---
+            origBounds = polyline.getBounds();
         /** @type {any} */ (win)._mainPolylineOriginalBounds =
             typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
 
@@ -834,8 +866,8 @@ export function mapDrawLaps(
             map.fitBounds(/** @type {any} */ (win)._mainPolylineOriginalBounds, { padding: [20, 20] });
         }
 
-        const start = coords[0];
-        const end = coords[coords.length - 1];
+        const start = coords[0],
+            end = coords[coords.length - 1];
         if (start && end) {
             L.marker([start[0], start[1]], { title: "Start", icon: startIcon, zIndexOffset: 2000 })
                 .addTo(map)
@@ -850,12 +882,16 @@ export function mapDrawLaps(
             i +=
                 /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                     ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)))
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
         ) {
             const c = coords[i];
-            if (!c) continue;
+            if (!c) {
+                continue;
+            }
             let lapDisplay = c[8];
-            if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+            if (!lapDisplay || isNaN(lapDisplay)) {
+                lapDisplay = 1;
+            }
             const marker = L.circleMarker([c[0], c[1]], {
                 radius: 4,
                 color: polyColor,
@@ -875,30 +911,32 @@ export function mapDrawLaps(
             /** @type {any} */ (win).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
-            let overlayIdx = 0;
-            /** @type {any} */
-            let lastOverlayBounds = null;
+            let lastOverlayBounds = null,
+                /** @type {any} */
+                overlayIdx = 0;
             for (let i = 1; i < /** @type {any} */ (win).loadedFitFiles.length; ++i) {
                 const overlay = /** @type {any} */ (win).loadedFitFiles[i];
-                if (!overlay || !overlay.data) continue;
-                const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName =
-                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
-                const bounds = drawOverlayForFitFile({
-                    fitData: {
-                        recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
-                        lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
-                    },
-                    map,
-                    color: color || "#1976d2",
-                    markerClusterGroup,
-                    startIcon,
-                    endIcon,
-                    formatTooltipData,
-                    getLapNumForIdx,
-                    fileName,
-                    overlayIdx: i,
-                });
+                if (!overlay || !overlay.data) {
+                    continue;
+                }
+                const color = colorPalette[overlayIdx % colorPalette.length],
+                    fileName =
+                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
+                    bounds = drawOverlayForFitFile({
+                        fitData: {
+                            recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
+                            lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
+                        },
+                        map,
+                        color: color || "#1976d2",
+                        markerClusterGroup,
+                        startIcon,
+                        endIcon,
+                        formatTooltipData,
+                        getLapNumForIdx,
+                        fileName,
+                        overlayIdx: i,
+                    });
                 if (bounds) {
                     // Defensive: ensure bounds is a valid LatLngBounds object
                     let safeBounds = bounds;
@@ -936,8 +974,8 @@ export function drawOverlayForFitFile({
     overlayIdx,
 }) {
     // Strengthen typing of fitData
-    const recordMesgs = /** @type {Array<RecordMesg>} */ (fitData.recordMesgs || []);
-    const lapMesgs = /** @type {Array<LapMesg>} */ (fitData.lapMesgs || []);
+    const recordMesgs = /** @type {Array<RecordMesg>} */ (fitData.recordMesgs || []),
+        lapMesgs = /** @type {Array<LapMesg>} */ (fitData.lapMesgs || []);
 
     // Patch lap indices for overlays as well
     patchLapIndices(lapMesgs, recordMesgs);
@@ -970,41 +1008,41 @@ export function drawOverlayForFitFile({
 
     if (coords.length > 0) {
         const isHighlighted =
-            typeof overlayIdx === "number" && /** @type {any} */ (win)._highlightedOverlayIdx === overlayIdx;
-
-        const paletteColor =
-            Array.isArray(chartOverlayColorPalette) &&
-            chartOverlayColorPalette.length > 0 &&
-            typeof overlayIdx === "number"
-                ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
-                : "#1976d2"; // Default fallback color
-
-        const polyline = L.polyline(
-            coords.map((c) => [c[0], c[1]]),
-            {
-                color: paletteColor,
-                weight: isHighlighted ? 10 : 4,
-                opacity: 0.95,
-                dashArray: null,
-                className: isHighlighted ? "overlay-highlight-glow" : "",
-            }
-        ).addTo(map);
+                typeof overlayIdx === "number" && /** @type {any} */ (win)._highlightedOverlayIdx === overlayIdx,
+            paletteColor =
+                Array.isArray(chartOverlayColorPalette) &&
+                chartOverlayColorPalette.length > 0 &&
+                typeof overlayIdx === "number"
+                    ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
+                    : "#1976d2", // Default fallback color
+            polyline = L.polyline(
+                coords.map((c) => [c[0], c[1]]),
+                {
+                    color: paletteColor,
+                    weight: isHighlighted ? 10 : 4,
+                    opacity: 0.95,
+                    dashArray: null,
+                    className: isHighlighted ? "overlay-highlight-glow" : "",
+                }
+            ).addTo(map);
 
         // Track overlay polylines for highlight updates
         if (typeof overlayIdx === "number") {
-            if (!(/** @type {any} */ (win)._overlayPolylines)) /** @type {any} */ (win)._overlayPolylines = {};
+            if (!(/** @type {any} */ (win)._overlayPolylines)) {
+                /** @type {any} */ win._overlayPolylines = {};
+            }
             /** @type {any} */ (win)._overlayPolylines[overlayIdx] = polyline;
         }
 
         if (isHighlighted) {
             const polyElem = polyline.getElement && polyline.getElement();
             if (polyElem) {
-                polyElem.style.filter = "drop-shadow(0 0 8px " + (paletteColor || "#1976d2") + ")";
+                polyElem.style.filter = `drop-shadow(0 0 8px ${paletteColor || "#1976d2"})`;
             }
         }
 
-        const start = coords[0];
-        const end = coords[coords.length - 1];
+        const start = coords[0],
+            end = coords[coords.length - 1];
 
         // --- Ensure start/end markers are always above polylines ---
         if (startIcon && endIcon && start && end) {
@@ -1018,10 +1056,12 @@ export function drawOverlayForFitFile({
         const stepOverlay =
             /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
                 ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ ((win).mapMarkerCount || 1)));
+                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)));
         for (let i = 0; i < coords.length; i += stepOverlay) {
             const c = coords[i];
-            if (!c) continue;
+            if (!c) {
+                continue;
+            }
             const marker = L.circleMarker([c[0], c[1]], {
                 radius: 4,
                 color: paletteColor || "#1976d2",
@@ -1045,7 +1085,7 @@ export function drawOverlayForFitFile({
 
             let tooltip = formatTooltipData ? formatTooltipData(c[6], c[7], lapDisplay, recordMesgs) : "";
             if (fileName) {
-                tooltip = `<b>${fileName}</b><br>` + tooltip;
+                tooltip = `<b>${fileName}</b><br>${tooltip}`;
             }
             marker.bindTooltip(tooltip, {
                 direction: "top",
@@ -1062,7 +1102,9 @@ export function drawOverlayForFitFile({
 
 // Add global function to update overlay highlights without redrawing the map
 /** @type {any} */ (win).updateOverlayHighlights = function () {
-    if (!(/** @type {any} */ (win)._overlayPolylines)) return;
+    if (!(/** @type {any} */ (win)._overlayPolylines)) {
+        return;
+    }
     Object.entries(/** @type {any} */ (win)._overlayPolylines).forEach(([idx, polyline]) => {
         const isHighlighted = Number(idx) === /** @type {any} */ (win)._highlightedOverlayIdx;
         polyline.setStyle({
@@ -1072,9 +1114,7 @@ export function drawOverlayForFitFile({
         });
         const polyElem = polyline.getElement && polyline.getElement();
         if (polyElem) {
-            polyElem.style.filter = isHighlighted
-                ? "drop-shadow(0 0 8px " + (polyline.options.color || "#1976d2") + ")"
-                : "";
+            polyElem.style.filter = isHighlighted ? `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})` : "";
         }
     });
 };

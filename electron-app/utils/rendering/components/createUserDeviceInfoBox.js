@@ -97,16 +97,15 @@ import { formatCapitalize } from "../../formatting/display/formatCapitalize.js";
 export function createUserDeviceInfoBox(container) {
     try {
         /** @type {UserProfileData} */
-        const userProfile = /** @type {any} */ (window).globalData?.userProfileMesgs?.[0] || {};
-        /** @type {DeviceInfo[]} */
-        const deviceInfos = /** @type {any} */ (window).globalData?.deviceInfoMesgs || [];
-
-        // Get theme configuration using the established theme system
-        /** @type {ThemeConfig} */
-        const themeConfig = /** @type {ThemeConfig} */ (getThemeConfig());
-        /** @type {ThemeColors} */
-        const colors = themeConfig.colors; // Create info box container with theme-aware styling and hover effects
-        const infoBox = document.createElement("div");
+        const userProfile = /** @type {any} */ (window).globalData?.userProfileMesgs?.[0] || {},
+            /** @type {DeviceInfo[]} */
+            deviceInfos = /** @type {any} */ (window).globalData?.deviceInfoMesgs || [],
+            // Get theme configuration using the established theme system
+            /** @type {ThemeConfig} */
+            themeConfig = /** @type {ThemeConfig} */ (getThemeConfig()),
+            /** @type {ThemeColors} */
+            { colors } = themeConfig, // Create info box container with theme-aware styling and hover effects
+            infoBox = document.createElement("div");
         infoBox.className = "user-device-info-box chart-info-section";
         infoBox.style.cssText = `
             border: 2px solid ${colors.border};
@@ -255,10 +254,10 @@ export function createUserDeviceInfoBox(container) {
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0];
-        const sensors = deviceInfos.filter(
-            (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
-        );
+                deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+            sensors = deviceInfos.filter(
+                (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
+            );
         let deviceHtml = `
             <h3 style="margin: 0 0 20px 0; color: ${colors.text}; font-size: 18px; font-weight: 700; border-bottom: 3px solid ${colors.primary}; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, ${colors.primary}, ${colors.accent}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                 <span style="font-size: 20px; filter: drop-shadow(0 2px 4px ${colors.shadowLight});"></span> Device Information

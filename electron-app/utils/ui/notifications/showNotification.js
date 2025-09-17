@@ -36,8 +36,8 @@
 
 // Notification queue for managing multiple notifications
 /** @type {QueuedNotification[]} */
-let notificationQueue = [];
-let isShowingNotification = false;
+let notificationQueue = [],
+    isShowingNotification = false;
 
 // Notification type configurations with icons and default durations
 /**
@@ -83,21 +83,20 @@ export async function showNotification(message, type = "info", duration, options
     }
 
     /** @type {NotificationTypeConfig} */
-    const config = NOTIFICATION_TYPES[type];
-    const finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration;
-
-    // Create notification object
-    /** @type {QueuedNotification} */
-    const notification = {
-        message,
-        type,
-        duration: finalDuration,
-        icon: options.icon ?? config.icon,
-        ariaLabel: config.ariaLabel,
-        onClick: options.onClick,
-        actions: options.actions || [],
-        timestamp: Date.now(),
-    };
+    const config = NOTIFICATION_TYPES[type],
+        finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration,
+        // Create notification object
+        /** @type {QueuedNotification} */
+        notification = {
+            message,
+            type,
+            duration: finalDuration,
+            icon: options.icon ?? config.icon,
+            ariaLabel: config.ariaLabel,
+            onClick: options.onClick,
+            actions: options.actions || [],
+            timestamp: Date.now(),
+        };
 
     // Add to queue
     notificationQueue.push(notification);
@@ -183,7 +182,7 @@ async function displayNotification(notification) {
         // Cast via unknown to satisfy differing Node vs browser timer return types
         notificationElement.hideTimeout = /** @type {number} */ (
             /** @type {unknown} */ (
-                setTimeout(function () {
+                setTimeout(() => {
                     hideNotification(notificationElement);
                 }, notification.duration)
             )
@@ -252,7 +251,9 @@ async function buildNotificationContent(element, notification) {
             button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
             button.onclick = (e) => {
                 e.stopPropagation();
-                if (action.onClick) action.onClick();
+                if (action.onClick) {
+                    action.onClick();
+                }
                 hideNotification(element);
             };
             actionsContainer.appendChild(button);
@@ -315,7 +316,7 @@ function hideNotification(element) {
     element.classList.remove("show");
 
     // Hide element after animation completes
-    setTimeout(function () {
+    setTimeout(() => {
         element.style.display = "none";
         element.onclick = null;
         element.style.cursor = "default";

@@ -3,7 +3,7 @@
  * Higher-level actions that encapsulate common state changes
  */
 
-import { setState, getState, updateState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
@@ -443,12 +443,11 @@ stateMiddleware.use((path, value, oldValue) => {
  * @returns {[T, (newValue: T) => void]}
  */
 export function useState(path, defaultValue = undefined) {
-    const currentValue = getState(path) ?? defaultValue;
-
-    /** @type {(newValue: any) => void} */
-    const setter = (newValue) => {
-        setState(path, newValue, { source: "useState" });
-    };
+    const currentValue = getState(path) ?? defaultValue,
+        /** @type {(newValue: any) => void} */
+        setter = (newValue) => {
+            setState(path, newValue, { source: "useState" });
+        };
 
     return /** @type {[any, (newValue: any) => void]} */ ([currentValue, setter]);
 }
@@ -468,23 +467,22 @@ export function useState(path, defaultValue = undefined) {
  */
 export function useComputed(computeFn, dependencies = []) {
     /** @type {T} */
-    let cachedValue;
-    let isValid = false;
+    let cachedValue,
+        isValid = false;
 
     // Subscribe to dependency changes
     const unsubscribers = dependencies.map((dep) =>
-        subscribe(dep, () => {
-            isValid = false;
-        })
-    );
-
-    const getComputedValue = () => {
-        if (!isValid) {
-            cachedValue = computeFn();
-            isValid = true;
-        }
-        return cachedValue;
-    };
+            subscribe(dep, () => {
+                isValid = false;
+            })
+        ),
+        getComputedValue = () => {
+            if (!isValid) {
+                cachedValue = computeFn();
+                isValid = true;
+            }
+            return cachedValue;
+        };
 
     // Cleanup function
     getComputedValue.cleanup = () => {

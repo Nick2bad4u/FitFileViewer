@@ -3,7 +3,102 @@
  * Now integrated with centralized state management for reactive updates.
  */
 
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+// Prefer dynamic state manager accessor to avoid stale imports across suites
+import * as __StateMgr from "../../state/core/stateManager.js";
+
+// Resolve document by preferring the canonical test-provided document
+// (`__vitest_effective_document__`) first, then falling back to the
+// active global/window document. This aligns modules with the test
+// file's jsdom instance reliably in full-suite runs.
+/**
+ * @returns {Document}
+ */
+const getDoc = () => {
+    /** @type {any} */
+    let d;
+    // Prefer the current test's document first
+    try {
+        // @ts-ignore
+        if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+            // @ts-ignore
+            d = /** @type {any} */ (document);
+        }
+    } catch {}
+    try {
+        if (!d && typeof window !== "undefined" && window.document) d = /** @type {any} */ (window.document);
+    } catch {}
+    try {
+        // Then prefer the current global document
+        if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+            d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
+        }
+    } catch {}
+    // Fallback: canonical test document
+    try {
+        // @ts-ignore
+        if (!d && typeof __vitest_effective_document__ !== "undefined" && __vitest_effective_document__) {
+            // @ts-ignore
+            d = /** @type {any} */ (__vitest_effective_document__);
+        }
+    } catch {}
+    if (!d) {
+        // @ts-ignore JSDOM provides document
+        d = /** @type {any} */ (document);
+    }
+    try {
+        if (!(d && typeof d.getElementById === "function" && typeof d.querySelectorAll === "function")) {
+            // Prefer current doc/window, then global, then canonical
+            // @ts-ignore
+            if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
+                // @ts-ignore
+                d = /** @type {any} */ (document);
+            } else if (typeof window !== "undefined" && window.document) {
+                d = /** @type {any} */ (window.document);
+            } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
+                d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
+            } else if (
+                typeof __vitest_effective_document__ !== "undefined" &&
+                /** @type {any} */ (/** @type {any} */ (__vitest_effective_document__))
+            ) {
+                // @ts-ignore
+                d = /** @type {any} */ (__vitest_effective_document__);
+            }
+        }
+    } catch {}
+    return /** @type {Document} */ (d);
+};
+
+// Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
+// and only fall back to a canonical global mock if module functions are unavailable.
+/** @returns {{ getState: any, setState: any, subscribe: any }} */
+const getStateMgr = () => {
+    try {
+        const sm = /** @type {any} */ (__StateMgr);
+        const getState = sm && typeof sm.getState === "function" ? sm.getState : undefined;
+        const setState = sm && typeof sm.setState === "function" ? sm.setState : undefined;
+        const subscribe = sm && typeof sm.subscribe === "function" ? sm.subscribe : undefined;
+        if (getState && setState && subscribe) {
+            return { getState, setState, subscribe };
+        }
+    } catch {}
+    try {
+        // @ts-ignore
+        const eff =
+            typeof __vitest_effective_stateManager__ !== "undefined" &&
+            /** @type {any} */ (__vitest_effective_stateManager__);
+        if (eff && typeof eff === "object") {
+            const getState = typeof eff.getState === "function" ? eff.getState : __StateMgr.getState;
+            const setState = typeof eff.setState === "function" ? eff.setState : __StateMgr.setState;
+            const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
+            return { getState, setState, subscribe };
+        }
+    } catch {}
+    return {
+        getState: /** @type {any} */ (__StateMgr.getState),
+        setState: /** @type {any} */ (__StateMgr.setState),
+        subscribe: /** @type {any} */ (__StateMgr.subscribe),
+    };
+};
 
 /**
  * Toggles the visibility of tab content sections by setting the display style.
@@ -15,19 +110,18 @@ import { setState, getState, subscribe } from "../../state/core/stateManager.js"
  */
 export function updateTabVisibility(visibleTabId) {
     const tabContentIds = [
-        "content-data",
-        "content-chartjs",
-        "content-map",
-        "content-summary",
-        "content-altfit",
-        "content-zwift",
-    ];
-
-    // Cache DOM elements in a map for better performance
-    const elementMap = {};
+            "content-data",
+            "content-chartjs",
+            "content-map",
+            "content-summary",
+            "content-altfit",
+            "content-zwift",
+        ],
+        // Cache DOM elements in a map for better performance
+        elementMap = {};
     for (let i = 0; i < tabContentIds.length; i++) {
-        const id = tabContentIds[i];
-        const el = document.getElementById(/** @type {string} */ (id));
+        const id = tabContentIds[i],
+            el = getDoc().getElementById(/** @type {string} */ (id));
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
@@ -38,8 +132,8 @@ export function updateTabVisibility(visibleTabId) {
     }
 
     // Define constants for display styles
-    const DISPLAY_BLOCK = "block";
-    const DISPLAY_NONE = "none";
+    const DISPLAY_BLOCK = "block",
+        DISPLAY_NONE = "none";
 
     // Toggle visibility using the cached elements
     Object.entries(elementMap).forEach(([id, el]) => {
@@ -52,7 +146,7 @@ export function updateTabVisibility(visibleTabId) {
     if (visibleTabId) {
         const tabName = extractTabNameFromContentId(visibleTabId);
         if (tabName) {
-            setState("ui.activeTabContent", tabName, { source: "updateTabVisibility" });
+            getStateMgr().setState("ui.activeTabContent", tabName, { source: "updateTabVisibility" });
         }
     }
 }
@@ -63,9 +157,18 @@ export function updateTabVisibility(visibleTabId) {
  * @returns {string|null} Tab name or null if not found
  */
 function extractTabNameFromContentId(contentId) {
+    // CRITICAL BUG FIX: Type validation for contentId
+    if (!contentId || typeof contentId !== "string") {
+        console.warn(
+            "extractTabNameFromContentId: Invalid contentId provided. Expected a non-empty string. Received:",
+            contentId
+        );
+        return null;
+    }
+
     const patterns = [
-        /^content-(.+)$/, // content-summary -> summary
-        /^(.+)-content$/, // summary-content -> summary
+        /^content-(.+)$/, // Content-summary -> summary
+        /^(.+)-content$/, // Summary-content -> summary
     ];
 
     for (const pattern of patterns) {
@@ -102,7 +205,7 @@ function getContentIdFromTabName(tabName) {
  */
 export function initializeTabVisibilityState() {
     // Subscribe to active tab changes to update content visibility
-    subscribe(
+    getStateMgr().subscribe(
         "ui.activeTab",
         /** @param {any} activeTab */ (activeTab) => {
             const contentId = getContentIdFromTabName(activeTab);
@@ -111,15 +214,15 @@ export function initializeTabVisibilityState() {
     );
 
     // Subscribe to data loading to show/hide appropriate content
-    subscribe(
+    getStateMgr().subscribe(
         "globalData",
         /** @param {any} data */ (data) => {
-            const hasData = data !== null && data !== undefined;
-            const currentTab = getState("ui.activeTab") || "summary";
+            const hasData = data !== null && data !== undefined,
+                currentTab = getStateMgr().getState("ui.activeTab") || "summary";
 
             if (!hasData && currentTab !== "summary") {
                 // If no data, switch to summary tab
-                setState("ui.activeTab", "summary", { source: "initializeTabVisibilityState" });
+                getStateMgr().setState("ui.activeTab", "summary", { source: "initializeTabVisibilityState" });
             }
         }
     );
@@ -148,5 +251,5 @@ export function hideAllTabContent() {
  * @returns {string|null} Currently visible tab name or null
  */
 export function getVisibleTabContent() {
-    return getState("ui.activeTabContent") || null;
+    return getStateMgr().getState("ui.activeTabContent") || null;
 }

@@ -1,20 +1,20 @@
-import { setState, getState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 /**
  * Synchronizes the controls state with DOM - useful for fixing state inconsistencies
  */
 export function updateControlsState() {
-    const wrapper = document.getElementById("chartjs-settings-wrapper");
-    const toggleBtn = document.getElementById("chart-controls-toggle");
+    const wrapper = document.getElementById("chartjs-settings-wrapper"),
+        toggleBtn = document.getElementById("chart-controls-toggle");
 
     if (!wrapper || !toggleBtn) {
         return;
     }
 
     // Get the actual visibility from the DOM
-    const computedStyle = window.getComputedStyle(wrapper);
-    const isActuallyVisible =
-        wrapper.style.display !== "none" && computedStyle.display !== "none" && wrapper.offsetParent !== null;
+    const computedStyle = window.getComputedStyle(wrapper),
+        isActuallyVisible =
+            wrapper.style.display !== "none" && computedStyle.display !== "none" && wrapper.offsetParent !== null;
 
     // Update centralized state to match DOM reality
     setState("charts.controlsVisible", isActuallyVisible, {
@@ -38,8 +38,8 @@ export function updateControlsState() {
 export function initializeControlsState() {
     // Subscribe to state changes to keep DOM in sync
     subscribe("charts.controlsVisible", (/** @type {boolean} */ isVisible) => {
-        const wrapper = document.getElementById("chartjs-settings-wrapper");
-        const toggleBtn = document.getElementById("chart-controls-toggle");
+        const wrapper = document.getElementById("chartjs-settings-wrapper"),
+            toggleBtn = document.getElementById("chart-controls-toggle");
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = isVisible ? "block" : "none";

@@ -23,10 +23,9 @@ export function getManufacturerName(manufacturerId) {
  * @returns {string} Product name or original product ID if not found
  */
 export function getProductName(manufacturerId, productId) {
-    const mfgId = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId;
-    const prodId = typeof productId === "string" ? parseInt(productId, 10) : productId;
-
-    const manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
+    const mfgId = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId,
+        prodId = typeof productId === "string" ? parseInt(productId, 10) : productId,
+        manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
     if (manufacturerProducts && manufacturerProducts[prodId]) {
         return manufacturerProducts[prodId];
     }
@@ -41,8 +40,8 @@ export function getProductName(manufacturerId, productId) {
  * @returns {Object} Object with manufacturerName and productName
  */
 export function getManufacturerAndProduct(manufacturerId, productId = /** @type {string|number|null} */ (null)) {
-    const manufacturerName = getManufacturerName(manufacturerId);
-    const productName = productId !== null ? getProductName(manufacturerId, productId) : null;
+    const manufacturerName = getManufacturerName(manufacturerId),
+        productName = productId !== null ? getProductName(manufacturerId, productId) : null;
 
     return {
         manufacturerName,
@@ -61,16 +60,15 @@ export function getManufacturerIdFromName(manufacturerName) {
     }
 
     // Normalize the manufacturer name for comparison
-    const normalizedInput = manufacturerName.toLowerCase();
-
-    // Create common variations to check
-    const variations = [
-        normalizedInput,
-        normalizedInput.replace(/([A-Z])/g, "_$1").toLowerCase(), // camelCase to snake_case
-        normalizedInput.replace(/_/g, ""), // remove underscores
-        normalizedInput.replace(/electronics/g, "_electronics"), // add underscore before electronics
-        normalizedInput.replace(/electronics/g, "electronics"), // ensure electronics is present
-    ];
+    const normalizedInput = manufacturerName.toLowerCase(),
+        // Create common variations to check
+        variations = [
+            normalizedInput,
+            normalizedInput.replace(/([A-Z])/g, "_$1").toLowerCase(), // CamelCase to snake_case
+            normalizedInput.replace(/_/g, ""), // Remove underscores
+            normalizedInput.replace(/electronics/g, "_electronics"), // Add underscore before electronics
+            normalizedInput.replace(/electronics/g, "electronics"), // Ensure electronics is present
+        ];
 
     // Search through all manufacturer IDs to find a match
     for (const [id, name] of Object.entries(dataAntManufacturerIDs)) {
@@ -84,8 +82,8 @@ export function getManufacturerIdFromName(manufacturerName) {
         // Also check common variations of the stored name
         const nameVariations = [
             normalizedName,
-            normalizedName.replace(/_/g, ""), // remove underscores from stored name
-            normalizedName.replace(/_electronics/, "electronics"), // remove underscore before electronics
+            normalizedName.replace(/_/g, ""), // Remove underscores from stored name
+            normalizedName.replace(/_electronics/, "electronics"), // Remove underscore before electronics
         ];
 
         if (nameVariations.includes(normalizedInput)) {

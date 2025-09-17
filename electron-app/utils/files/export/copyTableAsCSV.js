@@ -48,12 +48,11 @@ export async function copyTableAsCSV(table) {
 
     try {
         // Serialize table data with object handling
-        const processedRows = processTableRows(table.objects());
-
-        // Convert to CSV format
-        const aq = /** @type {any} */ (window).aq;
-        const flattenedTable = aq.from(processedRows);
-        const csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });
+        const processedRows = processTableRows(table.objects()),
+            // Convert to CSV format
+            aq = /** @type {any} */ (window).aq,
+            flattenedTable = aq.from(processedRows),
+            csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });
 
         // Attempt clipboard copy
         await copyToClipboard(csvString);

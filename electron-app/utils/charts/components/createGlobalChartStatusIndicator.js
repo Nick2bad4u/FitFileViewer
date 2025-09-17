@@ -63,9 +63,9 @@ const CONSTANTS = {
  * @param {Record<string, any>} [context]
  */
 function logWithContext(level, message, context) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
-    const hasContext = context && Object.keys(context).length > 0;
+    const timestamp = new Date().toISOString(),
+        logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`,
+        hasContext = context && Object.keys(context).length > 0;
     switch (level) {
         case "info":
             hasContext ? console.info(logMessage, context) : console.info(logMessage);
@@ -101,9 +101,9 @@ function getElementSafely(id, description) {
  * @returns {ChartStatus}
  */
 function calculateChartStatus(counts) {
-    const isAllVisible = counts.visible === counts.available;
-    const hasHiddenCharts = counts.available > counts.visible;
-    const hasNoCharts = counts.available === 0;
+    const isAllVisible = counts.visible === counts.available,
+        hasHiddenCharts = counts.available > counts.visible,
+        hasNoCharts = counts.available === 0;
 
     return {
         isAllVisible,
@@ -176,8 +176,8 @@ function createStatusText(status) {
  */
 function handleSettingsToggle() {
     try {
-        const wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper");
-        const toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button");
+        const wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper"),
+            toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button");
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = "block";
@@ -338,9 +338,9 @@ export function createGlobalChartStatusIndicator() {
 
         // Get chart counts and calculate status
         /** @type {ChartCounts} */
-        const counts = getChartCounts();
-        /** @type {ChartStatus} */
-        const status = calculateChartStatus(counts);
+        const counts = getChartCounts(),
+            /** @type {ChartStatus} */
+            status = calculateChartStatus(counts);
 
         logWithContext("info", "Chart status calculated", { status });
 
@@ -361,9 +361,9 @@ export function createGlobalChartStatusIndicator() {
         `;
 
         // Create and add status components
-        const statusIcon = createStatusIcon(status);
-        const statusText = createStatusText(status);
-        const quickAction = createQuickActionButton(status);
+        const statusIcon = createStatusIcon(status),
+            statusText = createStatusText(status),
+            quickAction = createQuickActionButton(status);
 
         // Assemble the indicator
         statusInfo.appendChild(statusIcon);

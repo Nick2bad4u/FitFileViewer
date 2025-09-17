@@ -16,7 +16,9 @@
  */
 
 export function formatCapitalize(str, options = {}) {
-    if (!str || typeof str !== "string") return str;
+    if (!str || typeof str !== "string") {
+        return str;
+    }
     const { lowercaseRest = true } = options;
     if (lowercaseRest) {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

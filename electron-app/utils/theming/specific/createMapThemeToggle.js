@@ -18,10 +18,10 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 
 // Constants for map theme management
-const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted"; // Note: "inverted" now means "dark map theme"
-const MAP_THEME_EVENTS = {
-    CHANGED: "mapThemeChanged",
-};
+const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted", // Note: "inverted" now means "dark map theme"
+    MAP_THEME_EVENTS = {
+        CHANGED: "mapThemeChanged",
+    };
 
 /**
  * Gets the current map theme preference
@@ -85,17 +85,16 @@ export function createMapThemeToggle() {
         // Update button appearance based on current state
         const updateButtonState = () => {
             try {
-                const isInverted = getMapThemeInverted();
-                const isDarkMode = document.body.classList.contains("theme-dark");
-
-                // Apply theme colors for button styling
-                const themeColors = getThemeColors();
+                const isInverted = getMapThemeInverted(),
+                    isDarkMode = document.body.classList.contains("theme-dark"),
+                    // Apply theme colors for button styling
+                    themeColors = getThemeColors();
                 // Update icon and tooltip based on current map theme state
                 if (isInverted) {
                     // Map is inverted/dark - show moon icon
                     iconContainer.innerHTML = `
                         <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentcolor" stroke-width="2">
-                            <path d="M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <path d="M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
                         </svg>
                     `;
                     button.title = "Map: Dark theme (click for light theme)";
@@ -104,15 +103,15 @@ export function createMapThemeToggle() {
                     // Map is standard/light - show sun icon
                     iconContainer.innerHTML = `
                         <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentcolor" stroke-width="2">
-                            <circle cx="10" cy="10" r="5" fill="${themeColors["surface"]}" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="10" y1="2" x2="10" y2="4" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="10" y1="16" x2="10" y2="18" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="14.36" y1="14.36" x2="15.78" y2="15.78" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="2" y1="10" x2="4" y2="10" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="16" y1="10" x2="18" y2="10" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="4.22" y1="15.78" x2="5.64" y2="14.36" stroke="${themeColors["primary"]}" stroke-width="2"/>
-                            <line x1="14.36" y1="5.64" x2="15.78" y2="4.22" stroke="${themeColors["primary"]}" stroke-width="2"/>
+                            <circle cx="10" cy="10" r="5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="10" y1="2" x2="10" y2="4" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="10" y1="16" x2="10" y2="18" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="14.36" y1="14.36" x2="15.78" y2="15.78" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="2" y1="10" x2="4" y2="10" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="16" y1="10" x2="18" y2="10" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="4.22" y1="15.78" x2="5.64" y2="14.36" stroke="${themeColors.primary}" stroke-width="2"/>
+                            <line x1="14.36" y1="5.64" x2="15.78" y2="4.22" stroke="${themeColors.primary}" stroke-width="2"/>
                         </svg>
                     `;
                     button.title = "Map: Light theme (click for dark theme)";
@@ -128,8 +127,8 @@ export function createMapThemeToggle() {
         }; // Handle button click
         button.addEventListener("click", () => {
             try {
-                const currentInverted = getMapThemeInverted();
-                const newInverted = !currentInverted;
+                const currentInverted = getMapThemeInverted(),
+                    newInverted = !currentInverted;
 
                 setMapThemeInverted(newInverted);
                 updateButtonState();

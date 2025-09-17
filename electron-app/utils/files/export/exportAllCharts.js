@@ -9,8 +9,8 @@ export function exportAllCharts() {
 
     try {
         window._chartjsInstances.forEach((chart, index) => {
-            const field = chart.data.datasets[0]?.label || `chart-${index}`;
-            const filename = `${field.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
+            const field = chart.data.datasets[0]?.label || `chart-${index}`,
+                filename = `${field.replace(/\s+/g, "-").toLowerCase()}-chart.png`;
             exportUtils.downloadChartAsPNG(chart, filename);
         });
         showNotification(`Exported ${window._chartjsInstances.length} charts`, "success");

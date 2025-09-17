@@ -41,22 +41,21 @@ export function createEnhancedChart(canvas, options) {
         console.log("[ChartJS] - detectCurrentTheme():", currentTheme);
 
         // Get field color
-        const fieldColor = customColors[field] || getFieldColor(field);
-
-        // Configure dataset based on chart type
-        const dataset = {
-            label: fieldLabels[field] || field,
-            data: chartData,
-            borderColor: fieldColor,
-            backgroundColor: showFill ? hexToRgba(fieldColor, 0.2) : "transparent",
-            pointBackgroundColor: fieldColor,
-            pointBorderColor: fieldColor,
-            pointRadius: showPoints ? 3 : 0,
-            pointHoverRadius: 5,
-            fill: showFill,
-            tension: smoothing / 100,
-            borderWidth: 2,
-        };
+        const fieldColor = customColors[field] || getFieldColor(field),
+            // Configure dataset based on chart type
+            dataset = {
+                label: fieldLabels[field] || field,
+                data: chartData,
+                borderColor: fieldColor,
+                backgroundColor: showFill ? hexToRgba(fieldColor, 0.2) : "transparent",
+                pointBackgroundColor: fieldColor,
+                pointBorderColor: fieldColor,
+                pointRadius: showPoints ? 3 : 0,
+                pointHoverRadius: 5,
+                fill: showFill,
+                tension: smoothing / 100,
+                borderWidth: 2,
+            };
 
         // Adjust dataset for chart type
         if (chartType === "bar") {
@@ -114,13 +113,13 @@ export function createEnhancedChart(canvas, options) {
                             /**
                              * @param {any} context
                              */
-                            title: function (context) {
+                            title(context) {
                                 return context[0].label;
                             },
                             /**
                              * @param {any} context
                              */
-                            label: function (context) {
+                            label(context) {
                                 const value = context.parsed.y;
 
                                 // Use enhanced tooltip formatting with unit conversion
@@ -184,20 +183,19 @@ export function createEnhancedChart(canvas, options) {
                             /**
                              * @param {any} value
                              */
-                            callback: function (value) {
+                            callback(value) {
                                 // Convert time based on user preference for display
-                                const timeUnits = localStorage.getItem("chartjs_timeUnits") || "seconds";
-                                const convertedValue = convertTimeUnits(value, timeUnits);
+                                const timeUnits = localStorage.getItem("chartjs_timeUnits") || "seconds",
+                                    convertedValue = convertTimeUnits(value, timeUnits);
 
                                 // Format based on selected units
                                 if (timeUnits === "hours") {
-                                    return convertedValue.toFixed(2) + "h";
+                                    return `${convertedValue.toFixed(2)}h`;
                                 } else if (timeUnits === "minutes") {
-                                    return convertedValue.toFixed(1) + "m";
-                                } else {
-                                    // For seconds, use the formatTime function for MM:SS display
-                                    return formatTime(value);
+                                    return `${convertedValue.toFixed(1)}m`;
                                 }
+                                // For seconds, use the formatTime function for MM:SS display
+                                return formatTime(value);
                             },
                         },
                     },

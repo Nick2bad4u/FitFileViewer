@@ -184,12 +184,12 @@ export function debugSensorInfo() {
                 console.log(`    📦 Resolved product ID ${productField} → "${resolvedProduct}"`);
             }
         } // Test formatting
-        const formattedName = formatSensorName(sensor);
-        const formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer);
-        const formattedProduct =
-            (manufacturerId || sensor.manufacturer) && productField
-                ? formatProduct(manufacturerId || sensor.manufacturer, productField)
-                : productField;
+        const formattedName = formatSensorName(sensor),
+            formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer),
+            formattedProduct =
+                (manufacturerId || sensor.manufacturer) && productField
+                    ? formatProduct(manufacturerId || sensor.manufacturer, productField)
+                    : productField;
 
         console.log(`    🎨 Formatted Name: "${formattedName}"`);
         console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);
@@ -224,8 +224,8 @@ export function showSensorNames() {
         return;
     }
 
-    const data = window.globalData;
-    const sensors = [];
+    const data = window.globalData,
+        sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
         sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceInfoMesgs" })));
@@ -263,9 +263,9 @@ export function showSensorNames() {
  * @param {number|string} manufacturerId - Manufacturer ID to test
  */
 export function testManufacturerId(manufacturerId) {
-    const id = parseInt(String(manufacturerId), 10);
-    const resolved = getManufacturerName(id);
-    const formatted = formatManufacturer(resolved);
+    const id = parseInt(String(manufacturerId), 10),
+        resolved = getManufacturerName(id),
+        formatted = formatManufacturer(resolved);
 
     console.log(`🧪 TESTING MANUFACTURER ID: ${id}`);
     console.log(`    Resolved to: "${resolved}"`);
@@ -280,11 +280,11 @@ export function testManufacturerId(manufacturerId) {
  * @param {number|string} productId - Product ID to test
  */
 export function testProductId(manufacturerId, productId) {
-    const mfgId = parseInt(String(manufacturerId), 10);
-    const prodId = parseInt(String(productId), 10);
-    const resolvedProduct = getProductName(mfgId, prodId);
-    const formattedProduct = formatProduct(mfgId, prodId);
-    const manufacturerName = getManufacturerName(mfgId);
+    const mfgId = parseInt(String(manufacturerId), 10),
+        prodId = parseInt(String(productId), 10),
+        resolvedProduct = getProductName(mfgId, prodId),
+        formattedProduct = formatProduct(mfgId, prodId),
+        manufacturerName = getManufacturerName(mfgId);
 
     console.log(`🧪 TESTING PRODUCT ID: ${prodId} for manufacturer ${mfgId}`);
     console.log(`    Manufacturer: "${manufacturerName}"`);
@@ -317,7 +317,7 @@ export function showDataKeys() {
  */
 export function checkDataAvailability() {
     console.log("🔍 DATA AVAILABILITY CHECK:");
-    console.log(`window.globalData exists: ${!!window.globalData}`);
+    console.log(`window.globalData exists: ${Boolean(window.globalData)}`);
     console.log(`window.globalData type: ${typeof window.globalData}`);
 
     if (window.globalData) {

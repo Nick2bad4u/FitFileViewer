@@ -79,7 +79,7 @@ function setupActiveFileNameMapActions() {
                 }
 
                 // Center on main file with a slight delay to ensure tab switch completes
-                setTimeout(function () {
+                setTimeout(() => {
                     _centerMapOnMainFile();
                 }, 100);
             } catch (error) {
@@ -181,7 +181,7 @@ function _centerMapOnMainFile() {
             polyElem.style.transition = "filter 0.2s";
             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
 
-            setTimeout(function () {
+            setTimeout(() => {
                 const w2 = /** @type {any} */ (window);
                 if (w2._highlightedOverlayIdx === idx) {
                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
@@ -209,10 +209,10 @@ function _centerMapOnMainFile() {
                 console.log("[mapActionButtons] Fitting map to bounds");
                 w._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
 
-                setTimeout(function () {
+                setTimeout(() => {
                     try {
-                        const center = w._leafletMapInstance.getCenter();
-                        const zoom = w._leafletMapInstance.getZoom();
+                        const center = w._leafletMapInstance.getCenter(),
+                            zoom = w._leafletMapInstance.getZoom();
                         console.log(`[mapActionButtons] Map centered at ${center.lat}, ${center.lng}, zoom: ${zoom}`);
                     } catch {
                         console.warn("[mapActionButtons] Error getting map state after centering (details suppressed)");
@@ -235,8 +235,8 @@ function _centerMapOnMainFile() {
 // Initialize active filename functionality with mutation observer
 (function initializeActiveFileName() {
     try {
-        const targetElement = document.getElementById("activeFileName");
-        const parent = targetElement?.parentNode;
+        const targetElement = document.getElementById("activeFileName"),
+            parent = targetElement?.parentNode;
 
         if (!parent) {
             console.log("[mapActionButtons] Active filename parent not found for observer");
@@ -269,8 +269,8 @@ function _centerMapOnMainFile() {
 // Patch updateShownFilesList to always maintain active filename functionality
 (function patchUpdateShownFilesList() {
     try {
-        const w = /** @type {any} */ (window);
-        const origUpdateShownFilesList = w.updateShownFilesList;
+        const w = /** @type {any} */ (window),
+            origUpdateShownFilesList = w.updateShownFilesList;
 
         w.updateShownFilesList = function () {
             try {

@@ -6,10 +6,10 @@
  */
 
 // This file is part of the Electron app that interacts with the main process and the UI.
-import { applyTheme, loadTheme, listenForThemeChange } from "./utils/theming/core/theme.js";
+import { applyTheme, listenForThemeChange, loadTheme } from "./utils/theming/core/theme.js";
 import { showFitData } from "./utils/rendering/core/showFitData.js";
 import { convertArrayBufferToBase64 } from "./utils/formatting/converters/convertArrayBufferToBase64.js";
-import { setupFullscreenListeners, setupDOMContentLoaded } from "./utils/ui/controls/addFullScreenButton.js";
+import { setupDOMContentLoaded, setupFullscreenListeners } from "./utils/ui/controls/addFullScreenButton.js";
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
 
@@ -42,41 +42,49 @@ import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js"
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
-    SUMMARY_COLUMN_SELECTOR_DELAY: 100,
-    IFRAME_PATHS: {
-        ALT_FIT: "libs/ffv/index.html",
+        SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+        IFRAME_PATHS: {
+            ALT_FIT: "libs/ffv/index.html",
+        },
+        DOM_IDS: {
+            ALT_FIT_IFRAME: "altfit-iframe",
+            ZWIFT_IFRAME: "zwift-iframe",
+            DROP_OVERLAY: "drop-overlay",
+            ACTIVE_FILE_NAME: "activeFileName",
+            ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
+            UNLOAD_FILE_BTN: "unloadFileBtn",
+            TAB_CHART: "tab-chart",
+            TAB_SUMMARY: "tab-summary",
+            CONTENT_MAP: "content-map",
+            CONTENT_DATA: "content-data",
+            CONTENT_CHART: "content-chart",
+            CONTENT_SUMMARY: "content-summary",
+        },
+        SELECTORS: {
+            SUMMARY_GEAR_BTN: ".summary-gear-btn",
+        },
     },
-    DOM_IDS: {
-        ALT_FIT_IFRAME: "altfit-iframe",
-        ZWIFT_IFRAME: "zwift-iframe",
-        DROP_OVERLAY: "drop-overlay",
-        ACTIVE_FILE_NAME: "activeFileName",
-        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-        UNLOAD_FILE_BTN: "unloadFileBtn",
-        TAB_CHART: "tab-chart",
-        TAB_SUMMARY: "tab-summary",
-        CONTENT_MAP: "content-map",
-        CONTENT_DATA: "content-data",
-        CONTENT_CHART: "content-chart",
-        CONTENT_SUMMARY: "content-summary",
-    },
-    SELECTORS: {
-        SUMMARY_GEAR_BTN: ".summary-gear-btn",
-    },
-};
-
-// Event listener management with state integration
-const eventListeners = new Map();
+    // Event listener management with state integration
+    eventListeners = new Map();
 
 // Make globalData available on window for backwards compatibility
-Object.defineProperty(window, "globalData", {
-    get() {
-        return getState("globalData");
-    },
-    set(value) {
-        setState("globalData", value, { silent: false, source: "main-ui.js" });
-    },
-});
+try {
+    const existing = Object.getOwnPropertyDescriptor(window, "globalData");
+    if (!existing || existing.configurable) {
+        Object.defineProperty(window, "globalData", {
+            get() {
+                return getState("globalData");
+            },
+            set(value) {
+                setState("globalData", value, { silent: false, source: "main-ui.js" });
+            },
+            configurable: true,
+            enumerable: true,
+        });
+    }
+} catch {
+    /* ignore redefinition issues */
+}
 
 // Event listener management with state integration
 /**
@@ -86,7 +94,9 @@ Object.defineProperty(window, "globalData", {
  * @param {AddEventListenerOptions|boolean} [options]
  */
 function addEventListenerWithCleanup(element, event, handler, options = {}) {
-    if (!element) return;
+    if (!element) {
+        return;
+    }
 
     element.addEventListener(event, handler, options);
     const key = `${element.constructor.name}-${event}`;
@@ -161,8 +171,10 @@ function unloadFitFile() {
     // Start performance monitoring (tolerate differing impl shapes)
     {
         const pm = /** @type {any} */ (performanceMonitor);
-        if (pm && (typeof pm.isEnabled === "function" ? pm.isEnabled() : !!pm.isEnabled)) {
-            if (typeof pm.startTimer === "function") pm.startTimer(operationId);
+        if (pm && (typeof pm.isEnabled === "function" ? pm.isEnabled() : Boolean(pm.isEnabled))) {
+            if (typeof pm.startTimer === "function") {
+                pm.startTimer(operationId);
+            }
         }
     }
 
@@ -209,8 +221,10 @@ function unloadFitFile() {
         // End performance monitoring
         {
             const pm2 = /** @type {any} */ (performanceMonitor);
-            if (pm2 && (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : !!pm2.isEnabled)) {
-                if (typeof pm2.endTimer === "function") pm2.endTimer(operationId);
+            if (pm2 && (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : Boolean(pm2.isEnabled))) {
+                if (typeof pm2.endTimer === "function") {
+                    pm2.endTimer(operationId);
+                }
             }
         }
     }
@@ -235,18 +249,17 @@ window.sendFitFileToAltFitReader = async function (arrayBuffer /** @type {ArrayB
 
     // If iframe is not loaded yet, wait for it to load before posting message
     const postToIframe = () => {
-        try {
-            const frame = /** @type {HTMLIFrameElement} */ (iframe);
-            if (frame.contentWindow) {
-                const base64 = convertArrayBufferToBase64(arrayBuffer);
-                frame.contentWindow.postMessage({ type: "fit-file", base64 }, "*");
+            try {
+                const frame = /** @type {HTMLIFrameElement} */ (iframe);
+                if (frame.contentWindow) {
+                    const base64 = convertArrayBufferToBase64(arrayBuffer);
+                    frame.contentWindow.postMessage({ type: "fit-file", base64 }, "*");
+                }
+            } catch (error) {
+                console.error("Error posting message to iframe:", error);
             }
-        } catch (error) {
-            console.error("Error posting message to iframe:", error);
-        }
-    };
-
-    const frame = /** @type {HTMLIFrameElement} */ (iframe);
+        },
+        frame = /** @type {HTMLIFrameElement} */ (iframe);
     if (!frame.src || !frame.src.includes(CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
         frame.src = CONSTANTS.IFRAME_PATHS.ALT_FIT;
         frame.onload = postToIframe;
@@ -298,7 +311,7 @@ if (window.electronAPI && window.electronAPI.onIpc) {
             }
 
             // Wait for renderSummary to finish, then open the column selector
-            setTimeout(function () {
+            setTimeout(() => {
                 const gearBtn = document.querySelector(CONSTANTS.SELECTORS.SUMMARY_GEAR_BTN);
                 if (gearBtn) {
                     (gearBtn instanceof HTMLElement ? gearBtn : /** @type {any} */ (gearBtn)).click();
@@ -324,7 +337,7 @@ if (unloadBtn) {
 }
 
 // Tab button state is now managed automatically by the state management system
-// in utils/ui/controls/enableTabButtons.js
+// In utils/ui/controls/enableTabButtons.js
 
 // Enhanced Drag and Drop UI and Global Handling with State Management
 class DragDropHandler {
@@ -336,35 +349,48 @@ class DragDropHandler {
 
     showDropOverlay() {
         const dropOverlay = validateElement(CONSTANTS.DOM_IDS.DROP_OVERLAY);
-        if (dropOverlay) dropOverlay.style.display = "flex";
+        if (dropOverlay) {
+            dropOverlay.style.display = "flex";
+        }
 
         const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
-        if (iframe) iframe.style.pointerEvents = "none";
+        if (iframe) {
+            iframe.style.pointerEvents = "none";
+        }
 
         const zwiftIframe = validateElement(CONSTANTS.DOM_IDS.ZWIFT_IFRAME);
-        if (zwiftIframe) zwiftIframe.style.pointerEvents = "none";
+        if (zwiftIframe) {
+            zwiftIframe.style.pointerEvents = "none";
+        }
     }
 
     hideDropOverlay() {
         const dropOverlay = validateElement(CONSTANTS.DOM_IDS.DROP_OVERLAY);
-        if (dropOverlay) dropOverlay.style.display = "none";
+        if (dropOverlay) {
+            dropOverlay.style.display = "none";
+        }
 
         const iframe = validateElement(CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
-        if (iframe) iframe.style.pointerEvents = "";
+        if (iframe) {
+            iframe.style.pointerEvents = "";
+        }
 
         const zwiftIframe = validateElement(CONSTANTS.DOM_IDS.ZWIFT_IFRAME);
-        if (zwiftIframe) zwiftIframe.style.pointerEvents = "";
+        if (zwiftIframe) {
+            zwiftIframe.style.pointerEvents = "";
+        }
     }
 
     /** @param {File} file */
     async processDroppedFile(file) {
-        const operationId = `process_dropped_file_${Date.now()}`;
-
-        // Start performance monitoring
-        /** @type {{isEnabled?:()=>boolean,startTimer?:(id:string)=>void,endTimer?:(id:string)=>void}} */
-        const pm = /** @type {any} */ (performanceMonitor) || {};
-        if (typeof pm.isEnabled === "function" ? pm.isEnabled() : !!pm.isEnabled) {
-            if (typeof pm.startTimer === "function") pm.startTimer(operationId);
+        const operationId = `process_dropped_file_${Date.now()}`,
+            // Start performance monitoring
+            /** @type {{isEnabled?:()=>boolean,startTimer?:(id:string)=>void,endTimer?:(id:string)=>void}} */
+            pm = /** @type {any} */ (performanceMonitor) || {};
+        if (typeof pm.isEnabled === "function" ? pm.isEnabled() : Boolean(pm.isEnabled)) {
+            if (typeof pm.startTimer === "function") {
+                pm.startTimer(operationId);
+            }
         }
 
         if (!file || !file.name.toLowerCase().endsWith(".fit")) {
@@ -384,7 +410,9 @@ class DragDropHandler {
             }
 
             const arrayBuffer = await this.readFileAsArrayBuffer(file);
-            if (!arrayBuffer) return;
+            if (!arrayBuffer) {
+                return;
+            }
 
             if (!validateElectronAPI()) {
                 const message = "FIT file decoding is not supported in this environment.";
@@ -400,9 +428,9 @@ class DragDropHandler {
                 window.sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
-                const errorMessage =
-                    "Unable to process the FIT file. Please try again or check the file format. Details: " +
-                    (fitData.error || "Unknown error");
+                const errorMessage = `Unable to process the FIT file. Please try again or check the file format. Details: ${
+                    fitData.error || "Unknown error"
+                }`;
                 alert(errorMessage);
                 showNotification("Failed to load FIT file", "error");
 
@@ -429,8 +457,10 @@ class DragDropHandler {
 
             // End performance monitoring
             const pm2 = /** @type {any} */ (performanceMonitor) || {};
-            if (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : !!pm2.isEnabled) {
-                if (typeof pm2.endTimer === "function") pm2.endTimer(operationId);
+            if (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : Boolean(pm2.isEnabled)) {
+                if (typeof pm2.endTimer === "function") {
+                    pm2.endTimer(operationId);
+                }
             }
         }
     }
@@ -458,8 +488,8 @@ class DragDropHandler {
 
         addEventListenerWithCleanup(window, "dragleave", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
-                const currentCounter = getState("ui.dragCounter") || 0;
-                const newCounter = currentCounter - 1;
+                const currentCounter = getState("ui.dragCounter") || 0,
+                    newCounter = currentCounter - 1;
                 setState("ui.dragCounter", newCounter, { silent: false, source: "DragDropHandler" });
                 if (newCounter <= 0) {
                     this.hideDropOverlay();
@@ -471,7 +501,9 @@ class DragDropHandler {
         addEventListenerWithCleanup(window, "dragover", (/** @type {Event} */ e) => {
             e.preventDefault();
             const de = /** @type {any} */ (e);
-            if (de.dataTransfer) de.dataTransfer.dropEffect = "copy";
+            if (de.dataTransfer) {
+                de.dataTransfer.dropEffect = "copy";
+            }
             this.showDropOverlay();
         });
 
@@ -488,7 +520,9 @@ class DragDropHandler {
             }
 
             const first = de.dataTransfer.files[0];
-            if (first) await this.processDroppedFile(first);
+            if (first) {
+                await this.processDroppedFile(first);
+            }
         });
 
         // Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
@@ -547,8 +581,8 @@ setupWindow();
 function setupExternalLinkHandlers() {
     // Use event delegation to handle both existing and dynamically added external links
     document.addEventListener("click", (/** @type {MouseEvent} */ e) => {
-        const target = e.target instanceof HTMLElement ? e.target : null;
-        const link = target?.closest('[data-external-link="true"]');
+        const target = e.target instanceof HTMLElement ? e.target : null,
+            link = target?.closest('[data-external-link="true"]');
         if (link) {
             handleExternalLink(e, /** @type {HTMLElement} */ (link));
         }
@@ -556,8 +590,8 @@ function setupExternalLinkHandlers() {
 
     document.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
         if (e.key === "Enter" || e.key === " ") {
-            const target = e.target instanceof HTMLElement ? e.target : null;
-            const link = target?.closest('[data-external-link="true"]');
+            const target = e.target instanceof HTMLElement ? e.target : null,
+                link = target?.closest('[data-external-link="true"]');
             if (link) {
                 handleExternalLink(
                     /** @type {MouseEvent} */ (/** @type {any} */ (e)),
@@ -639,7 +673,7 @@ console.log("- window.cleanupEventListeners() - Clean up all event listeners");
 console.log("[main-ui] Initializing state managers...");
 
 // The imports automatically initialize the state managers
-// chartTabIntegration is a singleton that self-initializes and brings in the other managers
+// ChartTabIntegration is a singleton that self-initializes and brings in the other managers
 console.log("[main-ui] Chart tab integration:", chartTabIntegration?.getStatus?.() || "Not available");
 
 console.log("[main-ui] State managers initialized successfully");

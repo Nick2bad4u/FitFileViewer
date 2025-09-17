@@ -10,7 +10,7 @@
  */
 export function getChartOverlayColorPalette(array) {
     // Remove duplicates
-    let unique = Array.from(new Set(array));
+    const unique = Array.from(new Set(array));
 
     // Helper to compute color distance in RGB space
     /**
@@ -35,14 +35,16 @@ export function getChartOverlayColorPalette(array) {
                     .map((/** @type {string} */ ch) => ch + ch)
                     .join("");
             }
-            if (!/^[0-9a-f]{6}$/.test(cleaned)) return [0, 0, 0];
-            const num = parseInt(cleaned, 16);
-            /** @type {[number, number, number]} */
-            const rgb = [num >> 16, (num >> 8) & 255, num & 255];
+            if (!/^[0-9a-f]{6}$/.test(cleaned)) {
+                return [0, 0, 0];
+            }
+            const num = parseInt(cleaned, 16),
+                /** @type {[number, number, number]} */
+                rgb = [num >> 16, (num >> 8) & 255, num & 255];
             return rgb;
         }
-        const [r1, g1, b1] = hexToRgb(c1);
-        const [r2, g2, b2] = hexToRgb(c2);
+        const [r1, g1, b1] = hexToRgb(c1),
+            [r2, g2, b2] = hexToRgb(c2);
         return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
     }
 
@@ -64,7 +66,7 @@ export function getChartOverlayColorPalette(array) {
      */
     function seededShuffle(array, seed = 42) {
         // Simple LCG (Linear Congruential Generator)
-        let a = 1664525,
+        const a = 1664525,
             c = 1013904223,
             m = 2 ** 32;
         let state = seed;

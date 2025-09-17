@@ -1,4 +1,4 @@
-import { getProductName, getManufacturerIdFromName } from "../display/formatAntNames.js";
+import { getManufacturerIdFromName, getProductName } from "../display/formatAntNames.js";
 
 /**
  * Product formatting configuration and constants
@@ -151,5 +151,13 @@ function formatProductNameString(productName) {
  * @private
  */
 function formatFallbackProduct(productId) {
-    return productId?.toString() || PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
+    if (productId === null || productId === undefined) {
+        return PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
+    }
+    const str = String(productId);
+    if (str.length === 0) {
+        return PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
+    }
+    const lower = str.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
 }

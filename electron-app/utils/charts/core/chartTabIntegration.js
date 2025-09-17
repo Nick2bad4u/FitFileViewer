@@ -182,7 +182,7 @@ class ChartTabIntegration {
         return {
             isInitialized: this.isInitialized,
             chartTabActive: this.isChartTabActive(),
-            hasData: !!getState("globalData")?.recordMesgs,
+            hasData: Boolean(getState("globalData")?.recordMesgs),
             chartState: chartStateManager.getChartInfo(),
             tabState: tabStateManager.getActiveTabInfo(),
         };

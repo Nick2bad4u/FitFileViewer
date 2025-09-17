@@ -13,6 +13,15 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "run vitest in electron-app",
+            "type": "shell",
+            "command": "npm",
+            "args": ["--prefix", "electron-app", "test"],
+            "isBackground": false,
+            "problemMatcher": ["$eslint-stylish"],
+            "group": "build"
         }
     ]
 }

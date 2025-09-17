@@ -10,44 +10,43 @@ const { autoUpdater: _autoUpdater } = require("electron-updater");
 
 const { loadRecentFiles, addRecentFile } = require("./utils/files/recent/recentFiles");
 const { createAppMenu } = require("./utils/app/menu/createAppMenu");
-const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager");
-
-// Constants
-const CONSTANTS = {
-    DEFAULT_THEME: "dark",
-    THEME_STORAGE_KEY: "ffv-theme",
-    SETTINGS_CONFIG_NAME: "settings",
-    LOG_LEVELS: {
-        INFO: "info",
-        WARN: "warn",
-        ERROR: "error",
-    },
-    PLATFORMS: {
-        DARWIN: "darwin",
-        LINUX: "linux",
-        WIN32: "win32",
-    },
-    DIALOG_FILTERS: {
-        FIT_FILES: [{ name: "FIT Files", extensions: ["fit"] }],
-        EXPORT_FILES: [
-            { name: "CSV (Summary Table)", extensions: ["csv"] },
-            { name: "GPX (Track)", extensions: ["gpx"] },
-            { name: "All Files", extensions: ["*"] },
-        ],
-        ALL_FILES: [
-            { name: "FIT Files", extensions: ["fit"] },
-            { name: "All Files", extensions: ["*"] },
-        ],
-    },
-    UPDATE_EVENTS: {
-        CHECKING: "update-checking",
-        AVAILABLE: "update-available",
-        NOT_AVAILABLE: "update-not-available",
-        ERROR: "update-error",
-        DOWNLOAD_PROGRESS: "update-download-progress",
-        DOWNLOADED: "update-downloaded",
-    },
-};
+const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager"),
+    // Constants
+    CONSTANTS = {
+        DEFAULT_THEME: "dark",
+        THEME_STORAGE_KEY: "ffv-theme",
+        SETTINGS_CONFIG_NAME: "settings",
+        LOG_LEVELS: {
+            INFO: "info",
+            WARN: "warn",
+            ERROR: "error",
+        },
+        PLATFORMS: {
+            DARWIN: "darwin",
+            LINUX: "linux",
+            WIN32: "win32",
+        },
+        DIALOG_FILTERS: {
+            FIT_FILES: [{ name: "FIT Files", extensions: ["fit"] }],
+            EXPORT_FILES: [
+                { name: "CSV (Summary Table)", extensions: ["csv"] },
+                { name: "GPX (Track)", extensions: ["gpx"] },
+                { name: "All Files", extensions: ["*"] },
+            ],
+            ALL_FILES: [
+                { name: "FIT Files", extensions: ["fit"] },
+                { name: "All Files", extensions: ["*"] },
+            ],
+        },
+        UPDATE_EVENTS: {
+            CHECKING: "update-checking",
+            AVAILABLE: "update-available",
+            NOT_AVAILABLE: "update-not-available",
+            ERROR: "update-error",
+            DOWNLOAD_PROGRESS: "update-download-progress",
+            DOWNLOADED: "update-downloaded",
+        },
+    };
 
 // State getters and setters using the new state management system
 /**
@@ -70,7 +69,16 @@ function setAppState(path, value, options = {}) {
  * @param {any} win
  */
 function isWindowUsable(win) {
-    return win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed();
+    if (!win) return false;
+    try {
+        const hasWebContents = !!win.webContents;
+        const wcd =
+            hasWebContents && typeof win.webContents.isDestroyed === "function" ? win.webContents.isDestroyed() : true;
+        const wd = typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
+        return Boolean(!wd && hasWebContents && !wcd);
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -81,9 +89,9 @@ function validateWindow(win, context = "unknown operation") {
         // Only log warning if window should exist but doesn't (avoid noise during normal shutdown)
         if (!getAppState("appIsQuitting")) {
             logWithContext("warn", `Window validation failed during ${context}`, {
-                hasWindow: !!win,
+                hasWindow: Boolean(win),
                 isDestroyed: win?.isDestroyed(),
-                hasWebContents: !!win?.webContents,
+                hasWebContents: Boolean(win?.webContents),
                 webContentsDestroyed: win?.webContents?.isDestroyed(),
             });
         }
@@ -96,7 +104,9 @@ function validateWindow(win, context = "unknown operation") {
  * @param {any} win
  */
 async function getThemeFromRenderer(win) {
-    if (!validateWindow(win, "theme retrieval")) return CONSTANTS.DEFAULT_THEME;
+    if (!validateWindow(win, "theme retrieval")) {
+        return CONSTANTS.DEFAULT_THEME;
+    }
 
     try {
         const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
@@ -123,9 +133,13 @@ function sendToRenderer(win, channel, ...args) {
  * @param {any} message
  */
 function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString();
-    const contextStr = Object.keys(context).length > 0 ? JSON.stringify(context) : "";
-    /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, contextStr);
+    const timestamp = new Date().toISOString(),
+        hasContext = context && typeof context === "object" && Object.keys(context).length > 0;
+    if (hasContext) {
+        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, JSON.stringify(context));
+    } else {
+        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`);
+    }
 }
 
 // Enhanced error handling wrapper
@@ -153,10 +167,11 @@ function _createErrorHandler(operation) {
  * @param {any} mainWindow
  */
 function setupAutoUpdater(mainWindow) {
-    // alias back to name expected in existing code
+    // Alias back to name expected in existing code
     const autoUpdater = _autoUpdater;
-    if (!validateWindow(mainWindow, "auto-updater setup")) {
-        logWithContext("warn", "Cannot setup auto-updater: main window is not usable");
+    if (!isWindowUsable(mainWindow)) {
+        // Emit a single plain warn string as expected by tests
+        console.warn("Cannot setup auto-updater: main window is not usable");
         return;
     }
 
@@ -282,7 +297,9 @@ function setupIPCHandlers(mainWindow) {
                 filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
                 properties: ["openFile"],
             });
-            if (canceled || filePaths.length === 0) return null;
+            if (canceled || filePaths.length === 0) {
+                return null;
+            }
 
             if (filePaths[0]) {
                 addRecentFile(filePaths[0]);
@@ -376,8 +393,8 @@ function setupIPCHandlers(mainWindow) {
     // FIT file parsing handlers
     ipcMain.handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
-            const fitParser = require("./fitParser");
-            const buffer = Buffer.from(arrayBuffer);
+            const fitParser = require("./fitParser"),
+                buffer = Buffer.from(arrayBuffer);
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:parse:", {
@@ -389,8 +406,8 @@ function setupIPCHandlers(mainWindow) {
 
     ipcMain.handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
-            const fitParser = require("./fitParser");
-            const buffer = Buffer.from(arrayBuffer);
+            const fitParser = require("./fitParser"),
+                buffer = Buffer.from(arrayBuffer);
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:decode:", {
@@ -403,13 +420,13 @@ function setupIPCHandlers(mainWindow) {
     // Application info handlers
     const infoHandlers = {
         "theme:get": async () => {
-            const { Conf } = require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            const { Conf } = require("electron-conf"),
+                conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("theme", CONSTANTS.DEFAULT_THEME);
         },
         "map-tab:get": async () => {
-            const { Conf } = require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            const { Conf } = require("electron-conf"),
+                conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("selectedMapTab", "map");
         },
         getAppVersion: async () => app.getVersion(),
@@ -422,8 +439,8 @@ function setupIPCHandlers(mainWindow) {
         }),
         getLicenseInfo: async () => {
             try {
-                const packageJsonPath = path.join(app.getAppPath(), "package.json");
-                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+                const packageJsonPath = path.join(app.getAppPath(), "package.json"),
+                    packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
                 return packageJson.license || "Unknown";
             } catch (err) {
                 logWithContext("error", "Failed to read license from package.json:", {
@@ -593,9 +610,11 @@ function setupMenuAndEventHandlers() {
     }); // File menu action handlers
     const fileMenuHandlers = {
         "menu-save-as": async (/** @type {any} */ event) => {
-            const win = BrowserWindow.fromWebContents(event.sender);
-            const loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) return;
+            const win = BrowserWindow.fromWebContents(event.sender),
+                loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath || !win) {
+                return;
+            }
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(/** @type {any} */ (win), {
@@ -614,9 +633,11 @@ function setupMenuAndEventHandlers() {
             }
         },
         "menu-export": async (/** @type {any} */ event) => {
-            const win = BrowserWindow.fromWebContents(event.sender);
-            const loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) return;
+            const win = BrowserWindow.fromWebContents(event.sender),
+                loadedFilePath = getAppState("loadedFitFilePath");
+            if (!loadedFilePath || !win) {
+                return;
+            }
 
             try {
                 const { canceled, filePath } = await dialog.showSaveDialog(/** @type {any} */ (win), {
@@ -643,7 +664,7 @@ function setupMenuAndEventHandlers() {
     ipcMain.on("set-fullscreen", (/** @type {any} */ _event, /** @type {any} */ flag) => {
         const win = BrowserWindow.getFocusedWindow();
         if (validateWindow(win, "set-fullscreen event")) {
-            /** @type {any} */ (win).setFullScreen(!!flag);
+            /** @type {any} */ (win).setFullScreen(Boolean(flag));
         }
     });
 
@@ -651,9 +672,9 @@ function setupMenuAndEventHandlers() {
     ipcMain.handle(
         "devtools-inject-menu",
         (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
-            const win = BrowserWindow.fromWebContents(event.sender);
-            const t = theme || CONSTANTS.DEFAULT_THEME;
-            const f = fitFilePath || null;
+            const win = BrowserWindow.fromWebContents(event.sender),
+                t = theme || CONSTANTS.DEFAULT_THEME,
+                f = fitFilePath || null;
             logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
             if (win) {
                 createAppMenu(/** @type {any} */ (win), t, f);
@@ -666,7 +687,7 @@ function setupMenuAndEventHandlers() {
 // Enhanced application event handlers
 function setupApplicationEventHandlers() {
     // App activation handler (macOS)
-    app.on("activate", function () {
+    app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             const win = createWindow();
             createAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
@@ -693,7 +714,7 @@ function setupApplicationEventHandlers() {
     });
 
     // Window all closed handler
-    app.on("window-all-closed", function () {
+    app.on("window-all-closed", () => {
         setAppState("appIsQuitting", true);
         if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
             app.quit();
@@ -769,7 +790,7 @@ function exposeDevHelpers() {
         logState: () => {
             logWithContext("info", "Current application state:", {
                 loadedFitFilePath: getAppState("loadedFitFilePath"),
-                hasMainWindow: !!getAppState("mainWindow"),
+                hasMainWindow: Boolean(getAppState("mainWindow")),
                 eventHandlersCount: mainProcessState.data.eventHandlers.size,
             });
         },
@@ -792,7 +813,7 @@ app.whenReady().then(async () => {
         setupApplicationEventHandlers();
 
         // Expose development helpers in development mode
-        if (/** @type {any} */ (process.env)["NODE_ENV"] === "development" || process.argv.includes("--dev")) {
+        if (/** @type {any} */ (process.env).NODE_ENV === "development" || process.argv.includes("--dev")) {
             exposeDevHelpers();
         }
 

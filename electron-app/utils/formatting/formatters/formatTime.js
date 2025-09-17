@@ -1,4 +1,4 @@
-import { convertTimeUnits, TIME_UNITS } from "../converters/convertTimeUnits.js";
+import { TIME_UNITS, convertTimeUnits } from "../converters/convertTimeUnits.js";
 
 /**
  * Time formatting constants
@@ -56,8 +56,51 @@ export function formatTime(seconds, useUserUnits = false) {
  * @private
  */
 function formatWithUserUnits(seconds) {
-    const timeUnits = localStorage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY) || TIME_UNITS.SECONDS;
-    const convertedValue = convertTimeUnits(seconds, timeUnits);
+    // Attempt to read from multiple storage locations to honor whichever
+    // the runtime/tests have stubbed. Prefer globalThis, then window, then bare localStorage.
+    /** @type {any} */
+    const storages = [];
+    try {
+        if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
+            storages.push(/** @type {any} */ (globalThis).localStorage);
+    } catch {}
+    try {
+        if (typeof window !== "undefined" && /** @type {any} */ (window).localStorage)
+            storages.push(/** @type {any} */ (window).localStorage);
+    } catch {}
+    try {
+        if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
+    } catch {}
+
+    /** @type {string} */
+    let timeUnits = TIME_UNITS.SECONDS;
+    try {
+        for (const storage of storages) {
+            try {
+                if (storage && typeof storage.getItem === "function") {
+                    const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
+                    if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
+                        timeUnits = stored;
+                        break;
+                    }
+                }
+            } catch (e) {
+                // Surface storage access errors to the top-level handler for logging
+                throw e;
+            }
+        }
+    } catch (e) {
+        // Propagate to top-level handler which will log and return "0:00"
+        throw e;
+    }
+
+    let convertedValue;
+    try {
+        convertedValue = convertTimeUnits(seconds, timeUnits);
+    } catch (e) {
+        // Propagate to top-level handler which will log and return "0:00"
+        throw e;
+    }
 
     switch (timeUnits) {
         case TIME_UNITS.HOURS:

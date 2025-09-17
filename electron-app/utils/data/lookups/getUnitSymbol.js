@@ -12,58 +12,54 @@
 // LocalStorage keys for user unit preferences
 // NOTE: Uses "chartjs_" prefix for historical reasons - consider refactoring if decoupling from Chart.js
 const STORAGE_KEYS = {
-    TIME_UNITS: "chartjs_timeUnits",
-    DISTANCE_UNITS: "chartjs_distanceUnits",
-    TEMPERATURE_UNITS: "chartjs_temperatureUnits",
-};
-
-// Default unit preferences
-const DEFAULT_UNITS = {
-    TIME: "seconds",
-    DISTANCE: "kilometers",
-    TEMPERATURE: "celsius",
-};
-
-// Unit symbol mappings
-const UNIT_SYMBOLS = {
-    DISTANCE: {
-        kilometers: "km",
-        meters: "m",
-        feet: "ft",
-        miles: "mi",
+        TIME_UNITS: "chartjs_timeUnits",
+        DISTANCE_UNITS: "chartjs_distanceUnits",
+        TEMPERATURE_UNITS: "chartjs_temperatureUnits",
     },
-    TEMPERATURE: {
-        celsius: "°C",
-        fahrenheit: "°F",
+    // Default unit preferences
+    DEFAULT_UNITS = {
+        TIME: "seconds",
+        DISTANCE: "kilometers",
+        TEMPERATURE: "celsius",
     },
-    TIME: {
-        seconds: "s",
-        minutes: "min",
-        hours: "h",
+    // Unit symbol mappings
+    UNIT_SYMBOLS = {
+        DISTANCE: {
+            kilometers: "km",
+            meters: "m",
+            feet: "ft",
+            miles: "mi",
+        },
+        TEMPERATURE: {
+            celsius: "°C",
+            fahrenheit: "°F",
+        },
+        TIME: {
+            seconds: "s",
+            minutes: "min",
+            hours: "h",
+        },
+        SPEED: {
+            default: "m/s", // Always show m/s for speed fields
+        },
     },
-    SPEED: {
-        default: "m/s", // Always show m/s for speed fields
+    // Field type categories
+    FIELD_TYPES = {
+        DISTANCE: ["distance", "altitude", "enhancedAltitude"],
+        TEMPERATURE: ["temperature"],
+        SPEED: ["speed", "enhancedSpeed"],
     },
-};
-
-// Field type categories
-const FIELD_TYPES = {
-    DISTANCE: ["distance", "altitude", "enhancedAltitude"],
-    TEMPERATURE: ["temperature"],
-    SPEED: ["speed", "enhancedSpeed"],
-};
-
-// Fallback symbols for fitness metrics and other fields
-const ORIGINAL_FIELD_LABELS = {
-    heartRate: "bpm",
-    power: "W",
-    cadence: "rpm",
-    resistance: "",
-    flow: "#",
-    grit: "#",
-    positionLat: "°",
-    positionLong: "°",
-};
+    // Fallback symbols for fitness metrics and other fields
+    ORIGINAL_FIELD_LABELS = {
+        heartRate: "bpm",
+        power: "W",
+        cadence: "rpm",
+        resistance: "",
+        flow: "#",
+        grit: "#",
+        positionLat: "°",
+        positionLong: "°",
+    };
 
 /**
  * Gets user preference from localStorage with fallback
@@ -73,7 +69,17 @@ const ORIGINAL_FIELD_LABELS = {
  */
 function getUserPreference(key, fallback) {
     try {
-        return localStorage.getItem(key) || fallback;
+        // Prefer window.localStorage when available for jsdom/test environments
+        /** @type {any} */
+        const w = typeof window !== "undefined" ? /** @type {any} */ (window) : undefined;
+        /** @type {Storage|undefined} */
+        const storage =
+            w && w.localStorage ? w.localStorage : typeof localStorage !== "undefined" ? localStorage : undefined;
+        if (!storage || typeof storage.getItem !== "function") {
+            return fallback;
+        }
+        const val = storage.getItem(key);
+        return val != null ? val : fallback;
     } catch (error) {
         console.warn(`[UnitSymbol] Error reading localStorage key "${key}":`, error);
         return fallback;
