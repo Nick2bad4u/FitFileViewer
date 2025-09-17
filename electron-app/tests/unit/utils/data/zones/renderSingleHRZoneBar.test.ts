@@ -14,7 +14,7 @@ vi.mock("../../../../../utils/charts/theming/chartThemeUtils.js", () => ({
 }));
 
 vi.mock("../../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
-  getChartZoneColors: vi.fn().mockReturnValue(['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff'])
+  getChartZoneColors: vi.fn().mockImplementation(() => ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff'])
 }));
 
 vi.mock("../../../../../utils/data/lookups/getUnitSymbol.js", () => ({
@@ -38,6 +38,7 @@ vi.mock("../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js", () 
 import { renderSingleHRZoneBar } from "../../../../../utils/data/zones/renderSingleHRZoneBar.js";
 import * as chartThemeUtils from "../../../../../utils/charts/theming/chartThemeUtils.js";
 import * as formatTime from "../../../../../utils/formatting/formatters/formatTime.js";
+import * as chartZoneColorUtils from "../../../../../utils/data/zones/chartZoneColorUtils.js";
 
 describe('renderSingleHRZoneBar', () => {
   let canvas: HTMLCanvasElement;
@@ -53,32 +54,44 @@ describe('renderSingleHRZoneBar', () => {
     originalChart = window.Chart;
     originalShowNotification = window.showNotification;
 
-    // Create a mock Chart instance
+    // Reset the previous spy if any
+    vi.clearAllMocks();
+
+    // Create a complete mock Chart instance with all required structures
     mockChartInstance = {
       destroy: vi.fn(),
       update: vi.fn(),
-      data: {},
-      options: {}
+      data: {
+        datasets: []
+      },
+      options: {
+        scales: {
+          y: { ticks: { callback: vi.fn(), color: null } },
+          x: { ticks: { color: null } }
+        },
+        plugins: {
+          tooltip: { callbacks: { label: vi.fn() } },
+          chartBackgroundColorPlugin: { backgroundColor: null }
+        }
+      }
     };
 
-    // Set up window.Chart correctly so it can be detected by the module
-    window.Chart = vi.fn((canvas, config) => {
-      // Store the config for inspection in tests
+    // Set up Chart.js spy properly for each test
+    window.Chart = vi.fn().mockImplementation((canvas, config) => {
       mockChartInstance.config = config;
-      // Return the mock Chart instance
       return mockChartInstance;
     });
 
     // Mock showNotification
     window.showNotification = vi.fn();
-
-    // Reset mocks between tests
-    vi.clearAllMocks();
   });
 
   afterEach(() => {
     // Restore original globals
     window.Chart = originalChart;
+
+    // Also reset any potential changes to the document body
+    document.body.className = '';
     window.showNotification = originalShowNotification;
     vi.resetAllMocks();
   });
@@ -126,9 +139,17 @@ describe('renderSingleHRZoneBar', () => {
   });
 
   it('should use zone colors from chartZoneColorUtils when colors not provided', () => {
-    // Verify Chart is properly defined globally
-    expect(window.Chart).toBeDefined();
-    expect(typeof window.Chart).toBe('function');
+    // Create a fresh spy for this test
+    vi.restoreAllMocks();
+
+    // Mock Chart constructor specifically for this test
+    window.Chart = vi.fn().mockImplementation((canvasElem, config) => {
+      mockChartInstance.config = config;
+      return mockChartInstance;
+    });
+
+    // Mock the getChartZoneColors function
+    vi.spyOn(chartZoneColorUtils, 'getChartZoneColors').mockReturnValue(['#ff0000', '#00ff00', '#0000ff']);
 
     // Prepare test data without colors
     const zoneData = [
@@ -140,39 +161,60 @@ describe('renderSingleHRZoneBar', () => {
     const chart = renderSingleHRZoneBar(canvas, zoneData);
 
     // Verify the function returned a chart
-    expect(chart).toBeDefined();
+    expect(chart).toBe(mockChartInstance);
 
-    // Verify that Chart.js was called
-    expect(window.Chart).toHaveBeenCalled();
+    // Verify that Chart constructor was called
+    expect(window.Chart).toHaveBeenCalledTimes(1);
 
-    // Get the configuration passed to Chart
-    expect(mockChartInstance.config).toBeDefined();
+    // Verify the chart was created with correct data structure
+    const chartCall = (window.Chart as any).mock.calls[0];
+    expect(chartCall).toBeDefined();
+    expect(chartCall[0]).toBe(canvas);
 
-    // Check if datasets were created with right data
-    expect(mockChartInstance.config.data.datasets[0].label).toBe('Zone 1');
-    expect(mockChartInstance.config.data.datasets[1].label).toBe('Zone 2');
+    const chartConfig = chartCall[1];
+    expect(chartConfig).toBeDefined();
+    expect(chartConfig.data.datasets).toHaveLength(2);
+    expect(chartConfig.data.datasets[0].label).toBe('Zone 1');
+    expect(chartConfig.data.datasets[1].label).toBe('Zone 2');
 
-    // Verify colors were set
-    expect(mockChartInstance.config.data.datasets[0].backgroundColor).toBeDefined();
-    expect(mockChartInstance.config.data.datasets[1].backgroundColor).toBeDefined();
+    // Verify colors were set (mocked getChartZoneColors would provide these)
+    expect(chartConfig.data.datasets[0].backgroundColor).toBeDefined();
+    expect(chartConfig.data.datasets[1].backgroundColor).toBeDefined();
   });
 
   it('should handle dark theme correctly', () => {
+    // Restore all mocks for clean test
+    vi.restoreAllMocks();
+
     // Override theme mock for this test
-    vi.mocked(chartThemeUtils.detectCurrentTheme).mockReturnValueOnce("dark");
+    vi.mocked(chartThemeUtils.detectCurrentTheme).mockReturnValue("dark");
+
+    // Mock Chart constructor specifically for this test
+    window.Chart = vi.fn().mockImplementation((canvasElem, config) => {
+      mockChartInstance.config = config;
+      return mockChartInstance;
+    });
 
     const zoneData = [{ label: 'Zone 1', value: 300 }];
 
     // Call the function
     renderSingleHRZoneBar(canvas, zoneData);
 
-    // Get the options from the chart config
-    const options = mockChartInstance.config.options;
+    // Verify Chart constructor was called
+    expect(window.Chart).toHaveBeenCalledTimes(1);
 
-    // Verify dark theme styling was applied
-    expect(options.scales.y.ticks.color).toBe('#fff');
-    expect(options.scales.x.ticks.color).toBe('#fff');
-    expect(options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe('#181c24');
+    // Get the chart options from the constructor call
+    const chartCall = (window.Chart as any).mock.calls[0];
+    expect(chartCall).toBeDefined();
+
+    const chartConfig = chartCall[1];
+    expect(chartConfig).toBeDefined();
+    expect(chartConfig.options).toBeDefined();
+
+    // Verify dark theme styling was applied in the configuration
+    expect(chartConfig.options.scales.y.ticks.color).toBe('#fff');
+    expect(chartConfig.options.scales.x.ticks.color).toBe('#fff');
+    expect(chartConfig.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe('#181c24');
   });
 
   it('should handle invalid inputs gracefully', () => {
@@ -200,19 +242,45 @@ describe('renderSingleHRZoneBar', () => {
   });
 
   it('should format time values correctly in tooltips and y-axis', () => {
+    // Restore all mocks for clean test
+    vi.restoreAllMocks();
+
+    // Mock Chart constructor specifically for this test
+    window.Chart = vi.fn().mockImplementation((canvasElem, config) => {
+      mockChartInstance.config = config;
+      return mockChartInstance;
+    });
+
     const zoneData = [{ label: 'Zone 1', value: 300 }];
 
     // Call the function
     renderSingleHRZoneBar(canvas, zoneData);
 
-    // Get the options from the chart config
-    const options = mockChartInstance.config.options;
+    // Verify Chart constructor was called
+    expect(window.Chart).toHaveBeenCalledTimes(1);
+
+    // Get the chart options from the constructor call
+    const chartCall = (window.Chart as any).mock.calls[0];
+    expect(chartCall).toBeDefined();
+
+    const chartConfig = chartCall[1];
+    expect(chartConfig).toBeDefined();
+    expect(chartConfig.options).toBeDefined();
 
     // Verify the callbacks exist
-    expect(options.scales.y.ticks.callback).toBeDefined();
-    expect(options.plugins.tooltip.callbacks.label).toBeDefined();
+    expect(chartConfig.options.scales.y.ticks.callback).toBeDefined();
+    expect(chartConfig.options.plugins.tooltip.callbacks.label).toBeDefined();
 
-    // Verify formatTime was called during rendering
-    expect(vi.mocked(formatTime.formatTime)).toHaveBeenCalled();
+    // Test the formatTime callback behavior by executing it
+    const yTickCallback = chartConfig.options.scales.y.ticks.callback;
+    expect(yTickCallback(100)).toBe("100s"); // Our mock returns value + "s"
+
+    // Test the tooltip label callback
+    const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
+    const mockContext = {
+      dataset: { label: "Zone 1" },
+      parsed: { y: 300 }
+    };
+    expect(tooltipCallback(mockContext)).toBe("Zone 1: 300s");
   });
 });

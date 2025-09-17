@@ -61,20 +61,40 @@ if (process.env['RECENT_FILES_PATH']) {
         RECENT_FILES_PATH = path.join(userDataPath, "recent-files.json");
     } else {
         // Fallback for tests or non-Electron environments
-        // Create a temp directory in the user's temp folder or process.cwd()/temp-test-files
-        const tempDir = process.env['TEMP'] || process.env['TMP'] ||
-            path.join(process.cwd(), 'temp-test-files');
+        // Use a consistent temp directory with unique test file
+        const os = require('os');
+
+        // Always use system temp directory, never working directory
+        const tempDir = process.env['TEMP'] || process.env['TMP'] || os.tmpdir();
+
+        // Create a fit-file-viewer subdirectory in the temp folder
+        const fitTempDir = path.join(tempDir, 'fit-file-viewer-tests');
 
         // Ensure the temp directory exists
         try {
-            if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir, { recursive: true });
+            if (!fs.existsSync(fitTempDir)) {
+                fs.mkdirSync(fitTempDir, { recursive: true });
+            }
+
+            // Use process ID to avoid conflicts between test runs
+            const testId = process.env['VITEST_WORKER_ID'] || process.pid || Math.random().toString(36).substring(2, 10);
+            RECENT_FILES_PATH = path.join(fitTempDir, `recent-files-${testId}.json`);
+
+            // Register cleanup handler for tests
+            if (typeof process !== 'undefined' && process.on) {
+                process.on('exit', () => {
+                    try {
+                        if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
+                            fs.unlinkSync(/** @type {string} */(RECENT_FILES_PATH));
+                        }
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                });
             }
         } catch (err) {
-            console.error("Failed to create temp directory:", err);
+            console.error("Failed to create temp directory for tests:", err);
         }
-
-        RECENT_FILES_PATH = path.join(tempDir, "recent-files-test.json");
     }
 }
 // Maximum number of recent files to retain
