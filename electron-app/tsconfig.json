@@ -105,7 +105,9 @@
         "out",
         "release",
         "src/**/*.test.ts",
-        "src/**/*.test.tsx"
+        "**/html/**",
+        "src/**/*.test.tsx",
+        "**/tests/**",
     ],
     "include": [
         "**/*.js",

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Hoisted mocks to satisfy Vitest's hoisting of vi.mock
 const hoisted = vi.hoisted(() => {
-  const formatTime = vi.fn((sec: number) => `${sec}s`);
   const renderChartJS = vi.fn();
   const showNotification = vi.fn();
   const debouncedRender = vi.fn();
@@ -21,7 +20,6 @@ const hoisted = vi.hoisted(() => {
   const getZoneTypeFromField = vi.fn((field: string) => field.includes("hr") ? "hr" : "power");
 
   return {
-    formatTime,
     renderChartJS,
     showNotification,
     debouncedRender,
@@ -40,7 +38,7 @@ const hoisted = vi.hoisted(() => {
   };
 });
 
-vi.mock("../../../../utils/formatting/formatters/formatTime.js", () => ({ formatTime: hoisted.formatTime }));
+// Use the real formatTime implementation to avoid hoisting/TDZ issues
 vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({ renderChartJS: hoisted.renderChartJS }));
 vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({ showNotification: hoisted.showNotification }));
 vi.mock("../../../../utils/charts/core/chartStateManager.js", () => ({ chartStateManager: { debouncedRender: hoisted.debouncedRender } }));
