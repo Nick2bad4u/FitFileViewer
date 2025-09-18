@@ -31,6 +31,7 @@ try {
     // @ts-ignore
     const __dbgReg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
     if (__dbgReg && typeof __dbgReg.forEach === "function") {
+        /** @type {string[]} */
         const keys = [];
         __dbgReg.forEach((_, k) => keys.push(String(k)));
         console.log("[exportUtils][debug] manual-mock keys:", keys);
@@ -501,8 +502,11 @@ export const exportUtils = {
         }
     },
 
+    /* c8 ignore start */
     /**
      * Gets Gyazo configuration from user settings or defaults
+     * Gyazo OAuth/upload flows are excluded from coverage due to external auth, clipboard,
+     * and network side effects that are brittle in jsdom.
      * @returns {Object} Gyazo configuration object
      */
     getGyazoConfig() {
@@ -519,9 +523,10 @@ export const exportUtils = {
                 0x71, 0x30, 0x4d, 0x55, 0x62, 0x45, 0x6f, 0x53, 0x30,
             ],
             // Apply ROT13-like transformation as additional obfuscation layer
-            /** @param {number[]} arr */ transform = (arr) =>
-                arr.map((/** @type {number} */ code) => String.fromCharCode(code)).join(""),
-            /** @param {string} str */ reverseTransform = (str) => str.split("").reverse().join(""),
+            /** @type {(arr: number[]) => string} */
+            transform = (arr) => arr.map((/** @type {number} */ code) => String.fromCharCode(code)).join(""),
+            /** @type {(str: string) => string} */
+            reverseTransform = (str) => str.split("").reverse().join(""),
             // Decode with multiple transformations
             defaultClientId = transform(GyazoAppData1),
             defaultClientSecret = reverseTransform(transform(GyazoAppData2.reverse()));
@@ -1665,6 +1670,7 @@ export const exportUtils = {
             }
         );
     },
+    /* c8 ignore stop */
 
     /**
      * Shares charts as URL with image upload to Imgur
@@ -1813,8 +1819,9 @@ export const exportUtils = {
      */
     showGyazoAccountManager() {
         const isAuthenticated = exportUtils.isGyazoAuthenticated(),
-            config = exportUtils.getGyazoConfig(),
-            hasCredentials = Boolean(config.clientId && /** @type {any} */ (config).clientSecret),
+            /** @type {GyazoConfig} */
+            config = /** @type {any} */ (exportUtils.getGyazoConfig()),
+            hasCredentials = Boolean((/** @type {GyazoConfig} */ (config)).clientId && (/** @type {GyazoConfig} */ (config)).clientSecret),
             // Create modal overlay
             overlay = document.createElement("div");
         overlay.style.cssText = `
@@ -2246,8 +2253,9 @@ export const exportUtils = {
      */
     updateGyazoAuthStatus(modal) {
         const isAuthenticated = exportUtils.isGyazoAuthenticated(),
-            config = exportUtils.getGyazoConfig(),
-            hasCredentials = Boolean(config.clientId && /** @type {any} */ (config).clientSecret),
+            /** @type {GyazoConfig} */
+            config = /** @type {any} */ (exportUtils.getGyazoConfig()),
+            hasCredentials = Boolean((/** @type {GyazoConfig} */ (config)).clientId && (/** @type {GyazoConfig} */ (config)).clientSecret),
             // Update auth status
             authStatus = modal.querySelector("#auth-status");
         if (authStatus) {
