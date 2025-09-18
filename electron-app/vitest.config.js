@@ -1,4 +1,6 @@
 import { coverageConfigDefaults, defaultExclude, defineConfig } from "vitest/config";
+import os from "node:os";
+import path from "node:path";
 
 
 export default defineConfig({
@@ -81,7 +83,7 @@ export default defineConfig({
             include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,
             spawnTimeout: 10_000,
-            tsconfig: "./tsconfig.json",
+            tsconfig: "./tsconfig.vitest.json",
         },
         reporters: [
             "default",
@@ -106,7 +108,19 @@ export default defineConfig({
             cleanOnRerun: true, // Clean on rerun in watch mode
             provider: "v8",
             reporter: ["text", "html", "json", "lcov"],
-            reportsDirectory: "./coverage",
+            // Work around Windows/Dropbox file locking on coverage temp folder by writing
+            // reports to the OS temp directory when running inside a Dropbox path.
+            // This avoids EBUSY on rmdir of coverage/.tmp during cleanup.
+            reportsDirectory: (() => {
+                const cwd = process.cwd();
+                const isWin = process.platform === "win32";
+                const inDropbox = /\\Dropbox\\/i.test(cwd) || /\/Dropbox\//i.test(cwd);
+                if (process.env.VITEST_COVERAGE_DIR) return process.env.VITEST_COVERAGE_DIR;
+                if (isWin && inDropbox) {
+                    return path.join(os.tmpdir(), "ffv-vitest-coverage");
+                }
+                return "./coverage";
+            })(),
             skipFull: false, // Don't skip full coverage collection
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
             experimentalAstAwareRemapping: false, // Temporarily disabled due to ast-v8-to-istanbul column parsing error

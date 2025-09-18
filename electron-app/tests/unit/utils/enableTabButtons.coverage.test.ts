@@ -3,28 +3,20 @@ import { JSDOM } from "jsdom";
 
 // Test for uncovered lines in enableTabButtons.js
 describe("enableTabButtons.js - Coverage Completion", () => {
-    let mockWindow: any;
-    let mockDocument: any;
+    let mockWindow;
+    let mockDocument;
 
     beforeEach(() => {
         const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
         mockWindow = dom.window;
         mockDocument = dom.window.document;
 
-        (global as any).window = mockWindow;
-        (global as any).document = mockDocument;
-
-        // Mock stateManager for enableTabButtons
-        vi.doMock("../../../utils/state/core/stateManager.js", () => ({
-            setState: vi.fn(),
-            getState: vi.fn(() => false),
-            subscribe: vi.fn(),
-        }));
+        global.window = /** @type {any} */ (mockWindow);
+        global.document = /** @type {any} */ (mockDocument);
     });
 
     afterEach(() => {
         vi.clearAllMocks();
-        vi.resetModules();
     });
 
     describe("Uncovered line coverage tests", () => {
@@ -56,7 +48,7 @@ describe("enableTabButtons.js - Coverage Completion", () => {
             expect(consoleSpy).toHaveBeenCalled();
             const logCalls = consoleSpy.mock.calls;
             const debugLogCall = logCalls.find(
-                (call: any[]) =>
+                (call) =>
                     call[0]?.includes("[TabButtons]") &&
                     call[0]?.includes("disabled=") &&
                     call[0]?.includes("tab-summary")
@@ -64,16 +56,14 @@ describe("enableTabButtons.js - Coverage Completion", () => {
             expect(debugLogCall).toBeTruthy();
 
             // Should also skip openFileBtn
-            const openFileBtnCall = logCalls.find((call: any[]) => call[0]?.includes("openFileBtn"));
+            const openFileBtnCall = logCalls.find((call) => call[0]?.includes("openFileBtn"));
             expect(openFileBtnCall).toBeFalsy();
 
             consoleSpy.mockRestore();
         });
 
         test("should cover MutationObserver unauthorized disable detection (lines 130-136)", async () => {
-            const { setTabButtonsEnabled, initializeTabButtonState } = await import(
-                "../../../utils/ui/controls/enableTabButtons.js"
-            );
+            const { setTabButtonsEnabled } = await import("../../../utils/ui/controls/enableTabButtons.js");
 
             // Create a tab button
             const button = mockDocument.createElement("button");
@@ -85,16 +75,13 @@ describe("enableTabButtons.js - Coverage Completion", () => {
             const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
             const traceSpy = vi.spyOn(console, "trace").mockImplementation(() => {});
 
-            // Initialize the tab button state management first (this sets up the MutationObserver)
-            initializeTabButtonState();
-
-            // Enable tab buttons
+            // Enable tab buttons first
             setTabButtonsEnabled(true);
 
             // Set the global flag that tabs are enabled
             mockWindow.tabButtonsCurrentlyEnabled = true;
 
-            // Wait a bit for initialization to complete
+            // Wait a bit for the MutationObserver to be set up
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             // Manually add disabled attribute (simulating unauthorized disable)
@@ -113,7 +100,7 @@ describe("enableTabButtons.js - Coverage Completion", () => {
 
             // Verify the disabled attribute was removed
             expect(button.hasAttribute("disabled")).toBe(false);
-            expect((button as HTMLButtonElement).disabled).toBe(false);
+            expect(button.disabled).toBe(false);
 
             warnSpy.mockRestore();
             traceSpy.mockRestore();
@@ -135,7 +122,7 @@ describe("enableTabButtons.js - Coverage Completion", () => {
             // Let's create a test scenario that would add the test handler
 
             // Simulate the test handler being added (this is development code)
-            const testHandler = (event: any) => {
+            const testHandler = (event) => {
                 console.log(`[TabButtons] TEST CLICK DETECTED on ${button.id}!`, event);
                 mockWindow.alert(`Clicked on ${button.id}!`);
             };

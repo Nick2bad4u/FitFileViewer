@@ -21,16 +21,16 @@ const mockSetState = vi.mocked(setState);
 const mockSubscribe = vi.mocked(subscribe);
 
 describe("updateActiveTab.js - Complete Test Suite", () => {
-    let testContainer: HTMLDivElement;
+    let testContainer;
 
     beforeEach(() => {
         // Reset all mocks
         vi.clearAllMocks();
 
         // Mock console methods to prevent errors
-        vi.spyOn(console, "log").mockImplementation(() => {});
-        vi.spyOn(console, "warn").mockImplementation(() => {});
-        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "log").mockImplementation(() => { });
+        vi.spyOn(console, "warn").mockImplementation(() => { });
+        vi.spyOn(console, "error").mockImplementation(() => { });
 
         // Set up DOM
         testContainer = document.createElement("div");
@@ -346,7 +346,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             document.getElementById = vi.fn().mockReturnValue(mockElement);
 
             // Spy on console.error to verify graceful error handling
-            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => { });
 
             // Should handle gracefully (not throw)
             expect(() => updateActiveTab("tab-test")).not.toThrow();
@@ -381,9 +381,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             updateActiveTab("tab-item50");
             const endTime = performance.now();
 
-            // Note: JSDOM/CI timing can fluctuate on shared runners. Keep this
-            // threshold generous to avoid flakes while still enforcing speed.
-            expect(endTime - startTime).toBeLessThan(30);
+            expect(endTime - startTime).toBeLessThan(25); // Should be very fast (allow slight variance in CI)
 
             const activeElement = document.getElementById("tab-item50");
             expect(activeElement?.classList.contains("active")).toBe(true);

@@ -101,7 +101,7 @@ description: "Generate 100% Test Coverage"
 ### Important AI Note
 - **Time constraint setting:** `unlimited`
 - **Compute Resource setting:** `unlimited`
-- **Thinking Mode setting:** `Super Think` and `Deep Think`
+- **Thinking Mode setting:** `Ultrathink`
 ---
 ## Success Criteria
 You cannot stop until you achieve full completion of ALL of these criteria:

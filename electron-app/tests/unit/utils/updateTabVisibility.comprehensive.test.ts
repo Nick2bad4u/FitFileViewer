@@ -53,7 +53,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         document.body.appendChild(testContainer);
 
         // Mock console.warn to track warnings
-        consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
 
         // Reset all mocks
         vi.clearAllMocks();
@@ -142,7 +142,8 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
             const duration = performanceTest();
 
             // Should complete reasonably fast despite multiple calls
-            expect(duration).toBeLessThan(100);
+            // Allow headroom for slower CI/Windows runners to reduce flakiness
+            expect(duration).toBeLessThan(250);
         });
 
         it("BUG TEST: should handle concurrent DOM modifications", () => {

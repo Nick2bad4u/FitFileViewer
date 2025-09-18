@@ -183,6 +183,7 @@
     ]
   },
   "scripts": {
+    "tests:convert-to-ts": "node ./scripts/convert-tests-to-ts.mjs",
     "test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --reporter=dot --silent",
     "test:jest": "jest",
     "start": "electron . --inspect=9229",

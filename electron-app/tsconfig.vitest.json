@@ -1,0 +1,29 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig.json",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Loosen rules for test files to ease migration to .ts
+    "strict": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "checkJs": false,
+    "allowJs": true,
+    "types": ["vitest", "node", "jsdom"],
+    "isolatedModules": false
+  },
+  "include": [
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "tests/**/*.mts",
+    "tests/**/*.cts",
+    "global.d.ts",
+    "tests/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "libs"
+  ]
+}
