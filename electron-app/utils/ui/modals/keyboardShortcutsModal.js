@@ -5,6 +5,64 @@ let lastFocusedElement = null,
     modalAnimationDuration = 300; // Animation duration in milliseconds
 
 /**
+ * Closes the keyboard shortcuts modal with smooth animations
+ */
+function closeKeyboardShortcutsModal() {
+    const modal = document.querySelector("#keyboard-shortcuts-modal");
+    if (!modal || modal.style.display === "none") {
+        return;
+    }
+
+    // Start closing animation
+    modal.classList.remove("show");
+
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        modal.style.display = "none";
+
+        // Restore focus
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+            lastFocusedElement = null;
+        }
+
+        // Restore body scrolling
+        document.body.style.overflow = "";
+    }, modalAnimationDuration);
+}
+
+/**
+ * Enhanced modal initialization with modern styling and smooth animations
+ */
+function ensureKeyboardShortcutsModal() {
+    const existingModal = document.querySelector("#keyboard-shortcuts-modal");
+    if (existingModal) {
+        console.log("Keyboard shortcuts modal already exists");
+        return;
+    }
+
+    console.log("Creating new keyboard shortcuts modal...");
+    const modal = document.createElement("div");
+    modal.id = "keyboard-shortcuts-modal";
+    modal.className = "modal fancy-modal";
+    modal.style.display = "none";
+    modal.innerHTML = getKeyboardShortcutsModalContent();
+    document.body.append(modal);
+    console.log("Modal element created and appended to body");
+
+    // Add global event listeners
+    document.addEventListener("keydown", handleShortcutsEscapeKey, true);
+
+    // Inject enhanced styles
+    injectKeyboardShortcutsModalStyles();
+    console.log("Modal styles injected");
+
+    // Setup event handlers
+    setupKeyboardShortcutsModalHandlers(modal);
+    console.log("Modal event handlers set up");
+}
+
+/**
  * Creates the enhanced keyboard shortcuts modal content with modern styling
  * @returns {string} HTML content for the modal
  */
@@ -13,35 +71,35 @@ function getKeyboardShortcutsModalContent() {
         {
             category: "File Operations",
             items: [
-                { action: "Open File", keys: "Ctrl+O", description: "Open a FIT file for analysis" },
-                { action: "Save As", keys: "Ctrl+S", description: "Save current data to file" },
-                { action: "Print", keys: "Ctrl+P", description: "Print current view" },
-                { action: "Close Window", keys: "Ctrl+W", description: "Close the application window" },
+                { action: "Open File", description: "Open a FIT file for analysis", keys: "Ctrl+O" },
+                { action: "Save As", description: "Save current data to file", keys: "Ctrl+S" },
+                { action: "Print", description: "Print current view", keys: "Ctrl+P" },
+                { action: "Close Window", description: "Close the application window", keys: "Ctrl+W" },
             ],
         },
         {
             category: "View Controls",
             items: [
-                { action: "Reload", keys: "Ctrl+R", description: "Refresh the current view" },
-                { action: "Toggle Fullscreen", keys: "F11", description: "Enter or exit fullscreen mode" },
-                { action: "Toggle DevTools", keys: "Ctrl+Shift+I", description: "Open developer tools for debugging" },
+                { action: "Reload", description: "Refresh the current view", keys: "Ctrl+R" },
+                { action: "Toggle Fullscreen", description: "Enter or exit fullscreen mode", keys: "F11" },
+                { action: "Toggle DevTools", description: "Open developer tools for debugging", keys: "Ctrl+Shift+I" },
             ],
         },
         {
             category: "Application",
             items: [
-                { action: "Export", keys: "No default", description: "Export data (assign in menu)" },
+                { action: "Export", description: "Export data (assign in menu)", keys: "No default" },
                 {
                     action: "Theme: Dark/Light",
-                    keys: "Settings > Theme",
                     description: "Switch between dark and light themes",
+                    keys: "Settings > Theme",
                 },
             ],
         },
     ];
 
     let shortcutsHtml = "";
-    shortcuts.forEach((category) => {
+    for (const category of shortcuts) {
         shortcutsHtml += `
 			<div class="shortcuts-category">
 				<h3 class="shortcuts-category-title">${category.category}</h3>
@@ -62,7 +120,7 @@ function getKeyboardShortcutsModalContent() {
 				</div>
 			</div>
 		`;
-    });
+    }
     return `
 		<div class="modal-backdrop">
 			<div class="modal-content">
@@ -94,41 +152,25 @@ function getKeyboardShortcutsModalContent() {
 }
 
 /**
- * Enhanced modal initialization with modern styling and smooth animations
+ * Handles Escape key for closing the keyboard shortcuts modal
+ * @param {any} event
  */
-function ensureKeyboardShortcutsModal() {
-    const existingModal = document.getElementById("keyboard-shortcuts-modal");
-    if (existingModal) {
-        console.log("Keyboard shortcuts modal already exists");
-        return;
+function handleShortcutsEscapeKey(event) {
+    if (event.key === "Escape") {
+        const modal = document.querySelector("#keyboard-shortcuts-modal");
+        if (modal && modal.style.display !== "none") {
+            event.preventDefault();
+            event.stopPropagation();
+            closeKeyboardShortcutsModal();
+        }
     }
-
-    console.log("Creating new keyboard shortcuts modal...");
-    const modal = document.createElement("div");
-    modal.id = "keyboard-shortcuts-modal";
-    modal.className = "modal fancy-modal";
-    modal.style.display = "none";
-    modal.innerHTML = getKeyboardShortcutsModalContent();
-    document.body.appendChild(modal);
-    console.log("Modal element created and appended to body");
-
-    // Add global event listeners
-    document.addEventListener("keydown", handleShortcutsEscapeKey, true);
-
-    // Inject enhanced styles
-    injectKeyboardShortcutsModalStyles();
-    console.log("Modal styles injected");
-
-    // Setup event handlers
-    setupKeyboardShortcutsModalHandlers(modal);
-    console.log("Modal event handlers set up");
 }
 
 /**
  * Injects enhanced CSS styles for the keyboard shortcuts modal
  */
 function injectKeyboardShortcutsModalStyles() {
-    if (document.getElementById("keyboard-shortcuts-modal-styles")) {
+    if (document.querySelector("#keyboard-shortcuts-modal-styles")) {
         return;
     }
     const style = document.createElement("style");
@@ -454,7 +496,7 @@ function injectKeyboardShortcutsModalStyles() {
 			box-shadow: 0 0 0 3px var(--color-glass);
 		}
 	`;
-    document.head.appendChild(style);
+    document.head.append(style);
 }
 
 /**
@@ -479,29 +521,14 @@ function setupKeyboardShortcutsModalHandlers(modal) {
 
     // Handle links for external navigation
     modal.addEventListener("click", (/** @type {any} */ e) => {
-        if (e.target.hasAttribute("data-external-link")) {
+        if (Object.hasOwn(e.target.dataset, "externalLink")) {
             e.preventDefault();
             const url = e.target.href || e.target.closest("a").href;
-            if (url && typeof window.electronAPI?.openExternal === "function") {
-                window.electronAPI.openExternal(url);
+            if (url && typeof globalThis.electronAPI?.openExternal === "function") {
+                globalThis.electronAPI.openExternal(url);
             }
         }
     });
-}
-
-/**
- * Handles Escape key for closing the keyboard shortcuts modal
- * @param {any} event
- */
-function handleShortcutsEscapeKey(event) {
-    if (event.key === "Escape") {
-        const modal = document.getElementById("keyboard-shortcuts-modal");
-        if (modal && modal.style.display !== "none") {
-            event.preventDefault();
-            event.stopPropagation();
-            closeKeyboardShortcutsModal();
-        }
-    }
 }
 
 /**
@@ -511,7 +538,7 @@ function showKeyboardShortcutsModal() {
     console.log("showKeyboardShortcutsModal function called");
     ensureKeyboardShortcutsModal();
 
-    const modal = document.getElementById("keyboard-shortcuts-modal");
+    const modal = document.querySelector("#keyboard-shortcuts-modal");
     console.log("Modal element found:", modal);
     if (!modal) {
         console.error("Modal element not found after ensureKeyboardShortcutsModal");
@@ -548,33 +575,6 @@ function showKeyboardShortcutsModal() {
 }
 
 /**
- * Closes the keyboard shortcuts modal with smooth animations
- */
-function closeKeyboardShortcutsModal() {
-    const modal = document.getElementById("keyboard-shortcuts-modal");
-    if (!modal || modal.style.display === "none") {
-        return;
-    }
-
-    // Start closing animation
-    modal.classList.remove("show");
-
-    // Wait for animation to complete before hiding
-    setTimeout(() => {
-        modal.style.display = "none";
-
-        // Restore focus
-        if (lastFocusedElement) {
-            lastFocusedElement.focus();
-            lastFocusedElement = null;
-        }
-
-        // Restore body scrolling
-        document.body.style.overflow = "";
-    }, modalAnimationDuration);
-}
-
-/**
  * Traps focus within the modal for accessibility
  * @param {any} modal
  */
@@ -588,7 +588,7 @@ function trapFocusInModal(modal) {
     }
 
     const firstElement = focusableElements[0],
-        lastElement = focusableElements[focusableElements.length - 1];
+        lastElement = focusableElements.at(-1);
 
     /**
      * @param {any} e
@@ -615,11 +615,11 @@ function trapFocusInModal(modal) {
 // Export functions for external use
 if (typeof module !== "undefined" && module.exports) {
     module.exports = {
-        showKeyboardShortcutsModal,
         closeKeyboardShortcutsModal,
+        showKeyboardShortcutsModal,
     };
 }
 
 // Also expose functions globally for direct access
-window.showKeyboardShortcutsModal = showKeyboardShortcutsModal;
-window.closeKeyboardShortcutsModal = closeKeyboardShortcutsModal;
+globalThis.showKeyboardShortcutsModal = showKeyboardShortcutsModal;
+globalThis.closeKeyboardShortcutsModal = closeKeyboardShortcutsModal;

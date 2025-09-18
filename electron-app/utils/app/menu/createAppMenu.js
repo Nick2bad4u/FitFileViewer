@@ -12,7 +12,7 @@ function getElectron() {
         return __electronCached;
     }
     try {
-        // eslint-disable-next-line global-require
+         
         const e = require("electron");
         __electronCached = /** @type {any} */ (e);
         return /** @type {any} */ (e);
@@ -38,7 +38,7 @@ function getConf() {
         const { Conf } = require("electron-conf");
         __confInstance = new Conf({ name: "settings" });
         return __confInstance;
-    } catch (err) {
+    } catch {
         // Fallback simple in-memory store for non-Electron/test environments
         /** @type {{ _store: Record<string, any>, get: (k: string, d?: any) => any, set: (k: string, v: any) => void }} */
         const fallback = {
@@ -61,87 +61,13 @@ let mainMenu = null;
 
 const decoderOptionDefaults = {
     applyScaleAndOffset: true,
-    expandSubFields: true,
-    expandComponents: true,
-    convertTypesToStrings: true,
     convertDateTimesToDates: true,
+    convertTypesToStrings: true,
+    expandComponents: true,
+    expandSubFields: true,
     includeUnknownData: true,
     mergeHeartRates: true,
 };
-
-function getDecoderOptions() {
-    return getConf().get("decoderOptions", decoderOptionDefaults);
-}
-
-/**
- * @param {*} key
- * @param {*} value
- */
-function setDecoderOption(key, value) {
-    const options = /** @type {Record<string, any>} */ (getDecoderOptions());
-    options[key] = value;
-    getConf().set("decoderOptions", options);
-    return options;
-}
-
-function getTheme() {
-    return getConf().get("theme", "dark");
-}
-
-/**
- * @param {*} theme
- */
-function setTheme(theme) {
-    getConf().set("theme", theme);
-}
-
-// Add platform-specific (macOS) App menu for About, Preferences, and Quit
-/**
- * @param {*} mainWindow
- */
-function getPlatformAppMenu(mainWindow) {
-    const { app, BrowserWindow } = /** @type {any} */ (getElectron());
-    if (process.platform === "darwin") {
-        return [
-            {
-                label: app.name,
-                submenu: [
-                    {
-                        label: "About",
-                        role: "about",
-                        click: () => {
-                            const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-about");
-                            }
-                        },
-                    },
-                    { type: "separator" },
-                    {
-                        label: "Preferences...",
-                        accelerator: "CmdOrCtrl+,",
-                        click: () => {
-                            const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-preferences");
-                            }
-                        },
-                    },
-                    { type: "separator" },
-                    { role: "services", submenu: [] },
-                    { type: "separator" },
-                    { role: "hide" },
-                    { role: "hideothers" },
-                    { role: "unhide" },
-                    { type: "separator" },
-                    { role: "quit" },
-                ],
-            },
-        ];
-    }
-    // For Windows/Linux, add About and Preferences to Help menu
-    return [];
-}
 
 /**
  * Builds and sets the application menu for the Electron app.
@@ -152,38 +78,38 @@ function getPlatformAppMenu(mainWindow) {
  * @param {string} [currentTheme=null] - The current theme of the application, used to set the checked state of theme radio buttons.
  * @param {string|null} [loadedFitFilePath=null] - The path of the loaded FIT file, used to enable/disable the Summary Columns menu item.
  */
-function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath = undefined) {
+function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     const el = /** @type {any} */ (getElectron());
     try {
         if (!el || !el.Menu) {
             // Provide visibility into why Menu isn't present in CI
-            // eslint-disable-next-line no-console
+             
             console.warn("[createAppMenu] Debug: electron module keys:", Object.keys(el || {}));
         }
     } catch { }
-    const { Menu, BrowserWindow, app, shell } = /** @type {any} */ (el);
+    const { app, BrowserWindow, Menu, shell } = /** @type {any} */ (el);
     const theme = currentTheme || getTheme();
     // Allow tests to inject recent files deterministically via a global hook
     /** @type {string[]} */
     let injectedRecentFiles = [];
     try {
         // @ts-ignore
-        const gf = typeof globalThis !== "undefined" ? /** @type {any} */ (globalThis).__mockRecentFiles : undefined;
-        if (Array.isArray(gf)) injectedRecentFiles = gf.slice();
+        const gf = typeof globalThis === "undefined" ? /** @type {any} */ undefined : (globalThis).__mockRecentFiles;
+        if (Array.isArray(gf)) injectedRecentFiles = [...gf];
     } catch { }
     // Lazy import recent files utils to ensure vi.mock hooks correctly
     /** @type {{ loadRecentFiles: () => string[], getShortRecentName: (p: string) => string }} */
     let recentUtils;
     try {
-        // eslint-disable-next-line global-require
+         
         recentUtils = require("../../../utils/files/recent/recentFiles");
     } catch {
         // Some builds may have a different relative path
         try {
-            // eslint-disable-next-line global-require
+             
             recentUtils = require("../../../utils/files/recent/recentFiles");
         } catch {
-            recentUtils = /** @type {any} */ ({ loadRecentFiles: () => [], getShortRecentName: (/** @type {string} */ p) => p });
+            recentUtils = /** @type {any} */ ({ getShortRecentName: (/** @type {string} */ p) => p, loadRecentFiles: () => [] });
         }
     }
     const recentFiles = injectedRecentFiles.length > 0
@@ -194,28 +120,28 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
     // }
 
     /** @type {any[]} */
-    const recentMenuItems =
+    const decoderOptionEmojis = {
+            applyScaleAndOffset: "📏",
+            convertDateTimesToDates: "📅",
+            convertTypesToStrings: "🔤",
+            expandComponents: "🔗",
+            expandSubFields: "🧩",
+            includeUnknownData: "❓",
+            mergeHeartRates: "❤️",
+        },
+        decoderOptions = getDecoderOptions(),
+        recentMenuItems =
         recentFiles.length > 0
             ? recentFiles.map((/** @type {string} */ file) => ({
-                label: recentUtils.getShortRecentName(file),
-                tooltip: file,
                 click: () => {
                     if (mainWindow && mainWindow.webContents) {
                         mainWindow.webContents.send("open-recent-file", file);
                     }
                 },
+                label: recentUtils.getShortRecentName(file),
+                tooltip: file,
             }))
-            : [{ label: "No Recent Files", enabled: false }],
-        decoderOptions = getDecoderOptions(),
-        decoderOptionEmojis = {
-            applyScaleAndOffset: "📏",
-            expandSubFields: "🧩",
-            expandComponents: "🔗",
-            convertTypesToStrings: "🔤",
-            convertDateTimesToDates: "📅",
-            includeUnknownData: "❓",
-            mergeHeartRates: "❤️",
-        };
+            : [{ enabled: false, label: "No Recent Files" }];
     /**
      * @param {*} decoderOptions
      * @param {*} decoderOptionEmojis
@@ -223,8 +149,6 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
      */
     function createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow) {
         return Object.keys(decoderOptionDefaults).map((key) => ({
-            label: `${decoderOptionEmojis[key] || ""} ${key}`.trim(),
-            type: "checkbox",
             checked: Boolean(decoderOptions[key]),
             click: /** @param {*} menuItem */ (menuItem) => {
                 const newOptions = setDecoderOption(key, menuItem.checked),
@@ -233,6 +157,8 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                     win.webContents.send("decoder-options-changed", newOptions);
                 }
             },
+            label: `${decoderOptionEmojis[key] || ""} ${key}`.trim(),
+            type: "checkbox",
         }));
     }
 
@@ -263,13 +189,13 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 label: "📁 File",
                 submenu: [
                     {
-                        label: "📂 Open...",
                         accelerator: "CmdOrCtrl+O",
                         click: () => {
                             if (mainWindow && mainWindow.webContents) {
                                 mainWindow.webContents.send("menu-open-file");
                             }
                         },
+                        label: "📂 Open...",
                     },
                     { type: "separator" },
                     {
@@ -277,8 +203,6 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                         submenu: [
                             ...recentMenuItems,
                             {
-                                label: "🧹 Clear Recent Files",
-                                enabled: recentFiles.length > 0,
                                 click: () => {
                                     const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
                                     getConf().set("recentFiles", []);
@@ -286,25 +210,25 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                         win.webContents.send("show-notification", "Recent files cleared.", "info");
                                         win.webContents.send("unload-fit-file");
                                     }
-                                    createAppMenu(win, /** @type {string} */(getTheme()), undefined);
+                                    createAppMenu(win, /** @type {string} */(getTheme());
                                 },
+                                enabled: recentFiles.length > 0,
+                                label: "🧹 Clear Recent Files",
                             },
                         ],
                     },
                     { type: "separator" },
                     {
-                        label: "❌ Unload File",
-                        enabled: Boolean(loadedFitFilePath),
                         click: () => {
                             const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
                             if (win && win.webContents) {
                                 win.webContents.send("unload-fit-file");
                             }
                         },
+                        enabled: Boolean(loadedFitFilePath),
+                        label: "❌ Unload File",
                     },
                     {
-                        label: "💾 Save As...",
-                        enabled: Boolean(loadedFitFilePath),
                         accelerator: "CmdOrCtrl+S",
                         click: () => {
                             const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
@@ -312,20 +236,20 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 win.webContents.send("menu-save-as");
                             }
                         },
+                        enabled: Boolean(loadedFitFilePath),
+                        label: "💾 Save As...",
                     },
                     {
-                        label: "📤 Export...",
-                        enabled: Boolean(loadedFitFilePath),
                         click: () => {
                             const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
                             if (win && win.webContents) {
                                 win.webContents.send("menu-export");
                             }
                         },
+                        enabled: Boolean(loadedFitFilePath),
+                        label: "📤 Export...",
                     },
                     {
-                        label: "🖨️ Print...",
-                        enabled: Boolean(loadedFitFilePath),
                         accelerator: "CmdOrCtrl+P",
                         click: () => {
                             const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
@@ -333,10 +257,11 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 win.webContents.send("menu-print");
                             }
                         },
+                        enabled: Boolean(loadedFitFilePath),
+                        label: "🖨️ Print...",
                     },
                     { type: "separator" },
                     {
-                        label: "🚪 Close Window",
                         accelerator: "CmdOrCtrl+W",
                         click: () => {
                             const win = BrowserWindow.getFocusedWindow();
@@ -344,25 +269,26 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 win.close();
                             }
                         },
+                        label: "🚪 Close Window",
                     },
                     { type: "separator" },
-                    { role: "quit", label: "❎ Quit" },
+                    { label: "❎ Quit", role: "quit" },
                 ],
             },
             {
                 label: "👁️ View",
                 submenu: [
-                    { role: "reload", label: "🔄 Reload" },
-                    { role: "forcereload", label: "🔁 Force Reload" },
-                    { role: "toggledevtools", label: "🛠️ Toggle DevTools" },
+                    { label: "🔄 Reload", role: "reload" },
+                    { label: "🔁 Force Reload", role: "forcereload" },
+                    { label: "🛠️ Toggle DevTools", role: "toggledevtools" },
                     { type: "separator" },
-                    { role: "resetzoom", label: "🔎 Reset Zoom" },
-                    { role: "zoomin", label: "➕ Zoom In" },
-                    { role: "zoomout", label: "➖ Zoom Out" },
+                    { label: "🔎 Reset Zoom", role: "resetzoom" },
+                    { label: "➕ Zoom In", role: "zoomin" },
+                    { label: "➖ Zoom Out", role: "zoomout" },
                     { type: "separator" },
                     {
-                        label: "🖥️ Toggle Fullscreen",
                         accelerator: "F11",
+                        label: "🖥️ Toggle Fullscreen",
                         role: "togglefullscreen",
                     },
                     { type: "separator" },
@@ -373,8 +299,6 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 label: "🔡 Font Size",
                                 submenu: [
                                     {
-                                        label: "🅰️ Extra Small",
-                                        type: "radio",
                                         checked: getConf().get("fontSize", "medium") === "xsmall",
                                         click: () => {
                                             getConf().set("fontSize", "xsmall");
@@ -383,10 +307,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-font-size", "xsmall");
                                             }
                                         },
+                                        label: "🅰️ Extra Small",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "🔠 Small",
-                                        type: "radio",
                                         checked: getConf().get("fontSize", "medium") === "small",
                                         click: () => {
                                             getConf().set("fontSize", "small");
@@ -395,10 +319,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-font-size", "small");
                                             }
                                         },
+                                        label: "🔠 Small",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "🔤 Medium",
-                                        type: "radio",
                                         checked: getConf().get("fontSize", "medium") === "medium",
                                         click: () => {
                                             getConf().set("fontSize", "medium");
@@ -407,10 +331,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-font-size", "medium");
                                             }
                                         },
+                                        label: "🔤 Medium",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "🔡 Large",
-                                        type: "radio",
                                         checked: getConf().get("fontSize", "medium") === "large",
                                         click: () => {
                                             getConf().set("fontSize", "large");
@@ -419,10 +343,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-font-size", "large");
                                             }
                                         },
+                                        label: "🔡 Large",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "🅰️ Extra Large",
-                                        type: "radio",
                                         checked: getConf().get("fontSize", "medium") === "xlarge",
                                         click: () => {
                                             getConf().set("fontSize", "xlarge");
@@ -431,6 +355,8 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-font-size", "xlarge");
                                             }
                                         },
+                                        label: "🅰️ Extra Large",
+                                        type: "radio",
                                     },
                                 ],
                             },
@@ -438,8 +364,6 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 label: "🎨 High Contrast Mode",
                                 submenu: [
                                     {
-                                        label: "⬛ Black (Default)",
-                                        type: "radio",
                                         checked: getConf().get("highContrast", "black") === "black",
                                         click: () => {
                                             getConf().set("highContrast", "black");
@@ -448,10 +372,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-high-contrast", "black");
                                             }
                                         },
+                                        label: "⬛ Black (Default)",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "⬜ White",
-                                        type: "radio",
                                         checked: getConf().get("highContrast", "black") === "white",
                                         click: () => {
                                             getConf().set("highContrast", "white");
@@ -460,10 +384,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-high-contrast", "white");
                                             }
                                         },
+                                        label: "⬜ White",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "🟨 Yellow",
-                                        type: "radio",
                                         checked: getConf().get("highContrast", "black") === "yellow",
                                         click: () => {
                                             getConf().set("highContrast", "yellow");
@@ -472,10 +396,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-high-contrast", "yellow");
                                             }
                                         },
+                                        label: "🟨 Yellow",
+                                        type: "radio",
                                     },
                                     {
-                                        label: "🚫 Off",
-                                        type: "radio",
                                         checked: getConf().get("highContrast", "off") === "off",
                                         click: () => {
                                             getConf().set("highContrast", "off");
@@ -484,6 +408,8 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                                 win.webContents.send("set-high-contrast", "off");
                                             }
                                         },
+                                        label: "🚫 Off",
+                                        type: "radio",
                                     },
                                 ],
                             },
@@ -498,8 +424,6 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                         label: "🎨 Theme",
                         submenu: [
                             {
-                                label: "🌑 Dark",
-                                type: "radio",
                                 checked: theme === "dark" || !theme,
                                 click: () => {
                                     setTheme("dark");
@@ -508,10 +432,10 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                         win.webContents.send("set-theme", "dark");
                                     }
                                 },
+                                label: "🌑 Dark",
+                                type: "radio",
                             },
                             {
-                                label: "🌕 Light",
-                                type: "radio",
                                 checked: theme === "light",
                                 click: () => {
                                     setTheme("light");
@@ -520,28 +444,30 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                         win.webContents.send("set-theme", "light");
                                     }
                                 },
+                                label: "🌕 Light",
+                                type: "radio",
                             },
                         ],
                     },
                     {
-                        label: "📊 Summary Columns...",
-                        enabled: Boolean(loadedFitFilePath),
                         click: () => {
                             const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
                             if (win && win.webContents) {
                                 win.webContents.send("open-summary-column-selector");
                             }
                         },
+                        enabled: Boolean(loadedFitFilePath),
+                        label: "📊 Summary Columns...",
                     },
                     decoderOptionsMenu,
                     {
-                        label: "🔄 Check for Updates...",
                         click: () => {
                             const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
                             if (win && win.webContents) {
                                 win.webContents.send("menu-check-for-updates");
                             }
                         },
+                        label: "🔄 Check for Updates...",
                     },
                 ],
             },
@@ -549,17 +475,16 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                 label: "❓ Help",
                 submenu: [
                     {
-                        label: "ℹ️ About",
                         click: () => {
                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                             if (win && win.webContents) {
                                 win.webContents.send("menu-about");
                             }
                         },
+                        label: "ℹ️ About",
                     },
                     { type: "separator" },
                     {
-                        label: "📖 Documentation",
                         click: () => {
                             if (shell && typeof shell.openExternal === "function") {
                                 shell.openExternal(
@@ -567,17 +492,17 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 );
                             }
                         },
+                        label: "📖 Documentation",
                     },
                     {
-                        label: "🌐 GitHub Repository",
                         click: () => {
                             if (shell && typeof shell.openExternal === "function") {
                                 shell.openExternal("https://github.com/Nick2bad4u/FitFileViewer");
                             }
                         },
+                        label: "🌐 GitHub Repository",
                     },
                     {
-                        label: "❗Report an Issue",
                         click: () => {
                             if (shell && typeof shell.openExternal === "function") {
                                 shell.openExternal(
@@ -585,27 +510,28 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
                                 );
                             }
                         },
+                        label: "❗Report an Issue",
                     },
                     { type: "separator" },
                     {
-                        label: "⌨️ Keyboard Shortcuts",
                         click: () => {
                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                             if (win && win.webContents) {
                                 win.webContents.send("menu-keyboard-shortcuts");
                             }
                         },
+                        label: "⌨️ Keyboard Shortcuts",
                     },
                     {
-                        label: "🔄 Restart and Update",
-                        enabled: false, // Will be enabled via IPC when update is downloaded
-                        id: "restart-update",
                         click: () => {
                             const win = BrowserWindow.getFocusedWindow() || mainWindow;
                             if (win && win.webContents) {
                                 win.webContents.send("menu-restart-update");
                             }
                         },
+                        enabled: false, // Will be enabled via IPC when update is downloaded
+                        id: "restart-update",
+                        label: "🔄 Restart and Update",
                     },
                 ],
             },
@@ -616,7 +542,7 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
         const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item)["label"]);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
-            console.log("[createAppMenu] Debug: recentFiles loaded:", Array.isArray(recentFiles) ? recentFiles.slice() : recentFiles);
+            console.log("[createAppMenu] Debug: recentFiles loaded:", Array.isArray(recentFiles) ? [...recentFiles] : recentFiles);
         } catch { }
     }
     if (!Array.isArray(template) || template.length === 0) {
@@ -643,9 +569,83 @@ function createAppMenu(mainWindow, currentTheme = undefined, loadedFitFilePath =
             }
         } catch { }
         console.warn("[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests.");
-    } catch (err) {
-        console.error("[createAppMenu] ERROR: Failed to set application menu:", err);
+    } catch (error) {
+        console.error("[createAppMenu] ERROR: Failed to set application menu:", error);
     }
+}
+
+function getDecoderOptions() {
+    return getConf().get("decoderOptions", decoderOptionDefaults);
+}
+
+// Add platform-specific (macOS) App menu for About, Preferences, and Quit
+/**
+ * @param {*} mainWindow
+ */
+function getPlatformAppMenu(mainWindow) {
+    const { app, BrowserWindow } = /** @type {any} */ (getElectron());
+    if (process.platform === "darwin") {
+        return [
+            {
+                label: app.name,
+                submenu: [
+                    {
+                        click: () => {
+                            const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
+                            if (win && win.webContents) {
+                                win.webContents.send("menu-about");
+                            }
+                        },
+                        label: "About",
+                        role: "about",
+                    },
+                    { type: "separator" },
+                    {
+                        accelerator: "CmdOrCtrl+,",
+                        click: () => {
+                            const win = mainWindow || (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function" ? BrowserWindow.getFocusedWindow() : null);
+                            if (win && win.webContents) {
+                                win.webContents.send("menu-preferences");
+                            }
+                        },
+                        label: "Preferences...",
+                    },
+                    { type: "separator" },
+                    { role: "services", submenu: [] },
+                    { type: "separator" },
+                    { role: "hide" },
+                    { role: "hideothers" },
+                    { role: "unhide" },
+                    { type: "separator" },
+                    { role: "quit" },
+                ],
+            },
+        ];
+    }
+    // For Windows/Linux, add About and Preferences to Help menu
+    return [];
+}
+
+function getTheme() {
+    return getConf().get("theme", "dark");
+}
+
+/**
+ * @param {*} key
+ * @param {*} value
+ */
+function setDecoderOption(key, value) {
+    const options = /** @type {Record<string, any>} */ (getDecoderOptions());
+    options[key] = value;
+    getConf().set("decoderOptions", options);
+    return options;
+}
+
+/**
+ * @param {*} theme
+ */
+function setTheme(theme) {
+    getConf().set("theme", theme);
 }
 
 module.exports = { createAppMenu };

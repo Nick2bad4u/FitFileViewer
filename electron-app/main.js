@@ -52,7 +52,7 @@ try {
                 } catch { }
             });
         } catch { }
-        // eslint-disable-next-line global-require
+         
         const __e = /** @type {any} */ (require("electron"));
         const __mod = __e && (__e.app || __e.BrowserWindow) ? __e : (__e && __e.default) ? __e.default : __e;
         try {
@@ -75,12 +75,12 @@ function getElectron() {
     // Always handle CJS/ESM interop so hoisted mocks (which may be wrapped) are respected in tests
     try {
         if (__electronOverride) return __electronOverride;
-        // eslint-disable-next-line global-require
+         
         const mod = require("electron");
         // Prefer the variant that actually exposes Electron APIs (supports hoisted getter-based mocks)
         const hasApis = (/** @type {any} */ m) => m && (m.app || m.BrowserWindow || m.ipcMain || m.Menu || m.shell || m.dialog);
         if (hasApis(mod)) return mod;
-        const def = /** @type {any} */ (mod)["default"];
+        const def = /** @type {any} */ (mod).default;
         if (hasApis(def)) return def;
         return mod || /** @type {any} */ ({});
     } catch {
@@ -100,7 +100,7 @@ try {
         let __primeAttempts = 0;
         const __retryPrime = () => {
             try {
-                // eslint-disable-next-line global-require
+                 
                 const raw = /** @type {any} */ (require("electron"));
                 const mod = raw && (raw.app || raw.BrowserWindow) ? raw : (raw && raw.default) ? raw.default : raw;
                 const app = (() => {
@@ -140,50 +140,122 @@ try {
         setTimeout(__retryPrime, 0);
     }
 } catch { }
-const path = require("path");
-const fs = require("fs");
-const http = require("http");
-const url = require("url");
+const fs = require("node:fs");
+const http = require("node:http");
+const path = require("node:path");
+const url = require("node:url");
 // Auto-updater: defer require to inside setupAutoUpdater to avoid require-time side-effects in tests
 
-const { loadRecentFiles, addRecentFile } = require("./utils/files/recent/recentFiles");
-const { mainProcessState } = require("./utils/state/integration/mainProcessStateManager"),
-    // Constants
+const { addRecentFile, loadRecentFiles } = require("./utils/files/recent/recentFiles");
+const // Constants
     CONSTANTS = {
         DEFAULT_THEME: "dark",
-        THEME_STORAGE_KEY: "ffv-theme",
-        SETTINGS_CONFIG_NAME: "settings",
+        DIALOG_FILTERS: {
+            ALL_FILES: [
+                { extensions: ["fit"], name: "FIT Files" },
+                { extensions: ["*"], name: "All Files" },
+            ],
+            EXPORT_FILES: [
+                { extensions: ["csv"], name: "CSV (Summary Table)" },
+                { extensions: ["gpx"], name: "GPX (Track)" },
+                { extensions: ["*"], name: "All Files" },
+            ],
+            FIT_FILES: [{ extensions: ["fit"], name: "FIT Files" }],
+        },
         LOG_LEVELS: {
+            ERROR: "error",
             INFO: "info",
             WARN: "warn",
-            ERROR: "error",
         },
         PLATFORMS: {
             DARWIN: "darwin",
             LINUX: "linux",
             WIN32: "win32",
         },
-        DIALOG_FILTERS: {
-            FIT_FILES: [{ name: "FIT Files", extensions: ["fit"] }],
-            EXPORT_FILES: [
-                { name: "CSV (Summary Table)", extensions: ["csv"] },
-                { name: "GPX (Track)", extensions: ["gpx"] },
-                { name: "All Files", extensions: ["*"] },
-            ],
-            ALL_FILES: [
-                { name: "FIT Files", extensions: ["fit"] },
-                { name: "All Files", extensions: ["*"] },
-            ],
-        },
+        SETTINGS_CONFIG_NAME: "settings",
+        THEME_STORAGE_KEY: "ffv-theme",
         UPDATE_EVENTS: {
-            CHECKING: "update-checking",
             AVAILABLE: "update-available",
-            NOT_AVAILABLE: "update-not-available",
-            ERROR: "update-error",
+            CHECKING: "update-checking",
             DOWNLOAD_PROGRESS: "update-download-progress",
             DOWNLOADED: "update-downloaded",
+            ERROR: "update-error",
+            NOT_AVAILABLE: "update-not-available",
+        },
+    },
+    { mainProcessState } = require("./utils/state/integration/mainProcessStateManager");
+
+async function __resolveAutoUpdaterAsync() {
+    try {
+        const mod = /** @type {any} */ (await import("electron-updater"));
+        return (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod;
+    } catch {
+        return __resolveAutoUpdaterSync();
+    }
+}
+
+// Resolve electron-updater's autoUpdater across CJS/ESM and mocks
+function __resolveAutoUpdaterSync() {
+    try {
+         
+        const mod = /** @type {any} */ (require("electron-updater"));
+        return (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod;
+    } catch {
+        return /** @type {any} */;
+    }
+}
+
+// Enhanced error handling wrapper
+/**
+ * @param {Function} operation
+ * @returns {Function}
+ */
+// @ts-expect-error - Function designed for future use, currently unused
+function _createErrorHandler(operation) {
+    return async (/** @type {any} */ ...args) => {
+        try {
+            return await operation(...args);
+        } catch (error) {
+            logWithContext("error", `Error in ${operation.name || "operation"}:`, {
+                error: /** @type {Error} */ (error).message,
+                stack: /** @type {Error} */ (error).stack,
+            });
+            throw error;
+        }
+    };
+}
+
+// Cleanup functions
+function cleanupEventHandlers() {
+    mainProcessState.cleanupEventHandlers();
+}
+
+// Development helpers
+function exposeDevHelpers() {
+    /** @type {any} */ (globalThis).devHelpers = {
+        cleanupEventHandlers,
+        getAppState: () => mainProcessState.data,
+        logState: () => {
+            logWithContext("info", "Current application state:", {
+                eventHandlersCount: mainProcessState.data.eventHandlers.size,
+                hasMainWindow: Boolean(getAppState("mainWindow")),
+                loadedFitFilePath: getAppState("loadedFitFilePath"),
+            });
+        },
+        rebuildMenu: (/** @type {any} */ theme, /** @type {any} */ filePath) => {
+            const win = BrowserWindowRef().getFocusedWindow();
+            if (validateWindow(win, "dev helper rebuild menu")) {
+                safeCreateAppMenu(
+                    /** @type {any} */(win),
+                    theme || CONSTANTS.DEFAULT_THEME,
+                    filePath || getAppState("loadedFitFilePath")
+                );
+            }
         },
     };
+
+    logWithContext("info", "Development helpers exposed on global.devHelpers");
+}
 
 // State getters and setters using the new state management system
 /**
@@ -191,76 +263,6 @@ const { mainProcessState } = require("./utils/state/integration/mainProcessState
  */
 function getAppState(path) {
     return mainProcessState.get(path);
-}
-
-// Lazy, test-safe menu builder to avoid import-time Electron access in tests
-/**
- * Test-safe menu creation that avoids accessing Electron at import-time.
- * @param {any} mainWindow
- * @param {string} theme
- * @param {string | undefined} loadedFitFilePath
- */
-function safeCreateAppMenu(mainWindow, theme, loadedFitFilePath) {
-    try {
-        // In unit tests, skip importing the real module to avoid app.isPackaged access
-        if ((/** @type {any} */ (process.env)).NODE_ENV === "test") {
-            return; // no-op in tests (menu interactions are validated via mocks)
-        }
-        // Lazy-load to avoid require-time side effects and to support environments without Electron
-        const mod = require("./utils/app/menu/createAppMenu");
-        const fn = mod && mod.createAppMenu;
-        if (typeof fn === "function") {
-            fn(mainWindow, theme, loadedFitFilePath);
-        }
-    } catch (err) {
-        logWithContext("warn", "Skipping menu creation (unavailable in this environment)", {
-            error: /** @type {Error} */ (err).message,
-        });
-    }
-}
-
-/**
- * @param {string} path
- * @param {any} value
- */
-function setAppState(path, value, options = {}) {
-    return mainProcessState.set(path, value, options);
-}
-
-// Utility functions
-/**
- * @param {any} win
- */
-function isWindowUsable(win) {
-    if (!win) return false;
-    try {
-        const hasWebContents = !!win.webContents;
-        const wcd =
-            hasWebContents && typeof win.webContents.isDestroyed === "function" ? win.webContents.isDestroyed() : true;
-        const wd = typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
-        return Boolean(!wd && hasWebContents && !wcd);
-    } catch {
-        return false;
-    }
-}
-
-/**
- * @param {any} win
- */
-function validateWindow(win, context = "unknown operation") {
-    if (!isWindowUsable(win)) {
-        // Only log warning if window should exist but doesn't (avoid noise during normal shutdown)
-        if (!getAppState("appIsQuitting")) {
-            logWithContext("warn", `Window validation failed during ${context}`, {
-                hasWindow: Boolean(win),
-                isDestroyed: win?.isDestroyed(),
-                hasWebContents: Boolean(win?.webContents),
-                webContentsDestroyed: win?.webContents?.isDestroyed(),
-            });
-        }
-        return false;
-    }
-    return true;
 }
 
 /**
@@ -274,30 +276,19 @@ async function getThemeFromRenderer(win) {
     try {
         const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
         return theme || CONSTANTS.DEFAULT_THEME;
-    } catch (err) {
-        console.error("[main.js] Failed to get theme from renderer:", err);
+    } catch (error) {
+        console.error("[main.js] Failed to get theme from renderer:", error);
         return CONSTANTS.DEFAULT_THEME;
-    }
-}
-
-/**
- * @param {any} win
- * @param {any} channel
- * @param {...any} args
- */
-function sendToRenderer(win, channel, ...args) {
-    if (validateWindow(win, `IPC send to ${channel}`)) {
-        win.webContents.send(channel, ...args);
     }
 }
 
 // Unconditional minimal priming so import-based tests see whenReady and getAllWindows calls
 try {
-    // eslint-disable-next-line global-require
+     
     const __prime_mod = /** @type {any} */ (require("electron"));
     const __prime = __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
         ? __prime_mod
-        : (__prime_mod && __prime_mod["default"]) ? __prime_mod["default"] : __prime_mod;
+        : (__prime_mod && __prime_mod.default) ? __prime_mod.default : __prime_mod;
     const __prime_app = __prime && __prime.app;
     const __prime_BW = __prime && __prime.BrowserWindow;
     let __prime_app_val = __prime_app;
@@ -344,147 +335,12 @@ try {
     }
 } catch { }
 
-/**
- * @param {any} level
- * @param {any} message
- */
-function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString(),
-        hasContext = context && typeof context === "object" && Object.keys(context).length > 0;
-    if (hasContext) {
-        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, JSON.stringify(context));
-    } else {
-        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`);
-    }
-}
-
-// Enhanced error handling wrapper
-/**
- * @param {Function} operation
- * @returns {Function}
- */
-// @ts-expect-error - Function designed for future use, currently unused
-function _createErrorHandler(operation) {
-    return async (/** @type {any} */ ...args) => {
-        try {
-            return await operation(...args);
-        } catch (error) {
-            logWithContext("error", `Error in ${operation.name || "operation"}:`, {
-                error: /** @type {Error} */ (error).message,
-                stack: /** @type {Error} */ (error).stack,
-            });
-            throw error;
-        }
-    };
-}
-
-// Resolve electron-updater's autoUpdater across CJS/ESM and mocks
-function __resolveAutoUpdaterSync() {
-    try {
-        // eslint-disable-next-line global-require
-        const mod = /** @type {any} */ (require("electron-updater"));
-        return (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod;
-    } catch {
-        return /** @type {any} */ (undefined);
-    }
-}
-async function __resolveAutoUpdaterAsync() {
-    try {
-        const mod = /** @type {any} */ (await import("electron-updater"));
-        return (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod;
-    } catch {
-        return __resolveAutoUpdaterSync();
-    }
-}
-
-// Enhanced Auto-Updater Setup with better error handling
-/**
- * @param {any} mainWindow
- * @param {any} [providedAutoUpdater]
- */
-function setupAutoUpdater(mainWindow, providedAutoUpdater) {
-    // Lazy-load electron-updater to avoid require-time side effects (supports mocks and ESM/CJS)
-    const autoUpdater = providedAutoUpdater || __resolveAutoUpdaterSync();
-    if (!isWindowUsable(mainWindow)) {
-        // Emit a single plain warn string as expected by tests
-        console.warn("Cannot setup auto-updater: main window is not usable");
-        return;
-    }
-
-    // Set feed URL if needed (autoUpdater will use GitHub by default if configured in package.json)
-    autoUpdater.autoDownload = true;
-
-    // Enhanced logger initialization
-    try {
-        const log = require("electron-log");
-        if (log) {
-            autoUpdater.logger = log;
-        } else {
-            logWithContext("warn", "Logger initialization failed. Falling back to console logging.");
-            autoUpdater.logger = console;
-        }
-    } catch (err) {
-        logWithContext("error", "Error initializing logger:", { error: /** @type {Error} */ (err).message });
-        autoUpdater.logger = console;
-    }
-
-    // Type cast logger to access transports property
-    /** @type {any} */ (autoUpdater.logger).transports.file.level = CONSTANTS.LOG_LEVELS.INFO;
-
-    // Enhanced logging for update feed URL - type cast autoUpdater to access feedURL
-    if (/** @type {any} */ (autoUpdater).feedURL !== undefined && /** @type {any} */ (autoUpdater).feedURL !== null) {
-        const feedInfo = { feedURL: /** @type {any} */ (autoUpdater).feedURL };
-        autoUpdater.logger.info(`AutoUpdater feed URL: ${/** @type {any} */ (autoUpdater).feedURL}`);
-        logWithContext("info", "AutoUpdater feed URL configured", feedInfo);
-    } else {
-        autoUpdater.logger.info("AutoUpdater using default feed (likely GitHub releases)");
-        logWithContext("info", "AutoUpdater using default feed (likely GitHub releases)");
-    }
-
-    // Enhanced event handlers with better error handling
-    const updateEventHandlers = {
-        "checking-for-update": () => {
-            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.CHECKING);
-        },
-        "update-available": (/** @type {any} */ info) => {
-            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.AVAILABLE, info);
-        },
-        "update-not-available": (/** @type {any} */ info) => {
-            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.NOT_AVAILABLE, info);
-        },
-        error: (/** @type {any} */ err) => {
-            const errorMessage = err == null ? "unknown" : err.message || err.toString();
-            if (autoUpdater.logger) {
-                autoUpdater.logger.error(`AutoUpdater Error: ${errorMessage}`);
-            }
-            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.ERROR, errorMessage);
-        },
-        "download-progress": (/** @type {any} */ progressObj) => {
-            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOAD_PROGRESS, progressObj);
-        },
-        "update-downloaded": (/** @type {any} */ info) => {
-            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOADED, info);
-            const menu = MenuRef() && MenuRef().getApplicationMenu ? MenuRef().getApplicationMenu() : null;
-            if (menu) {
-                const restartItem = menu.getMenuItemById("restart-update");
-                if (restartItem && restartItem.enabled !== undefined) {
-                    restartItem.enabled = true;
-                }
-            }
-        },
-    }; // Register all update event handlers
-    Object.entries(updateEventHandlers).forEach(([event, handler]) => {
-        /** @type {any} */ (autoUpdater).on(event, handler);
-        mainProcessState.registerEventHandler(autoUpdater, event, handler, `autoUpdater:${event}`);
-    });
-}
-
 // Enhanced application initialization
 async function initializeApplication() {
     // In tests, proactively invoke whenReady via direct require to satisfy spy expectations
     if ((/** @type {any} */ (process.env).NODE_ENV) === "test") {
         try {
-            // eslint-disable-next-line global-require
+             
             const { app: __wa } = require("electron");
             if (__wa && typeof __wa.whenReady === "function") {
                 try { __wa.whenReady(); } catch { }
@@ -492,9 +348,9 @@ async function initializeApplication() {
         } catch { }
     }
     // In test or when BrowserWindow is not a constructor (mocked object), avoid requiring
-    // windowStateUtils (which destructures electron at import-time) and instead use an
-    // existing window from BrowserWindow.getAllWindows(). This prevents "BrowserWindow is not a constructor"
-    // errors under hoisted getter-based mocks.
+    // WindowStateUtils (which destructures electron at import-time) and instead use an
+    // Existing window from BrowserWindow.getAllWindows(). This prevents "BrowserWindow is not a constructor"
+    // Errors under hoisted getter-based mocks.
     const BW = BrowserWindowRef();
     const isConstructor = typeof BW === "function";
 
@@ -506,7 +362,7 @@ async function initializeApplication() {
             // Prefer direct require to ensure we access hoisted getter-based mocks
             let list;
             try {
-                // eslint-disable-next-line global-require
+                 
                 const { BrowserWindow: __tBW } = require("electron");
                 if (__tBW && typeof __tBW.getAllWindows === "function") {
                     try { list = __tBW.getAllWindows(); } catch { }
@@ -523,10 +379,10 @@ async function initializeApplication() {
             mainWindow = {
                 isDestroyed: () => false,
                 webContents: {
+                    executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
                     isDestroyed: () => false,
                     on: () => { },
                     send: () => { },
-                    executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
                 },
             };
         }
@@ -577,11 +433,86 @@ async function initializeApplication() {
     return mainWindow;
 }
 
+// Utility functions
+/**
+ * @param {any} win
+ */
+function isWindowUsable(win) {
+    if (!win) return false;
+    try {
+        const hasWebContents = Boolean(win.webContents);
+        const wcd =
+            hasWebContents && typeof win.webContents.isDestroyed === "function" ? win.webContents.isDestroyed() : true;
+        const wd = typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
+        return Boolean(!wd && hasWebContents && !wcd);
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * @param {any} level
+ * @param {any} message
+ */
+function logWithContext(level, message, context = {}) {
+    const hasContext = context && typeof context === "object" && Object.keys(context).length > 0,
+        timestamp = new Date().toISOString();
+    if (hasContext) {
+        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`, JSON.stringify(context));
+    } else {
+        /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`);
+    }
+}
+// Lazy, test-safe menu builder to avoid import-time Electron access in tests
+/**
+ * Test-safe menu creation that avoids accessing Electron at import-time.
+ * @param {any} mainWindow
+ * @param {string} theme
+ * @param {string | undefined} loadedFitFilePath
+ */
+function safeCreateAppMenu(mainWindow, theme, loadedFitFilePath) {
+    try {
+        // In unit tests, skip importing the real module to avoid app.isPackaged access
+        if ((/** @type {any} */ (process.env)).NODE_ENV === "test") {
+            return; // No-op in tests (menu interactions are validated via mocks)
+        }
+        // Lazy-load to avoid require-time side effects and to support environments without Electron
+        const mod = require("./utils/app/menu/createAppMenu");
+        const fn = mod && mod.createAppMenu;
+        if (typeof fn === "function") {
+            fn(mainWindow, theme, loadedFitFilePath);
+        }
+    } catch (error) {
+        logWithContext("warn", "Skipping menu creation (unavailable in this environment)", {
+            error: /** @type {Error} */ (error).message,
+        });
+    }
+}
+
+/**
+ * @param {any} win
+ * @param {any} channel
+ * @param {...any} args
+ */
+function sendToRenderer(win, channel, ...args) {
+    if (validateWindow(win, `IPC send to ${channel}`)) {
+        win.webContents.send(channel, ...args);
+    }
+}
+
+/**
+ * @param {string} path
+ * @param {any} value
+ */
+function setAppState(path, value, options = {}) {
+    return mainProcessState.set(path, value, options);
+}
+
 // Ultra-early test-only init to satisfy import-based coverage expectations even if later blocks abort
 try {
     if (/** @type {any} */ (process.env).NODE_ENV === "test") {
         try {
-            // eslint-disable-next-line global-require
+             
             const { app: __t_app, BrowserWindow: __t_BW } = require("electron");
             if (__t_app && typeof __t_app.whenReady === "function") {
                 try { __t_app.whenReady(); } catch { }
@@ -598,6 +529,215 @@ try {
         } catch { }
     }
 } catch { }
+// Enhanced application event handlers
+function setupApplicationEventHandlers() {
+    // App activation handler (macOS)
+    appRef().on("activate", () => {
+        if (BrowserWindowRef().getAllWindows().length === 0) {
+            const { createWindow } = require("./windowStateUtils");
+            const win = createWindow();
+            safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+        } else {
+            const win = BrowserWindowRef().getFocusedWindow() || getAppState("mainWindow");
+            if (validateWindow(win, "app activate event")) {
+                safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+            }
+        }
+    });
+
+    // Browser window focus handler (Linux)
+    appRef().on("browser-window-focus", async (/** @type {any} */ _event, /** @type {any} */ win) => {
+        if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
+            try {
+                const theme = await getThemeFromRenderer(win);
+                safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
+            } catch (error) {
+                logWithContext("error", "Error setting menu on browser-window-focus:", {
+                    error: /** @type {Error} */ (error).message,
+                });
+            }
+        }
+    });
+
+    // Window all closed handler
+    appRef().on("window-all-closed", () => {
+        setAppState("appIsQuitting", true);
+        if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
+            const app = appRef();
+            if (app && app.quit) app.quit();
+        }
+    });
+
+    // Cleanup Gyazo server when app is quitting
+    appRef().on("before-quit", async (/** @type {any} */ event) => {
+        setAppState("appIsQuitting", true);
+        const gyazoServer = getAppState("gyazoServer");
+        if (gyazoServer) {
+            event.preventDefault();
+            try {
+                await stopGyazoOAuthServer();
+                const a = appRef();
+                if (a && a.quit) a.quit();
+            } catch (error) {
+                logWithContext("error", "Failed to stop Gyazo server during quit:", {
+                    error: /** @type {Error} */ (error).message,
+                });
+                const a2 = appRef();
+                if (a2 && a2.quit) a2.quit();
+            }
+        }
+    });
+
+    // Security: Prevent navigation to untrusted URLs
+    appRef().on("web-contents-created", (/** @type {any} */ _event, /** @type {any} */ contents) => {
+        const allowedOrigins = [
+            "file://",
+            "about:blank",
+            "https://gyazo.com/oauth/", // Allow Gyazo OAuth
+            "https://gyazo.com/api/oauth/login", // Allow Gyazo API OAuth
+            "https://imgur.com/oauth/", // Allow Imgur OAuth (if needed)
+        ];
+
+        contents.on("will-navigate", (/** @type {any} */ event, /** @type {any} */ navigationUrl) => {
+            if (!allowedOrigins.some((origin) => navigationUrl.startsWith(origin))) {
+                event.preventDefault();
+                logWithContext("warn", "Blocked navigation to untrusted URL:", { url: navigationUrl });
+            }
+        });
+
+        // Prevent new windows from opening untrusted URLs
+        contents.setWindowOpenHandler((/** @type {{ url: any }} */ { url }) => {
+            if (!allowedOrigins.some((origin) => url.startsWith(origin))) {
+                logWithContext("warn", "Blocked opening untrusted URL in new window:", { url });
+                return { action: "deny" };
+            }
+            return { action: "allow" };
+        });
+    });
+}
+/*
+    // NOTE: These handlers are already registered above - commenting out duplicates
+    // Register all info handlers
+    Object.entries(infoHandlers).forEach(([channel, handler]) => {
+        ipcMain.handle(channel, createErrorHandler(handler));
+    });
+
+    // External link handler
+    ipcMain.handle(
+        "shell:openExternal",
+        createErrorHandler(async (event, url) => {
+            if (!url || typeof url !== "string") {
+                throw new Error("Invalid URL provided");
+            }
+
+            // Basic URL validation
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                throw new Error("Only HTTP and HTTPS URLs are allowed");
+            }
+
+            await shell.openExternal(url);
+            return true;
+        })
+    );
+
+    // Gyazo OAuth Server Handlers
+    ipcMain.handle(
+        "gyazo:server:start",
+        createErrorHandler(async (event, port = 3000) => {
+            return await startGyazoOAuthServer(port);
+        })
+    );
+
+    ipcMain.handle(
+        "gyazo:server:stop",
+        createErrorHandler(async () => {
+            return await stopGyazoOAuthServer();
+        })
+    );
+    */
+
+// Enhanced Auto-Updater Setup with better error handling
+/**
+ * @param {any} mainWindow
+ * @param {any} [providedAutoUpdater]
+ */
+function setupAutoUpdater(mainWindow, providedAutoUpdater) {
+    // Lazy-load electron-updater to avoid require-time side effects (supports mocks and ESM/CJS)
+    const autoUpdater = providedAutoUpdater || __resolveAutoUpdaterSync();
+    if (!isWindowUsable(mainWindow)) {
+        // Emit a single plain warn string as expected by tests
+        console.warn("Cannot setup auto-updater: main window is not usable");
+        return;
+    }
+
+    // Set feed URL if needed (autoUpdater will use GitHub by default if configured in package.json)
+    autoUpdater.autoDownload = true;
+
+    // Enhanced logger initialization
+    try {
+        const log = require("electron-log");
+        if (log) {
+            autoUpdater.logger = log;
+        } else {
+            logWithContext("warn", "Logger initialization failed. Falling back to console logging.");
+            autoUpdater.logger = console;
+        }
+    } catch (error) {
+        logWithContext("error", "Error initializing logger:", { error: /** @type {Error} */ (error).message });
+        autoUpdater.logger = console;
+    }
+
+    // Type cast logger to access transports property
+    /** @type {any} */ (autoUpdater.logger).transports.file.level = CONSTANTS.LOG_LEVELS.INFO;
+
+    // Enhanced logging for update feed URL - type cast autoUpdater to access feedURL
+    if (/** @type {any} */ (autoUpdater).feedURL !== undefined && /** @type {any} */ (autoUpdater).feedURL !== null) {
+        const feedInfo = { feedURL: /** @type {any} */ (autoUpdater).feedURL };
+        autoUpdater.logger.info(`AutoUpdater feed URL: ${/** @type {any} */ (autoUpdater).feedURL}`);
+        logWithContext("info", "AutoUpdater feed URL configured", feedInfo);
+    } else {
+        autoUpdater.logger.info("AutoUpdater using default feed (likely GitHub releases)");
+        logWithContext("info", "AutoUpdater using default feed (likely GitHub releases)");
+    }
+
+    // Enhanced event handlers with better error handling
+    const updateEventHandlers = {
+        "checking-for-update": () => {
+            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.CHECKING);
+        },
+        "download-progress": (/** @type {any} */ progressObj) => {
+            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOAD_PROGRESS, progressObj);
+        },
+        error: (/** @type {any} */ err) => {
+            const errorMessage = err == null ? "unknown" : err.message || err.toString();
+            if (autoUpdater.logger) {
+                autoUpdater.logger.error(`AutoUpdater Error: ${errorMessage}`);
+            }
+            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.ERROR, errorMessage);
+        },
+        "update-available": (/** @type {any} */ info) => {
+            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.AVAILABLE, info);
+        },
+        "update-downloaded": (/** @type {any} */ info) => {
+            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOADED, info);
+            const menu = MenuRef() && MenuRef().getApplicationMenu ? MenuRef().getApplicationMenu() : null;
+            if (menu) {
+                const restartItem = menu.getMenuItemById("restart-update");
+                if (restartItem && restartItem.enabled !== undefined) {
+                    restartItem.enabled = true;
+                }
+            }
+        },
+        "update-not-available": (/** @type {any} */ info) => {
+            sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.NOT_AVAILABLE, info);
+        },
+    }; // Register all update event handlers
+    for (const [event, handler] of Object.entries(updateEventHandlers)) {
+        /** @type {any} */ (autoUpdater).on(event, handler);
+        mainProcessState.registerEventHandler(autoUpdater, event, handler, `autoUpdater:${event}`);
+    }
+}
+
 // Enhanced IPC handlers with better error handling and organization
 /**
  * @param {any} mainWindow
@@ -690,8 +830,8 @@ function setupIPCHandlers(mainWindow) {
                 fs.readFile(filePath, (/** @type {any} */ err, /** @type {any} */ data) => {
                     if (err) {
                         logWithContext("error", "Error reading file:", {
-                            filePath,
                             error: /** @type {Error} */ (err).message,
+                            filePath,
                         });
                         reject(err);
                     } else {
@@ -710,8 +850,8 @@ function setupIPCHandlers(mainWindow) {
     // FIT file parsing handlers
     ipcMainRef().handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
-            const fitParser = require("./fitParser"),
-                buffer = Buffer.from(arrayBuffer);
+            const buffer = Buffer.from(arrayBuffer),
+                fitParser = require("./fitParser");
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:parse:", {
@@ -723,8 +863,8 @@ function setupIPCHandlers(mainWindow) {
 
     ipcMainRef().handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
-            const fitParser = require("./fitParser"),
-                buffer = Buffer.from(arrayBuffer);
+            const buffer = Buffer.from(arrayBuffer),
+                fitParser = require("./fitParser");
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
             logWithContext("error", "Error in fit:decode:", {
@@ -736,51 +876,51 @@ function setupIPCHandlers(mainWindow) {
 
     // Application info handlers
     const infoHandlers = {
-        "theme:get": async () => {
-            const { Conf } = require("electron-conf"),
-                conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get("theme", CONSTANTS.DEFAULT_THEME);
-        },
-        "map-tab:get": async () => {
-            const { Conf } = require("electron-conf"),
-                conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get("selectedMapTab", "map");
-        },
         getAppVersion: async () => {
             const app = appRef();
             return app && app.getVersion ? app.getVersion() : "";
         },
-        getElectronVersion: async () => process.versions.electron,
-        getNodeVersion: async () => process.versions.node,
         getChromeVersion: async () => process.versions.chrome,
-        getPlatformInfo: async () => ({
-            platform: process.platform,
-            arch: process.arch,
-        }),
+        getElectronVersion: async () => process.versions.electron,
         getLicenseInfo: async () => {
             try {
                 const pkgPath = (() => {
                     const app = appRef();
                     return path.join(app && app.getAppPath ? app.getAppPath() : process.cwd(), "package.json");
                 })();
-                const packageJson = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+                const packageJson = JSON.parse(fs.readFileSync(pkgPath));
                 return packageJson.license || "Unknown";
-            } catch (err) {
+            } catch (error) {
                 logWithContext("error", "Failed to read license from package.json:", {
-                    error: /** @type {Error} */ (err).message,
+                    error: /** @type {Error} */ (error).message,
                 });
             }
         },
+        getNodeVersion: async () => process.versions.node,
+        getPlatformInfo: async () => ({
+            arch: process.arch,
+            platform: process.platform,
+        }),
+        "map-tab:get": async () => {
+            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME }),
+                { Conf } = require("electron-conf");
+            return conf.get("selectedMapTab", "map");
+        },
+        "theme:get": async () => {
+            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME }),
+                { Conf } = require("electron-conf");
+            return conf.get("theme", CONSTANTS.DEFAULT_THEME);
+        },
     };
 
-    Object.entries(infoHandlers).forEach(([channel, /** @type {Function} */ handler]) => {
+    for (const [channel, /** @type {Function} */ handler] of Object.entries(infoHandlers)) {
         ipcMainRef().handle(
             channel,
             /**
              * @param {any} event
              * @param {...any} args
              */
-            async function handlerWrapper(event, ...args) {
+            async (event, ...args) => {
                 try {
                     return await /** @type {any} */ (handler)(event, ...args);
                 } catch (error) {
@@ -791,7 +931,7 @@ function setupIPCHandlers(mainWindow) {
                 }
             }
         );
-    });
+    }
 
     // External link handler
     ipcMainRef().handle("shell:openExternal", async (/** @type {any} */ _event, /** @type {string} */ url) => {
@@ -838,46 +978,6 @@ function setupIPCHandlers(mainWindow) {
         }
     });
 }
-/*
-    // NOTE: These handlers are already registered above - commenting out duplicates
-    // Register all info handlers
-    Object.entries(infoHandlers).forEach(([channel, handler]) => {
-        ipcMain.handle(channel, createErrorHandler(handler));
-    });
-
-    // External link handler
-    ipcMain.handle(
-        "shell:openExternal",
-        createErrorHandler(async (event, url) => {
-            if (!url || typeof url !== "string") {
-                throw new Error("Invalid URL provided");
-            }
-
-            // Basic URL validation
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                throw new Error("Only HTTP and HTTPS URLs are allowed");
-            }
-
-            await shell.openExternal(url);
-            return true;
-        })
-    );
-
-    // Gyazo OAuth Server Handlers
-    ipcMain.handle(
-        "gyazo:server:start",
-        createErrorHandler(async (event, port = 3000) => {
-            return await startGyazoOAuthServer(port);
-        })
-    );
-
-    ipcMain.handle(
-        "gyazo:server:stop",
-        createErrorHandler(async () => {
-            return await stopGyazoOAuthServer();
-        })
-    );
-    */
 
 // Enhanced menu and event handlers
 function setupMenuAndEventHandlers() {
@@ -891,6 +991,26 @@ function setupMenuAndEventHandlers() {
 
     // Update handlers
     const updateHandlers = {
+        "install-update": () => {
+            try {
+                try {
+                    const { autoUpdater } = require("electron-updater");
+                    autoUpdater.quitAndInstall();
+                } catch (error) {
+                    throw error;
+                }
+            } catch (error) {
+                logWithContext("error", "Error during quitAndInstall:", { error: /** @type {Error} */ (error).message });
+                if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
+                    dialogRef().showMessageBox({
+                        message:
+                            "Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.",
+                        title: "Manual Update Required",
+                        type: "info",
+                    });
+                }
+            }
+        },
         "menu-check-for-updates": () => {
             try {
                 try {
@@ -905,44 +1025,24 @@ function setupMenuAndEventHandlers() {
                 });
             }
         },
-        "install-update": () => {
-            try {
-                try {
-                    const { autoUpdater } = require("electron-updater");
-                    autoUpdater.quitAndInstall();
-                } catch (err) {
-                    throw err;
-                }
-            } catch (err) {
-                logWithContext("error", "Error during quitAndInstall:", { error: /** @type {Error} */ (err).message });
-                if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
-                    dialogRef().showMessageBox({
-                        type: "info",
-                        title: "Manual Update Required",
-                        message:
-                            "Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.",
-                    });
-                }
-            }
-        },
         "menu-restart-update": () => {
             try {
                 try {
                     const { autoUpdater } = require("electron-updater");
                     autoUpdater.quitAndInstall();
-                } catch (err) {
-                    throw err;
+                } catch (error) {
+                    throw error;
                 }
-            } catch (err) {
+            } catch (error) {
                 logWithContext("error", "Error during restart and install:", {
-                    error: /** @type {Error} */ (err).message,
+                    error: /** @type {Error} */ (error).message,
                 });
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
                     dialogRef().showMessageBox({
-                        type: "info",
-                        title: "Manual Update Required",
                         message:
                             "Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.",
+                        title: "Manual Update Required",
+                        type: "info",
                     });
                 }
             }
@@ -950,60 +1050,60 @@ function setupMenuAndEventHandlers() {
     };
 
     // Register update handlers
-    Object.entries(updateHandlers).forEach(([event, handler]) => {
+    for (const [event, handler] of Object.entries(updateHandlers)) {
         ipcMainRef().on(event, handler);
-    }); // File menu action handlers
+    } // File menu action handlers
     const fileMenuHandlers = {
-        "menu-save-as": async (/** @type {any} */ event) => {
-            const win = BrowserWindowRef().fromWebContents(event.sender),
-                loadedFilePath = getAppState("loadedFitFilePath");
+        "menu-export": async (/** @type {any} */ event) => {
+            const loadedFilePath = getAppState("loadedFitFilePath"),
+                win = BrowserWindowRef().fromWebContents(event.sender);
             if (!loadedFilePath || !win) {
                 return;
             }
 
             try {
                 const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
-                    title: "Save As",
+                    defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
+                    filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
+                    title: "Export As",
+                });
+
+                if (!canceled && filePath) {
+                    sendToRenderer(win, "export-file", filePath);
+                }
+            } catch (error) {
+                logWithContext("error", "Failed to show export dialog:", { error: /** @type {Error} */ (error).message });
+            }
+        },
+        "menu-save-as": async (/** @type {any} */ event) => {
+            const loadedFilePath = getAppState("loadedFitFilePath"),
+                win = BrowserWindowRef().fromWebContents(event.sender);
+            if (!loadedFilePath || !win) {
+                return;
+            }
+
+            try {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
+                    title: "Save As",
                 });
 
                 if (!canceled && filePath) {
                     fs.copyFileSync(loadedFilePath, filePath);
                     sendToRenderer(win, "show-notification", "File saved successfully.", "success");
                 }
-            } catch (err) {
-                sendToRenderer(win, "show-notification", `Save failed: ${err}`, "error");
-                logWithContext("error", "Failed to save file:", { error: /** @type {Error} */ (err).message });
-            }
-        },
-        "menu-export": async (/** @type {any} */ event) => {
-            const win = BrowserWindowRef().fromWebContents(event.sender),
-                loadedFilePath = getAppState("loadedFitFilePath");
-            if (!loadedFilePath || !win) {
-                return;
-            }
-
-            try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
-                    title: "Export As",
-                    defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
-                    filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
-                });
-
-                if (!canceled && filePath) {
-                    sendToRenderer(win, "export-file", filePath);
-                }
-            } catch (err) {
-                logWithContext("error", "Failed to show export dialog:", { error: /** @type {Error} */ (err).message });
+            } catch (error) {
+                sendToRenderer(win, "show-notification", `Save failed: ${error}`, "error");
+                logWithContext("error", "Failed to save file:", { error: /** @type {Error} */ (error).message });
             }
         },
     };
 
     // Register file menu handlers
-    Object.entries(fileMenuHandlers).forEach(([event, handler]) => {
+    for (const [event, handler] of Object.entries(fileMenuHandlers)) {
         ipcMainRef().on(event, handler);
-    });
+    }
 
     // Fullscreen handler
     ipcMainRef().on("set-fullscreen", (/** @type {any} */ _event, /** @type {any} */ flag) => {
@@ -1017,10 +1117,10 @@ function setupMenuAndEventHandlers() {
     ipcMainRef().handle(
         "devtools-inject-menu",
         (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
-            const win = BrowserWindowRef().fromWebContents(event.sender),
+            const f = fitFilePath || null,
                 t = theme || CONSTANTS.DEFAULT_THEME,
-                f = fitFilePath || null;
-            logWithContext("info", "Manual menu injection requested", { theme: t, fitFilePath: f });
+                win = BrowserWindowRef().fromWebContents(event.sender);
+            logWithContext("info", "Manual menu injection requested", { fitFilePath: f, theme: t });
             if (win) {
                 safeCreateAppMenu(/** @type {any} */(win), t, f);
             }
@@ -1029,123 +1129,23 @@ function setupMenuAndEventHandlers() {
     );
 }
 
-// Enhanced application event handlers
-function setupApplicationEventHandlers() {
-    // App activation handler (macOS)
-    appRef().on("activate", () => {
-        if (BrowserWindowRef().getAllWindows().length === 0) {
-            const { createWindow } = require("./windowStateUtils");
-            const win = createWindow();
-            safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
-        } else {
-            const win = BrowserWindowRef().getFocusedWindow() || getAppState("mainWindow");
-            if (validateWindow(win, "app activate event")) {
-                safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
-            }
-        }
-    });
-
-    // Browser window focus handler (Linux)
-    appRef().on("browser-window-focus", async (/** @type {any} */ _event, /** @type {any} */ win) => {
-        if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
-            try {
-                const theme = await getThemeFromRenderer(win);
-                safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
-            } catch (err) {
-                logWithContext("error", "Error setting menu on browser-window-focus:", {
-                    error: /** @type {Error} */ (err).message,
-                });
-            }
-        }
-    });
-
-    // Window all closed handler
-    appRef().on("window-all-closed", () => {
-        setAppState("appIsQuitting", true);
-        if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
-            const app = appRef();
-            if (app && app.quit) app.quit();
-        }
-    });
-
-    // Cleanup Gyazo server when app is quitting
-    appRef().on("before-quit", async (/** @type {any} */ event) => {
-        setAppState("appIsQuitting", true);
-        const gyazoServer = getAppState("gyazoServer");
-        if (gyazoServer) {
-            event.preventDefault();
-            try {
-                await stopGyazoOAuthServer();
-                const a = appRef();
-                if (a && a.quit) a.quit();
-            } catch (error) {
-                logWithContext("error", "Failed to stop Gyazo server during quit:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-                const a2 = appRef();
-                if (a2 && a2.quit) a2.quit();
-            }
-        }
-    });
-
-    // Security: Prevent navigation to untrusted URLs
-    appRef().on("web-contents-created", (/** @type {any} */ _event, /** @type {any} */ contents) => {
-        const allowedOrigins = [
-            "file://",
-            "about:blank",
-            "https://gyazo.com/oauth/", // Allow Gyazo OAuth
-            "https://gyazo.com/api/oauth/login", // Allow Gyazo API OAuth
-            "https://imgur.com/oauth/", // Allow Imgur OAuth (if needed)
-        ];
-
-        contents.on("will-navigate", (/** @type {any} */ event, /** @type {any} */ navigationUrl) => {
-            if (!allowedOrigins.some((origin) => navigationUrl.startsWith(origin))) {
-                event.preventDefault();
-                logWithContext("warn", "Blocked navigation to untrusted URL:", { url: navigationUrl });
-            }
-        });
-
-        // Prevent new windows from opening untrusted URLs
-        contents.setWindowOpenHandler((/** @type {{ url: any }} */ { url }) => {
-            if (!allowedOrigins.some((origin) => url.startsWith(origin))) {
-                logWithContext("warn", "Blocked opening untrusted URL in new window:", { url });
-                return { action: "deny" };
-            }
-            return { action: "allow" };
-        });
-    });
-}
-
-// Cleanup functions
-function cleanupEventHandlers() {
-    mainProcessState.cleanupEventHandlers();
-}
-
-// Development helpers
-function exposeDevHelpers() {
-    /** @type {any} */ (global).devHelpers = {
-        getAppState: () => mainProcessState.data,
-        cleanupEventHandlers,
-        rebuildMenu: (/** @type {any} */ theme, /** @type {any} */ filePath) => {
-            const win = BrowserWindowRef().getFocusedWindow();
-            if (validateWindow(win, "dev helper rebuild menu")) {
-                safeCreateAppMenu(
-                    /** @type {any} */(win),
-                    theme || CONSTANTS.DEFAULT_THEME,
-                    filePath || getAppState("loadedFitFilePath")
-                );
-            }
-        },
-        logState: () => {
-            logWithContext("info", "Current application state:", {
-                loadedFitFilePath: getAppState("loadedFitFilePath"),
-                hasMainWindow: Boolean(getAppState("mainWindow")),
-                eventHandlersCount: mainProcessState.data.eventHandlers.size,
+/**
+ * @param {any} win
+ */
+function validateWindow(win, context = "unknown operation") {
+    if (!isWindowUsable(win)) {
+        // Only log warning if window should exist but doesn't (avoid noise during normal shutdown)
+        if (!getAppState("appIsQuitting")) {
+            logWithContext("warn", `Window validation failed during ${context}`, {
+                hasWebContents: Boolean(win?.webContents),
+                hasWindow: Boolean(win),
+                isDestroyed: win?.isDestroyed(),
+                webContentsDestroyed: win?.webContents?.isDestroyed(),
             });
-        },
-    };
-
-    logWithContext("info", "Development helpers exposed on global.devHelpers");
+        }
+        return false;
+    }
+    return true;
 }
 
 let __initScheduled = false;
@@ -1157,7 +1157,7 @@ try {
     // Prefer direct require to ensure Vitest's hoisted mocks are observed
     let app;
     try {
-        // eslint-disable-next-line global-require
+         
         const electron = require("electron");
         app = electron && electron.app;
     } catch {
@@ -1182,7 +1182,7 @@ try {
             }
             // Also prime BrowserWindow.getAllWindows for coverage using direct require to hit mocks
             try {
-                // eslint-disable-next-line global-require
+                 
                 const { BrowserWindow: BWt } = require("electron");
                 if (BWt && typeof BWt.getAllWindows === "function") {
                     try { BWt.getAllWindows(); } catch { }
@@ -1220,7 +1220,7 @@ try {
         __initScheduled = true;
         app.whenReady().then(async () => {
             try {
-                if (__initCompleted) return; // already initialized via test fallback
+                if (__initCompleted) return; // Already initialized via test fallback
                 __initCompleted = true;
                 const mainWindow = await initializeApplication();
 
@@ -1249,16 +1249,16 @@ try {
         BW.getAllWindows();
     }
     // In the Vitest environment, some mocking interop can prevent the above whenReady path
-    // from observing the hoisted getter-based mocks in time. Provide a safe, test-only
-    // fallback that (1) invokes whenReady synchronously to satisfy spies and (2) performs
-    // initialization immediately so that did-finish-load handlers are registered.
+    // From observing the hoisted getter-based mocks in time. Provide a safe, test-only
+    // Fallback that (1) invokes whenReady synchronously to satisfy spies and (2) performs
+    // Initialization immediately so that did-finish-load handlers are registered.
     if (/** @type {any} */ (process.env).NODE_ENV === "test" && !__initCompleted) {
         // We may have already scheduled whenReady; perform immediate init for tests
         __initScheduled = true;
         try {
             // Best-effort: call whenReady to satisfy the test spy even if not strictly needed here
             try {
-                // eslint-disable-next-line global-require
+                 
                 const { app: a } = require("electron");
                 if (a && typeof a.whenReady === "function") {
                     try { a.whenReady(); } catch { }
@@ -1296,7 +1296,7 @@ try {
         }
     }
 } catch {
-    // ignore – allows importing in non-Electron environments
+    // Ignore – allows importing in non-Electron environments
 }
 
 // (No test-only synchronous initialization; rely on app.whenReady and mocked windowStateUtils)
@@ -1326,7 +1326,7 @@ async function startGyazoOAuthServer(port = 3000) {
                 }
 
                 if (parsedUrl.pathname === "/gyazo/callback") {
-                    const { code, state, error } = parsedUrl.query;
+                    const { code, error, state } = parsedUrl.query;
 
                     // Send a response to the browser
                     if (error) {
@@ -1456,9 +1456,9 @@ async function startGyazoOAuthServer(port = 3000) {
                 setAppState("gyazoServerPort", port);
                 logWithContext("info", `Gyazo OAuth callback server started on http://localhost:${port}`);
                 resolve({
-                    success: true,
-                    port,
                     message: `OAuth callback server started on port ${port}`,
+                    port,
+                    success: true,
                 });
             });
         } catch (error) {
@@ -1479,14 +1479,14 @@ async function stopGyazoOAuthServer() {
                 setAppState("gyazoServer", null);
                 setAppState("gyazoServerPort", null);
                 resolve({
-                    success: true,
                     message: "OAuth callback server stopped",
+                    success: true,
                 });
             });
         } else {
             resolve({
-                success: true,
                 message: "No server was running",
+                success: true,
             });
         }
     });

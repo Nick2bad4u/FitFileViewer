@@ -11,6 +11,10 @@ export default defineConfig({
     },
 
     test: {
+        // Only collect tests from the source tests directory
+        include: [
+            "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+        ],
         globalSetup: ["./tests/globalSetup.js"],
         environment: "jsdom",
         environmentOptions: {
@@ -61,6 +65,9 @@ export default defineConfig({
             "../libs/**",
             "**/libs/**",
             "**/node_modules/**",
+            // Exclude any compiled artifacts accidentally picked up
+            "dist/**",
+            "**/dist/**",
             "node_modules/table/node_modules/json-schema-traverse/spec/index.spec.js",
         ],
         isolate: true,

@@ -33,6 +33,8 @@
  * @returns {void}
  */
 
+const { app } = require("electron");
+const fs = require("node:fs");
 /**
  * Returns the base name (file name with extension) of the given file path.
  *
@@ -41,14 +43,12 @@
  * @returns {string} The base name of the file.
  */
 // Utility functions for managing recent files
-const path = require("path");
-const fs = require("fs");
-const { app } = require("electron");
+const path = require("node:path");
 
 /** @type {string|undefined} */
 let RECENT_FILES_PATH;
-if (process.env['RECENT_FILES_PATH']) {
-    RECENT_FILES_PATH = process.env['RECENT_FILES_PATH'];
+if (process.env.RECENT_FILES_PATH) {
+    RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
 } else {
     let userDataPath;
     try {
@@ -62,10 +62,10 @@ if (process.env['RECENT_FILES_PATH']) {
     } else {
         // Fallback for tests or non-Electron environments
         // Use a consistent temp directory with unique test file
-        const os = require('os');
+        const os = require('node:os');
 
         // Always use system temp directory, never working directory
-        const tempDir = process.env['TEMP'] || process.env['TMP'] || os.tmpdir();
+        const tempDir = process.env.TEMP || process.env.TMP || os.tmpdir();
 
         // Create a fit-file-viewer subdirectory in the temp folder
         const fitTempDir = path.join(tempDir, 'fit-file-viewer-tests');
@@ -77,7 +77,7 @@ if (process.env['RECENT_FILES_PATH']) {
             }
 
             // Use process ID to avoid conflicts between test runs
-            const testId = process.env['VITEST_WORKER_ID'] || process.pid || Math.random().toString(36).substring(2, 10);
+            const testId = process.env.VITEST_WORKER_ID || process.pid || Math.random().toString(36).slice(2, 10);
             RECENT_FILES_PATH = path.join(fitTempDir, `recent-files-${testId}.json`);
 
             // Register cleanup handler for tests
@@ -87,56 +87,18 @@ if (process.env['RECENT_FILES_PATH']) {
                         if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
                             fs.unlinkSync(/** @type {string} */(RECENT_FILES_PATH));
                         }
-                    } catch (e) {
+                    } catch {
                         // Ignore cleanup errors
                     }
                 });
             }
-        } catch (err) {
-            console.error("Failed to create temp directory for tests:", err);
+        } catch (error) {
+            console.error("Failed to create temp directory for tests:", error);
         }
     }
 }
 // Maximum number of recent files to retain
 const MAX_RECENT_FILES = 10;
-
-/**
- * Loads the list of recent files from the RECENT_FILES_PATH.
- *
- * Attempts to read and parse a JSON file containing recent files.
- * If the file does not exist or an error occurs, returns an empty array.
- *
- * @returns {Array<string>} An array of recent files, or an empty array if none are found or an error occurs.
- */
-function loadRecentFiles() {
-    try {
-        if (fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
-            const data = fs.readFileSync(/** @type {string} */(RECENT_FILES_PATH), "utf-8");
-            return JSON.parse(data);
-        }
-    } catch (err) {
-        console.error("Failed to load recent files:", err);
-    }
-    return [];
-}
-
-/**
- * Saves the list of recent files to disk, keeping only the most recent entries.
- *
- * @param {Array<string>} list - The array of recent file paths to save.
- * @returns {void}
- */
-function saveRecentFiles(list) {
-    try {
-        fs.writeFileSync(
-            /** @type {string} */(RECENT_FILES_PATH),
-            JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
-            "utf-8"
-        );
-    } catch (err) {
-        console.error("Failed to save recent files:", err);
-    }
-}
 
 /**
  * Adds a file path to the list of recent files.
@@ -175,9 +137,47 @@ function getShortRecentName(file) {
     return path.basename(file);
 }
 
+/**
+ * Loads the list of recent files from the RECENT_FILES_PATH.
+ *
+ * Attempts to read and parse a JSON file containing recent files.
+ * If the file does not exist or an error occurs, returns an empty array.
+ *
+ * @returns {Array<string>} An array of recent files, or an empty array if none are found or an error occurs.
+ */
+function loadRecentFiles() {
+    try {
+        if (fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
+            const data = fs.readFileSync(/** @type {string} */(RECENT_FILES_PATH));
+            return JSON.parse(data);
+        }
+    } catch (error) {
+        console.error("Failed to load recent files:", error);
+    }
+    return [];
+}
+
+/**
+ * Saves the list of recent files to disk, keeping only the most recent entries.
+ *
+ * @param {Array<string>} list - The array of recent file paths to save.
+ * @returns {void}
+ */
+function saveRecentFiles(list) {
+    try {
+        fs.writeFileSync(
+            /** @type {string} */(RECENT_FILES_PATH),
+            JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
+            "utf-8"
+        );
+    } catch (error) {
+        console.error("Failed to save recent files:", error);
+    }
+}
+
 module.exports = {
-    loadRecentFiles,
-    saveRecentFiles,
     addRecentFile,
     getShortRecentName,
+    loadRecentFiles,
+    saveRecentFiles,
 };

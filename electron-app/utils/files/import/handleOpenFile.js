@@ -14,98 +14,15 @@ const __TEST_ONLY_exposedStateManager = stateManager;
 const FILE_OPEN_CONSTANTS = {
     ELECTRON_API_METHODS: {
         OPEN_FILE: "openFile",
-        READ_FILE: "readFile",
         PARSE_FIT_FILE: "parseFitFile",
+        READ_FILE: "readFile",
     },
     ERROR_TIMEOUTS: {
-        DEFAULT: 5000,
         CRITICAL: 7000,
+        DEFAULT: 5000,
     },
     LOG_PREFIX: "[HandleOpenFile]",
 };
-
-/**
- * Logs messages with context for file open operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
- */
-function logWithContext(message, level = "info") {
-    try {
-        const prefix = FILE_OPEN_CONSTANTS.LOG_PREFIX;
-        switch (level) {
-            case "warn":
-                console.warn(`${prefix} ${message}`);
-                break;
-            case "error":
-                console.error(`${prefix} ${message}`);
-                break;
-            default:
-                console.log(`${prefix} ${message}`);
-        }
-    } catch {
-        // Silently fail if logging encounters an error
-    }
-}
-
-/**
- * Validates that all required Electron API methods are available
- * @returns {boolean} True if all required APIs are available
- * @private
- */
-function validateElectronAPI() {
-    const { ELECTRON_API_METHODS } = FILE_OPEN_CONSTANTS;
-
-    if (!window.electronAPI) {
-        logWithContext("Electron API not available", "error");
-        return false;
-    }
-
-    const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */(method) => typeof (/** @type {*} */ (window.electronAPI)[method]) !== "function"
-    );
-
-    if (missingMethods.length > 0) {
-        logWithContext(`Missing Electron API methods: ${missingMethods.join(", ")}`, "error");
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * Updates UI state during file opening process
- * @param {Object} uiElements - UI elements to update
- * @param {boolean} isLoading - Whether to show loading state
- * @param {boolean} isOpening - Whether file opening is in progress
- * @private
- */
-function updateUIState(uiElements, isLoading, isOpening) {
-    try {
-        const { openFileBtn, setLoading, isOpeningFileRef } = /** @type {*} */ (uiElements);
-
-        if (openFileBtn) {
-            openFileBtn.disabled = isLoading;
-        }
-
-        if (typeof setLoading === "function") {
-            setLoading(isLoading);
-        }
-
-        if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
-            isOpeningFileRef.value = isOpening;
-        }
-
-        // Update state management - log first for better test traceability
-        console.log(`[HandleOpenFile] Setting ui.isLoading=${isLoading}, ui.isOpening=${isOpening}`);
-
-        // Use direct calls to stateManager.setState for both state updates
-        stateManager.setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
-        stateManager.setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
-    } catch (error) {
-        logWithContext(`Error updating UI state: ${error instanceof Error ? error.message : String(error)}`, "error");
-    }
-}
 
 /**
  * Handles file opening logic with comprehensive error handling and state management
@@ -133,7 +50,7 @@ function updateUIState(uiElements, isLoading, isOpening) {
  */
 async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification }, options = {}) {
     const config = {
-        timeout: 30000,
+        timeout: 30_000,
         validateFileSize: true,
         ...options,
     };
@@ -154,7 +71,7 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         return false;
     }
 
-    const uiElements = { openFileBtn, setLoading, isOpeningFileRef };
+    const uiElements = { isOpeningFileRef, openFileBtn, setLoading };
 
     let arrayBuffer, filePath, result;
 
@@ -176,9 +93,9 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
 
         // Step 1: Open file dialog
         try {
-            filePath = await window.electronAPI.openFile();
-        } catch (err) {
-            const errorMessage = `Unable to open the file dialog. Please try again. Error details: ${err}`;
+            filePath = await globalThis.electronAPI.openFile();
+        } catch (error) {
+            const errorMessage = `Unable to open the file dialog. Please try again. Error details: ${error}`;
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
@@ -200,9 +117,9 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             if (!filePathString) {
                 throw new Error("No file path provided");
             }
-            arrayBuffer = await window.electronAPI.readFile(filePathString);
-        } catch (err) {
-            const errorMessage = `Error reading file: ${err}`;
+            arrayBuffer = await globalThis.electronAPI.readFile(filePathString);
+        } catch (error) {
+            const errorMessage = `Error reading file: ${error}`;
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
@@ -222,9 +139,9 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
 
         // Step 3: Parse FIT file
         try {
-            result = await window.electronAPI.parseFitFile(arrayBuffer);
-        } catch (err) {
-            const errorMessage = `Error parsing FIT file: ${err}`;
+            result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
+        } catch (error) {
+            const errorMessage = `Error parsing FIT file: ${error}`;
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
@@ -244,14 +161,14 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         }
         try {
             const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
-            if (window.showFitData) {
-                window.showFitData(result.data, filePathString);
+            if (globalThis.showFitData) {
+                globalThis.showFitData(result.data, filePathString);
             }
-            if (/** @type {*} */ (window).sendFitFileToAltFitReader) {
-                /** @type {*} */ (window).sendFitFileToAltFitReader(filePathString);
+            if (/** @type {*} */ (globalThis).sendFitFileToAltFitReader) {
+                /** @type {*} */ (globalThis).sendFitFileToAltFitReader(filePathString);
             }
-        } catch (err) {
-            showNotification(`Error displaying FIT data: ${err}`, "error");
+        } catch (error) {
+            showNotification(`Error displaying FIT data: ${error}`, "error");
         }
 
         // Update UI state to indicate loading is complete
@@ -262,12 +179,98 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
     }
 }
 
+/**
+ * Logs messages with context for file open operations
+ * @param {string} message - The message to log
+ * @param {string} level - Log level ('info', 'warn', 'error')
+ * @private
+ */
+function logWithContext(message, level = "info") {
+    try {
+        const prefix = FILE_OPEN_CONSTANTS.LOG_PREFIX;
+        switch (level) {
+            case "error": {
+                console.error(`${prefix} ${message}`);
+                break;
+            }
+            case "warn": {
+                console.warn(`${prefix} ${message}`);
+                break;
+            }
+            default: {
+                console.log(`${prefix} ${message}`);
+            }
+        }
+    } catch {
+        // Silently fail if logging encounters an error
+    }
+}
+
+/**
+ * Updates UI state during file opening process
+ * @param {Object} uiElements - UI elements to update
+ * @param {boolean} isLoading - Whether to show loading state
+ * @param {boolean} isOpening - Whether file opening is in progress
+ * @private
+ */
+function updateUIState(uiElements, isLoading, isOpening) {
+    try {
+        const { isOpeningFileRef, openFileBtn, setLoading } = /** @type {*} */ (uiElements);
+
+        if (openFileBtn) {
+            openFileBtn.disabled = isLoading;
+        }
+
+        if (typeof setLoading === "function") {
+            setLoading(isLoading);
+        }
+
+        if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
+            isOpeningFileRef.value = isOpening;
+        }
+
+        // Update state management - log first for better test traceability
+        console.log(`[HandleOpenFile] Setting ui.isLoading=${isLoading}, ui.isOpening=${isOpening}`);
+
+        // Use direct calls to stateManager.setState for both state updates
+        stateManager.setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
+        stateManager.setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
+    } catch (error) {
+        logWithContext(`Error updating UI state: ${error instanceof Error ? error.message : String(error)}`, "error");
+    }
+}
+
+/**
+ * Validates that all required Electron API methods are available
+ * @returns {boolean} True if all required APIs are available
+ * @private
+ */
+function validateElectronAPI() {
+    const { ELECTRON_API_METHODS } = FILE_OPEN_CONSTANTS;
+
+    if (!globalThis.electronAPI) {
+        logWithContext("Electron API not available", "error");
+        return false;
+    }
+
+    const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
+        /** @param {string} method */(method) => typeof (/** @type {*} */ (globalThis.electronAPI)[method]) !== "function"
+    );
+
+    if (missingMethods.length > 0) {
+        logWithContext(`Missing Electron API methods: ${missingMethods.join(", ")}`, "error");
+        return false;
+    }
+
+    return true;
+}
+
 // Export functions for testing
 module.exports = {
+    // Only used in tests, never in production code
+    __TEST_ONLY_exposedStateManager,
     handleOpenFile,
     logWithContext,
-    validateElectronAPI,
     updateUIState,
-    // Only used in tests, never in production code
-    __TEST_ONLY_exposedStateManager
+    validateElectronAPI
 };

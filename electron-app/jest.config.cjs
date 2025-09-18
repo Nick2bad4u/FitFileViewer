@@ -4,14 +4,14 @@
  */
 
 const config = {
-    testMatch: ["<rootDir>/tests/jest-placeholder/**/*.jest.test.js"],
-    testEnvironment: "node",
-    setupFilesAfterEnv: ["<rootDir>/tests/jest-placeholder/jest.setup.js"],
-    transform: {},
+    collectCoverage: false,
     moduleFileExtensions: ["js", "json"],
     rootDir: ".",
+    setupFilesAfterEnv: ["<rootDir>/tests/jest-placeholder/jest.setup.js"],
+    testEnvironment: "node",
+    testMatch: ["<rootDir>/tests/jest-placeholder/**/*.jest.test.js"],
+    transform: {},
     verbose: false,
-    collectCoverage: false,
 };
 
 module.exports = config;

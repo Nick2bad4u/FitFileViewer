@@ -3,22 +3,23 @@ import globals from "globals";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import css from "@eslint/css";
-import tsEslintPlugin from "@typescript-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
+import eslintPluginUnicorn from "eslint-plugin-unicorn";
+import nodePlugin from "eslint-plugin-n";
+import perfectionist from "eslint-plugin-perfectionist";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 
-// NOTE: The project currently has residual references to @typescript-eslint rules in built JS (dist) files.
-// We are not linting TypeScript specifically here; to suppress missing rule errors inside generated dist files,
-// We ensure those files are ignored (see ignores below). If future TS linting is needed, add:
-// Import tseslint from 'typescript-eslint'; and extend its configs.
+// NOTE: We are not enabling TypeScript-specific ESLint rules in this flat config.
+// If future TS linting is needed, bring in typescript-eslint and extend its configs.
 
 export default defineConfig([
     {
         files: ["**/*.{js,mjs,cjs,ts}"],
-        plugins: { js, "@typescript-eslint": tsEslintPlugin },
+        plugins: { js },
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
         // while keeping correctness-focused rules.
-        extends: ["js/recommended"],
+        extends: ["js/all"],
         rules: {
             // Allow intentionally unused parameters prefixed with underscore (common for Electron event placeholders)
             // Keep as a warning to avoid blocking CI while still surfacing issues.
@@ -41,11 +42,57 @@ export default defineConfig([
             "func-style": "off",
             "id-length": "off",
             "no-inline-comments": "off",
+            "no-magic-numbers": "off",
             // Complexity/size limits are not enforced right now; revisit later with targeted refactors
             "max-lines": "off",
             "max-lines-per-function": "off",
             "max-statements": "off",
             "complexity": "off",
+        },
+    },
+    // Apply strict rule-sets from Unicorn, Node (n), and Perfectionist, scoped to JS/TS only to avoid
+    // running JS rules on JSON/Markdown/CSS which can cause parser/sourceCode mismatches.
+    { ...eslintPluginUnicorn.configs.all, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...nodePlugin.configs["flat/all"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...perfectionist.configs["recommended-natural"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    {
+        files: ["**/*.{js,mjs,cjs,ts}", "**/*.jsx", "**/*.tsx"],
+        rules: {
+            // Electron/CommonJS friendly adjustments
+            "unicorn/prefer-module": "off", // Project uses CommonJS entrypoints
+            "unicorn/no-null": "off", // Codebase uses null intentionally in places
+            "unicorn/prevent-abbreviations": "off", // Allow common abbreviations (ctx, env, etc.)
+            "unicorn/no-array-reduce": "off", // Allow Array#reduce when appropriate
+            "unicorn/filename-case": "off", // Preserve existing filenames
+            "unicorn/prefer-node-protocol": "warn", // Encourage gradually
+            "unicorn/import-style": "off",
+            "unicorn/prefer-event-target": "off", // Node/Electron often uses EventEmitter
+            "unicorn/prefer-top-level-await": "off", // Not always viable in CJS/Electron context
+
+            // Node plugin adjustments to avoid false positives in Electron/bundled context
+            "n/no-missing-import": "off",
+            "n/no-missing-require": "off",
+            "n/no-extraneous-import": "off",
+            "n/no-extraneous-require": "off",
+            "n/no-process-exit": "warn",
+            "n/no-unsupported-features/es-builtins": "off",
+            "n/no-unsupported-features/es-syntax": "off",
+            "n/no-unsupported-features/node-builtins": "off",
+            "n/no-sync": "off", // Allow sync fs methods in scripts and setup code
+
+            // Perfectionist: start as warnings to avoid blocking adoption
+            "perfectionist/sort-imports": "warn",
+            "perfectionist/sort-named-imports": "warn",
+            "perfectionist/sort-named-exports": "warn",
+            "perfectionist/sort-objects": "warn",
+            "perfectionist/sort-variable-declarations": "warn",
+            "perfectionist/sort-interfaces": "warn",
+            "perfectionist/sort-union-types": "warn",
+            "perfectionist/sort-enums": "warn",
+            "perfectionist/sort-classes": "warn",
+            "perfectionist/sort-jsx-props": "warn",
+            "perfectionist/sort-sets": "warn",
+            "perfectionist/sort-maps": "warn",
         },
     },
     // Merging browser and node globals to support environments where both are used, such as Electron.
@@ -110,4 +157,6 @@ export default defineConfig([
             "__mocks__/**",
         ],
     },
+    // Place Prettier last to turn off rules that conflict with Prettier formatting
+    eslintConfigPrettier,
 ]);
