@@ -68,11 +68,10 @@ class ComputedStateManager {
         // Clean up all subscriptions
         for (const subscriptions of this.subscriptions) {
             for (const unsubscribe of subscriptions) {
-                    if (typeof unsubscribe === "function") {
-                        unsubscribe();
-                    }
+                if (typeof unsubscribe === "function") {
+                    unsubscribe();
                 }
-            
+            }
         }
 
         // Clear all maps
@@ -226,11 +225,10 @@ class ComputedStateManager {
         // Clean up subscriptions
         const subscriptions = this.subscriptions.get(key) || [];
         for (const unsubscribe of subscriptions) {
-                if (typeof unsubscribe === "function") {
-                    unsubscribe();
-                }
+            if (typeof unsubscribe === "function") {
+                unsubscribe();
             }
-        
+        }
 
         // Remove from all maps
         this.computedValues.delete(key);

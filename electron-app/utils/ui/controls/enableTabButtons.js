@@ -7,7 +7,6 @@ import { getState, setState, subscribe } from "../../state/core/stateManager.js"
 
 // Ensure console.trace exists for tests/environments where it's missing
 if (typeof console !== "undefined" && typeof console.trace !== "function") {
-     
     console.trace = (...args) => {
         if (typeof console.debug === "function") {
             console.debug(...args);
@@ -441,7 +440,9 @@ export function testTabButtonClicks() {
                 if (typeof alert === "function") {
                     alert(`Clicked on ${btnId}!`);
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         };
 
         btn.addEventListener("click", testHandler);
@@ -470,15 +471,11 @@ function ensureObserverInstalled() {
     // - If both global and window constructors exist and are different (tests may mock one), prefer the global one.
     // - Otherwise prefer window.MutationObserver when available, then fall back to global.
     /** @type {typeof MutationObserver | undefined} */
-    const globalCtor = typeof MutationObserver === "undefined" ? /** @type {any} */ undefined : (MutationObserver);
+    const globalCtor = typeof MutationObserver === "undefined" ? /** @type {any} */ undefined : MutationObserver;
     /** @type {typeof MutationObserver | undefined} */
-    const windowCtor = w.MutationObserver === undefined ? /** @type {any} */ undefined : (w.MutationObserver);
+    const windowCtor = w.MutationObserver === undefined ? /** @type {any} */ undefined : w.MutationObserver;
     const ObserverCtor =
-        globalCtor && windowCtor
-            ? globalCtor === windowCtor
-                ? windowCtor
-                : globalCtor
-            : windowCtor || globalCtor;
+        globalCtor && windowCtor ? (globalCtor === windowCtor ? windowCtor : globalCtor) : windowCtor || globalCtor;
 
     if (!w.tabButtonObserver && ObserverCtor !== undefined) {
         /** @param {MutationRecord[]} mutations */
@@ -513,7 +510,9 @@ function ensureObserverInstalled() {
             try {
                 // eslint-disable-next-line no-new
                 new windowCtor(callback);
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         }
         w.tabButtonObserver = observer;
     }
@@ -527,7 +526,9 @@ function ensureObserverInstalled() {
                 if (button && typeof observer.observe === "function") {
                     observer.observe(button, { attributeFilter: ["disabled"], attributes: true });
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         }
     }
 }
@@ -549,8 +550,9 @@ function safeComputedStyle(el, prop) {
             // Fallback indexing for environments that allow it
             return /** @type {any} */ (cs)[prop];
         }
-    } catch { /* Ignore errors */ }
-    
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 // Safe helpers to work across jsdom and heavily mocked DOMs in tests

@@ -12,7 +12,10 @@ describe("showNotification.js - error handling coverage", () => {
         console.warn = vi.fn();
         console.error = vi.fn();
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => { cb(0); return 0; };
+        window.requestAnimationFrame = (cb) => {
+            cb(0);
+            return 0;
+        };
         document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
     });
 
@@ -33,7 +36,7 @@ describe("showNotification.js - error handling coverage", () => {
     it("handles errors during displayNotification process", async () => {
         // Create a spy that makes buildNotificationContent throw
         const mockError = new Error("Simulated error in displayNotification");
-        vi.spyOn(document, 'createElement').mockImplementationOnce(() => {
+        vi.spyOn(document, "createElement").mockImplementationOnce(() => {
             throw mockError;
         });
 
@@ -60,7 +63,7 @@ describe("showNotification.js - error handling coverage", () => {
         // uncaught errors from stopping the test
         const p = showNotification("Click error test", "info", undefined, {
             onClick: errorHandler,
-            persistent: true
+            persistent: true,
         });
 
         await p;
@@ -94,7 +97,7 @@ describe("showNotification.js - error handling coverage", () => {
         const stopPropagation = vi.fn();
 
         const p = notify.withActions("Action error test", "info", [
-            { text: "Error Button", onClick: errorActionHandler }
+            { text: "Error Button", onClick: errorActionHandler },
         ]);
 
         await p;

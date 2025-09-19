@@ -42,7 +42,7 @@ describe("renderLapZoneCharts", () => {
 
         // Setup global data
         window.globalData = {
-            timeInZoneMesgs: []
+            timeInZoneMesgs: [],
         };
 
         // Setup zone data globals
@@ -127,7 +127,7 @@ describe("renderLapZoneCharts", () => {
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 { referenceMesg: "lap", timeInHrZone: "[0,15,25]" },
                 { referenceMesg: "lap", timeInPowerZone: "[0,5,15]" },
-                { referenceMesg: "activity", timeInHrZone: "[0,8,12]" }
+                { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
             ];
 
             renderLapZoneCharts(container);
@@ -138,7 +138,7 @@ describe("renderLapZoneCharts", () => {
         it("should return early when no lap-specific zone data found", () => {
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
-                { referenceMesg: "activity", timeInHrZone: "[0,8,12]" }
+                { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
             ];
 
             renderLapZoneCharts(container);
@@ -149,12 +149,12 @@ describe("renderLapZoneCharts", () => {
     describe("Safe Array Parsing", () => {
         beforeEach(() => {
             (getThemeConfig as any).mockReturnValue({
-                colors: { bgPrimary: "#ffffff", shadow: "none" }
+                colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,20,30]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15,25]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15,25]", referenceIndex: 2 },
             ];
         });
 
@@ -166,7 +166,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should handle array inputs directly", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: [0,10,20,30], referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: [0, 10, 20, 30], referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -174,9 +174,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle null values", () => {
-            window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 }
-            ];
+            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 }];
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
@@ -184,7 +182,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should handle invalid JSON strings", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "invalid json", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "invalid json", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -192,9 +190,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should handle non-string non-array values", () => {
-            window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 }
-            ];
+            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 }];
 
             renderLapZoneCharts(container);
             expect(mockConsoleError).not.toHaveBeenCalled();
@@ -208,7 +204,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should process HR zone data correctly", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20,30]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20,30]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -217,16 +213,19 @@ describe("renderLapZoneCharts", () => {
 
         it("should process Power zone data correctly", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15,25]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15,25]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Power Zone filtering - meaningfulPowerZones:", [0, 1, 2]);
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                "[ChartJS] Power Zone filtering - meaningfulPowerZones:",
+                [0, 1, 2]
+            );
         });
 
         it("should skip zone 0 (rest zone) in processing", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[50,10,20,30]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[50,10,20,30]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -237,7 +236,7 @@ describe("renderLapZoneCharts", () => {
         it("should handle multiple laps", () => {
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,0,30]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,5,15,0]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInHrZone: "[0,5,15,0]", referenceIndex: 2 },
             ];
 
             renderLapZoneCharts(container);
@@ -249,7 +248,7 @@ describe("renderLapZoneCharts", () => {
         it("should filter out zones with zero values across all laps", () => {
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,0,0]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,5,0,0]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInHrZone: "[0,5,0,0]", referenceIndex: 2 },
             ];
 
             renderLapZoneCharts(container);
@@ -260,7 +259,7 @@ describe("renderLapZoneCharts", () => {
         it("should include zones with data from any lap", () => {
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,0,30]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,0,15,0]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInHrZone: "[0,0,15,0]", referenceIndex: 2 },
             ];
 
             renderLapZoneCharts(container);
@@ -269,7 +268,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should handle empty zone data after filtering", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,0,0,0]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,0,0,0]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -283,12 +282,12 @@ describe("renderLapZoneCharts", () => {
                 name: "test-theme",
                 colors: {
                     bgPrimary: "#ffffff",
-                    shadow: "0 2px 4px rgba(0,0,0,0.1)"
-                }
+                    shadow: "0 2px 4px rgba(0,0,0,0.1)",
+                },
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
         });
 
@@ -312,7 +311,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should create canvas for Power stacked chart", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -328,7 +327,7 @@ describe("renderLapZoneCharts", () => {
 
         it("should create canvas for Power individual chart", () => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -341,7 +340,7 @@ describe("renderLapZoneCharts", () => {
         beforeEach(() => {
             (getThemeConfig as any).mockReturnValue({
                 name: "test-theme",
-                colors: { bgPrimary: "#ffffff", shadow: "none" }
+                colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
             (renderLapZoneChart as any).mockReturnValue({ id: "mock-chart" });
@@ -350,7 +349,7 @@ describe("renderLapZoneCharts", () => {
 
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
             ];
         });
 
@@ -358,8 +357,8 @@ describe("renderLapZoneCharts", () => {
             renderLapZoneCharts(container);
 
             // Verify renderLapZoneChart was called for HR chart
-            const hrCalls = renderLapZoneChart.mock.calls.filter(call =>
-                call[2]?.title === "HR Zone by Lap (Stacked)"
+            const hrCalls = renderLapZoneChart.mock.calls.filter(
+                (call) => call[2]?.title === "HR Zone by Lap (Stacked)"
             );
             expect(hrCalls).toHaveLength(1);
 
@@ -372,43 +371,37 @@ describe("renderLapZoneCharts", () => {
 
         it("should call renderLapZoneChart for Power stacked chart", () => {
             renderLapZoneCharts(container);
-            expect(renderLapZoneChart).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                { title: "Power Zone by Lap (Stacked)" }
-            );
+            expect(renderLapZoneChart).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), expect.any(Array), {
+                title: "Power Zone by Lap (Stacked)",
+            });
         });
 
         it("should call renderSingleHRZoneBar for HR individual chart", () => {
             renderLapZoneCharts(container);
-            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                { title: "HR Zone by Lap (Individual)" }
-            );
+            expect(renderSingleHRZoneBar).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), expect.any(Array), {
+                title: "HR Zone by Lap (Individual)",
+            });
         });
 
         it("should call renderSinglePowerZoneBar for Power individual chart", () => {
             renderLapZoneCharts(container);
-            expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(
-                expect.any(HTMLCanvasElement),
-                expect.any(Array),
-                { title: "Power Zone by Lap (Individual)" }
-            );
+            expect(renderSinglePowerZoneBar).toHaveBeenCalledWith(expect.any(HTMLCanvasElement), expect.any(Array), {
+                title: "Power Zone by Lap (Individual)",
+            });
         });
     });
 
     describe("Chart Instance Management", () => {
         beforeEach(() => {
             (getThemeConfig as any).mockReturnValue({
-                colors: { bgPrimary: "#ffffff", shadow: "none" }
+                colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
             (renderLapZoneChart as any).mockReturnValue({ id: "mock-chart" });
             (renderSingleHRZoneBar as any).mockReturnValue({ id: "mock-hr-bar" });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
         });
 
@@ -444,7 +437,7 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -460,14 +453,11 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockShowNotification).toHaveBeenCalledWith(
-                "Failed to render lap zone charts",
-                "error"
-            );
+            expect(mockShowNotification).toHaveBeenCalledWith("Failed to render lap zone charts", "error");
         });
 
         it("should continue execution when showNotification is not available", () => {
@@ -477,7 +467,7 @@ describe("renderLapZoneCharts", () => {
             });
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
 
             // Should not throw
@@ -488,12 +478,12 @@ describe("renderLapZoneCharts", () => {
     describe("Visibility Settings", () => {
         beforeEach(() => {
             (getThemeConfig as any).mockReturnValue({
-                colors: { bgPrimary: "#ffffff", shadow: "none" }
+                colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
             ];
         });
 
@@ -509,8 +499,8 @@ describe("renderLapZoneCharts", () => {
                     hrStackedVisible: true,
                     hrIndividualVisible: false,
                     powerStackedVisible: false,
-                    powerIndividualVisible: true
-                }
+                    powerIndividualVisible: true,
+                },
             };
 
             renderLapZoneCharts(container, options);
@@ -526,8 +516,8 @@ describe("renderLapZoneCharts", () => {
                     hrStackedVisible: false,
                     hrIndividualVisible: false,
                     powerStackedVisible: false,
-                    powerIndividualVisible: false
-                }
+                    powerIndividualVisible: false,
+                },
             };
 
             renderLapZoneCharts(container, options);
@@ -535,9 +525,7 @@ describe("renderLapZoneCharts", () => {
         });
 
         it("should skip charts when no data available", () => {
-            window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,0,0]", referenceIndex: 1 }
-            ];
+            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: "[0,0,0]", referenceIndex: 1 }];
 
             renderLapZoneCharts(container);
             // All zones are zero, so no meaningful data - no charts should be created
@@ -548,7 +536,7 @@ describe("renderLapZoneCharts", () => {
     describe("Theme Integration", () => {
         beforeEach(() => {
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
         });
 
@@ -561,10 +549,7 @@ describe("renderLapZoneCharts", () => {
         it("should log theme config name when available", () => {
             (getThemeConfig as any).mockReturnValue({ name: "dark-theme" });
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith(
-                "[renderLapZoneCharts] Using theme config:",
-                "dark-theme"
-            );
+            expect(mockConsoleLog).toHaveBeenCalledWith("[renderLapZoneCharts] Using theme config:", "dark-theme");
         });
 
         it("should handle missing theme config gracefully", () => {
@@ -583,8 +568,8 @@ describe("renderLapZoneCharts", () => {
             (getThemeConfig as any).mockReturnValue({
                 colors: {
                     bgPrimary: "#123456",
-                    shadow: "0 4px 8px rgba(0,0,0,0.3)"
-                }
+                    shadow: "0 4px 8px rgba(0,0,0,0.3)",
+                },
             });
 
             renderLapZoneCharts(container);
@@ -598,35 +583,32 @@ describe("renderLapZoneCharts", () => {
     describe("Session Zone Data Handling", () => {
         beforeEach(() => {
             (getThemeConfig as any).mockReturnValue({
-                colors: { bgPrimary: "#ffffff", shadow: "none" }
+                colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
         });
 
         it("should use window.heartRateZones for HR individual chart when available", () => {
             window.heartRateZones = [
                 { label: "Zone 1", value: 100, color: "red" },
-                { label: "Zone 2", value: 200, color: "blue" }
+                { label: "Zone 2", value: 200, color: "blue" },
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith(
-                "[ChartJS] Using session HR zone data:",
-                window.heartRateZones
-            );
+            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Using session HR zone data:", window.heartRateZones);
         });
 
         it("should convert time property to value for HR zones", () => {
             window.heartRateZones = [
                 { label: "Zone 1", time: 100, color: "red" },
-                { label: "Zone 2", time: 200, color: "blue" }
+                { label: "Zone 2", time: 200, color: "blue" },
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInHrZone: "[0,10,20]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
@@ -634,7 +616,7 @@ describe("renderLapZoneCharts", () => {
                 "[ChartJS] HR zone data after value mapping:",
                 expect.arrayContaining([
                     expect.objectContaining({ value: 100 }),
-                    expect.objectContaining({ value: 200 })
+                    expect.objectContaining({ value: 200 }),
                 ])
             );
         });
@@ -644,32 +626,26 @@ describe("renderLapZoneCharts", () => {
 
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,10,0]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,5,15]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInHrZone: "[0,5,15]", referenceIndex: 2 },
             ];
 
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Aggregating HR zone data from laps");
-            expect(mockConsoleLog).toHaveBeenCalledWith(
-                "[ChartJS] Aggregated HR zones:",
-                expect.any(Array)
-            );
+            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Aggregated HR zones:", expect.any(Array));
         });
 
         it("should use window.powerZones for Power individual chart when available", () => {
             window.powerZones = [
                 { label: "Zone 1", value: 50, color: "green" },
-                { label: "Zone 2", value: 150, color: "yellow" }
+                { label: "Zone 2", value: 150, color: "yellow" },
             ];
 
             window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,5,15]", referenceIndex: 1 },
             ];
 
             renderLapZoneCharts(container);
-            expect(mockConsoleLog).toHaveBeenCalledWith(
-                "[ChartJS] Using session Power zone data:",
-                window.powerZones
-            );
+            expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Using session Power zone data:", window.powerZones);
         });
 
         it("should aggregate Power zone data from laps when session data not available", () => {
@@ -677,7 +653,7 @@ describe("renderLapZoneCharts", () => {
 
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInPowerZone: "[0,5,0]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInPowerZone: "[0,3,12]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInPowerZone: "[0,3,12]", referenceIndex: 2 },
             ];
 
             renderLapZoneCharts(container);
@@ -689,22 +665,22 @@ describe("renderLapZoneCharts", () => {
         it("should render complete lap zone charts with all data types", () => {
             (getThemeConfig as any).mockReturnValue({
                 name: "integration-theme",
-                colors: { bgPrimary: "#f0f0f0", shadow: "0 2px 4px rgba(0,0,0,0.1)" }
+                colors: { bgPrimary: "#f0f0f0", shadow: "0 2px 4px rgba(0,0,0,0.1)" },
             });
 
             window.heartRateZones = [
                 { label: "HR Zone 1", value: 120, color: "#ff0000" },
-                { label: "HR Zone 2", value: 240, color: "#00ff00" }
+                { label: "HR Zone 2", value: 240, color: "#00ff00" },
             ];
 
             window.powerZones = [
                 { label: "Power Zone 1", value: 60, color: "#0000ff" },
-                { label: "Power Zone 2", value: 180, color: "#ffff00" }
+                { label: "Power Zone 2", value: 180, color: "#ffff00" },
             ];
 
             window.globalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: "[0,30,45]", timeInPowerZone: "[0,20,35]", referenceIndex: 1 },
-                { referenceMesg: "lap", timeInHrZone: "[0,25,50]", timeInPowerZone: "[0,15,40]", referenceIndex: 2 }
+                { referenceMesg: "lap", timeInHrZone: "[0,25,50]", timeInPowerZone: "[0,15,40]", referenceIndex: 2 },
             ];
 
             renderLapZoneCharts(container);
@@ -723,12 +699,10 @@ describe("renderLapZoneCharts", () => {
 
         it("should handle minimal data scenario", () => {
             (getThemeConfig as any).mockReturnValue({
-                colors: { bgPrimary: "#ffffff", shadow: "none" }
+                colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            window.globalData.timeInZoneMesgs = [
-                { referenceMesg: "lap", timeInHrZone: "[0,10]", referenceIndex: 1 }
-            ];
+            window.globalData.timeInZoneMesgs = [{ referenceMesg: "lap", timeInHrZone: "[0,10]", referenceIndex: 1 }];
 
             renderLapZoneCharts(container);
 

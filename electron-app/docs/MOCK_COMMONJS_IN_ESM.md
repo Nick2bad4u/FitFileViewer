@@ -36,42 +36,42 @@ We created the `cjsMockInterop.js` utility to solve these problems using a multi
 ### Basic Usage
 
 ```javascript
-import { mockStateManager } from './cjsMockInterop';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mockStateManager } from "./cjsMockInterop";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
-describe('Your Test Suite', () => {
-  let stateManager;
-  let cleanup;
+describe("Your Test Suite", () => {
+ let stateManager;
+ let cleanup;
 
-  beforeEach(() => {
-    // Setup mocking
-    const mockResult = mockStateManager({ verbose: true });
-    stateManager = mockResult;
-    cleanup = mockResult.cleanup;
-  });
+ beforeEach(() => {
+  // Setup mocking
+  const mockResult = mockStateManager({ verbose: true });
+  stateManager = mockResult;
+  cleanup = mockResult.cleanup;
+ });
 
-  afterEach(() => {
-    // Cleanup after test
-    if (cleanup) cleanup();
-    vi.resetModules();
-  });
+ afterEach(() => {
+  // Cleanup after test
+  if (cleanup) cleanup();
+  vi.resetModules();
+ });
 
-  it('should test something', () => {
-    // Import the module after setting up mocks
-    const { yourFunction } = require('../../path/to/your/module.js');
+ it("should test something", () => {
+  // Import the module after setting up mocks
+  const { yourFunction } = require("../../path/to/your/module.js");
 
-    // Run test
-    yourFunction();
+  // Run test
+  yourFunction();
 
-    // Verify mock was called
-    expect(stateManager.setState).toHaveBeenCalled();
-  });
+  // Verify mock was called
+  expect(stateManager.setState).toHaveBeenCalled();
+ });
 });
 ```
 
 ### Important Guidelines
 
-1. **Import Order Matters**: Always set up mocks *before* importing the module under test.
+1. **Import Order Matters**: Always set up mocks _before_ importing the module under test.
 
 2. **Use `require()` Not `import`**: After setting up mocks, use `require()` to import the module under test.
 
@@ -88,16 +88,16 @@ describe('Your Test Suite', () => {
 For modules other than stateManager, you can use the `createCommonJSMock` function:
 
 ```javascript
-import { createCommonJSMock } from './cjsMockInterop';
+import { createCommonJSMock } from "./cjsMockInterop";
 
 const mockImplementation = {
-  myFunction: vi.fn()
+ myFunction: vi.fn(),
 };
 
 const { mock, cleanup } = createCommonJSMock({
-  modulePath: '../../path/to/module.js',
-  mockImplementation,
-  verbose: true
+ modulePath: "../../path/to/module.js",
+ mockImplementation,
+ verbose: true,
 });
 
 // Use mock.myFunction in your tests

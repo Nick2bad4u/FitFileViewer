@@ -13,14 +13,14 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         (global as any).console = {
             log: vi.fn(),
             error: vi.fn(),
-            warn: vi.fn()
+            warn: vi.fn(),
         };
 
         // Setup JSDOM environment
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
             url: "http://localhost",
             pretendToBeVisual: true,
-            resources: "usable"
+            resources: "usable",
         });
 
         global.window = dom.window as any;
@@ -33,7 +33,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             getItem: vi.fn(),
             setItem: vi.fn(),
             removeItem: vi.fn(),
-            clear: vi.fn()
+            clear: vi.fn(),
         };
         (global as any).localStorage = mockLocalStorage;
 
@@ -49,7 +49,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             render: vi.fn(),
             stop: vi.fn(),
             clear: vi.fn(),
-            toBase64Image: vi.fn()
+            toBase64Image: vi.fn(),
         };
 
         Chart = vi.fn().mockImplementation(() => chartInstanceMock);
@@ -57,7 +57,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
         // Mock all dependencies
         vi.doMock("../../utils/charts/theming/chartThemeUtils.js", () => ({
-            detectCurrentTheme: vi.fn(() => "light")
+            detectCurrentTheme: vi.fn(() => "light"),
         }));
 
         vi.doMock("../../utils/formatting/converters/convertTimeUnits.js", () => ({
@@ -65,15 +65,15 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 if (units === "hours") return value / 3600;
                 if (units === "minutes") return value / 60;
                 return value;
-            })
+            }),
         }));
 
         vi.doMock("../../utils/formatting/formatters/formatTime.js", () => ({
-            formatTime: vi.fn((value) => `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, '0')}`)
+            formatTime: vi.fn((value) => `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`),
         }));
 
         vi.doMock("../../utils/formatting/display/formatTooltipWithUnits.js", () => ({
-            formatTooltipWithUnits: vi.fn((value, field) => `${value.toFixed(2)} ${field}`)
+            formatTooltipWithUnits: vi.fn((value, field) => `${value.toFixed(2)} ${field}`),
         }));
 
         vi.doMock("../../utils/data/lookups/getUnitSymbol.js", () => ({
@@ -85,34 +85,34 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                     temperature: "°C",
                     power: "W",
                     heartRate: "bpm",
-                    time: "s"
+                    time: "s",
                 };
                 return symbols[field] || field;
-            })
+            }),
         }));
 
         vi.doMock("../../utils/charts/core/renderChartJS.js", () => ({
-            hexToRgba: vi.fn((hex, alpha) => `rgba(255, 0, 0, ${alpha})`)
+            hexToRgba: vi.fn((hex, alpha) => `rgba(255, 0, 0, ${alpha})`),
         }));
 
         vi.doMock("../../utils/charts/theming/getFieldColor.js", () => ({
-            getFieldColor: vi.fn(() => "#ff0000")
+            getFieldColor: vi.fn(() => "#ff0000"),
         }));
 
         vi.doMock("../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
-            chartZoomResetPlugin: { id: "zoomReset" }
+            chartZoomResetPlugin: { id: "zoomReset" },
         }));
 
         vi.doMock("../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
-            chartBackgroundColorPlugin: { id: "backgroundColor" }
+            chartBackgroundColorPlugin: { id: "backgroundColor" },
         }));
 
         vi.doMock("../../utils/ui/notifications/showNotification.js", () => ({
-            showNotification: vi.fn()
+            showNotification: vi.fn(),
         }));
 
         vi.doMock("../../utils/charts/core/updateChartAnimations.js", () => ({
-            updateChartAnimations: vi.fn()
+            updateChartAnimations: vi.fn(),
         }));
 
         // Import the module after mocking
@@ -137,7 +137,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const canvas = document.createElement("canvas");
             const options = {
                 field: "speed",
-                chartData: [{ x: 0, y: 10 }, { x: 1, y: 15 }],
+                chartData: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 15 },
+                ],
                 chartType: "line",
                 interpolation: "linear",
                 animationStyle: "normal",
@@ -150,7 +153,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -178,7 +181,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -207,7 +210,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -236,7 +239,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -268,7 +271,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors,
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -297,7 +300,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels,
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -323,7 +326,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -350,7 +353,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -382,7 +385,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -415,19 +418,19 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "dark"
+                theme: "dark",
             };
 
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
             // Test that the color configuration exists and is properly structured
-            expect(config.options.plugins.legend.labels).toHaveProperty('color');
-            expect(config.options.plugins.title).toHaveProperty('color');
-            expect(config.options.plugins.tooltip).toHaveProperty('backgroundColor');
-            expect(config.options.plugins.tooltip).toHaveProperty('titleColor');
-            expect(config.options.plugins.tooltip).toHaveProperty('bodyColor');
-            expect(config.options.plugins.tooltip).toHaveProperty('borderColor');
+            expect(config.options.plugins.legend.labels).toHaveProperty("color");
+            expect(config.options.plugins.title).toHaveProperty("color");
+            expect(config.options.plugins.tooltip).toHaveProperty("backgroundColor");
+            expect(config.options.plugins.tooltip).toHaveProperty("titleColor");
+            expect(config.options.plugins.tooltip).toHaveProperty("bodyColor");
+            expect(config.options.plugins.tooltip).toHaveProperty("borderColor");
         });
 
         it("should configure grid colors based on theme", () => {
@@ -448,17 +451,17 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "dark"
+                theme: "dark",
             };
 
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
             // Test that grid colors are configured
-            expect(config.options.scales.x.grid).toHaveProperty('color');
-            expect(config.options.scales.y.grid).toHaveProperty('color');
-            expect(config.options.scales.x.ticks).toHaveProperty('color');
-            expect(config.options.scales.y.ticks).toHaveProperty('color');
+            expect(config.options.scales.x.grid).toHaveProperty("color");
+            expect(config.options.scales.y.grid).toHaveProperty("color");
+            expect(config.options.scales.x.ticks).toHaveProperty("color");
+            expect(config.options.scales.y.ticks).toHaveProperty("color");
             // Test that grid display is controlled by showGrid option
             expect(config.options.scales.x.grid.display).toBe(true);
             expect(config.options.scales.y.grid.display).toBe(true);
@@ -483,23 +486,20 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.plugins).toEqual([
-                { id: "zoomReset" },
-                { id: "backgroundColor" }
-            ]);
+            expect(config.plugins).toEqual([{ id: "zoomReset" }, { id: "backgroundColor" }]);
         });
 
         it("should configure zoom plugin", () => {
             const canvas = document.createElement("canvas");
             const zoomPluginConfig = {
                 pan: { enabled: true },
-                zoom: { wheel: { enabled: true } }
+                zoom: { wheel: { enabled: true } },
             };
             const options = {
                 field: "speed",
@@ -516,7 +516,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig,
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -543,15 +543,15 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "dark"
+                theme: "dark",
             };
 
             createEnhancedChart(canvas, options);
 
             const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
             // Test that background color plugin is configured with some background color
-            expect(config.options.plugins.chartBackgroundColorPlugin).toHaveProperty('backgroundColor');
-            expect(typeof config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe('string');
+            expect(config.options.plugins.chartBackgroundColorPlugin).toHaveProperty("backgroundColor");
+            expect(typeof config.options.plugins.chartBackgroundColorPlugin.backgroundColor).toBe("string");
             expect(config.options.plugins.chartBackgroundColorPlugin.backgroundColor.length).toBeGreaterThan(0);
         });
     });
@@ -574,7 +574,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -605,7 +605,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: { distance: "Distance" },
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -614,7 +614,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const labelCallback = config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
                 parsed: { y: 5 }, // 5 km
-                dataset: { label: "Distance" }
+                dataset: { label: "Distance" },
             };
 
             const result = labelCallback(mockContext);
@@ -640,7 +640,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: { temperature: "Temperature" },
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -649,7 +649,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const labelCallback = config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
                 parsed: { y: 86 }, // 86°F
-                dataset: { label: "Temperature" }
+                dataset: { label: "Temperature" },
             };
 
             const result = labelCallback(mockContext);
@@ -673,7 +673,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: { power: "Power" },
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -682,7 +682,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const labelCallback = config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
                 parsed: { y: 250 },
-                dataset: { label: "Power" }
+                dataset: { label: "Power" },
             };
 
             const result = labelCallback(mockContext);
@@ -708,7 +708,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -737,7 +737,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels,
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -766,7 +766,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -797,7 +797,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -828,7 +828,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -857,7 +857,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -886,7 +886,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -913,7 +913,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -940,7 +940,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -966,7 +966,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -993,7 +993,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -1024,7 +1024,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -1051,7 +1051,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -1077,7 +1077,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -1104,7 +1104,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels,
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -1132,7 +1132,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -1165,7 +1165,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -1173,10 +1173,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             // Test that error is handled gracefully
             expect(result).toBe(null);
             // Test that console.error was called (we can verify this because we mocked console)
-            expect(console.error).toHaveBeenCalledWith(
-                "[ChartJS] Error creating chart for speed:",
-                expect.any(Error)
-            );
+            expect(console.error).toHaveBeenCalledWith("[ChartJS] Error creating chart for speed:", expect.any(Error));
         });
 
         it("should handle errors gracefully without throwing", () => {
@@ -1200,7 +1197,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             expect(() => {
@@ -1227,7 +1224,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             const result = createEnhancedChart(canvas, options);
@@ -1254,7 +1251,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);
@@ -1280,7 +1277,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 customColors: {},
                 zoomPluginConfig: {},
                 fieldLabels: {},
-                theme: "light"
+                theme: "light",
             };
 
             createEnhancedChart(canvas, options);

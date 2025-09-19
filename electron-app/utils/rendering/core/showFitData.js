@@ -279,7 +279,8 @@ function resetRenderingStates() {
     try {
         // Reset rendering flags - use type assertion for window extensions
         /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (globalThis).isMapRendered = false;
-        /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (globalThis).isChartRendered = false;
+        /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (globalThis).isChartRendered =
+            false;
 
         // Update state management
         setState("ui.isMapRendered", false, { source: "showFitData" });

@@ -62,8 +62,8 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         // Mock console methods to reduce noise
         originalConsoleLog = console.log;
         originalConsoleWarn = console.warn;
-        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => { });
-        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Mock isHTMLElement to return true for HTMLElements
         mockIsHTMLElement.mockImplementation((el) => el instanceof HTMLElement);

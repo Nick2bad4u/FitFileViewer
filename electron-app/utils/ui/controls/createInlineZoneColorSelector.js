@@ -180,7 +180,12 @@ export function createInlineZoneColorSelector(field, container) {
                 const colorInput = /** @type {HTMLInputElement|null} */ (item.querySelector(".zone-color-input")),
                     colorPreview = /** @type {HTMLElement|null} */ (item.querySelector(".zone-color-preview"));
                 if (colorInput) {
-                    colorInput.value = colorToShow;
+                    // Convert 8-digit hex colors to 6-digit for HTML color input compatibility
+                    const colorForInput =
+                        colorToShow && colorToShow.length === 9 && colorToShow.startsWith("#")
+                            ? colorToShow.slice(0, 7)
+                            : colorToShow;
+                    colorInput.value = colorForInput;
                 }
                 if (colorPreview) {
                     colorPreview.style.backgroundColor = colorToShow;

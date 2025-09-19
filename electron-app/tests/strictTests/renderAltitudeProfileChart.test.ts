@@ -13,14 +13,14 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         (global as any).console = {
             log: vi.fn(),
             error: vi.fn(),
-            warn: vi.fn()
+            warn: vi.fn(),
         };
 
         // Setup JSDOM environment
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
             url: "http://localhost",
             pretendToBeVisual: true,
-            resources: "usable"
+            resources: "usable",
         });
 
         global.window = dom.window as any;
@@ -33,7 +33,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             getItem: vi.fn(),
             setItem: vi.fn(),
             removeItem: vi.fn(),
-            clear: vi.fn()
+            clear: vi.fn(),
         };
         (global as any).localStorage = mockLocalStorage;
 
@@ -49,7 +49,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             render: vi.fn(),
             stop: vi.fn(),
             clear: vi.fn(),
-            toBase64Image: vi.fn()
+            toBase64Image: vi.fn(),
         };
 
         Chart = vi.fn().mockImplementation(() => chartInstanceMock);
@@ -68,9 +68,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                     chartGrid: "#e0e0e0",
                     primary: "#0066cc",
                     primaryAlpha: "#0066cc33",
-                    shadow: "#00000020"
-                }
-            }))
+                    shadow: "#00000020",
+                },
+            })),
         }));
 
         vi.doMock("../../utils/charts/components/createChartCanvas.js", () => ({
@@ -78,30 +78,32 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 const canvas = document.createElement("canvas");
                 canvas.id = `chart-${field}-${index}`;
                 return canvas;
-            })
+            }),
         }));
 
         vi.doMock("../../utils/formatting/formatters/formatTime.js", () => ({
             formatTime: vi.fn((value, short) => {
                 const minutes = Math.floor(value / 60);
                 const seconds = Math.floor(value % 60);
-                return short ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            })
+                return short
+                    ? `${minutes}:${seconds.toString().padStart(2, "0")}`
+                    : `${minutes}:${seconds.toString().padStart(2, "0")}`;
+            }),
         }));
 
         vi.doMock("../../utils/data/lookups/getUnitSymbol.js", () => ({
             getUnitSymbol: vi.fn((field, type) => {
                 if (field === "time" && type === "time") return "s";
                 return "m";
-            })
+            }),
         }));
 
         vi.doMock("../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
-            chartZoomResetPlugin: { id: "zoomReset" }
+            chartZoomResetPlugin: { id: "zoomReset" },
         }));
 
         vi.doMock("../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
-            chartBackgroundColorPlugin: { id: "backgroundColor" }
+            chartBackgroundColorPlugin: { id: "backgroundColor" },
         }));
 
         // Import the module after mocking
@@ -150,11 +152,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
         it("should process data correctly with valid altitude values", () => {
             const container = document.createElement("div");
-            const data = [
-                { altitude: 100 },
-                { altitude: 150 },
-                { altitude: 200 }
-            ];
+            const data = [{ altitude: 100 }, { altitude: 150 }, { altitude: 200 }];
             const labels = [0, 10, 20];
             const options = { maxPoints: 1000, showLegend: true, showTitle: true, showGrid: true };
 
@@ -165,7 +163,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
                 { x: 10, y: 150 },
-                { x: 20, y: 200 }
+                { x: 20, y: 200 },
             ]);
         });
 
@@ -173,7 +171,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             const container = document.createElement("div");
             const data = [
                 { altitude: 100, enhancedAltitude: 110 },
-                { altitude: 150, enhancedAltitude: 160 }
+                { altitude: 150, enhancedAltitude: 160 },
             ];
             const labels = [0, 10];
             const options = { maxPoints: 1000, showLegend: true, showTitle: true, showGrid: true };
@@ -183,7 +181,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 110 },
-                { x: 10, y: 160 }
+                { x: 10, y: 160 },
             ]);
         });
 
@@ -206,7 +204,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 { altitude: null },
                 { altitude: 200 },
                 { altitude: undefined },
-                { altitude: 300 }
+                { altitude: 300 },
             ];
             const labels = [0, 10, 20, 30, 40];
             const options = { maxPoints: 1000, showLegend: true, showTitle: true, showGrid: true };
@@ -217,7 +215,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
                 { x: 20, y: 200 },
-                { x: 40, y: 300 }
+                { x: 40, y: 300 },
             ]);
         });
     });
@@ -237,7 +235,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
                 { x: 40, y: 140 },
-                { x: 80, y: 180 }
+                { x: 80, y: 180 },
             ]);
         });
 
@@ -266,7 +264,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(chartData).toEqual([
                 { x: 0, y: 100 },
                 { x: 20, y: 120 },
-                { x: 40, y: 140 }
+                { x: 40, y: 140 },
             ]);
         });
     });
@@ -383,7 +381,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect(canvas).toBeTruthy();
             expect(canvas?.id).toBe("chart-altitude-profile-0");
             expect(canvas?.style.borderRadius).toBe("12px");
-              expect(canvas?.style.background).toMatch(/(#ffffff|rgb\(255,\s*255,\s*255\))/);
+            expect(canvas?.style.background).toMatch(/(#ffffff|rgb\(255,\s*255,\s*255\))/);
         });
 
         it("should append canvas to container", () => {
@@ -409,7 +407,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const canvas = container.querySelector("canvas");
-                expect(canvas?.style.background).toMatch(/(#ffffff|rgb\(255,\s*255,\s*255\))/);
+            expect(canvas?.style.background).toMatch(/(#ffffff|rgb\(255,\s*255,\s*255\))/);
             expect(canvas?.style.boxShadow).toBe("0 2px 16px 0 #00000020");
         });
     });
@@ -514,10 +512,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const config = Chart.mock.calls[0][1];
-            expect(config.plugins).toEqual([
-                { id: "zoomReset" },
-                { id: "backgroundColor" }
-            ]);
+            expect(config.plugins).toEqual([{ id: "zoomReset" }, { id: "backgroundColor" }]);
         });
 
         it("should configure chartBackgroundColorPlugin with theme colors", () => {
@@ -643,7 +638,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: 0 },
-                { x: 10, y: 0 }
+                { x: 10, y: 0 },
             ]);
         });
 
@@ -672,12 +667,12 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
-                // Function includes points even with undefined x values
-                expect(chartData).toEqual([
-                    { x: 0, y: 100 },
-                    { x: undefined, y: 200 }
-                ]);
-                expect(chartData.length).toBe(2); // Both points included despite undefined x
+            // Function includes points even with undefined x values
+            expect(chartData).toEqual([
+                { x: 0, y: 100 },
+                { x: undefined, y: 200 },
+            ]);
+            expect(chartData.length).toBe(2); // Both points included despite undefined x
         });
 
         it("should handle negative altitude values", () => {
@@ -691,7 +686,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             const chartData = Chart.mock.calls[0][1].data.datasets[0].data;
             expect(chartData).toEqual([
                 { x: 0, y: -50 },
-                { x: 10, y: 100 }
+                { x: 10, y: 100 },
             ]);
         });
     });

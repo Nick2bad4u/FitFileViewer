@@ -1,9 +1,11 @@
 // Ensure a safe console is available before Vitest workers initialize.
 export default async function globalSetup() {
     try {
-        const noop = () => { };
+        const noop = () => {};
         // Access console only via globalThis to avoid ReferenceError if identifier is not bound yet
-        const gConsole = /** @type {any} */ (globalThis && /** @type {any} */ (globalThis).console ? /** @type {any} */ (globalThis).console : undefined);
+        const gConsole = /** @type {any} */ (
+            globalThis && /** @type {any} */ (globalThis).console ? /** @type {any} */ (globalThis).console : undefined
+        );
         const baseConsole = {
             log: gConsole?.log || noop,
             warn: gConsole?.warn || noop,

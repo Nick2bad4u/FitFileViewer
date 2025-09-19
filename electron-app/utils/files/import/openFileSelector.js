@@ -78,15 +78,15 @@ async function handleFilesFromInput(input) {
     const merged = [];
     const nativeList = /** @type {any} */ (input).files;
     if (nativeList && typeof nativeList.length === "number" && nativeList.length > 0) {
-        merged.push(...(nativeList));
+        merged.push(...nativeList);
     }
     const selected = /** @type {any} */ (input).selectedFiles;
     if (selected && typeof selected.length === "number" && selected.length > 0) {
-        merged.push(...(selected));
+        merged.push(...selected);
     }
     const injected = /** @type {any} */ (input).__files;
     if (injected && typeof injected.length === "number" && injected.length > 0) {
-        merged.push(...(injected));
+        merged.push(...injected);
     }
 
     // Deduplicate while preserving insertion order — tests may populate multiple sources
@@ -107,7 +107,8 @@ async function handleFilesFromInput(input) {
     const fileArray = unique;
     console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`);
     // Support test-time injection via window.loadOverlayFiles
-    const injectedLoader = /** @type {any} */ (globalThis)?.loadOverlayFiles ?? /** @type {any} */ (globalThis)?.loadOverlayFiles;
+    const injectedLoader =
+        /** @type {any} */ (globalThis)?.loadOverlayFiles ?? /** @type {any} */ (globalThis)?.loadOverlayFiles;
     const loader = typeof injectedLoader === "function" ? injectedLoader : loadOverlayFiles;
     await loader(fileArray);
 }

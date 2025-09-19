@@ -28,9 +28,9 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
         vi.clearAllMocks();
 
         // Mock console methods to prevent errors
-        vi.spyOn(console, "log").mockImplementation(() => { });
-        vi.spyOn(console, "warn").mockImplementation(() => { });
-        vi.spyOn(console, "error").mockImplementation(() => { });
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
 
         // Set up DOM
         testContainer = document.createElement("div");
@@ -346,7 +346,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             document.getElementById = vi.fn().mockReturnValue(mockElement);
 
             // Spy on console.error to verify graceful error handling
-            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => { });
+            const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
             // Should handle gracefully (not throw)
             expect(() => updateActiveTab("tab-test")).not.toThrow();

@@ -53,10 +53,10 @@
         "isolatedDeclarations": false,
         "isolatedModules": true,
         "noCheck": false,
-    // We use extensive JSDoc across many .js files; enable JS in the program
-    // but disable checkJs for the standalone typecheck to avoid noisy errors.
-    // Vitest integration still performs per-file type assertions where needed.
-    "checkJs": false,
+        // We use extensive JSDoc across many .js files; enable JS in the program
+        // but disable checkJs for the standalone typecheck to avoid noisy errors.
+        // Vitest integration still performs per-file type assertions where needed.
+        "checkJs": false,
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": true,
         "noImplicitOverride": true,

@@ -45,7 +45,7 @@ export function getChartOverlayColorPalette(array) {
         }
         const [r1, g1, b1] = hexToRgb(c1),
             [r2, g2, b2] = hexToRgb(c2);
-        return Math.hypot((r1 - r2), (g1 - g2), (b1 - b2));
+        return Math.hypot(r1 - r2, g1 - g2, b1 - b2);
     }
 
     // Filter out colors that are too similar (distance < 80)

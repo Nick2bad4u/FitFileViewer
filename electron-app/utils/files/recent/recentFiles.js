@@ -62,13 +62,13 @@ if (process.env.RECENT_FILES_PATH) {
     } else {
         // Fallback for tests or non-Electron environments
         // Use a consistent temp directory with unique test file
-        const os = require('node:os');
+        const os = require("node:os");
 
         // Always use system temp directory, never working directory
         const tempDir = process.env.TEMP || process.env.TMP || os.tmpdir();
 
         // Create a fit-file-viewer subdirectory in the temp folder
-        const fitTempDir = path.join(tempDir, 'fit-file-viewer-tests');
+        const fitTempDir = path.join(tempDir, "fit-file-viewer-tests");
 
         // Ensure the temp directory exists
         try {
@@ -81,11 +81,11 @@ if (process.env.RECENT_FILES_PATH) {
             RECENT_FILES_PATH = path.join(fitTempDir, `recent-files-${testId}.json`);
 
             // Register cleanup handler for tests
-            if (typeof process !== 'undefined' && process.on) {
-                process.on('exit', () => {
+            if (typeof process !== "undefined" && process.on) {
+                process.on("exit", () => {
                     try {
-                        if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
-                            fs.unlinkSync(/** @type {string} */(RECENT_FILES_PATH));
+                        if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
+                            fs.unlinkSync(/** @type {string} */ (RECENT_FILES_PATH));
                         }
                     } catch {
                         // Ignore cleanup errors
@@ -147,8 +147,8 @@ function getShortRecentName(file) {
  */
 function loadRecentFiles() {
     try {
-        if (fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
-            const data = fs.readFileSync(/** @type {string} */(RECENT_FILES_PATH));
+        if (fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
+            const data = fs.readFileSync(/** @type {string} */ (RECENT_FILES_PATH));
             return JSON.parse(data);
         }
     } catch (error) {
@@ -166,7 +166,7 @@ function loadRecentFiles() {
 function saveRecentFiles(list) {
     try {
         fs.writeFileSync(
-            /** @type {string} */(RECENT_FILES_PATH),
+            /** @type {string} */ (RECENT_FILES_PATH),
             JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
             "utf8"
         );

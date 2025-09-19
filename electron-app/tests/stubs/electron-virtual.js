@@ -33,11 +33,11 @@ const app = {
 
 const ipcRenderer = {
     invoke: vi.fn(async () => "mock-result"),
-    send: vi.fn(() => { }),
-    on: vi.fn(() => { }),
-    once: vi.fn(() => { }),
-    removeListener: vi.fn(() => { }),
-    removeAllListeners: vi.fn(() => { }),
+    send: vi.fn(() => {}),
+    on: vi.fn(() => {}),
+    once: vi.fn(() => {}),
+    removeListener: vi.fn(() => {}),
+    removeAllListeners: vi.fn(() => {}),
 };
 
 const contextBridge = {
@@ -46,12 +46,16 @@ const contextBridge = {
         try {
             // Mirror onto global/window so tests can access it easily
             /** @type {any} */ (globalThis)[name] = api;
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof window !== "undefined") {
                 /** @type {any} */ (window)[name] = api;
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     }),
 };
 

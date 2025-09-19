@@ -170,7 +170,7 @@ export function moveHRZoneControlsToSection() {
         console.log(`[HRZoneControls] Successfully moved ${movedControls.length} HR zone controls`);
 
         // Add some spacing between the controls
-        const controls = hrZoneContent.children;
+        const controls = Array.from(hrZoneContent.children);
         for (const [i, control] of controls.entries()) {
             if (i > 0) {
                 /** @type {HTMLElement} */ (control).style.marginTop = "12px";

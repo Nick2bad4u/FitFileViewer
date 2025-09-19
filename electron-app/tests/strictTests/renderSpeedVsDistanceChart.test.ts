@@ -13,7 +13,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
             url: "http://localhost",
             pretendToBeVisual: true,
-            resources: "usable"
+            resources: "usable",
         });
 
         global.window = dom.window as any;
@@ -23,7 +23,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
         (global as any).console = {
             log: vi.fn(),
             error: vi.fn(),
-            warn: vi.fn()
+            warn: vi.fn(),
         };
 
         // Mock localStorage
@@ -31,7 +31,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             getItem: vi.fn(),
             setItem: vi.fn(),
             removeItem: vi.fn(),
-            clear: vi.fn()
+            clear: vi.fn(),
         };
         (global as any).localStorage = mockLocalStorage;
 
@@ -51,7 +51,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             generateLegend: vi.fn(),
             getElementsAtEventForMode: vi.fn(() => []),
             getElementAtEvent: vi.fn(() => []),
-            getDatasetAtEvent: vi.fn(() => [])
+            getDatasetAtEvent: vi.fn(() => []),
         };
 
         Chart = vi.fn(() => chartInstanceMock);
@@ -83,11 +83,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
     describe("Data Validation and Processing", () => {
         it("should return early when data has no speed values", () => {
             const container = document.createElement("div");
-            const data = [
-                { distance: 1000 },
-                { distance: 2000 },
-                { distance: 3000 }
-            ];
+            const data = [{ distance: 1000 }, { distance: 2000 }, { distance: 3000 }];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
             renderSpeedVsDistanceChart(container, data, options);
@@ -98,11 +94,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
         it("should return early when data has no distance values", () => {
             const container = document.createElement("div");
-            const data = [
-                { speed: 5.5 },
-                { speed: 6.0 },
-                { speed: 4.8 }
-            ];
+            const data = [{ speed: 5.5 }, { speed: 6.0 }, { speed: 4.8 }];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
             renderSpeedVsDistanceChart(container, data, options);
@@ -117,7 +109,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [
                 { speed: 5.5, distance: 1000 },
-                { speed: 6.0, distance: 2000 }
+                { speed: 6.0, distance: 2000 },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
@@ -137,7 +129,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
                 { speed: 6.0, distance: 2000 },
                 { speed: null, distance: 3000 }, // Should be filtered out
                 { speed: 4.8, distance: undefined }, // Should be filtered out
-                { speed: 5.2, distance: 2500 }
+                { speed: 5.2, distance: 2500 },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
@@ -148,7 +140,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 1, y: 5.5 }, // Distance converted from meters to km, speed stays same (no conversion)
                 { x: 2, y: 6.0 },
-                { x: 2.5, y: 5.2 }
+                { x: 2.5, y: 5.2 },
             ]);
         });
 
@@ -158,7 +150,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [
                 { speed: 5.5, enhancedSpeed: 5.8, distance: 1000 },
-                { speed: 6.0, enhancedSpeed: 6.2, distance: 2000 }
+                { speed: 6.0, enhancedSpeed: 6.2, distance: 2000 },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
@@ -168,7 +160,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 1, y: 5.8 }, // enhancedSpeed used instead of speed, no conversion
-                { x: 2, y: 6.2 }
+                { x: 2, y: 6.2 },
             ]);
         });
 
@@ -179,7 +171,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const data = [
                 { speed: null, distance: 1000 },
                 { speed: 5.5, distance: null },
-                { speed: undefined, distance: undefined }
+                { speed: undefined, distance: undefined },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
@@ -197,7 +189,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [];
             for (let i = 0; i < 1000; i++) {
-                data.push({ speed: 5.0 + (i * 0.01), distance: 100 * i });
+                data.push({ speed: 5.0 + i * 0.01, distance: 100 * i });
             }
             const options = { maxPoints: 100, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
@@ -250,7 +242,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [
                 { speed: 5.5, distance: 1000 },
-                { speed: 6.0, distance: 2000 }
+                { speed: 6.0, distance: 2000 },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
@@ -289,7 +281,13 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
-            const options = { maxPoints: 1000, showPoints: false, showLegend: false, showTitle: false, showGrid: false };
+            const options = {
+                maxPoints: 1000,
+                showPoints: false,
+                showLegend: false,
+                showTitle: false,
+                showGrid: false,
+            };
 
             renderSpeedVsDistanceChart(container, data, options);
 
@@ -449,7 +447,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const chartConfig = Chart.mock.calls[0][1];
             const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
-                parsed: { x: 1, y: 19.8 } // 1 km, 19.8 km/h
+                parsed: { x: 1, y: 19.8 }, // 1 km, 19.8 km/h
             };
 
             const result = tooltipCallback(mockContext);
@@ -475,7 +473,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const chartConfig = Chart.mock.calls[0][1];
             const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
-                parsed: { x: 3280.84, y: 19.8 } // feet, km/h
+                parsed: { x: 3280.84, y: 19.8 }, // feet, km/h
             };
 
             const result = tooltipCallback(mockContext);
@@ -499,7 +497,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const chartConfig = Chart.mock.calls[0][1];
             const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
-                parsed: { x: 0.621371, y: 19.8 } // miles, km/h
+                parsed: { x: 0.621371, y: 19.8 }, // miles, km/h
             };
 
             const result = tooltipCallback(mockContext);
@@ -523,7 +521,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const chartConfig = Chart.mock.calls[0][1];
             const tooltipCallback = chartConfig.options.plugins.tooltip.callbacks.label;
             const mockContext = {
-                parsed: { x: 1, y: 19.8 }
+                parsed: { x: 1, y: 19.8 },
             };
 
             const result = tooltipCallback(mockContext);
@@ -591,10 +589,10 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             });
 
             // Setup the Chart mock on window
-            Object.defineProperty(window, 'Chart', {
+            Object.defineProperty(window, "Chart", {
                 value: mockChart,
                 writable: true,
-                configurable: true
+                configurable: true,
             });
 
             const container = document.createElement("div");
@@ -665,7 +663,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const container = document.createElement("div");
             const data = [
                 { speed: 0, distance: 0 },
-                { speed: 5.5, distance: 1000 }
+                { speed: 5.5, distance: 1000 },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 

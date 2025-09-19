@@ -34,7 +34,8 @@ export function getChartCounts() {
             visible: 0,
         },
         // Check if we have data
-        hasData = globalThis.globalData && globalThis.globalData.recordMesgs && globalThis.globalData.recordMesgs.length > 0;
+        hasData =
+            globalThis.globalData && globalThis.globalData.recordMesgs && globalThis.globalData.recordMesgs.length > 0;
     if (!hasData) {
         return counts;
     }
@@ -199,8 +200,8 @@ export function getChartCounts() {
 
         // No need to count separately as they use the same visibility toggles        // Lap zone charts (from renderLapZoneCharts - up to 4 charts possible)
         if (globalThis.globalData?.timeInZoneMesgs) {
-            const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                { timeInZoneMesgs } = globalThis.globalData;
+            const { timeInZoneMesgs } = globalThis.globalData,
+                lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
             if (lapZoneMsgs.length > 0) {
                 // Check for HR lap zone charts (2 charts: stacked bar and individual bars)
@@ -252,13 +253,19 @@ export function getChartCounts() {
         // Only count fields that are not already in formatChartFields and have meaningful data
         if (globalThis.globalData?.recordMesgs && globalThis.globalData.recordMesgs.length > 0) {
             const sampleRecord = globalThis.globalData.recordMesgs[0],
+                excludedFields = new Set([
+                    "distance",
+                    "fractional_cadence",
+                    "positionLat",
+                    "positionLong",
+                    "timestamp",
+                ]),
                 developerFields = Object.keys(sampleRecord).filter(
                     (key) =>
                         !metricFields.includes(key) &&
                         !excludedFields.has(key) &&
                         (key.startsWith("developer_") || key.includes("_"))
-                ),
-                excludedFields = new Set(["distance", "fractional_cadence", "positionLat", "positionLong", "timestamp"]);
+                );
             for (const field of developerFields) {
                 // Check if this field has valid numeric data (same logic as renderChartJS)
                 const numericData = data.map((/** @type {any} */ row) => {

@@ -51,7 +51,11 @@ describe("getUnitSymbol.js - additional branch coverage", () => {
     it("handles storage.getItem throwing by warning and using fallback", () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         Object.defineProperty(window, "localStorage", {
-            value: { getItem: () => { throw new Error("boom"); } } as any,
+            value: {
+                getItem: () => {
+                    throw new Error("boom");
+                },
+            } as any,
             writable: true,
             configurable: true,
         });

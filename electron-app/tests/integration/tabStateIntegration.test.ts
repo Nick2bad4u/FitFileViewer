@@ -38,7 +38,7 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(false);
 
             // Verify tabs are disabled
-            const chartTab = /** @type {HTMLButtonElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
             expect(chartTab?.disabled).toBe(true);
             expect(chartTab?.classList.contains("tab-disabled")).toBe(true);
 
@@ -63,7 +63,7 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(true);
 
             // Verify tabs are enabled
-            const chartTab = /** @type {HTMLButtonElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
             expect(chartTab?.disabled).toBe(false);
             expect(chartTab?.classList.contains("tab-disabled")).toBe(false);
 
@@ -78,7 +78,7 @@ describe("Tab State Management Integration", () => {
         it("should handle multiple enable/disable cycles correctly", () => {
             initializeActiveTabState();
 
-            const chartTab = /** @type {HTMLButtonElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
 
             // Cycle through multiple disable/enable states
             for (let i = 0; i < 5; i++) {
@@ -108,8 +108,8 @@ describe("Tab State Management Integration", () => {
             // Set chart as active programmatically
             mockState.setState("ui.activeTab", "chart");
 
-            const summaryTab = /** @type {HTMLElement} */ (document.getElementById("tab-summary"));
-            const chartTab = /** @type {HTMLElement} */ (document.getElementById("tab-chart"));
+            const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
+            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
 
             // Visual state should update
             expect(summaryTab?.classList.contains("active")).toBe(false);
@@ -120,7 +120,7 @@ describe("Tab State Management Integration", () => {
 
             // Disabled state should be applied but active state preserved
             expect(chartTab?.classList.contains("active")).toBe(true);
-            expect(/** @type {HTMLButtonElement} */ (chartTab)?.disabled).toBe(true);
+            expect(/** @type {HTMLButtonElement} */ chartTab?.disabled).toBe(true);
         });
 
         it("should handle rapid state changes during disabled state", () => {
@@ -134,11 +134,11 @@ describe("Tab State Management Integration", () => {
             });
 
             // Final state should be reflected in DOM
-            const summaryTab = /** @type {HTMLElement} */ (document.getElementById("tab-summary"));
+            const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
             expect(summaryTab?.classList.contains("active")).toBe(true);
 
             // But tabs should still be disabled
-            expect(/** @type {HTMLButtonElement} */ (summaryTab)?.disabled).toBe(true);
+            expect(/** @type {HTMLButtonElement} */ summaryTab?.disabled).toBe(true);
         });
     });
 
@@ -179,7 +179,7 @@ describe("Tab State Management Integration", () => {
             mockState.setState("ui.activeTab", "chart");
 
             // Should reflect the state
-            const chartTab = /** @type {HTMLElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
             expect(chartTab?.classList.contains("active")).toBe(true);
         });
 
@@ -204,7 +204,7 @@ describe("Tab State Management Integration", () => {
                 initializeActiveTabState();
             }
 
-            const chartTab = /** @type {HTMLElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
 
             // Click once
             const clickEvent = new MouseEvent("click", { bubbles: true });

@@ -47,7 +47,7 @@ export default defineConfig([
             "max-lines": "off",
             "max-lines-per-function": "off",
             "max-statements": "off",
-            "complexity": "off",
+            complexity: "off",
             // Additional noise reduction rules
             "sort-imports": "off", // Conflict with perfectionist/sort-imports, prefer perfectionist
             "no-underscore-dangle": "off", // Allow underscore prefixes for private properties and test globals
@@ -57,13 +57,13 @@ export default defineConfig([
             "no-plusplus": "off", // Allow ++ and -- operators
             "require-await": "off", // Many async functions don't require await
             "class-methods-use-this": "off", // Class methods don't always need to use this
-            "camelcase": ["warn", { allow: ["^[a-z]+(_[a-z0-9]+)*$"] }], // Allow snake_case for certain patterns
+            camelcase: ["warn", { allow: ["^[a-z]+(_[a-z0-9]+)*$"] }], // Allow snake_case for certain patterns
             "capitalized-comments": "off", // Comments don't need to be capitalized
             "func-names": "off", // Allow anonymous functions
             "no-param-reassign": "off", // Allow parameter reassignment
             "no-undefined": "off", // Allow explicit undefined usage
             "no-eq-null": "off", // Allow == null checks
-            "eqeqeq": ["warn", "smart"], // Allow smart equality checks
+            eqeqeq: ["warn", "smart"], // Allow smart equality checks
             "prefer-destructuring": "warn", // Encourage but don't require destructuring
             "no-shadow": "warn", // Warn about variable shadowing
             "consistent-return": "off", // Allow inconsistent returns
@@ -96,7 +96,7 @@ export default defineConfig([
             "no-lone-blocks": "off", // Allow lone blocks
             "no-useless-constructor": "off", // Allow empty constructors
             "no-loop-func": "warn", // Warn about functions in loops
-            "radix": "off", // Don't require radix parameter for parseInt
+            radix: "off", // Don't require radix parameter for parseInt
             "no-bitwise": "off", // Allow bitwise operators
             "prefer-spread": "warn", // Encourage spread operator
             "unicorn/no-useless-switch-case": "off", // Allow useless switch cases
@@ -206,7 +206,7 @@ export default defineConfig([
     },
     {
         files: ["**/*.json"],
-        ignores: ["**/tsconfig*.json"],  // Exclude TypeScript config files (they use JSONC format)
+        ignores: ["**/tsconfig*.json"], // Exclude TypeScript config files (they use JSONC format)
         plugins: { json },
         language: "json/json",
         extends: ["json/recommended"],

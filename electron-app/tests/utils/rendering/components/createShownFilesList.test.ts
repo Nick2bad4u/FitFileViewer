@@ -11,11 +11,11 @@ const mockGetThemeColors = vi.fn();
 const mockChartOverlayColorPalette = ["#1976d2", "#388e3c", "#f57c00", "#7b1fa2", "#d32f2f"];
 
 vi.mock("../../charts/theming/getThemeColors.js", () => ({
-    getThemeColors: mockGetThemeColors
+    getThemeColors: mockGetThemeColors,
 }));
 
 vi.mock("../../charts/theming/chartOverlayColorPalette.js", () => ({
-    chartOverlayColorPalette: mockChartOverlayColorPalette
+    chartOverlayColorPalette: mockChartOverlayColorPalette,
 }));
 
 describe("createShownFilesList", () => {
@@ -27,14 +27,17 @@ describe("createShownFilesList", () => {
         document.body.className = "";
 
         // Mock getComputedStyle using vi.stubGlobal
-        vi.stubGlobal('getComputedStyle', vi.fn().mockReturnValue({
-            color: "rgb(255, 255, 255)",
-            backgroundColor: "rgb(255, 255, 255)",
-            getPropertyValue: vi.fn((prop: string) => {
-                if (prop === "color") return "rgb(255, 255, 255)";
-                return "";
+        vi.stubGlobal(
+            "getComputedStyle",
+            vi.fn().mockReturnValue({
+                color: "rgb(255, 255, 255)",
+                backgroundColor: "rgb(255, 255, 255)",
+                getPropertyValue: vi.fn((prop: string) => {
+                    if (prop === "color") return "rgb(255, 255, 255)";
+                    return "";
+                }),
             })
-        }));
+        );
 
         // Reset mock functions and re-establish default return values
         vi.clearAllMocks();
@@ -43,7 +46,7 @@ describe("createShownFilesList", () => {
         mockGetThemeColors.mockReturnValue({
             surface: "#ffffff",
             text: "#000000",
-            border: "#cccccc"
+            border: "#cccccc",
         });
 
         // Mock all window properties
@@ -60,7 +63,7 @@ describe("createShownFilesList", () => {
             CircleMarker: class MockCircleMarker {
                 constructor(public options: any) {}
                 bringToFront = vi.fn();
-            }
+            },
         };
 
         // Import the function dynamically
@@ -97,9 +100,9 @@ describe("createShownFilesList", () => {
         it("sets initial HTML content with proper structure", () => {
             const container = createShownFilesList();
 
-            expect(container.innerHTML).toContain('<b>Extra Files shown on map:</b>');
+            expect(container.innerHTML).toContain("<b>Extra Files shown on map:</b>");
             expect(container.innerHTML).toContain('<ul id="shown-files-ul"');
-            expect(container.innerHTML).toContain('margin:0; padding-left:18px;');
+            expect(container.innerHTML).toContain("margin:0; padding-left:18px;");
 
             const ul = container.querySelector("#shown-files-ul");
             expect(ul).toBeTruthy();
@@ -111,7 +114,7 @@ describe("createShownFilesList", () => {
             mockGetThemeColors.mockReturnValue({
                 surface: "#f5f5f5",
                 text: "#333333",
-                border: "#dddddd"
+                border: "#dddddd",
             });
 
             const container = createShownFilesList();
@@ -136,7 +139,7 @@ describe("createShownFilesList", () => {
             mockGetThemeColors.mockReturnValue({
                 surface: "#ffffff",
                 text: "#000000",
-                border: "#cccccc"
+                border: "#cccccc",
             });
 
             const container = createShownFilesList();
@@ -181,7 +184,7 @@ describe("createShownFilesList", () => {
         it("shows container when multiple files exist", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             const container = createShownFilesList();
@@ -208,12 +211,12 @@ describe("createShownFilesList", () => {
             // Test through actual color accessibility checking
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             // Mock getComputedStyle for color testing
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(25, 118, 210)" });
-            vi.stubGlobal('getComputedStyle', mockGetComputedStyle);
+            vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
             (global.window as any).updateShownFilesList();
 
@@ -227,11 +230,11 @@ describe("createShownFilesList", () => {
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(255, 255, 255)" });
-            vi.stubGlobal('getComputedStyle', mockGetComputedStyle);
+            vi.stubGlobal("getComputedStyle", mockGetComputedStyle);
 
             (global.window as any).updateShownFilesList();
 
@@ -241,13 +244,13 @@ describe("createShownFilesList", () => {
         it("handles invalid color formats gracefully", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "invalid-color" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
-                configurable: true
+                configurable: true,
             });
 
             expect(() => {
@@ -259,13 +262,13 @@ describe("createShownFilesList", () => {
             // Test by setting up contrasting colors
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(0, 0, 0)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
-                configurable: true
+                configurable: true,
             });
 
             (global.window as any).updateShownFilesList();
@@ -279,7 +282,7 @@ describe("createShownFilesList", () => {
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             // Mock DOM manipulation to avoid Node type issues
@@ -292,7 +295,7 @@ describe("createShownFilesList", () => {
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(100, 150, 200)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
-                configurable: true
+                configurable: true,
             });
 
             // Test that the function executes without crashing
@@ -307,14 +310,14 @@ describe("createShownFilesList", () => {
         it("meets WCAG AA contrast requirements", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             // High contrast colors should pass
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(255, 255, 255)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
-                configurable: true
+                configurable: true,
             });
 
             (global.window as any).updateShownFilesList();
@@ -329,7 +332,7 @@ describe("createShownFilesList", () => {
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             expect(() => {
@@ -342,7 +345,7 @@ describe("createShownFilesList", () => {
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             expect(() => {
@@ -356,7 +359,7 @@ describe("createShownFilesList", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
-                { data: {}, filePath: "overlay2.fit" }
+                { data: {}, filePath: "overlay2.fit" },
             ];
         });
 
@@ -401,7 +404,7 @@ describe("createShownFilesList", () => {
             const ul = container.querySelector("#shown-files-ul");
             const items = ul?.querySelectorAll("li");
 
-            items?.forEach(item => {
+            items?.forEach((item) => {
                 const removeBtn = item.querySelector("span");
                 expect(removeBtn).toBeTruthy();
                 expect(removeBtn?.textContent).toBe("×");
@@ -440,7 +443,7 @@ describe("createShownFilesList", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {} }, // No filePath
                 { data: {}, filePath: undefined },
-                { data: {}, filePath: "overlay.fit" }
+                { data: {}, filePath: "overlay.fit" },
             ];
 
             const container = createShownFilesList();
@@ -465,7 +468,7 @@ describe("createShownFilesList", () => {
             // Change files and update again
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "different.fit" }
+                { data: {}, filePath: "different.fit" },
             ];
             (global.window as any).updateShownFilesList();
 
@@ -474,9 +477,7 @@ describe("createShownFilesList", () => {
         });
 
         it("hides container when no overlays exist", () => {
-            (global.window as any).loadedFitFiles = [
-                { data: {}, filePath: "main.fit" }
-            ];
+            (global.window as any).loadedFitFiles = [{ data: {}, filePath: "main.fit" }];
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -497,7 +498,7 @@ describe("createShownFilesList", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
-                { data: {}, filePath: "overlay2.fit" }
+                { data: {}, filePath: "overlay2.fit" },
             ];
         });
 
@@ -613,7 +614,7 @@ describe("createShownFilesList", () => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
-                { data: {}, filePath: "overlay2.fit" }
+                { data: {}, filePath: "overlay2.fit" },
             ];
         });
 
@@ -697,9 +698,7 @@ describe("createShownFilesList", () => {
         });
 
         it("does not create clear all button when no overlays exist", () => {
-            (global.window as any).loadedFitFiles = [
-                { data: {}, filePath: "main.fit" }
-            ];
+            (global.window as any).loadedFitFiles = [{ data: {}, filePath: "main.fit" }];
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -713,7 +712,7 @@ describe("createShownFilesList", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay1.fit" }
+                { data: {}, filePath: "overlay1.fit" },
             ];
         });
 
@@ -802,7 +801,7 @@ describe("createShownFilesList", () => {
         beforeEach(() => {
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "/path/to/overlay1.fit" }
+                { data: {}, filePath: "/path/to/overlay1.fit" },
             ];
         });
 
@@ -898,7 +897,7 @@ describe("createShownFilesList", () => {
             // Set up data for testing
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "/path/to/overlay1.fit" }
+                { data: {}, filePath: "/path/to/overlay1.fit" },
             ];
 
             // Mock low contrast colors to trigger warning
@@ -906,7 +905,7 @@ describe("createShownFilesList", () => {
             const mockGetComputedStyle = vi.fn().mockReturnValue({ color: "rgb(40, 44, 50)" });
             Object.defineProperty(window, "getComputedStyle", {
                 value: mockGetComputedStyle,
-                configurable: true
+                configurable: true,
             });
 
             const container = createShownFilesList();
@@ -943,7 +942,7 @@ describe("createShownFilesList", () => {
             mockTooltip.className = "overlay-filename-tooltip";
             Object.defineProperties(mockTooltip, {
                 offsetWidth: { value: 200, configurable: true },
-                offsetHeight: { value: 100, configurable: true }
+                offsetHeight: { value: 100, configurable: true },
             });
 
             vi.spyOn(document, "createElement").mockReturnValue(mockTooltip as any);
@@ -1012,8 +1011,8 @@ describe("createShownFilesList", () => {
                 getElement: vi.fn().mockReturnValue({
                     style: {
                         transition: "",
-                        filter: ""
-                    }
+                        filter: "",
+                    },
                 }),
                 getBounds: vi.fn().mockReturnValue({}),
                 options: { color: "#1976d2" },
@@ -1021,20 +1020,20 @@ describe("createShownFilesList", () => {
                     _layers: {
                         marker1: {
                             options: { color: "#1976d2" },
-                            bringToFront: vi.fn()
-                        }
-                    }
-                }
+                            bringToFront: vi.fn(),
+                        },
+                    },
+                },
             };
 
             (global.window as any)._overlayPolylines = [null, mockPolyline];
             (global.window as any)._leafletMapInstance = {
-                fitBounds: vi.fn()
+                fitBounds: vi.fn(),
             };
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay1.fit" }
+                { data: {}, filePath: "overlay1.fit" },
             ];
         });
 
@@ -1179,7 +1178,7 @@ describe("createShownFilesList", () => {
             mockGetThemeColors.mockReturnValue({
                 surface: "#000000",
                 text: "#ffffff",
-                border: "#444444"
+                border: "#444444",
             });
 
             // Trigger theme change event
@@ -1237,7 +1236,7 @@ describe("createShownFilesList", () => {
 
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay1.fit" }
+                { data: {}, filePath: "overlay1.fit" },
             ];
 
             const container = createShownFilesList();
@@ -1253,7 +1252,7 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay1.fit" }
+                { data: {}, filePath: "overlay1.fit" },
             ];
             (global.window as any).updateShownFilesList();
 
@@ -1280,7 +1279,7 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay1.fit" }
+                { data: {}, filePath: "overlay1.fit" },
             ];
             (global.window as any).updateShownFilesList();
 
@@ -1312,7 +1311,7 @@ describe("createShownFilesList", () => {
             mockGetThemeColors.mockReturnValue({
                 surface: "#2d2d2d",
                 text: "#e0e0e0",
-                border: "#555555"
+                border: "#555555",
             });
 
             // Simulate theme change event
@@ -1336,7 +1335,7 @@ describe("createShownFilesList", () => {
             mockGetThemeColors.mockReturnValue({
                 surface: "#f0f0f0",
                 text: "#000000",
-                border: "#cccccc"
+                border: "#cccccc",
             });
 
             document.body.dispatchEvent(new Event("themechange"));
@@ -1360,7 +1359,7 @@ describe("createShownFilesList", () => {
             mockGetThemeColors.mockReturnValue({
                 surface: "#custom",
                 text: "#customtext",
-                border: "#customborder"
+                border: "#customborder",
             });
 
             document.body.dispatchEvent(new Event("themechange"));
@@ -1368,7 +1367,7 @@ describe("createShownFilesList", () => {
             // Theme should persist through file list updates
             (global.window as any).loadedFitFiles = [
                 { data: {}, filePath: "main.fit" },
-                { data: {}, filePath: "overlay1.fit" }
+                { data: {}, filePath: "overlay1.fit" },
             ];
             (global.window as any).updateShownFilesList();
 

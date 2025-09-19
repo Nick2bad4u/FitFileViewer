@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { addChartHoverEffects, removeChartHoverEffects, addHoverEffectsToExistingCharts } from "../../utils/charts/plugins/addChartHoverEffects.js";
+import {
+    addChartHoverEffects,
+    removeChartHoverEffects,
+    addHoverEffectsToExistingCharts,
+} from "../../utils/charts/plugins/addChartHoverEffects.js";
 
 // Mock getThemeConfig
 vi.mock("../../theming/core/theme.js", () => ({
@@ -14,9 +18,9 @@ vi.mock("../../theming/core/theme.js", () => ({
             textPrimary: "#fff",
             shadow: "#00000088",
             primaryShadowHeavy: "#00000055",
-            surfaceSecondary: "#333"
-        }
-    }))
+            surfaceSecondary: "#333",
+        },
+    })),
 }));
 
 // Mock console methods
@@ -53,8 +57,8 @@ describe("addChartHoverEffects", () => {
                 textPrimary: "#fff",
                 shadow: "#00000088",
                 primaryShadowHeavy: "#00000055",
-                surfaceSecondary: "#333"
-            }
+                surfaceSecondary: "#333",
+            },
         };
 
         // Reset mocks
@@ -120,7 +124,9 @@ describe("addChartHoverEffects", () => {
             const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data");
+            expect(console.log).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data"
+            );
             expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to chart: Chart");
             expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to 2 chart(s)");
 
@@ -236,12 +242,14 @@ describe("addChartHoverEffects", () => {
             const wrapper = mockContainer.querySelector(".chart-wrapper") as HTMLElement;
             const clickEvent = new MouseEvent("click", {
                 clientX: 100,
-                clientY: 100
+                clientY: 100,
             });
 
             wrapper.dispatchEvent(clickEvent);
 
-            const ripple = wrapper.querySelector("div:not(.chart-glow-overlay):not(.chart-title-overlay)") as HTMLElement;
+            const ripple = wrapper.querySelector(
+                "div:not(.chart-glow-overlay):not(.chart-title-overlay)"
+            ) as HTMLElement;
             expect(ripple).toBeTruthy();
             expect(ripple.style.cssText).toContain("animation: ripple-effect 0.6s ease-out");
         });
@@ -291,8 +299,8 @@ describe("addChartHoverEffects", () => {
                     border: "#custom-border",
                     surface: "#custom-surface",
                     primary: "#custom-primary",
-                    shadowLight: "#custom-shadow"
-                }
+                    shadowLight: "#custom-shadow",
+                },
             };
 
             addChartHoverEffects(mockContainer, customTheme);
@@ -305,7 +313,7 @@ describe("addChartHoverEffects", () => {
 
         it("should handle missing color properties gracefully", () => {
             const incompleteTheme = {
-                colors: {}
+                colors: {},
             };
 
             addChartHoverEffects(mockContainer, incompleteTheme);
@@ -322,7 +330,9 @@ describe("addChartHoverEffects", () => {
             const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
             addChartHoverEffects(mockContainer, mockThemeConfig);
 
-            expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data");
+            expect(console.log).toHaveBeenCalledWith(
+                "[ChartHoverEffects] Added hover effects to chart: Test Chart for Speed Data"
+            );
             expect(console.log).toHaveBeenCalledWith("[ChartHoverEffects] Added hover effects to 1 chart(s)");
 
             logSpy.mockRestore();
@@ -361,8 +371,8 @@ describe("removeChartHoverEffects", () => {
             colors: {
                 border: "#444",
                 surface: "#222",
-                shadowLight: "#00000055"
-            }
+                shadowLight: "#00000055",
+            },
         };
         addChartHoverEffects(mockContainer, themeConfig);
 
@@ -382,8 +392,8 @@ describe("removeChartHoverEffects", () => {
     it("should restore canvas styles", () => {
         const themeConfig = {
             colors: {
-                shadowLight: "#00000055"
-            }
+                shadowLight: "#00000055",
+            },
         };
         addChartHoverEffects(mockContainer, themeConfig);
 

@@ -12,7 +12,10 @@ describe("showNotification.js - resolveShown error handling", () => {
         console.warn = vi.fn();
         console.error = vi.fn();
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => { cb(0); return 0; };
+        window.requestAnimationFrame = (cb) => {
+            cb(0);
+            return 0;
+        };
         document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
     });
 
@@ -40,7 +43,7 @@ describe("showNotification.js - resolveShown error handling", () => {
             duration: 1000,
             resolveShown: () => {
                 throw testError;
-            }
+            },
         };
 
         let didFinallyExecute = false;

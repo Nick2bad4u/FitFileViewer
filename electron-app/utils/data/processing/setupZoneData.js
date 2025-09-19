@@ -26,9 +26,7 @@ export function setupZoneData(globalData) {
             ? /** @type {ZoneEntry[]} */ (globalThis.heartRateZones)
             : [],
         /** @type {ZoneEntry[]} */ hasHRZoneData = heartRateZones.length > 0,
-        powerZones = Array.isArray(globalThis.powerZones)
-            ? /** @type {ZoneEntry[]} */ (globalThis.powerZones)
-            : [],
+        powerZones = Array.isArray(globalThis.powerZones) ? /** @type {ZoneEntry[]} */ (globalThis.powerZones) : [],
         hasPowerZoneData = powerZones.length > 0;
 
     try {

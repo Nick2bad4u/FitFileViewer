@@ -311,7 +311,7 @@ function setupStateAwareEventHandlers() {
         }
         const themeButton = target.closest("[data-theme]");
         if (themeButton) {
-            const {theme} = themeButton.dataset;
+            const { theme } = themeButton.dataset;
             if (theme) {
                 AppActions.switchTheme(theme);
             }
@@ -350,4 +350,3 @@ function updateSummaryTab(data) {
 
 // Export for use in renderer.js
 export default initializeRendererWithNewStateSystem;
-

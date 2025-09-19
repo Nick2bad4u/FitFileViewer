@@ -13,7 +13,9 @@ export function logWithLevel(level, message, context) {
         try {
             if (typeof globalThis !== "undefined")
                 /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = true;
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         const prefix = `[FFV]`,
             timestamp = new Date().toISOString(),
             base = `${timestamp} ${prefix} ${String(message)}`;
@@ -81,6 +83,8 @@ export function logWithLevel(level, message, context) {
         try {
             if (typeof globalThis !== "undefined")
                 /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = false;
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     }
 }

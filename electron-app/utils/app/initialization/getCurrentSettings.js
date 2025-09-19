@@ -93,7 +93,7 @@ export function getCurrentSettings() {
             themeConfig = getThemeConfig();
 
         // Get chart option settings
-        for (const opt of (chartOptionsConfig || [])) {
+        for (const opt of chartOptionsConfig || []) {
             const stored = localStorage.getItem(`${STORAGE_PREFIXES.CHART_OPTION}${opt.id}`);
             // @ts-ignore opt shape
             settings[opt.id] = parseStoredValue(stored, opt);
@@ -134,7 +134,7 @@ export function getDefaultSettings() {
         const settings = { colors: {} };
 
         // Get default values from chart options config
-        for (const opt of (chartOptionsConfig || [])) {
+        for (const opt of chartOptionsConfig || []) {
             // @ts-ignore config shape trusted
             settings[opt.id] = /** @type {any} */ (opt).default;
         }
@@ -287,12 +287,12 @@ export function resetAllSettings() {
 function clearAllStorageItems() {
     try {
         // Clear chart option settings
-        for (const opt of (chartOptionsConfig || [])) {
+        for (const opt of chartOptionsConfig || []) {
             localStorage.removeItem(`${STORAGE_PREFIXES.CHART_OPTION}${opt.id}`);
         }
 
         // Clear field visibility and color settings
-        for (const field of (Array.isArray(formatChartFields) ? formatChartFields : [])) {
+        for (const field of Array.isArray(formatChartFields) ? formatChartFields : []) {
             localStorage.removeItem(`${STORAGE_PREFIXES.FIELD_COLOR}${field}`);
             localStorage.removeItem(`${STORAGE_PREFIXES.FIELD_VISIBILITY}${field}`);
         }
@@ -372,7 +372,7 @@ function performDirectControlUpdates() {
         let updatedCount = 0;
 
         // Direct updates for known control types
-        for (const opt of (chartOptionsConfig || [])) {
+        for (const opt of chartOptionsConfig || []) {
             let updated = false;
 
             switch (opt.type) {
@@ -492,7 +492,7 @@ function resetUIControlsToDefaults(wrapper) {
         console.log(`${LOG_PREFIX} Resetting ${chartOptionsConfig.length} chart option controls`);
 
         // Reset all chart option controls to default values
-        for (const opt of (chartOptionsConfig || [])) {
+        for (const opt of chartOptionsConfig || []) {
             // Try multiple ways to find the control
             const control =
                 query(`#chartjs-${opt.id}`, wrapper) ||

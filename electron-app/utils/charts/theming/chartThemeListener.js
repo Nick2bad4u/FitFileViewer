@@ -146,7 +146,10 @@ function updateSettingsPanelTheme(settingsContainer) {
         for (const toggleEl of toggles) {
             const toggle = /** @type {HTMLElement} */ (toggleEl),
                 thumb = toggle.querySelector(".toggle-thumb");
-            toggle.style.background = thumb instanceof HTMLElement && thumb.style.left === "26px" ? "var(--color-success)" : "var(--color-border)";
+            toggle.style.background =
+                thumb instanceof HTMLElement && thumb.style.left === "26px"
+                    ? "var(--color-success)"
+                    : "var(--color-border)";
         }
 
         // Update status text colors

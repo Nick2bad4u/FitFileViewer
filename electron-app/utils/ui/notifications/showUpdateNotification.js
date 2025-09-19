@@ -123,7 +123,7 @@ function createThemedButton(text, clickHandler, styles = {}) {
         const button = document.createElement("button");
         button.textContent = text;
         button.className = NOTIFICATION_CONSTANTS.BUTTON_CLASS;
-        button.addEventListener('click', (clickHandler));
+        button.addEventListener("click", clickHandler);
 
         // Apply additional styles
         Object.assign(button.style, styles);

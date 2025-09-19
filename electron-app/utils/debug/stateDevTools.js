@@ -167,9 +167,9 @@ class StateDebugUtilities {
             memory:
                 typeof performance !== "undefined" && "memory" in performance && performance.memory
                     ? {
-                        total: /** @type {any} */ (performance.memory).totalJSHeapSize,
-                        used: /** @type {any} */ (performance.memory).usedJSHeapSize,
-                    }
+                          total: /** @type {any} */ (performance.memory).totalJSHeapSize,
+                          used: /** @type {any} */ (performance.memory).usedJSHeapSize,
+                      }
                     : null,
             metrics: performanceMonitor.getMetrics(),
             state: structuredClone(getState("")),
@@ -410,28 +410,31 @@ Slow Operations: ${metrics.slowOperations.length}
 Errors: ${metrics.errors.length}
 
 Memory Usage:
-${latestMemory
-                ? `
+${
+    latestMemory
+        ? `
   Used JS Heap: ${(latestMemory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB
   Total JS Heap: ${(latestMemory.totalJSHeapSize / 1024 / 1024).toFixed(2)} MB
   Heap Limit: ${(latestMemory.jsHeapSizeLimit / 1024 / 1024).toFixed(2)} MB
 `
-                : "  Memory info not available"
-            }
+        : "  Memory info not available"
+}
 
 Recent Slow Operations:
-${metrics.slowOperations
-                .slice(-5)
-                .map((op) => `  ${op.operation}: ${op.duration.toFixed(2)}ms`)
-                .join("\n") || "  None"
-            }
+${
+    metrics.slowOperations
+        .slice(-5)
+        .map((op) => `  ${op.operation}: ${op.duration.toFixed(2)}ms`)
+        .join("\n") || "  None"
+}
 
 Recent Errors:
-${metrics.errors
-                .slice(-3)
-                .map((err) => `  ${err.context}: ${err.error}`)
-                .join("\n") || "  None"
-            }
+${
+    metrics.errors
+        .slice(-3)
+        .map((err) => `  ${err.context}: ${err.error}`)
+        .join("\n") || "  None"
+}
         `.trim();
     }
 
@@ -619,7 +622,7 @@ export async function measureStateOperation(operationName, operation) {
         return result;
     } catch (error) {
         performanceMonitor.endTimer(operationName);
-        performanceMonitor.recordError(/** @type {Error} */(error), operationName);
+        performanceMonitor.recordError(/** @type {Error} */ (error), operationName);
         throw error;
     }
 }

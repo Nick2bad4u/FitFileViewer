@@ -25,7 +25,7 @@ export function renderTable(container, title, table, index) {
     const copyButton = document.createElement("button");
     copyButton.textContent = "Copy as CSV";
     copyButton.classList.add("copy-btn");
-    copyButton.addEventListener('click', (event) => {
+    copyButton.addEventListener("click", (event) => {
         event.stopPropagation();
         copyTableAsCSV(/** @type {any} */ (table));
     });
@@ -35,7 +35,7 @@ export function renderTable(container, title, table, index) {
     rightContainer.append(icon);
     header.append(leftSpan);
     header.append(rightContainer);
-    header.addEventListener('click', () => {
+    header.addEventListener("click", () => {
         const content = document.getElementById(`${tableId}_content`),
             currentDisplay = globalThis.getComputedStyle(/** @type {Element} */ (content)).display,
             isVisible = currentDisplay === "block";

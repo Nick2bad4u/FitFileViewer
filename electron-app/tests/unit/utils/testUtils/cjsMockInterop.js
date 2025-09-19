@@ -18,7 +18,7 @@ export function createMockStateManager(vitest) {
         unsubscribe: vitest.fn(),
         clearAllListeners: vitest.fn(),
         __clearAllListenersForTests: vitest.fn(),
-        __resetStateManagerForTests: vitest.fn()
+        __resetStateManagerForTests: vitest.fn(),
     };
 }
 
@@ -73,10 +73,10 @@ export function setupCommonJSMocks({ mocks = {} }) {
 export function resetModuleCache(modulePath) {
     // For CommonJS modules, delete from require.cache if it exists
     if (global.require && global.require.cache) {
-        const normalizedPath = modulePath.replace(/\\/g, '/');
+        const normalizedPath = modulePath.replace(/\\/g, "/");
 
         // Find cache keys that include our path
-        Object.keys(global.require.cache).forEach(cacheKey => {
+        Object.keys(global.require.cache).forEach((cacheKey) => {
             if (cacheKey.includes(normalizedPath)) {
                 delete global.require.cache[cacheKey];
                 console.log(`[CJS Mock Interop] Cleared cache for: ${cacheKey}`);
@@ -87,7 +87,7 @@ export function resetModuleCache(modulePath) {
     // For dynamic imports, we rely on the test runner to handle module caching
     try {
         // In Vitest environment, use import.meta.hot to reset modules if available
-        if (import.meta && typeof globalThis !== 'undefined') {
+        if (import.meta && typeof globalThis !== "undefined") {
             // Signal that this module should be reloaded
             console.log(`[CJS Mock Interop] Requested module reload for: ${modulePath}`);
         }

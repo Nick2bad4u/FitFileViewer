@@ -126,11 +126,11 @@ export function drawOverlayForFitFile({
 
     if (coords.length > 0) {
         const isHighlighted =
-            typeof overlayIdx === "number" && /** @type {any} */ (getWin())._highlightedOverlayIdx === overlayIdx,
+                typeof overlayIdx === "number" && /** @type {any} */ (getWin())._highlightedOverlayIdx === overlayIdx,
             paletteColor =
                 Array.isArray(chartOverlayColorPalette) &&
-                    chartOverlayColorPalette.length > 0 &&
-                    typeof overlayIdx === "number"
+                chartOverlayColorPalette.length > 0 &&
+                typeof overlayIdx === "number"
                     ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
                     : "#1976d2", // Default fallback color
             polyline = L.polyline(
@@ -198,7 +198,7 @@ export function drawOverlayForFitFile({
 
             let lapDisplay;
             if (getLapNumForIdx && fitData && Array.isArray(fitData.lapMesgs) && fitData.lapMesgs.length > 0) {
-                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */(fitData.lapMesgs));
+                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */ (fitData.lapMesgs));
             } else {
                 lapDisplay = c[8] || 1;
             }
@@ -220,7 +220,9 @@ export function drawOverlayForFitFile({
         let polyBounds;
         try {
             polyBounds = polyline.getBounds && polyline.getBounds();
-        } catch { /* Ignore */ }
+        } catch {
+            /* Ignore */
+        }
         const pts = coords.map((c) => [c[0], c[1]]);
         // Try cloning existing bounds first
         try {
@@ -228,7 +230,9 @@ export function drawOverlayForFitFile({
                 const cloned = polyBounds.clone();
                 if (cloned) resultBounds = cloned;
             }
-        } catch { /* Ignore */ }
+        } catch {
+            /* Ignore */
+        }
         // Fallback: synthesize from points
         if (!resultBounds) {
             try {
@@ -240,7 +244,7 @@ export function drawOverlayForFitFile({
         }
         // Absolute last resort: minimal bounds-like object
         if (!resultBounds) {
-            resultBounds = { extend: () => { } };
+            resultBounds = { extend: () => {} };
         }
         return resultBounds;
     }
@@ -332,7 +336,9 @@ export function mapDrawLaps(
         // Attempt immediately
         try {
             map.fitBounds(bounds, options);
-        } catch { /* Ignore first attempt */ }
+        } catch {
+            /* Ignore first attempt */
+        }
         function tryFit() {
             try {
                 if (
@@ -366,7 +372,9 @@ export function mapDrawLaps(
 
     // --- FIX: handle both string 'all' and array containing 'all' ---
     if (lapIdx === "all" || (Array.isArray(lapIdx) && lapIdx.includes("all"))) {
-        console.log(`[mapDrawLaps] "all" laps mode: recordMesgs.length = ${recordMesgs.length} lapMesgs.length = ${lapMesgs.length}`);
+        console.log(
+            `[mapDrawLaps] "all" laps mode: recordMesgs.length = ${recordMesgs.length} lapMesgs.length = ${lapMesgs.length}`
+        );
         console.log("[mapDrawLaps] lapMesgs[0]:", lapMesgs[0]);
         console.log("[mapDrawLaps] lapMesgs[1]:", lapMesgs[1]);
         console.log("[mapDrawLaps] lapMesgs[2]:", lapMesgs[2]);
@@ -442,13 +450,17 @@ export function mapDrawLaps(
             // --- Store original bounds for main polyline ---
             const origBounds = polyline.getBounds();
             // Immediate fit using the original bounds reference to ensure at least one call is recorded
-            try { map.fitBounds(origBounds, { padding: [20, 20] }); } catch { /* Ignore errors */ }
+            try {
+                map.fitBounds(origBounds, { padding: [20, 20] });
+            } catch {
+                /* Ignore errors */
+            }
             /** @type {any} */ (getWin())._mainPolylineOriginalBounds =
                 typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
             map.invalidateSize();
             if (/** @type {any} */ (getWin())._mainPolylineOriginalBounds) {
                 // Use safeFitBounds to handle invisible container timing and resized containers
-                safeFitBounds(map, /** @type {any} */(getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
+                safeFitBounds(map, /** @type {any} */ (getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
             }
 
             const end = coords.at(-1),
@@ -475,9 +487,10 @@ export function mapDrawLaps(
                 let i = 0;
                 i < coords.length;
                 i +=
-                    /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                    ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
+                    /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
+                    !(/** @type {any} */ (getWin()).mapMarkerCount)
+                        ? 1
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
             ) {
                 const c = coords[i];
                 if (!c) {
@@ -503,7 +516,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
             /** @type {any} */ (getWin()).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -542,7 +555,8 @@ export function mapDrawLaps(
                     ) {
                         safeBounds = /** @type {any} */ (getWin()).L.latLngBounds(bounds);
                     }
-                    lastOverlayBounds = (safeBounds && typeof safeBounds.clone === "function") ? safeBounds.clone() : safeBounds || null;
+                    lastOverlayBounds =
+                        safeBounds && typeof safeBounds.clone === "function" ? safeBounds.clone() : safeBounds || null;
                 }
                 overlayIdx++;
             }
@@ -557,7 +571,10 @@ export function mapDrawLaps(
         console.log("[mapDrawLaps] lapIdx is array:", lapIdx);
         // If 'all' is included, treat as 'all' laps mode (single polyline, global record indices)
         if (lapIdx.includes("all")) {
-            console.log(`[mapDrawLaps] "all" laps mode: recordMesgs.length = ${recordMesgs.length} lapMesgs.length = ${lapMesgs.length} lapMesgs[0]=`, lapMesgs[0]);
+            console.log(
+                `[mapDrawLaps] "all" laps mode: recordMesgs.length = ${recordMesgs.length} lapMesgs.length = ${lapMesgs.length} lapMesgs[0]=`,
+                lapMesgs[0]
+            );
             coords = recordMesgs
                 .map((row, idx) => {
                     if (typeof row.positionLat === "number" && typeof row.positionLong === "number") {
@@ -615,13 +632,19 @@ export function mapDrawLaps(
                 // --- Store original bounds for main polyline ---
                 const origBounds = polyline.getBounds();
                 // Immediate fit using the original bounds reference to ensure at least one call is recorded
-                try { map.fitBounds(origBounds, { padding: [20, 20] }); } catch { /* Ignore errors */ }
-                    /** @type {any} */ (getWin())._mainPolylineOriginalBounds =
+                try {
+                    map.fitBounds(origBounds, { padding: [20, 20] });
+                } catch {
+                    /* Ignore errors */
+                }
+                /** @type {any} */ (getWin())._mainPolylineOriginalBounds =
                     typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
                 map.invalidateSize();
                 if (/** @type {any} */ (getWin())._mainPolylineOriginalBounds) {
                     // Use safeFitBounds to handle invisible container timing
-                    safeFitBounds(map, /** @type {any} */(getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
+                    safeFitBounds(map, /** @type {any} */ (getWin())._mainPolylineOriginalBounds, {
+                        padding: [20, 20],
+                    });
                 }
 
                 const end = coords.at(-1),
@@ -648,9 +671,10 @@ export function mapDrawLaps(
                     let i = 0;
                     i < coords.length;
                     i +=
-                        /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                        ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
+                        /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
+                        !(/** @type {any} */ (getWin()).mapMarkerCount)
+                            ? 1
+                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
                 ) {
                     const c = coords[i];
                     if (!c) {
@@ -676,7 +700,7 @@ export function mapDrawLaps(
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
             if (
                 /** @type {any} */ (getWin()).loadedFitFiles &&
-                Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+                Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
                 /** @type {any} */ (getWin()).loadedFitFiles.length > 1
             ) {
                 const colorPalette = chartOverlayColorPalette;
@@ -715,7 +739,10 @@ export function mapDrawLaps(
                         ) {
                             safeBounds = /** @type {any} */ (getWin()).L.latLngBounds(bounds);
                         }
-                        lastOverlayBounds = (safeBounds && typeof safeBounds.clone === "function") ? safeBounds.clone() : safeBounds || null;
+                        lastOverlayBounds =
+                            safeBounds && typeof safeBounds.clone === "function"
+                                ? safeBounds.clone()
+                                : safeBounds || null;
                     }
                     overlayIdx++;
                 }
@@ -804,12 +831,13 @@ export function mapDrawLaps(
                         }
 
                         const stepLap =
-                            /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
+                            /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
+                            !(/** @type {any} */ (getWin()).mapMarkerCount)
                                 ? 1
                                 : Math.max(
-                                    1,
-                                    Math.floor(lapCoords.length / /** @type {any} */ (getWin().mapMarkerCount || 1))
-                                );
+                                      1,
+                                      Math.floor(lapCoords.length / /** @type {any} */ (getWin().mapMarkerCount || 1))
+                                  );
                         for (let j = 0; j < lapCoords.length; j += stepLap) {
                             const c = lapCoords[j];
                             if (!c) {
@@ -845,7 +873,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
             /** @type {any} */ (getWin()).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -878,10 +906,15 @@ export function mapDrawLaps(
                 if (bounds) {
                     // Defensive: ensure bounds is a valid LatLngBounds object
                     let safeBounds = bounds;
-                    if (!(bounds && typeof (/** @type {any} */ (bounds).clone) === "function") && getWin().L && getWin().L.latLngBounds) {
+                    if (
+                        !(bounds && typeof (/** @type {any} */ (bounds).clone) === "function") &&
+                        getWin().L &&
+                        getWin().L.latLngBounds
+                    ) {
                         safeBounds = getWin().L.latLngBounds(bounds);
                     }
-                    lastOverlayBounds = (safeBounds && typeof safeBounds.clone === "function") ? safeBounds.clone() : safeBounds || null;
+                    lastOverlayBounds =
+                        safeBounds && typeof safeBounds.clone === "function" ? safeBounds.clone() : safeBounds || null;
                 }
                 overlayIdx++;
             }
@@ -935,8 +968,9 @@ export function mapDrawLaps(
                 return;
             }
         } else {
-            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${lap && lap.startPositionLat
-                }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${
+                lap && lap.startPositionLat
+            }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
             return;
         }
     } else {
@@ -1002,7 +1036,7 @@ export function mapDrawLaps(
         // Fix: Ensure map is sized before fitBounds
         map.invalidateSize();
         if (/** @type {any} */ (getWin())._mainPolylineOriginalBounds) {
-            map.fitBounds(/** @type {any} */(getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
+            map.fitBounds(/** @type {any} */ (getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
         }
 
         const end = coords.at(-1),
@@ -1020,8 +1054,8 @@ export function mapDrawLaps(
             i < coords.length;
             i +=
                 /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
+                    ? 1
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
         ) {
             const c = coords[i];
             if (!c) {
@@ -1046,7 +1080,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
             /** @type {any} */ (getWin()).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -1082,7 +1116,8 @@ export function mapDrawLaps(
                     if (typeof bounds.clone !== "function" && getWin().L && getWin().L.latLngBounds) {
                         safeBounds = getWin().L.latLngBounds(bounds);
                     }
-                    lastOverlayBounds = (safeBounds && typeof safeBounds.clone === "function") ? safeBounds.clone() : safeBounds || null;
+                    lastOverlayBounds =
+                        safeBounds && typeof safeBounds.clone === "function" ? safeBounds.clone() : safeBounds || null;
                 }
                 overlayIdx++;
             }
@@ -1147,26 +1182,23 @@ function getWin() {
  */
 function patchLapIndices(lapMesgs, recordMesgs) {
     for (const [i, lap] of lapMesgs.entries()) {
-        if (lap && (lap.start_index == null || lap.end_index == null) && // Find closest record index for start and end positions
-            
-                typeof lap.startPositionLat === "number" &&
-                typeof lap.startPositionLong === "number" &&
-                typeof lap.endPositionLat === "number" &&
-                typeof lap.endPositionLong === "number"
-            ) {
-                const startIdx = findClosestRecordIndexByLatLon(
-                    lap.startPositionLat,
-                    lap.startPositionLong,
-                    recordMesgs
-                );
-                let endIdx = findClosestRecordIndexByLatLon(lap.endPositionLat, lap.endPositionLong, recordMesgs);
-                if (endIdx === -1) {
-                    endIdx = recordMesgs.length - 1;
-                }
-                lap.start_index = startIdx;
-                lap.end_index = endIdx;
-                console.log(`[patchLapIndices] Lap ${i + 1}: start_index=${startIdx}, end_index=${endIdx}`);
+        if (
+            lap &&
+            (lap.start_index == null || lap.end_index == null) && // Find closest record index for start and end positions
+            typeof lap.startPositionLat === "number" &&
+            typeof lap.startPositionLong === "number" &&
+            typeof lap.endPositionLat === "number" &&
+            typeof lap.endPositionLong === "number"
+        ) {
+            const startIdx = findClosestRecordIndexByLatLon(lap.startPositionLat, lap.startPositionLong, recordMesgs);
+            let endIdx = findClosestRecordIndexByLatLon(lap.endPositionLat, lap.endPositionLong, recordMesgs);
+            if (endIdx === -1) {
+                endIdx = recordMesgs.length - 1;
             }
+            lap.start_index = startIdx;
+            lap.end_index = endIdx;
+            console.log(`[patchLapIndices] Lap ${i + 1}: start_index=${startIdx}, end_index=${endIdx}`);
+        }
     }
 }
 
@@ -1176,7 +1208,7 @@ function patchLapIndices(lapMesgs, recordMesgs) {
     if (!(/** @type {any} */ (getWin())._overlayPolylines)) {
         return;
     }
-    for (const [idx, polyline] of Object.entries(/** @type {any} */(getWin())._overlayPolylines)) {
+    for (const [idx, polyline] of Object.entries(/** @type {any} */ (getWin())._overlayPolylines)) {
         const isHighlighted = Number(idx) === /** @type {any} */ (getWin())._highlightedOverlayIdx;
         polyline.setStyle({
             className: isHighlighted ? "overlay-highlight-glow" : "",
@@ -1201,13 +1233,19 @@ function patchLapIndices(lapMesgs, recordMesgs) {
             get() {
                 // Return a wrapper that calls real first, then user stub if present
                 return function () {
-                    try { (/** @type {any} */ (getWin())).__realUpdateOverlayHighlights(); } catch { /* Ignore errors */ }
+                    try {
+                        /** @type {any} */ (getWin()).__realUpdateOverlayHighlights();
+                    } catch {
+                        /* Ignore errors */
+                    }
                     if (typeof userAssigned === "function") {
                         try {
                             /** @type {any[]} */
                             const args = Array.prototype.slice.call(arguments);
                             return userAssigned.apply(getWin(), args);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                     }
                 };
             },
@@ -1215,7 +1253,9 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                 userAssigned = v;
             },
         });
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 })();
 
 // Define a reactive setter so changing highlighted overlay index updates styles even if the
@@ -1225,16 +1265,20 @@ function patchLapIndices(lapMesgs, recordMesgs) {
         let _val = /** @type {any} */ (getWin())._highlightedOverlayIdx ?? -1;
         const desc = Object.getOwnPropertyDescriptor(getWin(), "_highlightedOverlayIdx");
         // Only install if not already an accessor
-        if (!desc || ("value" in desc)) {
+        if (!desc || "value" in desc) {
             Object.defineProperty(getWin(), "_highlightedOverlayIdx", {
                 configurable: true,
                 enumerable: true,
-                get() { return _val; },
+                get() {
+                    return _val;
+                },
                 set(v) {
                     _val = /** @type {any} */ (v);
                     try {
-                        if ((/** @type {any} */ (getWin()))._overlayPolylines) {
-                            for (const [idx, polyline] of Object.entries(/** @type {any} */(getWin())._overlayPolylines)) {
+                        if (/** @type {any} */ (getWin())._overlayPolylines) {
+                            for (const [idx, polyline] of Object.entries(
+                                /** @type {any} */ (getWin())._overlayPolylines
+                            )) {
                                 const isHighlighted = Number(idx) === _val;
                                 polyline.setStyle({
                                     className: isHighlighted ? "overlay-highlight-glow" : "",
@@ -1242,14 +1286,18 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                                 });
                                 const polyElem = polyline.getElement && polyline.getElement();
                                 if (polyElem) {
-                                    const color = (/** @type {any} */ (polyline)).options?.color || "#1976d2";
+                                    const color = /** @type {any} */ (polyline).options?.color || "#1976d2";
                                     polyElem.style.filter = isHighlighted ? `drop-shadow(0 0 8px ${color})` : "";
                                 }
                             }
                         }
-                    } catch { /* Ignore errors */ }
+                    } catch {
+                        /* Ignore errors */
+                    }
                 },
             });
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 })();

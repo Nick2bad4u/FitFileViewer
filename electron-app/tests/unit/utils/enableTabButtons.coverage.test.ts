@@ -11,8 +11,8 @@ describe("enableTabButtons.js - Coverage Completion", () => {
         mockWindow = dom.window;
         mockDocument = dom.window.document;
 
-        global.window = /** @type {any} */ (mockWindow);
-        global.document = /** @type {any} */ (mockDocument);
+        global.window = /** @type {any} */ mockWindow;
+        global.document = /** @type {any} */ mockDocument;
     });
 
     afterEach(() => {

@@ -388,7 +388,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 12px;
 	`; // Add field toggles
-    /** @type {string[]} */ for (const field of (formatChartFields)) {
+    /** @type {string[]} */ for (const field of formatChartFields) {
         const fieldToggle = createFieldToggle(field);
         fieldsGrid.append(fieldToggle);
     } // Add GPS track toggle
@@ -453,7 +453,9 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
         /** @type {WindowExtensions} */ (globalThis).globalData &&
         /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
     ) {
-        const devFields = extractDeveloperFieldsList(/** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs);
+        const devFields = extractDeveloperFieldsList(
+            /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
+        );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field);
             fieldsGrid.append(fieldToggle);
@@ -865,117 +867,118 @@ function createFieldToggle(/** @type {string} */ field) {
         const data = /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs;
 
         switch (field) {
-        case "altitude_profile": {
-            hasValidData = data.some((row) => {
-                const altitude = row.altitude || row.enhancedAltitude;
-                return altitude !== undefined && altitude !== null && !isNaN(Number.parseFloat(altitude));
-            });
-        
-        break;
-        }
-        case "event_messages": {
-            hasValidData = Boolean(
-                /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-                    Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
-                    /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
-            );
-        
-        break;
-        }
-        case "gps_track": {
-            hasValidData = data.some((row) => {
-                const lat = row.positionLat,
-                    long = row.positionLong;
-                return (
-                    (lat !== undefined && lat !== null && !isNaN(Number.parseFloat(lat))) ||
-                    (long !== undefined && long !== null && !isNaN(Number.parseFloat(long)))
+            case "altitude_profile": {
+                hasValidData = data.some((row) => {
+                    const altitude = row.altitude || row.enhancedAltitude;
+                    return altitude !== undefined && altitude !== null && !isNaN(Number.parseFloat(altitude));
+                });
+
+                break;
+            }
+            case "event_messages": {
+                hasValidData = Boolean(
+                    /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
+                        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
+                        /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
                 );
-            });
-        
-        break;
-        }
-        case "hr_lap_zone_individual":
-        case "hr_lap_zone_stacked": {
-            // Check for HR lap zone data
-            if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
-                    lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                    hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
-                hasValidData = hrLapZones.length > 0;
+
+                break;
             }
-        
-        break;
-        }
-        case "power_lap_zone_individual": 
-        case "power_lap_zone_stacked": {
-            // Check for Power lap zone data
-            if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-                const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
-                    lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-                    powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
-                hasValidData = powerLapZones.length > 0;
+            case "gps_track": {
+                hasValidData = data.some((row) => {
+                    const lat = row.positionLat,
+                        long = row.positionLong;
+                    return (
+                        (lat !== undefined && lat !== null && !isNaN(Number.parseFloat(lat))) ||
+                        (long !== undefined && long !== null && !isNaN(Number.parseFloat(long)))
+                    );
+                });
+
+                break;
             }
-        
-        break;
-        }
-        case "power_vs_hr": {
-            const hasHeartRate = data.some((row) => {
-                    const hr = row.heartRate;
-                    return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
-                }),
-                hasPower = data.some((row) => {
-                    const { power } = row;
-                    return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
-                });
-            hasValidData = hasPower && hasHeartRate;
-        
-        break;
-        } 
-        case "speed_vs_distance": {
-            const hasDistance = data.some((row) => {
-                    const { distance } = row;
-                    return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
-                }),
-                hasSpeed = data.some((row) => {
-                    const speed = row.enhancedSpeed || row.speed;
-                    return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
-                });
-            hasValidData = hasSpeed && hasDistance;
-        
-        break;
-        }
-        default: { if (field.includes("hr_zone")) {
-            hasValidData = data.some((row) => {
-                const hr = row.heartRate;
-                return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
-            });
-        } else if (field.includes("power_zone")) {
-            hasValidData = data.some((row) => {
-                const { power } = row;
-                return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
-            });
-        } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
-            // Regular chart field
-            const numericData = data.map((row) => {
-                if (row[field] !== undefined && row[field] !== null) {
-                    const value = Number.parseFloat(row[field]);
-                    return isNaN(value) ? null : value;
+            case "hr_lap_zone_individual":
+            case "hr_lap_zone_stacked": {
+                // Check for HR lap zone data
+                if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
+                    const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
+                        lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+                        hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
+                    hasValidData = hrLapZones.length > 0;
                 }
-                return null;
-            });
-            hasValidData = !numericData.every((val) => val === null);
-        } else {
-            // Developer field
-            const numericData = data.map((row) => {
-                if (row[field] !== undefined && row[field] !== null) {
-                    const value = Number.parseFloat(row[field]);
-                    return isNaN(value) ? null : value;
+
+                break;
+            }
+            case "power_lap_zone_individual":
+            case "power_lap_zone_stacked": {
+                // Check for Power lap zone data
+                if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
+                    const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
+                        lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
+                        powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
+                    hasValidData = powerLapZones.length > 0;
                 }
-                return null;
-            });
-            hasValidData = !numericData.every((val) => val === null);
-        }
-        }
+
+                break;
+            }
+            case "power_vs_hr": {
+                const hasHeartRate = data.some((row) => {
+                        const hr = row.heartRate;
+                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                    }),
+                    hasPower = data.some((row) => {
+                        const { power } = row;
+                        return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
+                    });
+                hasValidData = hasPower && hasHeartRate;
+
+                break;
+            }
+            case "speed_vs_distance": {
+                const hasDistance = data.some((row) => {
+                        const { distance } = row;
+                        return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                    }),
+                    hasSpeed = data.some((row) => {
+                        const speed = row.enhancedSpeed || row.speed;
+                        return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
+                    });
+                hasValidData = hasSpeed && hasDistance;
+
+                break;
+            }
+            default: {
+                if (field.includes("hr_zone")) {
+                    hasValidData = data.some((row) => {
+                        const hr = row.heartRate;
+                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                    });
+                } else if (field.includes("power_zone")) {
+                    hasValidData = data.some((row) => {
+                        const { power } = row;
+                        return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
+                    });
+                } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
+                    // Regular chart field
+                    const numericData = data.map((row) => {
+                        if (row[field] !== undefined && row[field] !== null) {
+                            const value = Number.parseFloat(row[field]);
+                            return isNaN(value) ? null : value;
+                        }
+                        return null;
+                    });
+                    hasValidData = !numericData.every((val) => val === null);
+                } else {
+                    // Developer field
+                    const numericData = data.map((row) => {
+                        if (row[field] !== undefined && row[field] !== null) {
+                            const value = Number.parseFloat(row[field]);
+                            return isNaN(value) ? null : value;
+                        }
+                        return null;
+                    });
+                    hasValidData = !numericData.every((val) => val === null);
+                }
+            }
         }
     }
 
@@ -1221,21 +1224,22 @@ function createSelectControl(/** @type {ChartOption} */ option) {
         select.style.boxShadow = "none";
     });
 
-    if (option.options) for (const val of option.options) {
-        const optionEl = document.createElement("option");
-        optionEl.value = val;
-        optionEl.textContent =
-            val === "all"
-                ? "All Points"
-                : val === "on"
-                  ? "Enabled"
-                  : val === "off"
-                    ? "Disabled"
-                    : String(val).charAt(0).toUpperCase() + String(val).slice(1);
-        optionEl.style.background = "var(--color-bg-solid)";
-        optionEl.style.color = "var(--color-fg)";
-        select.append(optionEl);
-    }
+    if (option.options)
+        for (const val of option.options) {
+            const optionEl = document.createElement("option");
+            optionEl.value = val;
+            optionEl.textContent =
+                val === "all"
+                    ? "All Points"
+                    : val === "on"
+                      ? "Enabled"
+                      : val === "off"
+                        ? "Disabled"
+                        : String(val).charAt(0).toUpperCase() + String(val).slice(1);
+            optionEl.style.background = "var(--color-bg-solid)";
+            optionEl.style.color = "var(--color-fg)";
+            select.append(optionEl);
+        }
 
     const stored = localStorage.getItem(`chartjs_${option.id}`);
     select.value = stored === null ? option.default : stored;

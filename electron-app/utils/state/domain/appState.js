@@ -159,13 +159,12 @@ class AppStateManager {
         const eventListeners = this.listeners.get(event);
         if (eventListeners) {
             for (const callback of eventListeners) {
-                    try {
-                        callback(data);
-                    } catch (error) {
-                        console.error(`[AppState] Error in event listener for ${event}:`, error);
-                    }
+                try {
+                    callback(data);
+                } catch (error) {
+                    console.error(`[AppState] Error in event listener for ${event}:`, error);
                 }
-            
+            }
         }
     }
 

@@ -77,7 +77,7 @@ async function loadVersionFromElectron() {
     versionLoadPromise = (async () => {
         try {
             if (
-            /** @type {any} */ (globalThis).electronAPI &&
+                /** @type {any} */ (globalThis).electronAPI &&
                 typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
             ) {
                 const version = await /** @type {any} */ (globalThis).electronAPI.getAppVersion();
@@ -126,9 +126,7 @@ if (globalThis.window !== undefined) {
                 );
             }
         };
-        electronAPICheckTimerId = /** @type {number} */ (
-            /** @type {unknown} */ (setTimeout(checkForElectronAPI, 100))
-        );
+        electronAPICheckTimerId = /** @type {number} */ (/** @type {unknown} */ (setTimeout(checkForElectronAPI, 100)));
     }
 }
 

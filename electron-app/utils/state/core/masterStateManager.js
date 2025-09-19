@@ -348,7 +348,7 @@ export class MasterStateManager {
                 protocol === "file:" ||
                 (globalThis.window !== undefined &&
                     /** @type {any} */ (globalThis).electronAPI &&
-                    (/** @type {any} */ (globalThis.electronAPI).__devMode) !== undefined) ||
+                    /** @type {any} */ (globalThis.electronAPI).__devMode !== undefined) ||
                 (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
             );
         } catch {
@@ -546,13 +546,15 @@ export class MasterStateManager {
         // Use type assertion for window debug state
         const windowExt = /** @type {ExtendedWindow} */ (globalThis),
             originalSetState = windowExt.__state_debug?.setState;
-        if (originalSetState && // Wrap setState to count changes
-            windowExt.__state_debug) {
-                windowExt.__state_debug.setState = /** @param {...*} args */ (...args) => {
-                    stateChangeCount++;
-                    return originalSetState(...args);
-                };
-            }
+        if (
+            originalSetState && // Wrap setState to count changes
+            windowExt.__state_debug
+        ) {
+            windowExt.__state_debug.setState = /** @param {...*} args */ (...args) => {
+                stateChangeCount++;
+                return originalSetState(...args);
+            };
+        }
 
         // Reset counter every minute
         setInterval(() => {
@@ -639,5 +641,5 @@ export async function initializeFitFileViewerState() {
 
 // Export for convenience
 
-export {AppActions, AppSelectors} from "../../app/lifecycle/appActions.js";
-export {UIActions} from "../domain/uiStateManager.js";
+export { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
+export { UIActions } from "../domain/uiStateManager.js";

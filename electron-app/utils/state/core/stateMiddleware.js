@@ -476,7 +476,7 @@ export const persistenceMiddleware = {
 
         if (persistPaths.some((path) => context.path.startsWith(path))) {
             try {
-                const key = `ffv_state_${context.path.replaceAll('.', "_")}`;
+                const key = `ffv_state_${context.path.replaceAll(".", "_")}`;
                 localStorage.setItem(key, JSON.stringify(context.value));
                 console.log(`[StatePersist] Saved "${context.path}" to localStorage`);
             } catch (error) {

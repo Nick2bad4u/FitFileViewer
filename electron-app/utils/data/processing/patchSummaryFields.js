@@ -398,10 +398,11 @@ function patchCalories(obj) {
 /** @param {SummaryRecord} obj */
 function patchDecimals(obj) {
     try {
-        for (const key of Object.keys(obj)
-            .filter((key) => typeof obj[key] === "number" && !Number.isInteger(obj[key]))) {
-                obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-            }
+        for (const key of Object.keys(obj).filter(
+            (key) => typeof obj[key] === "number" && !Number.isInteger(obj[key])
+        )) {
+            obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+        }
     } catch (error) {
         logWithContext(`Error formatting decimal fields: ${getErrorMessage(error)}`, "error");
     }

@@ -254,7 +254,7 @@ export function createUserDeviceInfoBox(container) {
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+                deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
             sensors = deviceInfos.filter(
                 (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
             );

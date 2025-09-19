@@ -97,7 +97,7 @@ function createExitButton() {
     button.innerHTML = createButtonHTML();
 
     // Add click event handler
-    button.addEventListener('click', handleExitFullscreen);
+    button.addEventListener("click", handleExitFullscreen);
 
     return button;
 }

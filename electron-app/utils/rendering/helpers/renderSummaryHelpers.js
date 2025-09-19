@@ -144,7 +144,7 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     // @ts-ignore - augmenting DOM element with cached filter value
     const filterValue = /** @type {any} */ (container)._summaryFilterValue || "All";
     filterSelect.value = filterValue;
-    filterSelect.addEventListener('change', () => {
+    filterSelect.addEventListener("change", () => {
         // @ts-ignore
         container._summaryFilterValue = filterSelect.value;
         renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
@@ -184,7 +184,7 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     const copyBtn = document.createElement("button");
     copyBtn.textContent = "Copy as CSV";
     copyBtn.className = "copy-btn";
-    copyBtn.addEventListener('click', () => {
+    copyBtn.addEventListener("click", () => {
         try {
             /** @type {string[]} */
             const rows = [],
@@ -363,7 +363,7 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
             /**
              * @param {MouseEvent} e
              */
-            cb.addEventListener('mousedown', (e) => {
+            cb.addEventListener("mousedown", (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     e.preventDefault();
                     const end = Math.max(lastCheckedIndex, idx),
@@ -392,7 +392,7 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
             /**
              * @param {Event & { shiftKey?: boolean}} e
              */
-            cb.addEventListener('change', (e) => {
+            cb.addEventListener("change", (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     return;
                 } // Handled in onmousedown
@@ -419,7 +419,7 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
         selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
     }
     selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
-    selectAllBtn.addEventListener('click', () => {
+    selectAllBtn.addEventListener("click", () => {
         /** @type {string[]} */
         const newCols = visibleColumns.length === allKeys.length ? [] : [...allKeys];
         updateVisibleColumns(newCols);
@@ -441,11 +441,11 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
     const cancelBtn = document.createElement("button");
     cancelBtn.className = "themed-btn";
     cancelBtn.textContent = "Cancel";
-    cancelBtn.addEventListener('click', () => overlay.remove());
+    cancelBtn.addEventListener("click", () => overlay.remove());
     const okBtn = document.createElement("button");
     okBtn.className = "themed-btn";
     okBtn.textContent = "OK";
-    okBtn.addEventListener('click', () => {
+    okBtn.addEventListener("click", () => {
         overlay.remove();
         renderTable();
         saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), visibleColumns);

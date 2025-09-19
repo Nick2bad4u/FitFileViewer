@@ -205,7 +205,7 @@ function getEnvironment() {
 async function importPreferTest(testPath, realPath) {
     const IN_TEST =
         (typeof process !== "undefined" && Boolean(process.env) && process.env.VITEST_WORKER_ID !== undefined) ||
-        (typeof globalThis !== "undefined" && Boolean((globalThis).__vitest_manual_mocks__));
+        (typeof globalThis !== "undefined" && Boolean(globalThis.__vitest_manual_mocks__));
     const cacheKey = `test:${testPath}::real:${realPath}`;
     // Only use cache outside tests so test mocks/spies always see fresh imports
     if (!IN_TEST && cacheKey in __moduleCache) return __moduleCache[cacheKey];
@@ -251,7 +251,7 @@ function isDevelopmentMode() {
             protocol === "file:" ||
             (globalThis.window !== undefined &&
                 /** @type {any} */ (globalThis).electronAPI &&
-                (/** @type {any} */ (globalThis.electronAPI).__devMode) !== undefined) ||
+                /** @type {any} */ (globalThis.electronAPI).__devMode !== undefined) ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
         );
     } catch {
@@ -277,7 +277,9 @@ function resolveExactManualMock(testId) {
             const mod = reg.get(testId);
             return mod && mod.default ? mod.default : mod;
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     return null;
 }
 
@@ -299,7 +301,9 @@ function resolveManualMock(pathSuffix) {
                 }
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     return null;
 }
 
@@ -368,6 +372,67 @@ async function handleUnhandledRejection(event) {
     event.preventDefault();
 }
 
+// ==========================================
+// Performance Monitoring
+// ==========================================
+
+/**
+ * Performance monitoring utilities
+ * @namespace PerformanceMonitor
+ */
+const PerformanceMonitor = {
+    /**
+     * Ends timing an operation and logs the result
+     * @param {string} operation - Name of the operation that finished
+     * @returns {number} Duration in milliseconds
+     */
+    end(operation) {
+        const startTime = this.metrics.get(`${operation}_start`);
+        if (!startTime) {
+            console.warn(`[Performance] No start time found for operation: ${operation}`);
+            return 0;
+        }
+
+        const duration = performance.now() - startTime;
+        this.metrics.set(operation, duration);
+
+        if (isDevelopmentMode()) {
+            console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
+        }
+
+        return duration;
+    },
+
+    /**
+     * Gets all recorded metrics
+     * @returns {Object} Object containing all metrics
+     */
+    getMetrics() {
+        /** @type {any} */
+        const result = {};
+        for (const [key, value] of this.metrics) {
+            if (!key.endsWith("_start")) {
+                result[key] = value;
+            }
+        }
+        return result;
+    },
+
+    /**
+     * Tracks performance metrics for the application
+     * @type {Map<string, number>}
+     */
+    metrics: new Map(),
+
+    /**
+     * Starts timing an operation
+     * @param {string} operation - Name of the operation to time
+     */
+    start(operation) {
+        this.metrics.set(`${operation}_start`, performance.now());
+    },
+};
+
 /**
  * Initializes the application after DOM is ready
  * @returns {Promise<void>}
@@ -419,7 +484,7 @@ async function initializeApplication() {
 
         // Initialize core components
         // Initialize core components regardless of openFileBtn presence (tests mock listeners)
-        await initializeComponents(/** @type {any} */(dependencies));
+        await initializeComponents(/** @type {any} */ (dependencies));
 
         // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
         if (fileInput && typeof handleOpenFile === "function") {
@@ -437,33 +502,41 @@ async function initializeApplication() {
             try {
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).onMenuAction) === "function") {
                     /** @type {any} */ (globalThis.electronAPI).onMenuAction((/** @type {any} */ action) => {
-                    if (action === "open-file" && openFileBtn) {
-                        openFileBtn.click?.();
-                    } else if (action === "about") {
-                        try {
-                            showAboutModal();
-                        } catch { /* Ignore errors */ }
-                    }
-                });
+                        if (action === "open-file" && openFileBtn) {
+                            openFileBtn.click?.();
+                        } else if (action === "about") {
+                            try {
+                                showAboutModal();
+                            } catch {
+                                /* Ignore errors */
+                            }
+                        }
+                    });
                 }
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).onThemeChanged) === "function") {
                     /** @type {any} */ (globalThis.electronAPI).onThemeChanged((/** @type {any} */ theme) => {
-                    try {
-                        applyTheme?.(theme);
-                    } catch { /* Ignore errors */ }
-                });
+                        try {
+                            applyTheme?.(theme);
+                        } catch {
+                            /* Ignore errors */
+                        }
+                    });
                 }
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).isDevelopment) === "function") {
                     // Probe development mode to satisfy test expectation
-                    /** @type {any} */ (globalThis.electronAPI).isDevelopment().catch(() => { });
+                    /** @type {any} */ (globalThis.electronAPI).isDevelopment().catch(() => {});
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         }
 
         // Touch app domain state once to satisfy coverage test that spies on getState
         try {
             getAppDomainState?.("app.startTime");
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
 
         // Mark application as initialized using new state system
         const { AppActions } = await ensureCoreModules();
@@ -484,7 +557,9 @@ async function initializeApplication() {
         try {
             const { showNotification } = await ensureCoreModules();
             showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10_000);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         // Do not rethrow here to keep module import safe for tests
     }
 }
@@ -538,7 +613,9 @@ async function initializeComponents(dependencies) {
         try {
             const { setupTheme: setupThemeDyn } = await ensureCoreModules();
             setupThemeDyn(dependencies.applyTheme, dependencies.listenForThemeChange);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         PerformanceMonitor.end("theme_setup");
 
         // 2. Setup event listeners
@@ -547,14 +624,17 @@ async function initializeComponents(dependencies) {
         try {
             // Prefer dynamically resolved (mockable) setupListeners for tests
             const { setupListeners: setupListenersDyn } = await ensureCoreModules();
-            setupListenersDyn(/** @type {any} */(dependencies));
+            setupListenersDyn(/** @type {any} */ (dependencies));
         } catch {
             // Fallback guard
             try {
                 const { setupListeners: sl } = await ensureCoreModules();
-                sl(/** @type {any} */(dependencies));
+                sl(/** @type {any} */ (dependencies));
             } catch (error) {
-                console.warn("[Renderer] Listener setup skipped or failed:", /** @type {any} */(error)?.message || error);
+                console.warn(
+                    "[Renderer] Listener setup skipped or failed:",
+                    /** @type {any} */ (error)?.message || error
+                );
             }
         }
         PerformanceMonitor.end("listeners_setup");
@@ -607,7 +687,7 @@ async function initializeStateManager() {
         // Subscribe to state changes to update legacy reference
         subscribe(
             "app.isOpeningFile",
-            /** @param {any} isOpening */(isOpening) => {
+            /** @param {any} isOpening */ (isOpening) => {
                 isOpeningFileRef.value = isOpening;
             }
         );
@@ -670,100 +750,40 @@ function validateDOMElements() {
  * Performance monitoring utilities
  * @namespace PerformanceMonitor
  */
-const /**
-     * Application metadata and version information
-     * @constant {Object}
+/**
+ * Application metadata and version information
+ * @constant {Object}
+ */
+const APP_INFO = {
+    author: "FIT File Viewer Team",
+    description: "Advanced FIT file analysis and visualization tool",
+    /**
+     * Gets runtime information about the application
+     * @returns {Object} Runtime information
      */
-    APP_INFO = {
-        author: "FIT File Viewer Team",
-        description: "Advanced FIT file analysis and visualization tool",
-        /**
-         * Gets runtime information about the application
-         * @returns {Object} Runtime information
-         */
-        getRuntimeInfo() {
-            return {
-                cookieEnabled: navigator.cookieEnabled,
-                hardwareConcurrency: navigator.hardwareConcurrency,
-                language: navigator.language,
-                memoryUsage: /** @type {any} */ (performance).memory
-                    ? {
-                        jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
-                        totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
-                        usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
-                    }
-                    : null,
-                onLine: navigator.onLine,
-                platform: navigator.platform,
-                userAgent: navigator.userAgent,
-            };
-        },
-        license: "MIT",
-        name: "FIT File Viewer",
-        repository: "https://github.com/user/FitFileViewer",
-
-        version: "21.1.0",
+    getRuntimeInfo() {
+        return {
+            cookieEnabled: navigator.cookieEnabled,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            language: navigator.language,
+            memoryUsage: /** @type {any} */ (performance).memory
+                ? {
+                      jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
+                      totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
+                      usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
+                  }
+                : null,
+            onLine: navigator.onLine,
+            platform: navigator.platform,
+            userAgent: navigator.userAgent,
+        };
     },
-    // ==========================================
-    // Application Information
-    // ==========================================
+    license: "MIT",
+    name: "FIT File Viewer",
+    repository: "https://github.com/user/FitFileViewer",
 
-    // ==========================================
-    // Application Information
-    // ==========================================
-
-    PerformanceMonitor = {
-        /**
-         * Ends timing an operation and logs the result
-         * @param {string} operation - Name of the operation that finished
-         * @returns {number} Duration in milliseconds
-         */
-        end(operation) {
-            const startTime = this.metrics.get(`${operation}_start`);
-            if (!startTime) {
-                console.warn(`[Performance] No start time found for operation: ${operation}`);
-                return 0;
-            }
-
-            const duration = performance.now() - startTime;
-            this.metrics.set(operation, duration);
-
-            if (isDevelopmentMode()) {
-                console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
-            }
-
-            return duration;
-        },
-
-        /**
-         * Gets all recorded metrics
-         * @returns {Object} Object containing all metrics
-         */
-        getMetrics() {
-            /** @type {any} */
-            const result = {};
-            for (const [key, value] of this.metrics) {
-                if (!key.endsWith("_start")) {
-                    result[key] = value;
-                }
-            }
-            return result;
-        },
-
-        /**
-         * Tracks performance metrics for the application
-         * @type {Map<string, number>}
-         */
-        metrics: new Map(),
-
-        /**
-         * Starts timing an operation
-         * @param {string} operation - Name of the operation to time
-         */
-        start(operation) {
-            this.metrics.set(`${operation}_start`, performance.now());
-        },
-    };
+    version: "21.1.0",
+};
 
 // ==========================================
 // Global API Exposure
@@ -787,32 +807,42 @@ if (globalThis.window !== undefined) {
                 try {
                     const { handleOpenFile } = await ensureCoreModules();
                     return handleOpenFile(...args);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             },
             PerformanceMonitor,
             setupTheme: async (...args) => {
                 try {
                     const { setupTheme } = await ensureCoreModules();
                     return setupTheme(...args);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             },
             showAboutModal: async (...args) => {
                 try {
                     const { showAboutModal } = await ensureCoreModules();
                     return showAboutModal(...args);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             },
             showNotification: async (...args) => {
                 try {
                     const { showNotification } = await ensureCoreModules();
                     return showNotification(...args);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             },
             showUpdateNotification: async (...args) => {
                 try {
                     const { showUpdateNotification } = await ensureCoreModules();
                     return showUpdateNotification(...args);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             },
         };
     }
@@ -909,10 +939,12 @@ if (isDevelopmentMode()) {
             (async () => {
                 try {
                     const { masterStateManager } = await ensureCoreModules();
-                    console.log("Current State:", /** @type {any} */(masterStateManager).getState());
-                    console.log("State History:", /** @type {any} */(masterStateManager).getHistory());
-                    console.log("Active Subscriptions:", /** @type {any} */(masterStateManager).getSubscriptions());
-                } catch { /* Ignore errors */ }
+                    console.log("Current State:", /** @type {any} */ (masterStateManager).getState());
+                    console.log("State History:", /** @type {any} */ (masterStateManager).getHistory());
+                    console.log("Active Subscriptions:", /** @type {any} */ (masterStateManager).getSubscriptions());
+                } catch {
+                    /* Ignore errors */
+                }
             })();
         },
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
@@ -960,16 +992,18 @@ if (isDevelopmentMode()) {
                 const { AppActions, uiStateManager } = await ensureCoreModules();
                 if (AppActions) /** @type {any} */ (globalThis).__renderer_dev.AppActions = AppActions;
                 if (uiStateManager) /** @type {any} */ (globalThis).__renderer_dev.uiStateManager = uiStateManager;
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
 
             const {
-                checkDataAvailability,
-                debugSensorInfo,
-                showDataKeys,
-                showSensorNames,
-                testManufacturerId,
-                testProductId,
-            } = await import("./utils/debug/debugSensorInfo.js"),
+                    checkDataAvailability,
+                    debugSensorInfo,
+                    showDataKeys,
+                    showSensorNames,
+                    testManufacturerId,
+                    testProductId,
+                } = await import("./utils/debug/debugSensorInfo.js"),
                 { testFaveroCase, testFaveroStringCase, testNewFormatting } = await import(
                     "./utils/debug/debugChartFormatting.js"
                 );
@@ -1016,7 +1050,7 @@ if (isDevelopmentMode()) {
             console.log("  __renderer_dev.AppActions                 - Access app actions");
             console.log("  __renderer_dev.uiStateManager             - Access UI state manager");
         } catch (error) {
-            console.warn("[Renderer] Debug utilities failed to load:", /** @type {Error} */(error).message);
+            console.warn("[Renderer] Debug utilities failed to load:", /** @type {Error} */ (error).message);
         }
     })();
 
@@ -1035,8 +1069,12 @@ try {
             const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
             st(at, lf);
         })();
-    } catch { /* Ignore errors */ }
-} catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
+} catch {
+    /* Ignore errors */
+}
 
 // Immediately initialize state manager at import time so tests see initialize() called
 try {
@@ -1047,13 +1085,18 @@ try {
             const msmExact =
                 resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
                 resolveManualMock("/utils/state/core/masterStateManager.js");
-            const msmObj = msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
+            const msmObj =
+                msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
             if (msmObj && typeof msmObj.initialize === "function") {
                 await msmObj.initialize();
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     })();
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 try {
     // Call setupListeners regardless of openFileBtn presence; tests mock this function
@@ -1079,10 +1122,14 @@ try {
                 showNotification: sn,
                 showUpdateNotification: sun,
             };
-            sl(/** @type {any} */(deps));
+            sl(/** @type {any} */ (deps));
         })();
-    } catch { /* Ignore errors */ }
-} catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
+} catch {
+    /* Ignore errors */
+}
 
 // Attach file input change handler if present at import time (tests rely on this)
 try {
@@ -1099,7 +1146,9 @@ try {
                     } catch {
                         try {
                             /** @type {any} */ (handleOpenFile)(file);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                     }
                 }
             } catch (error) {
@@ -1107,7 +1156,9 @@ try {
             }
         });
     }
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // Centralized registration for electronAPI hooks
 function registerElectronAPI(/** @type {any} */ api) {
@@ -1130,11 +1181,15 @@ function registerElectronAPI(/** @type {any} */ api) {
                             } catch {
                                 try {
                                     showAboutModal();
-                                } catch { /* Ignore errors */ }
+                                } catch {
+                                    /* Ignore errors */
+                                }
                             }
                         })();
                     }
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             });
         }
         if (typeof api.onThemeChanged === "function") {
@@ -1146,14 +1201,16 @@ function registerElectronAPI(/** @type {any} */ api) {
                     } catch {
                         try {
                             applyTheme(theme);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                     }
                 })();
             });
         }
         if (typeof api.isDevelopment === "function") {
             // Query development mode for coverage expectations
-            Promise.resolve(api.isDevelopment()).catch(() => { });
+            Promise.resolve(api.isDevelopment()).catch(() => {});
         }
         // Immediately trigger state init and app domain getState so tests' spies observe after beforeEach
         (async () => {
@@ -1161,11 +1218,17 @@ function registerElectronAPI(/** @type {any} */ api) {
                 const { getAppDomainState: gas, masterStateManager: msm } = await ensureCoreModules();
                 try {
                     if (msm && typeof msm.initialize === "function") await msm.initialize();
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
                 try {
                     if (typeof gas === "function") gas("app.startTime");
-                } catch { /* Ignore errors */ }
-            } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
+            } catch {
+                /* Ignore errors */
+            }
             // Also try exact manual mocks synchronously
             try {
                 const msmExact =
@@ -1176,7 +1239,9 @@ function registerElectronAPI(/** @type {any} */ api) {
                 if (msmObj && typeof msmObj.initialize === "function") {
                     await msmObj.initialize();
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             try {
                 const dom =
                     resolveExactManualMock("../../utils/state/domain/appState.js") ||
@@ -1185,15 +1250,19 @@ function registerElectronAPI(/** @type {any} */ api) {
                 if (typeof gs === "function") {
                     gs("app.startTime");
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         })();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 // Wire electronAPI events if available now
 try {
     if (globalThis.window !== undefined && /** @type {any} */ (globalThis).electronAPI) {
-        registerElectronAPI(/** @type {any} */(globalThis).electronAPI);
+        registerElectronAPI(/** @type {any} */ (globalThis).electronAPI);
     }
     // Install accessor to re-register immediately on future assignments and ensure one-time registration now
     if (globalThis.window !== undefined) {
@@ -1214,21 +1283,28 @@ try {
                                 _api = v;
                                 try {
                                     registerElectronAPI(v);
-                                } catch { /* Ignore errors */ }
+                                } catch {
+                                    /* Ignore errors */
+                                }
                             },
                         });
                         // Register once for current
                         try {
                             registerElectronAPI(_api);
-                        } catch { /* Ignore errors */ }
-                    } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
+                    } catch {
+                        /* Ignore errors */
+                    }
                 }
             )();
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         // Intercept defineProperty to detect external assignment patterns used in tests
         try {
-            const IN_TEST2 =
-                typeof globalThis !== "undefined" && Boolean((globalThis).__vitest_manual_mocks__);
+            const IN_TEST2 = typeof globalThis !== "undefined" && Boolean(globalThis.__vitest_manual_mocks__);
             if (IN_TEST2) {
                 const nativeDefine = Object.defineProperty;
                 Object.defineProperty = function (target, prop, descriptor) {
@@ -1250,11 +1326,17 @@ try {
                                             await ensureCoreModules();
                                         try {
                                             if (msm && typeof msm.initialize === "function") await msm.initialize();
-                                        } catch { /* Ignore errors */ }
+                                        } catch {
+                                            /* Ignore errors */
+                                        }
                                         try {
                                             if (typeof gas === "function") gas("app.startTime");
-                                        } catch { /* Ignore errors */ }
-                                    } catch { /* Ignore errors */ }
+                                        } catch {
+                                            /* Ignore errors */
+                                        }
+                                    } catch {
+                                        /* Ignore errors */
+                                    }
                                     try {
                                         const msmExact =
                                             resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
@@ -1267,7 +1349,9 @@ try {
                                         if (msmObj && typeof msmObj.initialize === "function") {
                                             await msmObj.initialize();
                                         }
-                                    } catch { /* Ignore errors */ }
+                                    } catch {
+                                        /* Ignore errors */
+                                    }
                                     try {
                                         const dom =
                                             resolveExactManualMock("../../utils/state/domain/appState.js") ||
@@ -1276,21 +1360,31 @@ try {
                                         if (typeof gs === "function") {
                                             gs("app.startTime");
                                         }
-                                    } catch { /* Ignore errors */ }
+                                    } catch {
+                                        /* Ignore errors */
+                                    }
                                 })();
-                            } catch { /* Ignore errors */ }
+                            } catch {
+                                /* Ignore errors */
+                            }
                         }
-                    } catch { /* Ignore errors */ }
+                    } catch {
+                        /* Ignore errors */
+                    }
                     return res;
                 };
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     }
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // In test environments, re-register when window.electronAPI is reassigned between tests
 try {
-    const IN_TEST = typeof globalThis !== "undefined" && Boolean((globalThis).__vitest_manual_mocks__);
+    const IN_TEST = typeof globalThis !== "undefined" && Boolean(globalThis.__vitest_manual_mocks__);
     let lastElectronAPI;
     if (IN_TEST && globalThis.window !== undefined) {
         const intervalId = setInterval(async () => {
@@ -1305,19 +1399,27 @@ try {
                 try {
                     const { getAppDomainState: gas } = await ensureCoreModules();
                     if (typeof gas === "function") gas("app.startTime");
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
                 // Also ensure state manager initialize is called to satisfy spy
                 try {
                     const { masterStateManager: msm } = await ensureCoreModules();
                     if (msm && typeof msm.initialize === "function") {
                         await msm.initialize();
                     }
-                } catch { /* Ignore errors */ }
-            } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
+            } catch {
+                /* Ignore errors */
+            }
         }, 1);
         window.addEventListener("beforeunload", () => clearInterval(intervalId));
     }
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // Call into domain appState getters for performance/coverage tests
 try {
@@ -1327,13 +1429,19 @@ try {
             const { getAppDomainState: gas, subscribeAppDomain: sad } = await ensureCoreModules();
             try {
                 gas("app.startTime");
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             if (typeof sad === "function") {
                 try {
-                    sad("app.startTime", () => { });
-                } catch { /* Ignore errors */ }
+                    sad("app.startTime", () => {});
+                } catch {
+                    /* Ignore errors */
+                }
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     })();
 
     // Also try synchronous mock call so spies observe immediately after import
@@ -1344,7 +1452,9 @@ try {
                 const { getAppDomainState: gas } = await ensureCoreModules();
                 if (typeof gas === "function") gas("app.startTime");
             })();
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         // Then directly invoke the exact mocked module if available
         const mod =
             resolveExactManualMock("../../utils/state/domain/appState.js") ||
@@ -1353,8 +1463,12 @@ try {
         if (typeof gs === "function") {
             gs("app.startTime");
         }
-    } catch { /* Ignore errors */ }
-} catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
+} catch {
+    /* Ignore errors */
+}
 
 // Ensure mocked setupListeners is invoked synchronously on DOMContentLoaded for tests
 try {
@@ -1368,22 +1482,26 @@ try {
                 const fn = mod?.setupListeners;
                 if (typeof fn === "function") {
                     fn({
-                        applyTheme: () => { },
-                        handleOpenFile: () => { },
+                        applyTheme: () => {},
+                        handleOpenFile: () => {},
                         isOpeningFileRef,
-                        listenForThemeChange: () => { },
+                        listenForThemeChange: () => {},
                         openFileBtn: document.querySelector("#openFileBtn"),
                         setLoading,
-                        showAboutModal: () => { },
-                        showNotification: () => { },
-                        showUpdateNotification: () => { },
+                        showAboutModal: () => {},
+                        showNotification: () => {},
+                        showUpdateNotification: () => {},
                     });
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         },
         { once: false }
     );
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // Ensure theme setup is invoked again on window load to satisfy event-based tests
 try {
@@ -1403,15 +1521,21 @@ try {
                 st(at, lf);
                 return;
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         (async () => {
             try {
                 const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
                 st(at, lf);
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         })();
     });
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // Delegated change listener for dynamically created/replaced file input across tests
 try {
@@ -1432,17 +1556,25 @@ try {
                             hofSync(firstFile);
                             return;
                         }
-                    } catch { /* Ignore errors */ }
+                    } catch {
+                        /* Ignore errors */
+                    }
                     // Fallback to async resolution
                     (async () => {
                         try {
                             const { handleOpenFile: hof } = await ensureCoreModules();
                             /** @type {any} */ (hof)(firstFile);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                     })();
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         },
         true
     );
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}

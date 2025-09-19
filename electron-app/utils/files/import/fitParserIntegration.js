@@ -44,12 +44,15 @@ export async function decodeFitFileWithState(fileBuffer, options = {}) {
             result = await fitParser.decodeFitFile(fileBuffer, options);
 
         // If successful, update master state
-        if (result && !result.error && // Update global state with the decoded data
-            masterStateManager) {
-                setState("globalData", result);
-                setState("currentFile.status", "loaded");
-                setState("currentFile.lastModified", new Date().toISOString());
-            }
+        if (
+            result &&
+            !result.error && // Update global state with the decoded data
+            masterStateManager
+        ) {
+            setState("globalData", result);
+            setState("currentFile.status", "loaded");
+            setState("currentFile.lastModified", new Date().toISOString());
+        }
 
         return result;
     } catch (error) {

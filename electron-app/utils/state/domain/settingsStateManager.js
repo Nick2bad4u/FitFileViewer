@@ -207,8 +207,8 @@ class SettingsStateManager {
                 if (key) {
                     return settings[key] === undefined
                         ? schema.default && typeof schema.default === "object"
-                          ? schema.default[key]
-                          : undefined
+                            ? schema.default[key]
+                            : undefined
                         : settings[key];
                 }
 

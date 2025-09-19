@@ -180,6 +180,11 @@ function updateLoadingUI(isLoading) {
             continue;
         }
 
+        // Never disable tab buttons - users should always be able to navigate between tabs
+        if (element.classList.contains("tab-button")) {
+            continue;
+        }
+
         if (
             element instanceof HTMLButtonElement ||
             element instanceof HTMLInputElement ||

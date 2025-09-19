@@ -81,7 +81,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             expect(typeof tabStateManager.cleanup).toBe("function");
 
             // Check that cleanup doesn't actually unsubscribe (critical bug)
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
             tabStateManager.cleanup();
 
             // Verify cleanup was called but no actual unsubscribe happened
@@ -94,7 +94,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
         it("BUG CRITICAL: should track subscription leaks with multiple cleanup calls", () => {
             // Test multiple cleanup calls - should be idempotent if properly implemented
-            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+            const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
             // Multiple cleanup calls should not cause issues
             tabStateManager.cleanup();

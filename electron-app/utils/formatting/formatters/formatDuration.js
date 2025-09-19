@@ -62,9 +62,8 @@ export function formatDuration(seconds) {
         return formatSecondsOnly(normalizedSeconds);
     } else if (normalizedSeconds < THRESHOLDS.MINUTES_ONLY) {
         return formatMinutesAndSeconds(normalizedSeconds);
-    } 
-        return formatHoursAndMinutes(normalizedSeconds);
-    
+    }
+    return formatHoursAndMinutes(normalizedSeconds);
 }
 
 /**

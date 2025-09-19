@@ -234,7 +234,7 @@ function handleFullscreenStateChange() {
         if (screenfull.isFullscreen) {
             // Entering fullscreen
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -251,7 +251,7 @@ function handleFullscreenStateChange() {
         } else {
             // Exiting fullscreen
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 

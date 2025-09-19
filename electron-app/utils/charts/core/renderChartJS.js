@@ -137,6 +137,108 @@ import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 /**
+ * Enhanced chart settings management with state integration
+ * Provides centralized settings access with reactive updates
+ */
+export const chartSettingsManager = {
+    /**
+     * Get field visibility setting with state management
+     * @param {string} field - Field name
+     * @returns {string} Visibility setting ("visible", "hidden")
+     */
+    getFieldVisibility(field) {
+        // Use localStorage directly for field visibility (existing pattern)
+        const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
+
+        // Update field visibility state for reactive access
+        setState(`settings.charts.fieldVisibility.${field}`, visibility, {
+            silent: false,
+            source: "chartSettingsManager.getFieldVisibility",
+        });
+
+        return visibility;
+    },
+
+    /**
+     * Get chart settings with state management integration
+     * @returns {Object} Complete chart settings
+     */
+    getSettings() {
+        // First try to get from state
+        let settings = getState("settings.charts");
+
+        // Fallback to settings state manager if not available
+        if (!settings) {
+            settings = settingsStateManager.getChartSettings();
+            // Cache in state for faster access
+            setState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings" });
+        }
+
+        return {
+            animation: settings.animation || "normal",
+            chartType: settings.chartType || "line",
+            colors: settings.colors || [],
+            interpolation: settings.interpolation || "linear",
+            maxpoints: settings.maxpoints || "all",
+            showFill: settings.showFill === true,
+            showGrid: settings.showGrid !== false,
+            showLegend: settings.showLegend !== false,
+            showPoints: settings.showPoints === true,
+            showTitle: settings.showTitle !== false,
+            smoothing: settings.smoothing || 0.1,
+            ...settings,
+        };
+    },
+
+    /**
+     * Set field visibility and trigger updates
+     * @param {string} field - Field name
+     * @param {string} visibility - Visibility setting
+     */
+    setFieldVisibility(field, visibility) {
+        // Use localStorage directly for field visibility (existing pattern)
+        localStorage.setItem(`chartjs_field_${field}`, visibility);
+
+        // Update state for reactive access
+        setState(`settings.charts.fieldVisibility.${field}`, visibility, {
+            silent: false,
+            source: "chartSettingsManager.setFieldVisibility",
+        });
+
+        // Invalidate computed state that depends on field visibility
+        computedStateManager.invalidateComputed("charts.renderableFieldCount");
+
+        // Trigger re-render if needed
+        if (chartState.isRendered) {
+            chartActions.requestRerender(`Field ${field} visibility changed to ${visibility}`);
+        }
+    },
+
+    /**
+     * Update chart settings and trigger reactive updates
+     * @param {Object} newSettings - Settings to update
+     */
+    updateSettings(newSettings) {
+        const currentSettings = this.getSettings(),
+            updatedSettings = { ...currentSettings, ...newSettings };
+
+        // Update through settings state manager for persistence
+        /** @type {any} */ (settingsStateManager).updateChartSettings?.(updatedSettings);
+
+        // Update in global state for reactive access using updateState
+        updateState("settings.charts", updatedSettings, {
+            silent: false,
+            source: "chartSettingsManager.updateSettings",
+        });
+
+        // Trigger chart re-render if charts are currently displayed
+        if (chartState.isRendered) {
+            chartActions.requestRerender("Settings updated");
+        }
+    },
+};
+
+/**
  * Simple debounce utility to limit function execution frequency
  * @param {Function} func - Function to debounce
  * @param {number} wait - Milliseconds to wait
@@ -236,9 +338,9 @@ export const chartState = {
 
         return Array.isArray(formatChartFields)
             ? formatChartFields.filter((field) => {
-                const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
-                return visibility !== "hidden";
-            })
+                  const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
+                  return visibility !== "hidden";
+              })
             : [];
     },
 
@@ -374,16 +476,20 @@ if (globalThis.window !== undefined) {
 // Register the background color plugin globally
 try {
     const ChartRef = windowAny.Chart;
-    const hasRegistry = Boolean(ChartRef &&
-        ChartRef.registry &&
-        ChartRef.registry.plugins &&
-        typeof ChartRef.registry.plugins.get === "function");
+    const hasRegistry = Boolean(
+        ChartRef &&
+            ChartRef.registry &&
+            ChartRef.registry.plugins &&
+            typeof ChartRef.registry.plugins.get === "function"
+    );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
         ChartRef.register(chartBackgroundColorPlugin);
         console.log("[ChartJS] chartBackgroundColorPlugin registered");
     }
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 /**
  * State-aware chart export function
@@ -654,7 +760,7 @@ export async function renderChartJS(targetContainer) {
             performanceEnd = performance.now(),
             renderTime = performanceEnd - performanceStart,
             result = await renderChartsWithData(
-                /** @type {HTMLElement} */(targetContainer),
+                /** @type {HTMLElement} */ (targetContainer),
                 recordMesgs,
                 activityStartTime
             );
@@ -698,16 +804,16 @@ export async function renderChartJS(targetContainer) {
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
                         /** @type {any} */ (themeConfig).colors.text
-                });">An error occurred while rendering the charts.</p>
+                    });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                });">Error Details</summary>
+                        });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
                             /** @type {any} */ (themeConfig).colors.border
-                });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
+                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -819,15 +925,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
     // Get current settings through enhanced state management
     /** @type {ChartSettings} */
-    const // Convert boolean settings from strings (maintain backward compatibility)
-        boolSettings = {
-            showFill: String(showFill) === "on" || showFill === true,
-            showGrid: String(showGrid) !== "off" && showGrid !== false,
-            showLegend: String(showLegend) !== "off" && showLegend !== false,
-            showPoints: String(showPoints) === "on" || showPoints === true,
-            showTitle: String(showTitle) !== "off" && showTitle !== false,
-        }, // Store processed settings in state for other components
-        settings = /** @type {any} */ (chartSettingsManager.getSettings()),
+    const settings = /** @type {any} */ (chartSettingsManager.getSettings()),
         {
             animation: animationStyle = "normal",
             chartType = "line",
@@ -840,7 +938,15 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             showPoints = false,
             showTitle = true,
             smoothing = 0.1,
-        } = settings;
+        } = settings,
+        // Convert boolean settings from strings (maintain backward compatibility)
+        boolSettings = {
+            showFill: String(showFill) === "on" || showFill === true,
+            showGrid: String(showGrid) !== "off" && showGrid !== false,
+            showLegend: String(showLegend) !== "off" && showLegend !== false,
+            showPoints: String(showPoints) === "on" || showPoints === true,
+            showTitle: String(showTitle) !== "off" && showTitle !== false,
+        };
     setState(
         "charts.chartOptions",
         {
@@ -940,26 +1046,26 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
-            if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
-                let value = Number.parseFloat(/** @type {any} */(row)[field]);
+                if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
+                    let value = Number.parseFloat(/** @type {any} */ (row)[field]);
 
-                // Apply unit conversion based on user preferences
-                if (!isNaN(value)) {
-                    value = convertValueToUserUnits(value, field);
-                }
+                    // Apply unit conversion based on user preferences
+                    if (!isNaN(value)) {
+                        value = convertValueToUserUnits(value, field);
+                    }
 
-                if (index < 3) {
-                    // Debug first few rows
-                    console.log(
-                        `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
-                            field
-                        )}`
-                    );
+                    if (index < 3) {
+                        // Debug first few rows
+                        console.log(
+                            `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
+                                field
+                            )}`
+                        );
+                    }
+                    return isNaN(value) ? null : value;
                 }
-                return isNaN(value) ? null : value;
-            }
-            return null;
-        }),
+                return null;
+            }),
             validDataCount = numericData.filter((val) => val !== null).length;
         console.log(`[ChartJS] Field ${field}: ${validDataCount} valid data points out of ${numericData.length}`);
 
@@ -1001,7 +1107,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Create enhanced chart
         const chart = createEnhancedChart(
             canvas,
-            /** @type {any} */({
+            /** @type {any} */ ({
                 animationStyle,
                 chartData,
                 chartType,
@@ -1057,7 +1163,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneCharts(
             chartContainer,
-            /** @type {any} */({
+            /** @type {any} */ ({
                 // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
@@ -1196,108 +1302,6 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 }
 
 /**
- * Enhanced chart settings management with state integration
- * Provides centralized settings access with reactive updates
- */
-export const chartSettingsManager = {
-    /**
-     * Get field visibility setting with state management
-     * @param {string} field - Field name
-     * @returns {string} Visibility setting ("visible", "hidden")
-     */
-    getFieldVisibility(field) {
-        // Use localStorage directly for field visibility (existing pattern)
-        const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
-
-        // Update field visibility state for reactive access
-        setState(`settings.charts.fieldVisibility.${field}`, visibility, {
-            silent: false,
-            source: "chartSettingsManager.getFieldVisibility",
-        });
-
-        return visibility;
-    },
-
-    /**
-     * Get chart settings with state management integration
-     * @returns {Object} Complete chart settings
-     */
-    getSettings() {
-        // First try to get from state
-        let settings = getState("settings.charts");
-
-        // Fallback to settings state manager if not available
-        if (!settings) {
-            settings = settingsStateManager.getChartSettings();
-            // Cache in state for faster access
-            setState("settings.charts", settings, { silent: false, source: "chartSettingsManager.getSettings" });
-        }
-
-        return {
-            animation: settings.animation || "normal",
-            chartType: settings.chartType || "line",
-            colors: settings.colors || [],
-            interpolation: settings.interpolation || "linear",
-            maxpoints: settings.maxpoints || "all",
-            showFill: settings.showFill === true,
-            showGrid: settings.showGrid !== false,
-            showLegend: settings.showLegend !== false,
-            showPoints: settings.showPoints === true,
-            showTitle: settings.showTitle !== false,
-            smoothing: settings.smoothing || 0.1,
-            ...settings,
-        };
-    },
-
-    /**
-     * Set field visibility and trigger updates
-     * @param {string} field - Field name
-     * @param {string} visibility - Visibility setting
-     */
-    setFieldVisibility(field, visibility) {
-        // Use localStorage directly for field visibility (existing pattern)
-        localStorage.setItem(`chartjs_field_${field}`, visibility);
-
-        // Update state for reactive access
-        setState(`settings.charts.fieldVisibility.${field}`, visibility, {
-            silent: false,
-            source: "chartSettingsManager.setFieldVisibility",
-        });
-
-        // Invalidate computed state that depends on field visibility
-        computedStateManager.invalidateComputed("charts.renderableFieldCount");
-
-        // Trigger re-render if needed
-        if (chartState.isRendered) {
-            chartActions.requestRerender(`Field ${field} visibility changed to ${visibility}`);
-        }
-    },
-
-    /**
-     * Update chart settings and trigger reactive updates
-     * @param {Object} newSettings - Settings to update
-     */
-    updateSettings(newSettings) {
-        const currentSettings = this.getSettings(),
-            updatedSettings = { ...currentSettings, ...newSettings };
-
-        // Update through settings state manager for persistence
-        /** @type {any} */ (settingsStateManager).updateChartSettings?.(updatedSettings);
-
-        // Update in global state for reactive access using updateState
-        updateState("settings.charts", updatedSettings, {
-            silent: false,
-            source: "chartSettingsManager.updateSettings",
-        });
-
-        // Trigger chart re-render if charts are currently displayed
-        if (chartState.isRendered) {
-            chartActions.requestRerender("Settings updated");
-        }
-    },
-};
-
-/**
  * State-aware chart performance monitoring
  * Tracks and reports chart rendering performance metrics
  */
@@ -1415,9 +1419,9 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */(computedStateManager).list?.(),
+                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
+                list: () => /** @type {any} */ (computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({

@@ -153,7 +153,7 @@ function getUserPreference(key, fallback) {
     try {
         // Prefer window.localStorage when available for jsdom/test environments
         /** @type {any} */
-        const w = globalThis.window === undefined ? /** @type {any} */ undefined : (globalThis);
+        const w = globalThis.window === undefined ? /** @type {any} */ undefined : globalThis;
         /** @type {Storage|undefined} */
         const storage =
             w && w.localStorage ? w.localStorage : typeof localStorage === "undefined" ? undefined : localStorage;

@@ -173,8 +173,8 @@ export function movePowerZoneControlsToSection() {
         const controls = powerZoneContent.children;
         for (const [i, el] of controls.entries()) {
             if (i > 0 && el && el.style) {
-                    el.style.marginTop = "12px";
-                }
+                el.style.marginTop = "12px";
+            }
         }
     }
 }

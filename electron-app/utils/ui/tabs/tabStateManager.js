@@ -25,15 +25,21 @@ const getDoc = () => {
             // @ts-ignore
             d = /** @type {any} */ (document);
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
             d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Fallback to canonical test harness document
     try {
         // @ts-ignore
@@ -41,7 +47,9 @@ const getDoc = () => {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     if (!d) {
         // @ts-ignore JSDOM provides document
         d = /** @type {any} */ (document);
@@ -65,7 +73,9 @@ const getDoc = () => {
                 d = /** @type {any} */ (__vitest_effective_document__);
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     return /** @type {Document} */ (d);
 };
 import { showNotification } from "../notifications/showNotification.js";
@@ -82,7 +92,9 @@ const getStateMgr = () => {
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         // @ts-ignore
         const eff =
@@ -94,7 +106,9 @@ const getStateMgr = () => {
             const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     return {
         getState: /** @type {any} */ (__StateMgr.getState),
         setState: /** @type {any} */ (__StateMgr.setState),
@@ -180,7 +194,9 @@ class TabStateManager {
                     `[TabStateManager] Click detected on button: ${/** @type {any} */ (event?.currentTarget)?.id || ""}`,
                     event
                 );
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             this.handleTabButtonClick(event);
         };
         // Reference to DOMContentLoaded setup function so we can remove it in cleanup
@@ -203,26 +219,36 @@ class TabStateManager {
                 for (const unsub of this._unsubscribes.splice(0)) {
                     try {
                         typeof unsub === "function" && unsub();
-                    } catch { /* Ignore errors */ }
+                    } catch {
+                        /* Ignore errors */
+                    }
                 }
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         // Remove document DOMContentLoaded handler if previously added
         try {
             if (this._setupHandlersFn) {
                 getDoc().removeEventListener("DOMContentLoaded", this._setupHandlersFn);
                 this._setupHandlersFn = null;
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         // Detach click handlers from current tab buttons
         try {
             const tabButtons = getDoc().querySelectorAll(".tab-button");
             for (const button of tabButtons) {
                 try {
                     button.removeEventListener("click", this._buttonClickHandler);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         // Mark uninitialized so tests can re-init if they re-import or call setup explicitly
         this.isInitialized = false;
         console.log("[TabStateManager] cleanup invoked");
@@ -513,9 +539,9 @@ class TabStateManager {
 
         // Simple hash based on data size and some key fields
         const recordMesgs = data.recordMesgs || [],
+            size = recordMesgs.length || 0,
             firstRecord = recordMesgs[0] || {},
-            lastRecord = recordMesgs[size - 1] || {},
-            size = recordMesgs.length || 0;
+            lastRecord = recordMesgs[size - 1] || {};
 
         return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
     }
@@ -537,7 +563,9 @@ class TabStateManager {
             this._unsubscribes.push(() => {
                 try {
                     unsubActive();
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             });
 
         // Subscribe to data changes to enable/disable tabs
@@ -548,7 +576,9 @@ class TabStateManager {
             this._unsubscribes.push(() => {
                 try {
                     unsubData();
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             });
 
         this.isInitialized = true;
@@ -566,11 +596,15 @@ class TabStateManager {
                 // Remove existing stable listener (if any) to prevent duplicates
                 try {
                     button.removeEventListener("click", this._buttonClickHandler);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
                 // Add stable listener
                 try {
                     button.addEventListener("click", this._buttonClickHandler);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
 
             console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
@@ -581,7 +615,9 @@ class TabStateManager {
             this._setupHandlersFn = setupHandlers;
             try {
                 getDoc().addEventListener("DOMContentLoaded", this._setupHandlersFn);
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         } else {
             setupHandlers();
         }
@@ -647,7 +683,9 @@ class TabStateManager {
                     if ("disabled" in button) button.disabled = !hasData;
                     try {
                         button.classList.toggle("disabled", !hasData);
-                    } catch { /* Ignore errors */ }
+                    } catch {
+                        /* Ignore errors */
+                    }
                 }
             }
         }

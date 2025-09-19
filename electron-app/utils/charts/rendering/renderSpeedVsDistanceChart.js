@@ -115,22 +115,22 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                                     const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
                                     let rawDistance = context.parsed.x;
                                     switch (distanceUnits) {
-                                    case "feet": {
-                                        rawDistance = context.parsed.x / 3.280_84; // Convert feet back to meters
-                                    
-                                    break;
-                                    }
-                                    case "kilometers": {
-                                        rawDistance = context.parsed.x * 1000; // Convert km back to meters
-                                    
-                                    break;
-                                    }
-                                    case "miles": {
-                                        rawDistance = context.parsed.x * 1609.344; // Convert miles back to meters
-                                    
-                                    break;
-                                    }
-                                    // No default
+                                        case "feet": {
+                                            rawDistance = context.parsed.x / 3.280_84; // Convert feet back to meters
+
+                                            break;
+                                        }
+                                        case "kilometers": {
+                                            rawDistance = context.parsed.x * 1000; // Convert km back to meters
+
+                                            break;
+                                        }
+                                        case "miles": {
+                                            rawDistance = context.parsed.x * 1609.344; // Convert miles back to meters
+
+                                            break;
+                                        }
+                                        // No default
                                     }
 
                                     return [

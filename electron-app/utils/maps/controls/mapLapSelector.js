@@ -184,7 +184,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     }
 
     if (deselectAllBtn) {
-        deselectAllBtn.addEventListener('click', () => {
+        deselectAllBtn.addEventListener("click", () => {
             for (const opt of lapSelect.options) {
                 opt.selected = false;
             }
@@ -193,7 +193,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         });
     }
 
-    multiLapToggle.addEventListener('click', () => setMultiSelectMode(!multiSelectMode));
+    multiLapToggle.addEventListener("click", () => setMultiSelectMode(!multiSelectMode));
 
     lapSelect.addEventListener("change", () => {
         let selected = [...lapSelect.selectedOptions].map((/** @type {HTMLOptionElement} */ opt) => opt.value);

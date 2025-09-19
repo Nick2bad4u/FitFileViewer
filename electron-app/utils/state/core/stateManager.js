@@ -79,79 +79,79 @@
  * @type {AppStateShape}
  */
 const AppState = {
-    // Application lifecycle state
-    app: {
-        initialized: false,
-        isOpeningFile: false,
-        startTime: performance.now(),
-    },
+        // Application lifecycle state
+        app: {
+            initialized: false,
+            isOpeningFile: false,
+            startTime: performance.now(),
+        },
 
-    // Chart state
-    charts: {
-        chartData: null,
-        chartOptions: {},
-        controlsVisible: true,
-        isRendered: false,
-        selectedChart: "elevation",
-        zoomLevel: 1,
-    },
-    currentFile: null,
-    // Core application data
-    globalData: null,
+        // Chart state
+        charts: {
+            chartData: null,
+            chartOptions: {},
+            controlsVisible: true,
+            isRendered: false,
+            selectedChart: "elevation",
+            zoomLevel: 1,
+        },
+        currentFile: null,
+        // Core application data
+        globalData: null,
 
-    isLoading: false,
+        isLoading: false,
 
-    // Map state
-    map: {
-        baseLayer: "openstreetmap",
-        center: null,
-        isRendered: false,
-        measurementMode: false,
-        selectedLap: 0,
-        showElevationProfile: true,
-        trackVisible: true,
-        zoom: 13,
-    },
+        // Map state
+        map: {
+            baseLayer: "openstreetmap",
+            center: null,
+            isRendered: false,
+            measurementMode: false,
+            selectedLap: 0,
+            showElevationProfile: true,
+            trackVisible: true,
+            zoom: 13,
+        },
 
-    // Performance metrics
-    performance: {
-        lastLoadTime: null,
-        memoryUsage: null,
-        renderTimes: {},
-    },
+        // Performance metrics
+        performance: {
+            lastLoadTime: null,
+            memoryUsage: null,
+            renderTimes: {},
+        },
 
-    // System information
-    system: {
-        initialized: false,
-        mode: "production",
-        startupTime: null,
-        version: null,
-    },
-    // Table state
-    tables: {
-        currentPage: 1,
-        filters: {},
-        isRendered: false,
-        pageSize: 50,
-        sortColumn: null,
-        sortDirection: "asc",
-    },
+        // System information
+        system: {
+            initialized: false,
+            mode: "production",
+            startupTime: null,
+            version: null,
+        },
+        // Table state
+        tables: {
+            currentPage: 1,
+            filters: {},
+            isRendered: false,
+            pageSize: 50,
+            sortColumn: null,
+            sortDirection: "asc",
+        },
 
-    // UI state
-    ui: {
-        activeTab: "summary",
-        isFullscreen: false,
-        sidebarCollapsed: false,
-        theme: "system",
-        windowState: {
-            height: 800,
-            maximized: false,
-            width: 1200,
-            x: null,
-            y: null,
+        // UI state
+        ui: {
+            activeTab: "summary",
+            isFullscreen: false,
+            sidebarCollapsed: false,
+            theme: "system",
+            windowState: {
+                height: 800,
+                maximized: false,
+                width: 1200,
+                x: null,
+                y: null,
+            },
         },
     },
-},
     /**
      * Maximum number of state changes to keep in history
      */
@@ -189,13 +189,19 @@ function __clearAllListenersForTests() {
 function __resetStateManagerForTests() {
     try {
         __clearAllListenersForTests();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         clearStateHistory();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         resetState();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 /**
@@ -657,21 +663,19 @@ function updateState(path, updates, options = {}) {
 // Debug state object
 const __debugState = AppState;
 
-// Export all functions using CommonJS module.exports
+// Export all functions using ES6 named exports
 
-module.exports = {
-    __clearAllListenersForTests,
-    __debugState,
-    __resetStateManagerForTests,
-    clearStateHistory,
-    createReactiveProperty,
-    getState,
-    getStateHistory,
-    initializeStateManager,
-    loadPersistedState,
-    persistState,
-    resetState,
-    setState,
-    subscribe,
-    updateState
-};
+export { __clearAllListenersForTests };
+export { __debugState };
+export { __resetStateManagerForTests };
+export { clearStateHistory };
+export { createReactiveProperty };
+export { getState };
+export { getStateHistory };
+export { initializeStateManager };
+export { loadPersistedState };
+export { persistState };
+export { resetState };
+export { setState };
+export { subscribe };
+export { updateState };

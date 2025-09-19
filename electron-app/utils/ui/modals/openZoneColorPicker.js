@@ -30,24 +30,24 @@ export function openZoneColorPicker(field) {
 
             // Determine specific chart type for HR zones
             switch (field) {
-            case "hr_lap_zone_individual": {
-                chartType = "Lap Individual Chart";
-            
-            break;
-            }
-            case "hr_lap_zone_stacked": {
-                chartType = "Lap Stacked Chart";
-            
-            break;
-            }
-            case "hr_zone_doughnut": {
-                chartType = "Doughnut Chart";
-            
-            break;
-            }
-            default: {
-                chartType = "Zone Charts";
-            }
+                case "hr_lap_zone_individual": {
+                    chartType = "Lap Individual Chart";
+
+                    break;
+                }
+                case "hr_lap_zone_stacked": {
+                    chartType = "Lap Stacked Chart";
+
+                    break;
+                }
+                case "hr_zone_doughnut": {
+                    chartType = "Doughnut Chart";
+
+                    break;
+                }
+                default: {
+                    chartType = "Zone Charts";
+                }
             }
         } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
             zoneType = "Power";
@@ -56,24 +56,24 @@ export function openZoneColorPicker(field) {
 
             // Determine specific chart type for Power zones
             switch (field) {
-            case "power_lap_zone_individual": {
-                chartType = "Lap Individual Chart";
-            
-            break;
-            }
-            case "power_lap_zone_stacked": {
-                chartType = "Lap Stacked Chart";
-            
-            break;
-            }
-            case "power_zone_doughnut": {
-                chartType = "Doughnut Chart";
-            
-            break;
-            }
-            default: {
-                chartType = "Zone Charts";
-            }
+                case "power_lap_zone_individual": {
+                    chartType = "Lap Individual Chart";
+
+                    break;
+                }
+                case "power_lap_zone_stacked": {
+                    chartType = "Lap Stacked Chart";
+
+                    break;
+                }
+                case "power_zone_doughnut": {
+                    chartType = "Doughnut Chart";
+
+                    break;
+                }
+                default: {
+                    chartType = "Zone Charts";
+                }
             }
         } else {
             console.warn(`[ChartJS] Unknown zone field type: ${field}`);

@@ -68,13 +68,13 @@ class MainProcessState {
      */
     addError(error, context = {}) {
         const errorObj = {
-            context,
-            id: Date.now().toString(),
-            message: error instanceof Error ? error.message : String(error),
-            source: "mainProcess",
-            stack: error instanceof Error ? error.stack : null,
-            timestamp: Date.now(),
-        },
+                context,
+                id: Date.now().toString(),
+                message: error instanceof Error ? error.message : String(error),
+                source: "mainProcess",
+                stack: error instanceof Error ? error.stack : null,
+                timestamp: Date.now(),
+            },
             errors = this.get("errors") || [];
         errors.unshift(errorObj); // Add to beginning
 
@@ -154,13 +154,13 @@ class MainProcessState {
         }
 
         const errorObj =
-            error instanceof Error
-                ? {
-                    message: error.message,
-                    name: error.name,
-                    stack: error.stack,
-                }
-                : { message: String(error) },
+                error instanceof Error
+                    ? {
+                          message: error.message,
+                          name: error.name,
+                          stack: error.stack,
+                      }
+                    : { message: String(error) },
             failedOp = {
                 ...operation,
                 duration: Date.now() - operation.startTime,
@@ -204,8 +204,7 @@ class MainProcessState {
                 // @ts-ignore index signature loosened at runtime
                 return current[key];
             }
-            
-        }, /** @type {any} */(obj));
+        }, /** @type {any} */ (obj));
     }
 
     /**
@@ -285,8 +284,7 @@ class MainProcessState {
         const { BrowserWindow } = safeElectron();
         for (const [key, value] of Object.entries(data)) {
             // Skip non-serializable types
-            const isBrowserWindow =
-                typeof BrowserWindow === "function" && value instanceof BrowserWindow;
+            const isBrowserWindow = typeof BrowserWindow === "function" && value instanceof BrowserWindow;
             if (
                 typeof value === "function" ||
                 isBrowserWindow ||
@@ -357,9 +355,8 @@ class MainProcessState {
         const serializableData = this.makeSerializable(data);
 
         const { BrowserWindow } = safeElectron();
-        const allWins = (BrowserWindow && typeof BrowserWindow.getAllWindows === "function")
-            ? BrowserWindow.getAllWindows()
-            : [];
+        const allWins =
+            BrowserWindow && typeof BrowserWindow.getAllWindows === "function" ? BrowserWindow.getAllWindows() : [];
         for (const win of allWins) {
             if (validateWindow(win)) {
                 try {
@@ -503,7 +500,7 @@ class MainProcessState {
                     return current[key];
                 }
                 return {};
-            }, /** @type {any} */(obj));
+            }, /** @type {any} */ (obj));
         if (lastKey) {
             // @ts-ignore dynamic expansion
             target[lastKey] = value;
@@ -522,13 +519,10 @@ class MainProcessState {
         }
 
         // Get main process state
-        ipcMain.handle(
-            "main-state:get",
-            (/** @type {any} */ _event, /** @type {string} */ path) => {
-                const data = path ? this.get(path) : this.data;
-                return this.makeSerializable(data);
-            }
-        );
+        ipcMain.handle("main-state:get", (/** @type {any} */ _event, /** @type {string} */ path) => {
+            const data = path ? this.get(path) : this.data;
+            return this.makeSerializable(data);
+        });
 
         // Set main process state (restricted)
         ipcMain.handle(
@@ -553,30 +547,25 @@ class MainProcessState {
         );
 
         // Listen to main process state changes
-        ipcMain.handle(
-            "main-state:listen",
-            (/** @type {any} */ event, /** @type {string} */ path) => {
-                const { sender } = event;
-                this.listen(path, (change) => {
-                    try {
-                        sender.send("main-state-change", change);
-                    } catch (error) {
-                        const err = /** @type {any} */ (error);
-                        logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
-                    }
-                });
-                // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
-                // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
+        ipcMain.handle("main-state:listen", (/** @type {any} */ event, /** @type {string} */ path) => {
+            const { sender } = event;
+            this.listen(path, (change) => {
+                try {
+                    sender.send("main-state-change", change);
+                } catch (error) {
+                    const err = /** @type {any} */ (error);
+                    logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
+                }
+            });
+            // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
+            // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
 
-                return true;
-            }
-        );
+            return true;
+        });
 
         // Get operation status
-        ipcMain.handle(
-            "main-state:operation",
-            (/** @type {any} */ _event, /** @type {string} */ operationId) =>
-                this.get(`operations.${operationId}`)
+        ipcMain.handle("main-state:operation", (/** @type {any} */ _event, /** @type {string} */ operationId) =>
+            this.get(`operations.${operationId}`)
         );
 
         // Get all operations
@@ -778,7 +767,6 @@ function logWithContext(level, message, context = {}) {
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs
 function safeElectron() {
     try {
-         
         return require("electron");
     } catch {
         return /** @type {any} */ ({});

@@ -66,7 +66,6 @@ function formatAsTimeString(seconds) {
         return `${hours}:${minutes.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
     }
     return `${minutes}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
-
 }
 
 /**
@@ -82,15 +81,21 @@ function formatWithUserUnits(seconds) {
     const storages = [];
     try {
         if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
-            storages.push(/** @type {any} */(globalThis).localStorage);
-    } catch { /* Ignore errors */ }
+            storages.push(/** @type {any} */ (globalThis).localStorage);
+    } catch {
+        /* Ignore errors */
+    }
     try {
         if (globalThis.window !== undefined && /** @type {any} */ (globalThis).localStorage)
-            storages.push(/** @type {any} */(globalThis).localStorage);
-    } catch { /* Ignore errors */ }
+            storages.push(/** @type {any} */ (globalThis).localStorage);
+    } catch {
+        /* Ignore errors */
+    }
     try {
-        if (typeof localStorage !== "undefined") storages.push(/** @type {any} */(localStorage));
-    } catch { /* Ignore errors */ }
+        if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
+    } catch {
+        /* Ignore errors */
+    }
 
     /** @type {string} */
     let timeUnits = TIME_UNITS.SECONDS;

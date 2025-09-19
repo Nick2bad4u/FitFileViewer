@@ -56,7 +56,6 @@ export function getChecked(el) {
         // @ts-ignore - runtime guarded
         return Boolean(el.checked);
     }
-
 }
 
 /**
@@ -69,7 +68,6 @@ export function getData(el, key) {
     if (isHTMLElement(el) && el.dataset) {
         return el.dataset[key];
     }
-
 }
 
 /**
@@ -82,7 +80,6 @@ export function getValue(el) {
         // @ts-ignore - runtime guarded
         return el.value;
     }
-
 }
 
 /**
@@ -148,7 +145,7 @@ export function queryAll(selector, root = document) {
         return [];
     }
     try {
-        return [...list].filter(element => isHTMLElement(element));
+        return [...list].filter((element) => isHTMLElement(element));
     } catch {
         // In case Array.from fails on exotic list objects
         const result = [];

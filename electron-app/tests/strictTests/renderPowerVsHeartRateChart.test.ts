@@ -13,7 +13,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
             url: "http://localhost",
             pretendToBeVisual: true,
-            resources: "usable"
+            resources: "usable",
         });
 
         global.window = dom.window as any;
@@ -23,7 +23,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
         (global as any).console = {
             log: vi.fn(),
             error: vi.fn(),
-            warn: vi.fn()
+            warn: vi.fn(),
         };
 
         // Mock localStorage
@@ -31,7 +31,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             getItem: vi.fn(),
             setItem: vi.fn(),
             removeItem: vi.fn(),
-            clear: vi.fn()
+            clear: vi.fn(),
         };
         (global as any).localStorage = mockLocalStorage;
 
@@ -51,7 +51,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             generateLegend: vi.fn(),
             getElementsAtEventForMode: vi.fn(() => []),
             getElementAtEvent: vi.fn(() => []),
-            getDatasetAtEvent: vi.fn(() => [])
+            getDatasetAtEvent: vi.fn(() => []),
         };
 
         Chart = vi.fn(() => chartInstanceMock);
@@ -83,11 +83,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
     describe("Data Validation and Processing", () => {
         it("should return early when data has no power values", () => {
             const container = document.createElement("div");
-            const data = [
-                { heartRate: 120 },
-                { heartRate: 130 },
-                { heartRate: 140 }
-            ];
+            const data = [{ heartRate: 120 }, { heartRate: 130 }, { heartRate: 140 }];
             const options = { maxPoints: 1000, showPoints: true };
 
             renderPowerVsHeartRateChart(container, data, options);
@@ -98,11 +94,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
         it("should return early when data has no heart rate values", () => {
             const container = document.createElement("div");
-            const data = [
-                { power: 200 },
-                { power: 250 },
-                { power: 300 }
-            ];
+            const data = [{ power: 200 }, { power: 250 }, { power: 300 }];
             const options = { maxPoints: 1000, showPoints: true };
 
             renderPowerVsHeartRateChart(container, data, options);
@@ -117,7 +109,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const container = document.createElement("div");
             const data = [
                 { power: 200, heartRate: 120 },
-                { power: 250, heartRate: 130 }
+                { power: 250, heartRate: 130 },
             ];
             const options = { maxPoints: 1000, showPoints: true };
 
@@ -137,7 +129,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 { power: 250, heartRate: 130 },
                 { power: null, heartRate: 140 }, // Should be filtered out
                 { power: 300, heartRate: undefined }, // Should be filtered out
-                { power: 275, heartRate: 135 }
+                { power: 275, heartRate: 135 },
             ];
             const options = { maxPoints: 1000, showPoints: true };
 
@@ -148,7 +140,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 200 },
                 { x: 130, y: 250 },
-                { x: 135, y: 275 }
+                { x: 135, y: 275 },
             ]);
         });
 
@@ -159,7 +151,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const data = [
                 { power: null, heartRate: 120 },
                 { power: 250, heartRate: null },
-                { power: undefined, heartRate: undefined }
+                { power: undefined, heartRate: undefined },
             ];
             const options = { maxPoints: 1000, showPoints: true };
 
@@ -212,7 +204,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const data = [
                 { power: 200, heartRate: 120 },
                 { power: 250, heartRate: 130 },
-                { power: 275, heartRate: 135 }
+                { power: 275, heartRate: 135 },
             ];
             const options = { maxPoints: 1000, showPoints: true };
 
@@ -459,13 +451,10 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             // Test tooltip callback
             const mockContext = {
-                parsed: { x: 140, y: 280 }
+                parsed: { x: 140, y: 280 },
             };
             const result = tooltipConfig.callbacks.label(mockContext);
-            expect(result).toEqual([
-                "Heart Rate: 140 bpm",
-                "Power: 280 W"
-            ]);
+            expect(result).toEqual(["Heart Rate: 140 bpm", "Power: 280 W"]);
         });
     });
 
@@ -535,9 +524,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(console.log).toHaveBeenCalledWith(
-                "[ChartJS] Power vs Heart Rate chart created successfully"
-            );
+            expect(console.log).toHaveBeenCalledWith("[ChartJS] Power vs Heart Rate chart created successfully");
         });
     });
 
@@ -581,7 +568,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const container = document.createElement("div");
             const data = [
                 { power: 0, heartRate: 120 },
-                { power: 0, heartRate: 130 }
+                { power: 0, heartRate: 130 },
             ];
             const options = { maxPoints: 1000 };
 
@@ -591,7 +578,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 120, y: 0 },
-                { x: 130, y: 0 }
+                { x: 130, y: 0 },
             ]);
         });
 
@@ -601,7 +588,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const container = document.createElement("div");
             const data = [
                 { power: 200, heartRate: 0 },
-                { power: 250, heartRate: 0 }
+                { power: 250, heartRate: 0 },
             ];
             const options = { maxPoints: 1000 };
 
@@ -611,7 +598,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.data.datasets[0].data).toEqual([
                 { x: 0, y: 200 },
-                { x: 0, y: 250 }
+                { x: 0, y: 250 },
             ]);
         });
 
@@ -642,7 +629,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 { power: 250, heartRate: "invalid" },
                 { power: 275, heartRate: 135 },
                 { power: null, heartRate: null },
-                { power: 300, heartRate: 140 }
+                { power: 300, heartRate: 140 },
             ];
             const options = { maxPoints: 1000 };
 
@@ -655,7 +642,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 { x: 130, y: "invalid" },
                 { x: "invalid", y: 250 },
                 { x: 135, y: 275 },
-                { x: 140, y: 300 }
+                { x: 140, y: 300 },
             ]);
         });
     });
@@ -682,7 +669,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             const container = document.createElement("div");
             const originalData = [
                 { power: 200, heartRate: 120 },
-                { power: 250, heartRate: 130 }
+                { power: 250, heartRate: 130 },
             ];
             const data = [...originalData];
             const options = { maxPoints: 1 };
@@ -699,7 +686,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             // Mock getThemeConfig to return undefined
             vi.doMock("../../utils/theming/core/theme.js", () => ({
-                getThemeConfig: () => undefined
+                getThemeConfig: () => undefined,
             }));
 
             const container = document.createElement("div");
@@ -738,7 +725,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 { power: 250, heartRate: 145 },
                 { power: 300, heartRate: 160 },
                 { power: 280, heartRate: 155 },
-                { power: 220, heartRate: 140 }
+                { power: 220, heartRate: 140 },
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true };
 
@@ -759,7 +746,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
                 { power: 450, heartRate: 165 }, // Sprint
                 { power: 180, heartRate: 125 }, // Recovery
                 { power: 350, heartRate: 155 }, // High intensity
-                { power: 160, heartRate: 115 }  // Base pace
+                { power: 160, heartRate: 115 }, // Base pace
             ];
             const options = { maxPoints: 1000, showPoints: true };
 

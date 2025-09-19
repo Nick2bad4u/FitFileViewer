@@ -93,7 +93,9 @@ describe("Real App Integration: Tab Button Bug", () => {
 
     it("should simulate the exact real app initialization sequence", async () => {
         // Dynamic import after mocks are set up
-        const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
+        const { setTabButtonsEnabled, initializeTabButtonState } = await import(
+            "../../utils/ui/controls/enableTabButtons.js"
+        );
         const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
         console.log("Starting real app simulation...");
@@ -109,7 +111,7 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Verify initial state - tabs should be disabled
         const buttons = document.querySelectorAll(".tab-button");
         buttons.forEach((button) => {
-            const btn = /** @type {HTMLButtonElement} */ (button);
+            const btn = /** @type {HTMLButtonElement} */ button;
             expect(btn.disabled).toBe(true);
             expect(btn.hasAttribute("disabled")).toBe(true);
             console.log(`Initial: ${btn.id} - disabled=${btn.disabled}, hasAttr=${btn.hasAttribute("disabled")}`);
@@ -137,7 +139,7 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Step 4: Check final state - this is where the bug occurs
         console.log("Step 4: Check final state");
         buttons.forEach((button) => {
-            const btn = /** @type {HTMLButtonElement} */ (button);
+            const btn = /** @type {HTMLButtonElement} */ button;
             console.log(
                 `Final: ${btn.id} - disabled=${btn.disabled}, hasAttr=${btn.hasAttribute("disabled")}, style=${btn.style.pointerEvents}`
             );
@@ -151,7 +153,9 @@ describe("Real App Integration: Tab Button Bug", () => {
 
     it("should detect conflicts between multiple enable/disable calls", async () => {
         // Dynamic import after mocks are set up
-        const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
+        const { setTabButtonsEnabled, initializeTabButtonState } = await import(
+            "../../utils/ui/controls/enableTabButtons.js"
+        );
         const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Set up mutation observer to track all changes
@@ -160,7 +164,7 @@ describe("Real App Integration: Tab Button Bug", () => {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
-                    const target = /** @type {HTMLElement} */ (mutation.target);
+                    const target = /** @type {HTMLElement} */ mutation.target;
                     changes.push({
                         target: target.id,
                         oldValue: mutation.oldValue,
@@ -213,7 +217,9 @@ describe("Real App Integration: Tab Button Bug", () => {
 
     it("should test timing-sensitive scenarios", async () => {
         // Dynamic import after mocks are set up
-        const { setTabButtonsEnabled, initializeTabButtonState } = await import("../../utils/ui/controls/enableTabButtons.js");
+        const { setTabButtonsEnabled, initializeTabButtonState } = await import(
+            "../../utils/ui/controls/enableTabButtons.js"
+        );
         const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Initialize systems
@@ -236,7 +242,7 @@ describe("Real App Integration: Tab Button Bug", () => {
         // Final check
         const buttons = document.querySelectorAll(".tab-button");
         buttons.forEach((button) => {
-            const btn = /** @type {HTMLButtonElement} */ (button);
+            const btn = /** @type {HTMLButtonElement} */ button;
             expect(btn.disabled).toBe(false);
             expect(btn.hasAttribute("disabled")).toBe(false);
         });

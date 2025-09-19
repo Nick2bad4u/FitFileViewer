@@ -978,7 +978,7 @@ describe("domHelpers.js - Comprehensive Tests", () => {
                 setChecked(invalid, true);
                 setStyle(invalid, "color", "red");
                 clearElement(invalid);
-                on(invalid, "click", () => { });
+                on(invalid, "click", () => {});
                 setData(invalid, "key", "value");
                 focus(invalid);
 

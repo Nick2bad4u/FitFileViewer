@@ -16,12 +16,15 @@ export async function loadOverlayFiles(files) {
 
         // Initialize loaded files array if needed
         if (!globalThis.loadedFitFiles || globalThis.loadedFitFiles.length === 0) {
-            globalThis.loadedFitFiles = globalThis.globalData && globalThis.globalData.recordMesgs ? [
-                    {
-                        data: globalThis.globalData,
-                        filePath: globalThis.globalData?.cachedFilePath,
-                    },
-                ] : [];
+            globalThis.loadedFitFiles =
+                globalThis.globalData && globalThis.globalData.recordMesgs
+                    ? [
+                          {
+                              data: globalThis.globalData,
+                              filePath: globalThis.globalData?.cachedFilePath,
+                          },
+                      ]
+                    : [];
         }
 
         // Process each file

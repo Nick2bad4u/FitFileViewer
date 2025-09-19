@@ -61,7 +61,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
-                    const target = /** @type {HTMLElement} */ (mutation.target);
+                    const target = /** @type {HTMLElement} */ mutation.target;
                     attributeChanges.push({
                         target: target.id,
                         oldValue: mutation.oldValue,
@@ -126,7 +126,7 @@ describe("Tab Disabled Attribute Bug Investigation", () => {
             </button>
         `;
 
-        const button = /** @type {HTMLButtonElement|null} */ (document.getElementById("tab-altfit"));
+        const button = /** @type {HTMLButtonElement|null} */ document.getElementById("tab-altfit");
 
         // Verify button exists
         expect(button).not.toBeNull();

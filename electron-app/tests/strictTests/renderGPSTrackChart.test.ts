@@ -17,9 +17,9 @@ vi.mock("../../../utils/theming/core/theme.js", () => ({
             textPrimary: "#333333",
             bgSecondary: "#f8f9fa",
             border: "#dee2e6",
-            gridLines: "#e9ecef"
-        }
-    }))
+            gridLines: "#e9ecef",
+        },
+    })),
 }));
 
 vi.mock("../../../utils/charts/components/createChartCanvas.js", () => ({
@@ -28,11 +28,11 @@ vi.mock("../../../utils/charts/components/createChartCanvas.js", () => ({
         canvas.id = `chart-${field}-${index}`;
         canvas.className = "chart-canvas";
         return canvas;
-    })
+    }),
 }));
 
 vi.mock("../../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
-    chartZoomResetPlugin: { id: "chartZoomResetPlugin", beforeInit: vi.fn() }
+    chartZoomResetPlugin: { id: "chartZoomResetPlugin", beforeInit: vi.fn() },
 }));
 
 describe("renderGPSTrackChart", () => {
@@ -51,14 +51,14 @@ describe("renderGPSTrackChart", () => {
         mockChart = {
             destroy: vi.fn(),
             resize: vi.fn(),
-            update: vi.fn()
+            update: vi.fn(),
         };
 
         // Type assertion for global window
         (global as any).window = {
             ...global.window,
             Chart: vi.fn(() => mockChart),
-            _chartjsInstances: []
+            _chartjsInstances: [],
         };
 
         // Mock localStorage with proper typing
@@ -68,14 +68,14 @@ describe("renderGPSTrackChart", () => {
             removeItem: vi.fn(),
             clear: vi.fn(),
             length: 0,
-            key: vi.fn()
+            key: vi.fn(),
         };
         (global as any).localStorage = mockLocalStorage;
 
         // Mock console methods
         consoleSpy = {
             log: vi.spyOn(console, "log").mockImplementation(() => {}),
-            error: vi.spyOn(console, "error").mockImplementation(() => {})
+            error: vi.spyOn(console, "error").mockImplementation(() => {}),
         };
 
         // Import the function to test
@@ -107,7 +107,7 @@ describe("renderGPSTrackChart", () => {
             const data = [
                 { positionLat: 429496730, positionLong: -859993460 }, // Semicircle coordinates
                 { positionLat: 429496740, positionLong: -859993470 },
-                { positionLat: 429496750, positionLong: -859993480 }
+                { positionLat: 429496750, positionLong: -859993480 },
             ];
 
             const options = {
@@ -115,7 +115,7 @@ describe("renderGPSTrackChart", () => {
                 showPoints: true,
                 showLegend: true,
                 showTitle: true,
-                showGrid: true
+                showGrid: true,
             };
 
             renderGPSTrackChart(container, data, options);
@@ -141,7 +141,7 @@ describe("renderGPSTrackChart", () => {
             const data = [
                 { positionLat: 429496730, positionLong: -859993460 },
                 { positionLat: null, positionLong: -859993470 }, // Invalid latitude
-                { positionLat: 429496750, positionLong: -859993480 }
+                { positionLat: 429496750, positionLong: -859993480 },
             ];
             const options = { maxPoints: "all" };
 
@@ -158,7 +158,7 @@ describe("renderGPSTrackChart", () => {
         it("should return early when no latitude data available", () => {
             const data = [
                 { positionLong: -859993460 }, // No latitude
-                { positionLong: -859993470 }
+                { positionLong: -859993470 },
             ];
             const options = { maxPoints: "all" };
 
@@ -172,7 +172,7 @@ describe("renderGPSTrackChart", () => {
         it("should return early when no longitude data available", () => {
             const data = [
                 { positionLat: 429496730 }, // No longitude
-                { positionLat: 429496740 }
+                { positionLat: 429496740 },
             ];
             const options = { maxPoints: "all" };
 
@@ -185,7 +185,7 @@ describe("renderGPSTrackChart", () => {
         it("should handle null GPS coordinates", () => {
             const data = [
                 { positionLat: null, positionLong: null },
-                { positionLat: 429496730, positionLong: -859993460 }
+                { positionLat: 429496730, positionLong: -859993460 },
             ];
             const options = { maxPoints: "all" };
 
@@ -198,7 +198,7 @@ describe("renderGPSTrackChart", () => {
         it("should handle undefined GPS coordinates", () => {
             const data = [
                 { positionLat: undefined, positionLong: undefined },
-                { positionLat: 429496730, positionLong: -859993460 }
+                { positionLat: 429496730, positionLong: -859993460 },
             ];
             const options = { maxPoints: "all" };
 
@@ -211,7 +211,7 @@ describe("renderGPSTrackChart", () => {
         it("should return early when no valid GPS data points found", () => {
             const data = [
                 { positionLat: null, positionLong: null },
-                { positionLat: undefined, positionLong: undefined }
+                { positionLat: undefined, positionLong: undefined },
             ];
             const options = { maxPoints: "all" };
 
@@ -267,7 +267,7 @@ describe("renderGPSTrackChart", () => {
             for (let i = 0; i < 1000; i++) {
                 data.push({
                     positionLat: 429496730 + i,
-                    positionLong: -859993460 + i
+                    positionLong: -859993460 + i,
                 });
             }
 
@@ -283,7 +283,7 @@ describe("renderGPSTrackChart", () => {
             const data = [
                 { positionLat: 429496730, positionLong: -859993460 },
                 { positionLat: 429496740, positionLong: -859993470 },
-                { positionLat: 429496750, positionLong: -859993480 }
+                { positionLat: 429496750, positionLong: -859993480 },
             ];
 
             const options = { maxPoints: "all" };
@@ -299,7 +299,7 @@ describe("renderGPSTrackChart", () => {
             for (let i = 0; i < 50; i++) {
                 data.push({
                     positionLat: 429496730 + i,
-                    positionLong: -859993460 + i
+                    positionLong: -859993460 + i,
                 });
             }
 
@@ -334,7 +334,7 @@ describe("renderGPSTrackChart", () => {
         it("should preserve point index in converted data", () => {
             const data = [
                 { positionLat: 429496730, positionLong: -859993460 },
-                { positionLat: 429496740, positionLong: -859993470 }
+                { positionLat: 429496740, positionLong: -859993470 },
             ];
             const options = { maxPoints: "all" };
 
@@ -443,7 +443,7 @@ describe("renderGPSTrackChart", () => {
             // Mock the theme module directly
             const mockGetThemeConfig = vi.fn().mockReturnValue(null);
             vi.doMock("../../../utils/theming/core/theme.js", () => ({
-                getThemeConfig: mockGetThemeConfig
+                getThemeConfig: mockGetThemeConfig,
             }));
 
             const data = [{ positionLat: 429496730, positionLong: -859993460 }];
@@ -456,7 +456,7 @@ describe("renderGPSTrackChart", () => {
             // Mock the theme module directly
             const mockGetThemeConfig = vi.fn().mockReturnValue({ colors: null });
             vi.doMock("../../../utils/theming/core/theme.js", () => ({
-                getThemeConfig: mockGetThemeConfig
+                getThemeConfig: mockGetThemeConfig,
             }));
 
             const data = [{ positionLat: 429496730, positionLong: -859993460 }];
@@ -490,15 +490,11 @@ describe("renderGPSTrackChart", () => {
             const labelCallback = chartConfig.options.plugins.tooltip.callbacks.label;
 
             const mockContext = {
-                raw: { x: -40.123456, y: 18.123456, pointIndex: 5 }
+                raw: { x: -40.123456, y: 18.123456, pointIndex: 5 },
             };
 
             const result = labelCallback(mockContext);
-            expect(result).toEqual([
-                "Latitude: 18.123456°",
-                "Longitude: -40.123456°",
-                "Point: 5"
-            ]);
+            expect(result).toEqual(["Latitude: 18.123456°", "Longitude: -40.123456°", "Point: 5"]);
         });
     });
 
@@ -691,7 +687,7 @@ describe("renderGPSTrackChart", () => {
             for (let i = 0; i < 100000; i++) {
                 data.push({
                     positionLat: 429496730 + i,
-                    positionLong: -859993460 + i
+                    positionLong: -859993460 + i,
                 });
             }
 
@@ -712,7 +708,7 @@ describe("renderGPSTrackChart", () => {
         it("should handle extreme GPS coordinates", () => {
             const data = [
                 { positionLat: 1073741824, positionLong: -2147483648 }, // ~90 degrees latitude, -180 degrees longitude
-                { positionLat: -1073741824, positionLong: 2147483647 }  // ~-90 degrees latitude, ~180 degrees longitude
+                { positionLat: -1073741824, positionLong: 2147483647 }, // ~-90 degrees latitude, ~180 degrees longitude
             ];
             const options = { maxPoints: "all" };
 
@@ -737,7 +733,7 @@ describe("renderGPSTrackChart", () => {
                 { positionLat: "invalid", positionLong: -859993470 }, // Invalid latitude
                 { positionLat: 429496750, positionLong: "invalid" }, // Invalid longitude
                 { positionLat: 429496760, positionLong: -859993480 }, // Valid
-                { someOtherField: "data" } // No GPS data
+                { someOtherField: "data" }, // No GPS data
             ];
             const options = { maxPoints: "all" };
 

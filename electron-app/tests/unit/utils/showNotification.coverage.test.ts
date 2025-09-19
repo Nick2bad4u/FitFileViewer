@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
 
-
-
 describe("showNotification.js - coverage uplift", () => {
     const originalWarn = console.warn;
     const originalError = console.error;
@@ -127,11 +125,13 @@ describe("showNotification.js - coverage uplift", () => {
         // Create an object with resolveShown function that throws
         const notification = {
             // @ts-ignore - We need to access this private property
-            resolveShown: () => { throw new Error("Test error"); }
+            resolveShown: () => {
+                throw new Error("Test error");
+            },
         };
 
         // Spy on console.error to verify it gets called
-        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
         // Test the pattern that's used in showNotification.js
         let didFinallyExecute = false;

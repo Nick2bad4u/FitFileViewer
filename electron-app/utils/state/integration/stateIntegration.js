@@ -298,7 +298,7 @@ function isDevelopmentMode() {
             /** @type {any} */ (
                 globalThis.window !== undefined &&
                     globalThis.electronAPI &&
-                    (/** @type {any} */ (globalThis).electronAPI.__devMode) !== undefined
+                    /** @type {any} */ (globalThis).electronAPI.__devMode !== undefined
             ) ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
         );
@@ -431,7 +431,6 @@ function setupStateDebugging() {
                 return actions[actionName](...args);
             }
             console.warn(`[StateDebug] Unknown action: ${actionName}`);
-            
         },
 
         uiStateManager,

@@ -35,7 +35,7 @@ class ChartStateManager {
     renderTimeout = null;
 
     constructor() {
-         // Ms
+        // Ms
         /** @type {number|ReturnType<typeof setTimeout>|null} */
         /** @type {boolean} */
 

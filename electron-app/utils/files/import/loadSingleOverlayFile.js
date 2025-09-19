@@ -22,7 +22,7 @@ export async function loadSingleOverlayFile(file) {
         if (!arrayBuffer) {
             arrayBuffer = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.addEventListener('load', (event) => resolve(/** @type {any} */(event.target)?.result));
+                reader.addEventListener("load", (event) => resolve(/** @type {any} */ (event.target)?.result));
                 reader.onerror = () => reject(new Error("Failed to read file"));
                 reader.readAsArrayBuffer(file);
             });
@@ -32,7 +32,7 @@ export async function loadSingleOverlayFile(file) {
             return { error: "No file data or decoder not available", success: false };
         }
 
-        const fitData = await globalThis.electronAPI.decodeFitFile(/** @type {ArrayBuffer} */(arrayBuffer));
+        const fitData = await globalThis.electronAPI.decodeFitFile(/** @type {ArrayBuffer} */ (arrayBuffer));
         if (!fitData || fitData.error) {
             return { error: fitData?.error || "Failed to parse FIT file", success: false };
         }
@@ -40,8 +40,8 @@ export async function loadSingleOverlayFile(file) {
         // Validate that file has location data
         const validLocationCount = Array.isArray(fitData.recordMesgs)
             ? fitData.recordMesgs.filter(
-                (/** @type {any} */ r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
-            ).length
+                  (/** @type {any} */ r) => typeof r.positionLat === "number" && typeof r.positionLong === "number"
+              ).length
             : 0;
 
         if (!Array.isArray(fitData.recordMesgs) || fitData.recordMesgs.length === 0 || validLocationCount === 0) {

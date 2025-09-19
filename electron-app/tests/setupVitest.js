@@ -21,37 +21,110 @@ let __clearListeners;
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
 function ensureConsoleAlive() {
     try {
-        const noop = () => { };
+        const noop = () => {};
         /** @type {any} */
         const current = /** @type {any} */ (globalThis.console);
         if (!current) {
             // No console at all – install a full base one
             /** @type {any} */
             const base = {
-                log: vi.fn() || noop, warn: vi.fn() || noop, error: vi.fn() || noop, info: vi.fn() || noop, debug: vi.fn() || noop,
-                assert: vi.fn() || noop, clear: vi.fn() || noop, count: vi.fn() || noop, countReset: vi.fn() || noop, dir: vi.fn() || noop, dirxml: vi.fn() || noop,
-                group: vi.fn() || noop, groupCollapsed: vi.fn() || noop, groupEnd: vi.fn() || noop, table: vi.fn() || noop, time: vi.fn() || noop, timeEnd: vi.fn() || noop,
-                timeLog: vi.fn() || noop, timeStamp: vi.fn() || noop, trace: vi.fn() || noop, profile: vi.fn() || noop, profileEnd: vi.fn() || noop,
+                log: vi.fn() || noop,
+                warn: vi.fn() || noop,
+                error: vi.fn() || noop,
+                info: vi.fn() || noop,
+                debug: vi.fn() || noop,
+                assert: vi.fn() || noop,
+                clear: vi.fn() || noop,
+                count: vi.fn() || noop,
+                countReset: vi.fn() || noop,
+                dir: vi.fn() || noop,
+                dirxml: vi.fn() || noop,
+                group: vi.fn() || noop,
+                groupCollapsed: vi.fn() || noop,
+                groupEnd: vi.fn() || noop,
+                table: vi.fn() || noop,
+                time: vi.fn() || noop,
+                timeEnd: vi.fn() || noop,
+                timeLog: vi.fn() || noop,
+                timeStamp: vi.fn() || noop,
+                trace: vi.fn() || noop,
+                profile: vi.fn() || noop,
+                profileEnd: vi.fn() || noop,
             };
-            try { Object.defineProperty(globalThis, "console", { configurable: true, writable: true, enumerable: true, value: base }); } catch { /* ignore */ }
+            try {
+                Object.defineProperty(globalThis, "console", {
+                    configurable: true,
+                    writable: true,
+                    enumerable: true,
+                    value: base,
+                });
+            } catch {
+                /* ignore */
+            }
             if (typeof window !== "undefined") {
-                try { Object.defineProperty(window, "console", { configurable: true, writable: true, enumerable: true, value: base }); } catch { /* ignore */ }
+                try {
+                    Object.defineProperty(window, "console", {
+                        configurable: true,
+                        writable: true,
+                        enumerable: true,
+                        value: base,
+                    });
+                } catch {
+                    /* ignore */
+                }
             }
             return;
         }
         // Console exists – only polyfill missing methods to avoid clobbering test spies
         if (typeof current.log !== "function") {
-            try { current.log = noop; } catch { /* ignore */ }
+            try {
+                current.log = noop;
+            } catch {
+                /* ignore */
+            }
         }
-        const ensure = (name) => { if (typeof current[name] !== "function") { try { current[name] = noop; } catch { /* ignore */ } } };
+        const ensure = (name) => {
+            if (typeof current[name] !== "function") {
+                try {
+                    current[name] = noop;
+                } catch {
+                    /* ignore */
+                }
+            }
+        };
         [
-            "warn", "error", "info", "debug", "assert", "clear", "count", "countReset", "dir", "dirxml",
-            "group", "groupCollapsed", "groupEnd", "table", "time", "timeEnd", "timeLog", "timeStamp", "trace", "profile", "profileEnd",
+            "warn",
+            "error",
+            "info",
+            "debug",
+            "assert",
+            "clear",
+            "count",
+            "countReset",
+            "dir",
+            "dirxml",
+            "group",
+            "groupCollapsed",
+            "groupEnd",
+            "table",
+            "time",
+            "timeEnd",
+            "timeLog",
+            "timeStamp",
+            "trace",
+            "profile",
+            "profileEnd",
         ].forEach(ensure);
         if (typeof window !== "undefined" && window.console && window.console !== current) {
-            try { window.console = current; } catch { /* ignore */ }
+            try {
+                window.console = current;
+            } catch {
+                /* ignore */
+            }
         }
-    } catch { /* ignore */ }
+    } catch {
+        /* ignore */
+    }
 }
 
 vitestBeforeEach(() => ensureConsoleAlive());
@@ -98,7 +171,9 @@ function cleanupWindowGlobals(win) {
         if (Array.isArray(win._chartjsInstances)) {
             win._chartjsInstances.length = 0;
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         if (win.__chartjs_dev) {
             try {
@@ -107,14 +182,20 @@ function cleanupWindowGlobals(win) {
                 win.__chartjs_dev = undefined;
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
     try {
         win.localStorage && typeof win.localStorage.clear === "function" && win.localStorage.clear();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         win.sessionStorage && typeof win.sessionStorage.clear === "function" && win.sessionStorage.clear();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Best-effort DOM cleanup to avoid accumulating detached nodes between tests
     // Note: do not remove document.body children here; it can interfere with running tests
     // and some suites expect DOM to remain intact through specific phases.
@@ -122,7 +203,9 @@ function cleanupWindowGlobals(win) {
         // no-op body cleanup to avoid cross-test interference
         const _d = win.document; // access to ensure document exists
         void _d;
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Disconnect any MutationObserver we might have installed on window
     try {
         const w = /** @type {any} */ (win);
@@ -130,7 +213,9 @@ function cleanupWindowGlobals(win) {
             w.tabButtonObserver.disconnect();
             delete w.tabButtonObserver;
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 /**
@@ -165,7 +250,9 @@ function restoreNativeDom() {
     // Clean current environment (Chart.js caches, storages, observers)
     try {
         if (curWin) cleanupWindowGlobals(curWin);
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     try {
         // Also clear any globalThis storages if distinct from window
         if (globalThis && globalThis !== curWin) {
@@ -173,14 +260,20 @@ function restoreNativeDom() {
                 globalThis.localStorage &&
                     typeof globalThis.localStorage.clear === "function" &&
                     globalThis.localStorage.clear();
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             try {
                 globalThis.sessionStorage &&
                     typeof globalThis.sessionStorage.clear === "function" &&
                     globalThis.sessionStorage.clear();
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 
     // If the current document is invalid (or missing), restore the native jsdom document
     try {
@@ -193,9 +286,13 @@ function restoreNativeDom() {
                     // Keep the same window object but ensure it points to the restored document
                     curWin.document = __nativeDocument;
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 
     // Reinstall guards on the effective document and ensure body exists
     try {
@@ -206,26 +303,36 @@ function restoreNativeDom() {
             try {
                 // @ts-ignore
                 globalThis.document = effDoc;
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             try {
                 if (curWin && typeof curWin === "object") {
                     curWin.document = effDoc;
                 }
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             // Expose a canonical reference for modules to use, avoiding cross-realm mismatches
             try {
                 // @ts-ignore
                 globalThis.__vitest_effective_document__ = effDoc;
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
             installDocumentGuards(effDoc);
             if (!effDoc.body) {
                 try {
                     const b = effDoc.createElement ? effDoc.createElement("body") : undefined;
                     if (b) effDoc.appendChild(b);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 // Lock Buffer early to a callable native reference to prevent instanceof crashes in Vitest serializers
@@ -256,7 +363,9 @@ function restoreNativeDom() {
                 });
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 })();
 
 // Rely on JSDOM's native HTMLElement/Element implementations for id/className/classList
@@ -265,18 +374,40 @@ function restoreNativeDom() {
 (() => {
     // Create a comprehensive console implementation for testing
     const baseConsole = {
-        log: vi.fn(), warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(),
-        assert: vi.fn(), clear: vi.fn(), count: vi.fn(), countReset: vi.fn(), dir: vi.fn(), dirxml: vi.fn(),
-        group: vi.fn(), groupCollapsed: vi.fn(), groupEnd: vi.fn(), table: vi.fn(), time: vi.fn(), timeEnd: vi.fn(),
-        timeLog: vi.fn(), timeStamp: vi.fn(), trace: vi.fn(), Console: vi.fn(), profile: vi.fn(), profileEnd: vi.fn(),
+        log: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        assert: vi.fn(),
+        clear: vi.fn(),
+        count: vi.fn(),
+        countReset: vi.fn(),
+        dir: vi.fn(),
+        dirxml: vi.fn(),
+        group: vi.fn(),
+        groupCollapsed: vi.fn(),
+        groupEnd: vi.fn(),
+        table: vi.fn(),
+        time: vi.fn(),
+        timeEnd: vi.fn(),
+        timeLog: vi.fn(),
+        timeStamp: vi.fn(),
+        trace: vi.fn(),
+        Console: vi.fn(),
+        profile: vi.fn(),
+        profileEnd: vi.fn(),
     };
     /** @type {any} */
-    let currentConsole = (globalThis.console && typeof globalThis.console.log === "function") ? globalThis.console : baseConsole;
+    let currentConsole =
+        globalThis.console && typeof globalThis.console.log === "function" ? globalThis.console : baseConsole;
     try {
         Object.defineProperty(globalThis, "console", {
             configurable: true,
             enumerable: true,
-            get() { return currentConsole; },
+            get() {
+                return currentConsole;
+            },
             set(v) {
                 if (v && typeof v === "object" && typeof v.log === "function") {
                     currentConsole = /** @type {any} */ (v);
@@ -284,21 +415,27 @@ function restoreNativeDom() {
                 // Ignore attempts to set undefined/null which break worker stdout hooks
             },
         });
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Also ensure window.console exists for browser-like environments and is guarded similarly
     if (typeof window !== "undefined") {
         try {
             Object.defineProperty(window, "console", {
                 configurable: true,
                 enumerable: true,
-                get() { return currentConsole; },
+                get() {
+                    return currentConsole;
+                },
                 set(v) {
                     if (v && typeof v === "object" && typeof v.log === "function") {
                         currentConsole = /** @type {any} */ (v);
                     }
                 },
             });
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     }
 })();
 
@@ -332,7 +469,9 @@ try {
             window.console.groupCollapsed = /** @type {any} */ (globalThis.console.groupCollapsed || vi.fn());
         }
     }
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // Global localStorage mock setup (handles opaque origin throwing on access)
 function ensureSafeLocalStorage() {
@@ -677,7 +816,9 @@ function installDocumentGuards(doc) {
                 appendChild: realmDocProto.appendChild,
             };
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Cache of native methods per Document instance to survive prototype tampering (legacy fallback)
     /** @type {WeakMap<Document, any>} */
     const nativeMap = /** @type {any} */ (globalThis).__vitest_doc_native_methods || new WeakMap();
@@ -711,42 +852,64 @@ function installDocumentGuards(doc) {
         // Rebind document methods from cached natives
         try {
             if (typeof natives.createElement === "function") doc.createElement = natives.createElement.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.createTextNode === "function") doc.createTextNode = natives.createTextNode.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.createDocumentFragment === "function")
                 doc.createDocumentFragment = natives.createDocumentFragment.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.querySelector === "function") doc.querySelector = natives.querySelector.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.querySelectorAll === "function")
                 doc.querySelectorAll = natives.querySelectorAll.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.getElementById === "function") doc.getElementById = natives.getElementById.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.getElementsByClassName === "function")
                 doc.getElementsByClassName = natives.getElementsByClassName.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.getElementsByTagName === "function")
                 doc.getElementsByTagName = natives.getElementsByTagName.bind(doc);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         try {
             if (typeof natives.appendChild === "function") doc.appendChild = natives.appendChild.bind(doc);
-        } catch { /* Ignore errors */ }
-    } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
+    } catch {
+        /* Ignore errors */
+    }
     // Ensure document has a body element
     if (!doc.body) {
         try {
             const body = doc.createElement("body");
             doc.appendChild(body);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     }
     // Validate createElement returns a node; if not, attempt a last-resort recovery using same-realm natives
     try {
@@ -756,16 +919,22 @@ function installDocumentGuards(doc) {
             if (canon && typeof canon.createElement === "function") {
                 try {
                     doc.createElement = canon.createElement.bind(doc);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             } else {
                 // Attempt to reconstruct doc methods via current prototype again
                 const Proto = /** @type {any} */ (Object.getPrototypeOf(doc));
                 try {
                     if (typeof Proto?.createElement === "function") doc.createElement = Proto.createElement.bind(doc);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 // Make sure JSDOM is properly initialized for tests and guards are installed
@@ -842,7 +1011,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
                         current = typeof v === "function" ? v : nativeRef;
                     },
                 });
-            } catch { /* Ignore errors */ }
+            } catch {
+                /* Ignore errors */
+            }
         }
         // Also guard window.Buffer if present
         try {
@@ -860,7 +1031,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
                     },
                 });
             }
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
     }
 })();
 
@@ -946,7 +1119,9 @@ try {
         const result = originalResetAllMocks(...args);
         try {
             if (typeof document !== "undefined") installDocumentGuards(document);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         return result;
     };
     const originalRestoreAllMocks = vi.restoreAllMocks.bind(vi);
@@ -954,28 +1129,38 @@ try {
         const result = originalRestoreAllMocks(...args);
         try {
             if (typeof document !== "undefined") installDocumentGuards(document);
-        } catch { /* Ignore errors */ }
+        } catch {
+            /* Ignore errors */
+        }
         return result;
     };
-} catch { /* Ignore errors */ }
+} catch {
+    /* Ignore errors */
+}
 
 // Global afterEach to reinstall guards in case tests mutated DOM APIs
 vitestAfterEach(() => {
     try {
         // Restore DOM to native jsdom and reinstall guards after each test
         restoreNativeDom();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Ensure canonical effective document reflects the current global document
     try {
         // @ts-ignore
         globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Ensure no DOM from a previous test leaks into the next one
     try {
         if (typeof document !== "undefined" && document.body) {
             document.body.innerHTML = "";
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Disconnect MutationObservers and clear timers/listeners best-effort
     try {
         if (typeof window !== "undefined") {
@@ -985,7 +1170,9 @@ vitestAfterEach(() => {
                 delete w.tabButtonObserver;
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Clear tracked timers
     try {
         /** @type {Set<number>} */
@@ -996,7 +1183,9 @@ vitestAfterEach(() => {
             for (const id of Array.from(timeouts)) {
                 try {
                     clearTimeout(id);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
             timeouts.clear?.();
         }
@@ -1004,11 +1193,15 @@ vitestAfterEach(() => {
             for (const id of Array.from(intervals)) {
                 try {
                     clearInterval(id);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
             intervals.clear?.();
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Remove tracked DOM event listeners
     try {
         /** @type {Array<{target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: any}>} */
@@ -1017,14 +1210,20 @@ vitestAfterEach(() => {
             for (const rec of listeners.splice(0, listeners.length)) {
                 try {
                     rec.target.removeEventListener(rec.type, rec.listener, rec.options);
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Reset state manager to avoid cross-test subscriptions/history
     try {
         if (typeof __resetStateMgr === "function") __resetStateMgr();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Note: do NOT clear the manual mock registry here.
     // We rely on vi.mock hoisting once per test file; clearing per-test breaks
     // identity linking between test-imported spies and modules under test.
@@ -1036,23 +1235,31 @@ vitestBeforeEach(() => {
     try {
         // Ensure we start each test from a clean native jsdom window/document
         restoreNativeDom();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Ensure canonical effective document reflects the current global document
     try {
         // @ts-ignore
         globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Clear any leftover DOM just in case a previous test in the same file
     // left nodes behind. Individual tests should build their own fixtures.
     try {
         if (typeof document !== "undefined" && document.body) {
             document.body.innerHTML = "";
         }
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
     // Also clear any lingering state listeners/history before starting a test
     try {
         if (typeof __clearListeners === "function") __clearListeners();
-    } catch { /* Ignore errors */ }
+    } catch {
+        /* Ignore errors */
+    }
 });
 
 // Note: We previously overrode vi.mock/vi.doMock and patched Function to capture
@@ -1140,7 +1347,9 @@ vitestBeforeEach(() => {
                         const id = nativeSetTimeout(fn, delay, ...args);
                         try {
                             timeouts.add(id);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                         return id;
                     }
                 );
@@ -1151,7 +1360,9 @@ vitestBeforeEach(() => {
                         const id = nativeSetInterval(fn, delay, ...args);
                         try {
                             intervals.add(id);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                         return id;
                     }
                 );
@@ -1161,7 +1372,9 @@ vitestBeforeEach(() => {
                     (id) => {
                         try {
                             timeouts.delete(id);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                         return nativeClearTimeout(id);
                     }
                 );
@@ -1171,7 +1384,9 @@ vitestBeforeEach(() => {
                     (id) => {
                         try {
                             intervals.delete(id);
-                        } catch { /* Ignore errors */ }
+                        } catch {
+                            /* Ignore errors */
+                        }
                         return nativeClearInterval(id);
                     }
                 );
@@ -1190,7 +1405,9 @@ vitestBeforeEach(() => {
                         const wrappedAdd = function (type, listener, options) {
                             try {
                                 domListeners.push({ target, type, listener, options });
-                            } catch { /* Ignore errors */ }
+                            } catch {
+                                /* Ignore errors */
+                            }
                             return add(type, listener, options);
                         };
                         wrappedAdd.__vitest_wrapped = true;
@@ -1203,13 +1420,17 @@ vitestBeforeEach(() => {
                                     (r) => r.target === target && r.type === type && r.listener === listener
                                 );
                                 if (idx !== -1) domListeners.splice(idx, 1);
-                            } catch { /* Ignore errors */ }
+                            } catch {
+                                /* Ignore errors */
+                            }
                             return remove(type, listener, options);
                         };
                         wrappedRemove.__vitest_wrapped = true;
                         target.removeEventListener = /** @type {any} */ (wrappedRemove);
                     }
-                } catch { /* Ignore errors */ }
+                } catch {
+                    /* Ignore errors */
+                }
             }
 
             if (typeof window !== "undefined") {

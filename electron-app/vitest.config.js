@@ -2,7 +2,6 @@ import os from "node:os";
 import path from "node:path";
 import { coverageConfigDefaults, defaultExclude, defineConfig } from "vitest/config";
 
-
 export default defineConfig({
     resolve: {
         alias: {
@@ -55,12 +54,7 @@ export default defineConfig({
             // Curated include set: target modules with stable, complete unit tests
             // So that a strict ≥95% gate is meaningful and consistently achievable.
             // Paths are relative to the electron-app directory.
-            include: [
-                "**/*.js",
-                "**/*.ts",
-                "**/*.jsx",
-                "**/*.tsx",
-            ],
+            include: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
             provider: "v8",
             reporter: ["text", "html", "json", "lcov"],
             reportOnFailure: true,
@@ -122,9 +116,7 @@ export default defineConfig({
         globals: true, // Enable global test functions (describe, it, expect)
         globalSetup: ["./tests/globalSetup.js"],
         // Only collect tests from the source tests directory
-        include: [
-            "tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-        ],
+        include: ["tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 
         isolate: true,
         logHeapUsage: true,
@@ -153,28 +145,20 @@ export default defineConfig({
                     "utils/files/import/handleOpenFile.js",
                     "utils/state/core/stateManager.js",
                     "utils/ui/controls/createElevationProfileButton.js",
-                    "utils/charts/theming/getThemeColors.js"
-                ]
-            }
+                    "utils/charts/theming/getThemeColors.js",
+                ],
+            },
         },
         setupFiles: ["./tests/setupVitest.js"],
         // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
         testTransformMode: {
-            ssr: [
-                "**/main.js",
-                "**/utils/app/menu/createAppMenu.js",
-            ],
+            ssr: ["**/main.js", "**/utils/app/menu/createAppMenu.js"],
         },
         typecheck: {
             allowJs: false,
             checker: "tsc",
             enabled: true,
-            exclude: [
-                "**/dist*/**",
-                "**/html/**",
-                "**/.{idea,git,cache,output,temp}/**",
-                ...defaultExclude,
-            ],
+            exclude: ["**/dist*/**", "**/html/**", "**/.{idea,git,cache,output,temp}/**", ...defaultExclude],
             ignoreSourceErrors: false,
             include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,

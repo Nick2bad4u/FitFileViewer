@@ -65,7 +65,7 @@ export function setupListeners({
         menu.style.cursor = "pointer";
         menu.style.userSelect = "none";
         menu.style.backdropFilter = "var(--backdrop-blur)";
-        menu.addEventListener('contextmenu', (e) => e.preventDefault());
+        menu.addEventListener("contextmenu", (e) => e.preventDefault());
         menu.setAttribute("role", "menu");
         menu.setAttribute("aria-label", "Recent files");
         let focusedIndex = 0;
@@ -75,10 +75,7 @@ export function setupListeners({
             const /** @type {HTMLDivElement} */
                 item = document.createElement("div"),
                 parts = file.split(/\\|\//g),
-                shortName =
-                    parts.length >= 2
-                        ? `${parts.at(-2)}\\${parts.at(-1)}`
-                        : parts.at(-1);
+                shortName = parts.length >= 2 ? `${parts.at(-2)}\\${parts.at(-1)}` : parts.at(-1);
             // TextContent expects string | null; ensure fallback string
             item.textContent = shortName || "";
             item.title = file;
@@ -89,15 +86,15 @@ export function setupListeners({
             item.setAttribute("role", "menuitem");
             item.setAttribute("tabindex", "-1");
             item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
-            item.addEventListener('mouseenter', () => {
+            item.addEventListener("mouseenter", () => {
                 item.style.background = "var(--color-glass-border)";
                 item.style.color = "var(--color-fg-alt)";
             });
-            item.addEventListener('mouseleave', () => {
+            item.addEventListener("mouseleave", () => {
                 item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";
                 item.style.color = "var(--color-fg)";
             });
-            item.addEventListener('click', async () => {
+            item.addEventListener("click", async () => {
                 menu.remove();
                 openFileBtn.disabled = true;
                 setLoading(true);
@@ -140,31 +137,31 @@ export function setupListeners({
         }
         menu.addEventListener("keydown", (e) => {
             switch (e.key) {
-            case "ArrowDown": {
-                e.preventDefault();
-                focusItem((focusedIndex + 1) % items.length);
-            
-            break;
-            }
-            case "ArrowUp": {
-                e.preventDefault();
-                focusItem((focusedIndex - 1 + items.length) % items.length);
-            
-            break;
-            }
-            case "Enter": {
-                e.preventDefault();
-                items[focusedIndex]?.click();
-            
-            break;
-            }
-            case "Escape": {
-                e.preventDefault();
-                menu.remove();
-            
-            break;
-            }
-            // No default
+                case "ArrowDown": {
+                    e.preventDefault();
+                    focusItem((focusedIndex + 1) % items.length);
+
+                    break;
+                }
+                case "ArrowUp": {
+                    e.preventDefault();
+                    focusItem((focusedIndex - 1 + items.length) % items.length);
+
+                    break;
+                }
+                case "Enter": {
+                    e.preventDefault();
+                    items[focusedIndex]?.click();
+
+                    break;
+                }
+                case "Escape": {
+                    e.preventDefault();
+                    menu.remove();
+
+                    break;
+                }
+                // No default
             }
         });
         setTimeout(() => focusItem(0), 0);
@@ -196,7 +193,7 @@ export function setupListeners({
         // Remove menu and cleanup on item click
         for (const item of items) {
             const origOnClick = item.onclick;
-            item.addEventListener('click', async (ev) => {
+            item.addEventListener("click", async (ev) => {
                 cleanupMenu();
                 // Invoke original click if present
                 if (typeof origOnClick === "function") {
@@ -307,7 +304,10 @@ export function setupListeners({
                     const container = document.querySelector("#content-summary");
                     if (/** @type {any} */ (globalThis).copyTableAsCSV && container) {
                         const a = document.createElement("a"),
-                            csv = /** @type {any} */ (globalThis).copyTableAsCSV({ container, data: globalThis.globalData }),
+                            csv = /** @type {any} */ (globalThis).copyTableAsCSV({
+                                container,
+                                data: globalThis.globalData,
+                            }),
                             blob = new Blob([csv], { type: "text/csv" });
                         a.href = URL.createObjectURL(blob);
                         a.download = safePath.split(/[/\\]/).pop() || "export.csv";
@@ -398,7 +398,7 @@ export function setupListeners({
                 // Load the keyboard shortcuts modal script dynamically
                 const script = document.createElement("script");
                 script.src = "./utils/keyboardShortcutsModal.js";
-                script.addEventListener('load', () => {
+                script.addEventListener("load", () => {
                     console.log("Script loaded successfully");
                     // Call the function after the script is loaded
                     if (typeof globalThis.showKeyboardShortcutsModal === "function") {
@@ -478,22 +478,22 @@ export function setupListeners({
         globalThis.electronAPI.onIpc("set-high-contrast", (/** @type {any} */ _event, /** @type {string} */ mode) => {
             document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
             switch (mode) {
-            case "black": {
-                document.body.classList.add("high-contrast");
-            
-            break;
-            }
-            case "white": {
-                document.body.classList.add("high-contrast-white");
-            
-            break;
-            }
-            case "yellow": {
-                document.body.classList.add("high-contrast-yellow");
-            
-            break;
-            }
-            // No default
+                case "black": {
+                    document.body.classList.add("high-contrast");
+
+                    break;
+                }
+                case "white": {
+                    document.body.classList.add("high-contrast-white");
+
+                    break;
+                }
+                case "yellow": {
+                    document.body.classList.add("high-contrast-yellow");
+
+                    break;
+                }
+                // No default
             }
         });
     }

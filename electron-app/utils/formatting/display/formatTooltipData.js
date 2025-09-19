@@ -134,9 +134,9 @@ function formatAltitude(altitude) {
         return "";
     }
 
-    const altFeet = altMeters * METERS_TO_FEET,
-        { ALTITUDE_FEET, ALTITUDE_METERS } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
-        { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
+    const { ALTITUDE_FEET, ALTITUDE_METERS } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
+        { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
+        altFeet = altMeters * METERS_TO_FEET;
     return `${altMeters.toFixed(ALTITUDE_METERS)} m / ${altFeet.toFixed(ALTITUDE_FEET)} ft`;
 }
 
@@ -167,10 +167,10 @@ function formatDistance(distance) {
         return "";
     }
 
-    const km = meters / METERS_TO_KM,
-        mi = km * KM_TO_MILES,
-        { DISTANCE_KM, DISTANCE_MI } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
-        { KM_TO_MILES, METERS_TO_KM } = FORMATTING_CONSTANTS.CONVERSION_FACTORS;
+    const { DISTANCE_KM, DISTANCE_MI } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
+        { KM_TO_MILES, METERS_TO_KM } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
+        km = meters / METERS_TO_KM,
+        mi = km * KM_TO_MILES;
 
     return `${km.toFixed(DISTANCE_KM)} km / ${mi.toFixed(DISTANCE_MI)} mi<br>`;
 }
@@ -231,12 +231,12 @@ function formatRideTime(timestamp, recordMesgs) {
             return "";
         }
 
-        const diff = Math.max(0, Math.floor((currTime - firstTime) / 1000)),
+        const { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } = FORMATTING_CONSTANTS.TIME_UNITS,
+            diff = Math.max(0, Math.floor((currTime - firstTime) / 1000)),
             hours = Math.floor(diff / SECONDS_PER_HOUR),
             minutes = Math.floor((diff % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE),
             parts = [],
-            seconds = Math.floor(diff % SECONDS_PER_MINUTE),
-            { SECONDS_PER_HOUR, SECONDS_PER_MINUTE } = FORMATTING_CONSTANTS.TIME_UNITS;
+            seconds = Math.floor(diff % SECONDS_PER_MINUTE);
         if (hours > 0) {
             parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
         }
@@ -267,10 +267,10 @@ function formatSpeed(speed) {
         return "";
     }
 
-    const speedKmh = speedMps * MPS_TO_KMH,
-        speedMph = speedMps * MPS_TO_MPH,
-        { MPS_TO_KMH, MPS_TO_MPH } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
-        { SPEED } = FORMATTING_CONSTANTS.DECIMAL_PLACES;
+    const { MPS_TO_KMH, MPS_TO_MPH } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
+        { SPEED } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
+        speedKmh = speedMps * MPS_TO_KMH,
+        speedMph = speedMps * MPS_TO_MPH;
 
     return `${speedKmh.toFixed(SPEED)} km/h / ${speedMph.toFixed(SPEED)} mph`;
 }

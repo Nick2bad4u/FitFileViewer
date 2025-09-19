@@ -37,8 +37,8 @@ describe("Tab Button Disabled State", () => {
         it("should update active tab when called programmatically", () => {
             updateActiveTab("tab-chart");
 
-            const summaryTab = /** @type {HTMLElement} */ (document.getElementById("tab-summary"));
-            const chartTab = /** @type {HTMLElement} */ (document.getElementById("tab-chart"));
+            const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
+            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
 
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.classList.contains("active")).toBe(true);
@@ -49,8 +49,8 @@ describe("Tab Button Disabled State", () => {
             const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
             updateActiveTab("");
-            updateActiveTab(/** @type {any} */ (null));
-            updateActiveTab(/** @type {any} */ (undefined));
+            updateActiveTab(/** @type {any} */ null);
+            updateActiveTab(/** @type {any} */ undefined);
 
             expect(consoleSpy).toHaveBeenCalledTimes(3);
             consoleSpy.mockRestore();
@@ -64,7 +64,7 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should prevent clicks on buttons with disabled property", () => {
-            const chartTab = /** @type {HTMLButtonElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
             if (chartTab) {
                 chartTab.disabled = true;
 
@@ -84,7 +84,7 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should prevent clicks on buttons with disabled attribute", () => {
-            const mapTab = /** @type {HTMLElement} */ (document.getElementById("tab-map"));
+            const mapTab = /** @type {HTMLElement} */ document.getElementById("tab-map");
             if (mapTab) {
                 mapTab.setAttribute("disabled", "true");
 
@@ -102,7 +102,7 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should prevent clicks on buttons with tab-disabled class", () => {
-            const tableTab = /** @type {HTMLElement} */ (document.getElementById("tab-table"));
+            const tableTab = /** @type {HTMLElement} */ document.getElementById("tab-table");
             if (tableTab) {
                 tableTab.classList.add("tab-disabled");
 
@@ -120,7 +120,7 @@ describe("Tab Button Disabled State", () => {
         });
 
         it("should allow clicks on enabled buttons", () => {
-            const summaryTab = /** @type {HTMLButtonElement} */ (document.getElementById("tab-summary"));
+            const summaryTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-summary");
             if (summaryTab) {
                 // Ensure summary tab is enabled
                 summaryTab.disabled = false;
@@ -140,7 +140,7 @@ describe("Tab Button Disabled State", () => {
         it("should log disabled button clicks for debugging", () => {
             const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-            const chartTab = /** @type {HTMLButtonElement} */ (document.getElementById("tab-chart"));
+            const chartTab = /** @type {HTMLButtonElement} */ document.getElementById("tab-chart");
             if (chartTab) {
                 chartTab.disabled = true;
 
@@ -162,8 +162,8 @@ describe("Tab Button Disabled State", () => {
             // Change state programmatically
             mockState.setState("ui.activeTab", "chart");
 
-            const summaryTab = /** @type {HTMLElement} */ (document.getElementById("tab-summary"));
-            const chartTab = /** @type {HTMLElement} */ (document.getElementById("tab-chart"));
+            const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
+            const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
 
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(summaryTab?.getAttribute("aria-selected")).toBe("false");
@@ -205,7 +205,7 @@ describe("Tab Button Disabled State", () => {
 
                 // Create a button with the test ID
                 const button = document.createElement("button");
-                button.id = /** @type {string} */ (buttonId);
+                button.id = /** @type {string} */ buttonId;
                 button.className = "tab-button";
                 container.appendChild(button);
 

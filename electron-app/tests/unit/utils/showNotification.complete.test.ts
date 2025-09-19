@@ -16,7 +16,7 @@ vi.mock("../../../utils/ui/notifications/showNotification.js", async (importOrig
         // Export everything else as-is
         showNotification: originalModule.showNotification,
         notify: originalModule.notify,
-        clearAllNotifications: originalModule.clearAllNotifications
+        clearAllNotifications: originalModule.clearAllNotifications,
     };
 });
 
@@ -34,7 +34,10 @@ describe("showNotification.js - resolveShown error handling", () => {
         console.warn = vi.fn();
         console.error = vi.fn();
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => { cb(0); return 0; };
+        window.requestAnimationFrame = (cb) => {
+            cb(0);
+            return 0;
+        };
         document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
     });
 
@@ -60,22 +63,22 @@ describe("showNotification.js - resolveShown error handling", () => {
         const displayNotificationSpy = vi.fn();
         document.getElementById = vi.fn().mockImplementation((id) => {
             if (id === "notification") {
-                const el = document.createElement('div');
-                el.id = 'notification';
-                el.className = 'notification';
-                el.style.display = 'none';
+                const el = document.createElement("div");
+                el.id = "notification";
+                el.className = "notification";
+                el.style.display = "none";
 
                 // Create a spy that is triggered when the element is shown
-                Object.defineProperty(el.style, 'display', {
+                Object.defineProperty(el.style, "display", {
                     set(value) {
                         this._display = value;
-                        if (value === 'flex') {
+                        if (value === "flex") {
                             displayNotificationSpy(value);
                         }
                     },
                     get() {
                         return this._display;
-                    }
+                    },
                 });
 
                 return el;
@@ -85,7 +88,9 @@ describe("showNotification.js - resolveShown error handling", () => {
 
         // Run our test for try-finally block by having resolveShown throw
         let resolvePromise;
-        const resolvePromiseReady = new Promise(resolve => { resolvePromise = resolve; });
+        const resolvePromiseReady = new Promise((resolve) => {
+            resolvePromise = resolve;
+        });
 
         // When the notification is shown, simulate an error in resolveShown
         displayNotificationSpy.mockImplementation(() => {

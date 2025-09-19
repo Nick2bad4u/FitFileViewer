@@ -126,7 +126,7 @@ export function renderMap() {
     mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
     mapTypeBtn.innerHTML = "🗺️ Change Map Type";
     mapTypeBtn.title = "Click to change the map type";
-    mapTypeBtn.addEventListener('click', handleMapTypeButtonClick);
+    mapTypeBtn.addEventListener("click", handleMapTypeButtonClick);
     const leafletMapDiv2 = document.querySelector("#leaflet-map");
     if (leafletMapDiv2) {
         leafletMapDiv2.append(mapTypeBtn);
@@ -411,17 +411,18 @@ export function renderMap() {
                 for (const [idx, polyline] of Object.entries(windowExt._overlayPolylines)) {
                     console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);
                     if (polyline && polyline._map && polyline._map && polyline._map._layers) {
-                            for (const layer of Object.values(polyline._map._layers)) {
-                                if (
-                                    layer instanceof L.CircleMarker &&
-                                    layer.options &&
-                                    polyline.options &&
-                                    layer.options.color === polyline.options.color
-                                 && layer.bringToFront) {
-                                        layer.bringToFront();
-                                    }
+                        for (const layer of Object.values(polyline._map._layers)) {
+                            if (
+                                layer instanceof L.CircleMarker &&
+                                layer.options &&
+                                polyline.options &&
+                                layer.options.color === polyline.options.color &&
+                                layer.bringToFront
+                            ) {
+                                layer.bringToFront();
                             }
                         }
+                    }
                 }
             }
         }, 10);

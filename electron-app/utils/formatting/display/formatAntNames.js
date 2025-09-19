@@ -37,9 +37,9 @@ export function getManufacturerIdFromName(manufacturerName) {
         // Create common variations to check
         variations = new Set([
             normalizedInput,
-            normalizedInput.replaceAll('_', ""), // Remove underscores
-            normalizedInput.replaceAll('electronics', "_electronics"), // Add underscore before electronics
-            normalizedInput.replaceAll('electronics', "electronics"), // Ensure electronics is present
+            normalizedInput.replaceAll("_", ""), // Remove underscores
+            normalizedInput.replaceAll("electronics", "_electronics"), // Add underscore before electronics
+            normalizedInput.replaceAll("electronics", "electronics"), // Ensure electronics is present
             normalizedInput.replaceAll(/([A-Z])/g, "_$1").toLowerCase(), // CamelCase to snake_case
         ]);
 
@@ -55,7 +55,7 @@ export function getManufacturerIdFromName(manufacturerName) {
         // Also check common variations of the stored name
         const nameVariations = [
             normalizedName,
-            normalizedName.replaceAll('_', ""), // Remove underscores from stored name
+            normalizedName.replaceAll("_", ""), // Remove underscores from stored name
             normalizedName.replace(/_electronics/, "electronics"), // Remove underscore before electronics
         ];
 
@@ -84,9 +84,9 @@ export function getManufacturerName(manufacturerId) {
  * @returns {string} Product name or original product ID if not found
  */
 export function getProductName(manufacturerId, productId) {
-    const manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId],
-        mfgId = typeof manufacturerId === "string" ? Number.parseInt(manufacturerId, 10) : manufacturerId,
-        prodId = typeof productId === "string" ? Number.parseInt(productId, 10) : productId;
+    const mfgId = typeof manufacturerId === "string" ? Number.parseInt(manufacturerId, 10) : manufacturerId,
+        prodId = typeof productId === "string" ? Number.parseInt(productId, 10) : productId,
+        manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
     if (manufacturerProducts && manufacturerProducts[prodId]) {
         return manufacturerProducts[prodId];
     }

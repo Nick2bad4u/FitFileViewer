@@ -156,7 +156,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     measureBtn.title = "Click, then click two points on the map to measure distance";
     /** @type {HTMLButtonElement} */
     const measureBtnRef = measureBtn;
-    measureBtn.addEventListener('click', () => {
+    measureBtn.addEventListener("click", () => {
         if (measuring) {
             clearMeasure();
             disableMeasure(measureBtn);

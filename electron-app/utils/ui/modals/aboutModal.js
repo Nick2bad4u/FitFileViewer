@@ -184,12 +184,12 @@ export function showAboutModal(html = "") {
             });
 
             // Set up event listeners
-            closeBtn.addEventListener('click', (e) => {
+            closeBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 hideAboutModal();
             });
 
-            closeBtn.addEventListener('keydown', (e) => {
+            closeBtn.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     hideAboutModal();
@@ -197,12 +197,12 @@ export function showAboutModal(html = "") {
             });
             // Toggle button functionality
             if (toggleBtn) {
-                toggleBtn.addEventListener('click', (e) => {
+                toggleBtn.addEventListener("click", (e) => {
                     e.preventDefault();
                     toggleInfoSection();
                 });
 
-                toggleBtn.addEventListener('keydown', (e) => {
+                toggleBtn.addEventListener("keydown", (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         toggleInfoSection();
@@ -213,7 +213,7 @@ export function showAboutModal(html = "") {
             // Handle external links to open in user's default browser
             const externalLinks = modal.querySelectorAll("[data-external-link]");
             for (const link of externalLinks) {
-                /** @type {HTMLElement} */ (link).addEventListener('click', (e) => {
+                /** @type {HTMLElement} */ (link).addEventListener("click", (e) => {
                     e.preventDefault();
                     const url = link.getAttribute("href");
                     if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
@@ -224,7 +224,7 @@ export function showAboutModal(html = "") {
                     }
                 });
 
-                /** @type {HTMLElement} */ (link).addEventListener('keydown', (e) => {
+                /** @type {HTMLElement} */ (link).addEventListener("keydown", (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         const url = link.getAttribute("href");
@@ -239,7 +239,7 @@ export function showAboutModal(html = "") {
             }
 
             // Close on backdrop click
-            modal.addEventListener('click', (e) => {
+            modal.addEventListener("click", (e) => {
                 if (e.target === modal) {
                     hideAboutModal();
                 }
@@ -248,7 +248,7 @@ export function showAboutModal(html = "") {
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                /** @type {HTMLElement} */ (modalContent).addEventListener('click', (e) => {
+                /** @type {HTMLElement} */ (modalContent).addEventListener("click", (e) => {
                     e.stopPropagation();
                 });
             }

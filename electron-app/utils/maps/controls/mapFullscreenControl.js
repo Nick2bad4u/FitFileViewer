@@ -32,7 +32,7 @@ export function addFullscreenControl(map) {
     }
 
     const button = /** @type {HTMLButtonElement} */ (fullscreenBtn);
-    button.addEventListener('click', () => {
+    button.addEventListener("click", () => {
         if (!mapDiv) {
             return;
         }

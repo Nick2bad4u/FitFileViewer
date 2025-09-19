@@ -37,9 +37,9 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
         mockGetState.mockReturnValue("summary");
 
         // Mock console methods
-        vi.spyOn(console, "warn").mockImplementation(() => { });
-        vi.spyOn(console, "error").mockImplementation(() => { });
-        vi.spyOn(console, "log").mockImplementation(() => { });
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "log").mockImplementation(() => {});
     });
 
     afterEach(() => {

@@ -41,28 +41,28 @@ import { showNotification } from "./utils/ui/notifications/showNotification.js";
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
-    DOM_IDS: {
-        ACTIVE_FILE_NAME: "activeFileName",
-        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-        ALT_FIT_IFRAME: "altfit-iframe",
-        CONTENT_CHART: "content-chart",
-        CONTENT_DATA: "content-data",
-        CONTENT_MAP: "content-map",
-        CONTENT_SUMMARY: "content-summary",
-        DROP_OVERLAY: "drop-overlay",
-        TAB_CHART: "tab-chart",
-        TAB_SUMMARY: "tab-summary",
-        UNLOAD_FILE_BTN: "unloadFileBtn",
-        ZWIFT_IFRAME: "zwift-iframe",
+        DOM_IDS: {
+            ACTIVE_FILE_NAME: "activeFileName",
+            ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
+            ALT_FIT_IFRAME: "altfit-iframe",
+            CONTENT_CHART: "content-chart",
+            CONTENT_DATA: "content-data",
+            CONTENT_MAP: "content-map",
+            CONTENT_SUMMARY: "content-summary",
+            DROP_OVERLAY: "drop-overlay",
+            TAB_CHART: "tab-chart",
+            TAB_SUMMARY: "tab-summary",
+            UNLOAD_FILE_BTN: "unloadFileBtn",
+            ZWIFT_IFRAME: "zwift-iframe",
+        },
+        IFRAME_PATHS: {
+            ALT_FIT: "libs/ffv/index.html",
+        },
+        SELECTORS: {
+            SUMMARY_GEAR_BTN: ".summary-gear-btn",
+        },
+        SUMMARY_COLUMN_SELECTOR_DELAY: 100,
     },
-    IFRAME_PATHS: {
-        ALT_FIT: "libs/ffv/index.html",
-    },
-    SELECTORS: {
-        SUMMARY_GEAR_BTN: ".summary-gear-btn",
-    },
-    SUMMARY_COLUMN_SELECTOR_DELAY: 100,
-},
     // Event listener management with state integration
     eventListeners = new Map();
 
@@ -153,7 +153,11 @@ function unloadFitFile() {
     // Start performance monitoring (tolerate differing impl shapes)
     {
         const pm = /** @type {any} */ (performanceMonitor);
-        if (pm && (typeof pm.isEnabled === "function" ? pm.isEnabled() : Boolean(pm.isEnabled)) && typeof pm.startTimer === "function") {
+        if (
+            pm &&
+            (typeof pm.isEnabled === "function" ? pm.isEnabled() : Boolean(pm.isEnabled)) &&
+            typeof pm.startTimer === "function"
+        ) {
             pm.startTimer(operationId);
         }
     }
@@ -167,7 +171,7 @@ function unloadFitFile() {
 
         // Update file state
         if (fitFileStateManager) {
-            fitFileStateManager.handleFileLoaded(/** @type {any} */(null));
+            fitFileStateManager.handleFileLoaded(/** @type {any} */ (null));
         }
 
         // Clear UI
@@ -201,7 +205,11 @@ function unloadFitFile() {
         // End performance monitoring
         {
             const pm2 = /** @type {any} */ (performanceMonitor);
-            if (pm2 && (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : Boolean(pm2.isEnabled)) && typeof pm2.endTimer === "function") {
+            if (
+                pm2 &&
+                (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : Boolean(pm2.isEnabled)) &&
+                typeof pm2.endTimer === "function"
+            ) {
                 pm2.endTimer(operationId);
             }
         }
@@ -257,11 +265,11 @@ globalThis.sendFitFileToAltFitReader = async function (arrayBuffer /** @type {Ar
         };
     if (!frame.src || !frame.src.includes(CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
         frame.src = CONSTANTS.IFRAME_PATHS.ALT_FIT;
-        frame.addEventListener('load', postToIframe);
+        frame.addEventListener("load", postToIframe);
     } else if (frame.contentWindow && frame.src) {
         postToIframe();
     } else {
-        frame.addEventListener('load', postToIframe);
+        frame.addEventListener("load", postToIframe);
     }
 };
 
@@ -328,7 +336,7 @@ if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
 // Unload file when the red X is clicked
 const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
 if (unloadBtn) {
-    unloadBtn.addEventListener('click', unloadFitFile);
+    unloadBtn.addEventListener("click", unloadFitFile);
 }
 
 // Tab button state is now managed automatically by the state management system
@@ -365,7 +373,10 @@ class DragDropHandler {
             // Start performance monitoring
             /** @type {{isEnabled?:()=>boolean,startTimer?:(id:string)=>void,endTimer?:(id:string)=>void}} */
             pm = /** @type {any} */ (performanceMonitor) || {};
-        if ((typeof pm.isEnabled === "function" ? pm.isEnabled() : Boolean(pm.isEnabled)) && typeof pm.startTimer === "function") {
+        if (
+            (typeof pm.isEnabled === "function" ? pm.isEnabled() : Boolean(pm.isEnabled)) &&
+            typeof pm.startTimer === "function"
+        ) {
             pm.startTimer(operationId);
         }
 
@@ -404,8 +415,9 @@ class DragDropHandler {
                 globalThis.sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
-                const errorMessage = `Unable to process the FIT file. Please try again or check the file format. Details: ${fitData.error || "Unknown error"
-                    }`;
+                const errorMessage = `Unable to process the FIT file. Please try again or check the file format. Details: ${
+                    fitData.error || "Unknown error"
+                }`;
                 alert(errorMessage);
                 showNotification("Failed to load FIT file", "error");
 
@@ -423,7 +435,7 @@ class DragDropHandler {
             // Handle error in state manager
             if (fitFileStateManager) {
                 fitFileStateManager.handleFileLoadingError(
-                    /** @type {Error} */(error instanceof Error ? error : new Error(String(error)))
+                    /** @type {Error} */ (error instanceof Error ? error : new Error(String(error)))
                 );
             }
         } finally {
@@ -432,7 +444,10 @@ class DragDropHandler {
 
             // End performance monitoring
             const pm2 = /** @type {any} */ (performanceMonitor) || {};
-            if ((typeof pm2.isEnabled === "function" ? pm2.isEnabled() : Boolean(pm2.isEnabled)) && typeof pm2.endTimer === "function") {
+            if (
+                (typeof pm2.isEnabled === "function" ? pm2.isEnabled() : Boolean(pm2.isEnabled)) &&
+                typeof pm2.endTimer === "function"
+            ) {
                 pm2.endTimer(operationId);
             }
         }
@@ -442,8 +457,8 @@ class DragDropHandler {
     readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.addEventListener('load', (event) => {
-                resolve(/** @type {any} */(event).target?.result || null);
+            reader.addEventListener("load", (event) => {
+                resolve(/** @type {any} */ (event).target?.result || null);
             });
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
@@ -574,7 +589,7 @@ function setupExternalLinkHandlers() {
         const target = e.target instanceof HTMLElement ? e.target : null,
             link = target?.closest('[data-external-link="true"]');
         if (link) {
-            handleExternalLink(e, /** @type {HTMLElement} */(link));
+            handleExternalLink(e, /** @type {HTMLElement} */ (link));
         }
     });
 
@@ -584,8 +599,8 @@ function setupExternalLinkHandlers() {
                 link = target?.closest('[data-external-link="true"]');
             if (link) {
                 handleExternalLink(
-                    /** @type {MouseEvent} */(/** @type {any} */ (e)),
-                    /** @type {HTMLElement} */(link)
+                    /** @type {MouseEvent} */ (/** @type {any} */ (e)),
+                    /** @type {HTMLElement} */ (link)
                 );
             }
         }

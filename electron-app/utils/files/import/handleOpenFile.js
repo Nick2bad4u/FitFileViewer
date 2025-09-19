@@ -4,7 +4,7 @@
  */
 
 // Import stateManager module
-const stateManager = require("../../state/core/stateManager.js");
+import * as stateManager from "../../state/core/stateManager.js";
 
 // Export stateManager for testing
 // Only used in tests, never in production code
@@ -58,10 +58,7 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
     // Prevent multiple simultaneous file opening operations
     if (/** @type {*} */ (isOpeningFileRef)?.value) {
         logWithContext("File opening already in progress", "warn");
-        showNotification(
-            "File opening is already in progress. Please wait.",
-            "warning"
-        );
+        showNotification("File opening is already in progress. Please wait.", "warning");
         return false;
     }
 
@@ -254,7 +251,8 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */(method) => typeof (/** @type {*} */ (globalThis.electronAPI)[method]) !== "function"
+        /** @param {string} method */ (method) =>
+            typeof (/** @type {*} */ (globalThis.electronAPI)[method]) !== "function"
     );
 
     if (missingMethods.length > 0) {
@@ -266,11 +264,11 @@ function validateElectronAPI() {
 }
 
 // Export functions for testing
-module.exports = {
+export {
     // Only used in tests, never in production code
     __TEST_ONLY_exposedStateManager,
     handleOpenFile,
     logWithContext,
     updateUIState,
-    validateElectronAPI
+    validateElectronAPI,
 };

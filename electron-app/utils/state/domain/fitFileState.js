@@ -523,9 +523,9 @@ export class FitFileStateManager {
 
             // Check data consistency
             if (data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length === 0) {
-                    validation.errors.push("File contains no activity records");
-                    validation.isValid = false;
-                }
+                validation.errors.push("File contains no activity records");
+                validation.isValid = false;
+            }
         } else {
             validation.isValid = false;
             validation.errors.push("No data provided");

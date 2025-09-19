@@ -1,9 +1,16 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, notify, clearAllNotifications, __testResetNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    showNotification,
+    notify,
+    clearAllNotifications,
+    __testResetNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 // Access internal variables and functions for testing
 // @ts-ignore - Accessing internals for testing
-const { notificationQueue, isShowingNotification, processNotificationQueue } = await import("../../../utils/ui/notifications/showNotification.js");
+const { notificationQueue, isShowingNotification, processNotificationQueue } = await import(
+    "../../../utils/ui/notifications/showNotification.js"
+);
 
 describe("showNotification.js - extended coverage", () => {
     const originalWarn = console.warn;
@@ -16,7 +23,10 @@ describe("showNotification.js - extended coverage", () => {
         console.warn = vi.fn();
         console.error = vi.fn();
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => { cb(0); return 0; };
+        window.requestAnimationFrame = (cb) => {
+            cb(0);
+            return 0;
+        };
         document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
         // Reset internal notification state using provided test helper
         __testResetNotifications();
@@ -32,7 +42,7 @@ describe("showNotification.js - extended coverage", () => {
     });
 
     it("handles missing notification element gracefully", async () => {
-        document.body.innerHTML = ''; // Remove notification element
+        document.body.innerHTML = ""; // Remove notification element
         const p = showNotification("Test");
         await p;
         expect(console.warn).toHaveBeenCalledWith("Notification element not found. Unable to display notification.");
@@ -40,11 +50,13 @@ describe("showNotification.js - extended coverage", () => {
 
     it("handles errors during displayNotification process", async () => {
         // Create a spy on getElementById that throws an error
-        vi.spyOn(document, 'getElementById').mockImplementation(() => {
-            const mockEl = document.createElement('div');
+        vi.spyOn(document, "getElementById").mockImplementation(() => {
+            const mockEl = document.createElement("div");
             // Set a property to cause an error when accessed
-            Object.defineProperty(mockEl, 'classList', {
-                get() { throw new Error("Simulated error"); }
+            Object.defineProperty(mockEl, "classList", {
+                get() {
+                    throw new Error("Simulated error");
+                },
             });
             return mockEl;
         });
@@ -55,7 +67,7 @@ describe("showNotification.js - extended coverage", () => {
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {
-        const mockClearTimeout = vi.spyOn(window, 'clearTimeout');
+        const mockClearTimeout = vi.spyOn(window, "clearTimeout");
         const notificationEl = document.getElementById("notification");
 
         // Manually set a hideTimeout on the element
@@ -71,10 +83,10 @@ describe("showNotification.js - extended coverage", () => {
 
     it("handles all notification types through the notify object", async () => {
         const typeTests = [
-            { method: 'info', type: 'info', duration: 4000 },
-            { method: 'success', type: 'success', duration: 3000 },
-            { method: 'error', type: 'error', duration: 6000 },
-            { method: 'warning', type: 'warning', duration: 5000 }
+            { method: "info", type: "info", duration: 4000 },
+            { method: "success", type: "success", duration: 3000 },
+            { method: "error", type: "error", duration: 6000 },
+            { method: "warning", type: "warning", duration: 5000 },
         ];
 
         for (const test of typeTests) {
@@ -98,8 +110,8 @@ describe("showNotification.js - extended coverage", () => {
         expect(closeBtn).toBeTruthy();
 
         // Simulate mouseover and mouseout
-        const mouseoverEvent = new MouseEvent('mouseover');
-        const mouseoutEvent = new MouseEvent('mouseout');
+        const mouseoverEvent = new MouseEvent("mouseover");
+        const mouseoutEvent = new MouseEvent("mouseout");
 
         closeBtn.dispatchEvent(mouseoverEvent);
         expect(closeBtn.style.opacity).toBe("1");
@@ -128,10 +140,10 @@ describe("showNotification.js - extended coverage", () => {
         const el = document.getElementById("notification")!;
 
         // Create and dispatch a click event with a non-HTMLElement target
-        const clickEvent = new MouseEvent('click');
+        const clickEvent = new MouseEvent("click");
         // Override the target property
-        Object.defineProperty(clickEvent, 'target', {
-            get: () => null
+        Object.defineProperty(clickEvent, "target", {
+            get: () => null,
         });
 
         el.dispatchEvent(clickEvent);
@@ -144,13 +156,13 @@ describe("showNotification.js - extended coverage", () => {
         await p;
 
         // Create a mock event with a target that would be inside the notification-actions area
-        const mockEvent = new MouseEvent('click');
-        const mockTarget = document.createElement('span');
-        mockTarget.className = 'inside-action';
+        const mockEvent = new MouseEvent("click");
+        const mockTarget = document.createElement("span");
+        mockTarget.className = "inside-action";
 
         // Create actions container and add it to the notification
-        const actionsContainer = document.createElement('div');
-        actionsContainer.className = 'notification-actions';
+        const actionsContainer = document.createElement("div");
+        actionsContainer.className = "notification-actions";
         actionsContainer.appendChild(mockTarget);
         document.getElementById("notification")!.appendChild(actionsContainer);
 
@@ -160,7 +172,7 @@ describe("showNotification.js - extended coverage", () => {
         mockTarget.closest = vi.fn().mockReturnValue(actionsContainer);
 
         // Override the event target
-        Object.defineProperty(mockEvent, 'target', { get: () => mockTarget });
+        Object.defineProperty(mockEvent, "target", { get: () => mockTarget });
 
         // Dispatch the event
         document.getElementById("notification")!.dispatchEvent(mockEvent);
@@ -185,7 +197,9 @@ describe("showNotification.js - extended coverage", () => {
             onClick: undefined,
             actions: [],
             timestamp: Date.now(),
-            resolveShown: () => { throw new Error("resolveShown error"); }
+            resolveShown: () => {
+                throw new Error("resolveShown error");
+            },
         });
 
         // This shouldn't throw despite the error in resolveShown

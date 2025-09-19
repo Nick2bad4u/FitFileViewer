@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
 // Mock the function import
-const { createChartStatusIndicatorFromCounts } = await import("../../utils/charts/components/createChartStatusIndicatorFromCounts.js");
+const { createChartStatusIndicatorFromCounts } = await import(
+    "../../utils/charts/components/createChartStatusIndicatorFromCounts.js"
+);
 
 describe("createChartStatusIndicatorFromCounts", () => {
     let dom: JSDOM;
@@ -45,7 +47,7 @@ describe("createChartStatusIndicatorFromCounts", () => {
             {
                 url: "http://localhost",
                 pretendToBeVisual: true,
-                resources: "usable"
+                resources: "usable",
             }
         );
 
@@ -77,8 +79,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 0, available: 1 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 }
-                }
+                    gps: { total: 1, visible: 0, available: 1 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -97,8 +99,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -120,8 +122,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -139,8 +141,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -159,8 +161,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 0, visible: 0, available: 0 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -179,8 +181,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -199,8 +201,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 0, visible: 0, available: 0 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -219,8 +221,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -239,8 +241,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 2, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 1, available: 1 }
-                }
+                    gps: { total: 1, visible: 1, available: 1 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -258,8 +260,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 0, available: 1 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -277,8 +279,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 50, visible: 30, available: 50 },
                     analysis: { total: 35, visible: 25, available: 35 },
                     zones: { total: 30, visible: 20, available: 30 },
-                    gps: { total: 35, visible: 25, available: 35 }
-                }
+                    gps: { total: 35, visible: 25, available: 35 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -286,7 +288,7 @@ describe("createChartStatusIndicatorFromCounts", () => {
             const statusText = indicator.querySelector(".status-text") as HTMLElement;
 
             expect(statusIcon.textContent).toBe("⚠️");
-            expect(statusText.textContent?.replace(/\s+/g, ' ').trim()).toMatch(/100.*\/.*150.*charts visible/);
+            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(/100.*\/.*150.*charts visible/);
         });
     });
 
@@ -300,15 +302,15 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 3, visible: 1, available: 3 },
                     analysis: { total: 2, visible: 1, available: 2 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 }
-                }
+                    gps: { total: 1, visible: 0, available: 1 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
             const statusText = indicator.querySelector(".status-text") as HTMLElement;
 
             // The implementation uses nested spans, so textContent includes all text
-            expect(statusText.textContent?.replace(/\s+/g, ' ').trim()).toMatch(/3.*\/.*7.*charts visible/);
+            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(/3.*\/.*7.*charts visible/);
         });
 
         it("should display zero counts correctly", () => {
@@ -320,8 +322,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 0, visible: 0, available: 0 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -339,14 +341,14 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 4, visible: 3, available: 4 },
                     analysis: { total: 3, visible: 2, available: 3 },
                     zones: { total: 2, visible: 2, available: 2 },
-                    gps: { total: 3, visible: 2, available: 3 }
-                }
+                    gps: { total: 3, visible: 2, available: 3 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
             const statusText = indicator.querySelector(".status-text") as HTMLElement;
 
-            expect(statusText.textContent?.replace(/\s+/g, ' ').trim()).toMatch(/9.*\/.*12.*charts visible/);
+            expect(statusText.textContent?.replace(/\s+/g, " ").trim()).toMatch(/9.*\/.*12.*charts visible/);
         });
     });
 
@@ -364,8 +366,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -373,7 +375,7 @@ describe("createChartStatusIndicatorFromCounts", () => {
 
             expect(scrollIntoViewSpy).toHaveBeenCalledWith({
                 behavior: "smooth",
-                block: "start"
+                block: "start",
             });
         });
 
@@ -389,8 +391,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -412,8 +414,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 0, available: 1 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -439,8 +441,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -460,8 +462,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -482,8 +484,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 0, visible: 0, available: 0 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -509,8 +511,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -532,8 +534,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 0, available: 1 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 0, visible: 0, available: 0 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -560,8 +562,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 }
-                }
+                    gps: { total: 1, visible: 0, available: 1 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -572,12 +574,12 @@ describe("createChartStatusIndicatorFromCounts", () => {
                 left: 100,
                 top: 200,
                 width: 150,
-                height: 30
+                height: 30,
             });
 
-            Object.defineProperty(breakdown, 'offsetHeight', {
+            Object.defineProperty(breakdown, "offsetHeight", {
                 value: 100,
-                configurable: true
+                configurable: true,
             });
 
             // First show tooltip
@@ -603,8 +605,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 2, visible: 1, available: 2 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 }
-                }
+                    gps: { total: 1, visible: 0, available: 1 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -625,14 +627,14 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 2, visible: 1, available: 2 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 0, available: 1 },
-                    gps: { total: 1, visible: 0, available: 1 }
-                }
+                    gps: { total: 1, visible: 0, available: 1 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
             const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
 
-            expect(breakdown.innerHTML).toContain("💡 Enable more charts in \"Visible Metrics\" below");
+            expect(breakdown.innerHTML).toContain('💡 Enable more charts in "Visible Metrics" below');
         });
 
         it("should not show hidden charts hint when all are visible", () => {
@@ -644,8 +646,8 @@ describe("createChartStatusIndicatorFromCounts", () => {
                     metrics: { total: 1, visible: 1, available: 1 },
                     analysis: { total: 1, visible: 1, available: 1 },
                     zones: { total: 1, visible: 1, available: 1 },
-                    gps: { total: 0, visible: 0, available: 0 }
-                }
+                    gps: { total: 0, visible: 0, available: 0 },
+                },
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);
@@ -691,7 +693,7 @@ describe("createChartStatusIndicatorFromCounts", () => {
                 total: 1,
                 visible: 1,
                 available: 1,
-                categories: {} as any
+                categories: {} as any,
             };
 
             const indicator = createChartStatusIndicatorFromCounts(counts);

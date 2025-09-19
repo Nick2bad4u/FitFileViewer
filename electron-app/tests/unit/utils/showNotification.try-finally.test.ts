@@ -12,7 +12,10 @@ describe("showNotification.js - resolveShown error handling", () => {
         console.warn = vi.fn();
         console.error = vi.fn();
         // Mock requestAnimationFrame to execute immediately
-        window.requestAnimationFrame = (cb) => { cb(0); return 0; };
+        window.requestAnimationFrame = (cb) => {
+            cb(0);
+            return 0;
+        };
         document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
     });
 
@@ -30,7 +33,9 @@ describe("showNotification.js - resolveShown error handling", () => {
         // Create an object with resolveShown function that throws
         const notification = {
             // @ts-ignore - We need to be able to set this to undefined later
-            resolveShown: () => { throw new Error("Test error"); }
+            resolveShown: () => {
+                throw new Error("Test error");
+            },
         };
 
         // Test the pattern that's used in showNotification.js lines 129-136

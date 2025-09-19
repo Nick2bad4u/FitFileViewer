@@ -235,8 +235,7 @@ export function getThemeConfig() {
             shadow: cssColors.shadow || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.15)"),
             shadowHeavy: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.15)",
             shadowLight:
-                cssColors.boxShadowLight ||
-                (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
+                cssColors.boxShadowLight || (effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.05)"),
             shadowMedium: effectiveTheme === "dark" ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 0, 0, 0.1)",
             success: cssColors.success || "#10b981",
             surface: effectiveTheme === "dark" ? "#2d2d2d50" : "#f8f9fa",
@@ -318,7 +317,6 @@ export function listenForSystemThemeChange() {
     }
 
     // Return undefined if matchMedia is not available
-    
 }
 
 /**

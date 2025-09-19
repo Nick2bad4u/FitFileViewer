@@ -358,11 +358,11 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk) {
         /** @type {any} */
         // @ts-ignore - external library lacks bundled types; suppressed locally
         const buffer = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer),
-            stream = Stream.fromBuffer(buffer),
-            decoder = new Decoder(stream),
             sdk = fitsdk || (await import("@garmin/fitsdk")),
             // @ts-ignore - typed as any due to missing declaration file
-            { Decoder, Stream } = /** @type {any} */ (sdk);
+            { Decoder, Stream } = /** @type {any} */ (sdk),
+            stream = Stream.fromBuffer(buffer),
+            decoder = new Decoder(stream);
 
         // Update progress - SDK loaded
         if (fitFileStateManager) {

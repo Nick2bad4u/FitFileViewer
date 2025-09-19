@@ -18,7 +18,6 @@
  * @since 1.0.0
  */
 
-
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -37,7 +36,6 @@ export function showLoadingOverlay(progressText, fileName = "") {
 }
 
 // Export map theme toggle for map controls
-
 
 /**
  * Centers the map on the main file's track
@@ -80,10 +78,11 @@ function _centerMapOnMainFile() {
                         layer instanceof w.L.CircleMarker &&
                         layer.options &&
                         polyline.options &&
-                        layer.options.color === polyline.options.color
-                     && layer.bringToFront) {
-                            layer.bringToFront();
-                        }
+                        layer.options.color === polyline.options.color &&
+                        layer.bringToFront
+                    ) {
+                        layer.bringToFront();
+                    }
                 } catch {
                     // Ignore best-effort bringToFront issues
                 }
@@ -175,7 +174,7 @@ function setupActiveFileNameMapActions() {
         activeFileName.onmouseleave = null;
 
         // Click handler - center map on main file
-        activeFileName.addEventListener('click', () => {
+        activeFileName.addEventListener("click", () => {
             try {
                 console.log("[mapActionButtons] Active file name clicked");
 
@@ -198,7 +197,7 @@ function setupActiveFileNameMapActions() {
         });
 
         // Hover handlers for visual feedback using CSS classes
-        activeFileName.addEventListener('mouseenter', () => {
+        activeFileName.addEventListener("mouseenter", () => {
             try {
                 console.log("[mapActionButtons] Active file name hover");
                 activeFileName.classList.add("highlighted");
@@ -212,7 +211,7 @@ function setupActiveFileNameMapActions() {
             }
         });
 
-        activeFileName.addEventListener('mouseleave', () => {
+        activeFileName.addEventListener("mouseleave", () => {
             try {
                 console.log("[mapActionButtons] Active file name unhover");
                 activeFileName.classList.remove("highlighted");
@@ -285,4 +284,4 @@ function setupActiveFileNameMapActions() {
         console.error("[mapActionButtons] Error patching updateShownFilesList:", error);
     }
 })();
-export {createMapThemeToggle} from "../../theming/specific/createMapThemeToggle.js";
+export { createMapThemeToggle } from "../../theming/specific/createMapThemeToggle.js";
