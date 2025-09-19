@@ -25,6 +25,12 @@ describe("renderSinglePowerZoneBar", () => {
         document.body.appendChild(canvas);
         (window as any).Chart = vi.fn(() => ({ destroy: vi.fn() }));
 
+        // Ensure globalThis can access the Chart mock
+        if (!(global as any).globalThis) {
+            (global as any).globalThis = global;
+        }
+        (global as any).globalThis.Chart = (window as any).Chart;
+
         const { renderSinglePowerZoneBar } = await import("../../../../utils/data/zones/renderSinglePowerZoneBar.js");
         const chart = renderSinglePowerZoneBar(
             canvas as HTMLCanvasElement,

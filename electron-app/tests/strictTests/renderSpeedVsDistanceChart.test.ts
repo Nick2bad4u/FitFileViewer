@@ -56,7 +56,22 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
 
         Chart = vi.fn(() => chartInstanceMock);
         (global.window as any).Chart = Chart;
+        (global as any).globalThis.Chart = Chart;
+
+        // Sync Chart constructor between window and globalThis using property descriptor
+        Object.defineProperty((global as any).globalThis, 'Chart', {
+            get() { return (global.window as any).Chart; },
+            set(value) { (global.window as any).Chart = value; },
+            configurable: true
+        });
+
         (global.window as any)._chartjsInstances = [];
+        // Sync chart instances between window and globalThis using property descriptor
+        Object.defineProperty((global as any).globalThis, '_chartjsInstances', {
+            get() { return (global.window as any)._chartjsInstances; },
+            set(value) { (global.window as any)._chartjsInstances = value; },
+            configurable: true
+        });
 
         // Load the module dynamically with fresh imports
         const module = await import("../../utils/charts/rendering/renderSpeedVsDistanceChart.js");
@@ -67,6 +82,11 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
         vi.clearAllMocks();
         if (global.window && (global.window as any)._chartjsInstances) {
             (global.window as any)._chartjsInstances = [];
+        }
+        // Clean up property descriptors
+        if ((global as any).globalThis) {
+            delete (global as any).globalThis._chartjsInstances;
+            delete (global as any).globalThis.Chart;
         }
 
         // Clean up JSDOM

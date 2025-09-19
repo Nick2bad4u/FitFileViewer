@@ -22,6 +22,11 @@ const getDoc = () => {
         /* Ignore errors */
     }
     try {
+        if (!d && globalThis.window !== undefined && globalThis.window.document) d = /** @type {any} */ (globalThis.window.document);
+    } catch {
+        /* Ignore errors */
+    }
+    try {
         if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
     } catch {
         /* Ignore errors */
@@ -57,6 +62,8 @@ const getDoc = () => {
             if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
+            } else if (globalThis.window !== undefined && globalThis.window.document) {
+                d = /** @type {any} */ (globalThis.window.document);
             } else if (globalThis.window !== undefined && globalThis.document) {
                 d = /** @type {any} */ (globalThis.document);
             } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {

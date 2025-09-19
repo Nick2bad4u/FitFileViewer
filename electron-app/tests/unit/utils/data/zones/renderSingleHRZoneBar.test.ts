@@ -97,9 +97,24 @@ describe("renderSingleHRZoneBar", () => {
 
         // Explicitly assign our spy to window.Chart
         window.Chart = ChartSpy;
+        (global as any).globalThis.Chart = ChartSpy;
+
+        // Sync Chart constructor between window and globalThis using property descriptor
+        Object.defineProperty((global as any).globalThis, 'Chart', {
+            get() { return window.Chart; },
+            set(value) { window.Chart = value; },
+            configurable: true
+        });
 
         // Mock showNotification
         window.showNotification = vi.fn();
+
+        // Sync showNotification between window and globalThis
+        Object.defineProperty((global as any).globalThis, 'showNotification', {
+            get() { return window.showNotification; },
+            set(value) { window.showNotification = value; },
+            configurable: true
+        });
 
         // Mock console methods
         global.console = {

@@ -53,7 +53,7 @@ export function createShownFilesList() {
             if (hex.length === 3) {
                 hex = hex
                     .split("")
-                    .map(/** @param {string} x */ (x) => x + x)
+                    .map(/** @param {string} x */(x) => x + x)
                     .join("");
             }
             const num = Number.parseInt(hex, 16);
@@ -125,8 +125,8 @@ export function createShownFilesList() {
                 const li = document.createElement("li");
                 li.style.position = "relative";
                 li.textContent = `File: ${f.filePath || "(unknown)"}`;
-                const color = chartOverlayColorPalette[colorIdx] || "#1976d2",
-                    colorIdx = idx % chartOverlayColorPalette.length,
+                const colorIdx = idx % chartOverlayColorPalette.length,
+                    color = chartOverlayColorPalette[colorIdx] || "#1976d2",
                     isDark = document.body.classList.contains("theme-dark");
                 let filter = "";
                 if (isDark) {

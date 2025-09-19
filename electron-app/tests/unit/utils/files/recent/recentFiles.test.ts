@@ -80,7 +80,7 @@ describe("recentFiles utility", () => {
         // Verify
         expect(result).toEqual(testData);
         expect(cfs.existsSync).toHaveBeenCalledWith(TEST_FILE_PATH);
-        expect(cfs.readFileSync).toHaveBeenCalledWith(TEST_FILE_PATH, "utf-8");
+        expect(cfs.readFileSync).toHaveBeenCalledWith(TEST_FILE_PATH);
     });
 
     it("loadRecentFiles handles file read errors", () => {
@@ -101,7 +101,7 @@ describe("recentFiles utility", () => {
         const testData = ["file1.fit", "file2.fit"];
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         recentFiles.saveRecentFiles(testData);
-        expect(spy).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(testData), "utf-8");
+        expect(spy).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(testData), "utf8");
     });
 
     it("saveRecentFiles caps list to 10 items", () => {
@@ -112,7 +112,7 @@ describe("recentFiles utility", () => {
         recentFiles.saveRecentFiles(testData);
 
         // Verify only first 10 saved
-        expect(spy).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(testData.slice(0, 10)), "utf-8");
+        expect(spy).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(testData.slice(0, 10)), "utf8");
     });
 
     it("saveRecentFiles handles write errors", () => {
@@ -141,7 +141,7 @@ describe("recentFiles utility", () => {
         expect(cfs.writeFileSync).toHaveBeenCalledWith(
             TEST_FILE_PATH,
             JSON.stringify(["newfile.fit", "file1.fit", "file2.fit"]),
-            "utf-8"
+            "utf8"
         );
     });
 
@@ -158,7 +158,7 @@ describe("recentFiles utility", () => {
         expect(cfs.writeFileSync).toHaveBeenCalledWith(
             TEST_FILE_PATH,
             JSON.stringify(["file2.fit", "file1.fit", "file3.fit"]),
-            "utf-8"
+            "utf8"
         );
     });
 
@@ -185,7 +185,7 @@ describe("recentFiles utility", () => {
 
         // Verify: warning logged and new list created
         expect(console.warn).toHaveBeenCalledWith("Invalid recent files list, resetting to an empty array.");
-        expect(cfs.writeFileSync).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(["newfile.fit"]), "utf-8");
+        expect(cfs.writeFileSync).toHaveBeenCalledWith(TEST_FILE_PATH, JSON.stringify(["newfile.fit"]), "utf8");
     });
 
     it("getShortRecentName handles empty input", () => {

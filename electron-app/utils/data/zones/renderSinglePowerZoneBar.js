@@ -22,15 +22,17 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
         console.log("[renderSinglePowerZoneBar] Detected theme:", theme);
 
         // Get saved Power zone colors
-        const // Create one dataset per zone for interactive legend
-            datasets = zoneData.map((zone, index) => ({
-                backgroundColor: zone.color || savedColors[index] || (theme === "dark" ? "#f59e42" : "#fbbf24"),
-                borderColor: theme === "dark" ? "#333" : "#fff",
-                borderWidth: 1,
-                data: [zone.value], // Single value array for this zone
-                label: zone.label,
-            })),
-            chart = new /** @type {any} */ (globalThis).Chart(canvas, {
+        const savedColors = getChartZoneColors("power", zoneData.length);
+
+        // Create one dataset per zone for interactive legend
+        const datasets = zoneData.map((zone, index) => ({
+            backgroundColor: zone.color || savedColors[index] || (theme === "dark" ? "#f59e42" : "#fbbf24"),
+            borderColor: theme === "dark" ? "#333" : "#fff",
+            borderWidth: 1,
+            data: [zone.value], // Single value array for this zone
+            label: zone.label,
+        })),
+            chart = new /** @type {any} */(globalThis).Chart(canvas, {
                 data: {
                     datasets,
                     labels: ["Time in Zone"], // Single category for all zones
@@ -135,8 +137,7 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                 },
                 plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
                 type: "bar",
-            }),
-            savedColors = getChartZoneColors("power", zoneData.length);
+            });
         return chart;
     } catch (error) {
         if (/** @type {any} */ (globalThis).showNotification) {

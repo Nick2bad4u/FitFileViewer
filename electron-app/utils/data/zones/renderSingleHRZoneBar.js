@@ -22,16 +22,18 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         console.log("[renderSingleHRZoneBar] Detected theme:", theme);
 
         // Get saved HR zone colors
-        const // Create one dataset per zone for interactive legend
-            datasets = zoneData.map((zone, index) => ({
-                backgroundColor:
+        const savedColors = getChartZoneColors("hr", zoneData.length);
+
+        // Create one dataset per zone for interactive legend
+        const datasets = zoneData.map((zone, index) => ({
+            backgroundColor:
                     /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
-                borderColor: theme === "dark" ? "#333" : "#fff",
-                borderWidth: 1,
-                data: [/** @type {any} */ (zone).value], // Single value array for this zone
-                label: /** @type {any} */ (zone).label,
-            })),
-            chart = new /** @type {any} */ (globalThis).Chart(canvas, {
+            borderColor: theme === "dark" ? "#333" : "#fff",
+            borderWidth: 1,
+            data: [/** @type {any} */ (zone).value], // Single value array for this zone
+            label: /** @type {any} */ (zone).label,
+        })),
+            chart = new /** @type {any} */(globalThis).Chart(canvas, {
                 data: {
                     datasets,
                     labels: ["Time in Zone"], // Single category for all zones
@@ -138,8 +140,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                 },
                 plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
                 type: "bar",
-            }),
-            savedColors = getChartZoneColors("hr", zoneData.length);
+            });
         return chart;
     } catch (error) {
         if (/** @type {any} */ (globalThis).showNotification) {

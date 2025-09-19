@@ -95,8 +95,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         document.body.innerHTML = "";
         openFileBtn = createButton();
         electronAPI = createElectronAPIMock();
-        // @ts-ignore
-        window.electronAPI = electronAPI;
+
+        // Synchronize electronAPI between window and globalThis scopes using property descriptor pattern
+        Object.defineProperty(window, 'electronAPI', {
+            value: electronAPI as any,
+            writable: true,
+            configurable: true
+        });
+        Object.defineProperty(globalThis, 'electronAPI', {
+            value: electronAPI as any,
+            writable: true,
+            configurable: true
+        });
+
         setLoading = vi.fn();
         showNotification = vi.fn();
         handleOpenFile = vi.fn();
@@ -174,15 +185,26 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     it("contextmenu: renders items and clicking loads file and updates recent", async () => {
         const files = ["C:/Users/Test/one.fit", "C:/Users/Test/two.fit"];
-        window.electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+        electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
 
         const arrayBuf = new ArrayBuffer(8);
-        window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
         const parseResult = { ok: true, data: { field: 1 } };
-        window.electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
-        window.electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
+        electronAPI.parseFitFile = vi.fn().mockResolvedValue(parseResult);
+        electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
         const showFitData = vi.fn();
-        window.showFitData = showFitData;
+
+        // Synchronize showFitData between window and globalThis scopes using property descriptor pattern
+        Object.defineProperty(window, 'showFitData', {
+            value: showFitData,
+            writable: true,
+            configurable: true
+        });
+        Object.defineProperty(globalThis, 'showFitData', {
+            value: showFitData,
+            writable: true,
+            configurable: true
+        });
 
         const isOpeningFileRef = { current: false };
 
@@ -207,15 +229,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const items = Array.from(menu.querySelectorAll("div"));
         expect(items.length).toBe(files.length);
 
-        // Click the second item and await async handler completion
-        const second = items[1] as HTMLDivElement & { onclick?: (ev: any) => Promise<void> | void };
-        await second.onclick?.(new MouseEvent("click"));
+        // Click the second item properly using dispatchEvent instead of direct onclick call
+        const second = items[1] as HTMLDivElement;
+        const clickEvent = new MouseEvent("click", { bubbles: true });
+        second.dispatchEvent(clickEvent);
 
         // readFile and parseFitFile should be called and then addRecentFile
         await vi.waitFor(() => {
-            expect(window.electronAPI.readFile).toHaveBeenCalledWith(files[1]);
-            expect(window.electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
-            expect(window.electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
+            expect(electronAPI.readFile).toHaveBeenCalledWith(files[1]);
+            expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
+            expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
             expect(showFitData).toHaveBeenCalledWith(parseResult, files[1]);
         });
         // Loading toggled on/off

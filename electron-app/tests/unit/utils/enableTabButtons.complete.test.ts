@@ -84,6 +84,22 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 disconnect: vi.fn(),
             })),
         };
+
+        // CRITICAL: Sync globalThis.window to match global.window for scope consistency
+        globalThis.window = global.window;
+
+        // CRITICAL: Property descriptor pattern for tabButtonsCurrentlyEnabled scope synchronization
+        let tabButtonsCurrentlyEnabledValue: boolean | undefined;
+        Object.defineProperty(global.window, 'tabButtonsCurrentlyEnabled', {
+            get: () => tabButtonsCurrentlyEnabledValue,
+            set: (value) => { tabButtonsCurrentlyEnabledValue = value; },
+            configurable: true
+        });
+        Object.defineProperty(globalThis, 'tabButtonsCurrentlyEnabled', {
+            get: () => tabButtonsCurrentlyEnabledValue,
+            set: (value) => { tabButtonsCurrentlyEnabledValue = value; },
+            configurable: true
+        });
     });
 
     afterEach(() => {
@@ -97,11 +113,11 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         console.warn = originalConsoleWarn;
 
         // Clean up global window properties
-        if (global.window.tabButtonsCurrentlyEnabled !== undefined) {
-            delete global.window.tabButtonsCurrentlyEnabled;
+        if ((global as any).window.tabButtonsCurrentlyEnabled !== undefined) {
+            delete (global as any).window.tabButtonsCurrentlyEnabled;
         }
-        if (global.window.tabButtonObserver) {
-            delete global.window.tabButtonObserver;
+        if ((global as any).window.tabButtonObserver) {
+            delete (global as any).window.tabButtonObserver;
         }
 
         vi.resetAllMocks();
@@ -178,9 +194,21 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         it("should set window global state for debugging", () => {
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 
+            // Debug scope relationships
+            console.log('Before setTabButtonsEnabled:');
+            console.log('globalThis === global.window:', globalThis === (global as any).window);
+            console.log('globalThis.window === global.window:', globalThis.window === (global as any).window);
+            console.log('window === global.window:', window === (global as any).window);
+
             setTabButtonsEnabled(true);
 
-            expect(global.window.tabButtonsCurrentlyEnabled).toBe(true);
+            // Debug what gets set where
+            console.log('After setTabButtonsEnabled:');
+            console.log('globalThis.tabButtonsCurrentlyEnabled:', (globalThis as any).tabButtonsCurrentlyEnabled);
+            console.log('window.tabButtonsCurrentlyEnabled:', (window as any).tabButtonsCurrentlyEnabled);
+            console.log('global.window.tabButtonsCurrentlyEnabled:', (global as any).window.tabButtonsCurrentlyEnabled);
+
+            expect((global as any).window.tabButtonsCurrentlyEnabled).toBe(true);
         });
 
         it("should apply comprehensive styling when disabling", () => {
@@ -307,18 +335,27 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 disconnect: vi.fn(),
             };
 
-            // Clear any existing observer
-            delete global.window.tabButtonObserver;
+            // Ensure clean state - the key is to ensure no existing observer
+            delete (global as any).window.tabButtonObserver;
+            delete (global as any).tabButtonObserver;
 
-            // Mock the global MutationObserver constructor (used by module)
+            // Verify clean state
+            expect((global as any).window.tabButtonObserver).toBeUndefined();
+
+            // Mock both global and window MutationObserver (implementation checks both)
             const originalMutationObserver = global.MutationObserver;
+            const originalWindowMutationObserver = global.window.MutationObserver;
             const MutationObserverSpy = vi.fn().mockImplementation(() => mockObserver);
+
+            // Mock both scopes to ensure the implementation finds our spy
             global.MutationObserver = MutationObserverSpy;
+            global.window.MutationObserver = MutationObserverSpy;
 
             initializeTabButtonState();
 
-            // Restore original
+            // Restore originals
             global.MutationObserver = originalMutationObserver;
+            global.window.MutationObserver = originalWindowMutationObserver;
 
             expect(MutationObserverSpy).toHaveBeenCalledWith(expect.any(Function));
             expect(mockObserver.observe).toHaveBeenCalled();
@@ -534,13 +571,18 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         });
 
         it("should handle missing getComputedStyle", () => {
-            // Mock getComputedStyle to throw an error
-            global.window.getComputedStyle = vi.fn().mockImplementation(() => {
+            // Mock getComputedStyle to throw an error - need to mock globalThis.getComputedStyle
+            const originalGetComputedStyle = globalThis.getComputedStyle;
+            globalThis.getComputedStyle = vi.fn().mockImplementation(() => {
                 throw new Error("getComputedStyle not available");
             });
+
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 
             expect(() => debugTabButtons()).toThrow();
+
+            // Restore original
+            globalThis.getComputedStyle = originalGetComputedStyle;
         });
 
         it("should handle undefined window object", () => {
@@ -588,19 +630,34 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         it("should handle MutationObserver callback for unauthorized changes", () => {
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 
-            let mutationCallback;
-            global.window.MutationObserver = vi.fn().mockImplementation((callback) => {
+            // Ensure clean state first
+            delete (global as any).window.tabButtonObserver;
+            delete (global as any).tabButtonObserver;
+
+            let mutationCallback: any;
+            const originalMutationObserver = global.MutationObserver;
+            const originalWindowMutationObserver = global.window.MutationObserver;
+
+            // Mock both global and window scope MutationObserver to capture callback
+            const MockObserverClass = vi.fn().mockImplementation((callback) => {
                 mutationCallback = callback;
                 return {
                     observe: vi.fn(),
                     disconnect: vi.fn(),
                 };
             });
-            global.window.tabButtonsCurrentlyEnabled = true;
+
+            global.MutationObserver = MockObserverClass;
+            global.window.MutationObserver = MockObserverClass;
+            (global as any).window.tabButtonsCurrentlyEnabled = true;
 
             initializeTabButtonState();
 
-            // Sanity check to satisfy requireAssertions and ensure setup is correct
+            // Restore originals
+            global.MutationObserver = originalMutationObserver;
+            global.window.MutationObserver = originalWindowMutationObserver;
+
+            // Sanity check to ensure setup is correct
             const testBtn = document.getElementById("tab-test");
             expect(testBtn).not.toBeNull();
             expect(mutationCallback).toBeDefined();
@@ -616,6 +673,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 // Mock hasAttribute to return true (unauthorized disabled)
                 vi.spyOn(testBtn, "hasAttribute").mockReturnValue(true);
                 vi.spyOn(testBtn, "removeAttribute");
+                testBtn.classList.add("tab-button"); // Ensure the element has the expected class
 
                 mutationCallback([mockMutation]);
 

@@ -53,6 +53,7 @@ describe("chartStatusIndicator.js", () => {
     let originalAddEventListener: typeof window.addEventListener;
     let originalConsoleError: typeof console.error;
     let originalTimeout: typeof setTimeout;
+    let originalDefineProperty: typeof Object.defineProperty;
 
     beforeEach(() => {
         // Reset mocks
@@ -72,6 +73,7 @@ describe("chartStatusIndicator.js", () => {
         originalAddEventListener = window.addEventListener;
         originalConsoleError = console.error;
         originalTimeout = global.setTimeout;
+        originalDefineProperty = Object.defineProperty;
 
         // Mock console.error
         console.error = vi.fn();
@@ -82,9 +84,30 @@ describe("chartStatusIndicator.js", () => {
             return 1;
         }) as any;
 
-        // Mock addEventListener
-        window.addEventListener = vi.fn();
-        document.addEventListener = vi.fn();
+        // Mock addEventListener for both window and document
+        const mockWindowAddEventListener = vi.fn();
+        const mockDocumentAddEventListener = vi.fn();
+
+        window.addEventListener = mockWindowAddEventListener;
+        document.addEventListener = mockDocumentAddEventListener;
+
+        // Synchronize addEventListener between window and globalThis scopes using property descriptor pattern
+        Object.defineProperty(globalThis, 'addEventListener', {
+            value: mockWindowAddEventListener,
+            writable: true,
+            configurable: true
+        });
+
+        // Synchronize Object.defineProperty behavior for globalData property
+        originalDefineProperty = Object.defineProperty;
+        Object.defineProperty = vi.fn((obj, prop, descriptor) => {
+            const result = originalDefineProperty.call(Object, obj, prop, descriptor);
+            // When defineProperty is called on globalThis for globalData, also apply it to window
+            if (obj === globalThis && prop === 'globalData') {
+                originalDefineProperty.call(Object, window, prop, descriptor);
+            }
+            return result;
+        }) as any;
     });
 
     afterEach(() => {
@@ -92,6 +115,7 @@ describe("chartStatusIndicator.js", () => {
         if (originalAddEventListener) window.addEventListener = originalAddEventListener;
         if (originalConsoleError) console.error = originalConsoleError;
         if (originalTimeout) global.setTimeout = originalTimeout;
+        if (originalDefineProperty) Object.defineProperty = originalDefineProperty;
 
         // Clear mock calls
         vi.clearAllMocks();
@@ -351,10 +375,13 @@ describe("chartStatusIndicator.js", () => {
         });
 
         it("should handle errors during setup gracefully", async () => {
-            // Mock addEventListener to throw an error
-            window.addEventListener = vi.fn().mockImplementation(() => {
+            // Mock addEventListener to throw an error - need to update both window and globalThis
+            const errorMock = vi.fn().mockImplementation(() => {
                 throw new Error("Test error");
             });
+
+            window.addEventListener = errorMock;
+            globalThis.addEventListener = errorMock;
 
             // Import the module
             const { setupChartStatusUpdates } = await import(

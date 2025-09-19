@@ -54,6 +54,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
         Chart = vi.fn().mockImplementation(() => chartInstanceMock);
         (global as any).window.Chart = Chart;
+        (global as any).globalThis.Chart = Chart;
 
         // Mock all dependencies
         vi.doMock("../../utils/charts/theming/chartThemeUtils.js", () => ({

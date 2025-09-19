@@ -96,10 +96,10 @@ describe("createUserDeviceInfoBox", () => {
         const container = makeContainer();
         const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-        // Force an error by making appendChild throw
-        const originalAppend = container.appendChild.bind(container);
+        // Force an error by making append throw (not appendChild)
+        const originalAppend = container.append.bind(container);
         // @ts-ignore
-        container.appendChild = () => {
+        container.append = () => {
             throw new Error("fail");
         };
 
@@ -107,6 +107,6 @@ describe("createUserDeviceInfoBox", () => {
         expect(consoleSpy).toHaveBeenCalled();
 
         // restore
-        container.appendChild = originalAppend;
+        container.append = originalAppend;
     });
 });

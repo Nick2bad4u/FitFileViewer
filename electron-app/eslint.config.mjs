@@ -57,7 +57,7 @@ export default defineConfig([
             "no-plusplus": "off", // Allow ++ and -- operators
             "require-await": "off", // Many async functions don't require await
             "class-methods-use-this": "off", // Class methods don't always need to use this
-            camelcase: ["warn", { allow: ["^[a-z]+(_[a-z0-9]+)*$"] }], // Allow snake_case for certain patterns
+            camelcase: "off", // Allow snake_case and other naming patterns for test variables and external APIs
             "capitalized-comments": "off", // Comments don't need to be capitalized
             "func-names": "off", // Allow anonymous functions
             "no-param-reassign": "off", // Allow parameter reassignment

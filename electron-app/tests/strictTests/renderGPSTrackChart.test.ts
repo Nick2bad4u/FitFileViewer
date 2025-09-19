@@ -61,6 +61,15 @@ describe("renderGPSTrackChart", () => {
             _chartjsInstances: [],
         };
 
+        // Ensure Chart is accessible from both window and globalThis
+        (global as any).globalThis.Chart = window.Chart;
+        // Sync chart instances between window and globalThis
+        Object.defineProperty((global as any).globalThis, '_chartjsInstances', {
+            get() { return (global as any).window._chartjsInstances; },
+            set(value) { (global as any).window._chartjsInstances = value; },
+            configurable: true
+        });
+
         // Mock localStorage with proper typing
         const mockLocalStorage = {
             getItem: vi.fn(),
@@ -93,6 +102,10 @@ describe("renderGPSTrackChart", () => {
         const globalWindow = (global as any).window;
         if (globalWindow && globalWindow._chartjsInstances) {
             globalWindow._chartjsInstances.length = 0;
+        }
+        // Clean up property descriptor
+        if ((global as any).globalThis) {
+            delete (global as any).globalThis._chartjsInstances;
         }
 
         // Restore console methods
@@ -618,6 +631,7 @@ describe("renderGPSTrackChart", () => {
             globalWindow.Chart = vi.fn(() => {
                 throw new Error("Chart creation failed");
             });
+            (global as any).globalThis.Chart = globalWindow.Chart;
 
             const data = [{ positionLat: 429496730, positionLong: -859993460 }];
             const options = { maxPoints: "all" };

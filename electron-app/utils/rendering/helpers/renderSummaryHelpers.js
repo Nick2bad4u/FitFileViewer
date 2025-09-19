@@ -312,7 +312,7 @@ export function saveColPrefs(key, visibleColumns, _allKeys) {
  * }} params
  * @returns {void}
  */
-export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleColumns: initialVisibleColumns }) {
+export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleColumns, visibleColumns: initialVisibleColumns }) {
     // Remove any existing modal
     const old = document.querySelector(".summary-col-modal-overlay");
     if (old) {
@@ -346,24 +346,24 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
     function updateColList() {
         colList.innerHTML = "";
         // Always show label column as checked and disabled
-        const cb = document.createElement("input"),
+        const checkbox = document.createElement("input"),
             label = document.createElement("label");
-        cb.type = "checkbox";
-        cb.checked = true;
-        cb.disabled = true;
-        label.append(cb);
+        checkbox.type = "checkbox";
+        checkbox.checked = true;
+        checkbox.disabled = true;
+        label.append(checkbox);
         label.append(document.createTextNode("Type"));
         colList.append(label);
         for (const [idx, key] of allKeys.entries()) {
-            const cb = document.createElement("input"),
-                label = document.createElement("label");
-            cb.type = "checkbox";
-            cb.checked = visibleColumns.includes(key);
-            cb.tabIndex = 0;
+            const loopCheckbox = document.createElement("input"),
+                loopLabel = document.createElement("label");
+            loopCheckbox.type = "checkbox";
+            loopCheckbox.checked = visibleColumns.includes(key);
+            loopCheckbox.tabIndex = 0;
             /**
              * @param {MouseEvent} e
              */
-            cb.addEventListener("mousedown", (e) => {
+            loopCheckbox.addEventListener("mousedown", (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     e.preventDefault();
                     const end = Math.max(lastCheckedIndex, idx),
@@ -385,20 +385,20 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
                     newCols = allKeys.filter((k) => newCols.includes(k));
                     updateVisibleColumns(newCols);
                     updateColList();
-                    renderTable();
+                    reRenderTable();
                     saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
                 }
             });
             /**
              * @param {Event & { shiftKey?: boolean}} e
              */
-            cb.addEventListener("change", (e) => {
+            loopCheckbox.addEventListener("change", (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     return;
                 } // Handled in onmousedown
                 lastCheckedIndex = idx;
                 let newCols = [...visibleColumns];
-                if (cb.checked) {
+                if (loopCheckbox.checked) {
                     if (!newCols.includes(key)) {
                         newCols.push(key);
                     }
@@ -409,12 +409,12 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
                 updateVisibleColumns(newCols);
                 selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
                 updateColList();
-                renderTable();
+                reRenderTable();
                 saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
             });
-            label.append(cb);
-            label.append(document.createTextNode(key));
-            colList.append(label);
+            loopLabel.append(loopCheckbox);
+            loopLabel.append(document.createTextNode(key));
+            colList.append(loopLabel);
         }
         selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
     }
@@ -424,7 +424,7 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
         const newCols = visibleColumns.length === allKeys.length ? [] : [...allKeys];
         updateVisibleColumns(newCols);
         updateColList();
-        renderTable();
+        reRenderTable();
         saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
     });
     modal.append(selectAllBtn);
@@ -447,7 +447,7 @@ export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleC
     okBtn.textContent = "OK";
     okBtn.addEventListener("click", () => {
         overlay.remove();
-        renderTable();
+        reRenderTable();
         saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), visibleColumns);
     });
     actions.append(cancelBtn);

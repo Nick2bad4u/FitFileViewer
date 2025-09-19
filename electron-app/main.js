@@ -3,6 +3,33 @@
 /** @type {any|null} */
 let __electronOverride =
     (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).__electronHoistedMock) || null;
+
+// Electron APIs must be accessed lazily so tests can hoist mocks that provide dynamic getters.
+// Do NOT destructure at require-time; this would capture undefined before tests set mock values.
+function getElectron() {
+    // Always handle CJS/ESM interop so hoisted mocks (which may be wrapped) are respected in tests
+    try {
+        if (__electronOverride) return __electronOverride;
+
+        const mod = require("electron");
+        // Prefer the variant that actually exposes Electron APIs (supports hoisted getter-based mocks)
+        const hasApis = (/** @type {any} */ m) =>
+            m && (m.app || m.BrowserWindow || m.ipcMain || m.Menu || m.shell || m.dialog);
+        if (hasApis(mod)) return mod;
+        const def = /** @type {any} */ (mod).default;
+        if (hasApis(def)) return def;
+        return mod || /** @type {any} */ ({});
+    } catch {
+        return /** @type {any} */ ({});
+    }
+}
+const appRef = () => /** @type {any} */(getElectron().app);
+const browserWindowRef = () => /** @type {any} */(getElectron().BrowserWindow);
+const dialogRef = () => /** @type {any} */(getElectron().dialog);
+const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
+const menuRef = () => /** @type {any} */(getElectron().Menu);
+const shellRef = () => /** @type {any} */(getElectron().shell);
+
 // Super-early minimal priming for import-based tests: ensure spies on whenReady/getAllWindows observe calls
 try {
     if (typeof process !== "undefined" && process.env && /** @type {any} */ (process.env).NODE_ENV === "test") {
@@ -61,7 +88,7 @@ try {
                             /* Ignore app setup errors */
                         }
                     }
-                    const BW = BrowserWindowRef();
+                    const BW = browserWindowRef();
                     if (BW && typeof BW.getAllWindows === "function") {
                         try {
                             BW.getAllWindows();
@@ -112,31 +139,6 @@ try {
 } catch {
     /* Ignore overall setup errors */
 }
-// Electron APIs must be accessed lazily so tests can hoist mocks that provide dynamic getters.
-// Do NOT destructure at require-time; this would capture undefined before tests set mock values.
-function getElectron() {
-    // Always handle CJS/ESM interop so hoisted mocks (which may be wrapped) are respected in tests
-    try {
-        if (__electronOverride) return __electronOverride;
-
-        const mod = require("electron");
-        // Prefer the variant that actually exposes Electron APIs (supports hoisted getter-based mocks)
-        const hasApis = (/** @type {any} */ m) =>
-            m && (m.app || m.BrowserWindow || m.ipcMain || m.Menu || m.shell || m.dialog);
-        if (hasApis(mod)) return mod;
-        const def = /** @type {any} */ (mod).default;
-        if (hasApis(def)) return def;
-        return mod || /** @type {any} */ ({});
-    } catch {
-        return /** @type {any} */ ({});
-    }
-}
-const appRef = () => /** @type {any} */ (getElectron().app);
-const BrowserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
-const dialogRef = () => /** @type {any} */ (getElectron().dialog);
-const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
-const MenuRef = () => /** @type {any} */ (getElectron().Menu);
-const shellRef = () => /** @type {any} */ (getElectron().shell);
 // Vitest sometimes returns stub modules before hoisted getter-mocks are fully wired.
 // Provide a tiny retry loop in tests to call whenReady/getAllWindows once mocks settle.
 try {
@@ -205,7 +207,6 @@ try {
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const url = require("node:url");
 // Auto-updater: defer require to inside setupAutoUpdater to avoid require-time side-effects in tests
 
 const { addRecentFile, loadRecentFiles } = require("./utils/files/recent/recentFiles");
@@ -304,10 +305,10 @@ function exposeDevHelpers() {
             });
         },
         rebuildMenu: (/** @type {any} */ theme, /** @type {any} */ filePath) => {
-            const win = BrowserWindowRef().getFocusedWindow();
+            const win = browserWindowRef().getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */ (win),
+                    /** @type {any} */(win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );
@@ -320,10 +321,10 @@ function exposeDevHelpers() {
 
 // State getters and setters using the new state management system
 /**
- * @param {string} path
+ * @param {string} statePath
  */
-function getAppState(path) {
-    return mainProcessState.get(path);
+function getAppState(statePath) {
+    return mainProcessState.get(statePath);
 }
 
 /**
@@ -350,8 +351,8 @@ try {
         __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
             ? __prime_mod
             : __prime_mod && __prime_mod.default
-              ? __prime_mod.default
-              : __prime_mod;
+                ? __prime_mod.default
+                : __prime_mod;
     const __prime_app = __prime && __prime.app;
     const __prime_BW = __prime && __prime.BrowserWindow;
     let __prime_app_val = __prime_app;
@@ -409,7 +410,7 @@ try {
         }
     } else {
         try {
-            const __lazyBW = BrowserWindowRef();
+            const __lazyBW = browserWindowRef();
             if (__lazyBW && typeof __lazyBW.getAllWindows === "function") {
                 try {
                     __lazyBW.getAllWindows();
@@ -446,7 +447,7 @@ async function initializeApplication() {
     // WindowStateUtils (which destructures electron at import-time) and instead use an
     // Existing window from BrowserWindow.getAllWindows(). This prevents "BrowserWindow is not a constructor"
     // Errors under hoisted getter-based mocks.
-    const BW = BrowserWindowRef();
+    const BW = browserWindowRef();
     const isConstructor = typeof BW === "function";
 
     /** @type {any} */
@@ -487,8 +488,8 @@ async function initializeApplication() {
                 webContents: {
                     executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
                     isDestroyed: () => false,
-                    on: () => {},
-                    send: () => {},
+                    on: () => { },
+                    send: () => { },
                 },
             };
         }
@@ -607,11 +608,11 @@ function sendToRenderer(win, channel, ...args) {
 }
 
 /**
- * @param {string} path
+ * @param {string} statePath
  * @param {any} value
  */
-function setAppState(path, value, options = {}) {
-    return mainProcessState.set(path, value, options);
+function setAppState(statePath, value, options = {}) {
+    return mainProcessState.set(statePath, value, options);
 }
 
 // Ultra-early test-only init to satisfy import-based coverage expectations even if later blocks abort
@@ -652,12 +653,12 @@ try {
 function setupApplicationEventHandlers() {
     // App activation handler (macOS)
     appRef().on("activate", () => {
-        if (BrowserWindowRef().getAllWindows().length === 0) {
+        if (browserWindowRef().getAllWindows().length === 0) {
             const { createWindow } = require("./windowStateUtils");
             const win = createWindow();
             safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
         } else {
-            const win = BrowserWindowRef().getFocusedWindow() || getAppState("mainWindow");
+            const win = browserWindowRef().getFocusedWindow() || getAppState("mainWindow");
             if (validateWindow(win, "app activate event")) {
                 safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
             }
@@ -839,7 +840,7 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
         },
         "update-downloaded": (/** @type {any} */ info) => {
             sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.DOWNLOADED, info);
-            const menu = MenuRef() && MenuRef().getApplicationMenu ? MenuRef().getApplicationMenu() : null;
+            const menu = menuRef() && menuRef().getApplicationMenu ? menuRef().getApplicationMenu() : null;
             if (menu) {
                 const restartItem = menu.getMenuItemById("restart-update");
                 if (restartItem && restartItem.enabled !== undefined) {
@@ -879,8 +880,8 @@ function setupIPCHandlers(mainWindow) {
 
                 // Fetch current theme from renderer before rebuilding menu
                 const win =
-                    (BrowserWindowRef() && BrowserWindowRef().getFocusedWindow
-                        ? BrowserWindowRef().getFocusedWindow()
+                    (browserWindowRef() && browserWindowRef().getFocusedWindow
+                        ? browserWindowRef().getFocusedWindow()
                         : null) || mainWindow;
                 if (win) {
                     const theme = await getThemeFromRenderer(win);
@@ -900,11 +901,11 @@ function setupIPCHandlers(mainWindow) {
     });
     ipcMainRef().on("fit-file-loaded", async (/** @type {any} */ event, /** @type {string} */ filePath) => {
         setAppState("loadedFitFilePath", filePath);
-        const win = BrowserWindowRef().fromWebContents(event.sender);
+        const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "fit-file-loaded event")) {
             try {
-                const theme = await getThemeFromRenderer(/** @type {any} */ (win));
-                safeCreateAppMenu(/** @type {any} */ (win), theme, getAppState("loadedFitFilePath"));
+                const theme = await getThemeFromRenderer(/** @type {any} */(win));
+                safeCreateAppMenu(/** @type {any} */(win), theme, getAppState("loadedFitFilePath"));
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", {
                     error: /** @type {Error} */ (error).message,
@@ -928,8 +929,8 @@ function setupIPCHandlers(mainWindow) {
         try {
             addRecentFile(filePath);
             const win =
-                (BrowserWindowRef() && BrowserWindowRef().getFocusedWindow
-                    ? BrowserWindowRef().getFocusedWindow()
+                (browserWindowRef() && browserWindowRef().getFocusedWindow
+                    ? browserWindowRef().getFocusedWindow()
                     : null) || mainWindow;
             if (win) {
                 const theme = await getThemeFromRenderer(win);
@@ -1104,10 +1105,10 @@ function setupIPCHandlers(mainWindow) {
 function setupMenuAndEventHandlers() {
     // Theme change handler
     ipcMainRef().on("theme-changed", async (/** @type {any} */ event, /** @type {any} */ theme) => {
-        const win = BrowserWindowRef().fromWebContents(event.sender);
+        const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
             safeCreateAppMenu(
-                /** @type {any} */ (win),
+                /** @type {any} */(win),
                 theme || CONSTANTS.DEFAULT_THEME,
                 getAppState("loadedFitFilePath")
             );
@@ -1171,13 +1172,13 @@ function setupMenuAndEventHandlers() {
     const fileMenuHandlers = {
         "menu-export": async (/** @type {any} */ event) => {
             const loadedFilePath = getAppState("loadedFitFilePath"),
-                win = BrowserWindowRef().fromWebContents(event.sender);
+                win = browserWindowRef().fromWebContents(event.sender);
             if (!loadedFilePath || !win) {
                 return;
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
                     filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                     title: "Export As",
@@ -1194,13 +1195,13 @@ function setupMenuAndEventHandlers() {
         },
         "menu-save-as": async (/** @type {any} */ event) => {
             const loadedFilePath = getAppState("loadedFitFilePath"),
-                win = BrowserWindowRef().fromWebContents(event.sender);
+                win = browserWindowRef().fromWebContents(event.sender);
             if (!loadedFilePath || !win) {
                 return;
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                     title: "Save As",
@@ -1224,7 +1225,7 @@ function setupMenuAndEventHandlers() {
 
     // Fullscreen handler
     ipcMainRef().on("set-fullscreen", (/** @type {any} */ _event, /** @type {any} */ flag) => {
-        const win = BrowserWindowRef().getFocusedWindow();
+        const win = browserWindowRef().getFocusedWindow();
         if (validateWindow(win, "set-fullscreen event")) {
             /** @type {any} */ (win).setFullScreen(Boolean(flag));
         }
@@ -1236,10 +1237,10 @@ function setupMenuAndEventHandlers() {
         (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
             const f = fitFilePath || null,
                 t = theme || CONSTANTS.DEFAULT_THEME,
-                win = BrowserWindowRef().fromWebContents(event.sender);
+                win = browserWindowRef().fromWebContents(event.sender);
             logWithContext("info", "Manual menu injection requested", { fitFilePath: f, theme: t });
             if (win) {
-                safeCreateAppMenu(/** @type {any} */ (win), t, f);
+                safeCreateAppMenu(/** @type {any} */(win), t, f);
             }
             return true;
         }
@@ -1319,7 +1320,7 @@ try {
                         /* Ignore errors */
                     }
                 } else {
-                    const BWfb = BrowserWindowRef();
+                    const BWfb = browserWindowRef();
                     if (BWfb && typeof BWfb.getAllWindows === "function") {
                         try {
                             BWfb.getAllWindows();
@@ -1329,7 +1330,7 @@ try {
                     }
                 }
             } catch {
-                const BWfb = BrowserWindowRef();
+                const BWfb = browserWindowRef();
                 if (BWfb && typeof BWfb.getAllWindows === "function") {
                     try {
                         BWfb.getAllWindows();
@@ -1404,7 +1405,7 @@ try {
         });
     }
     // Prime BrowserWindow.getAllWindows once at import-time to satisfy coverage expectations in tests
-    const BW = BrowserWindowRef();
+    const BW = browserWindowRef();
     if (BW && typeof BW.getAllWindows === "function") {
         BW.getAllWindows();
     }
@@ -1503,7 +1504,7 @@ async function startGyazoOAuthServer(port = 3000) {
     return new Promise((resolve, reject) => {
         try {
             const server = http.createServer((req, res) => {
-                const parsedUrl = url.parse(/** @type {string} */ (req.url), true);
+                const parsedUrl = new URL(/** @type {string} */(req.url), `http://localhost:${port}`);
 
                 // Handle CORS and preflight requests
                 res.setHeader("Access-Control-Allow-Origin", "*");
@@ -1517,7 +1518,9 @@ async function startGyazoOAuthServer(port = 3000) {
                 }
 
                 if (parsedUrl.pathname === "/gyazo/callback") {
-                    const { code, error, state } = parsedUrl.query;
+                    const code = parsedUrl.searchParams.get('code');
+                    const error = parsedUrl.searchParams.get('error');
+                    const state = parsedUrl.searchParams.get('state');
 
                     // Send a response to the browser
                     if (error) {

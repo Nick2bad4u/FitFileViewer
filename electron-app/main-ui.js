@@ -41,28 +41,28 @@ import { showNotification } from "./utils/ui/notifications/showNotification.js";
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
-        DOM_IDS: {
-            ACTIVE_FILE_NAME: "activeFileName",
-            ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-            ALT_FIT_IFRAME: "altfit-iframe",
-            CONTENT_CHART: "content-chart",
-            CONTENT_DATA: "content-data",
-            CONTENT_MAP: "content-map",
-            CONTENT_SUMMARY: "content-summary",
-            DROP_OVERLAY: "drop-overlay",
-            TAB_CHART: "tab-chart",
-            TAB_SUMMARY: "tab-summary",
-            UNLOAD_FILE_BTN: "unloadFileBtn",
-            ZWIFT_IFRAME: "zwift-iframe",
-        },
-        IFRAME_PATHS: {
-            ALT_FIT: "libs/ffv/index.html",
-        },
-        SELECTORS: {
-            SUMMARY_GEAR_BTN: ".summary-gear-btn",
-        },
-        SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+    DOM_IDS: {
+        ACTIVE_FILE_NAME: "activeFileName",
+        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
+        ALT_FIT_IFRAME: "altfit-iframe",
+        CONTENT_CHART: "content-chart",
+        CONTENT_DATA: "content-data",
+        CONTENT_MAP: "content-map",
+        CONTENT_SUMMARY: "content-summary",
+        DROP_OVERLAY: "drop-overlay",
+        TAB_CHART: "tab-chart",
+        TAB_SUMMARY: "tab-summary",
+        UNLOAD_FILE_BTN: "unloadFileBtn",
+        ZWIFT_IFRAME: "zwift-iframe",
     },
+    IFRAME_PATHS: {
+        ALT_FIT: "libs/ffv/index.html",
+    },
+    SELECTORS: {
+        SUMMARY_GEAR_BTN: ".summary-gear-btn",
+    },
+    SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+},
     // Event listener management with state integration
     eventListeners = new Map();
 
@@ -171,7 +171,7 @@ function unloadFitFile() {
 
         // Update file state
         if (fitFileStateManager) {
-            fitFileStateManager.handleFileLoaded(/** @type {any} */ (null));
+            fitFileStateManager.handleFileLoaded(/** @type {any} */(null));
         }
 
         // Clear UI
@@ -382,7 +382,6 @@ class DragDropHandler {
 
         if (!file || !file.name.toLowerCase().endsWith(".fit")) {
             const message = "Only .fit files are supported. Please drop a valid .fit file.";
-            alert(message);
             showNotification(message, "warning");
             return;
         }
@@ -403,7 +402,6 @@ class DragDropHandler {
 
             if (!validateElectronAPI()) {
                 const message = "FIT file decoding is not supported in this environment.";
-                alert(message);
                 showNotification(message, "error");
                 return;
             }
@@ -415,10 +413,6 @@ class DragDropHandler {
                 globalThis.sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(`File "${file.name}" loaded successfully`, "success");
             } else {
-                const errorMessage = `Unable to process the FIT file. Please try again or check the file format. Details: ${
-                    fitData.error || "Unknown error"
-                }`;
-                alert(errorMessage);
                 showNotification("Failed to load FIT file", "error");
 
                 // Handle error in state manager
@@ -429,13 +423,12 @@ class DragDropHandler {
         } catch (error) {
             console.error("[main-ui] Error processing dropped file:", error);
             const message = "An unexpected error occurred while processing the FIT file.";
-            alert(message);
             showNotification(message, "error");
 
             // Handle error in state manager
             if (fitFileStateManager) {
                 fitFileStateManager.handleFileLoadingError(
-                    /** @type {Error} */ (error instanceof Error ? error : new Error(String(error)))
+                    /** @type {Error} */(error instanceof Error ? error : new Error(String(error)))
                 );
             }
         } finally {
@@ -458,7 +451,7 @@ class DragDropHandler {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.addEventListener("load", (event) => {
-                resolve(/** @type {any} */ (event).target?.result || null);
+                resolve(/** @type {any} */(event).target?.result || null);
             });
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
@@ -503,7 +496,6 @@ class DragDropHandler {
             const de = /** @type {any} */ (e);
             if (!de.dataTransfer || !de.dataTransfer.files || de.dataTransfer.files.length === 0) {
                 const message = "No valid files detected. Please drop a .fit file.";
-                alert(message);
                 showNotification(message, "warning");
                 return;
             }
@@ -529,7 +521,7 @@ class DragDropHandler {
             addEventListenerWithCleanup(iframe, "drop", (e) => {
                 e.preventDefault();
                 this.hideDropOverlay();
-                alert("Please drop files outside the iframe to process them.");
+                showNotification("Please drop files outside the iframe to process them.", "info");
             });
         }
 
@@ -542,7 +534,7 @@ class DragDropHandler {
             addEventListenerWithCleanup(zwiftIframe, "drop", (e) => {
                 e.preventDefault();
                 this.hideDropOverlay();
-                alert("Please drop files outside the ZwiftMap iframe to process them.");
+                showNotification("Please drop files outside the ZwiftMap iframe to process them.", "info");
             });
         }
     }
@@ -589,7 +581,7 @@ function setupExternalLinkHandlers() {
         const target = e.target instanceof HTMLElement ? e.target : null,
             link = target?.closest('[data-external-link="true"]');
         if (link) {
-            handleExternalLink(e, /** @type {HTMLElement} */ (link));
+            handleExternalLink(e, /** @type {HTMLElement} */(link));
         }
     });
 
@@ -599,8 +591,8 @@ function setupExternalLinkHandlers() {
                 link = target?.closest('[data-external-link="true"]');
             if (link) {
                 handleExternalLink(
-                    /** @type {MouseEvent} */ (/** @type {any} */ (e)),
-                    /** @type {HTMLElement} */ (link)
+                    /** @type {MouseEvent} */(/** @type {any} */ (e)),
+                    /** @type {HTMLElement} */(link)
                 );
             }
         }

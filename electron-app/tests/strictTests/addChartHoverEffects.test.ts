@@ -482,6 +482,13 @@ describe("addHoverEffectsToExistingCharts", () => {
         // Mock global function
         (global as any).window = { getThemeConfig: vi.fn(() => ({ colors: {} })) };
 
+        // Sync getThemeConfig between window and globalThis scopes
+        Object.defineProperty(globalThis, 'getThemeConfig', {
+            get() { return (global as any).window?.getThemeConfig; },
+            set(value) { if ((global as any).window) (global as any).window.getThemeConfig = value; },
+            configurable: true
+        });
+
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         addHoverEffectsToExistingCharts();
 
@@ -490,6 +497,7 @@ describe("addHoverEffectsToExistingCharts", () => {
 
         logSpy.mockRestore();
         delete (global as any).window;
+        delete (globalThis as any).getThemeConfig;
     });
 });
 

@@ -56,6 +56,15 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         (global as any).window.Chart = Chart;
         (global as any).window._chartjsInstances = [];
 
+        // Ensure Chart is accessible from both window and globalThis
+        (global as any).globalThis.Chart = Chart;
+        // Sync chart instances between window and globalThis using property descriptor
+        Object.defineProperty((global as any).globalThis, '_chartjsInstances', {
+            get() { return (global as any).window._chartjsInstances; },
+            set(value) { (global as any).window._chartjsInstances = value; },
+            configurable: true
+        });
+
         // Mock all dependencies
         vi.doMock("../../utils/theming/core/theme.js", () => ({
             getThemeConfig: vi.fn(() => ({
@@ -112,6 +121,15 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
     });
 
     afterEach(() => {
+        // Clean up global Chart instances
+        if ((global as any).window && (global as any).window._chartjsInstances) {
+            (global as any).window._chartjsInstances.length = 0;
+        }
+        // Clean up property descriptor
+        if ((global as any).globalThis) {
+            delete (global as any).globalThis._chartjsInstances;
+        }
+
         vi.clearAllMocks();
         vi.resetAllMocks();
         vi.resetModules();

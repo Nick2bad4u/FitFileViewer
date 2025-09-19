@@ -179,9 +179,10 @@ describe("main-ui.js core flows", () => {
         // Call exposed function on window (installed by module)
         const fn = (window as any).sendFitFileToAltFitReader as (ab: ArrayBuffer) => Promise<void>;
         await fn(buf);
-        // First call sets src and waits for onload; simulate onload
+        // First call sets src and waits for onload; simulate load event
         expect(iframe.src).toContain("libs/ffv/index.html");
-        iframe.onload && iframe.onload(new Event("load"));
+        // Dispatch load event to trigger the addEventListener callback
+        iframe.dispatchEvent(new Event("load"));
         // Accept actual converter output under instrumentation
         expect(postMessage).toHaveBeenCalledWith({ type: "fit-file", base64: expect.any(String) }, "*");
     });

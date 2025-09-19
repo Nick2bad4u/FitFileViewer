@@ -106,6 +106,9 @@ beforeEach(() => {
     // Ensure global.window references the same object as window
     global.window = window;
 
+    // Ensure Chart is accessible from both window and globalThis
+    (global as any).globalThis.Chart = window.Chart;
+
     // Mock console.error
     mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 

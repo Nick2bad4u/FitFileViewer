@@ -47,7 +47,7 @@ export function setupTabButton(id, handler) {
     // Clean up any existing handlers to prevent memory leaks
     // Store the handler reference for potential cleanup
     if (/** @type {any} */ (btn)._setupTabButtonHandler) {
-        btn.removeEventListener("click", /** @type {any} */ (btn)._setupTabButtonHandler);
+        btn.removeEventListener("click", /** @type {any} */(btn)._setupTabButtonHandler);
     }
 
     // Store handler reference for cleanup and add new listener
@@ -72,7 +72,7 @@ export function clearTabButtonCache() {
     const cache = /** @type {Map<string, HTMLElement>|undefined} */ (/** @type {any} */ (setupTabButton).cache);
     if (cache) {
         // Clean up event handlers before clearing cache
-        for (const btn of cache) {
+        for (const btn of cache.values()) {
             const anyBtn = /** @type {any} */ (btn);
             if (anyBtn._setupTabButtonHandler) {
                 btn.removeEventListener("click", anyBtn._setupTabButtonHandler);
