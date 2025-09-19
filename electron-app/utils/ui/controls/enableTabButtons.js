@@ -47,18 +47,13 @@ export function debugTabButtons() {
         }
 
         // Explicitly test getComputedStyle availability and propagate failure for tests
-        try {
-            if (!(globalThis.window !== undefined && typeof globalThis.getComputedStyle === "function")) {
-                throw new TypeError("getComputedStyle not available");
-            }
-            // Intentionally invoke getComputedStyle to surface any mocked errors
-            // The result isn't used directly here; safeComputedStyle is used below for values
-            // But we want to ensure environments that throw are detected and rethrown
-            globalThis.getComputedStyle(btn);
-        } catch (error) {
-            // Re-throw to satisfy the test case expecting a throw
-            throw error;
+        if (!(globalThis.window !== undefined && typeof globalThis.getComputedStyle === "function")) {
+            throw new TypeError("getComputedStyle not available");
         }
+        // Intentionally invoke getComputedStyle to surface any mocked errors
+        // The result isn't used directly here; safeComputedStyle is used below for values
+        // But we want to ensure environments that throw are detected and rethrown
+        globalThis.getComputedStyle(btn);
 
         const buttonEl = /** @type {HTMLButtonElement} */ (btn);
         console.log(`[TabButtons] Button ${btnId}:`, {
@@ -437,9 +432,7 @@ export function testTabButtonClicks() {
         const testHandler = (event) => {
             console.log(`[TabButtons] TEST CLICK DETECTED on ${btnId}!`, event);
             try {
-                if (typeof alert === "function") {
-                    alert(`Clicked on ${btnId}!`);
-                }
+                console.log(`Clicked on ${btnId}!`);
             } catch {
                 /* Ignore errors */
             }
@@ -508,7 +501,7 @@ function ensureObserverInstalled() {
         const observer = new ObserverCtor(callback);
         if (globalCtor && windowCtor && globalCtor !== windowCtor) {
             try {
-                // eslint-disable-next-line no-new
+                // eslint-disable-next-line no-new, new-cap
                 new windowCtor(callback);
             } catch {
                 /* Ignore errors */

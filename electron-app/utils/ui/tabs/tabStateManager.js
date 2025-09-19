@@ -495,7 +495,7 @@ class TabStateManager {
                     break;
                 }
                 case "chart":
-
+                // falls through to chartjs case
                 case "chartjs": {
                     await this.handleChartTab(globalData);
                     break;

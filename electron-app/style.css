@@ -2435,7 +2435,14 @@ footer {
 .exit-multilap-btn:hover,
 .deselect-all-btn:hover,
 .multi-lap-toggle:hover {
-    background: #e3f2fd;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme hover effect for better contrast */
+body.theme-light .exit-multilap-btn:hover,
+body.theme-light .deselect-all-btn:hover,
+body.theme-light .multi-lap-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .exit-multilap-btn {

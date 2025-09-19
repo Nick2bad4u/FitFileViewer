@@ -207,20 +207,18 @@ export function renderMap() {
         /** @type {ReturnType<typeof setTimeout>} */
         let timeout;
         return /** @type {any} */ (
-            function () {
-                // @ts-ignore: arguments is available in function context
-                const args = Array.prototype.slice.call(arguments);
+            function (...args) {
                 clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(null, args), wait);
+                timeout = setTimeout(() => func(...args), wait);
             }
         );
     }
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            /** @type {EventListener} */ (
+            /** @type {EventListener} */(
                 debounce(
-                    /** @param {Event} e */ (e) => {
+                    /** @param {Event} e */(e) => {
                         isDragging = true;
                         const target = /** @type {HTMLInputElement} */ (e.target),
                             percent = Number(target.value);
@@ -387,16 +385,16 @@ export function renderMap() {
         for (const [idx, fitFile] of windowExt.loadedFitFiles.entries()) {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
-                    chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
-                ),
+                chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
+            ),
                 fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
                 bounds = drawOverlayForFitFile({
                     color,
                     endIcon,
                     fileName,
                     fitData: fitFile.data,
-                    formatTooltipData: (/** @type {any} */ idx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
-                        formatTooltipData(idx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                    formatTooltipData: (/** @type {any} */ pointIdx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
+                        formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
                     getLapNumForIdx,
                     map,
                     markerClusterGroup,
@@ -468,7 +466,7 @@ export function renderMap() {
         updateMapTheme();
         if (!windowExt._mapThemeListener) {
             windowExt._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
+            document.body.addEventListener("themechange", /** @type {EventListener} */(windowExt._mapThemeListener));
         }
     }
 }

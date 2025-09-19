@@ -265,6 +265,11 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
             icon: "⚙️",
             text: "Gyazo Settings",
         },
+        {
+            action: () => exportUtils.showImgurAccountManager(),
+            icon: "🔧",
+            text: "Imgur Settings",
+        },
     ];
 
     for (const btn of exportButtons) {

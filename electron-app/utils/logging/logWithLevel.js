@@ -27,13 +27,7 @@ export function logWithLevel(level, message, context) {
             // First, attempt to detect if the object has any own properties using Object.keys.
             // Some tests intentionally mock Object.keys to throw; guard it and fallback gracefully.
             let hasProps = false;
-            try {
-                hasProps = Object.keys(/** @type {any} */ (context)).length > 0;
-            } catch (error) {
-                // Treat failure to enumerate keys as a fatal logging path.
-                // Bubble to outer catch so we emit the minimal fallback line expected by tests.
-                throw error;
-            }
+            hasProps = Object.keys(/** @type {any} */(context)).length > 0;
             // Shallow clone without relying on Object.entries to avoid other global mutations.
             // Also guard against getters that may throw during property access.
             /** @type {Record<string, any>} */
@@ -42,7 +36,7 @@ export function logWithLevel(level, message, context) {
             // Prefer for..in with hasOwnProperty to enumerate own-enumerable keys
             // While avoiding reliance on global Object methods that tests may mock to throw.
             for (const k in /** @type {Record<string, any>} */ (context)) {
-                if (Object.hasOwn(/** @type {any} */ (context), k)) {
+                if (Object.hasOwn(/** @type {any} */(context), k)) {
                     try {
                         clone[k] = /** @type {any} */ (context)[k];
                         hasAny = true;

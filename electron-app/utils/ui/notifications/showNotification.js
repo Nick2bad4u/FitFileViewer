@@ -37,8 +37,8 @@
 
 // Notification queue for managing multiple notifications
 /** @type {QueuedNotification[]} */
-let isShowingNotification = false,
-    notificationQueue = [];
+let isShowingNotification = false;
+const notificationQueue = [];
 
 // Notification type configurations with icons and default durations
 /**
@@ -105,7 +105,7 @@ export function clearAllNotifications() {
  * @param {NotificationOptions} [options]
  * @returns {Promise<void>}
  */
-export async function showNotification(message, type = "info", duration, options = {}) {
+export async function showNotification(message, type = "info", duration = null, options = {}) {
     // Validate inputs
     if (!message || typeof message !== "string") {
         console.warn("showNotification: Invalid message provided");
@@ -123,7 +123,7 @@ export async function showNotification(message, type = "info", duration, options
 
     // Promise that resolves when THIS notification becomes visible
     /** @type {(value?: void) => void} */
-    let resolveShown = () => {};
+    let resolveShown = () => { };
     const shownPromise = new Promise((resolve) => {
         resolveShown = /** @type {(value?: void) => void} */ (resolve);
     });
@@ -438,7 +438,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     persistent: (message, type = "info", options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
             ...options,
             persistent: true,
         }),
@@ -467,7 +467,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     withActions: (message, type = "info", actions = [], options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
             ...options,
             actions,
             persistent: true,

@@ -68,13 +68,13 @@ class MainProcessState {
      */
     addError(error, context = {}) {
         const errorObj = {
-                context,
-                id: Date.now().toString(),
-                message: error instanceof Error ? error.message : String(error),
-                source: "mainProcess",
-                stack: error instanceof Error ? error.stack : null,
-                timestamp: Date.now(),
-            },
+            context,
+            id: Date.now().toString(),
+            message: error instanceof Error ? error.message : String(error),
+            source: "mainProcess",
+            stack: error instanceof Error ? error.stack : null,
+            timestamp: Date.now(),
+        },
             errors = this.get("errors") || [];
         errors.unshift(errorObj); // Add to beginning
 
@@ -154,13 +154,13 @@ class MainProcessState {
         }
 
         const errorObj =
-                error instanceof Error
-                    ? {
-                          message: error.message,
-                          name: error.name,
-                          stack: error.stack,
-                      }
-                    : { message: String(error) },
+            error instanceof Error
+                ? {
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack,
+                }
+                : { message: String(error) },
             failedOp = {
                 ...operation,
                 duration: Date.now() - operation.startTime,
@@ -204,7 +204,8 @@ class MainProcessState {
                 // @ts-ignore index signature loosened at runtime
                 return current[key];
             }
-        }, /** @type {any} */ (obj));
+            return null;
+        }, /** @type {any} */(obj));
     }
 
     /**
@@ -500,7 +501,7 @@ class MainProcessState {
                     return current[key];
                 }
                 return {};
-            }, /** @type {any} */ (obj));
+            }, /** @type {any} */(obj));
         if (lastKey) {
             // @ts-ignore dynamic expansion
             target[lastKey] = value;

@@ -420,7 +420,7 @@ const FitFileViewerUtils = {
         }
 
         try {
-            return util.apply(null, args);
+            return util(...args);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Unknown error";
             logWithContext("error", `Error executing utility: ${utilName}`, {

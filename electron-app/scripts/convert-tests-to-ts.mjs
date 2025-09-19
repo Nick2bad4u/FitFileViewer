@@ -6,7 +6,6 @@
  */
 import { lstat, readdir, rename, stat } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;

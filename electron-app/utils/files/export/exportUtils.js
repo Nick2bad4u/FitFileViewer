@@ -134,7 +134,7 @@ export const exportUtils = {
         try {
             const allTimestamps = new Set();
             for (const chart of charts) {
-                const dataset = /** @type {any} */ (chart.data).datasets[0];
+                const [dataset] = /** @type {any} */ (chart.data).datasets;
                 if (dataset && dataset.data) {
                     for (const point of dataset.data) allTimestamps.add(point.x);
                 }
@@ -143,7 +143,7 @@ export const exportUtils = {
             const headers = ["timestamp"],
                 timestamps = [...allTimestamps].sort();
             for (const chart of charts) {
-                const dataset = /** @type {any} */ (chart.data).datasets[0],
+                const [dataset] = /** @type {any} */ (chart.data).datasets,
                     fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             }
@@ -269,8 +269,8 @@ export const exportUtils = {
      * @param {ChartJSInstance} chart - Chart.js instance
      * @param {string} filename - Download filename
      */ /**
-    * Clears the stored Gyazo access token
-    */
+* Clears the stored Gyazo access token
+*/
     clearGyazoAccessToken() {
         try {
             localStorage.removeItem("gyazo_access_token");
@@ -284,8 +284,8 @@ export const exportUtils = {
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */ /**
-    * Clears all Gyazo configuration and tokens
-    */
+* Clears all Gyazo configuration and tokens
+*/
     clearGyazoConfig() {
         try {
             localStorage.removeItem("gyazo_client_id");
@@ -1432,10 +1432,10 @@ export const exportUtils = {
      * Prints the chart with theme background
      * @param {ChartJSInstance} chart - Chart.js instance
      */ /**
-    * Saves Gyazo configuration to user settings
-    * @param {string} clientId - Gyazo client ID
-    * @param {string} clientSecret - Gyazo client secret
-    */
+* Saves Gyazo configuration to user settings
+* @param {string} clientId - Gyazo client ID
+* @param {string} clientSecret - Gyazo client secret
+*/
     setGyazoConfig(clientId, clientSecret) {
         try {
             localStorage.setItem("gyazo_client_id", clientId);
@@ -1479,22 +1479,31 @@ export const exportUtils = {
                     if (ctx) {
                         ctx.drawImage(chart.canvas, 0, 0);
                     }
-                    const base64Image = canvas.toDataURL("image/png", 1),
-                        imgurUrl = await exportUtils.uploadToImgur(base64Image);
+                    const base64Image = canvas.toDataURL("image/png", 1);
 
-                    // Copy URL to clipboard
-                    await navigator.clipboard.writeText(imgurUrl);
-                    showNotification("Chart uploaded! URL copied to clipboard", "success");
+                    // Try to upload to Imgur first, fall back to data URL if not configured
+                    let shareableUrl;
+                    try {
+                        shareableUrl = await exportUtils.uploadToImgur(base64Image);
+                        // Copy URL to clipboard
+                        await navigator.clipboard.writeText(shareableUrl);
+                        showNotification("Chart uploaded to Imgur! URL copied to clipboard", "success");
+                    } catch (imgurError) {
+                        if (/** @type {any} */ (imgurError).message.includes("Imgur client ID not configured")) {
+                            // Fallback to data URL
+                            shareableUrl = base64Image;
+                            await navigator.clipboard.writeText(shareableUrl);
+                            showNotification(
+                                "Chart image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
+                                "info"
+                            );
+                        } else {
+                            throw imgurError; // Re-throw other errors
+                        }
+                    }
                 } catch (error) {
                     console.error("Error sharing single chart as URL:", error);
-                    if (/** @type {any} */ (error).message.includes("Imgur client ID not configured")) {
-                        showNotification(
-                            "Imgur client ID not configured. Please update the exportUtils.uploadToImgur function with your Imgur client ID.",
-                            "error"
-                        );
-                    } else {
-                        showNotification("Failed to share chart. Please try again.", "error");
-                    }
+                    showNotification("Failed to share chart. Please try again.", "error");
                 }
             },
             // Combined charts callback
@@ -1555,22 +1564,31 @@ export const exportUtils = {
                         }
                     }
 
-                    const base64Image = combinedCanvas.toDataURL("image/png", 1),
-                        imgurUrl = await exportUtils.uploadToImgur(base64Image);
+                    const base64Image = combinedCanvas.toDataURL("image/png", 1);
 
-                    // Copy URL to clipboard
-                    await navigator.clipboard.writeText(imgurUrl);
-                    showNotification("Combined charts uploaded! URL copied to clipboard", "success");
+                    // Try to upload to Imgur first, fall back to data URL if not configured
+                    let shareableUrl;
+                    try {
+                        shareableUrl = await exportUtils.uploadToImgur(base64Image);
+                        // Copy URL to clipboard
+                        await navigator.clipboard.writeText(shareableUrl);
+                        showNotification("Combined charts uploaded to Imgur! URL copied to clipboard", "success");
+                    } catch (imgurError) {
+                        if (/** @type {any} */ (imgurError).message.includes("Imgur client ID not configured")) {
+                            // Fallback to data URL
+                            shareableUrl = base64Image;
+                            await navigator.clipboard.writeText(shareableUrl);
+                            showNotification(
+                                "Combined charts image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
+                                "info"
+                            );
+                        } else {
+                            throw imgurError; // Re-throw other errors
+                        }
+                    }
                 } catch (error) {
                     console.error("Error sharing combined charts as URL:", error);
-                    if (/** @type {any} */ (error).message.includes("Imgur client ID not configured")) {
-                        showNotification(
-                            "Imgur client ID not configured. Please update the exportUtils.uploadToImgur function with your Imgur client ID.",
-                            "error"
-                        );
-                    } else {
-                        showNotification("Failed to share charts. Please try again.", "error");
-                    }
+                    showNotification("Failed to share charts. Please try again.", "error");
                 }
             }
         );
@@ -2252,47 +2270,518 @@ export const exportUtils = {
     },
 
     /**
+     * Gets Imgur configuration from localStorage with fallback
+     * @returns {Object} Imgur configuration object
+     */
+    getImgurConfig() {
+        const defaultClientId = "0046ee9e30ac578"; // Placeholder for demo
+
+        return {
+            clientId: localStorage.getItem("imgur_client_id") || defaultClientId,
+            uploadUrl: "https://api.imgur.com/3/image"
+        };
+    },
+
+    /**
+     * Saves Imgur configuration to localStorage
+     * @param {string} clientId - Imgur client ID
+     */
+    setImgurConfig(clientId) {
+        try {
+            localStorage.setItem("imgur_client_id", clientId);
+        } catch (error) {
+            console.error("Error saving Imgur configuration:", error);
+        }
+    },
+
+    /**
+     * Clears Imgur configuration
+     */
+    clearImgurConfig() {
+        try {
+            localStorage.removeItem("imgur_client_id");
+        } catch (error) {
+            console.error("Error clearing Imgur configuration:", error);
+        }
+    },
+
+    /**
+     * Checks if Imgur is properly configured with a non-default client ID
+     * @returns {boolean} True if configured with custom client ID
+     */
+    isImgurConfigured() {
+        const config = exportUtils.getImgurConfig();
+        // Only consider "YOUR_IMGUR_CLIENT_ID" as unconfigured
+        // The demo client ID "0046ee9e30ac578" is considered "configured" for shared usage
+        return config.clientId !== "YOUR_IMGUR_CLIENT_ID";
+    },
+
+    /**
      * Uploads image to Imgur and returns URL
      * @param {string} base64Image - Base64 encoded image
      * @returns {Promise<string>} Imgur URL
      */
     async uploadToImgur(base64Image) {
-        const clientId = "0046ee9e30ac578", // User needs to replace this
-            // Check if the client ID is the placeholder or default value
-            defaultClientIds = ["0046ee9e30ac578", "YOUR_IMGUR_CLIENT_ID"];
-        if (defaultClientIds.includes(clientId)) {
-            throw new Error(
-                "Imgur client ID not configured. Please add your Imgur client ID to the exportUtils.uploadToImgur function."
+        console.log("[Imgur Upload] Starting upload process...");
+
+        const config = exportUtils.getImgurConfig();
+        const defaultClientIds = new Set(["0046ee9e30ac578", "YOUR_IMGUR_CLIENT_ID"]);
+
+        // Debug: Log configuration details
+        console.log("[Imgur Upload] Config:", {
+            clientId: config.clientId ? `${config.clientId.slice(0, 8)}...` : "undefined",
+            uploadUrl: config.uploadUrl,
+            isDefault: defaultClientIds.has(config.clientId)
+        });
+
+        // Only reject if completely unconfigured (YOUR_IMGUR_CLIENT_ID)
+        if (config.clientId === "YOUR_IMGUR_CLIENT_ID") {
+            const error = new Error(
+                "Imgur client ID not configured. Please add your Imgur client ID in the settings."
+            );
+            console.error("[Imgur Upload] Client ID validation failed:", error.message);
+            throw error;
+        }
+
+        // Warn about shared usage but proceed
+        if (config.clientId === "0046ee9e30ac578") {
+            console.warn("[Imgur Upload] Using shared client ID. This may have rate limits. Consider configuring your own Client ID in settings for better reliability.");
+            __deps.showNotification(
+                "Using shared Imgur service - uploads may be rate limited. Configure your own Client ID in settings for better reliability.",
+                "warning"
             );
         }
 
         try {
-            const response = await fetch("https://api.imgur.com/3/image", {
-                body: JSON.stringify({
-                    description: "Chart exported from FitFileViewer",
-                    image: base64Image.split(",")[1], // Remove data:image/png;base64, prefix
-                    title: "FitFileViewer Chart",
-                    type: "base64",
-                }),
+            // Prepare the image data
+            const [, imageData] = base64Image.split(","); // Remove data:image/png;base64, prefix
+            console.log("[Imgur Upload] Image data length:", imageData ? imageData.length : 0);
+
+            const requestBody = {
+                description: "Chart exported from FitFileViewer",
+                image: imageData,
+                title: "FitFileViewer Chart",
+                type: "base64",
+            };
+
+            console.log("[Imgur Upload] Making API request to:", config.uploadUrl);
+            console.log("[Imgur Upload] Request headers:", {
+                Authorization: `Client-ID ${config.clientId.slice(0, 8)}...`,
+                "Content-Type": "application/json"
+            });
+
+            const response = await fetch(config.uploadUrl, {
+                body: JSON.stringify(requestBody),
                 headers: {
-                    Authorization: `Client-ID ${clientId}`,
+                    Authorization: `Client-ID ${config.clientId}`,
                     "Content-Type": "application/json",
                 },
                 method: "POST",
             });
 
+            console.log("[Imgur Upload] Response status:", response.status, response.statusText);
+            console.log("[Imgur Upload] Response headers:", Object.fromEntries(response.headers.entries()));
+
             if (!response.ok) {
-                throw new Error(`Imgur upload failed: ${response.status}`);
+                const errorText = await response.text();
+                console.error("[Imgur Upload] API error response:", errorText);
+                throw new Error(`Imgur upload failed: ${response.status} ${response.statusText} - ${errorText}`);
             }
 
             const data = await response.json();
-            if (data.success) {
+            console.log("[Imgur Upload] API response:", JSON.stringify(data, null, 2));
+
+            if (data.success && data.data && data.data.link) {
+                console.log("[Imgur Upload] Success! URL:", data.data.link);
                 return data.data.link;
             }
-            throw new Error("Imgur upload failed");
+
+            console.error("[Imgur Upload] Unexpected response structure:", {
+                hasSuccess: 'success' in data,
+                successValue: data.success,
+                hasData: 'data' in data,
+                hasLink: data.data && 'link' in data.data,
+                linkValue: data.data?.link
+            });
+            throw new Error(`Imgur upload failed: Unexpected response structure. Success: ${data.success}, Data: ${JSON.stringify(data.data)}`);
         } catch (error) {
-            console.error("Error uploading to Imgur:", error);
+            console.error("[Imgur Upload] Error details:", {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             throw error;
         }
+    },    /**
+     * Shows Imgur account management modal with client ID setup
+     */
+    showImgurAccountManager() {
+        const config = exportUtils.getImgurConfig();
+        const isConfigured = exportUtils.isImgurConfigured();
+
+        const overlay = document.createElement("div");
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-overlay-bg);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        const modal = document.createElement("div");
+        modal.className = "imgur-account-manager-modal";
+        modal.style.cssText = `
+            background: var(--color-modal-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--color-glass-border);
+            box-shadow: var(--color-box-shadow);
+        `;
+
+        modal.innerHTML = `
+            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
+                📸 Imgur Settings
+            </h3>
+
+            <!-- Status Section -->
+            <div style="margin-bottom: 20px; text-align: center;">
+                <div style="margin-bottom: 12px;">
+                    <span id="imgur-status" style="
+                        display: inline-block;
+                        padding: 4px 12px;
+                        border-radius: 16px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        background: ${isConfigured ? "var(--color-success)" : "var(--color-warning)"};
+                        color: white;
+                    ">
+                        ${isConfigured ? "✅ Configured" : "⚠️ Using Default (Limited)"}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Setup Instructions -->
+            <div style="margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;">
+                <h4 style="margin: 0 0 12px 0; color: var(--color-accent); font-size: 14px;">
+                    🚀 Getting Started
+                </h4>
+                <p style="margin: 0; color: var(--color-fg); font-size: 14px; line-height: 1.5;">
+                    To upload charts to Imgur, you need your own Imgur Client ID.
+                    Click <strong>"Setup Guide"</strong> below for step-by-step instructions.
+                </p>
+            </div>
+
+            <!-- Configuration Form -->
+            <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 14px;">
+                        Imgur Client ID:
+                    </label>
+                    <input type="text" id="imgur-client-id" placeholder="Enter your Imgur Client ID"
+                           value="${config.clientId}" style="
+                        width: 100%;
+                        padding: 10px 12px;
+                        border-radius: 8px;
+                        border: 1px solid var(--color-border);
+                        background: var(--color-glass);
+                        color: var(--color-fg);
+                        font-size: 14px;
+                        box-sizing: border-box;
+                        font-family: monospace;
+                    ">
+                </div>
+                <button id="save-imgur-config" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: var(--color-success);
+                    border: none;
+                    border-radius: 8px;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: var(--transition-smooth);
+                ">
+                    💾 Save Configuration
+                </button>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button id="imgur-setup-guide" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: var(--color-accent);
+                    border: none;
+                    border-radius: 8px;
+                    color: var(--color-fg-alt);
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: var(--transition-smooth);
+                ">
+                    📖 Setup Guide
+                </button>
+
+                <button id="clear-imgur-config" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: var(--color-warning);
+                    border: none;
+                    border-radius: 8px;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: var(--transition-smooth);
+                ">
+                    🗑️ Clear Configuration
+                </button>
+
+                <button id="imgur-close" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: var(--color-border-light);
+                    border: 1px solid var(--color-border);
+                    border-radius: 8px;
+                    color: var(--color-fg-alt);
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: var(--transition-smooth);
+                ">
+                    Close
+                </button>
+            </div>
+        `;
+
+        // Event handlers
+        const saveBtn = modal.querySelector("#save-imgur-config");
+        const setupGuideBtn = modal.querySelector("#imgur-setup-guide");
+        const clearBtn = modal.querySelector("#clear-imgur-config");
+        const closeBtn = modal.querySelector("#imgur-close");
+        const clientIdInput = modal.querySelector("#imgur-client-id");
+
+        // Save configuration
+        if (saveBtn && clientIdInput) {
+            saveBtn.addEventListener("click", () => {
+                const clientId = clientIdInput.value.trim();
+                if (clientId) {
+                    exportUtils.setImgurConfig(clientId);
+                    __deps.showNotification("Imgur configuration saved", "success");
+                    exportUtils.updateImgurStatus(modal);
+                } else {
+                    __deps.showNotification("Please enter a valid Client ID", "error");
+                }
+            });
+        }
+
+        // Show setup guide
+        if (setupGuideBtn) {
+            setupGuideBtn.addEventListener("click", () => {
+                overlay.remove();
+                exportUtils.showImgurSetupGuide();
+            });
+        }
+
+        // Clear configuration
+        if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+                exportUtils.clearImgurConfig();
+                __deps.showNotification("Imgur configuration cleared", "info");
+                if (clientIdInput) {
+                    clientIdInput.value = exportUtils.getImgurConfig().clientId;
+                }
+                exportUtils.updateImgurStatus(modal);
+            });
+        }
+
+        // Close modal
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => overlay.remove());
+        }
+
+        // ESC key handler
+        const handleEscape = (e) => {
+            if (e.key === "Escape") {
+                overlay.remove();
+                document.removeEventListener("keydown", handleEscape);
+            }
+        };
+        document.addEventListener("keydown", handleEscape);
+
+        // Click outside to close
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        overlay.append(modal);
+        document.body.append(overlay);
+    },
+
+    /**
+     * Shows Imgur setup guide with step-by-step instructions
+     */
+    showImgurSetupGuide() {
+        const overlay = document.createElement("div");
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-overlay-bg);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        const modal = document.createElement("div");
+        modal.style.cssText = `
+            background: var(--color-modal-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--color-glass-border);
+            box-shadow: var(--color-box-shadow);
+        `;
+
+        modal.innerHTML = `
+            <h3 style="margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;">
+                🔧 Imgur Setup Guide
+            </h3>
+            <div style="color: var(--color-fg); line-height: 1.6;">
+                <p><strong>To enable Imgur integration, follow these steps:</strong></p>
+                <ol style="margin: 16px 0; padding-left: 20px;">
+                    <li>Visit <a href="https://api.imgur.com/oauth2/addclient" data-external-link="true" style="color: var(--color-accent);">Imgur API Registration</a></li>
+                    <li>Create a new application with these settings:
+                        <ul style="margin: 8px 0; padding-left: 20px;">
+                            <li><strong>Application Name:</strong> FitFileViewer</li>
+                            <li><strong>Authorization Type:</strong> Select "Anonymous usage without user authorization"</li>
+                            <li><strong>Authorization Callback URL:</strong> Leave blank (not needed for anonymous usage)</li>
+                        </ul>
+                    </li>
+                    <li>After creating the app, copy your <strong>Client ID</strong></li>
+                    <li>Return to the Imgur Settings and paste your Client ID</li>
+                    <li>Click "Save Configuration"</li>
+                </ol>
+                <div style="
+                    background: var(--color-glass);
+                    border: 1px solid var(--color-accent);
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin: 16px 0;
+                ">
+                    <strong>💡 Tips:</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                        <li>Anonymous usage is sufficient for uploading chart images</li>
+                        <li>Your Client ID is safe to use publicly (it's not a secret)</li>
+                        <li>Imgur allows up to 12,500 uploads per day for registered applications</li>
+                    </ul>
+                </div>
+                <div style="
+                    background: var(--color-warning-bg);
+                    border: 1px solid var(--color-warning);
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin: 16px 0;
+                ">
+                    <strong>⚠️ Note:</strong> Without your own Client ID, the application uses a default that may have rate limits or restrictions.
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <button id="imgur-guide-back" style="
+                    flex: 1;
+                    padding: 12px;
+                    background: var(--color-border-light);
+                    border: 1px solid var(--color-border);
+                    border-radius: 8px;
+                    color: var(--color-fg-alt);
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: var(--transition-smooth);
+                ">
+                    ← Back to Settings
+                </button>
+                <button id="imgur-guide-close" style="
+                    flex: 1;
+                    padding: 12px;
+                    background: var(--color-accent);
+                    border: none;
+                    border-radius: 8px;
+                    color: var(--color-fg-alt);
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: var(--transition-smooth);
+                ">
+                    Got it!
+                </button>
+            </div>
+        `;
+
+        const backBtn = modal.querySelector("#imgur-guide-back");
+        const closeBtn = modal.querySelector("#imgur-guide-close");
+
+        if (backBtn) {
+            backBtn.addEventListener("click", () => {
+                overlay.remove();
+                exportUtils.showImgurAccountManager();
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => overlay.remove());
+        }
+
+        // ESC key and click outside handlers
+        const handleEscape = (e) => {
+            if (e.key === "Escape") {
+                overlay.remove();
+                document.removeEventListener("keydown", handleEscape);
+            }
+        };
+        document.addEventListener("keydown", handleEscape);
+
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        overlay.append(modal);
+        document.body.append(overlay);
+    },
+
+    /**
+     * Updates the status display in the Imgur account manager modal
+     * @param {HTMLElement} modal - The modal element containing status indicators
+     */
+    updateImgurStatus(modal) {
+        const isConfigured = exportUtils.isImgurConfigured();
+        const statusElement = modal.querySelector("#imgur-status");
+
+        if (statusElement) {
+            statusElement.style.background = isConfigured ? "var(--color-success)" : "var(--color-warning)";
+            statusElement.textContent = isConfigured ? "✅ Configured" : "⚠️ Using Default (Limited)";
+        }
+
+        console.log("[Imgur] Status updated - Configured:", isConfigured);
     },
 }; // Global export functions for the settings panel

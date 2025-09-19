@@ -254,7 +254,6 @@ globalThis.sendFitFileToAltFitReader = async function (arrayBuffer /** @type {Ar
     const frame = /** @type {HTMLIFrameElement} */ (iframe),
         postToIframe = () => {
             try {
-                const frame = /** @type {HTMLIFrameElement} */ (iframe);
                 if (frame.contentWindow) {
                     const base64 = convertArrayBufferToBase64(arrayBuffer);
                     frame.contentWindow.postMessage({ base64, type: "fit-file" }, "*");
