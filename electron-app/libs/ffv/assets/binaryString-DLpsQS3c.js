@@ -16,7 +16,7 @@ import './index-LvWRIhnC.js';
 			(e._sentryDebugIds[r] = 'f60193f7-9083-4b1d-a552-34b882bd45c0'),
 			(e._sentryDebugIdIdentifier =
 				'sentry-dbid-f60193f7-9083-4b1d-a552-34b882bd45c0'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 function x(e) {
 	return e ? new Date((e + i) * 1e3) : null;

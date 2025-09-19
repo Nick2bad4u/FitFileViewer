@@ -23,7 +23,7 @@ import {
 			(s._sentryDebugIds[f] = 'a6de48fa-3e3d-4f59-a396-228a80aac06c'),
 			(s._sentryDebugIdIdentifier =
 				'sentry-dbid-a6de48fa-3e3d-4f59-a396-228a80aac06c'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 /**
  * @license lucide-react v0.396.0 - ISC
@@ -72,7 +72,7 @@ var j = { exports: {} };
 			t.open('HEAD', e, !1);
 			try {
 				t.send();
-			} catch {}
+			} catch { /* Ignore errors */ }
 			return 200 <= t.status && 299 >= t.status;
 		}
 		function d(e) {

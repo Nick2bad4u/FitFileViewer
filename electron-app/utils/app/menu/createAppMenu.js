@@ -24,7 +24,7 @@ function getElectron() {
                 __electronCached = e;
                 return e;
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
         return {};
     }
 }
@@ -86,7 +86,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
             console.warn("[createAppMenu] Debug: electron module keys:", Object.keys(el || {}));
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     const { app, BrowserWindow, Menu, shell } = /** @type {any} */ (el);
     const theme = currentTheme || getTheme();
     // Allow tests to inject recent files deterministically via a global hook
@@ -96,7 +96,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         // @ts-ignore
         const gf = typeof globalThis === "undefined" ? /** @type {any} */ undefined : (globalThis).__mockRecentFiles;
         if (Array.isArray(gf)) injectedRecentFiles = [...gf];
-    } catch { }
+    } catch { /* Ignore errors */ }
     // Lazy import recent files utils to ensure vi.mock hooks correctly
     /** @type {{ loadRecentFiles: () => string[], getShortRecentName: (p: string) => string }} */
     let recentUtils;
@@ -543,7 +543,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
             console.log("[createAppMenu] Debug: recentFiles loaded:", Array.isArray(recentFiles) ? [...recentFiles] : recentFiles);
-        } catch { }
+        } catch { /* Ignore errors */ }
     }
     if (!Array.isArray(template) || template.length === 0) {
         console.warn(
@@ -567,7 +567,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                 // @ts-ignore
                 globalThis.__lastBuiltMenuTemplate = template;
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
         console.warn("[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests.");
     } catch (error) {
         console.error("[createAppMenu] ERROR: Failed to set application menu:", error);

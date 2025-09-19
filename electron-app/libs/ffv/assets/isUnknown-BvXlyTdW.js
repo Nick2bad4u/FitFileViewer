@@ -15,7 +15,7 @@ import './index-LvWRIhnC.js';
 			(i._sentryDebugIds[t] = '9f565142-70f1-499c-ab4c-2767a1b4a07b'),
 			(i._sentryDebugIdIdentifier =
 				'sentry-dbid-9f565142-70f1-499c-ab4c-2767a1b4a07b'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 function r(i) {
 	return i == null;

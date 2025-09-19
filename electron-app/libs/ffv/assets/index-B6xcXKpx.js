@@ -46,7 +46,7 @@ import { D as vm, a as ym } from './index-D4CCfpM1.js';
 			(e._sentryDebugIds[t] = 'eaffc6f3-a3f3-4480-b417-afd8a5dcb81e'),
 			(e._sentryDebugIdIdentifier =
 				'sentry-dbid-eaffc6f3-a3f3-4480-b417-afd8a5dcb81e'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 /**
  * @license lucide-react v0.396.0 - ISC
@@ -78,7 +78,7 @@ var Ss = function (e, t, r) {
 			try {
 				var o = r ? String(i) : JSON.stringify(i);
 				sessionStorage.setItem(e, o);
-			} catch {}
+			} catch { /* Ignore errors */ }
 		}),
 		[i, a]
 	);
@@ -121,7 +121,7 @@ function Tm(e) {
 	try {
 		e[Jr] = void 0;
 		var n = !0;
-	} catch {}
+	} catch { /* Ignore errors */ }
 	var i = $m.call(e);
 	return n && (t ? (e[Jr] = r) : delete e[Jr]), i;
 }
@@ -208,10 +208,10 @@ function lg(e) {
 	if (e != null) {
 		try {
 			return sg.call(e);
-		} catch {}
+		} catch { /* Ignore errors */ }
 		try {
 			return e + '';
-		} catch {}
+		} catch { /* Ignore errors */ }
 	}
 	return '';
 }
@@ -3138,7 +3138,7 @@ function nd() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (nd = function () {
 		return !!e;
 	})();
@@ -3761,7 +3761,7 @@ Ni.exports;
 			try {
 				var c = i && i.require && i.require('util').types;
 				return c || (o && o.binding && o.binding('util'));
-			} catch {}
+			} catch { /* Ignore errors */ }
 		})();
 	e.exports = u;
 })(Ni, Ni.exports);
@@ -4347,7 +4347,7 @@ function Sd() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Sd = function () {
 		return !!e;
 	})();
@@ -4820,7 +4820,7 @@ var k$ = N$,
 		try {
 			var e = D$(Object, 'defineProperty');
 			return e({}, '', {}), e;
-		} catch {}
+		} catch { /* Ignore errors */ }
 	})(),
 	Ed = L$,
 	B$ = k$,
@@ -5400,7 +5400,7 @@ function jd() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (jd = function () {
 		return !!e;
 	})();
@@ -5737,7 +5737,7 @@ function Cd() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Cd = function () {
 		return !!e;
 	})();
@@ -11458,7 +11458,7 @@ function Cv() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Cv = function () {
 		return !!e;
 	})();
@@ -15780,7 +15780,7 @@ var Sp = function (t, r, n, i, a) {
 				try {
 					var S = n.current.getTotalLength();
 					S && u(S);
-				} catch {}
+				} catch { /* Ignore errors */ }
 		}, []);
 		var c = r.x,
 			s = r.y,
@@ -16232,7 +16232,7 @@ var Tp = function (t, r, n, i, a) {
 				try {
 					var x = n.current.getTotalLength();
 					x && u(x);
-				} catch {}
+				} catch { /* Ignore errors */ }
 		}, []);
 		var c = r.x,
 			s = r.y,
@@ -16784,7 +16784,7 @@ function ry() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (ry = function () {
 		return !!e;
 	})();
@@ -17838,7 +17838,7 @@ function oy() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (oy = function () {
 		return !!e;
 	})();
@@ -18864,7 +18864,7 @@ function gy() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (gy = function () {
 		return !!e;
 	})();
@@ -19260,7 +19260,7 @@ function xy() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (xy = function () {
 		return !!e;
 	})();
@@ -19526,7 +19526,7 @@ function Oy() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Oy = function () {
 		return !!e;
 	})();
@@ -20068,7 +20068,7 @@ function Ay() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Ay = function () {
 		return !!e;
 	})();
@@ -21096,7 +21096,7 @@ function Ey() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Ey = function () {
 		return !!e;
 	})();
@@ -21670,7 +21670,7 @@ function My() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (My = function () {
 		return !!e;
 	})();
@@ -21869,7 +21869,7 @@ function Ny() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Ny = function () {
 		return !!e;
 	})();
@@ -22734,7 +22734,7 @@ function Fy() {
 		var e = !Boolean.prototype.valueOf.call(
 			Reflect.construct(Boolean, [], function () {}),
 		);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return (Fy = function () {
 		return !!e;
 	})();

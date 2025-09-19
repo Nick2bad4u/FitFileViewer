@@ -383,7 +383,7 @@ try {
         ChartRef.register(chartBackgroundColorPlugin);
         console.log("[ChartJS] chartBackgroundColorPlugin registered");
     }
-} catch { }
+} catch { /* Ignore errors */ }
 
 /**
  * State-aware chart export function

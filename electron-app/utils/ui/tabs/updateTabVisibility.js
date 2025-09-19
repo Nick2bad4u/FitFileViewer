@@ -23,16 +23,16 @@ const getDoc = () => {
             // @ts-ignore
             d = /** @type {any} */ (document);
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     try {
         if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
-    } catch {}
+    } catch { /* Ignore errors */ }
     try {
         // Then prefer the current global document
         if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
             d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     // Fallback: canonical test document
     try {
         // @ts-ignore
@@ -40,7 +40,7 @@ const getDoc = () => {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     if (!d) {
         // @ts-ignore JSDOM provides document
         d = /** @type {any} */ (document);
@@ -64,7 +64,7 @@ const getDoc = () => {
                 d = /** @type {any} */ (__vitest_effective_document__);
             }
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     return /** @type {Document} */ (d);
 };
 
@@ -80,7 +80,7 @@ const getStateMgr = () => {
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     try {
         // @ts-ignore
         const eff =
@@ -92,7 +92,7 @@ const getStateMgr = () => {
             const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     return {
         getState: /** @type {any} */ (__StateMgr.getState),
         setState: /** @type {any} */ (__StateMgr.setState),

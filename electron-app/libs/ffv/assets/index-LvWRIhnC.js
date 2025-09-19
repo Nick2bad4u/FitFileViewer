@@ -39,7 +39,7 @@ var ki = (e, t, n) => Mp(e, typeof t != 'symbol' ? t + '' : t, n);
 			(e._sentryDebugIds[t] = '58f77c91-af6d-41b0-98d1-91b2663d0abe'),
 			(e._sentryDebugIdIdentifier =
 				'sentry-dbid-58f77c91-af6d-41b0-98d1-91b2663d0abe'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 function Dp(e, t) {
 	for (var n = 0; n < t.length; n++) {
@@ -1217,7 +1217,7 @@ function as(e) {
 				(t = e._payload), (e = e._init);
 				try {
 					return as(e(t));
-				} catch {}
+				} catch { /* Ignore errors */ }
 		}
 	return null;
 }
@@ -1883,7 +1883,7 @@ function Nm(e) {
 	if (Xe && typeof Xe.onCommitFiberRoot == 'function')
 		try {
 			Xe.onCommitFiberRoot(Zo, e, void 0, (e.current.flags & 128) === 128);
-		} catch {}
+		} catch { /* Ignore errors */ }
 }
 var Be = Math.clz32 ? Math.clz32 : Pm,
 	Tm = Math.log,
@@ -6809,7 +6809,7 @@ function Zd(e, t, n) {
 	if (Xe && typeof Xe.onCommitFiberUnmount == 'function')
 		try {
 			Xe.onCommitFiberUnmount(Zo, n);
-		} catch {}
+		} catch { /* Ignore errors */ }
 	switch (n.tag) {
 		case 5:
 			ce || Sn(n, t);
@@ -8113,7 +8113,7 @@ function Tn() {
 				)
 					try {
 						Xe.onPostCommitFiberRoot(Zo, e);
-					} catch {}
+					} catch { /* Ignore errors */ }
 				r = !0;
 			}
 			return r;
@@ -8975,7 +8975,7 @@ if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ < 'u') {
 	if (!uo.isDisabled && uo.supportsFiber)
 		try {
 			(Zo = uo.inject(ag)), (Xe = uo);
-		} catch {}
+		} catch { /* Ignore errors */ }
 }
 Te.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ug;
 Te.createPortal = function (e, t) {
@@ -9402,7 +9402,7 @@ function Ng(e, t) {
 	try {
 		const n = t.prototype || {};
 		(e.prototype = t.prototype = n), zn(e, '__sentry_original__', t);
-	} catch {}
+	} catch { /* Ignore errors */ }
 }
 function E1(e) {
 	return e.__sentry_original__;
@@ -9621,7 +9621,7 @@ function pe() {
 				const r = new Uint8Array(1);
 				return t.getRandomValues(r), r[0];
 			});
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return ('10000000100040008000' + 1e11).replace(/[018]/g, (r) =>
 		(r ^ ((n() & 15) >> (r / 4))).toString(16),
 	);
@@ -9659,7 +9659,7 @@ function A1(e) {
 	if (e && e.__sentry_captured__) return !0;
 	try {
 		zn(e, '__sentry_captured__', !0);
-	} catch {}
+	} catch { /* Ignore errors */ }
 	return !1;
 }
 function Mg(e) {
@@ -9698,7 +9698,7 @@ function Zs(e, t, n = 1 / 0, r = 1 / 0, o = Lg()) {
 		try {
 			const g = a.toJSON();
 			return Zs('', g, u - 1, r, o);
-		} catch {}
+		} catch { /* Ignore errors */ }
 	const m = Array.isArray(t) ? [] : {};
 	let f = 0;
 	const h = gf(t);
@@ -10824,7 +10824,7 @@ function Iy(e, t) {
 				o.filename && (o.debug_id = n[o.filename]);
 			});
 		});
-	} catch {}
+	} catch { /* Ignore errors */ }
 }
 function Ay(e) {
 	const t = {};
@@ -10838,7 +10838,7 @@ function Ay(e) {
 					delete o.debug_id);
 			});
 		});
-	} catch {}
+	} catch { /* Ignore errors */ }
 	if (Object.keys(t).length === 0) return;
 	(e.debug_meta = e.debug_meta || {}),
 		(e.debug_meta.images = e.debug_meta.images || []);
@@ -11037,7 +11037,7 @@ const qi = () => ({
 				})
 			).json();
 			r && (Zi = r.cache);
-		} catch {}
+		} catch { /* Ignore errors */ }
 	},
 	Ya = new Fy(Yy),
 	es = (e, t = 'event') => {
@@ -13211,7 +13211,7 @@ var ec = function () {},
 						if (typeof f > 'u') return;
 						var h = void 0;
 						n || (h = JSON.stringify(f)), localStorage.setItem(e, h), l(r(h));
-					} catch {}
+					} catch { /* Ignore errors */ }
 				},
 				[e, l],
 			),
@@ -13219,7 +13219,7 @@ var ec = function () {},
 				function () {
 					try {
 						localStorage.removeItem(e), l(void 0);
-					} catch {}
+					} catch { /* Ignore errors */ }
 				},
 				[e, l],
 			);

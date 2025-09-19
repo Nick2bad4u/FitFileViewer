@@ -15,7 +15,7 @@ import { aS as I, bm as m, aO as s } from './index-LvWRIhnC.js';
 			(e._sentryDebugIds[a] = '1ea374f5-74c2-440a-9aab-081ce0d95ba3'),
 			(e._sentryDebugIdIdentifier =
 				'sentry-dbid-1ea374f5-74c2-440a-9aab-081ce0d95ba3'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 const n = {
 	0: { name: 'Airport', spriteID: 'AIRPORT' },

@@ -189,13 +189,13 @@ function __clearAllListenersForTests() {
 function __resetStateManagerForTests() {
     try {
         __clearAllListenersForTests();
-    } catch { }
+    } catch { /* Ignore errors */ }
     try {
         clearStateHistory();
-    } catch { }
+    } catch { /* Ignore errors */ }
     try {
         resetState();
-    } catch { }
+    } catch { /* Ignore errors */ }
 }
 
 /**
@@ -658,6 +658,7 @@ function updateState(path, updates, options = {}) {
 const __debugState = AppState;
 
 // Export all functions using CommonJS module.exports
+
 module.exports = {
     __clearAllListenersForTests,
     __debugState,

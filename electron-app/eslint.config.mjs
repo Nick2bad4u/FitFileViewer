@@ -1,13 +1,13 @@
+import css from "@eslint/css";
 import js from "@eslint/js";
-import globals from "globals";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
-import css from "@eslint/css";
-import { defineConfig } from "eslint/config";
-import eslintPluginUnicorn from "eslint-plugin-unicorn";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 import nodePlugin from "eslint-plugin-n";
 import perfectionist from "eslint-plugin-perfectionist";
-import eslintConfigPrettier from "eslint-config-prettier/flat";
+import eslintPluginUnicorn from "eslint-plugin-unicorn";
+import { defineConfig } from "eslint/config";
+import globals from "globals";
 
 // NOTE: We are not enabling TypeScript-specific ESLint rules in this flat config.
 // If future TS linting is needed, bring in typescript-eslint and extend its configs.

@@ -18,7 +18,7 @@ function __resolveManualMockBySuffix(p) {
                 }
             }
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     return null;
 }
 
@@ -44,7 +44,7 @@ try {
             Boolean(__chartThemeMod && __chartThemeMod.detectCurrentTheme)
         );
     }
-} catch { }
+} catch { /* Ignore errors */ }
 
 // Local call sites use these, which point to mocked versions in tests when available
 const showNotification = /** @type {typeof __realShowNotification} */ (
@@ -77,7 +77,7 @@ export function __setTestDeps(overrides) {
         if (overrides && typeof overrides === "object") {
             __deps = { ...__deps, ...overrides };
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
 }
 
 // JSZip is loaded globally via a script tag when export-all is used; reference retained only where actually accessed.

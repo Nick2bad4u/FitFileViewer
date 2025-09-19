@@ -347,7 +347,7 @@ export class UIStateManager {
         // Update cursor
         try {
             document.body.style.cursor = isLoading ? "wait" : "default";
-        } catch {}
+        } catch { /* Ignore errors */ }
     }
     /**
      * Update measurement mode UI
@@ -394,7 +394,7 @@ export class UIStateManager {
                 if (doc && typeof doc.querySelectorAll === "function") {
                     return /** @type {Element[]} */ ([...doc.querySelectorAll(selector) || []]);
                 }
-            } catch {}
+            } catch { /* Ignore errors */ }
             return [];
         };
         const tabButtons = safeQuerySelectorAll("[data-tab]");
@@ -423,7 +423,7 @@ export class UIStateManager {
                 if (doc && typeof doc.querySelectorAll === "function") {
                     return /** @type {Element[]} */ ([...doc.querySelectorAll(selector) || []]);
                 }
-            } catch {}
+            } catch { /* Ignore errors */ }
             return [];
         };
         const tabContents = safeQuerySelectorAll(".tab-content");

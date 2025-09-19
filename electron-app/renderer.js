@@ -215,11 +215,7 @@ async function importPreferTest(testPath, realPath) {
         try {
             mod = await import(testPath);
         } catch {
-            try {
-                mod = await import(realPath);
-            } catch (error) {
-                throw error;
-            }
+            mod = await import(realPath);
         }
     } else {
         // Production: skip invalid testPath to avoid 404 noise
@@ -281,7 +277,7 @@ function resolveExactManualMock(testId) {
             const mod = reg.get(testId);
             return mod && mod.default ? mod.default : mod;
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     return null;
 }
 
@@ -303,7 +299,7 @@ function resolveManualMock(pathSuffix) {
                 }
             }
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     return null;
 }
 
@@ -446,7 +442,7 @@ async function initializeApplication() {
                     } else if (action === "about") {
                         try {
                             showAboutModal();
-                        } catch { }
+                        } catch { /* Ignore errors */ }
                     }
                 });
                 }
@@ -454,20 +450,20 @@ async function initializeApplication() {
                     /** @type {any} */ (globalThis.electronAPI).onThemeChanged((/** @type {any} */ theme) => {
                     try {
                         applyTheme?.(theme);
-                    } catch { }
+                    } catch { /* Ignore errors */ }
                 });
                 }
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).isDevelopment) === "function") {
                     // Probe development mode to satisfy test expectation
                     /** @type {any} */ (globalThis.electronAPI).isDevelopment().catch(() => { });
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
         }
 
         // Touch app domain state once to satisfy coverage test that spies on getState
         try {
             getAppDomainState?.("app.startTime");
-        } catch { }
+        } catch { /* Ignore errors */ }
 
         // Mark application as initialized using new state system
         const { AppActions } = await ensureCoreModules();
@@ -488,7 +484,7 @@ async function initializeApplication() {
         try {
             const { showNotification } = await ensureCoreModules();
             showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10_000);
-        } catch { }
+        } catch { /* Ignore errors */ }
         // Do not rethrow here to keep module import safe for tests
     }
 }
@@ -542,7 +538,7 @@ async function initializeComponents(dependencies) {
         try {
             const { setupTheme: setupThemeDyn } = await ensureCoreModules();
             setupThemeDyn(dependencies.applyTheme, dependencies.listenForThemeChange);
-        } catch { }
+        } catch { /* Ignore errors */ }
         PerformanceMonitor.end("theme_setup");
 
         // 2. Setup event listeners
@@ -791,32 +787,32 @@ if (globalThis.window !== undefined) {
                 try {
                     const { handleOpenFile } = await ensureCoreModules();
                     return handleOpenFile(...args);
-                } catch { }
+                } catch { /* Ignore errors */ }
             },
             PerformanceMonitor,
             setupTheme: async (...args) => {
                 try {
                     const { setupTheme } = await ensureCoreModules();
                     return setupTheme(...args);
-                } catch { }
+                } catch { /* Ignore errors */ }
             },
             showAboutModal: async (...args) => {
                 try {
                     const { showAboutModal } = await ensureCoreModules();
                     return showAboutModal(...args);
-                } catch { }
+                } catch { /* Ignore errors */ }
             },
             showNotification: async (...args) => {
                 try {
                     const { showNotification } = await ensureCoreModules();
                     return showNotification(...args);
-                } catch { }
+                } catch { /* Ignore errors */ }
             },
             showUpdateNotification: async (...args) => {
                 try {
                     const { showUpdateNotification } = await ensureCoreModules();
                     return showUpdateNotification(...args);
-                } catch { }
+                } catch { /* Ignore errors */ }
             },
         };
     }
@@ -916,7 +912,7 @@ if (isDevelopmentMode()) {
                     console.log("Current State:", /** @type {any} */(masterStateManager).getState());
                     console.log("State History:", /** @type {any} */(masterStateManager).getHistory());
                     console.log("Active Subscriptions:", /** @type {any} */(masterStateManager).getSubscriptions());
-                } catch { }
+                } catch { /* Ignore errors */ }
             })();
         },
         getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
@@ -926,7 +922,7 @@ if (isDevelopmentMode()) {
                 const coreModules = await ensureCoreModules();
                 return coreModules.masterStateManager.getState();
             } catch {
-
+                /* Ignore state access errors */
             }
         },
         getStateHistory: async () => {
@@ -934,7 +930,7 @@ if (isDevelopmentMode()) {
                 const coreModules = await ensureCoreModules();
                 return coreModules.masterStateManager.getHistory();
             } catch {
-
+                /* Ignore state history access errors */
             }
         },
         isOpeningFileRef,
@@ -949,7 +945,7 @@ if (isDevelopmentMode()) {
                     const coreModules = await ensureCoreModules();
                     return coreModules.masterStateManager;
                 } catch {
-
+                    /* Ignore state manager access errors */
                 }
             })();
         },
@@ -964,7 +960,7 @@ if (isDevelopmentMode()) {
                 const { AppActions, uiStateManager } = await ensureCoreModules();
                 if (AppActions) /** @type {any} */ (globalThis).__renderer_dev.AppActions = AppActions;
                 if (uiStateManager) /** @type {any} */ (globalThis).__renderer_dev.uiStateManager = uiStateManager;
-            } catch { }
+            } catch { /* Ignore errors */ }
 
             const {
                 checkDataAvailability,
@@ -1039,8 +1035,8 @@ try {
             const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
             st(at, lf);
         })();
-    } catch { }
-} catch { }
+    } catch { /* Ignore errors */ }
+} catch { /* Ignore errors */ }
 
 // Immediately initialize state manager at import time so tests see initialize() called
 try {
@@ -1055,9 +1051,9 @@ try {
             if (msmObj && typeof msmObj.initialize === "function") {
                 await msmObj.initialize();
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     })();
-} catch { }
+} catch { /* Ignore errors */ }
 
 try {
     // Call setupListeners regardless of openFileBtn presence; tests mock this function
@@ -1085,8 +1081,8 @@ try {
             };
             sl(/** @type {any} */(deps));
         })();
-    } catch { }
-} catch { }
+    } catch { /* Ignore errors */ }
+} catch { /* Ignore errors */ }
 
 // Attach file input change handler if present at import time (tests rely on this)
 try {
@@ -1094,7 +1090,7 @@ try {
     if (fileInput && typeof fileInput.addEventListener === "function") {
         fileInput.addEventListener("change", async () => {
             try {
-                const file = fileInput.files && fileInput.files[0];
+                const [file] = fileInput.files || [];
                 if (file) {
                     // Use dynamically resolved handleOpenFile so test spies observe
                     try {
@@ -1103,7 +1099,7 @@ try {
                     } catch {
                         try {
                             /** @type {any} */ (handleOpenFile)(file);
-                        } catch { }
+                        } catch { /* Ignore errors */ }
                     }
                 }
             } catch (error) {
@@ -1111,7 +1107,7 @@ try {
             }
         });
     }
-} catch { }
+} catch { /* Ignore errors */ }
 
 // Centralized registration for electronAPI hooks
 function registerElectronAPI(/** @type {any} */ api) {
@@ -1134,11 +1130,11 @@ function registerElectronAPI(/** @type {any} */ api) {
                             } catch {
                                 try {
                                     showAboutModal();
-                                } catch { }
+                                } catch { /* Ignore errors */ }
                             }
                         })();
                     }
-                } catch { }
+                } catch { /* Ignore errors */ }
             });
         }
         if (typeof api.onThemeChanged === "function") {
@@ -1150,7 +1146,7 @@ function registerElectronAPI(/** @type {any} */ api) {
                     } catch {
                         try {
                             applyTheme(theme);
-                        } catch { }
+                        } catch { /* Ignore errors */ }
                     }
                 })();
             });
@@ -1165,11 +1161,11 @@ function registerElectronAPI(/** @type {any} */ api) {
                 const { getAppDomainState: gas, masterStateManager: msm } = await ensureCoreModules();
                 try {
                     if (msm && typeof msm.initialize === "function") await msm.initialize();
-                } catch { }
+                } catch { /* Ignore errors */ }
                 try {
                     if (typeof gas === "function") gas("app.startTime");
-                } catch { }
-            } catch { }
+                } catch { /* Ignore errors */ }
+            } catch { /* Ignore errors */ }
             // Also try exact manual mocks synchronously
             try {
                 const msmExact =
@@ -1180,7 +1176,7 @@ function registerElectronAPI(/** @type {any} */ api) {
                 if (msmObj && typeof msmObj.initialize === "function") {
                     await msmObj.initialize();
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
             try {
                 const dom =
                     resolveExactManualMock("../../utils/state/domain/appState.js") ||
@@ -1189,9 +1185,9 @@ function registerElectronAPI(/** @type {any} */ api) {
                 if (typeof gs === "function") {
                     gs("app.startTime");
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
         })();
-    } catch { }
+    } catch { /* Ignore errors */ }
 }
 
 // Wire electronAPI events if available now
@@ -1218,17 +1214,17 @@ try {
                                 _api = v;
                                 try {
                                     registerElectronAPI(v);
-                                } catch { }
+                                } catch { /* Ignore errors */ }
                             },
                         });
                         // Register once for current
                         try {
                             registerElectronAPI(_api);
-                        } catch { }
-                    } catch { }
+                        } catch { /* Ignore errors */ }
+                    } catch { /* Ignore errors */ }
                 }
             )();
-        } catch { }
+        } catch { /* Ignore errors */ }
         // Intercept defineProperty to detect external assignment patterns used in tests
         try {
             const IN_TEST2 =
@@ -1254,11 +1250,11 @@ try {
                                             await ensureCoreModules();
                                         try {
                                             if (msm && typeof msm.initialize === "function") await msm.initialize();
-                                        } catch { }
+                                        } catch { /* Ignore errors */ }
                                         try {
                                             if (typeof gas === "function") gas("app.startTime");
-                                        } catch { }
-                                    } catch { }
+                                        } catch { /* Ignore errors */ }
+                                    } catch { /* Ignore errors */ }
                                     try {
                                         const msmExact =
                                             resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
@@ -1271,7 +1267,7 @@ try {
                                         if (msmObj && typeof msmObj.initialize === "function") {
                                             await msmObj.initialize();
                                         }
-                                    } catch { }
+                                    } catch { /* Ignore errors */ }
                                     try {
                                         const dom =
                                             resolveExactManualMock("../../utils/state/domain/appState.js") ||
@@ -1280,17 +1276,17 @@ try {
                                         if (typeof gs === "function") {
                                             gs("app.startTime");
                                         }
-                                    } catch { }
+                                    } catch { /* Ignore errors */ }
                                 })();
-                            } catch { }
+                            } catch { /* Ignore errors */ }
                         }
-                    } catch { }
+                    } catch { /* Ignore errors */ }
                     return res;
                 };
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     }
-} catch { }
+} catch { /* Ignore errors */ }
 
 // In test environments, re-register when window.electronAPI is reassigned between tests
 try {
@@ -1309,19 +1305,19 @@ try {
                 try {
                     const { getAppDomainState: gas } = await ensureCoreModules();
                     if (typeof gas === "function") gas("app.startTime");
-                } catch { }
+                } catch { /* Ignore errors */ }
                 // Also ensure state manager initialize is called to satisfy spy
                 try {
                     const { masterStateManager: msm } = await ensureCoreModules();
                     if (msm && typeof msm.initialize === "function") {
                         await msm.initialize();
                     }
-                } catch { }
-            } catch { }
+                } catch { /* Ignore errors */ }
+            } catch { /* Ignore errors */ }
         }, 1);
         window.addEventListener("beforeunload", () => clearInterval(intervalId));
     }
-} catch { }
+} catch { /* Ignore errors */ }
 
 // Call into domain appState getters for performance/coverage tests
 try {
@@ -1331,13 +1327,13 @@ try {
             const { getAppDomainState: gas, subscribeAppDomain: sad } = await ensureCoreModules();
             try {
                 gas("app.startTime");
-            } catch { }
+            } catch { /* Ignore errors */ }
             if (typeof sad === "function") {
                 try {
                     sad("app.startTime", () => { });
-                } catch { }
+                } catch { /* Ignore errors */ }
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     })();
 
     // Also try synchronous mock call so spies observe immediately after import
@@ -1348,7 +1344,7 @@ try {
                 const { getAppDomainState: gas } = await ensureCoreModules();
                 if (typeof gas === "function") gas("app.startTime");
             })();
-        } catch { }
+        } catch { /* Ignore errors */ }
         // Then directly invoke the exact mocked module if available
         const mod =
             resolveExactManualMock("../../utils/state/domain/appState.js") ||
@@ -1357,8 +1353,8 @@ try {
         if (typeof gs === "function") {
             gs("app.startTime");
         }
-    } catch { }
-} catch { }
+    } catch { /* Ignore errors */ }
+} catch { /* Ignore errors */ }
 
 // Ensure mocked setupListeners is invoked synchronously on DOMContentLoaded for tests
 try {
@@ -1383,11 +1379,11 @@ try {
                         showUpdateNotification: () => { },
                     });
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
         },
         { once: false }
     );
-} catch { }
+} catch { /* Ignore errors */ }
 
 // Ensure theme setup is invoked again on window load to satisfy event-based tests
 try {
@@ -1407,15 +1403,15 @@ try {
                 st(at, lf);
                 return;
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
         (async () => {
             try {
                 const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
                 st(at, lf);
-            } catch { }
+            } catch { /* Ignore errors */ }
         })();
     });
-} catch { }
+} catch { /* Ignore errors */ }
 
 // Delegated change listener for dynamically created/replaced file input across tests
 try {
@@ -1423,8 +1419,9 @@ try {
         "change",
         (ev) => {
             try {
-                const target = /** @type {any} */ (ev.target);
-                if (target && target.id === "fileInput" && target.files && target.files[0]) {
+                const { target } = ev;
+                const [firstFile] = target?.files || [];
+                if (target && target.id === "fileInput" && target.files && firstFile) {
                     // Try synchronous manual mock first for immediate spy calls
                     try {
                         const m =
@@ -1432,20 +1429,20 @@ try {
                             resolveManualMock("/utils/files/import/handleOpenFile.js");
                         const hofSync = m?.handleOpenFile;
                         if (typeof hofSync === "function") {
-                            hofSync(target.files[0]);
+                            hofSync(firstFile);
                             return;
                         }
-                    } catch { }
+                    } catch { /* Ignore errors */ }
                     // Fallback to async resolution
                     (async () => {
                         try {
                             const { handleOpenFile: hof } = await ensureCoreModules();
-                            /** @type {any} */ (hof)(target.files[0]);
-                        } catch { }
+                            /** @type {any} */ (hof)(firstFile);
+                        } catch { /* Ignore errors */ }
                     })();
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
         },
         true
     );
-} catch { }
+} catch { /* Ignore errors */ }

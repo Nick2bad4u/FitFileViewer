@@ -16,7 +16,7 @@ import { C as d, e as I, c as F } from './isUnknown-BvXlyTdW.js';
 			(n._sentryDebugIds[o] = 'f2b1a753-d171-4ddf-8936-82e4c2ccb533'),
 			(n._sentryDebugIdIdentifier =
 				'sentry-dbid-f2b1a753-d171-4ddf-8936-82e4c2ccb533'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 const S = w.forwardRef(({ className: n, children: o, ...r }, i) =>
 	N.jsx('select', {

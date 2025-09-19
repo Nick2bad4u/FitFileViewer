@@ -11,20 +11,20 @@ try {
             if (g && (!__electronOverride)) __electronOverride = g;
             const a0 = g && g.app;
             if (a0 && typeof a0.whenReady === "function") {
-                try { a0.whenReady(); } catch { }
+                try { a0.whenReady(); } catch { /* Ignore initialization errors */ }
             }
             const BW0 = g && g.BrowserWindow;
             if (BW0 && typeof BW0.getAllWindows === "function") {
-                try { BW0.getAllWindows(); } catch { }
+                try { BW0.getAllWindows(); } catch { /* Ignore mock setup errors */ }
                 try {
                     const list0 = BW0.getAllWindows();
                     if (Array.isArray(list0) && list0.length > 0 && !getAppState("mainWindow")) {
                         setAppState("mainWindow", list0[0]);
-                        try { initializeApplication(); } catch { }
+                        try { initializeApplication(); } catch { /* Ignore initialization errors */ }
                     }
-                } catch { }
+                } catch { /* Ignore window enumeration errors */ }
             }
-        } catch { }
+        } catch { /* Ignore mock detection errors */ }
         // Also try to load the ESM view of 'electron' so Vitest's vi.mock takes effect and can be cached
         try {
             Promise.resolve().then(async () => {
@@ -36,22 +36,22 @@ try {
                     }
                     const a = appRef();
                     if (a && typeof a.whenReady === "function") {
-                        try { a.whenReady(); } catch { }
+                        try { a.whenReady(); } catch { /* Ignore app setup errors */ }
                     }
                     const BW = BrowserWindowRef();
                     if (BW && typeof BW.getAllWindows === "function") {
-                        try { BW.getAllWindows(); } catch { }
+                        try { BW.getAllWindows(); } catch { /* Ignore window enumeration errors */ }
                         try {
                             const list = BW.getAllWindows();
                             if (Array.isArray(list) && list.length > 0 && !getAppState("mainWindow")) {
                                 setAppState("mainWindow", list[0]);
                             }
-                        } catch { }
+                        } catch { /* Ignore window access errors */ }
                     }
-                    try { if (!getAppState("mainWindow")) initializeApplication(); } catch { }
-                } catch { }
+                    try { if (!getAppState("mainWindow")) initializeApplication(); } catch { /* Ignore initialization errors */ }
+                } catch { /* Ignore ESM import errors */ }
             });
-        } catch { }
+        } catch { /* Ignore promise setup errors */ }
 
         const __e = /** @type {any} */ (require("electron"));
         const __mod = __e && (__e.app || __e.BrowserWindow) ? __e : (__e && __e.default) ? __e.default : __e;
@@ -60,15 +60,15 @@ try {
             if (a && typeof a.whenReady === "function") {
                 a.whenReady();
             }
-        } catch { }
+        } catch { /* Ignore CJS app setup errors */ }
         try {
             const BW = __mod && __mod.BrowserWindow;
             if (BW && typeof BW.getAllWindows === "function") {
                 BW.getAllWindows();
             }
-        } catch { }
+        } catch { /* Ignore CJS window setup errors */ }
     }
-} catch { }
+} catch { /* Ignore overall setup errors */ }
 // Electron APIs must be accessed lazily so tests can hoist mocks that provide dynamic getters.
 // Do NOT destructure at require-time; this would capture undefined before tests set mock values.
 function getElectron() {
@@ -107,28 +107,28 @@ try {
                     try {
                         const d = Object.getOwnPropertyDescriptor(mod, "app");
                         if (d && typeof d.get === "function") return d.get.call(mod);
-                    } catch { }
+                    } catch { /* Ignore property descriptor access errors */ }
                     return mod && mod.app;
                 })();
                 const BW = (() => {
                     try {
                         const d = Object.getOwnPropertyDescriptor(mod, "BrowserWindow");
                         if (d && typeof d.get === "function") return d.get.call(mod);
-                    } catch { }
+                    } catch { /* Ignore property descriptor access errors */ }
                     return mod && mod.BrowserWindow;
                 })();
                 let okA = false, okB = false;
                 if (app && typeof app.whenReady === "function") {
-                    try { app.whenReady(); okA = true; } catch { }
+                    try { app.whenReady(); okA = true; } catch { /* Ignore app.whenReady errors */ }
                 }
                 if (BW && typeof BW.getAllWindows === "function") {
-                    try { BW.getAllWindows(); okB = true; } catch { }
+                    try { BW.getAllWindows(); okB = true; } catch { /* Ignore BrowserWindow access errors */ }
                     try {
                         const list = BW.getAllWindows();
                         if (Array.isArray(list) && list.length > 0 && !getAppState("mainWindow")) {
                             initializeApplication();
                         }
-                    } catch { }
+                    } catch { /* Ignore window initialization errors */ }
                 }
                 if (!(okA && okB) && __primeAttempts++ < 5) {
                     setTimeout(__retryPrime, 0);
@@ -139,7 +139,7 @@ try {
         };
         setTimeout(__retryPrime, 0);
     }
-} catch { }
+} catch { /* Ignore module priming errors */ }
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
@@ -297,43 +297,43 @@ try {
         if (__appDesc && typeof __appDesc.get === "function") {
             __prime_app_val = __appDesc.get.call(__prime);
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     if (__prime_app_val && typeof __prime_app_val.whenReady === "function") {
-        try { __prime_app_val.whenReady(); } catch { }
+        try { __prime_app_val.whenReady(); } catch { /* Ignore errors */ }
     }
     // Also invoke through lazy ref to cover environments where interop differs
     try {
         const __lazyApp = appRef();
         if (__lazyApp && typeof __lazyApp.whenReady === "function") {
-            try { __lazyApp.whenReady(); } catch { }
+            try { __lazyApp.whenReady(); } catch { /* Ignore errors */ }
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     let __prime_BW_val = __prime_BW;
     try {
         const __bwDesc = Object.getOwnPropertyDescriptor(__prime, "BrowserWindow");
         if (__bwDesc && typeof __bwDesc.get === "function") {
             __prime_BW_val = __bwDesc.get.call(__prime);
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     if (__prime_BW_val && typeof __prime_BW_val.getAllWindows === "function") {
-        try { __prime_BW_val.getAllWindows(); } catch { }
+        try { __prime_BW_val.getAllWindows(); } catch { /* Ignore errors */ }
         // If a window already exists (tests), initialize immediately to register did-finish-load
         try {
             const list = __prime_BW_val.getAllWindows();
             if (Array.isArray(list) && list.length > 0 && !getAppState("mainWindow")) {
                 initializeApplication();
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     }
     else {
         try {
             const __lazyBW = BrowserWindowRef();
             if (__lazyBW && typeof __lazyBW.getAllWindows === "function") {
-                try { __lazyBW.getAllWindows(); } catch { }
+                try { __lazyBW.getAllWindows(); } catch { /* Ignore errors */ }
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     }
-} catch { }
+} catch { /* Ignore errors */ }
 
 // Enhanced application initialization
 async function initializeApplication() {
@@ -343,9 +343,9 @@ async function initializeApplication() {
 
             const { app: __wa } = require("electron");
             if (__wa && typeof __wa.whenReady === "function") {
-                try { __wa.whenReady(); } catch { }
+                try { __wa.whenReady(); } catch { /* Ignore errors */ }
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     }
     // In test or when BrowserWindow is not a constructor (mocked object), avoid requiring
     // WindowStateUtils (which destructures electron at import-time) and instead use an
@@ -365,14 +365,14 @@ async function initializeApplication() {
 
                 const { BrowserWindow: __tBW } = require("electron");
                 if (__tBW && typeof __tBW.getAllWindows === "function") {
-                    try { list = __tBW.getAllWindows(); } catch { }
+                    try { list = __tBW.getAllWindows(); } catch { /* Ignore errors */ }
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
             if ((!list || list.length === 0) && BW && typeof BW.getAllWindows === "function") {
-                try { list = BW.getAllWindows(); } catch { }
+                try { list = BW.getAllWindows(); } catch { /* Ignore errors */ }
             }
             mainWindow = Array.isArray(list) && list.length > 0 ? list[0] : undefined;
-        } catch { }
+        } catch { /* Ignore errors */ }
 
         if (!mainWindow) {
             // Fallback minimal mock-compatible shape
@@ -515,20 +515,20 @@ try {
 
             const { app: __t_app, BrowserWindow: __t_BW } = require("electron");
             if (__t_app && typeof __t_app.whenReady === "function") {
-                try { __t_app.whenReady(); } catch { }
+                try { __t_app.whenReady(); } catch { /* Ignore errors */ }
             }
             if (__t_BW && typeof __t_BW.getAllWindows === "function") {
-                try { __t_BW.getAllWindows(); } catch { }
+                try { __t_BW.getAllWindows(); } catch { /* Ignore errors */ }
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
         try {
             if (!getAppState("mainWindow")) {
                 // Register did-finish-load handler synchronously by running initialization
                 initializeApplication();
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     }
-} catch { }
+} catch { /* Ignore errors */ }
 // Enhanced application event handlers
 function setupApplicationEventHandlers() {
     // App activation handler (macOS)
@@ -993,12 +993,8 @@ function setupMenuAndEventHandlers() {
     const updateHandlers = {
         "install-update": () => {
             try {
-                try {
-                    const { autoUpdater } = require("electron-updater");
-                    autoUpdater.quitAndInstall();
-                } catch (error) {
-                    throw error;
-                }
+                const { autoUpdater } = require("electron-updater");
+                autoUpdater.quitAndInstall();
             } catch (error) {
                 logWithContext("error", "Error during quitAndInstall:", { error: /** @type {Error} */ (error).message });
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
@@ -1013,12 +1009,8 @@ function setupMenuAndEventHandlers() {
         },
         "menu-check-for-updates": () => {
             try {
-                try {
-                    const { autoUpdater } = require("electron-updater");
-                    autoUpdater.checkForUpdates();
-                } catch (error) {
-                    throw error;
-                }
+                const { autoUpdater } = require("electron-updater");
+                autoUpdater.checkForUpdates();
             } catch (error) {
                 logWithContext("error", "Failed to check for updates:", {
                     error: /** @type {Error} */ (error).message,
@@ -1027,12 +1019,8 @@ function setupMenuAndEventHandlers() {
         },
         "menu-restart-update": () => {
             try {
-                try {
-                    const { autoUpdater } = require("electron-updater");
-                    autoUpdater.quitAndInstall();
-                } catch (error) {
-                    throw error;
-                }
+                const { autoUpdater } = require("electron-updater");
+                autoUpdater.quitAndInstall();
             } catch (error) {
                 logWithContext("error", "Error during restart and install:", {
                     error: /** @type {Error} */ (error).message,
@@ -1174,41 +1162,41 @@ try {
         try {
             // Call both direct app reference and lazy ref to satisfy spies under various mock interop
             if (app && typeof app.whenReady === "function") {
-                try { app.whenReady(); } catch { }
+                try { app.whenReady(); } catch { /* Ignore errors */ }
             }
             const a = appRef();
             if (a && typeof a.whenReady === "function") {
-                try { a.whenReady(); } catch { }
+                try { a.whenReady(); } catch { /* Ignore errors */ }
             }
             // Also prime BrowserWindow.getAllWindows for coverage using direct require to hit mocks
             try {
 
                 const { BrowserWindow: BWt } = require("electron");
                 if (BWt && typeof BWt.getAllWindows === "function") {
-                    try { BWt.getAllWindows(); } catch { }
+                    try { BWt.getAllWindows(); } catch { /* Ignore errors */ }
                 } else {
                     const BWfb = BrowserWindowRef();
                     if (BWfb && typeof BWfb.getAllWindows === "function") {
-                        try { BWfb.getAllWindows(); } catch { }
+                        try { BWfb.getAllWindows(); } catch { /* Ignore errors */ }
                     }
                 }
             } catch {
                 const BWfb = BrowserWindowRef();
                 if (BWfb && typeof BWfb.getAllWindows === "function") {
-                    try { BWfb.getAllWindows(); } catch { }
+                    try { BWfb.getAllWindows(); } catch { /* Ignore errors */ }
                 }
             }
             // Initialize application synchronously; registration of did-finish-load happens before the promise resolves
-            try { initializeApplication(); } catch { }
+            try { initializeApplication(); } catch { /* Ignore errors */ }
             // Wire handlers using the window stored in state
             try {
                 const win = getAppState("mainWindow");
                 setupIPCHandlers(win);
-            } catch { }
-            try { setupMenuAndEventHandlers(); } catch { }
-            try { setupApplicationEventHandlers(); } catch { }
+            } catch { /* Ignore errors */ }
+            try { setupMenuAndEventHandlers(); } catch { /* Ignore errors */ }
+            try { setupApplicationEventHandlers(); } catch { /* Ignore errors */ }
             if ((/** @type {any} */ (process.env).NODE_ENV === "development") || process.argv.includes("--dev")) {
-                try { exposeDevHelpers(); } catch { }
+                try { exposeDevHelpers(); } catch { /* Ignore errors */ }
             }
             __initCompleted = true;
             logWithContext("info", "Application initialized via early test path (sync)");
@@ -1261,17 +1249,17 @@ try {
 
                 const { app: a } = require("electron");
                 if (a && typeof a.whenReady === "function") {
-                    try { a.whenReady(); } catch { }
+                    try { a.whenReady(); } catch { /* Ignore errors */ }
                 } else {
                     const afb = appRef();
                     if (afb && typeof afb.whenReady === "function") {
-                        try { afb.whenReady(); } catch { }
+                        try { afb.whenReady(); } catch { /* Ignore errors */ }
                     }
                 }
             } catch {
                 const afb = appRef();
                 if (afb && typeof afb.whenReady === "function") {
-                    try { afb.whenReady(); } catch { }
+                    try { afb.whenReady(); } catch { /* Ignore errors */ }
                 }
             }
             // Perform initialization immediately for tests (createWindow is mocked and safe)
@@ -1280,11 +1268,11 @@ try {
             // Synchronous body of initializeApplication registers did-finish-load; chain remaining wiring
             Promise.resolve(initPromise)
                 .then((mainWindow) => {
-                    try { setupIPCHandlers(mainWindow); } catch { }
-                    try { setupMenuAndEventHandlers(); } catch { }
-                    try { setupApplicationEventHandlers(); } catch { }
+                    try { setupIPCHandlers(mainWindow); } catch { /* Ignore errors */ }
+                    try { setupMenuAndEventHandlers(); } catch { /* Ignore errors */ }
+                    try { setupApplicationEventHandlers(); } catch { /* Ignore errors */ }
                     if ((/** @type {any} */ (process.env).NODE_ENV === "development") || process.argv.includes("--dev")) {
-                        try { exposeDevHelpers(); } catch { }
+                        try { exposeDevHelpers(); } catch { /* Ignore errors */ }
                     }
                     logWithContext("info", "Application initialized via test fallback");
                 })

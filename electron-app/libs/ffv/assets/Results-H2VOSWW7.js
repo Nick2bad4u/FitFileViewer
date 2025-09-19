@@ -76,7 +76,7 @@ import { S as Hs } from './Sprite-BZ4Kwmf3.js';
 			(e._sentryDebugIds[t] = 'cdbc80f3-1524-4e5b-926a-2b982bfbf107'),
 			(e._sentryDebugIdIdentifier =
 				'sentry-dbid-cdbc80f3-1524-4e5b-926a-2b982bfbf107'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 /**
  * @license lucide-react v0.396.0 - ISC

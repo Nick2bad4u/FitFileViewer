@@ -441,7 +441,7 @@ export function testTabButtonClicks() {
                 if (typeof alert === "function") {
                     alert(`Clicked on ${btnId}!`);
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
         };
 
         btn.addEventListener("click", testHandler);
@@ -513,7 +513,7 @@ function ensureObserverInstalled() {
             try {
                 // eslint-disable-next-line no-new
                 new windowCtor(callback);
-            } catch { }
+            } catch { /* Ignore errors */ }
         }
         w.tabButtonObserver = observer;
     }
@@ -527,7 +527,7 @@ function ensureObserverInstalled() {
                 if (button && typeof observer.observe === "function") {
                     observer.observe(button, { attributeFilter: ["disabled"], attributes: true });
                 }
-            } catch { }
+            } catch { /* Ignore errors */ }
         }
     }
 }
@@ -549,7 +549,7 @@ function safeComputedStyle(el, prop) {
             // Fallback indexing for environments that allow it
             return /** @type {any} */ (cs)[prop];
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
     
 }
 

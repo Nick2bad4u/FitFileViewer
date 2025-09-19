@@ -18,16 +18,16 @@ const getDoc = () => {
         if (!d && typeof document !== "undefined" && document && typeof document.getElementById === "function") {
             d = /** @type {any} */ (document);
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     try {
         if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
-    } catch {}
+    } catch { /* Ignore errors */ }
     try {
         // Then prefer the current global document; this reflects the active jsdom for this test file
         if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
             d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     // Fallback: canonical document provided by the test harness
     try {
         // @ts-ignore
@@ -35,7 +35,7 @@ const getDoc = () => {
             // @ts-ignore
             d = /** @type {any} */ (__vitest_effective_document__);
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     // Final fallback to module document
     if (!d) {
         // @ts-ignore - JSDOM provides document at runtime
@@ -61,7 +61,7 @@ const getDoc = () => {
                 d = /** @type {any} */ (__vitest_effective_document__);
             }
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     return /** @type {Document} */ (d);
 };
 
@@ -77,7 +77,7 @@ const getStateMgr = () => {
         if (getState && setState && subscribe) {
             return { getState, setState, subscribe };
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     try {
         // @ts-ignore
         const eff =
@@ -89,7 +89,7 @@ const getStateMgr = () => {
             const subscribe = typeof eff.subscribe === "function" ? eff.subscribe : __StateMgr.subscribe;
             return { getState, setState, subscribe };
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
     return {
         getState: /** @type {any} */ (__StateMgr.getState),
         setState: /** @type {any} */ (__StateMgr.setState),
@@ -146,11 +146,11 @@ export function initializeActiveTabState() {
                         // Explicit debug log for coverage and diagnostics
                         try {
                             console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id}`);
-                        } catch {}
+                        } catch { /* Ignore errors */ }
                         try {
                             evt?.preventDefault?.();
                             evt?.stopPropagation?.();
-                        } catch {}
+                        } catch { /* Ignore errors */ }
                         return;
                     }
                     const btnId = typeof button.id === "string" ? button.id.trim() : "";
@@ -163,7 +163,7 @@ export function initializeActiveTabState() {
                     } catch (error) {
                         try {
                             console.warn("[ActiveTab] Failed to set state from button click:", error);
-                        } catch {}
+                        } catch { /* Ignore errors */ }
                         // Prevent unhandled exception propagation in test environment
                     }
                 };
@@ -196,13 +196,13 @@ export function updateActiveTab(tabId) {
             getStateMgr().setState("ui.activeTab", tabNameFast, { source: "updateActiveTab" });
             return true;
         }
-    } catch {}
+    } catch { /* Ignore errors */ }
 
     // Remove 'active' from currently active buttons. If multiple exist, clean all.
     const activeNow = getDoc().querySelectorAll(".tab-button.active");
     if (activeNow && activeNow.length > 0) {
         if (activeNow.length === 1) {
-            const only = /** @type {any} */ (activeNow[0]);
+            const [only] = activeNow;
             only?.classList?.remove?.("active");
         } else {
             for (const el of activeNow) (el)?.classList?.remove?.("active");

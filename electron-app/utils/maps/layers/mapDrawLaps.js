@@ -442,7 +442,7 @@ export function mapDrawLaps(
             // --- Store original bounds for main polyline ---
             const origBounds = polyline.getBounds();
             // Immediate fit using the original bounds reference to ensure at least one call is recorded
-            try { map.fitBounds(origBounds, { padding: [20, 20] }); } catch { }
+            try { map.fitBounds(origBounds, { padding: [20, 20] }); } catch { /* Ignore errors */ }
             /** @type {any} */ (getWin())._mainPolylineOriginalBounds =
                 typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
             map.invalidateSize();
@@ -615,7 +615,7 @@ export function mapDrawLaps(
                 // --- Store original bounds for main polyline ---
                 const origBounds = polyline.getBounds();
                 // Immediate fit using the original bounds reference to ensure at least one call is recorded
-                try { map.fitBounds(origBounds, { padding: [20, 20] }); } catch { }
+                try { map.fitBounds(origBounds, { padding: [20, 20] }); } catch { /* Ignore errors */ }
                     /** @type {any} */ (getWin())._mainPolylineOriginalBounds =
                     typeof origBounds.clone === "function" ? origBounds.clone() : L.latLngBounds(origBounds);
                 map.invalidateSize();
@@ -1201,13 +1201,13 @@ function patchLapIndices(lapMesgs, recordMesgs) {
             get() {
                 // Return a wrapper that calls real first, then user stub if present
                 return function () {
-                    try { (/** @type {any} */ (getWin())).__realUpdateOverlayHighlights(); } catch { }
+                    try { (/** @type {any} */ (getWin())).__realUpdateOverlayHighlights(); } catch { /* Ignore errors */ }
                     if (typeof userAssigned === "function") {
                         try {
                             /** @type {any[]} */
                             const args = Array.prototype.slice.call(arguments);
                             return userAssigned.apply(getWin(), args);
-                        } catch { }
+                        } catch { /* Ignore errors */ }
                     }
                 };
             },
@@ -1215,7 +1215,7 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                 userAssigned = v;
             },
         });
-    } catch { }
+    } catch { /* Ignore errors */ }
 })();
 
 // Define a reactive setter so changing highlighted overlay index updates styles even if the
@@ -1247,9 +1247,9 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                                 }
                             }
                         }
-                    } catch { }
+                    } catch { /* Ignore errors */ }
                 },
             });
         }
-    } catch { }
+    } catch { /* Ignore errors */ }
 })();

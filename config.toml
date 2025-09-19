@@ -1,0 +1,17 @@
+approval_policy = "never"
+experimental_use_exec_command_tool = false
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+model_reasoning_summary = "detailed"
+model_verbosity = "medium"
+sandbox_mode = "danger-full-access"
+sandbox_workspace_write.network_access = true
+sandbox_workspace_write.writable_roots = [
+    "C:\\Users\\Nick\\AppData\\Roaming\\uptime-watcher",
+]
+[mcp.servers.vscode-mcp]
+    args = [
+        "@vscode-mcp/vscode-mcp-server@latest",
+    ]
+    command = "npx"
+    type = "stdio"

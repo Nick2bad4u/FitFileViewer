@@ -32,7 +32,7 @@ import { u as Fs } from './useMeasure-Df3vRnzU.js';
 			(u._sentryDebugIds[l] = '0910fff2-1a5d-40ae-99f9-8144c651b771'),
 			(u._sentryDebugIdIdentifier =
 				'sentry-dbid-0910fff2-1a5d-40ae-99f9-8144c651b771'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 /**
  * @license lucide-react v0.396.0 - ISC
@@ -1089,7 +1089,7 @@ var xi = { exports: {} };
 					});
 					window.addEventListener('testPassiveEventSupport', C, e),
 						window.removeEventListener('testPassiveEventSupport', C, e);
-				} catch {}
+				} catch { /* Ignore errors */ }
 				return t;
 			})(),
 			wo = (function () {
@@ -6819,7 +6819,7 @@ var xi = { exports: {} };
 							return document.createElement('<lvml:' + t + ' class="lvml">');
 						}
 					);
-				} catch {}
+				} catch { /* Ignore errors */ }
 				return function (t) {
 					return document.createElement(
 						'<' + t + ' xmlns="urn:schemas-microsoft.com:vml" class="lvml">',

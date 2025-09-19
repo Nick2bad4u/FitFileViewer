@@ -15,7 +15,7 @@ import { bn as i, aP as n, br as m } from './index-LvWRIhnC.js';
 			(t._sentryDebugIds[r] = '5de2fe6f-6c17-4bba-9a70-fb6c1cca56a3'),
 			(t._sentryDebugIdIdentifier =
 				'sentry-dbid-5de2fe6f-6c17-4bba-9a70-fb6c1cca56a3'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 var I = i ? n.useLayoutEffect : n.useEffect,
 	c = { x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, bottom: 0, right: 0 };

@@ -62,7 +62,7 @@ import {
 			(e._sentryDebugIds[t] = 'a0b9bbe9-9bc7-4833-9cb2-c3c56914b0b4'),
 			(e._sentryDebugIdIdentifier =
 				'sentry-dbid-a0b9bbe9-9bc7-4833-9cb2-c3c56914b0b4'));
-	} catch {}
+	} catch { /* Ignore errors */ }
 })();
 const h = {
 		ENUM: 0,
@@ -404,7 +404,7 @@ function Jt(e) {
 	try {
 		e[C] = void 0;
 		var n = !0;
-	} catch {}
+	} catch { /* Ignore errors */ }
 	var r = qt.call(e);
 	return n && (t ? (e[C] = i) : delete e[C]), r;
 }

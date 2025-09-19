@@ -46,12 +46,12 @@ const contextBridge = {
         try {
             // Mirror onto global/window so tests can access it easily
             /** @type {any} */ (globalThis)[name] = api;
-        } catch { }
+        } catch { /* Ignore errors */ }
         try {
             if (typeof window !== "undefined") {
                 /** @type {any} */ (window)[name] = api;
             }
-        } catch { }
+        } catch { /* Ignore errors */ }
     }),
 };
 

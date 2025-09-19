@@ -83,44 +83,28 @@ function formatWithUserUnits(seconds) {
     try {
         if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
             storages.push(/** @type {any} */(globalThis).localStorage);
-    } catch { }
+    } catch { /* Ignore errors */ }
     try {
         if (globalThis.window !== undefined && /** @type {any} */ (globalThis).localStorage)
             storages.push(/** @type {any} */(globalThis).localStorage);
-    } catch { }
+    } catch { /* Ignore errors */ }
     try {
         if (typeof localStorage !== "undefined") storages.push(/** @type {any} */(localStorage));
-    } catch { }
+    } catch { /* Ignore errors */ }
 
     /** @type {string} */
     let timeUnits = TIME_UNITS.SECONDS;
-    try {
-        for (const storage of storages) {
-            try {
-                if (storage && typeof storage.getItem === "function") {
-                    const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
-                    if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
-                        timeUnits = stored;
-                        break;
-                    }
-                }
-            } catch (error) {
-                // Surface storage access errors to the top-level handler for logging
-                throw error;
+    for (const storage of storages) {
+        if (storage && typeof storage.getItem === "function") {
+            const stored = storage.getItem(TIME_FORMAT_CONSTANTS.DEFAULT_TIME_UNITS_KEY);
+            if (stored === TIME_UNITS.MINUTES || stored === TIME_UNITS.HOURS || stored === TIME_UNITS.SECONDS) {
+                timeUnits = stored;
+                break;
             }
         }
-    } catch (error) {
-        // Propagate to top-level handler which will log and return "0:00"
-        throw error;
     }
 
-    let convertedValue;
-    try {
-        convertedValue = convertTimeUnits(seconds, timeUnits);
-    } catch (error) {
-        // Propagate to top-level handler which will log and return "0:00"
-        throw error;
-    }
+    const convertedValue = convertTimeUnits(seconds, timeUnits);
 
     switch (timeUnits) {
         case TIME_UNITS.HOURS: {
