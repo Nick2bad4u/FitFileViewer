@@ -64,9 +64,9 @@ function formatAsTimeString(seconds) {
 
     if (hours > 0) {
         return `${hours}:${minutes.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
-    } 
-        return `${minutes}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
-    
+    }
+    return `${minutes}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
+
 }
 
 /**
@@ -82,15 +82,15 @@ function formatWithUserUnits(seconds) {
     const storages = [];
     try {
         if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
-            storages.push(/** @type {any} */ (globalThis).localStorage);
-    } catch {}
+            storages.push(/** @type {any} */(globalThis).localStorage);
+    } catch { }
     try {
         if (globalThis.window !== undefined && /** @type {any} */ (globalThis).localStorage)
-            storages.push(/** @type {any} */ (globalThis).localStorage);
-    } catch {}
+            storages.push(/** @type {any} */(globalThis).localStorage);
+    } catch { }
     try {
-        if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
-    } catch {}
+        if (typeof localStorage !== "undefined") storages.push(/** @type {any} */(localStorage));
+    } catch { }
 
     /** @type {string} */
     let timeUnits = TIME_UNITS.SECONDS;
@@ -129,7 +129,6 @@ function formatWithUserUnits(seconds) {
         case TIME_UNITS.MINUTES: {
             return `${convertedValue.toFixed(1)}m`;
         }
-        case TIME_UNITS.SECONDS:
         default: {
             // For seconds, still use MM:SS format for better readability
             return formatAsTimeString(seconds);

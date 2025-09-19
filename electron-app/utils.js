@@ -103,7 +103,7 @@ if (globalThis.window !== undefined) {
         /** @type {any} */ (globalThis).electronAPI &&
         typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
     ) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        // Fire and forget - don't need to await
         loadVersionFromElectron();
     } else {
         // Wait for electronAPI to be available
@@ -117,7 +117,7 @@ if (globalThis.window !== undefined) {
                 /** @type {any} */ (globalThis).electronAPI &&
                 typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
             ) {
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                // Fire and forget - don't need to await
                 loadVersionFromElectron();
             } else {
                 // Keep checking periodically for a short time
@@ -490,4 +490,4 @@ logWithContext("info", `Utils module initialized successfully (v${CONSTANTS.VERS
 
 // Export for module usage (if needed)
 export default utils;
-export {  FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };
+export { FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };

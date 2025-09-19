@@ -168,7 +168,7 @@ function saveRecentFiles(list) {
         fs.writeFileSync(
             /** @type {string} */(RECENT_FILES_PATH),
             JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
-            "utf-8"
+            "utf8"
         );
     } catch (error) {
         console.error("Failed to save recent files:", error);

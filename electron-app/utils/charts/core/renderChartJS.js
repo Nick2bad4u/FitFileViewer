@@ -655,9 +655,9 @@ export async function renderChartJS(targetContainer) {
             renderTime = performanceEnd - performanceStart,
             result = await renderChartsWithData(
                 /** @type {HTMLElement} */(targetContainer),
-            recordMesgs,
-            activityStartTime
-        );
+                recordMesgs,
+                activityStartTime
+            );
         console.log(`[ChartJS] Chart rendering completed in ${renderTime.toFixed(2)}ms`);
 
         // Complete rendering process through state actions
@@ -747,7 +747,7 @@ export function resetChartNotificationState() {
  */
 export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
     previousChartState.chartCount = chartCount;
-    previousChartState.fieldsRendered = /** @type {any} */ (new Array(visibleFields).fill(true));
+    previousChartState.fieldsRendered = /** @type {any} */ (Array.from({ length: visibleFields }, () => true));
     previousChartState.lastRenderTimestamp = timestamp;
 
     // Update state for other components using updateState
@@ -855,35 +855,35 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const // Get theme from options or fallback to system
         currentTheme = detectCurrentTheme(),
         zoomPluginConfig = {
-        limits: {
-            x: {
-                max: "original",
-                min: "original",
+            limits: {
+                x: {
+                    max: "original",
+                    min: "original",
+                },
             },
-        },
-        pan: {
-            enabled: true,
-            mode: "x",
-            modifierKey: null, // Allow panning without modifier key
-        },
-        zoom: {
-            drag: {
-                backgroundColor: /** @type {any} */ (themeConfig).colors.primaryAlpha || "rgba(59, 130, 246, 0.2)",
-                borderColor: /** @type {any} */ (themeConfig).colors.primary || "rgba(59, 130, 246, 0.8)",
-                borderWidth: 2,
+            pan: {
                 enabled: true,
-                modifierKey: "shift", // Require shift key for drag selection
+                mode: "x",
+                modifierKey: null, // Allow panning without modifier key
             },
-            mode: "x",
-            pinch: {
-                enabled: true,
+            zoom: {
+                drag: {
+                    backgroundColor: /** @type {any} */ (themeConfig).colors.primaryAlpha || "rgba(59, 130, 246, 0.2)",
+                    borderColor: /** @type {any} */ (themeConfig).colors.primary || "rgba(59, 130, 246, 0.8)",
+                    borderWidth: 2,
+                    enabled: true,
+                    modifierKey: "shift", // Require shift key for drag selection
+                },
+                mode: "x",
+                pinch: {
+                    enabled: true,
+                },
+                wheel: {
+                    enabled: true,
+                    speed: 0.1,
+                },
             },
-            wheel: {
-                enabled: true,
-                speed: 0.1,
-            },
-        },
-    };
+        };
     console.log("[renderChartsWithData] Detected theme:", currentTheme);
 
     // Process data
@@ -1176,9 +1176,10 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     updatePreviousChartState(totalChartsRendered, visibleFieldCount, Date.now());
 
     // Emit comprehensive chart status event with state information
+    const { hasValidData } = chartState;
     const chartsRenderedEvent = new CustomEvent("chartsRendered", {
         detail: {
-            hasData: chartState.hasValidData,
+            hasData: hasValidData,
             renderTime,
             settings: getState("charts.chartOptions"),
             timestamp: Date.now(),

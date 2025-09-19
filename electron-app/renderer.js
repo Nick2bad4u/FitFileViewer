@@ -923,14 +923,16 @@ if (isDevelopmentMode()) {
         // State debugging helpers
         getState: async () => {
             try {
-                return (await ensureCoreModules()).masterStateManager.getState();
+                const coreModules = await ensureCoreModules();
+                return coreModules.masterStateManager.getState();
             } catch {
 
             }
         },
         getStateHistory: async () => {
             try {
-                return (await ensureCoreModules()).masterStateManager.getHistory();
+                const coreModules = await ensureCoreModules();
+                return coreModules.masterStateManager.getHistory();
             } catch {
 
             }
@@ -944,7 +946,8 @@ if (isDevelopmentMode()) {
         get stateManager() {
             return (async () => {
                 try {
-                    return (await ensureCoreModules()).masterStateManager;
+                    const coreModules = await ensureCoreModules();
+                    return coreModules.masterStateManager;
                 } catch {
 
                 }
@@ -1032,50 +1035,56 @@ if (isDevelopmentMode()) {
 try {
     // Always attempt to setup theme for coverage tests using dynamically resolved (mockable) modules
     try {
-        const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
-        st(at, lf);
+        (async () => {
+            const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
+            st(at, lf);
+        })();
     } catch { }
 } catch { }
 
 // Immediately initialize state manager at import time so tests see initialize() called
 try {
-    await initializeStateManager();
-    // Also directly invoke the exact mocked masterStateManager.initialize to satisfy strict spies
-    try {
-        const msmExact =
-            resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
-            resolveManualMock("/utils/state/core/masterStateManager.js");
-        const msmObj = msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
-        if (msmObj && typeof msmObj.initialize === "function") {
-            await msmObj.initialize();
-        }
-    } catch { }
+    (async () => {
+        await initializeStateManager();
+        // Also directly invoke the exact mocked masterStateManager.initialize to satisfy strict spies
+        try {
+            const msmExact =
+                resolveExactManualMock("../../utils/state/core/masterStateManager.js") ||
+                resolveManualMock("/utils/state/core/masterStateManager.js");
+            const msmObj = msmExact && (msmExact.masterStateManager || msmExact.default?.masterStateManager || msmExact);
+            if (msmObj && typeof msmObj.initialize === "function") {
+                await msmObj.initialize();
+            }
+        } catch { }
+    })();
 } catch { }
 
 try {
     // Call setupListeners regardless of openFileBtn presence; tests mock this function
     try {
-        const {
-            applyTheme: at,
-            handleOpenFile: hof,
-            listenForThemeChange: lf,
-            setupListeners: sl,
-            showAboutModal: sam,
-            showNotification: sn,
-            showUpdateNotification: sun,
-        } = await ensureCoreModules();
-        const deps = {
-            applyTheme: at,
-            handleOpenFile: hof,
-            isOpeningFileRef,
-            listenForThemeChange: lf,
-            openFileBtn: document.querySelector("#openFileBtn"),
-            setLoading,
-            showAboutModal: sam,
-            showNotification: sn,
-            showUpdateNotification: sun,
-        };
-        sl(/** @type {any} */(deps));
+        (async () => {
+            const {
+                applyTheme: at,
+                handleOpenFile: hof,
+                listenForThemeChange: lf,
+                setupListeners: sl,
+                showAboutModal: sam,
+                showNotification: sn,
+                showUpdateNotification: sun,
+            } = await ensureCoreModules();
+            const deps = {
+                applyTheme: at,
+                handleOpenFile: hof,
+                isOpeningFileRef,
+                listenForThemeChange: lf,
+                openFileBtn: document.querySelector("#openFileBtn"),
+                setLoading,
+                showAboutModal: sam,
+                showNotification: sn,
+                showUpdateNotification: sun,
+            };
+            sl(/** @type {any} */(deps));
+        })();
     } catch { }
 } catch { }
 
@@ -1335,8 +1344,10 @@ try {
     try {
         // Prefer ensureCoreModules result first
         try {
-            const { getAppDomainState: gas } = await ensureCoreModules();
-            if (typeof gas === "function") gas("app.startTime");
+            (async () => {
+                const { getAppDomainState: gas } = await ensureCoreModules();
+                if (typeof gas === "function") gas("app.startTime");
+            })();
         } catch { }
         // Then directly invoke the exact mocked module if available
         const mod =

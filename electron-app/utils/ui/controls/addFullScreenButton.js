@@ -197,8 +197,10 @@ function createExitFullscreenIcon() {
 function handleDOMContentLoaded() {
     try {
         // Initialize Electron fullscreen state
-        if (globalThis.electronAPI && typeof globalThis.electronAPI.setFullScreen === "function") {
-            globalThis.electronAPI.setFullScreen(false);
+        const { electronAPI } = globalThis;
+        if (electronAPI && typeof electronAPI.setFullScreen === "function") {
+            const { setFullScreen } = electronAPI;
+            setFullScreen(false);
         }
 
         // Check if required elements exist and add fullscreen button
@@ -232,7 +234,7 @@ function handleFullscreenStateChange() {
         if (screenfull.isFullscreen) {
             // Entering fullscreen
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -249,7 +251,7 @@ function handleFullscreenStateChange() {
         } else {
             // Exiting fullscreen
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 

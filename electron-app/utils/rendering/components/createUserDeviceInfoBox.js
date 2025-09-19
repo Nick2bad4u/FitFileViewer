@@ -116,7 +116,7 @@ export function createUserDeviceInfoBox(container) {
             flex-wrap: wrap;
             gap: 28px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            box-shadow: 0 4px 20px ${colors.shadowMedium}, 
+            box-shadow: 0 4px 20px ${colors.shadowMedium},
                         0 2px 8px ${colors.primaryShadowLight};
             color: ${colors.text};
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -127,14 +127,14 @@ export function createUserDeviceInfoBox(container) {
         // Add hover effects using event listeners
         infoBox.addEventListener("mouseenter", () => {
             infoBox.style.transform = "translateY(-4px) scale(1.01)";
-            infoBox.style.boxShadow = `0 8px 40px ${colors.shadowHeavy}, 
+            infoBox.style.boxShadow = `0 8px 40px ${colors.shadowHeavy},
                                        0 4px 16px ${colors.primaryShadowHeavy}`;
             infoBox.style.borderColor = colors.primary;
         });
 
         infoBox.addEventListener("mouseleave", () => {
             infoBox.style.transform = "translateY(0) scale(1)";
-            infoBox.style.boxShadow = `0 4px 20px ${colors.shadowMedium}, 
+            infoBox.style.boxShadow = `0 4px 20px ${colors.shadowMedium},
                                        0 2px 8px ${colors.primaryShadowLight}`;
             infoBox.style.borderColor = colors.border;
         });
@@ -243,18 +243,18 @@ export function createUserDeviceInfoBox(container) {
         deviceSection.addEventListener("mouseenter", () => {
             deviceSection.style.transform = "translateY(-2px)";
             deviceSection.style.boxShadow = `0 6px 20px ${colors.shadow}`;
-            deviceSection.style.borderColor = themeConfig.colors.primary;
+            deviceSection.style.borderColor = colors.primary;
         });
 
         deviceSection.addEventListener("mouseleave", () => {
             deviceSection.style.transform = "translateY(0)";
             deviceSection.style.boxShadow = "none";
-            deviceSection.style.borderColor = themeConfig.colors.border;
+            deviceSection.style.borderColor = colors.border;
         });
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-                deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
             sensors = deviceInfos.filter(
                 (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
             );
@@ -294,27 +294,27 @@ export function createUserDeviceInfoBox(container) {
                 if (sensor.manufacturer || sensor.garminProduct) {
                     deviceHtml += `
                         <div style="
-                            background: linear-gradient(135deg, ${colors.primary}, ${colors.accent}); 
-                            color: ${colors.textPrimary}; 
-                            padding: 10px 16px; 
-                            border-radius: 25px; 
-                            font-size: 13px; 
+                            background: linear-gradient(135deg, ${colors.primary}, ${colors.accent});
+                            color: ${colors.textPrimary};
+                            padding: 10px 16px;
+                            border-radius: 25px;
+                            font-size: 13px;
                             font-weight: 600;
-                            white-space: nowrap; 
+                            white-space: nowrap;
                             border: 2px solid transparent;
                             box-shadow: 0 4px 15px ${colors.primaryShadow};
                             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                             position: relative;
                             overflow: hidden;
                             transform: translateY(0);
-                        " 
+                        "
                         onmouseenter="
-                            this.style.transform='translateY(-3px) scale(1.05)'; 
+                            this.style.transform='translateY(-3px) scale(1.05)';
                             this.style.boxShadow='0 8px 25px ${colors.primaryShadowHeavy}';
                             this.style.background='linear-gradient(135deg, ${colors.accent}, ${colors.primary})';
-                        " 
+                        "
                         onmouseleave="
-                            this.style.transform='translateY(0) scale(1)'; 
+                            this.style.transform='translateY(0) scale(1)';
                             this.style.boxShadow='0 4px 15px ${colors.primaryShadow}';
                             this.style.background='linear-gradient(135deg, ${colors.primary}, ${colors.accent})';
                         ">
@@ -344,9 +344,9 @@ export function createUserDeviceInfoBox(container) {
         if (!primaryDevice && sensors.length === 0) {
             deviceHtml += `
                 <div style="
-                    color: ${colors.textSecondary}; 
-                    font-style: italic; 
-                    padding: 24px; 
+                    color: ${colors.textSecondary};
+                    font-style: italic;
+                    padding: 24px;
                     text-align: center;
                     background: ${colors.surfaceSecondary};
                     border-radius: 12px;

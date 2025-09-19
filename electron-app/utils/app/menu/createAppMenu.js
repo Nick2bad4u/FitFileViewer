@@ -12,7 +12,7 @@ function getElectron() {
         return __electronCached;
     }
     try {
-         
+
         const e = require("electron");
         __electronCached = /** @type {any} */ (e);
         return /** @type {any} */ (e);
@@ -44,7 +44,7 @@ function getConf() {
         const fallback = {
             _store: {},
             get(key, def) {
-                return Object.prototype.hasOwnProperty.call(this._store, key) ? this._store[key] : def;
+                return Object.hasOwn(this._store, key) ? this._store[key] : def;
             },
             set(key, val) {
                 this._store[key] = val;
@@ -83,7 +83,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     try {
         if (!el || !el.Menu) {
             // Provide visibility into why Menu isn't present in CI
-             
+
             console.warn("[createAppMenu] Debug: electron module keys:", Object.keys(el || {}));
         }
     } catch { }
@@ -101,12 +101,12 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     /** @type {{ loadRecentFiles: () => string[], getShortRecentName: (p: string) => string }} */
     let recentUtils;
     try {
-         
+
         recentUtils = require("../../../utils/files/recent/recentFiles");
     } catch {
         // Some builds may have a different relative path
         try {
-             
+
             recentUtils = require("../../../utils/files/recent/recentFiles");
         } catch {
             recentUtils = /** @type {any} */ ({ getShortRecentName: (/** @type {string} */ p) => p, loadRecentFiles: () => [] });
@@ -121,27 +121,27 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     /** @type {any[]} */
     const decoderOptionEmojis = {
-            applyScaleAndOffset: "📏",
-            convertDateTimesToDates: "📅",
-            convertTypesToStrings: "🔤",
-            expandComponents: "🔗",
-            expandSubFields: "🧩",
-            includeUnknownData: "❓",
-            mergeHeartRates: "❤️",
-        },
+        applyScaleAndOffset: "📏",
+        convertDateTimesToDates: "📅",
+        convertTypesToStrings: "🔤",
+        expandComponents: "🔗",
+        expandSubFields: "🧩",
+        includeUnknownData: "❓",
+        mergeHeartRates: "❤️",
+    },
         decoderOptions = getDecoderOptions(),
         recentMenuItems =
-        recentFiles.length > 0
-            ? recentFiles.map((/** @type {string} */ file) => ({
-                click: () => {
-                    if (mainWindow && mainWindow.webContents) {
-                        mainWindow.webContents.send("open-recent-file", file);
-                    }
-                },
-                label: recentUtils.getShortRecentName(file),
-                tooltip: file,
-            }))
-            : [{ enabled: false, label: "No Recent Files" }];
+            recentFiles.length > 0
+                ? recentFiles.map((/** @type {string} */ file) => ({
+                    click: () => {
+                        if (mainWindow && mainWindow.webContents) {
+                            mainWindow.webContents.send("open-recent-file", file);
+                        }
+                    },
+                    label: recentUtils.getShortRecentName(file),
+                    tooltip: file,
+                }))
+                : [{ enabled: false, label: "No Recent Files" }];
     /**
      * @param {*} decoderOptions
      * @param {*} decoderOptionEmojis
@@ -210,7 +210,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                                         win.webContents.send("show-notification", "Recent files cleared.", "info");
                                         win.webContents.send("unload-fit-file");
                                     }
-                                    createAppMenu(win, /** @type {string} */(getTheme());
+                                    createAppMenu(win, /** @type {string} */(getTheme()));
                                 },
                                 enabled: recentFiles.length > 0,
                                 label: "🧹 Clear Recent Files",
@@ -539,7 +539,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     if (!app || !app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item)["label"]);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item).label);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
             console.log("[createAppMenu] Debug: recentFiles loaded:", Array.isArray(recentFiles) ? [...recentFiles] : recentFiles);

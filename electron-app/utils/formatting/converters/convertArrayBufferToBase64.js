@@ -26,7 +26,7 @@ export function convertArrayBufferToBase64(buffer) {
     // Process in chunks to handle large buffers efficiently
     for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
         const chunk = bytes.subarray(i, i + CHUNK_SIZE),
-            chunkString = String.fromCharCode(...chunk);
+            chunkString = String.fromCodePoint(...chunk);
         binaryChunks.push(chunkString);
     }
 

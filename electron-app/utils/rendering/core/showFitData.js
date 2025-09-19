@@ -299,9 +299,10 @@ function resetRenderingStates() {
  */
 function updateFileDisplay(fileName) {
     try {
-        const // Update file name container
-            fileNameContainer = document.getElementById(SELECTORS.FILE_NAME_CONTAINER),
-            { CSS_CLASSES, SELECTORS } = DISPLAY_CONSTANTS;
+        const // Destructure constants for cleaner code
+            { CSS_CLASSES, SELECTORS, TITLE_PREFIX } = DISPLAY_CONSTANTS,
+            // Update file name container
+            fileNameContainer = document.getElementById(SELECTORS.FILE_NAME_CONTAINER);
         if (fileNameContainer) {
             fileNameContainer.classList.add(CSS_CLASSES.HAS_FILE);
         }
@@ -322,7 +323,7 @@ function updateFileDisplay(fileName) {
         }
 
         // Update document title
-        document.title = fileName ? `${DISPLAY_CONSTANTS.TITLE_PREFIX} - ${fileName}` : DISPLAY_CONSTANTS.TITLE_PREFIX;
+        document.title = fileName ? `${TITLE_PREFIX} - ${fileName}` : TITLE_PREFIX;
 
         logWithContext(`File display updated: ${fileName}`);
     } catch (error) {

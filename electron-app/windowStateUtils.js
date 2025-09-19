@@ -287,17 +287,19 @@ function validateWindowState(state) {
     }
     const obj = /** @type {Record<string, unknown>} */ (state),
         { height } = obj,
-        { width } = obj;
+        { width } = obj,
+        { x } = obj,
+        { y } = obj;
     if (typeof width !== "number" || width <= 0) {
         return false;
     }
     if (typeof height !== "number" || height <= 0) {
         return false;
     }
-    if ("x" in obj && obj.x !== undefined && typeof obj.x !== "number") {
+    if ("x" in obj && x !== undefined && typeof x !== "number") {
         return false;
     }
-    if ("y" in obj && obj.y !== undefined && typeof obj.y !== "number") {
+    if ("y" in obj && y !== undefined && typeof y !== "number") {
         return false;
     }
     return true;

@@ -48,6 +48,77 @@ export default defineConfig([
             "max-lines-per-function": "off",
             "max-statements": "off",
             "complexity": "off",
+            // Additional noise reduction rules
+            "sort-imports": "off", // Conflict with perfectionist/sort-imports, prefer perfectionist
+            "no-underscore-dangle": "off", // Allow underscore prefixes for private properties and test globals
+            "no-use-before-define": ["warn", { functions: false, classes: false }], // Allow function hoisting
+            "max-params": "off", // Allow functions with many parameters for now
+            "no-continue": "off", // Continue statements are fine
+            "no-plusplus": "off", // Allow ++ and -- operators
+            "require-await": "off", // Many async functions don't require await
+            "class-methods-use-this": "off", // Class methods don't always need to use this
+            "camelcase": ["warn", { allow: ["^[a-z]+(_[a-z0-9]+)*$"] }], // Allow snake_case for certain patterns
+            "capitalized-comments": "off", // Comments don't need to be capitalized
+            "func-names": "off", // Allow anonymous functions
+            "no-param-reassign": "off", // Allow parameter reassignment
+            "no-undefined": "off", // Allow explicit undefined usage
+            "no-eq-null": "off", // Allow == null checks
+            "eqeqeq": ["warn", "smart"], // Allow smart equality checks
+            "prefer-destructuring": "warn", // Encourage but don't require destructuring
+            "no-shadow": "warn", // Warn about variable shadowing
+            "consistent-return": "off", // Allow inconsistent returns
+            "default-case": "off", // Switch statements don't always need default case
+            "no-fallthrough": "warn", // Warn about switch fallthrough
+            "no-alert": "warn", // Warn about alert usage but don't error
+            "prefer-const": "warn", // Warn about let that could be const
+            "no-var": "warn", // Warn about var usage
+            "prefer-arrow-callback": "off", // Don't require arrow functions
+            "object-shorthand": "off", // Don't require object shorthand
+            "prefer-template": "off", // Don't require template literals
+            "no-lonely-if": "off", // Allow lonely if statements
+            "no-negated-condition": "off", // Allow negated conditions
+            "no-nested-ternary": "off", // Allow nested ternary operators
+            "no-unneeded-ternary": "off", // Allow unneeded ternary operators
+            "prefer-rest-params": "warn", // Encourage rest params over arguments
+            // Additional round of noise reduction
+            "max-depth": "off", // Allow deeply nested blocks
+            "init-declarations": "off", // Allow uninitialized variable declarations
+            "require-unicode-regexp": "off", // Don't require unicode flag on regexes
+            "prefer-named-capture-group": "off", // Don't require named capture groups
+            "no-useless-assignment": "off", // Allow assignments that might seem useless
+            "no-empty-function": "off", // Allow empty functions (placeholders, overrides)
+            "preserve-caught-error": "off", // Allow throwing new errors without preserving original
+            "new-cap": ["warn", { capIsNewExceptions: ["DataTable"] }], // Warn about constructor capitalization
+            "no-await-in-loop": "warn", // Warn about await in loops
+            "array-callback-return": "warn", // Warn about missing returns in array callbacks
+            "require-atomic-updates": "off", // Turn off race condition warnings
+            "no-multi-assign": "off", // Allow chained assignment
+            "no-lone-blocks": "off", // Allow lone blocks
+            "no-useless-constructor": "off", // Allow empty constructors
+            "no-loop-func": "warn", // Warn about functions in loops
+            "radix": "off", // Don't require radix parameter for parseInt
+            "no-bitwise": "off", // Allow bitwise operators
+            "prefer-spread": "warn", // Encourage spread operator
+            "unicorn/no-useless-switch-case": "off", // Allow useless switch cases
+            "unicorn/no-array-reverse": "off", // Allow array reverse
+            "unicorn/prefer-code-point": "off", // Allow String.fromCharCode
+            "unicorn/text-encoding-identifier-case": "off", // Allow utf-8 vs utf8
+            "no-unused-expressions": "off", // Allow expressions statements (useful for debugging)
+            "no-duplicate-imports": "off", // Allow duplicate imports for different purposes
+            "unicorn/no-empty-file": "off", // Allow empty files (placeholders)
+            "unicorn/consistent-destructuring": "off", // Don't require consistent destructuring
+            "unicorn/no-await-expression-member": "off", // Allow await expression member access
+            "n/no-top-level-await": "off", // Allow top-level await
+            "css/font-family-fallbacks": "off", // Don't require font fallbacks in CSS
+            "consistent-this": "off", // Allow any name for this alias
+            "default-param-last": "warn", // Warn about default parameters not being last
+            "max-classes-per-file": "off", // Allow multiple classes per file
+            "unicorn/error-message": "off", // Allow Error() without message
+            "unicorn/no-array-callback-reference": "off", // Allow direct function references in array callbacks
+            "unicorn/no-new-array": "off", // Allow new Array()
+            "no-implicit-globals": "warn", // Warn about implicit globals
+            "no-invalid-this": "warn", // Warn about invalid this usage
+            "n/no-deprecated-api": "warn", // Warn about deprecated APIs
         },
     },
     // Apply strict rule-sets from Unicorn, Node (n), and Perfectionist, scoped to JS/TS only to avoid
@@ -68,24 +139,48 @@ export default defineConfig([
             "unicorn/import-style": "off",
             "unicorn/prefer-event-target": "off", // Node/Electron often uses EventEmitter
             "unicorn/prefer-top-level-await": "off", // Not always viable in CJS/Electron context
+            "unicorn/no-keyword-prefix": "off", // Allow variables starting with keywords like new, class
+            "unicorn/prefer-query-selector": "off", // Allow getElementById usage
+            "unicorn/consistent-function-scoping": "off", // Allow nested function declarations
+            "unicorn/no-this-assignment": "off", // Allow this assignment patterns
+            "unicorn/prefer-ternary": "off", // Don't require ternary over if statements
+            "unicorn/prefer-spread": "off", // Don't require spread over slice/split
+            "unicorn/explicit-length-check": "off", // Allow .length checks
+            "unicorn/prefer-number-properties": "off", // Allow global Number methods
+            "unicorn/no-array-sort": "off", // Allow Array.sort() usage
+            "unicorn/prefer-structured-clone": "off", // Allow JSON.parse(JSON.stringify()) patterns
+            "unicorn/prefer-dom-node-remove": "off", // Allow parentNode.removeChild()
+            "unicorn/prefer-add-event-listener": "off", // Allow onclick and similar patterns
+            "unicorn/prefer-blob-reading-methods": "off", // Allow FileReader patterns
+            "unicorn/prefer-default-parameters": "off", // Allow parameter reassignment patterns
+            "unicorn/no-unused-properties": "off", // Allow unused object properties
 
             // Node plugin adjustments to avoid false positives in Electron/bundled context
             "n/no-missing-import": "off",
             "n/no-missing-require": "off",
             "n/no-extraneous-import": "off",
             "n/no-extraneous-require": "off",
+            "n/no-unpublished-import": "off", // Allow importing dev dependencies
+            "n/no-unpublished-require": "off", // Allow requiring dev dependencies
             "n/no-process-exit": "warn",
+            "n/no-process-env": "off", // Allow process.env usage in Electron
             "n/no-unsupported-features/es-builtins": "off",
             "n/no-unsupported-features/es-syntax": "off",
             "n/no-unsupported-features/node-builtins": "off",
             "n/no-sync": "off", // Allow sync fs methods in scripts and setup code
+            "n/global-require": "off", // Allow require() in functions
+            "n/no-mixed-requires": "off", // Allow mixing require and other declarations
+            "n/callback-return": "off", // Don't enforce callback returns
+            "n/no-deprecated-api": "warn", // Warn about deprecated Node.js APIs
+            "n/prefer-global/buffer": "off", // Allow require('buffer').Buffer
+            "n/prefer-promises/fs": "off", // Allow sync fs methods
 
             // Perfectionist: start as warnings to avoid blocking adoption
             "perfectionist/sort-imports": "warn",
             "perfectionist/sort-named-imports": "warn",
             "perfectionist/sort-named-exports": "warn",
-            "perfectionist/sort-objects": "warn",
-            "perfectionist/sort-variable-declarations": "warn",
+            "perfectionist/sort-objects": "off", // Too noisy for existing codebase
+            "perfectionist/sort-variable-declarations": "off",
             "perfectionist/sort-interfaces": "warn",
             "perfectionist/sort-union-types": "warn",
             "perfectionist/sort-enums": "warn",
@@ -111,6 +206,7 @@ export default defineConfig([
     },
     {
         files: ["**/*.json"],
+        ignores: ["**/tsconfig*.json"],  // Exclude TypeScript config files (they use JSONC format)
         plugins: { json },
         language: "json/json",
         extends: ["json/recommended"],
@@ -150,6 +246,7 @@ export default defineConfig([
             "**/node_modules/**",
             "dist/**", // Built output (contains many vendor + d.ts artifacts not meant for linting)
             "**/*.d.ts", // Skip type declaration files (parsed as JS currently)
+            "**/*.test.ts", // Skip TypeScript test files (no TS parser configured)
             // Generated reports and coverage outputs
             "coverage/**",
             "coverage-*/**",

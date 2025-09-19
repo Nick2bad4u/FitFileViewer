@@ -343,7 +343,7 @@ h2 {
     color: var(--color-fg);
     font-weight: 500;
     font-size: 0.9rem;
-    font-family: inherit;
+    font-family: inherit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1196,7 +1196,7 @@ body .custom-maptype-btn {
 
 .vega-embed .vega-actions a {
     padding: 8px 16px;
-    font-family: inherit;
+    font-family: inherit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
@@ -1652,7 +1652,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .marker-count-select option {
     background: var(--color-bg-solid);
     color: var(--color-fg);
-    font-family: inherit;
+    font-family: inherit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     padding: 6px 18px 6px 8px;
     display: inline-block;
     vertical-align: middle;
@@ -2255,7 +2255,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     border-radius: 4px;
     padding: 6px 18px 6px 8px;
     font-size: 1rem;
-    font-family: inherit;
+    font-family: inherit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     outline: none;
     transition:
         border 0.2s,
@@ -2278,7 +2278,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     background: var(--color-bg-solid);
     color: var(--color-fg);
     font-size: 1rem;
-    font-family: inherit;
+    font-family: inherit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     padding: 6px 18px 6px 8px;
 }
 
@@ -2716,7 +2716,7 @@ select {
     border-radius: var(--border-radius-small);
     padding: 12px 16px;
     font-size: 1rem;
-    font-family: inherit;
+    font-family: inherit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     outline: none;
     transition: var(--transition-smooth);
     box-shadow: var(--color-box-shadow-light);

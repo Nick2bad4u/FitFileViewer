@@ -52,7 +52,7 @@ try {
                 } catch { }
             });
         } catch { }
-         
+
         const __e = /** @type {any} */ (require("electron"));
         const __mod = __e && (__e.app || __e.BrowserWindow) ? __e : (__e && __e.default) ? __e.default : __e;
         try {
@@ -75,7 +75,7 @@ function getElectron() {
     // Always handle CJS/ESM interop so hoisted mocks (which may be wrapped) are respected in tests
     try {
         if (__electronOverride) return __electronOverride;
-         
+
         const mod = require("electron");
         // Prefer the variant that actually exposes Electron APIs (supports hoisted getter-based mocks)
         const hasApis = (/** @type {any} */ m) => m && (m.app || m.BrowserWindow || m.ipcMain || m.Menu || m.shell || m.dialog);
@@ -100,7 +100,7 @@ try {
         let __primeAttempts = 0;
         const __retryPrime = () => {
             try {
-                 
+
                 const raw = /** @type {any} */ (require("electron"));
                 const mod = raw && (raw.app || raw.BrowserWindow) ? raw : (raw && raw.default) ? raw.default : raw;
                 const app = (() => {
@@ -197,11 +197,11 @@ async function __resolveAutoUpdaterAsync() {
 // Resolve electron-updater's autoUpdater across CJS/ESM and mocks
 function __resolveAutoUpdaterSync() {
     try {
-         
+
         const mod = /** @type {any} */ (require("electron-updater"));
         return (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod;
     } catch {
-        return /** @type {any} */;
+        return /** @type {any} */(null);
     }
 }
 
@@ -284,7 +284,7 @@ async function getThemeFromRenderer(win) {
 
 // Unconditional minimal priming so import-based tests see whenReady and getAllWindows calls
 try {
-     
+
     const __prime_mod = /** @type {any} */ (require("electron"));
     const __prime = __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
         ? __prime_mod
@@ -340,7 +340,7 @@ async function initializeApplication() {
     // In tests, proactively invoke whenReady via direct require to satisfy spy expectations
     if ((/** @type {any} */ (process.env).NODE_ENV) === "test") {
         try {
-             
+
             const { app: __wa } = require("electron");
             if (__wa && typeof __wa.whenReady === "function") {
                 try { __wa.whenReady(); } catch { }
@@ -362,7 +362,7 @@ async function initializeApplication() {
             // Prefer direct require to ensure we access hoisted getter-based mocks
             let list;
             try {
-                 
+
                 const { BrowserWindow: __tBW } = require("electron");
                 if (__tBW && typeof __tBW.getAllWindows === "function") {
                     try { list = __tBW.getAllWindows(); } catch { }
@@ -512,7 +512,7 @@ function setAppState(path, value, options = {}) {
 try {
     if (/** @type {any} */ (process.env).NODE_ENV === "test") {
         try {
-             
+
             const { app: __t_app, BrowserWindow: __t_BW } = require("electron");
             if (__t_app && typeof __t_app.whenReady === "function") {
                 try { __t_app.whenReady(); } catch { }
@@ -1157,7 +1157,7 @@ try {
     // Prefer direct require to ensure Vitest's hoisted mocks are observed
     let app;
     try {
-         
+
         const electron = require("electron");
         app = electron && electron.app;
     } catch {
@@ -1182,7 +1182,7 @@ try {
             }
             // Also prime BrowserWindow.getAllWindows for coverage using direct require to hit mocks
             try {
-                 
+
                 const { BrowserWindow: BWt } = require("electron");
                 if (BWt && typeof BWt.getAllWindows === "function") {
                     try { BWt.getAllWindows(); } catch { }
@@ -1258,7 +1258,7 @@ try {
         try {
             // Best-effort: call whenReady to satisfy the test spy even if not strictly needed here
             try {
-                 
+
                 const { app: a } = require("electron");
                 if (a && typeof a.whenReady === "function") {
                     try { a.whenReady(); } catch { }

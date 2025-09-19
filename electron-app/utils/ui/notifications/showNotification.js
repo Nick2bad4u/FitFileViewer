@@ -147,8 +147,7 @@ export async function showNotification(message, type = "info", duration, options
 
     // Process queue if not already showing
     if (!isShowingNotification) {
-        // Kick the queue without blocking the caller; the returned promise resolves when shown
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        // Process queue without blocking caller
         processNotificationQueue();
     }
 
@@ -395,7 +394,7 @@ async function processNotificationQueue() {
 
     // Immediately process the next notification if queued
     if (notificationQueue.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        // Process next notification without blocking
         processNotificationQueue();
     }
 }
