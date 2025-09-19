@@ -3,10 +3,12 @@
 ## Issues Fixed:
 
 1. **Date Object Test in getErrorInfo.comprehensive.test.ts**
+
    - Problem: Test was expecting "2023" string in the Date's toString() result, but was getting "2022".
    - Fix: Modified the test to use `dateError.getFullYear().toString()` instead of hardcoded "2023" to make the test more resilient.
 
 2. **Empty main-ui.comprehensive.test.ts**
+
    - Problem: The test file existed but had no test cases.
    - Fix: Created a basic test suite with placeholder tests to ensure the file contains valid tests.
 

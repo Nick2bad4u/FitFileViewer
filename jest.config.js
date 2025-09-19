@@ -14,14 +14,14 @@
  */
 
 module.exports = {
-    testEnvironment: 'jsdom',
-    roots: ['<rootDir>/electron-app/tests/jest-placeholder'],
-    testMatch: ['**/*.jest.test.(js|ts)'],
-    setupFilesAfterEnv: ['<rootDir>/electron-app/tests/jest-placeholder/jest.setup.js'],
+    testEnvironment: "jsdom",
+    roots: ["<rootDir>/electron-app/tests/jest-placeholder"],
+    testMatch: ["**/*.jest.test.(js|ts)"],
+    setupFilesAfterEnv: ["<rootDir>/electron-app/tests/jest-placeholder/jest.setup.js"],
     transform: {},
-    moduleFileExtensions: ['js', 'ts', 'json'],
+    moduleFileExtensions: ["js", "ts", "json"],
     // Keep it isolated so Jest doesn't try to run the Vitest suites
-    testPathIgnorePatterns: ['/node_modules/', '/electron-app/tests/(?!jest-placeholder)/'],
+    testPathIgnorePatterns: ["/node_modules/", "/electron-app/tests/(?!jest-placeholder)/"],
     // Silence verbose logs from Electron-mocked globals if any
     verbose: false,
 };

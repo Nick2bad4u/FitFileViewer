@@ -12,17 +12,17 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 
 ## Repository Layout
 
-| Path | Purpose |
-| --- | --- |
-| `electron-app/main.js` | Electron main process entry point (window lifecycle, IPC, auto-updates, recent files) |
-| `electron-app/preload.js` | Secure bridge that exposes `electronAPI` to the renderer |
-| `electron-app/renderer.js` | Renderer bootstrap (state initialization, dependency wiring, DOM readiness) |
-| `electron-app/fitParser.js` | FIT file decoding with state & settings integration |
-| `electron-app/utils/` | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI) |
-| `electron-app/tests/` | Vitest- and Jest-based unit, integration, and “strict” regression suites |
-| `electron-app/scripts/` | Maintenance utilities (e.g. converting legacy tests to TS) |
-| `docs/` | Product and engineering guides |
-| `libs/` | Vendored third-party scripts/styles (Chart.js, Leaflet, MapLibre, DataTables, etc.) |
+| Path                        | Purpose                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------ |
+| `electron-app/main.js`      | Electron main process entry point (window lifecycle, IPC, auto-updates, recent files)            |
+| `electron-app/preload.js`   | Secure bridge that exposes `electronAPI` to the renderer                                         |
+| `electron-app/renderer.js`  | Renderer bootstrap (state initialization, dependency wiring, DOM readiness)                      |
+| `electron-app/fitParser.js` | FIT file decoding with state & settings integration                                              |
+| `electron-app/utils/`       | Shared utilities (app lifecycle, charts, data, files, formatting, rendering, state, theming, UI) |
+| `electron-app/tests/`       | Vitest- and Jest-based unit, integration, and “strict” regression suites                         |
+| `electron-app/scripts/`     | Maintenance utilities (e.g. converting legacy tests to TS)                                       |
+| `docs/`                     | Product and engineering guides                                                                   |
+| `libs/`                     | Vendored third-party scripts/styles (Chart.js, Leaflet, MapLibre, DataTables, etc.)              |
 
 ## Runtime Architecture
 
@@ -124,16 +124,16 @@ The preload script exposes a constrained API (all methods validate their argumen
 
 ## IPC Reference (selected)
 
-| Channel/Event | Direction | Description |
-| --- | --- | --- |
-| `dialog:openFile` | renderer → main | Open file picker filtered to FIT files |
-| `file:read` | renderer → main | Read file contents into ArrayBuffer |
-| `fit:parse`, `fit:decode` | renderer → main | Decode FIT data via shared parser |
-| `recentFiles:get`, `recentFiles:add` | renderer ↔ main | Manage recent file list |
-| `theme:get`, `map-tab:get` | renderer → main | Retrieve persisted settings |
-| `shell:openExternal` | renderer → main | Open external URLs |
-| `menu-open-file`, `open-recent-file`, `theme-changed` | main → renderer | Menu-driven actions forwarded through preload event handlers |
-| Update events (`update-available`, `update-downloaded`, etc.) | main → renderer | Auto-updater status notifications |
+| Channel/Event                                                 | Direction        | Description                                                  |
+| ------------------------------------------------------------- | ---------------- | ------------------------------------------------------------ |
+| `dialog:openFile`                                             | renderer → main  | Open file picker filtered to FIT files                       |
+| `file:read`                                                   | renderer → main  | Read file contents into ArrayBuffer                          |
+| `fit:parse`, `fit:decode`                                     | renderer → main  | Decode FIT data via shared parser                            |
+| `recentFiles:get`, `recentFiles:add`                          | renderer ↔ main | Manage recent file list                                      |
+| `theme:get`, `map-tab:get`                                    | renderer → main  | Retrieve persisted settings                                  |
+| `shell:openExternal`                                          | renderer → main  | Open external URLs                                           |
+| `menu-open-file`, `open-recent-file`, `theme-changed`         | main → renderer  | Menu-driven actions forwarded through preload event handlers |
+| Update events (`update-available`, `update-downloaded`, etc.) | main → renderer  | Auto-updater status notifications                            |
 
 Refer to `preload.js` and `main.js` for the full set of channels and event names.
 
