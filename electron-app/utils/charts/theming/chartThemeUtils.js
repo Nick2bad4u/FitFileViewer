@@ -44,7 +44,7 @@ export function detectCurrentTheme() {
         }
         // Handle "auto" theme by resolving to system preference
         if (savedTheme === "auto") {
-            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            if (globalThis.matchMedia && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
                 console.log("[ChartThemeUtils] Auto theme resolved to: dark");
                 return "dark";
             }
@@ -57,7 +57,7 @@ export function detectCurrentTheme() {
 
     // Method 4: System preference fallback
     try {
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        if (globalThis.matchMedia && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
             console.log("[ChartThemeUtils] System preference fallback: dark");
             return "dark";
         }

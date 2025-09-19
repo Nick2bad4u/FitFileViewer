@@ -7,33 +7,6 @@ import { dataAntManufacturerIDs } from "../../data/lookups/dataAntManufacturerID
 import { dataAntProductIds } from "../../data/lookups/dataAntProductIds.js";
 
 /**
- * Get manufacturer name from ID
- * @param {number|string} manufacturerId - Manufacturer ID
- * @returns {string} Manufacturer name or original value if not found
- */
-export function getManufacturerName(manufacturerId) {
-    const id = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId;
-    return /** @type {any} */ (dataAntManufacturerIDs)[id] || manufacturerId;
-}
-
-/**
- * Get product name from manufacturer ID and product ID
- * @param {number|string} manufacturerId - Manufacturer ID
- * @param {number|string} productId - Product ID
- * @returns {string} Product name or original product ID if not found
- */
-export function getProductName(manufacturerId, productId) {
-    const mfgId = typeof manufacturerId === "string" ? parseInt(manufacturerId, 10) : manufacturerId,
-        prodId = typeof productId === "string" ? parseInt(productId, 10) : productId,
-        manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId];
-    if (manufacturerProducts && manufacturerProducts[prodId]) {
-        return manufacturerProducts[prodId];
-    }
-
-    return /** @type {string} */ (productId);
-}
-
-/**
  * Get both manufacturer and product names from IDs
  * @param {number|string} manufacturerId - Manufacturer ID
  * @param {number|string|null} productId - Product ID (optional)
@@ -41,7 +14,7 @@ export function getProductName(manufacturerId, productId) {
  */
 export function getManufacturerAndProduct(manufacturerId, productId = /** @type {string|number|null} */ (null)) {
     const manufacturerName = getManufacturerName(manufacturerId),
-        productName = productId !== null ? getProductName(manufacturerId, productId) : null;
+        productName = productId === null ? null : getProductName(manufacturerId, productId);
 
     return {
         manufacturerName,
@@ -62,34 +35,61 @@ export function getManufacturerIdFromName(manufacturerName) {
     // Normalize the manufacturer name for comparison
     const normalizedInput = manufacturerName.toLowerCase(),
         // Create common variations to check
-        variations = [
+        variations = new Set([
             normalizedInput,
-            normalizedInput.replace(/([A-Z])/g, "_$1").toLowerCase(), // CamelCase to snake_case
-            normalizedInput.replace(/_/g, ""), // Remove underscores
-            normalizedInput.replace(/electronics/g, "_electronics"), // Add underscore before electronics
-            normalizedInput.replace(/electronics/g, "electronics"), // Ensure electronics is present
-        ];
+            normalizedInput.replaceAll('_', ""), // Remove underscores
+            normalizedInput.replaceAll('electronics', "_electronics"), // Add underscore before electronics
+            normalizedInput.replaceAll('electronics', "electronics"), // Ensure electronics is present
+            normalizedInput.replaceAll(/([A-Z])/g, "_$1").toLowerCase(), // CamelCase to snake_case
+        ]);
 
     // Search through all manufacturer IDs to find a match
     for (const [id, name] of Object.entries(dataAntManufacturerIDs)) {
         const normalizedName = name.toLowerCase();
 
         // Check if any variation matches
-        if (variations.includes(normalizedName)) {
-            return parseInt(id, 10);
+        if (variations.has(normalizedName)) {
+            return Number.parseInt(id, 10);
         }
 
         // Also check common variations of the stored name
         const nameVariations = [
             normalizedName,
-            normalizedName.replace(/_/g, ""), // Remove underscores from stored name
+            normalizedName.replaceAll('_', ""), // Remove underscores from stored name
             normalizedName.replace(/_electronics/, "electronics"), // Remove underscore before electronics
         ];
 
         if (nameVariations.includes(normalizedInput)) {
-            return parseInt(id, 10);
+            return Number.parseInt(id, 10);
         }
     }
 
     return null;
+}
+
+/**
+ * Get manufacturer name from ID
+ * @param {number|string} manufacturerId - Manufacturer ID
+ * @returns {string} Manufacturer name or original value if not found
+ */
+export function getManufacturerName(manufacturerId) {
+    const id = typeof manufacturerId === "string" ? Number.parseInt(manufacturerId, 10) : manufacturerId;
+    return /** @type {any} */ (dataAntManufacturerIDs)[id] || manufacturerId;
+}
+
+/**
+ * Get product name from manufacturer ID and product ID
+ * @param {number|string} manufacturerId - Manufacturer ID
+ * @param {number|string} productId - Product ID
+ * @returns {string} Product name or original product ID if not found
+ */
+export function getProductName(manufacturerId, productId) {
+    const manufacturerProducts = /** @type {any} */ (dataAntProductIds)[mfgId],
+        mfgId = typeof manufacturerId === "string" ? Number.parseInt(manufacturerId, 10) : manufacturerId,
+        prodId = typeof productId === "string" ? Number.parseInt(productId, 10) : productId;
+    if (manufacturerProducts && manufacturerProducts[prodId]) {
+        return manufacturerProducts[prodId];
+    }
+
+    return /** @type {string} */ (productId);
 }

@@ -10,88 +10,15 @@
 
 // Time conversion constants
 const TIME_CONSTANTS = {
-    SECONDS_PER_MINUTE: 60,
     SECONDS_PER_HOUR: 3600,
+    SECONDS_PER_MINUTE: 60,
 };
 
 // Formatting thresholds
 const THRESHOLDS = {
-    SECONDS_ONLY: TIME_CONSTANTS.SECONDS_PER_MINUTE,
     MINUTES_ONLY: TIME_CONSTANTS.SECONDS_PER_HOUR,
+    SECONDS_ONLY: TIME_CONSTANTS.SECONDS_PER_MINUTE,
 };
-
-/**
- * Validates and normalizes duration input
- * @param {number|string|null|undefined} seconds - Duration input to validate
- * @returns {{isValid: boolean, value: number, error?: string}} Validation result
- */
-function validateAndNormalizeDuration(seconds) {
-    // Handle null/undefined inputs
-    if (seconds === null || seconds === undefined) {
-        return { isValid: true, value: 0 };
-    }
-
-    // Convert string to number if possible
-    if (typeof seconds === "string") {
-        const trimmed = seconds.trim();
-        if (trimmed === "") {
-            // Provide required value field for validation result shape
-            return { isValid: false, value: 0, error: "Empty string input" };
-        }
-        seconds = Number(trimmed);
-    }
-
-    // Round to integer if it's a decimal number
-    if (typeof seconds === "number" && !Number.isInteger(seconds)) {
-        seconds = Math.round(seconds);
-    }
-
-    // Validate that it's a finite number
-    if (!Number.isFinite(seconds)) {
-        return { isValid: false, value: 0, error: "Input must be a finite number" };
-    }
-
-    // Ensure non-negative
-    if (seconds < 0) {
-        return { isValid: false, value: 0, error: "Duration cannot be negative" };
-    }
-
-    return { isValid: true, value: seconds };
-}
-
-/**
- * Formats duration in seconds only
- * @param {number} seconds - Duration in seconds
- * @returns {string} Formatted string like "30 sec"
- */
-function formatSecondsOnly(seconds) {
-    return `${seconds} sec`;
-}
-
-/**
- * Formats duration in minutes and seconds
- * @param {number} seconds - Duration in seconds
- * @returns {string} Formatted string like "5 min 30 sec"
- */
-function formatMinutesAndSeconds(seconds) {
-    const minutes = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
-    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
-    return `${minutes} min ${remainingSeconds} sec`;
-}
-
-/**
- * Formats duration in hours and minutes
- * @param {number} seconds - Duration in seconds
- * @returns {string} Formatted string like "2 hrs 30 min"
- */
-function formatHoursAndMinutes(seconds) {
-    const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR);
-    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR;
-    const minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
-
-    const hourText = hours === 1 ? "hr" : "hrs";
-    return `${hours} ${hourText} ${minutes} min`;
-}
 
 /**
  * Formats a duration given in seconds into a human-readable string
@@ -135,7 +62,80 @@ export function formatDuration(seconds) {
         return formatSecondsOnly(normalizedSeconds);
     } else if (normalizedSeconds < THRESHOLDS.MINUTES_ONLY) {
         return formatMinutesAndSeconds(normalizedSeconds);
-    } else {
+    } 
         return formatHoursAndMinutes(normalizedSeconds);
+    
+}
+
+/**
+ * Formats duration in hours and minutes
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} Formatted string like "2 hrs 30 min"
+ */
+function formatHoursAndMinutes(seconds) {
+    const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR);
+    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR;
+    const minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+
+    const hourText = hours === 1 ? "hr" : "hrs";
+    return `${hours} ${hourText} ${minutes} min`;
+}
+
+/**
+ * Formats duration in minutes and seconds
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} Formatted string like "5 min 30 sec"
+ */
+function formatMinutesAndSeconds(seconds) {
+    const minutes = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+    return `${minutes} min ${remainingSeconds} sec`;
+}
+
+/**
+ * Formats duration in seconds only
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} Formatted string like "30 sec"
+ */
+function formatSecondsOnly(seconds) {
+    return `${seconds} sec`;
+}
+
+/**
+ * Validates and normalizes duration input
+ * @param {number|string|null|undefined} seconds - Duration input to validate
+ * @returns {{isValid: boolean, value: number, error?: string}} Validation result
+ */
+function validateAndNormalizeDuration(seconds) {
+    // Handle null/undefined inputs
+    if (seconds === null || seconds === undefined) {
+        return { isValid: true, value: 0 };
     }
+
+    // Convert string to number if possible
+    if (typeof seconds === "string") {
+        const trimmed = seconds.trim();
+        if (trimmed === "") {
+            // Provide required value field for validation result shape
+            return { error: "Empty string input", isValid: false, value: 0 };
+        }
+        seconds = Number(trimmed);
+    }
+
+    // Round to integer if it's a decimal number
+    if (typeof seconds === "number" && !Number.isInteger(seconds)) {
+        seconds = Math.round(seconds);
+    }
+
+    // Validate that it's a finite number
+    if (!Number.isFinite(seconds)) {
+        return { error: "Input must be a finite number", isValid: false, value: 0 };
+    }
+
+    // Ensure non-negative
+    if (seconds < 0) {
+        return { error: "Duration cannot be negative", isValid: false, value: 0 };
+    }
+
+    return { isValid: true, value: seconds };
 }

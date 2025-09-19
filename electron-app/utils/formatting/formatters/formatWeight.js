@@ -3,7 +3,7 @@
  * @readonly
  */
 const WEIGHT_CONVERSIONS = {
-    KG_TO_POUNDS: 2.20462,
+    KG_TO_POUNDS: 2.204_62,
 };
 
 /**

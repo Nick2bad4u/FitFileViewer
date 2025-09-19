@@ -11,7 +11,7 @@ export function showRenderNotification(currentChartCount, currentVisibleFields) 
 
     // Always show notification if it's been more than 10 seconds since last render
     // This handles new file loads or significant time gaps
-    if (now - previousChartState.lastRenderTimestamp > 10000) {
+    if (now - previousChartState.lastRenderTimestamp > 10_000) {
         console.log("[ChartJS] Showing notification due to time gap since last render");
         updatePreviousChartState(currentChartCount, currentVisibleFields, now);
         return true;

@@ -1,12 +1,12 @@
+import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { getAboutModalContent, handleEscapeKey } from "./aboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
-import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 
 /**
  * Enhanced modal initialization with modern styling and smooth animations
  */
 export function ensureAboutModal() {
-    const existingModal = document.getElementById("about-modal");
+    const existingModal = document.querySelector("#about-modal");
     if (existingModal) {
         return;
     }
@@ -16,7 +16,7 @@ export function ensureAboutModal() {
     modal.className = "modal fancy-modal";
     modal.style.display = "none";
     modal.innerHTML = getAboutModalContent();
-    document.body.appendChild(modal);
+    document.body.append(modal);
 
     // Add global event listeners
     document.addEventListener("keydown", handleEscapeKey, true);

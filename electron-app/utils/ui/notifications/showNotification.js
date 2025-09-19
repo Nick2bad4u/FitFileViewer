@@ -37,8 +37,8 @@
 
 // Notification queue for managing multiple notifications
 /** @type {QueuedNotification[]} */
-let notificationQueue = [],
-    isShowingNotification = false;
+let isShowingNotification = false,
+    notificationQueue = [];
 
 // Notification type configurations with icons and default durations
 /**
@@ -46,11 +46,45 @@ let notificationQueue = [],
  * @type {{info:NotificationTypeConfig,success:NotificationTypeConfig,error:NotificationTypeConfig,warning:NotificationTypeConfig}}
  */
 const NOTIFICATION_TYPES = {
-    info: { icon: "ℹ️", duration: 4000, ariaLabel: "Information" },
-    success: { icon: "✅", duration: 3000, ariaLabel: "Success" },
-    error: { icon: "❌", duration: 6000, ariaLabel: "Error" },
-    warning: { icon: "⚠️", duration: 5000, ariaLabel: "Warning" },
+    error: { ariaLabel: "Error", duration: 6000, icon: "❌" },
+    info: { ariaLabel: "Information", duration: 4000, icon: "ℹ️" },
+    success: { ariaLabel: "Success", duration: 3000, icon: "✅" },
+    warning: { ariaLabel: "Warning", duration: 5000, icon: "⚠️" },
 };
+
+/**
+ * Test-only helper to reset internal notification state between tests.
+ * Not intended for production use.
+ */
+export function __testResetNotifications() {
+    notificationQueue.length = 0;
+    isShowingNotification = false;
+    const el = /** @type {NotificationElement|null} */(document.querySelector("#notification"));
+    if (el) {
+        // Clear any pending timers and hide immediately
+        if (el.hideTimeout) {
+            clearTimeout(el.hideTimeout);
+            delete el.hideTimeout;
+        }
+        el.classList.remove("show");
+        el.style.display = "none";
+        el.onclick = null;
+        el.style.cursor = "default";
+        el.innerHTML = "";
+    }
+}
+
+/**
+ * Clears all notifications from the queue and hides current notification
+ */
+export function clearAllNotifications() {
+    notificationQueue.length = 0;
+    const notificationElement = document.querySelector("#notification");
+    if (notificationElement) {
+        hideNotification(notificationElement);
+    }
+    isShowingNotification = false;
+}
 
 /**
  * Enhanced notification display with animations, icons, and queue management
@@ -97,15 +131,15 @@ export async function showNotification(message, type = "info", duration, options
     // Create notification object
     /** @type {QueuedNotification} */
     const notification = {
-        message,
-        type,
+        actions: options.actions || [],
+        ariaLabel: config.ariaLabel,
         duration: finalDuration,
         icon: options.icon ?? config.icon,
-        ariaLabel: config.ariaLabel,
+        message,
         onClick: options.onClick,
-        actions: options.actions || [],
-        timestamp: Date.now(),
         resolveShown,
+        timestamp: Date.now(),
+        type,
     };
 
     // Add to queue
@@ -122,49 +156,105 @@ export async function showNotification(message, type = "info", duration, options
 }
 
 /**
- * Processes the notification queue, showing notifications one at a time
+ * Builds the notification content with icon, message, and actions
+ * @param {HTMLElement} element - Notification DOM element
+ * @param {Object} notification - Notification configuration
  */
-async function processNotificationQueue() {
-    if (notificationQueue.length === 0) {
-        isShowingNotification = false;
-        return;
+/**
+ * @param {NotificationElement} element
+ * @param {QueuedNotification} notification
+ */
+async function buildNotificationContent(element, notification) {
+    // Clear previous content
+    element.innerHTML = "";
+
+    // Set accessibility attributes
+    element.setAttribute("role", "alert");
+    element.setAttribute("aria-label", `${notification.ariaLabel}: ${notification.message}`);
+    element.setAttribute("aria-live", "polite");
+
+    // Create main content container
+    const contentContainer = document.createElement("div");
+    contentContainer.className = "notification-content";
+    contentContainer.style.cssText = "display: flex; align-items: center; gap: 12px; flex: 1;";
+
+    // Add icon if provided
+    if (notification.icon) {
+        const iconElement = document.createElement("span");
+        iconElement.className = "notification-icon";
+        iconElement.textContent = notification.icon;
+        iconElement.style.cssText = "font-size: 1.2rem; flex-shrink: 0;";
+        contentContainer.append(iconElement);
     }
 
-    if (isShowingNotification) {
-        // Already showing; next item will be processed when current one completes
-        return;
-    }
+    // Add message
+    const messageElement = document.createElement("span");
+    messageElement.className = "notification-message";
+    messageElement.textContent = notification.message;
+    messageElement.style.cssText = "flex: 1; text-align: left;";
+    contentContainer.append(messageElement);
 
-    isShowingNotification = true;
-    /** @type {QueuedNotification|undefined} */
-    const notification = notificationQueue.shift();
+    element.append(contentContainer);
 
-    try {
-        if (notification) {
-            await displayNotification(notification);
+    // Add action buttons if provided
+    if (notification.actions.length > 0) {
+        const actionsContainer = document.createElement("div");
+        actionsContainer.className = "notification-actions";
+        actionsContainer.style.cssText = "display: flex; gap: 8px; margin-left: 12px;";
+
+        for (const action of notification.actions) {
+            const button = document.createElement("button");
+            button.textContent = action.text;
+            button.className = action.className || "themed-btn";
+            button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (action.onClick) {
+                    action.onClick();
+                }
+                hideNotification(element);
+            });
+            actionsContainer.append(button);
         }
-    } catch (error) {
-        // Ensure the shown promise is resolved on error
-        if (notification && typeof notification.resolveShown === "function") {
-            try { notification.resolveShown(); } catch { /* ignore */ } finally { notification.resolveShown = undefined; }
-        }
-        // Log in two-argument form to preserve error object context for tests and debugging
-        const errObj = error instanceof Error ? error : new Error(String(error));
-        console.error("Error displaying notification:", errObj);
-        // Also log a single-string form for tests that assert substring matching on a single argument
-        try {
-            const msg = errObj && typeof errObj.message === "string" ? errObj.message : String(errObj);
-            console.error(`Error displaying notification: ${msg}`);
-        } catch { /* no-op */ }
+
+        element.append(actionsContainer);
     }
 
-    // Reset flag and process next notification
-    isShowingNotification = false;
+    // Add click handler for main notification
+    if (notification.onClick) {
+        element.style.cursor = "pointer";
+        element.addEventListener('click', (e) => {
+            const tgt = /** @type {HTMLElement|null} */ (e.target instanceof HTMLElement ? e.target : null);
+            if (tgt && !tgt.closest(".notification-actions") && notification.onClick) {
+                notification.onClick();
+                hideNotification(element);
+            }
+        });
+    }
 
-    // Immediately process the next notification if queued
-    if (notificationQueue.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        processNotificationQueue();
+    // Add close button for persistent notifications
+    if (!notification.duration) {
+        const closeButton = document.createElement("button");
+        closeButton.innerHTML = "×";
+        closeButton.className = "notification-close";
+        closeButton.style.cssText = `
+			background: none;
+			border: none;
+			color: inherit;
+			font-size: 1.5rem;
+			cursor: pointer;
+			padding: 0;
+			margin-left: 12px;
+			opacity: 0.7;
+			transition: opacity 0.2s ease;
+		`;
+        closeButton.addEventListener('mouseover', () => (closeButton.style.opacity = "1"));
+        closeButton.addEventListener('mouseout', () => (closeButton.style.opacity = "0.7"));
+        closeButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hideNotification(element);
+        });
+        element.append(closeButton);
     }
 }
 
@@ -178,7 +268,7 @@ async function processNotificationQueue() {
  */
 async function displayNotification(notification) {
     /** @type {NotificationElement|null} */
-    const notificationElement = /** @type {any} */ (document.getElementById("notification"));
+    const notificationElement = /** @type {any} */ (document.querySelector("#notification"));
     if (!notificationElement) {
         // Resolve shown even if the element is missing so callers don't hang
         if (typeof notification.resolveShown === "function") {
@@ -231,111 +321,8 @@ async function displayNotification(notification) {
     // Match hideNotification's 300ms transition to ensure proper sequencing in tests
     const totalTime = notification.duration ? notification.duration + 300 : 1000;
     return new Promise((resolve) => {
-        setTimeout(() => resolve(undefined), totalTime);
+        setTimeout(() => resolve(), totalTime);
     });
-}
-
-/**
- * Builds the notification content with icon, message, and actions
- * @param {HTMLElement} element - Notification DOM element
- * @param {Object} notification - Notification configuration
- */
-/**
- * @param {NotificationElement} element
- * @param {QueuedNotification} notification
- */
-async function buildNotificationContent(element, notification) {
-    // Clear previous content
-    element.innerHTML = "";
-
-    // Set accessibility attributes
-    element.setAttribute("role", "alert");
-    element.setAttribute("aria-label", `${notification.ariaLabel}: ${notification.message}`);
-    element.setAttribute("aria-live", "polite");
-
-    // Create main content container
-    const contentContainer = document.createElement("div");
-    contentContainer.className = "notification-content";
-    contentContainer.style.cssText = "display: flex; align-items: center; gap: 12px; flex: 1;";
-
-    // Add icon if provided
-    if (notification.icon) {
-        const iconElement = document.createElement("span");
-        iconElement.className = "notification-icon";
-        iconElement.textContent = notification.icon;
-        iconElement.style.cssText = "font-size: 1.2rem; flex-shrink: 0;";
-        contentContainer.appendChild(iconElement);
-    }
-
-    // Add message
-    const messageElement = document.createElement("span");
-    messageElement.className = "notification-message";
-    messageElement.textContent = notification.message;
-    messageElement.style.cssText = "flex: 1; text-align: left;";
-    contentContainer.appendChild(messageElement);
-
-    element.appendChild(contentContainer);
-
-    // Add action buttons if provided
-    if (notification.actions.length > 0) {
-        const actionsContainer = document.createElement("div");
-        actionsContainer.className = "notification-actions";
-        actionsContainer.style.cssText = "display: flex; gap: 8px; margin-left: 12px;";
-
-        notification.actions.forEach((action) => {
-            const button = document.createElement("button");
-            button.textContent = action.text;
-            button.className = action.className || "themed-btn";
-            button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
-            button.onclick = (e) => {
-                e.stopPropagation();
-                if (action.onClick) {
-                    action.onClick();
-                }
-                hideNotification(element);
-            };
-            actionsContainer.appendChild(button);
-        });
-
-        element.appendChild(actionsContainer);
-    }
-
-    // Add click handler for main notification
-    if (notification.onClick) {
-        element.style.cursor = "pointer";
-        element.onclick = (e) => {
-            const tgt = /** @type {HTMLElement|null} */ (e.target instanceof HTMLElement ? e.target : null);
-            if (tgt && !tgt.closest(".notification-actions") && notification.onClick) {
-                notification.onClick();
-                hideNotification(element);
-            }
-        };
-    }
-
-    // Add close button for persistent notifications
-    if (!notification.duration) {
-        const closeButton = document.createElement("button");
-        closeButton.innerHTML = "×";
-        closeButton.className = "notification-close";
-        closeButton.style.cssText = `
-			background: none;
-			border: none;
-			color: inherit;
-			font-size: 1.5rem;
-			cursor: pointer;
-			padding: 0;
-			margin-left: 12px;
-			opacity: 0.7;
-			transition: opacity 0.2s ease;
-		`;
-        closeButton.onmouseover = () => (closeButton.style.opacity = "1");
-        closeButton.onmouseout = () => (closeButton.style.opacity = "0.7");
-        closeButton.onclick = (e) => {
-            e.stopPropagation();
-            hideNotification(element);
-        };
-        element.appendChild(closeButton);
-    }
 }
 
 /**
@@ -361,42 +348,55 @@ function hideNotification(element) {
     }, 300); // Match CSS transition duration
 }
 
-/**
- * Clears all notifications from the queue and hides current notification
- */
-export function clearAllNotifications() {
-    notificationQueue.length = 0;
-    const notificationElement = document.getElementById("notification");
-    if (notificationElement) {
-        hideNotification(notificationElement);
-    }
-    isShowingNotification = false;
-}
-
 // TEST HOOKS: expose internals for unit tests that need to manipulate queue state directly
 // These named exports are intentionally provided for the test suite (jsdom environment)
-// to validate queue behavior and edge cases without relying on private scope hacks.
-export { notificationQueue, isShowingNotification, processNotificationQueue };
+// To validate queue behavior and edge cases without relying on private scope hacks.
+export { isShowingNotification, notificationQueue, processNotificationQueue };
 
 /**
- * Test-only helper to reset internal notification state between tests.
- * Not intended for production use.
+ * Processes the notification queue, showing notifications one at a time
  */
-export function __testResetNotifications() {
-    notificationQueue.length = 0;
-    isShowingNotification = false;
-    const el = /** @type {NotificationElement|null} */(document.getElementById("notification"));
-    if (el) {
-        // Clear any pending timers and hide immediately
-        if (el.hideTimeout) {
-            clearTimeout(el.hideTimeout);
-            delete el.hideTimeout;
+async function processNotificationQueue() {
+    if (notificationQueue.length === 0) {
+        isShowingNotification = false;
+        return;
+    }
+
+    if (isShowingNotification) {
+        // Already showing; next item will be processed when current one completes
+        return;
+    }
+
+    isShowingNotification = true;
+    /** @type {QueuedNotification|undefined} */
+    const notification = notificationQueue.shift();
+
+    try {
+        if (notification) {
+            await displayNotification(notification);
         }
-        el.classList.remove("show");
-        el.style.display = "none";
-        el.onclick = null;
-        el.style.cursor = "default";
-        el.innerHTML = "";
+    } catch (error) {
+        // Ensure the shown promise is resolved on error
+        if (notification && typeof notification.resolveShown === "function") {
+            try { notification.resolveShown(); } catch { /* Ignore */ } finally { notification.resolveShown = undefined; }
+        }
+        // Log in two-argument form to preserve error object context for tests and debugging
+        const errObj = error instanceof Error ? error : new Error(String(error));
+        console.error("Error displaying notification:", errObj);
+        // Also log a single-string form for tests that assert substring matching on a single argument
+        try {
+            const msg = errObj && typeof errObj.message === "string" ? errObj.message : String(errObj);
+            console.error(`Error displaying notification: ${msg}`);
+        } catch { /* No-op */ }
+    }
+
+    // Reset flag and process next notification
+    isShowingNotification = false;
+
+    // Immediately process the next notification if queued
+    if (notificationQueue.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        processNotificationQueue();
     }
 }
 
@@ -404,22 +404,6 @@ export function __testResetNotifications() {
  * Convenience methods for common notification types
  */
 export const notify = {
-    /**
-     * Shows an info notification
-     * @param {string} message - Message to display
-     * @param {number} [duration] - Duration in milliseconds
-     * @param {Object} [options] - Additional options
-     */
-    info: (message, duration, options) => showNotification(message, "info", duration, options),
-
-    /**
-     * Shows a success notification
-     * @param {string} message - Message to display
-     * @param {number} [duration] - Duration in milliseconds
-     * @param {Object} [options] - Additional options
-     */
-    success: (message, duration, options) => showNotification(message, "success", duration, options),
-
     /**
      * Shows an error notification
      * @param {string} message - Message to display
@@ -429,12 +413,12 @@ export const notify = {
     error: (message, duration, options) => showNotification(message, "error", duration, options),
 
     /**
-     * Shows a warning notification
+     * Shows an info notification
      * @param {string} message - Message to display
      * @param {number} [duration] - Duration in milliseconds
      * @param {Object} [options] - Additional options
      */
-    warning: (message, duration, options) => showNotification(message, "warning", duration, options),
+    info: (message, duration, options) => showNotification(message, "info", duration, options),
 
     /**
      * Shows a persistent notification that requires user interaction to dismiss
@@ -447,6 +431,22 @@ export const notify = {
             ...options,
             persistent: true,
         }),
+
+    /**
+     * Shows a success notification
+     * @param {string} message - Message to display
+     * @param {number} [duration] - Duration in milliseconds
+     * @param {Object} [options] - Additional options
+     */
+    success: (message, duration, options) => showNotification(message, "success", duration, options),
+
+    /**
+     * Shows a warning notification
+     * @param {string} message - Message to display
+     * @param {number} [duration] - Duration in milliseconds
+     * @param {Object} [options] - Additional options
+     */
+    warning: (message, duration, options) => showNotification(message, "warning", duration, options),
 
     /**
      * Shows a notification with action buttons

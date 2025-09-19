@@ -16,8 +16,8 @@ import { getMapThemeInverted } from "./createMapThemeToggle.js";
  */
 export function updateMapTheme() {
     try {
-        const mapShouldBeDark = getMapThemeInverted(),
-            leafletMap = document.getElementById("leaflet-map");
+        const leafletMap = document.querySelector("#leaflet-map"),
+            mapShouldBeDark = getMapThemeInverted();
 
         if (leafletMap) {
             // Apply dark theme filter if user prefers dark maps
@@ -33,19 +33,19 @@ export function updateMapTheme() {
 }
 
 // Set up theme change listeners if not already done
-if (!window._mapThemeListener) {
-    window._mapThemeListener = () => {
+if (!globalThis._mapThemeListener) {
+    globalThis._mapThemeListener = () => {
         updateMapTheme();
     };
 
     // Listen for both app theme changes and map theme preference changes
-    document.body.addEventListener("themechange", window._mapThemeListener);
-    document.addEventListener("mapThemeChanged", window._mapThemeListener);
+    document.body.addEventListener("themechange", globalThis._mapThemeListener);
+    document.addEventListener("mapThemeChanged", globalThis._mapThemeListener);
 
     // Cleanup logic to remove the event listeners
     window.addEventListener("beforeunload", () => {
-        document.body.removeEventListener("themechange", window._mapThemeListener);
-        document.removeEventListener("mapThemeChanged", window._mapThemeListener);
-        delete window._mapThemeListener;
+        document.body.removeEventListener("themechange", globalThis._mapThemeListener);
+        document.removeEventListener("mapThemeChanged", globalThis._mapThemeListener);
+        delete globalThis._mapThemeListener;
     });
 }

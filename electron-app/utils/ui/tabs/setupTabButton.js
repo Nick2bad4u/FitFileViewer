@@ -21,15 +21,7 @@ export function setupTabButton(id, handler) {
         cache = (fn.cache ||= new Map());
     let btn = cache.get(id);
 
-    if (!btn) {
-        btn = document.getElementById(id);
-        if (btn) {
-            cache.set(id, btn);
-        } else {
-            console.warn(`Button with id "${id}" not found. Ensure the element exists in the DOM.`);
-            return;
-        }
-    } else {
+    if (btn) {
         // Verify cached element is still in DOM
         if (!btn.isConnected) {
             console.warn(`Cached button with id "${id}" is no longer in DOM. Refreshing cache.`);
@@ -41,6 +33,14 @@ export function setupTabButton(id, handler) {
                 console.warn(`Button with id "${id}" not found after cache refresh.`);
                 return;
             }
+        }
+    } else {
+        btn = document.getElementById(id);
+        if (btn) {
+            cache.set(id, btn);
+        } else {
+            console.warn(`Button with id "${id}" not found. Ensure the element exists in the DOM.`);
+            return;
         }
     }
 
@@ -72,13 +72,13 @@ export function clearTabButtonCache() {
     const cache = /** @type {Map<string, HTMLElement>|undefined} */ (/** @type {any} */ (setupTabButton).cache);
     if (cache) {
         // Clean up event handlers before clearing cache
-        cache.forEach((/** @type {HTMLElement} */ btn) => {
+        for (const btn of cache) {
             const anyBtn = /** @type {any} */ (btn);
             if (anyBtn._setupTabButtonHandler) {
                 btn.removeEventListener("click", anyBtn._setupTabButtonHandler);
                 delete anyBtn._setupTabButtonHandler;
             }
-        });
+        }
         cache.clear();
     }
 }

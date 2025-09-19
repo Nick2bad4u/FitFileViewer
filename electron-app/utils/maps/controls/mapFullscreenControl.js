@@ -18,12 +18,12 @@ export function addFullscreenControl(map) {
 			<button id="fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">${fullscreenEnterSVG}</button>
 		</div>
 	`;
-    const mapDiv = document.getElementById("leaflet-map");
+    const mapDiv = document.querySelector("#leaflet-map");
     if (!mapDiv) {
         console.warn("[mapFullscreenControl] Map container not found");
         return;
     }
-    mapDiv.appendChild(fullscreenControl);
+    mapDiv.append(fullscreenControl);
 
     const fullscreenBtn = fullscreenControl.querySelector("#fullscreen-btn");
     if (!fullscreenBtn) {
@@ -32,7 +32,7 @@ export function addFullscreenControl(map) {
     }
 
     const button = /** @type {HTMLButtonElement} */ (fullscreenBtn);
-    button.onclick = () => {
+    button.addEventListener('click', () => {
         if (!mapDiv) {
             return;
         }
@@ -45,7 +45,7 @@ export function addFullscreenControl(map) {
             document.exitFullscreen && document.exitFullscreen();
         }
         setTimeout(() => map.invalidateSize(), 300);
-    };
+    });
 
     document.addEventListener("fullscreenchange", () => {
         const isNowFullscreen = document.fullscreenElement === mapDiv;

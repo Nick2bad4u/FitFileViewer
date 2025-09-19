@@ -17,13 +17,13 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
  */
 export function addSimpleMeasureTool(map, controlsDiv) {
     /** @type {Array<{lat:number,lng:number}>} */
-    let measurePoints = [],
+    let /** @type {any} */
+        measureLabel = null,
         /** @type {any} */
         measureLine = null,
         /** @type {any[]} */
         measureMarkers = [],
-        /** @type {any} */
-        measureLabel = null,
+        measurePoints = [],
         /** @type {boolean} */
         measuring = false;
 
@@ -33,7 +33,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
             map.removeLayer(measureLine);
             measureLine = null;
         }
-        measureMarkers.forEach((m) => map.removeLayer(m));
+        for (const m of measureMarkers) map.removeLayer(m);
         measureMarkers = [];
         if (measureLabel) {
             map.removeLayer(measureLabel);
@@ -110,8 +110,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
                     className: "measure-label",
                     html: `<div class="measure-label-content">${createExitButton()}${dist >= 1000 ? `${distKm.toFixed(2)} km` : `${dist.toFixed(1)} m`}<br>${distMi.toFixed(2)} mi</div>`,
                 }),
-                iconSize: [120, 38],
                 iconAnchor: [60, 19],
+                iconSize: [120, 38],
                 interactive: true,
             }).addTo(map);
             // Add click handler for exit button
@@ -142,8 +142,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     }
 
     // Get theme colors for button styling
-    const themeColors = getThemeColors(),
-        measureBtn = document.createElement("button");
+    const measureBtn = document.createElement("button"),
+        themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
     measureBtn.innerHTML = `
         <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
@@ -156,18 +156,18 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     measureBtn.title = "Click, then click two points on the map to measure distance";
     /** @type {HTMLButtonElement} */
     const measureBtnRef = measureBtn;
-    measureBtn.onclick = () => {
-        if (!measuring) {
+    measureBtn.addEventListener('click', () => {
+        if (measuring) {
+            clearMeasure();
+            disableMeasure(measureBtn);
+        } else {
             clearMeasure();
             enableSimpleMeasure(measureBtn);
             measureBtn.disabled = true;
             setTimeout(() => {
                 measureBtn.disabled = false;
             }, 2000);
-        } else {
-            clearMeasure();
-            disableMeasure(measureBtn);
         }
-    };
-    controlsDiv.appendChild(measureBtn);
+    });
+    controlsDiv.append(measureBtn);
 }

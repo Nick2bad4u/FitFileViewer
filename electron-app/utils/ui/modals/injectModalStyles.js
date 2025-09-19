@@ -5,7 +5,7 @@ import { modalAnimationDuration } from "./aboutModal.js";
  */
 export function injectModalStyles() {
     // Prevent duplicate style injection
-    if (document.getElementById("about-modal-styles")) {
+    if (document.querySelector("#about-modal-styles")) {
         return;
     }
 
@@ -721,5 +721,5 @@ export function injectModalStyles() {
 			to { opacity: 1; }
 		}
 	`;
-    document.head.appendChild(style);
+    document.head.append(style);
 }

@@ -6,14 +6,14 @@ import { formatProduct } from "./formatProduct.js";
  * @readonly
  */
 const SENSOR_FORMAT_CONFIG = {
+    ERROR_MESSAGES: {
+        FORMATTING_ERROR: "Error formatting sensor name:",
+        INVALID_SENSOR: "Invalid sensor object provided:",
+    },
     FALLBACK_NAME: "Unknown Sensor",
-    WORD_SEPARATOR: "_",
     FORMATTED_SEPARATOR: " ",
     NAME_SEPARATOR: " ",
-    ERROR_MESSAGES: {
-        INVALID_SENSOR: "Invalid sensor object provided:",
-        FORMATTING_ERROR: "Error formatting sensor name:",
-    },
+    WORD_SEPARATOR: "_",
 };
 
 /**
@@ -80,18 +80,19 @@ export function formatSensorName(sensor) {
 }
 
 /**
- * Checks if sensor has both manufacturer and product information
- * @param {Object} sensor - Sensor object to check
- * @returns {boolean} True if both manufacturer and product are available
+ * Formats Garmin product names from snake_case to human-readable format
+ * @param {string} garminProduct - Garmin product identifier
+ * @returns {string} Formatted Garmin product name
  * @private
  */
-function hasManufacturerAndProduct(sensor) {
-    return (
-        /** @type {any} */ (sensor).manufacturer !== null &&
-        /** @type {any} */ (sensor).manufacturer !== undefined &&
-        /** @type {any} */ (sensor).product !== null &&
-        /** @type {any} */ (sensor).product !== undefined
-    );
+function formatGarminProduct(garminProduct) {
+    // Ensure garminProduct is a string before formatting
+    const garminProductStr = String(garminProduct);
+
+    return garminProductStr
+        .split(SENSOR_FORMAT_CONFIG.WORD_SEPARATOR)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(SENSOR_FORMAT_CONFIG.FORMATTED_SEPARATOR);
 }
 
 /**
@@ -113,17 +114,16 @@ function formatManufacturerProduct(sensor) {
 }
 
 /**
- * Formats Garmin product names from snake_case to human-readable format
- * @param {string} garminProduct - Garmin product identifier
- * @returns {string} Formatted Garmin product name
+ * Checks if sensor has both manufacturer and product information
+ * @param {Object} sensor - Sensor object to check
+ * @returns {boolean} True if both manufacturer and product are available
  * @private
  */
-function formatGarminProduct(garminProduct) {
-    // Ensure garminProduct is a string before formatting
-    const garminProductStr = String(garminProduct);
-
-    return garminProductStr
-        .split(SENSOR_FORMAT_CONFIG.WORD_SEPARATOR)
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(SENSOR_FORMAT_CONFIG.FORMATTED_SEPARATOR);
+function hasManufacturerAndProduct(sensor) {
+    return (
+        /** @type {any} */ (sensor).manufacturer !== null &&
+        /** @type {any} */ (sensor).manufacturer !== undefined &&
+        /** @type {any} */ (sensor).product !== null &&
+        /** @type {any} */ (sensor).product !== undefined
+    );
 }

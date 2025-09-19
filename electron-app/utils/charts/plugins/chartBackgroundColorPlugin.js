@@ -38,7 +38,6 @@
  * @exports chartBackgroundColorPlugin
  */
 export const chartBackgroundColorPlugin = {
-    id: "chartBackgroundColorPlugin",
     /**
      * Sets the chart background color before drawing chart elements.
      * @param {MinimalChartLike} chart - The chart instance (minimal shape)
@@ -78,14 +77,14 @@ export const chartBackgroundColorPlugin = {
             backgroundColor = "#23263a";
         }
         const ctx = chart?.ctx,
-            width = chart?.canvas?.width || 0,
-            height = chart?.canvas?.height || 0;
+            height = chart?.canvas?.height || 0,
+            width = chart?.canvas?.width || 0;
         if (!ctx) {
             console.warn("[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw.");
             return;
         }
         // Only log in development mode to avoid noisy output in production
-        const w = /** @type {any} */ (typeof window !== "undefined" ? window : undefined);
+        const w = /** @type {any} */ (globalThis.window === undefined ? undefined : globalThis);
         if (w?.__renderer_dev?.debug) {
             console.log(
                 `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
@@ -96,4 +95,5 @@ export const chartBackgroundColorPlugin = {
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
     },
+    id: "chartBackgroundColorPlugin",
 };

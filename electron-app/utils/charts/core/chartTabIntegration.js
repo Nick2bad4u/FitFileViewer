@@ -6,55 +6,102 @@
  */
 
 import { getState, subscribe } from "../../state/core/stateManager.js";
-import { chartStateManager } from "./chartStateManager.js";
-import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
+import { chartStateManager } from "./chartStateManager.js";
 
 /**
  * Chart Tab Integration - manages the interaction between chart rendering and tab system
  */
 class ChartTabIntegration {
+    isInitialized = false;
+
     constructor() {
-        this.isInitialized = false;
         // Don't auto-initialize - let setupWindow() control initialization timing
     }
 
     /**
-     * Initialize the chart tab integration
+     * Check if charts should be rendered and do so if needed
      */
-    initialize() {
-        if (this.isInitialized) {
-            console.warn("[ChartTabIntegration] Already initialized");
+    checkAndRenderCharts() {
+        const globalData = getState("globalData");
+
+        if (!globalData || !globalData.recordMesgs) {
+            console.log("[ChartTabIntegration] No data available for chart rendering");
             return;
         }
 
-        this.setupIntegration();
-        this.isInitialized = true;
-
-        console.log("[ChartTabIntegration] Initialized successfully");
+        if (this.isChartTabActive()) {
+            console.log("[ChartTabIntegration] Chart tab is active, requesting render");
+            chartStateManager.debouncedRender("Integration check after file load");
+        } else {
+            console.log("[ChartTabIntegration] Chart tab not active, skipping render");
+        }
     }
 
     /**
-     * Set up integration between chart and tab systems
+     * Cleanup method for compatibility
      */
-    setupIntegration() {
-        // Subscribe to file loading events to trigger chart updates
-        subscribe("globalData", (/** @type {any} */ newData, /** @type {any} */ oldData) => {
-            if (newData !== oldData) {
-                this.handleDataChange(newData);
-            }
-        });
+    cleanup() {
+        this.destroy();
+    }
 
-        // Subscribe to file loading state
-        subscribe("app.isOpeningFile", (/** @type {any} */ isOpening) => {
-            if (!isOpening) {
-                // File finished loading, check if we need to render charts
-                this.checkAndRenderCharts();
-            }
-        });
+    /**
+     * Clean up integration
+     */
+    destroy() {
+        this.isInitialized = false;
+        console.log("[ChartTabIntegration] Destroyed");
+    }
 
-        // Expose methods for external calls (backward compatibility)
-        /** @type {any} */ (window).chartTabIntegration = this;
+    /**
+     * Disable the chart tab
+     */
+    disableChartTab() {
+        const chartTabButton = this.getChartTabButton();
+        if (chartTabButton) {
+            /** @type {any} */ (chartTabButton).disabled = true;
+            chartTabButton.classList.add("disabled");
+            chartTabButton.style.opacity = "0.5";
+        }
+    }
+
+    /**
+     * Enable the chart tab
+     */
+    enableChartTab() {
+        const chartTabButton = this.getChartTabButton();
+        if (chartTabButton) {
+            /** @type {any} */ (chartTabButton).disabled = false;
+            chartTabButton.classList.remove("disabled");
+            chartTabButton.style.opacity = "1";
+        }
+    }
+
+    /**
+     * Get the chart tab button element
+     * @returns {HTMLElement|null} Chart tab button or null if not found
+     */
+    getChartTabButton() {
+        return (
+            document.querySelector("#tab-chartjs") ||
+            document.querySelector("#tab-chart") ||
+            document.querySelector('[data-tab="chart"]')
+        );
+    }
+
+    /**
+     * Get integration status information
+     * @returns {Object} Status information
+     */
+    getStatus() {
+        return {
+            chartState: chartStateManager.getChartInfo(),
+            chartTabActive: this.isChartTabActive(),
+            hasData: Boolean(getState("globalData")?.recordMesgs),
+            isInitialized: this.isInitialized,
+            tabState: tabStateManager.getActiveTabInfo(),
+        };
     }
 
     /**
@@ -80,58 +127,18 @@ class ChartTabIntegration {
     }
 
     /**
-     * Check if charts should be rendered and do so if needed
+     * Initialize the chart tab integration
      */
-    checkAndRenderCharts() {
-        const globalData = getState("globalData");
-
-        if (!globalData || !globalData.recordMesgs) {
-            console.log("[ChartTabIntegration] No data available for chart rendering");
+    initialize() {
+        if (this.isInitialized) {
+            console.warn("[ChartTabIntegration] Already initialized");
             return;
         }
 
-        if (this.isChartTabActive()) {
-            console.log("[ChartTabIntegration] Chart tab is active, requesting render");
-            chartStateManager.debouncedRender("Integration check after file load");
-        } else {
-            console.log("[ChartTabIntegration] Chart tab not active, skipping render");
-        }
-    }
+        this.setupIntegration();
+        this.isInitialized = true;
 
-    /**
-     * Enable the chart tab
-     */
-    enableChartTab() {
-        const chartTabButton = this.getChartTabButton();
-        if (chartTabButton) {
-            /** @type {any} */ (chartTabButton).disabled = false;
-            chartTabButton.classList.remove("disabled");
-            chartTabButton.style.opacity = "1";
-        }
-    }
-
-    /**
-     * Disable the chart tab
-     */
-    disableChartTab() {
-        const chartTabButton = this.getChartTabButton();
-        if (chartTabButton) {
-            /** @type {any} */ (chartTabButton).disabled = true;
-            chartTabButton.classList.add("disabled");
-            chartTabButton.style.opacity = "0.5";
-        }
-    }
-
-    /**
-     * Get the chart tab button element
-     * @returns {HTMLElement|null} Chart tab button or null if not found
-     */
-    getChartTabButton() {
-        return (
-            document.getElementById("tab-chartjs") ||
-            document.getElementById("tab-chart") ||
-            document.querySelector('[data-tab="chart"]')
-        );
+        console.log("[ChartTabIntegration] Initialized successfully");
     }
 
     /**
@@ -141,21 +148,6 @@ class ChartTabIntegration {
     isChartTabActive() {
         const activeTab = getState("ui.activeTab");
         return activeTab === "chartjs" || activeTab === "chart";
-    }
-
-    /**
-     * Switch to chart tab
-     * @returns {boolean} True if switch was successful
-     */
-    switchToChartTab() {
-        const globalData = getState("globalData");
-
-        if (!globalData || !globalData.recordMesgs) {
-            showNotification("Please load a FIT file first", "info");
-            return false;
-        }
-
-        return tabStateManager.switchToTab("chartjs") || tabStateManager.switchToTab("chart");
     }
 
     /**
@@ -175,32 +167,40 @@ class ChartTabIntegration {
     }
 
     /**
-     * Get integration status information
-     * @returns {Object} Status information
+     * Set up integration between chart and tab systems
      */
-    getStatus() {
-        return {
-            isInitialized: this.isInitialized,
-            chartTabActive: this.isChartTabActive(),
-            hasData: Boolean(getState("globalData")?.recordMesgs),
-            chartState: chartStateManager.getChartInfo(),
-            tabState: tabStateManager.getActiveTabInfo(),
-        };
-    }
+    setupIntegration() {
+        // Subscribe to file loading events to trigger chart updates
+        subscribe("globalData", (/** @type {any} */ newData, /** @type {any} */ oldData) => {
+            if (newData !== oldData) {
+                this.handleDataChange(newData);
+            }
+        });
 
-    /**
-     * Clean up integration
-     */
-    destroy() {
-        this.isInitialized = false;
-        console.log("[ChartTabIntegration] Destroyed");
-    }
+        // Subscribe to file loading state
+        subscribe("app.isOpeningFile", (/** @type {any} */ isOpening) => {
+            if (!isOpening) {
+                // File finished loading, check if we need to render charts
+                this.checkAndRenderCharts();
+            }
+        });
 
+        // Expose methods for external calls (backward compatibility)
+        /** @type {any} */ (globalThis).chartTabIntegration = this;
+    }
     /**
-     * Cleanup method for compatibility
+     * Switch to chart tab
+     * @returns {boolean} True if switch was successful
      */
-    cleanup() {
-        this.destroy();
+    switchToChartTab() {
+        const globalData = getState("globalData");
+
+        if (!globalData || !globalData.recordMesgs) {
+            showNotification("Please load a FIT file first", "info");
+            return false;
+        }
+
+        return tabStateManager.switchToTab("chartjs") || tabStateManager.switchToTab("chart");
     }
 }
 
@@ -208,8 +208,8 @@ class ChartTabIntegration {
 export const chartTabIntegration = new ChartTabIntegration();
 
 // Expose for debugging
-if (typeof window !== "undefined") {
-    /** @type {any} */ (window).chartTabIntegration = chartTabIntegration;
+if (globalThis.window !== undefined) {
+    /** @type {any} */ (globalThis).chartTabIntegration = chartTabIntegration;
 }
 
 export default chartTabIntegration;

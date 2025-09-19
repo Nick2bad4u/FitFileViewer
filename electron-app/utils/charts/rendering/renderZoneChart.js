@@ -1,9 +1,9 @@
-import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
-import { createChartCanvas } from "../components/createChartCanvas.js";
-import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chartZoneColorUtils.js";
+import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
+import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Helper function to render individual zone chart
 /**
@@ -27,12 +27,12 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
 
     /** @type {any} */
-    const themeConfig = getThemeConfig(),
-        currentTheme = detectCurrentTheme(),
+    const // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
+        canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0)),
         // Determine chart type from options or default to doughnut
         chartType = options.chartType || "doughnut",
-        // CreateChartCanvas expects (field: string, index: number). Using 0 index since zone charts are singular per id.
-        canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0));
+        currentTheme = detectCurrentTheme(),
+        themeConfig = getThemeConfig();
 
     // Apply theme-aware canvas styling (background handled by plugin)
     canvas.style.borderRadius = "12px";
@@ -40,7 +40,7 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         canvas.style.boxShadow = `0 2px 16px 0 ${themeConfig.colors.shadowLight}`;
     }
 
-    container.appendChild(canvas); // Determine zone type and get user-selected colors from theme
+    container.append(canvas); // Determine zone type and get user-selected colors from theme
     let colors = themeConfig?.colors?.zoneColors || []; // Check if zone data has color properties (from applyZoneColors), otherwise use saved colors
     if (zoneData.length > 0 && zoneData[0] && zoneData[0].color) {
         // Use colors from the zone data objects
@@ -55,223 +55,14 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
     const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
     console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
-    const ChartCtor = /** @type {any} */ (window.Chart),
+    const ChartCtor = /** @type {any} */ (globalThis.Chart),
         chart = ChartCtor ? new ChartCtor(canvas, config) : null;
-    if (chart && Array.isArray(window._chartjsInstances)) {
+    if (chart && Array.isArray(globalThis._chartjsInstances)) {
         console.log(`[ChartJS] Zone chart created successfully for ${title}`);
-        window._chartjsInstances.push(chart);
+        globalThis._chartjsInstances.push(chart);
     } else {
         console.error(`[ChartJS] Failed to create zone chart for ${title}`);
     }
-}
-
-/**
- * Creates chart configuration based on chart type
- * @param {string} chartType - "doughnut" or "bar"
- * @param {any[]} zoneData - Zone data array
- * @param {any[]} colors - Colors array
- * @param {string} title - Chart title
- * @param {Object} options - Chart options
- * @param {string} currentTheme - Current theme
- * @returns {Object} Chart.js configuration object
- */
-/**
- * @param {string} chartType
- * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
- * @param {string[]} colors
- * @param {string} title
- * @param {{ showLegend?: boolean }} options
- * @param {string} currentTheme
- */
-function createChartConfig(chartType, zoneData, colors, title, options, currentTheme) {
-    const baseDataset = {
-        data: zoneData.map((zone) => zone.time || 0),
-        backgroundColor: colors.slice(0, zoneData.length),
-        borderColor: currentTheme === "dark" ? "#333" : "#fff",
-        borderWidth: chartType === "doughnut" ? 3 : 1,
-    };
-
-    if (chartType === "bar") {
-        return createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
-    }
-    return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
-}
-
-/**
- * Creates doughnut chart configuration
- */
-/**
- * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
- * @param {string[]} colors
- * @param {string} title
- * @param {{ showLegend?: boolean }} options
- * @param {string} currentTheme
- * @param {any} baseDataset
- */
-function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
-    return {
-        type: "doughnut",
-        data: {
-            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
-            datasets: [
-                {
-                    ...baseDataset,
-                    borderAlign: "center",
-                    borderRadius: 4,
-                    borderJoinStyle: "round",
-                    hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
-                        // Lighten the color on hover
-                        const r = parseInt(color.slice(1, 3), 16),
-                            g = parseInt(color.slice(3, 5), 16),
-                            b = parseInt(color.slice(5, 7), 16);
-                        return `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, 0.9)`;
-                    }),
-                    hoverBorderColor: "#ffffff",
-                    hoverBorderWidth: 4,
-                    hoverOffset: 8,
-                    offset: 2,
-                    spacing: 2,
-                    rotation: -90, // Start from top
-                    circumference: 360, // Full circle
-                    weight: 1,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            // Creates a nice donut hole
-            radius: "90%",
-            plugins: {
-                title: {
-                    display: true,
-                    text: title,
-                    font: {
-                        size: 16,
-                        weight: "bold",
-                    },
-                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    padding: 20,
-                },
-                legend: {
-                    display: options.showLegend !== false,
-                    position: "right",
-                    /**
-                     * @param {any} _event
-                     * @param {any} legendItem
-                     * @param {any} legend
-                     */
-                    onClick(_event, legendItem, legend) {
-                        // Get the chart instance and dataset meta
-                        const { chart } = legend,
-                            { index } = legendItem,
-                            meta = chart.getDatasetMeta(0);
-
-                        // Toggle visibility
-                        meta.data[index].hidden = !meta.data[index].hidden;
-                        chart.update();
-                    },
-                    labels: {
-                        display: true,
-                        font: {
-                            size: 14,
-                            weight: "600",
-                        },
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: "circle",
-                        /** @param {any} chart */
-                        generateLabels(chart) {
-                            const { data } = chart;
-                            if (data.labels.length && data.datasets.length) {
-                                const dataset = data.datasets[0],
-                                    total = dataset.data.reduce(
-                                        (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                        0
-                                    );
-
-                                return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
-                                    const value = dataset.data[i],
-                                        percentage = ((value / total) * 100).toFixed(1),
-                                        meta = chart.getDatasetMeta(0),
-                                        hidden = meta.data[i] && meta.data[i].hidden;
-                                    return {
-                                        text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
-                                        fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
-                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
-                                        fontColor: hidden
-                                            ? "rgba(128, 128, 128, 0.7)"
-                                            : currentTheme === "dark"
-                                              ? "#ffffff"
-                                              : "#333333",
-                                        lineWidth: 1,
-                                        hidden,
-                                        index: i,
-                                        pointStyle: "circle",
-                                    };
-                                });
-                            }
-                            return [];
-                        },
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    },
-                },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
-                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    callbacks: {
-                        /** @param {any} context */
-                        label(context) {
-                            const value = context.parsed,
-                                total = context.dataset.data.reduce(
-                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                    0
-                                ),
-                                percentage = ((value / total) * 100).toFixed(1),
-                                timeFormatted = formatTime(context.parsed, true);
-                            return [`Time: ${timeFormatted}`, `Percentage: ${percentage}%`];
-                        },
-                        /** @param {any} context */
-                        labelColor(context) {
-                            return {
-                                borderColor: context.dataset.borderColor,
-                                backgroundColor: context.dataset.backgroundColor[context.dataIndex],
-                                borderWidth: 2,
-                                borderRadius: 2,
-                            };
-                        },
-                    },
-                },
-                chartBackgroundColorPlugin: {
-                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
-                },
-            },
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 2000,
-                easing: "easeOutQuart",
-            },
-            interaction: {
-                intersect: false,
-                mode: "point",
-            },
-            elements: {
-                arc: {
-                    borderWidth: 3,
-                    borderColor: "#ffffff",
-                    hoverBorderWidth: 4,
-                },
-            },
-        },
-        plugins: [chartBackgroundColorPlugin],
-    };
 }
 
 /**
@@ -295,53 +86,58 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
  */
 function createBarChartConfig(zoneData, colors, title, _options, currentTheme, baseDataset) {
     return {
-        type: "bar",
         data: {
-            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
             datasets: [
                 {
                     ...baseDataset,
-                    label: "Time in Zone",
                     borderRadius: 4,
                     borderSkipped: false,
                     hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
                         // Lighten the color on hover
-                        const r = parseInt(color.slice(1, 3), 16),
-                            g = parseInt(color.slice(3, 5), 16),
-                            b = parseInt(color.slice(5, 7), 16);
+                        const b = Number.parseInt(color.slice(5, 7), 16),
+                            g = Number.parseInt(color.slice(3, 5), 16),
+                            r = Number.parseInt(color.slice(1, 3), 16);
                         return `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, 0.9)`;
                     }),
                     hoverBorderColor: colors.slice(0, zoneData.length),
                     hoverBorderWidth: 2,
+                    label: "Time in Zone",
                 },
             ],
+            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
         },
         options: {
-            responsive: true,
+            animation: {
+                duration: 1500,
+                easing: "easeOutQuart",
+            },
+            interaction: {
+                intersect: false,
+                mode: "index",
+            },
             maintainAspectRatio: true,
             plugins: {
-                title: {
-                    display: true,
-                    text: title,
-                    font: {
-                        size: 16,
-                        weight: "bold",
-                    },
-                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    padding: 20,
+                chartBackgroundColorPlugin: {
+                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                 },
                 legend: {
                     display: false, // Single dataset, no need for legend
                 },
+                title: {
+                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    display: true,
+                    font: {
+                        size: 16,
+                        weight: "bold",
+                    },
+                    padding: 20,
+                    text: title,
+                },
                 tooltip: {
-                    enabled: true,
                     backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
-                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
                     bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
                     borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true,
                     callbacks: {
                         /** @param {any} context */
                         label(context) {
@@ -352,45 +148,21 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                         /** @param {any} context */
                         labelColor(context) {
                             return {
-                                borderColor: context.dataset.borderColor,
                                 backgroundColor: context.dataset.backgroundColor[context.dataIndex],
-                                borderWidth: 2,
+                                borderColor: context.dataset.borderColor,
                                 borderRadius: 2,
+                                borderWidth: 2,
                             };
                         },
                     },
-                },
-                chartBackgroundColorPlugin: {
-                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                    cornerRadius: 8,
+                    displayColors: true,
+                    enabled: true,
+                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
                 },
             },
+            responsive: true,
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
-                        lineWidth: 1,
-                    },
-                    ticks: {
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                        font: {
-                            size: 12,
-                        },
-                        /** @param {any} value */
-                        callback(value) {
-                            return formatTime(value, true);
-                        },
-                    },
-                    title: {
-                        display: true,
-                        text: "Time",
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                        font: {
-                            size: 14,
-                            weight: "bold",
-                        },
-                    },
-                },
                 x: {
                     grid: {
                         color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
@@ -404,25 +176,253 @@ function createBarChartConfig(zoneData, colors, title, _options, currentTheme, b
                         },
                     },
                     title: {
-                        display: true,
-                        text: "Zone",
                         color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        display: true,
                         font: {
                             size: 14,
                             weight: "bold",
                         },
+                        text: "Zone",
+                    },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                        lineWidth: 1,
+                    },
+                    ticks: {
+                        /** @param {any} value */
+                        callback(value) {
+                            return formatTime(value, true);
+                        },
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        font: {
+                            size: 12,
+                        },
+                    },
+                    title: {
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        display: true,
+                        font: {
+                            size: 14,
+                            weight: "bold",
+                        },
+                        text: "Time",
                     },
                 },
             },
+        },
+        plugins: [chartBackgroundColorPlugin],
+        type: "bar",
+    };
+}
+
+/**
+ * Creates chart configuration based on chart type
+ * @param {string} chartType - "doughnut" or "bar"
+ * @param {any[]} zoneData - Zone data array
+ * @param {any[]} colors - Colors array
+ * @param {string} title - Chart title
+ * @param {Object} options - Chart options
+ * @param {string} currentTheme - Current theme
+ * @returns {Object} Chart.js configuration object
+ */
+/**
+ * @param {string} chartType
+ * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {string[]} colors
+ * @param {string} title
+ * @param {{ showLegend?: boolean }} options
+ * @param {string} currentTheme
+ */
+function createChartConfig(chartType, zoneData, colors, title, options, currentTheme) {
+    const baseDataset = {
+        backgroundColor: colors.slice(0, zoneData.length),
+        borderColor: currentTheme === "dark" ? "#333" : "#fff",
+        borderWidth: chartType === "doughnut" ? 3 : 1,
+        data: zoneData.map((zone) => zone.time || 0),
+    };
+
+    if (chartType === "bar") {
+        return createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
+    }
+    return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
+}
+
+/**
+ * Creates doughnut chart configuration
+ */
+/**
+ * @param {import("../../types/sharedChartTypes.d.ts").ZoneData[]} zoneData
+ * @param {string[]} colors
+ * @param {string} title
+ * @param {{ showLegend?: boolean }} options
+ * @param {string} currentTheme
+ * @param {any} baseDataset
+ */
+function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
+    return {
+        data: {
+            datasets: [
+                {
+                    ...baseDataset,
+                    borderAlign: "center",
+                    borderJoinStyle: "round",
+                    borderRadius: 4,
+                    circumference: 360, // Full circle
+                    hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
+                        // Lighten the color on hover
+                        const b = Number.parseInt(color.slice(5, 7), 16),
+                            g = Number.parseInt(color.slice(3, 5), 16),
+                            r = Number.parseInt(color.slice(1, 3), 16);
+                        return `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, 0.9)`;
+                    }),
+                    hoverBorderColor: "#ffffff",
+                    hoverBorderWidth: 4,
+                    hoverOffset: 8,
+                    offset: 2,
+                    rotation: -90, // Start from top
+                    spacing: 2,
+                    weight: 1,
+                },
+            ],
+            labels: zoneData.map((zone) => zone.label || `Zone ${zone.zone || 1}`),
+        },
+        options: {
             animation: {
-                duration: 1500,
+                animateRotate: true,
+                animateScale: true,
+                duration: 2000,
                 easing: "easeOutQuart",
+            },
+            elements: {
+                arc: {
+                    borderColor: "#ffffff",
+                    borderWidth: 3,
+                    hoverBorderWidth: 4,
+                },
             },
             interaction: {
                 intersect: false,
-                mode: "index",
+                mode: "point",
             },
+            maintainAspectRatio: true,
+            plugins: {
+                chartBackgroundColorPlugin: {
+                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                },
+                legend: {
+                    display: options.showLegend !== false,
+                    labels: {
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        display: true,
+                        font: {
+                            size: 14,
+                            weight: "600",
+                        },
+                        /** @param {any} chart */
+                        generateLabels(chart) {
+                            const { data } = chart;
+                            if (data.labels.length > 0 && data.datasets.length > 0) {
+                                const dataset = data.datasets[0],
+                                    total = dataset.data.reduce(
+                                        (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                        0
+                                    );
+
+                                return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
+                                    const meta = chart.getDatasetMeta(0),
+                                        hidden = meta.data[i] && meta.data[i].hidden,
+                                        value = dataset.data[i],
+                                        percentage = ((value / total) * 100).toFixed(1);
+                                    return {
+                                        fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
+                                        fontColor: hidden
+                                            ? "rgba(128, 128, 128, 0.7)"
+                                            : currentTheme === "dark"
+                                              ? "#ffffff"
+                                              : "#333333",
+                                        hidden,
+                                        index: i,
+                                        lineWidth: 1,
+                                        pointStyle: "circle",
+                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor[i],
+                                        text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
+                                    };
+                                });
+                            }
+                            return [];
+                        },
+                        padding: 20,
+                        pointStyle: "circle",
+                        usePointStyle: true,
+                    },
+                    /**
+                     * @param {any} _event
+                     * @param {any} legendItem
+                     * @param {any} legend
+                     */
+                    onClick(_event, legendItem, legend) {
+                        // Get the chart instance and dataset meta
+                        const meta = chart.getDatasetMeta(0),
+                            { chart } = legend,
+                            { index } = legendItem;
+
+                        // Toggle visibility
+                        meta.data[index].hidden = !meta.data[index].hidden;
+                        chart.update();
+                    },
+                    position: "right",
+                },
+                title: {
+                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    display: true,
+                    font: {
+                        size: 16,
+                        weight: "bold",
+                    },
+                    padding: 20,
+                    text: title,
+                },
+                tooltip: {
+                    backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                    bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
+                    borderWidth: 1,
+                    callbacks: {
+                        /** @param {any} context */
+                        label(context) {
+                            const total = context.dataset.data.reduce(
+                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                    0
+                                ),
+                                value = context.parsed,
+                                percentage = ((value / total) * 100).toFixed(1),
+                                timeFormatted = formatTime(context.parsed, true);
+                            return [`Time: ${timeFormatted}`, `Percentage: ${percentage}%`];
+                        },
+                        /** @param {any} context */
+                        labelColor(context) {
+                            return {
+                                backgroundColor: context.dataset.backgroundColor[context.dataIndex],
+                                borderColor: context.dataset.borderColor,
+                                borderRadius: 2,
+                                borderWidth: 2,
+                            };
+                        },
+                    },
+                    cornerRadius: 8,
+                    displayColors: true,
+                    enabled: true,
+                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
+                },
+            },
+            // Creates a nice donut hole
+            radius: "90%",
+            responsive: true,
         },
         plugins: [chartBackgroundColorPlugin],
+        type: "doughnut",
     };
 }

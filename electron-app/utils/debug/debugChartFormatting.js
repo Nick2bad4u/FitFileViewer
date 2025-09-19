@@ -2,14 +2,94 @@
  * Test utility to demonstrate the new manufacturer and product ID mappings
  */
 
-import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
-import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
-import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import {
     getManufacturerIdFromName,
     getManufacturerName,
     getProductName,
 } from "../formatting/display/formatAntNames.js";
+import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
+import { formatProduct } from "../formatting/formatters/formatProduct.js";
+import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
+
+// Test specific Favero case
+export function testFaveroCase() {
+    console.log("🎯 TESTING FAVERO ELECTRONICS CASE (YOUR ORIGINAL ISSUE)");
+    console.log("=".repeat(60));
+
+    const faveroSensor = {
+        manufacturer: 269, // Favero Electronics
+        product: 12, // Assioma_duo
+    };
+
+    console.log("Original issue: 'Favero Electronics 12' should become 'Favero Electronics Assioma Duo'");
+    console.log(`Input data: manufacturer=${faveroSensor.manufacturer}, product=${faveroSensor.product}`);
+
+    // Step-by-step breakdown
+    const mfgName = getManufacturerName(faveroSensor.manufacturer);
+    console.log(`Step 1 - Manufacturer ID ${faveroSensor.manufacturer} resolves to: "${mfgName}"`);
+
+    const formattedMfg = formatManufacturer(faveroSensor.manufacturer);
+    console.log(`Step 2 - Manufacturer formatted as: "${formattedMfg}"`);
+
+    const prodName = getProductName(faveroSensor.manufacturer ?? 0, faveroSensor.product);
+    console.log(`Step 3 - Product ID ${faveroSensor.product} resolves to: "${prodName}"`);
+
+    const formattedProd = formatProduct(faveroSensor.manufacturer, faveroSensor.product);
+    console.log(`Step 4 - Product formatted as: "${formattedProd}"`);
+
+    const finalResult = formatSensorName(faveroSensor);
+    console.log(`Step 5 - Final sensor name: "${finalResult}"`);
+
+    const expected = "Favero Electronics Assioma Duo",
+        success = finalResult === expected;
+
+    console.log(`\n${success ? "✅" : "❌"} Result: ${success ? "SUCCESS" : "FAILED"}`);
+    console.log(`Expected: "${expected}"`);
+    console.log(`Got:      "${finalResult}"`);
+
+    return { actual: finalResult, expected, success };
+}
+
+// Test with string manufacturer name (like your current data)
+export function testFaveroStringCase() {
+    console.log("🎯 TESTING FAVERO STRING CASE (CURRENT ISSUE)");
+    console.log("=".repeat(60));
+
+    const faveroSensor = {
+        manufacturer: "faveroElectronics", // String name like in your data
+        product: 12, // Assioma_duo
+    };
+
+    console.log(
+        "Current issue: manufacturer='faveroElectronics', product=12 should become 'Favero Electronics Assioma Duo'"
+    );
+    console.log(`Input data: manufacturer="${faveroSensor.manufacturer}", product=${faveroSensor.product}`);
+
+    // Step-by-step breakdown
+    const mfgIdFromName = getManufacturerIdFromName(faveroSensor.manufacturer);
+    console.log(`Step 1 - Manufacturer name "${faveroSensor.manufacturer}" resolves to ID: ${mfgIdFromName}`);
+
+    const formattedMfg = formatManufacturer(faveroSensor.manufacturer);
+    console.log(`Step 2 - Manufacturer formatted as: "${formattedMfg}"`);
+
+    const prodName = getProductName(mfgIdFromName ?? 0, faveroSensor.product);
+    console.log(`Step 3 - Product ID ${faveroSensor.product} resolves to: "${prodName}"`);
+
+    const formattedProd = formatProduct(faveroSensor.manufacturer, faveroSensor.product);
+    console.log(`Step 4 - Product formatted as: "${formattedProd}"`);
+
+    const finalResult = formatSensorName(faveroSensor);
+    console.log(`Step 5 - Final sensor name: "${finalResult}"`);
+
+    const expected = "Favero Electronics Assioma Duo",
+        success = finalResult === expected;
+
+    console.log(`\n${success ? "✅" : "❌"} Result: ${success ? "SUCCESS" : "FAILED"}`);
+    console.log(`Expected: "${expected}"`);
+    console.log(`Got:      "${finalResult}"`);
+
+    return { actual: finalResult, expected, success };
+}
 
 /**
  * Test the new formatting with sample data
@@ -63,19 +143,19 @@ export function testNewFormatting() {
         },
     ];
 
-    testCases.forEach((testCase, index) => {
+    for (const [index, testCase] of testCases.entries()) {
         console.log(`\n[${index + 1}] ${testCase.name}:`);
         console.log(`    Input: manufacturer=${testCase.sensor.manufacturer}, product=${testCase.sensor.product}`);
 
         // Test individual components
         if (testCase.sensor.manufacturer && testCase.sensor.manufacturer !== testCase.sensor.garminProduct) {
-            const mfgName = getManufacturerName(testCase.sensor.manufacturer),
-                formattedMfg = formatManufacturer(testCase.sensor.manufacturer);
+            const formattedMfg = formatManufacturer(testCase.sensor.manufacturer),
+                mfgName = getManufacturerName(testCase.sensor.manufacturer);
             console.log(`    Manufacturer: ${testCase.sensor.manufacturer} → "${mfgName}" → "${formattedMfg}"`);
 
             if (testCase.sensor.product) {
-                const prodName = getProductName(testCase.sensor.manufacturer, testCase.sensor.product),
-                    formattedProd = formatProduct(testCase.sensor.manufacturer, testCase.sensor.product);
+                const formattedProd = formatProduct(testCase.sensor.manufacturer, testCase.sensor.product),
+                    prodName = getProductName(testCase.sensor.manufacturer, testCase.sensor.product);
                 console.log(`    Product: ${testCase.sensor.product} → "${prodName}" → "${formattedProd}"`);
             }
         }
@@ -83,90 +163,10 @@ export function testNewFormatting() {
         // Test complete sensor name
         const finalResult = formatSensorName(testCase.sensor);
         console.log(`    📱 Final Result: "${finalResult}"`);
-    });
+    }
 
     console.log("\n✅ Testing complete!");
     return testCases;
-}
-
-// Test specific Favero case
-export function testFaveroCase() {
-    console.log("🎯 TESTING FAVERO ELECTRONICS CASE (YOUR ORIGINAL ISSUE)");
-    console.log("=".repeat(60));
-
-    const faveroSensor = {
-        manufacturer: 269, // Favero Electronics
-        product: 12, // Assioma_duo
-    };
-
-    console.log("Original issue: 'Favero Electronics 12' should become 'Favero Electronics Assioma Duo'");
-    console.log(`Input data: manufacturer=${faveroSensor.manufacturer}, product=${faveroSensor.product}`);
-
-    // Step-by-step breakdown
-    const mfgName = getManufacturerName(faveroSensor.manufacturer);
-    console.log(`Step 1 - Manufacturer ID ${faveroSensor.manufacturer} resolves to: "${mfgName}"`);
-
-    const formattedMfg = formatManufacturer(faveroSensor.manufacturer);
-    console.log(`Step 2 - Manufacturer formatted as: "${formattedMfg}"`);
-
-    const prodName = getProductName(faveroSensor.manufacturer ?? 0, faveroSensor.product);
-    console.log(`Step 3 - Product ID ${faveroSensor.product} resolves to: "${prodName}"`);
-
-    const formattedProd = formatProduct(faveroSensor.manufacturer, faveroSensor.product);
-    console.log(`Step 4 - Product formatted as: "${formattedProd}"`);
-
-    const finalResult = formatSensorName(faveroSensor);
-    console.log(`Step 5 - Final sensor name: "${finalResult}"`);
-
-    const expected = "Favero Electronics Assioma Duo",
-        success = finalResult === expected;
-
-    console.log(`\n${success ? "✅" : "❌"} Result: ${success ? "SUCCESS" : "FAILED"}`);
-    console.log(`Expected: "${expected}"`);
-    console.log(`Got:      "${finalResult}"`);
-
-    return { success, expected, actual: finalResult };
-}
-
-// Test with string manufacturer name (like your current data)
-export function testFaveroStringCase() {
-    console.log("🎯 TESTING FAVERO STRING CASE (CURRENT ISSUE)");
-    console.log("=".repeat(60));
-
-    const faveroSensor = {
-        manufacturer: "faveroElectronics", // String name like in your data
-        product: 12, // Assioma_duo
-    };
-
-    console.log(
-        "Current issue: manufacturer='faveroElectronics', product=12 should become 'Favero Electronics Assioma Duo'"
-    );
-    console.log(`Input data: manufacturer="${faveroSensor.manufacturer}", product=${faveroSensor.product}`);
-
-    // Step-by-step breakdown
-    const mfgIdFromName = getManufacturerIdFromName(faveroSensor.manufacturer);
-    console.log(`Step 1 - Manufacturer name "${faveroSensor.manufacturer}" resolves to ID: ${mfgIdFromName}`);
-
-    const formattedMfg = formatManufacturer(faveroSensor.manufacturer);
-    console.log(`Step 2 - Manufacturer formatted as: "${formattedMfg}"`);
-
-    const prodName = getProductName(mfgIdFromName ?? 0, faveroSensor.product);
-    console.log(`Step 3 - Product ID ${faveroSensor.product} resolves to: "${prodName}"`);
-
-    const formattedProd = formatProduct(faveroSensor.manufacturer, faveroSensor.product);
-    console.log(`Step 4 - Product formatted as: "${formattedProd}"`);
-
-    const finalResult = formatSensorName(faveroSensor);
-    console.log(`Step 5 - Final sensor name: "${finalResult}"`);
-
-    const expected = "Favero Electronics Assioma Duo",
-        success = finalResult === expected;
-
-    console.log(`\n${success ? "✅" : "❌"} Result: ${success ? "SUCCESS" : "FAILED"}`);
-    console.log(`Expected: "${expected}"`);
-    console.log(`Got:      "${finalResult}"`);
-
-    return { success, expected, actual: finalResult };
 }
 
 // Test functions are exported for use in renderer.js

@@ -6,44 +6,9 @@
 // Constants for better maintainability
 const FORMATTING_CONSTANTS = {
     DEFAULT_DECIMAL_DIGITS: 2,
-    SEPARATOR: ", ",
     LOG_PREFIX: "[FormatUtils]",
+    SEPARATOR: ", ",
 };
-
-/**
- * Logs messages with context for formatting operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
- */
-function logWithContext(message, level = "info") {
-    try {
-        const prefix = FORMATTING_CONSTANTS.LOG_PREFIX;
-        switch (level) {
-            case "warn":
-                console.warn(`${prefix} ${message}`);
-                break;
-            case "error":
-                console.error(`${prefix} ${message}`);
-                break;
-            default:
-                console.log(`${prefix} ${message}`);
-        }
-    } catch {
-        // Silently fail if logging encounters an error
-    }
-}
-
-/**
- * Validates if a value can be converted to a number
- * @param {any} value - Value to validate
- * @returns {boolean} True if value is a valid number
- * @private
- */
-function isValidNumber(value) {
-    const num = Number(value);
-    return !Number.isNaN(num) && Number.isFinite(num);
-}
 
 /**
  * Formats an array or a comma-separated string of numbers to a string with each number
@@ -89,7 +54,7 @@ export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_D
                         logWithContext(error, "warn");
                         return String(v); // Return as-is if not strict
                     }
-                    return parseFloat(Number(v).toFixed(digits));
+                    return Number.parseFloat(Number(v).toFixed(digits));
                 })
                 .join(config.separator);
         }
@@ -119,5 +84,43 @@ export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_D
         const anyErr = /** @type {any} */ (error);
         logWithContext(`Error formatting array: ${anyErr?.message}`, "error");
         throw anyErr;
+    }
+}
+
+/**
+ * Validates if a value can be converted to a number
+ * @param {any} value - Value to validate
+ * @returns {boolean} True if value is a valid number
+ * @private
+ */
+function isValidNumber(value) {
+    const num = Number(value);
+    return !Number.isNaN(num) && Number.isFinite(num);
+}
+
+/**
+ * Logs messages with context for formatting operations
+ * @param {string} message - The message to log
+ * @param {string} level - Log level ('info', 'warn', 'error')
+ * @private
+ */
+function logWithContext(message, level = "info") {
+    try {
+        const prefix = FORMATTING_CONSTANTS.LOG_PREFIX;
+        switch (level) {
+            case "error": {
+                console.error(`${prefix} ${message}`);
+                break;
+            }
+            case "warn": {
+                console.warn(`${prefix} ${message}`);
+                break;
+            }
+            default: {
+                console.log(`${prefix} ${message}`);
+            }
+        }
+    } catch {
+        // Silently fail if logging encounters an error
     }
 }

@@ -106,6 +106,7 @@ export default defineConfig([
                 __vitest_effective_document__: "readonly",
                 __vitest_effective_stateManager__: "readonly",
             },
+            sourceType: "module", // Parse .js files as ES modules to allow import/export syntax
         },
     },
     {

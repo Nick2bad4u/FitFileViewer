@@ -12,13 +12,13 @@
  * @param {Function} params.showAboutModal - Function to display the About modal dialog.
  */
 export function setupListeners({
-    openFileBtn,
-    isOpeningFileRef,
-    setLoading,
-    showNotification,
     handleOpenFile,
-    showUpdateNotification,
+    isOpeningFileRef,
+    openFileBtn,
+    setLoading,
     showAboutModal,
+    showNotification,
+    showUpdateNotification,
 }) {
     // Open File button click
     openFileBtn.addEventListener("click", () =>
@@ -33,15 +33,15 @@ export function setupListeners({
     // Recent Files Context Menu
     openFileBtn.addEventListener("contextmenu", async (event) => {
         /** @type {MouseEvent} */ (event).preventDefault();
-        if (!window.electronAPI?.recentFiles) {
+        if (!globalThis.electronAPI?.recentFiles) {
             return;
         }
-        const recentFiles = await window.electronAPI.recentFiles();
+        const recentFiles = await globalThis.electronAPI.recentFiles();
         if (!recentFiles || recentFiles.length === 0) {
             showNotification("No recent files found.", "info", 2000);
             return;
         }
-        const oldMenu = document.getElementById("recent-files-menu");
+        const oldMenu = document.querySelector("#recent-files-menu");
         if (oldMenu) {
             oldMenu.remove();
         }
@@ -65,20 +65,20 @@ export function setupListeners({
         menu.style.cursor = "pointer";
         menu.style.userSelect = "none";
         menu.style.backdropFilter = "var(--backdrop-blur)";
-        menu.oncontextmenu = (e) => e.preventDefault();
+        menu.addEventListener('contextmenu', (e) => e.preventDefault());
         menu.setAttribute("role", "menu");
         menu.setAttribute("aria-label", "Recent files");
         let focusedIndex = 0;
         /** @type {HTMLDivElement[]} */
         const items = [];
-        recentFiles.forEach((file, idx) => {
-            const parts = file.split(/\\|\//g),
+        for (const [idx, file] of recentFiles.entries()) {
+            const /** @type {HTMLDivElement} */
+                item = document.createElement("div"),
+                parts = file.split(/\\|\//g),
                 shortName =
                     parts.length >= 2
-                        ? `${parts[parts.length - 2]}\\${parts[parts.length - 1]}`
-                        : parts[parts.length - 1],
-                /** @type {HTMLDivElement} */
-                item = document.createElement("div");
+                        ? `${parts.at(-2)}\\${parts.at(-1)}`
+                        : parts.at(-1);
             // TextContent expects string | null; ensure fallback string
             item.textContent = shortName || "";
             item.title = file;
@@ -89,68 +89,82 @@ export function setupListeners({
             item.setAttribute("role", "menuitem");
             item.setAttribute("tabindex", "-1");
             item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
-            item.onmouseenter = () => {
+            item.addEventListener('mouseenter', () => {
                 item.style.background = "var(--color-glass-border)";
                 item.style.color = "var(--color-fg-alt)";
-            };
-            item.onmouseleave = () => {
+            });
+            item.addEventListener('mouseleave', () => {
                 item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";
                 item.style.color = "var(--color-fg)";
-            };
-            item.onclick = async () => {
+            });
+            item.addEventListener('click', async () => {
                 menu.remove();
                 openFileBtn.disabled = true;
                 setLoading(true);
                 try {
-                    const arrayBuffer = await window.electronAPI.readFile(file),
-                        result = await window.electronAPI.parseFitFile(arrayBuffer);
+                    const arrayBuffer = await globalThis.electronAPI.readFile(file),
+                        result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
                     if (result && result.error) {
                         showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                     } else {
                         // Optional chaining avoids undefined invocation
-                        window.showFitData?.(result, file);
+                        globalThis.showFitData?.(result, file);
                         // Optional integration - guarded
-                        if (/** @type {any} */ (window).sendFitFileToAltFitReader) {
-                            /** @type {any} */ (window).sendFitFileToAltFitReader(arrayBuffer);
+                        if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
+                            /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
                         }
                     }
-                    await window.electronAPI.addRecentFile(file);
-                } catch (err) {
-                    showNotification(`Error opening recent file: ${err}`, "error");
+                    await globalThis.electronAPI.addRecentFile(file);
+                } catch (error) {
+                    showNotification(`Error opening recent file: ${error}`, "error");
                 }
                 openFileBtn.disabled = false;
                 setLoading(false);
-            };
+            });
             items.push(item);
-            menu.appendChild(item);
-        });
+            menu.append(item);
+        }
         /**
          * Move visual focus + highlight to a specific index.
          * @param {number} idx
          */
         function focusItem(idx) {
-            items.forEach((el, i) => {
+            for (const [i, el] of items.entries()) {
                 el.style.background = i === idx ? "var(--color-glass-border)" : "transparent";
                 el.style.color = i === idx ? "var(--color-fg-alt)" : "var(--color-fg)";
                 if (i === idx) {
                     el.focus();
                 }
-            });
+            }
             focusedIndex = idx;
         }
         menu.addEventListener("keydown", (e) => {
-            if (e.key === "ArrowDown") {
+            switch (e.key) {
+            case "ArrowDown": {
                 e.preventDefault();
                 focusItem((focusedIndex + 1) % items.length);
-            } else if (e.key === "ArrowUp") {
+            
+            break;
+            }
+            case "ArrowUp": {
                 e.preventDefault();
                 focusItem((focusedIndex - 1 + items.length) % items.length);
-            } else if (e.key === "Enter") {
+            
+            break;
+            }
+            case "Enter": {
                 e.preventDefault();
                 items[focusedIndex]?.click();
-            } else if (e.key === "Escape") {
+            
+            break;
+            }
+            case "Escape": {
                 e.preventDefault();
                 menu.remove();
+            
+            break;
+            }
+            // No default
             }
         });
         setTimeout(() => focusItem(0), 0);
@@ -180,18 +194,18 @@ export function setupListeners({
             }
         });
         // Remove menu and cleanup on item click
-        items.forEach((item) => {
+        for (const item of items) {
             const origOnClick = item.onclick;
-            item.onclick = async (ev) => {
+            item.addEventListener('click', async (ev) => {
                 cleanupMenu();
                 // Invoke original click if present
                 if (typeof origOnClick === "function") {
                     await origOnClick.call(item, ev);
                 }
-            };
-        });
+            });
+        }
 
-        document.body.appendChild(menu);
+        document.body.append(menu);
         menu.focus();
     });
 
@@ -200,78 +214,78 @@ export function setupListeners({
     let chartRenderTimeout = null;
     window.addEventListener("resize", () => {
         if (
-            document.getElementById("tab-chart")?.classList.contains("active") ||
-            document.getElementById("tab-chartjs")?.classList.contains("active")
+            document.querySelector("#tab-chart")?.classList.contains("active") ||
+            document.querySelector("#tab-chartjs")?.classList.contains("active")
         ) {
             if (chartRenderTimeout) {
                 clearTimeout(chartRenderTimeout);
             }
             chartRenderTimeout = setTimeout(() => {
                 // Use modern chart state management for resize handling
-                if (window.ChartUpdater && window.ChartUpdater.updateCharts) {
-                    window.ChartUpdater.updateCharts("window-resize");
-                } else if (window.renderChartJS) {
-                    window.renderChartJS();
-                } else if (/** @type {any} */ (window).renderChart) {
+                if (globalThis.ChartUpdater && globalThis.ChartUpdater.updateCharts) {
+                    globalThis.ChartUpdater.updateCharts("window-resize");
+                } else if (globalThis.renderChartJS) {
+                    globalThis.renderChartJS();
+                } else if (/** @type {any} */ (globalThis).renderChart) {
                     // Legacy fallback (cast window to any for legacy property)
-                    /** @type {any} */ (window).renderChart();
+                    /** @type {any} */ (globalThis).renderChart();
                 }
             }, 200);
         }
     });
 
     // Electron IPC and menu listeners
-    if (window.electronAPI && window.electronAPI.onMenuOpenFile && window.electronAPI.onOpenRecentFile) {
-        window.electronAPI.onMenuOpenFile(() => {
+    if (globalThis.electronAPI && globalThis.electronAPI.onMenuOpenFile && globalThis.electronAPI.onOpenRecentFile) {
+        globalThis.electronAPI.onMenuOpenFile(() => {
             handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification });
         });
-        window.electronAPI.onOpenRecentFile(async (filePath) => {
+        globalThis.electronAPI.onOpenRecentFile(async (filePath) => {
             openFileBtn.disabled = true;
             setLoading(true);
             try {
-                const arrayBuffer = await window.electronAPI.readFile(filePath),
-                    result = await window.electronAPI.parseFitFile(arrayBuffer);
+                const arrayBuffer = await globalThis.electronAPI.readFile(filePath),
+                    result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
                 if (result && result.error) {
                     showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                 } else {
-                    window.showFitData?.(result, filePath);
-                    if (/** @type {any} */ (window).sendFitFileToAltFitReader) {
-                        /** @type {any} */ (window).sendFitFileToAltFitReader(arrayBuffer);
+                    globalThis.showFitData?.(result, filePath);
+                    if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
+                        /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
                     }
                 }
-                await window.electronAPI.addRecentFile(filePath);
-            } catch (err) {
-                showNotification(`Error opening recent file: ${err}`, "error");
+                await globalThis.electronAPI.addRecentFile(filePath);
+            } catch (error) {
+                showNotification(`Error opening recent file: ${error}`, "error");
             }
             openFileBtn.disabled = false;
             setLoading(false);
         });
     }
 
-    if (window.electronAPI && window.electronAPI.onIpc) {
+    if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
         // Handles changes to decoder options and updates the UI or data accordingly
         /**
          * Decoder options changed handler
          * @param {any} newOptions
          */
-        window.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ newOptions) => {
+        globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ newOptions) => {
             console.log("[DEBUG] Decoder options changed:", newOptions);
             showNotification("Decoder options updated.", "info", 2000);
-            if (window.globalData && window.globalData.cachedFilePath) {
-                const filePath = window.globalData.cachedFilePath;
+            if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
+                const filePath = globalThis.globalData.cachedFilePath;
                 setLoading(true);
-                window.electronAPI
+                globalThis.electronAPI
                     .readFile(filePath)
-                    .then((arrayBuffer) => window.electronAPI.parseFitFile(arrayBuffer))
+                    .then((arrayBuffer) => globalThis.electronAPI.parseFitFile(arrayBuffer))
                     .then((result) => {
                         if (result && result.error) {
                             showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
                         } else {
-                            window.showFitData?.(result, filePath);
+                            globalThis.showFitData?.(result, filePath);
                         }
                     })
-                    .catch((err) => {
-                        showNotification(`Error reloading file: ${err}`, "error");
+                    .catch((error) => {
+                        showNotification(`Error reloading file: ${error}`, "error");
                     })
                     .finally(() => setLoading(false));
             }
@@ -281,37 +295,37 @@ export function setupListeners({
          * @param {any} _event
          * @param {string} filePath
          */
-        window.electronAPI.onIpc(
+        globalThis.electronAPI.onIpc(
             "export-file",
             /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
-                if (!window.globalData) {
+                if (!globalThis.globalData) {
                     return;
                 }
                 const safePath = filePath || "",
                     ext = safePath.split(".").pop()?.toLowerCase() || "";
                 if (ext === "csv") {
-                    const container = document.getElementById("content-summary");
-                    if (/** @type {any} */ (window).copyTableAsCSV && container) {
-                        const csv = /** @type {any} */ (window).copyTableAsCSV({ container, data: window.globalData }),
-                            blob = new Blob([csv], { type: "text/csv" }),
-                            a = document.createElement("a");
+                    const container = document.querySelector("#content-summary");
+                    if (/** @type {any} */ (globalThis).copyTableAsCSV && container) {
+                        const a = document.createElement("a"),
+                            csv = /** @type {any} */ (globalThis).copyTableAsCSV({ container, data: globalThis.globalData }),
+                            blob = new Blob([csv], { type: "text/csv" });
                         a.href = URL.createObjectURL(blob);
-                        a.download = safePath.split(/[\\/]/).pop() || "export.csv";
-                        document.body.appendChild(a);
+                        a.download = safePath.split(/[/\\]/).pop() || "export.csv";
+                        document.body.append(a);
                         a.click();
                         setTimeout(() => {
                             URL.revokeObjectURL(a.href);
-                            document.body.removeChild(a);
+                            a.remove();
                         }, 100);
                     }
                 } else if (ext === "gpx") {
                     if (
-                        /** @type {any} */ (window).createExportGPXButton &&
-                        window.globalData.recordMesgs &&
-                        Array.isArray(window.globalData.recordMesgs) &&
-                        window.globalData.recordMesgs.length > 0
+                        /** @type {any} */ (globalThis).createExportGPXButton &&
+                        globalThis.globalData.recordMesgs &&
+                        Array.isArray(globalThis.globalData.recordMesgs) &&
+                        globalThis.globalData.recordMesgs.length > 0
                     ) {
-                        const coords = window.globalData.recordMesgs
+                        const coords = globalThis.globalData.recordMesgs
                             .filter(
                                 (/** @type {{positionLat?:number, positionLong?:number}} */ row) =>
                                     row.positionLat != null && row.positionLong != null
@@ -322,19 +336,19 @@ export function setupListeners({
                             ]);
                         if (coords.length > 0) {
                             let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="FitFileViewer">\n<trk><name>Exported Track</name><trkseg>`;
-                            coords.forEach((/** @type {number[]} */ c) => {
+                            for (const c of coords) {
                                 gpx += `\n<trkpt lat="${c[0]}" lon="${c[1]}"/>`;
-                            });
+                            }
                             gpx += "\n</trkseg></trk></gpx>";
-                            const blob = new Blob([gpx], { type: "application/gpx+xml" }),
-                                a = document.createElement("a");
+                            const a = document.createElement("a"),
+                                blob = new Blob([gpx], { type: "application/gpx+xml" });
                             a.href = URL.createObjectURL(blob);
-                            a.download = safePath.split(/[\\/]/).pop() || "export.gpx";
-                            document.body.appendChild(a);
+                            a.download = safePath.split(/[/\\]/).pop() || "export.gpx";
+                            document.body.append(a);
                             a.click();
                             setTimeout(() => {
                                 URL.revokeObjectURL(a.href);
-                                document.body.removeChild(a);
+                                a.remove();
                             }, 100);
                         } else {
                             showNotification("No valid coordinates found for GPX export.", "info", 3000);
@@ -345,7 +359,7 @@ export function setupListeners({
                 }
             }
         );
-        window.electronAPI.onIpc(
+        globalThis.electronAPI.onIpc(
             "show-notification",
             (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
                 if (typeof showNotification === "function") {
@@ -353,47 +367,47 @@ export function setupListeners({
                 }
             }
         );
-        window.electronAPI.onIpc("menu-print", () => {
-            window.print();
+        globalThis.electronAPI.onIpc("menu-print", () => {
+            globalThis.print();
         });
-        window.electronAPI.onIpc("menu-check-for-updates", () => {
-            if (window.electronAPI.send) {
-                window.electronAPI.send("menu-check-for-updates");
+        globalThis.electronAPI.onIpc("menu-check-for-updates", () => {
+            if (globalThis.electronAPI.send) {
+                globalThis.electronAPI.send("menu-check-for-updates");
             }
         });
-        window.electronAPI.onIpc("menu-save-as", () => {
-            if (window.electronAPI.send) {
-                window.electronAPI.send("menu-save-as");
+        globalThis.electronAPI.onIpc("menu-save-as", () => {
+            if (globalThis.electronAPI.send) {
+                globalThis.electronAPI.send("menu-save-as");
             }
         });
-        window.electronAPI.onIpc("menu-export", () => {
-            if (window.electronAPI.send) {
-                window.electronAPI.send("menu-export");
+        globalThis.electronAPI.onIpc("menu-export", () => {
+            if (globalThis.electronAPI.send) {
+                globalThis.electronAPI.send("menu-export");
             }
         });
-        window.electronAPI.onIpc("menu-about", async () => {
+        globalThis.electronAPI.onIpc("menu-about", async () => {
             // Show the about modal without any content since the styled system info
             // Section will automatically load and display all the version information
             showAboutModal();
         });
-        window.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
+        globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
             console.log("Keyboard shortcuts menu clicked - starting handler");
             // Check if the keyboard shortcuts modal script is already loaded
-            if (typeof window.showKeyboardShortcutsModal === "undefined") {
+            if (globalThis.showKeyboardShortcutsModal === undefined) {
                 console.log("Modal script not loaded, loading dynamically...");
                 // Load the keyboard shortcuts modal script dynamically
                 const script = document.createElement("script");
                 script.src = "./utils/keyboardShortcutsModal.js";
-                script.onload = () => {
+                script.addEventListener('load', () => {
                     console.log("Script loaded successfully");
                     // Call the function after the script is loaded
-                    if (typeof window.showKeyboardShortcutsModal === "function") {
+                    if (typeof globalThis.showKeyboardShortcutsModal === "function") {
                         console.log("Calling showKeyboardShortcutsModal function");
-                        window.showKeyboardShortcutsModal();
+                        globalThis.showKeyboardShortcutsModal();
                     } else {
                         console.error("showKeyboardShortcutsModal function not available after script load");
                     }
-                };
+                });
                 script.onerror = (error) => {
                     console.error("Failed to load keyboard shortcuts modal script:", error);
                     // Fallback to old implementation
@@ -415,37 +429,37 @@ export function setupListeners({
                     html += "</ul>";
                     showAboutModal(html);
                 };
-                document.head.appendChild(script);
+                document.head.append(script);
             } else {
                 console.log("Modal script already loaded, calling function directly");
                 // Function is already available, call it directly
-                window.showKeyboardShortcutsModal();
+                globalThis.showKeyboardShortcutsModal();
             }
         });
     }
 
     // Auto-Updater Event Listeners
-    if (window.electronAPI && window.electronAPI.onUpdateEvent) {
-        window.electronAPI.onUpdateEvent("update-checking", () => {
+    if (globalThis.electronAPI && globalThis.electronAPI.onUpdateEvent) {
+        globalThis.electronAPI.onUpdateEvent("update-checking", () => {
             showUpdateNotification("Checking for updates...", "info", 3000);
         });
-        window.electronAPI.onUpdateEvent("update-available", () => {
+        globalThis.electronAPI.onUpdateEvent("update-available", () => {
             showUpdateNotification("Update available! Downloading...", 4000);
         });
-        window.electronAPI.onUpdateEvent("update-not-available", () => {
+        globalThis.electronAPI.onUpdateEvent("update-not-available", () => {
             showUpdateNotification("You are using the latest version.", "success", 4000);
         });
-        window.electronAPI.onUpdateEvent("update-error", (/** @type {any} */ err) => {
+        globalThis.electronAPI.onUpdateEvent("update-error", (/** @type {any} */ err) => {
             showUpdateNotification(`Update error: ${err}`, "error", 7000);
         });
-        window.electronAPI.onUpdateEvent("update-download-progress", (/** @type {any} */ progress) => {
+        globalThis.electronAPI.onUpdateEvent("update-download-progress", (/** @type {any} */ progress) => {
             if (progress && typeof progress.percent === "number") {
                 showUpdateNotification(`Downloading update: ${Math.round(progress.percent)}%`, "info", 2000);
             } else {
                 showUpdateNotification("Downloading update: progress information unavailable.", "info", 2000);
             }
         });
-        window.electronAPI.onUpdateEvent("update-downloaded", () => {
+        globalThis.electronAPI.onUpdateEvent("update-downloaded", () => {
             showUpdateNotification(
                 "Update downloaded! Restart to install the update now, or choose Later to finish your work.",
                 "success",
@@ -456,19 +470,30 @@ export function setupListeners({
     }
 
     // Accessibility Event Listeners
-    if (window.electronAPI && window.electronAPI.onIpc) {
-        window.electronAPI.onIpc("set-font-size", (/** @type {any} */ _event, /** @type {string} */ size) => {
+    if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
+        globalThis.electronAPI.onIpc("set-font-size", (/** @type {any} */ _event, /** @type {string} */ size) => {
             document.body.classList.remove("font-xsmall", "font-small", "font-medium", "font-large", "font-xlarge");
             document.body.classList.add(`font-${size}`);
         });
-        window.electronAPI.onIpc("set-high-contrast", (/** @type {any} */ _event, /** @type {string} */ mode) => {
+        globalThis.electronAPI.onIpc("set-high-contrast", (/** @type {any} */ _event, /** @type {string} */ mode) => {
             document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
-            if (mode === "black") {
+            switch (mode) {
+            case "black": {
                 document.body.classList.add("high-contrast");
-            } else if (mode === "white") {
+            
+            break;
+            }
+            case "white": {
                 document.body.classList.add("high-contrast-white");
-            } else if (mode === "yellow") {
+            
+            break;
+            }
+            case "yellow": {
                 document.body.classList.add("high-contrast-yellow");
+            
+            break;
+            }
+            // No default
             }
         });
     }

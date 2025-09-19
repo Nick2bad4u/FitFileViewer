@@ -10,7 +10,7 @@
  */
 export function getChartOverlayColorPalette(array) {
     // Remove duplicates
-    const unique = Array.from(new Set(array));
+    const unique = [...new Set(array)];
 
     // Helper to compute color distance in RGB space
     /**
@@ -29,33 +29,33 @@ export function getChartOverlayColorPalette(array) {
         function hexToRgb(hex) {
             let cleaned = hex.trim().replace(/^#/, "").toLowerCase();
             // Expand short form (#abc => #aabbcc)
-            if (cleaned.length === 3 && /^[0-9a-f]{3}$/.test(cleaned)) {
+            if (cleaned.length === 3 && /^[\da-f]{3}$/.test(cleaned)) {
                 cleaned = cleaned
                     .split("")
                     .map((/** @type {string} */ ch) => ch + ch)
                     .join("");
             }
-            if (!/^[0-9a-f]{6}$/.test(cleaned)) {
+            if (!/^[\da-f]{6}$/.test(cleaned)) {
                 return [0, 0, 0];
             }
-            const num = parseInt(cleaned, 16),
+            const num = Number.parseInt(cleaned, 16),
                 /** @type {[number, number, number]} */
                 rgb = [num >> 16, (num >> 8) & 255, num & 255];
             return rgb;
         }
         const [r1, g1, b1] = hexToRgb(c1),
             [r2, g2, b2] = hexToRgb(c2);
-        return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+        return Math.hypot((r1 - r2), (g1 - g2), (b1 - b2));
     }
 
     // Filter out colors that are too similar (distance < 80)
     /** @type {string[]} */
     const filtered = [];
-    unique.forEach((/** @type {string} */ color) => {
+    for (const color of unique) {
         if (filtered.every((/** @type {string} */ existing) => colorDistance(color, existing) >= 80)) {
             filtered.push(color);
         }
-    });
+    }
 
     // Deterministic shuffle using a seeded algorithm for reproducibility
     /**
@@ -66,12 +66,12 @@ export function getChartOverlayColorPalette(array) {
      */
     function seededShuffle(array, seed = 42) {
         // Simple LCG (Linear Congruential Generator)
-        const a = 1664525,
-            c = 1013904223,
+        const a = 1_664_525,
+            c = 1_013_904_223,
             m = 2 ** 32;
         let state = seed;
         /** @type {string[]} */
-        const arr = array.slice();
+        const arr = [...array];
         for (let i = arr.length - 1; i > 0; i--) {
             state = (a * state + c) % m;
             const j = state % (i + 1);

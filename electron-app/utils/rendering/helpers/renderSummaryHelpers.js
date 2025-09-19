@@ -46,6 +46,16 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
 export const LABEL_COL = "__row_label__";
 
 /**
+ * Return the label for a given row index.
+ * @param {number} rowIdx
+ * @param {boolean} isLap
+ * @returns {string}
+ */
+export function getRowLabel(rowIdx, isLap) {
+    return isLap ? `Lap ${rowIdx + 1}` : "Summary";
+}
+
+/**
  * Build a stable storage key for column visibility preferences for a given file path.
  * Accepts an unused second parameter to remain backwards compatible with older callers
  * passing (data, allKeys).
@@ -56,12 +66,12 @@ export const LABEL_COL = "__row_label__";
 export function getStorageKey(data, _allKeys) {
     let fpath = "";
     try {
-        const w = /** @type {AugmentedWindow} */ (window);
-        if (typeof window !== "undefined" && w?.globalData?.cachedFilePath) {
+        const w = /** @type {AugmentedWindow} */ (globalThis);
+        if (globalThis.window !== undefined && w?.globalData?.cachedFilePath) {
             fpath = w.globalData.cachedFilePath;
         } else if (data && typeof data === "object" && /** @type {any} */ (data)?.cachedFilePath) {
             fpath = /** @type {any} */ (data).cachedFilePath;
-        } else if (typeof window !== "undefined" && w?.activeFitFileName) {
+        } else if (globalThis.window !== undefined && w?.activeFitFileName) {
             fpath = w.activeFitFileName;
         }
     } catch {
@@ -71,22 +81,6 @@ export function getStorageKey(data, _allKeys) {
         return `summaryColSel_${encodeURIComponent(String(fpath))}`;
     }
     return "summaryColSel_default";
-}
-
-/**
- * Persist visible column preferences.
- * Accepts an unused third parameter (allKeys) for legacy call compatibility.
- * @param {string} key
- * @param {string[]} visibleColumns
- * @param {string[]|undefined} [_allKeys]
- * @returns {void}
- */
-export function saveColPrefs(key, visibleColumns, _allKeys) {
-    try {
-        localStorage.setItem(key, JSON.stringify(visibleColumns));
-    } catch {
-        /* Intentionally ignore errors */
-    }
 }
 
 /**
@@ -112,16 +106,6 @@ export function loadColPrefs(key, _allKeys) {
 }
 
 /**
- * Return the label for a given row index.
- * @param {number} rowIdx
- * @param {boolean} isLap
- * @returns {string}
- */
-export function getRowLabel(rowIdx, isLap) {
-    return isLap ? `Lap ${rowIdx + 1}` : "Summary";
-}
-
-/**
  * Render the summary / laps table into the provided container.
  * @param {{
  *  container: HTMLElement,
@@ -132,20 +116,20 @@ export function getRowLabel(rowIdx, isLap) {
  * }} params
  * @returns {void}
  */
-export function renderTable({ container, data, visibleColumns, setVisibleColumns, gearBtn }) {
+export function renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns }) {
     /** @type {HTMLElement|null} */
     let section = container.querySelector(".summary-section");
     if (!section) {
         section = document.createElement("div");
         section.classList.add("summary-section");
-        container.appendChild(section);
+        container.append(section);
     }
     section.innerHTML = "";
     // Filter bar with gear button and filter dropdown side by side
     const filterBar = document.createElement("div");
     filterBar.className = "summary-filter-bar";
     // Gear button (column selector)
-    filterBar.appendChild(gearBtn);
+    filterBar.append(gearBtn);
     // Filter dropdown
     const filterLabel = document.createElement("label");
     filterLabel.textContent = "Show: ";
@@ -160,17 +144,17 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
     // @ts-ignore - augmenting DOM element with cached filter value
     const filterValue = /** @type {any} */ (container)._summaryFilterValue || "All";
     filterSelect.value = filterValue;
-    filterSelect.onchange = () => {
+    filterSelect.addEventListener('change', () => {
         // @ts-ignore
         container._summaryFilterValue = filterSelect.value;
-        renderTable({ container, data, visibleColumns, setVisibleColumns, gearBtn });
-    };
+        renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
+    });
     // Add scroll wheel support for changing selection
     filterSelect.addEventListener(
         "wheel",
         (e) => {
             e.preventDefault();
-            const options = Array.from(filterSelect.options);
+            const options = [...filterSelect.options];
             let idx = options.findIndex((opt) => opt.value === filterSelect.value);
             if (e.deltaY > 0 && idx < options.length - 1) {
                 idx++;
@@ -182,25 +166,25 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
                 filterSelect.value = opt.value;
                 // @ts-ignore
                 container._summaryFilterValue = filterSelect.value;
-                renderTable({ container, data, visibleColumns, setVisibleColumns, gearBtn });
+                renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns });
             }
         },
         { passive: false }
     );
-    filterLabel.appendChild(filterSelect);
-    filterBar.appendChild(filterLabel);
-    section.appendChild(filterBar);
+    filterLabel.append(filterSelect);
+    filterBar.append(filterLabel);
+    section.append(filterBar);
 
     const headerBar = document.createElement("div");
     headerBar.className = "header-bar";
     const title = document.createElement("h3");
     title.textContent = "Activity Summary";
     title.classList.add("summary-title");
-    headerBar.appendChild(title);
+    headerBar.append(title);
     const copyBtn = document.createElement("button");
     copyBtn.textContent = "Copy as CSV";
     copyBtn.className = "copy-btn";
-    copyBtn.onclick = () => {
+    copyBtn.addEventListener('click', () => {
         try {
             /** @type {string[]} */
             const rows = [],
@@ -225,15 +209,15 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
                     patchSummaryFields(patched);
                     return patched;
                 });
-                patchedLaps.forEach((lap, i) => {
+                for (const [i, lap] of patchedLaps.entries()) {
                     if (filterValue === "All" || filterValue === `Lap ${i + 1}`) {
                         rows.push(
                             sortedVisible
-                                .map((k) => (k === LABEL_COL ? `Lap ${i + 1}` : lap[k] !== undefined ? lap[k] : ""))
+                                .map((k) => (k === LABEL_COL ? `Lap ${i + 1}` : lap[k] === undefined ? "" : lap[k]))
                                 .join(",")
                         );
                     }
-                });
+                }
             }
             if (navigator?.clipboard?.writeText) {
                 navigator.clipboard.writeText(rows.join("\n"));
@@ -241,36 +225,36 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
         } catch {
             /* Ignore copy errors */
         }
-    };
-    headerBar.appendChild(copyBtn);
-    section.appendChild(headerBar);
+    });
+    headerBar.append(copyBtn);
+    section.append(headerBar);
 
     const table = document.createElement("table");
     table.classList.add("display");
-    const thead = document.createElement("thead"),
-        tbody = document.createElement("tbody"),
+    const headerRow = document.createElement("tr"),
         sortedVisible = [LABEL_COL, ...visibleColumns],
-        headerRow = document.createElement("tr");
-    sortedVisible.forEach((key) => {
+        tbody = document.createElement("tbody"),
+        thead = document.createElement("thead");
+    for (const key of sortedVisible) {
         const th = document.createElement("th");
         th.textContent = key === LABEL_COL ? "Type" : key;
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
+        headerRow.append(th);
+    }
+    thead.append(headerRow);
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
         const summaryRows = getSummaryRows(data),
-            summaryRow = document.createElement("tr"),
-            summaryRec = summaryRows[0] || {};
-        sortedVisible.forEach((key, idx) => {
+            summaryRec = summaryRows[0] || {},
+            summaryRow = document.createElement("tr");
+        for (const [idx, key] of sortedVisible.entries()) {
             const td = document.createElement("td");
-            td.textContent = key === LABEL_COL ? "Summary" : summaryRec[key] !== undefined ? summaryRec[key] : "";
+            td.textContent = key === LABEL_COL ? "Summary" : summaryRec[key] === undefined ? "" : summaryRec[key];
             if (idx === 0) {
                 td.classList.add("summary-row");
             }
-            summaryRow.appendChild(td);
-        });
-        tbody.appendChild(summaryRow);
+            summaryRow.append(td);
+        }
+        tbody.append(summaryRow);
     }
     // Lap rows
     if (data.lapMesgs && data.lapMesgs.length > 0 && (filterValue === "All" || filterValue.startsWith("Lap"))) {
@@ -279,94 +263,43 @@ export function renderTable({ container, data, visibleColumns, setVisibleColumns
             patchSummaryFields(patched);
             return patched;
         });
-        patchedLaps.forEach((lap, i) => {
+        for (const [i, lap] of patchedLaps.entries()) {
             if (filterValue === "All" || filterValue === `Lap ${i + 1}`) {
                 const lapRow = document.createElement("tr");
-                sortedVisible.forEach((key) => {
+                for (const key of sortedVisible) {
                     const td = document.createElement("td");
                     if (key === LABEL_COL) {
                         td.textContent = `Lap ${i + 1}`;
                     } else if (key === "timestamp" && lap.startTime) {
                         td.textContent = lap.startTime; // Bracket access for index signature
                     } else {
-                        td.textContent = lap[key] !== undefined ? lap[key] : "";
+                        td.textContent = lap[key] === undefined ? "" : lap[key];
                     }
-                    lapRow.appendChild(td);
-                });
-                tbody.appendChild(lapRow);
+                    lapRow.append(td);
+                }
+                tbody.append(lapRow);
             }
-        });
+        }
     }
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    section.appendChild(table);
+    table.append(thead);
+    table.append(tbody);
+    section.append(table);
 }
 
 /**
- * Compute summary rows (one row either from sessionMesgs or derived from recordMesgs)
- * @param {FitSummaryData} data
- * @returns {GenericRecord[]} single element array (or [{}])
+ * Persist visible column preferences.
+ * Accepts an unused third parameter (allKeys) for legacy call compatibility.
+ * @param {string} key
+ * @param {string[]} visibleColumns
+ * @param {string[]|undefined} [_allKeys]
+ * @returns {void}
  */
-function getSummaryRows(data) {
-    if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
-        const raw = { ...data.sessionMesgs[0] };
-        patchSummaryFields(raw);
-        if (raw.total_ascent != null && !isNaN(raw.total_ascent)) {
-            raw.total_ascent_ft = `${(raw.total_ascent * 3.28084).toFixed(0)} ft`;
-        }
-        if (raw.total_descent != null && !isNaN(raw.total_descent)) {
-            raw.total_descent_ft = `${(raw.total_descent * 3.28084).toFixed(0)} ft`;
-        }
-        return [raw];
+export function saveColPrefs(key, visibleColumns, _allKeys) {
+    try {
+        localStorage.setItem(key, JSON.stringify(visibleColumns));
+    } catch {
+        /* Intentionally ignore errors */
     }
-    if (
-        data?.recordMesgs &&
-        data.recordMesgs.length > 0 &&
-        typeof window !== "undefined" &&
-        /** @type {AugmentedWindow} */ (window)?.aq
-    ) {
-        try {
-            const aq = /** @type {AugmentedWindow} */ (window).aq,
-                table = aq.from(data.recordMesgs),
-                /** @type {SummaryStats} */
-                stats = {
-                    total_records: table.numRows(),
-                    start_time: table.get(0, "timestamp"),
-                    end_time: table.get(table.numRows() - 1, "timestamp"),
-                };
-            if (table.columnNames().includes("distance")) {
-                stats.total_distance = table.get(table.numRows() - 1, "distance");
-            }
-            if (table.columnNames().includes("timestamp")) {
-                const startTs = new Date(table.get(0, "timestamp")).getTime(),
-                    endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime();
-                if (Number.isFinite(startTs) && Number.isFinite(endTs)) {
-                    const sec = Math.round((endTs - startTs) / 1000);
-                    stats.duration = sec;
-                }
-            }
-            if (table.columnNames().includes("speed")) {
-                const speeds = table.array("speed");
-                if (Array.isArray(speeds) && speeds.length) {
-                    const total = speeds.reduce((a, b) => a + b, 0);
-                    stats.avg_speed = total / speeds.length;
-                    stats.max_speed = Math.max(...speeds);
-                }
-            }
-            if (table.columnNames().includes("altitude")) {
-                const alts = table.array("altitude");
-                if (Array.isArray(alts) && alts.length) {
-                    stats.min_altitude_ft = Math.min(...alts);
-                    stats.max_altitude_ft = Math.max(...alts);
-                }
-            }
-            patchSummaryFields(stats);
-            return [/** @type {GenericRecord} */ (stats)];
-        } catch {
-            // Ignore stats errors
-        }
-    }
-    return [{}];
 }
 
 /**
@@ -379,7 +312,7 @@ function getSummaryRows(data) {
  * }} params
  * @returns {void}
  */
-export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, setVisibleColumns, renderTable }) {
+export function showColModal({ allKeys, renderTable, setVisibleColumns, visibleColumns: initialVisibleColumns }) {
     // Remove any existing modal
     const old = document.querySelector(".summary-col-modal-overlay");
     if (old) {
@@ -391,20 +324,20 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
     modal.className = "summary-col-modal";
     const title = document.createElement("h2");
     title.textContent = "Select Summary Columns";
-    modal.appendChild(title);
+    modal.append(title);
     // Local visibleColumns state
     let visibleColumns = [...initialVisibleColumns];
     /**
      * @param {string[]} cols
      */
-    const updateVisibleColumns = (cols) => {
+    const // Select/Deselect All
+        selectAllBtn = document.createElement("button"),
+        updateVisibleColumns = (cols) => {
             visibleColumns = [...cols];
             if (typeof setVisibleColumns === "function") {
                 setVisibleColumns(visibleColumns);
             }
-        },
-        // Select/Deselect All
-        selectAllBtn = document.createElement("button");
+        };
     selectAllBtn.className = "select-all-btn themed-btn";
     /**
      * Refresh checkbox list based on current visibleColumns
@@ -413,29 +346,29 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
     function updateColList() {
         colList.innerHTML = "";
         // Always show label column as checked and disabled
-        const label = document.createElement("label"),
-            cb = document.createElement("input");
+        const cb = document.createElement("input"),
+            label = document.createElement("label");
         cb.type = "checkbox";
         cb.checked = true;
         cb.disabled = true;
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode("Type"));
-        colList.appendChild(label);
-        allKeys.forEach((key, idx) => {
-            const label = document.createElement("label"),
-                cb = document.createElement("input");
+        label.append(cb);
+        label.append(document.createTextNode("Type"));
+        colList.append(label);
+        for (const [idx, key] of allKeys.entries()) {
+            const cb = document.createElement("input"),
+                label = document.createElement("label");
             cb.type = "checkbox";
             cb.checked = visibleColumns.includes(key);
             cb.tabIndex = 0;
             /**
              * @param {MouseEvent} e
              */
-            cb.onmousedown = (e) => {
+            cb.addEventListener('mousedown', (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     e.preventDefault();
-                    const start = Math.min(lastCheckedIndex, idx),
-                        end = Math.max(lastCheckedIndex, idx),
-                        shouldCheck = !visibleColumns.includes(key);
+                    const end = Math.max(lastCheckedIndex, idx),
+                        shouldCheck = !visibleColumns.includes(key),
+                        start = Math.min(lastCheckedIndex, idx);
                     let newCols = [...visibleColumns];
                     for (let i = start; i <= end; ++i) {
                         const k = allKeys[i];
@@ -453,13 +386,13 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
                     updateVisibleColumns(newCols);
                     updateColList();
                     renderTable();
-                    saveColPrefs(getStorageKey(window.globalData || {}, allKeys), newCols);
+                    saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
                 }
-            };
+            });
             /**
              * @param {Event & { shiftKey?: boolean}} e
              */
-            cb.onchange = (e) => {
+            cb.addEventListener('change', (e) => {
                 if (e.shiftKey && lastCheckedIndex !== null) {
                     return;
                 } // Handled in onmousedown
@@ -477,28 +410,28 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
                 selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
                 updateColList();
                 renderTable();
-                saveColPrefs(getStorageKey(window.globalData || {}, allKeys), newCols);
-            };
-            label.appendChild(cb);
-            label.appendChild(document.createTextNode(key));
-            colList.appendChild(label);
-        });
+                saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+            });
+            label.append(cb);
+            label.append(document.createTextNode(key));
+            colList.append(label);
+        }
         selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
     }
     selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
-    selectAllBtn.onclick = () => {
+    selectAllBtn.addEventListener('click', () => {
         /** @type {string[]} */
-        const newCols = visibleColumns.length === allKeys.length ? [] : allKeys.slice();
+        const newCols = visibleColumns.length === allKeys.length ? [] : [...allKeys];
         updateVisibleColumns(newCols);
         updateColList();
         renderTable();
-        saveColPrefs(getStorageKey(window.globalData || {}, allKeys), newCols);
-    };
-    modal.appendChild(selectAllBtn);
+        saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+    });
+    modal.append(selectAllBtn);
     // Column list
     const colList = document.createElement("div");
     colList.className = "col-list";
-    modal.appendChild(colList);
+    modal.append(colList);
     /** @type {number|null} */
     let lastCheckedIndex = null;
     updateColList();
@@ -508,18 +441,85 @@ export function showColModal({ allKeys, visibleColumns: initialVisibleColumns, s
     const cancelBtn = document.createElement("button");
     cancelBtn.className = "themed-btn";
     cancelBtn.textContent = "Cancel";
-    cancelBtn.onclick = () => overlay.remove();
+    cancelBtn.addEventListener('click', () => overlay.remove());
     const okBtn = document.createElement("button");
     okBtn.className = "themed-btn";
     okBtn.textContent = "OK";
-    okBtn.onclick = () => {
+    okBtn.addEventListener('click', () => {
         overlay.remove();
         renderTable();
-        saveColPrefs(getStorageKey(window.globalData || {}, allKeys), visibleColumns);
-    };
-    actions.appendChild(cancelBtn);
-    actions.appendChild(okBtn);
-    modal.appendChild(actions);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
+        saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), visibleColumns);
+    });
+    actions.append(cancelBtn);
+    actions.append(okBtn);
+    modal.append(actions);
+    overlay.append(modal);
+    document.body.append(overlay);
+}
+
+/**
+ * Compute summary rows (one row either from sessionMesgs or derived from recordMesgs)
+ * @param {FitSummaryData} data
+ * @returns {GenericRecord[]} single element array (or [{}])
+ */
+function getSummaryRows(data) {
+    if (data?.sessionMesgs && data.sessionMesgs.length > 0) {
+        const raw = { ...data.sessionMesgs[0] };
+        patchSummaryFields(raw);
+        if (raw.total_ascent != null && !isNaN(raw.total_ascent)) {
+            raw.total_ascent_ft = `${(raw.total_ascent * 3.280_84).toFixed(0)} ft`;
+        }
+        if (raw.total_descent != null && !isNaN(raw.total_descent)) {
+            raw.total_descent_ft = `${(raw.total_descent * 3.280_84).toFixed(0)} ft`;
+        }
+        return [raw];
+    }
+    if (
+        data?.recordMesgs &&
+        data.recordMesgs.length > 0 &&
+        globalThis.window !== undefined &&
+        /** @type {AugmentedWindow} */ (globalThis)?.aq
+    ) {
+        try {
+            const aq = /** @type {AugmentedWindow} */ (globalThis).aq,
+                table = aq.from(data.recordMesgs),
+                /** @type {SummaryStats} */
+                stats = {
+                    end_time: table.get(table.numRows() - 1, "timestamp"),
+                    start_time: table.get(0, "timestamp"),
+                    total_records: table.numRows(),
+                };
+            if (table.columnNames().includes("distance")) {
+                stats.total_distance = table.get(table.numRows() - 1, "distance");
+            }
+            if (table.columnNames().includes("timestamp")) {
+                const endTs = new Date(table.get(table.numRows() - 1, "timestamp")).getTime(),
+                    startTs = new Date(table.get(0, "timestamp")).getTime();
+                if (Number.isFinite(startTs) && Number.isFinite(endTs)) {
+                    const sec = Math.round((endTs - startTs) / 1000);
+                    stats.duration = sec;
+                }
+            }
+            if (table.columnNames().includes("speed")) {
+                const speeds = table.array("speed");
+                if (Array.isArray(speeds) && speeds.length > 0) {
+                    const total = speeds.reduce((a, b) => a + b, 0);
+                    stats.avg_speed = total / speeds.length;
+                    stats.max_speed = Math.max(...speeds);
+                }
+            }
+            if (table.columnNames().includes("altitude")) {
+                const alts = table.array("altitude");
+                if (Array.isArray(alts) && alts.length > 0) {
+                    stats.min_altitude_ft = Math.min(...alts);
+                    stats.max_altitude_ft = Math.max(...alts);
+                }
+            }
+            patchSummaryFields(stats);
+            return [/** @type {GenericRecord} */ (stats)];
+        } catch {
+            // Ignore stats errors
+        }
+    }
+    return [{}];
 }

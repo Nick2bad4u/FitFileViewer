@@ -1,14 +1,14 @@
-import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { renderChartJS } from "../../charts/core/renderChartJS.js";
-import { showNotification } from "../notifications/showNotification.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import {
+    applyZoneColors,
     DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS,
-    applyZoneColors,
     getChartSpecificZoneColor,
     saveChartSpecificZoneColor,
 } from "../../data/zones/chartZoneColorUtils.js";
+import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { showNotification } from "../notifications/showNotification.js";
 
 /**
  * @param {*} field
@@ -18,40 +18,62 @@ export function openZoneColorPicker(field) {
         console.log(`[ChartJS] Opening zone color picker for field: ${field}`);
 
         // Determine zone type, data source, and chart-specific details
-        let zoneData = null,
-            zoneType = "",
-            chartType = "",
-            defaultColors = [];
+        let chartType = "",
+            defaultColors = [],
+            zoneData = null,
+            zoneType = "";
 
         if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
             zoneType = "Heart Rate";
-            zoneData = window.heartRateZones;
+            zoneData = globalThis.heartRateZones;
             defaultColors = DEFAULT_HR_ZONE_COLORS;
 
             // Determine specific chart type for HR zones
-            if (field === "hr_zone_doughnut") {
-                chartType = "Doughnut Chart";
-            } else if (field === "hr_lap_zone_stacked") {
-                chartType = "Lap Stacked Chart";
-            } else if (field === "hr_lap_zone_individual") {
+            switch (field) {
+            case "hr_lap_zone_individual": {
                 chartType = "Lap Individual Chart";
-            } else {
+            
+            break;
+            }
+            case "hr_lap_zone_stacked": {
+                chartType = "Lap Stacked Chart";
+            
+            break;
+            }
+            case "hr_zone_doughnut": {
+                chartType = "Doughnut Chart";
+            
+            break;
+            }
+            default: {
                 chartType = "Zone Charts";
+            }
             }
         } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
             zoneType = "Power";
-            zoneData = window.powerZones;
+            zoneData = globalThis.powerZones;
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
 
             // Determine specific chart type for Power zones
-            if (field === "power_zone_doughnut") {
-                chartType = "Doughnut Chart";
-            } else if (field === "power_lap_zone_stacked") {
-                chartType = "Lap Stacked Chart";
-            } else if (field === "power_lap_zone_individual") {
+            switch (field) {
+            case "power_lap_zone_individual": {
                 chartType = "Lap Individual Chart";
-            } else {
+            
+            break;
+            }
+            case "power_lap_zone_stacked": {
+                chartType = "Lap Stacked Chart";
+            
+            break;
+            }
+            case "power_zone_doughnut": {
+                chartType = "Doughnut Chart";
+            
+            break;
+            }
+            default: {
                 chartType = "Zone Charts";
+            }
             }
         } else {
             console.warn(`[ChartJS] Unknown zone field type: ${field}`);
@@ -147,13 +169,13 @@ export function openZoneColorPicker(field) {
 
         closeButton.addEventListener("click", () => {
             if (document.body.contains(overlay)) {
-                document.body.removeChild(overlay);
+                overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
             }
         });
 
-        header.appendChild(title);
-        header.appendChild(closeButton);
+        header.append(title);
+        header.append(closeButton);
 
         // Zone color controls container
         const zoneControls = document.createElement("div");
@@ -165,7 +187,7 @@ export function openZoneColorPicker(field) {
 					`;
 
         // Create color picker for each zone
-        zoneData.forEach((zone, index) => {
+        for (const [index, zone] of zoneData.entries()) {
             const zoneControl = document.createElement("div");
             zoneControl.style.cssText = `
 							display: flex;
@@ -200,8 +222,8 @@ export function openZoneColorPicker(field) {
 							color: rgba(255, 255, 255, 0.7);
 						`;
 
-            zoneInfo.appendChild(zoneLabel);
-            zoneInfo.appendChild(zoneTime);
+            zoneInfo.append(zoneLabel);
+            zoneInfo.append(zoneTime);
 
             // Color preview
             const colorPreview = document.createElement("div"),
@@ -244,8 +266,8 @@ export function openZoneColorPicker(field) {
                 updateZoneColorPreview(field, zoneIndex, newColor);
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                if (typeof window.updateInlineZoneColorSelectors === "function") {
-                    window.updateInlineZoneColorSelectors(document.body);
+                if (typeof globalThis.updateInlineZoneColorSelectors === "function") {
+                    globalThis.updateInlineZoneColorSelectors(document.body);
                 }
             });
 
@@ -297,8 +319,8 @@ export function openZoneColorPicker(field) {
                 }
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                if (typeof window.updateInlineZoneColorSelectors === "function") {
-                    window.updateInlineZoneColorSelectors(document.body);
+                if (typeof globalThis.updateInlineZoneColorSelectors === "function") {
+                    globalThis.updateInlineZoneColorSelectors(document.body);
                 }
             });
 
@@ -310,12 +332,12 @@ export function openZoneColorPicker(field) {
                 resetButton.style.background = "rgba(255, 255, 255, 0.1)";
             });
 
-            zoneControl.appendChild(zoneInfo);
-            zoneControl.appendChild(colorPreview);
-            zoneControl.appendChild(colorPicker);
-            zoneControl.appendChild(resetButton);
-            zoneControls.appendChild(zoneControl);
-        });
+            zoneControl.append(zoneInfo);
+            zoneControl.append(colorPreview);
+            zoneControl.append(colorPicker);
+            zoneControl.append(resetButton);
+            zoneControls.append(zoneControl);
+        }
 
         // Action buttons
         const actions = document.createElement("div");
@@ -364,15 +386,15 @@ export function openZoneColorPicker(field) {
                     "power_lap_zone_stacked",
                     "power_lap_zone_individual",
                 ];
-                zoneFields.forEach((f) => {
+                for (const f of zoneFields) {
                     localStorage.setItem(`chartjs_${f}_color_scheme`, "custom");
-                });
+                }
                 // Also set for the current field in case it's not in the above list
                 localStorage.setItem(`chartjs_${field}_color_scheme`, "custom");
 
                 // Clear all saved zone color data for this field
-                if (window.clearZoneColorData) {
-                    window.clearZoneColorData(field, zoneData.length);
+                if (globalThis.clearZoneColorData) {
+                    globalThis.clearZoneColorData(field, zoneData.length);
                 } else {
                     // Fallback: remove per-zone color keys
                     for (let i = 0; i < zoneData.length; i++) {
@@ -381,45 +403,45 @@ export function openZoneColorPicker(field) {
                 }
 
                 // Enable all chart fields (set all toggles to visible)
-                const settingsWrapper = document.getElementById("chartjs-settings-wrapper");
+                const settingsWrapper = document.querySelector("#chartjs-settings-wrapper");
                 if (settingsWrapper) {
                     const fieldToggles = settingsWrapper.querySelectorAll('.field-toggle input[type="checkbox"]');
-                    fieldToggles.forEach((toggle) => {
+                    for (const toggle of fieldToggles) {
                         /** @type {HTMLInputElement} */ (toggle).checked = true;
-                    });
+                    }
                 }
 
                 // Call global resetAllSettings if available (for full reset)
-                if (typeof window.resetAllSettings === "function") {
-                    window.resetAllSettings();
+                if (typeof globalThis.resetAllSettings === "function") {
+                    globalThis.resetAllSettings();
                 }
 
                 // Update UI and chart to reflect reset state
-                if (typeof window.updateInlineZoneColorSelectors === "function") {
-                    window.updateInlineZoneColorSelectors(document.body);
+                if (typeof globalThis.updateInlineZoneColorSelectors === "function") {
+                    globalThis.updateInlineZoneColorSelectors(document.body);
                 }
 
                 // Trigger chart re-render through state management instead of direct call
                 if (chartStateManager) {
                     chartStateManager.debouncedRender("Zone colors reset");
-                } else if (typeof window.renderChartJS === "function") {
-                    window.renderChartJS(); // Fallback for compatibility
+                } else if (typeof globalThis.renderChartJS === "function") {
+                    globalThis.renderChartJS(); // Fallback for compatibility
                 }
 
-                if (typeof window.showNotification === "function") {
-                    window.showNotification("Zone colors and settings reset to defaults", "success");
+                if (typeof globalThis.showNotification === "function") {
+                    globalThis.showNotification("Zone colors and settings reset to defaults", "success");
                 }
-            } catch (err) {
-                if (typeof window.showNotification === "function") {
-                    window.showNotification(
-                        `Failed to reset zone colors: ${/** @type {Error} */ (err).message}`,
+            } catch (error) {
+                if (typeof globalThis.showNotification === "function") {
+                    globalThis.showNotification(
+                        `Failed to reset zone colors: ${/** @type {Error} */ (error).message}`,
                         "error"
                     );
                 }
-                console.error("[ZoneColorPicker] Reset all failed:", err);
+                console.error("[ZoneColorPicker] Reset all failed:", error);
             }
         });
-        actions.appendChild(resetAllButton);
+        actions.append(resetAllButton);
 
         // Apply button
         const applyButton = document.createElement("button");
@@ -448,7 +470,7 @@ export function openZoneColorPicker(field) {
 
         applyButton.addEventListener("click", () => {
             if (document.body.contains(overlay)) {
-                document.body.removeChild(overlay);
+                overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
             }
 
@@ -462,19 +484,19 @@ export function openZoneColorPicker(field) {
             showNotification(`${zoneType} zone colors updated`, "success");
         });
 
-        actions.appendChild(resetAllButton);
-        actions.appendChild(applyButton);
+        actions.append(resetAllButton);
+        actions.append(applyButton);
 
         // Assemble modal
-        modal.appendChild(header);
-        modal.appendChild(zoneControls);
-        modal.appendChild(actions);
-        overlay.appendChild(modal);
+        modal.append(header);
+        modal.append(zoneControls);
+        modal.append(actions);
+        overlay.append(modal);
 
         // ESC key handler
         const handleEscape = /** @param {*} e */ (e) => {
             if (e.key === "Escape" && document.body.contains(overlay)) {
-                document.body.removeChild(overlay);
+                overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
             }
         };
@@ -483,13 +505,13 @@ export function openZoneColorPicker(field) {
         // Click outside to close
         overlay.addEventListener("click", (e) => {
             if (e.target === overlay && document.body.contains(overlay)) {
-                document.body.removeChild(overlay);
+                overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
             }
         });
 
         // Add to DOM
-        document.body.appendChild(overlay);
+        document.body.append(overlay);
 
         console.log(`[ChartJS] Zone color picker opened for ${zoneType} zones`);
     } catch (error) {
@@ -507,7 +529,7 @@ export function openZoneColorPicker(field) {
 export function updateZoneColorPreview(field, zoneIndex, newColor) {
     try {
         // Find the corresponding chart instance
-        const targetChart = window._chartjsInstances?.find((chart) => {
+        const targetChart = globalThis._chartjsInstances?.find((chart) => {
             const dataset = chart.data.datasets[0];
             return (
                 dataset &&

@@ -45,7 +45,7 @@ export function getLapColor(lapIdx) {
     }
     const lapIndex = Number(lapIdx);
     if (isNaN(lapIndex)) {
-        throw new Error(`Invalid lapIdx: ${lapIdx}`);
+        throw new TypeError(`Invalid lapIdx: ${lapIdx}`);
     }
     return /** @type {string} */ (palette[lapIndex % palette.length] || palette[0]);
 }

@@ -31,28 +31,28 @@
  * State change event types for different categories of state
  */
 export const STATE_EVENTS = {
-    // Data events
-    DATA_LOADED: "data-loaded",
-    DATA_CLEARED: "data-cleared",
+    CHART_CONTROLS_TOGGLED: "chart-controls-toggled",
+    CHART_RENDERED: "chart-rendered",
     DATA_CHANGED: "data-changed",
 
-    // UI events
-    TAB_CHANGED: "tab-changed",
-    CHART_RENDERED: "chart-rendered",
-    CHART_CONTROLS_TOGGLED: "chart-controls-toggled",
-    THEME_CHANGED: "theme-changed",
+    DATA_CLEARED: "data-cleared",
+    // Data events
+    DATA_LOADED: "data-loaded",
+    // Error events
+    ERROR_OCCURRED: "error-occurred",
+    FILE_CLOSED: "file-closed",
 
+    FILE_OPENED: "file-opened",
     // File events
     FILE_OPENING: "file-opening",
-    FILE_OPENED: "file-opened",
-    FILE_CLOSED: "file-closed",
+    RENDER_COMPLETED: "render-completed",
 
     // Performance events
     RENDER_STARTED: "render-started",
-    RENDER_COMPLETED: "render-completed",
+    // UI events
+    TAB_CHANGED: "tab-changed",
 
-    // Error events
-    ERROR_OCCURRED: "error-occurred",
+    THEME_CHANGED: "theme-changed",
     WARNING_OCCURRED: "warning-occurred",
 };
 
@@ -62,9 +62,9 @@ export const STATE_EVENTS = {
 const PERSISTENCE_CONFIG = {
     // Keys that should persist across sessions
     PERSISTENT_KEYS: ["ui.theme", "ui.activeTab", "charts.controlsVisible", "performance.enableMonitoring"],
+    STORAGE_PREFIX: "ffv_state_",
     // Keys that should never persist
     VOLATILE_KEYS: ["data.globalData", "file.isOpening", "performance.metrics", "errors.current"],
-    STORAGE_PREFIX: "ffv_state_",
 };
 
 /**
@@ -73,6 +73,15 @@ const PERSISTENCE_CONFIG = {
 class AppStateManager {
     constructor() {
         this.state = {
+            // Chart state
+            charts: {
+                controlsVisible: false,
+                instances: new Map(),
+                isRendered: false,
+                lastRenderTime: null,
+                visibleFields: new Set(),
+            },
+
             // Data state
             data: {
                 globalData: null,
@@ -81,45 +90,36 @@ class AppStateManager {
                 recordCount: 0,
             },
 
+            // Error state
+            errors: {
+                current: [],
+                history: [],
+                lastError: null,
+            },
+
             // File state
             file: {
-                path: null,
-                name: null,
                 isOpening: false,
                 lastOpened: null,
+                name: null,
+                path: null,
                 size: 0,
-            },
-
-            // UI state
-            ui: {
-                activeTab: "summary",
-                theme: "auto",
-                isInitialized: false,
-                windowSize: { width: 0, height: 0 },
-            },
-
-            // Chart state
-            charts: {
-                controlsVisible: false,
-                isRendered: false,
-                instances: new Map(),
-                lastRenderTime: null,
-                visibleFields: new Set(),
             },
 
             // Performance state
             performance: {
                 enableMonitoring: true,
                 metrics: new Map(),
-                startTime: performance.now(),
                 renderTimes: [],
+                startTime: performance.now(),
             },
 
-            // Error state
-            errors: {
-                current: [],
-                history: [],
-                lastError: null,
+            // UI state
+            ui: {
+                activeTab: "summary",
+                isInitialized: false,
+                theme: "auto",
+                windowSize: { height: 0, width: 0 },
             },
         };
 
@@ -142,89 +142,31 @@ class AppStateManager {
     }
 
     /**
-     * Sets up reactive properties with getters/setters that trigger events
+     * Add state validator
+     * @param {string} path - State path to validate
+     * @param {Function} validator - Validation function
      */
-    setupReactiveProperties() {
-        /**
-         * @param {StateValue} obj - Object to add reactive property to
-         * @param {string} path - Dot notation path
-         * @param {*} initialValue - Initial value for the property
-         */
-        const createReactiveProperty = (obj, path, initialValue) => {
-                const keys = path.split(".");
-                /** @type {any} */
-                let current = obj;
+    addValidator(path, validator) {
+        this.validators.set(path, validator);
+    }
 
-                // Navigate to parent object
-                for (let i = 0; i < keys.length - 1; i++) {
-                    const key = keys[i];
-                    if (key && !current[key]) {
-                        current[key] = {};
-                    }
-                    if (key) {
-                        current = current[key];
+    /**
+     * Emit event to all listeners
+     * @param {string} event - Event name
+     * @param {*} data - Event data
+     */
+    emit(event, data) {
+        const eventListeners = this.listeners.get(event);
+        if (eventListeners) {
+            for (const callback of eventListeners) {
+                    try {
+                        callback(data);
+                    } catch (error) {
+                        console.error(`[AppState] Error in event listener for ${event}:`, error);
                     }
                 }
-
-                const finalKey = keys[keys.length - 1];
-                if (!finalKey) {
-                    return;
-                }
-
-                let value = initialValue;
-
-                const self = this;
-                Object.defineProperty(current, finalKey, {
-                    get() {
-                        return value;
-                    },
-                    /**
-                     * @param {*} newValue - New value to set
-                     */
-                    set(newValue) {
-                        const oldValue = value,
-                            // Validate if validator exists
-                            validator = self.validators.get(path);
-                        if (validator && !validator(newValue, oldValue)) {
-                            console.warn(`[AppState] Validation failed for ${path}:`, newValue);
-                            return;
-                        }
-
-                        value = newValue;
-
-                        // Emit change event
-                        self.emit(`${path}-changed`, {
-                            path,
-                            newValue,
-                            oldValue,
-                            timestamp: Date.now(),
-                        }); // Emit specific events based on path
-                        self.emitSpecificEvents(path, newValue, oldValue);
-                    },
-                    configurable: true,
-                    enumerable: true,
-                });
-            },
-            // Setup reactive properties for key state paths
-            reactivePaths = [
-                "data.globalData",
-                "data.isLoaded",
-                "file.isOpening",
-                "ui.activeTab",
-                "ui.theme",
-                "charts.controlsVisible",
-                "charts.isRendered",
-            ];
-
-        reactivePaths.forEach((path) => {
-            const keys = path.split(".");
-            /** @type {any} */
-            let initialValue = this.state;
-            for (const key of keys) {
-                initialValue = initialValue[key];
-            }
-            createReactiveProperty(this.state, path, initialValue);
-        });
+            
+        }
     }
 
     /**
@@ -235,7 +177,19 @@ class AppStateManager {
      */
     emitSpecificEvents(path, newValue, oldValue) {
         switch (path) {
-            case "data.globalData":
+            case "charts.controlsVisible": {
+                this.emit(STATE_EVENTS.CHART_CONTROLS_TOGGLED, { visible: newValue });
+                break;
+            }
+
+            case "charts.isRendered": {
+                if (newValue && !oldValue) {
+                    this.emit(STATE_EVENTS.CHART_RENDERED, { renderTime: Date.now() });
+                }
+                break;
+            }
+
+            case "data.globalData": {
                 if (newValue && !oldValue) {
                     this.emit(STATE_EVENTS.DATA_LOADED, { data: newValue });
                 } else if (!newValue && oldValue) {
@@ -244,30 +198,24 @@ class AppStateManager {
                     this.emit(STATE_EVENTS.DATA_CHANGED, { data: newValue, previousData: oldValue });
                 }
                 break;
+            }
 
-            case "ui.activeTab":
-                this.emit(STATE_EVENTS.TAB_CHANGED, { tab: newValue, previousTab: oldValue });
-                break;
-
-            case "ui.theme":
-                this.emit(STATE_EVENTS.THEME_CHANGED, { theme: newValue, previousTheme: oldValue });
-                break;
-
-            case "charts.controlsVisible":
-                this.emit(STATE_EVENTS.CHART_CONTROLS_TOGGLED, { visible: newValue });
-                break;
-
-            case "charts.isRendered":
-                if (newValue && !oldValue) {
-                    this.emit(STATE_EVENTS.CHART_RENDERED, { renderTime: Date.now() });
-                }
-                break;
-
-            case "file.isOpening":
+            case "file.isOpening": {
                 if (newValue) {
                     this.emit(STATE_EVENTS.FILE_OPENING, {});
                 }
                 break;
+            }
+
+            case "ui.activeTab": {
+                this.emit(STATE_EVENTS.TAB_CHANGED, { previousTab: oldValue, tab: newValue });
+                break;
+            }
+
+            case "ui.theme": {
+                this.emit(STATE_EVENTS.THEME_CHANGED, { previousTheme: oldValue, theme: newValue });
+                break;
+            }
         }
     }
 
@@ -283,7 +231,7 @@ class AppStateManager {
 
         for (const key of keys) {
             if (current === null || current === undefined) {
-                return undefined;
+                return;
             }
             current = current[key];
         }
@@ -292,61 +240,63 @@ class AppStateManager {
     }
 
     /**
-     * Set state value by path
-     * @param {string} path - Dot notation path
-     * @param {*} value - New value
-     * @returns {boolean} Success status
+     * Get debug information about current state
+     * @returns {Object} Debug information
      */
-    set(path, value) {
+    getDebugInfo() {
+        return {
+            listeners: [...this.listeners.keys()],
+            persistentKeys: PERSISTENCE_CONFIG.PERSISTENT_KEYS,
+            state: this.getSnapshot(),
+            validators: [...this.validators.keys()],
+            volatileKeys: PERSISTENCE_CONFIG.VOLATILE_KEYS,
+        };
+    }
+
+    /**
+     * Get current state snapshot
+     * @returns {Object} Deep copy of current state
+     */
+    getSnapshot() {
+        return JSON.parse(JSON.stringify(this.state));
+    }
+
+    /**
+     * Load persisted state from localStorage
+     */
+    loadPersistedState() {
         try {
-            const keys = path.split(".");
-            /** @type {any} */
-            let current = this.state;
+            for (const path of PERSISTENCE_CONFIG.PERSISTENT_KEYS) {
+                const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path,
+                    stored = localStorage.getItem(key);
 
-            // Navigate to parent
-            for (let i = 0; i < keys.length - 1; i++) {
-                const key = keys[i];
-                if (key && !current[key]) {
-                    current[key] = {};
-                }
-                if (key) {
-                    current = current[key];
+                if (stored !== null) {
+                    try {
+                        const value = JSON.parse(stored);
+                        this.set(path, value);
+                        console.log(`[AppState] Loaded persisted state for ${path}:`, value);
+                    } catch (parseError) {
+                        console.warn(`[AppState] Failed to parse persisted state for ${path}:`, parseError);
+                    }
                 }
             }
-
-            // Set value (will trigger reactive setter if property is reactive)
-            const finalKey = keys[keys.length - 1];
-            if (finalKey) {
-                current[finalKey] = value;
-            }
-
-            return true;
         } catch (error) {
-            console.error(`[AppState] Error setting ${path}:`, error);
-            return false;
+            console.error("[AppState] Error loading persisted state:", error);
         }
     }
 
     /**
-     * Update multiple state values atomically
-     * @param {Object} updates - Object with path:value pairs
+     * Remove event listener
+     * @param {string} event - Event name
+     * @param {Function} callback - Event handler to remove
      */
-    update(updates) {
-        const oldState = this.getSnapshot();
-
-        try {
-            Object.entries(updates).forEach(([path, value]) => {
-                this.set(path, value);
-            });
-
-            this.emit("state-batch-updated", {
-                updates,
-                oldState,
-                newState: this.getSnapshot(),
-            });
-        } catch (error) {
-            console.error("[AppState] Error in batch update:", error);
-            // Could implement rollback here if needed
+    off(event, callback) {
+        const eventListeners = this.listeners.get(event);
+        if (eventListeners) {
+            eventListeners.delete(callback);
+            if (eventListeners.size === 0) {
+                this.listeners.delete(event);
+            }
         }
     }
 
@@ -376,82 +326,6 @@ class AppStateManager {
     }
 
     /**
-     * Remove event listener
-     * @param {string} event - Event name
-     * @param {Function} callback - Event handler to remove
-     */
-    off(event, callback) {
-        const eventListeners = this.listeners.get(event);
-        if (eventListeners) {
-            eventListeners.delete(callback);
-            if (eventListeners.size === 0) {
-                this.listeners.delete(event);
-            }
-        }
-    }
-
-    /**
-     * Emit event to all listeners
-     * @param {string} event - Event name
-     * @param {*} data - Event data
-     */
-    emit(event, data) {
-        const eventListeners = this.listeners.get(event);
-        if (eventListeners) {
-            eventListeners.forEach(
-                /** @param {Function} callback */ (callback) => {
-                    try {
-                        callback(data);
-                    } catch (error) {
-                        console.error(`[AppState] Error in event listener for ${event}:`, error);
-                    }
-                }
-            );
-        }
-    }
-
-    /**
-     * Add state validator
-     * @param {string} path - State path to validate
-     * @param {Function} validator - Validation function
-     */
-    addValidator(path, validator) {
-        this.validators.set(path, validator);
-    }
-
-    /**
-     * Get current state snapshot
-     * @returns {Object} Deep copy of current state
-     */
-    getSnapshot() {
-        return JSON.parse(JSON.stringify(this.state));
-    }
-
-    /**
-     * Load persisted state from localStorage
-     */
-    loadPersistedState() {
-        try {
-            PERSISTENCE_CONFIG.PERSISTENT_KEYS.forEach((path) => {
-                const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path,
-                    stored = localStorage.getItem(key);
-
-                if (stored !== null) {
-                    try {
-                        const value = JSON.parse(stored);
-                        this.set(path, value);
-                        console.log(`[AppState] Loaded persisted state for ${path}:`, value);
-                    } catch (parseError) {
-                        console.warn(`[AppState] Failed to parse persisted state for ${path}:`, parseError);
-                    }
-                }
-            });
-        } catch (error) {
-            console.error("[AppState] Error loading persisted state:", error);
-        }
-    }
-
-    /**
      * Save specific state path to localStorage
      * @param {string} path - State path to persist
      */
@@ -473,40 +347,29 @@ class AppStateManager {
     }
 
     /**
-     * Setup automatic persistence for persistent keys
-     */
-    setupAutoPersistence() {
-        PERSISTENCE_CONFIG.PERSISTENT_KEYS.forEach((path) => {
-            this.on(`${path}-changed`, () => {
-                this.persistState(path);
-            });
-        });
-    }
-
-    /**
      * Clear all state and reset to defaults
      */
     reset() {
         // Clear localStorage
-        PERSISTENCE_CONFIG.PERSISTENT_KEYS.forEach((path) => {
+        for (const path of PERSISTENCE_CONFIG.PERSISTENT_KEYS) {
             const key = PERSISTENCE_CONFIG.STORAGE_PREFIX + path;
             localStorage.removeItem(key);
-        });
+        }
 
         // Reset state
         this.state = {
-            data: { globalData: null, isLoaded: false, lastModified: null, recordCount: 0 },
-            file: { path: null, name: null, isOpening: false, lastOpened: null, size: 0 },
-            ui: { activeTab: "summary", theme: "auto", isInitialized: false, windowSize: { width: 0, height: 0 } },
             charts: {
                 controlsVisible: false,
-                isRendered: false,
                 instances: new Map(),
+                isRendered: false,
                 lastRenderTime: null,
                 visibleFields: new Set(),
             },
-            performance: { enableMonitoring: true, metrics: new Map(), startTime: performance.now(), renderTimes: [] },
+            data: { globalData: null, isLoaded: false, lastModified: null, recordCount: 0 },
             errors: { current: [], history: [], lastError: null },
+            file: { isOpening: false, lastOpened: null, name: null, path: null, size: 0 },
+            performance: { enableMonitoring: true, metrics: new Map(), renderTimes: [], startTime: performance.now() },
+            ui: { activeTab: "summary", isInitialized: false, theme: "auto", windowSize: { height: 0, width: 0 } },
         };
 
         this.emit("state-reset", {});
@@ -514,17 +377,159 @@ class AppStateManager {
     }
 
     /**
-     * Get debug information about current state
-     * @returns {Object} Debug information
+     * Set state value by path
+     * @param {string} path - Dot notation path
+     * @param {*} value - New value
+     * @returns {boolean} Success status
      */
-    getDebugInfo() {
-        return {
-            state: this.getSnapshot(),
-            listeners: Array.from(this.listeners.keys()),
-            validators: Array.from(this.validators.keys()),
-            persistentKeys: PERSISTENCE_CONFIG.PERSISTENT_KEYS,
-            volatileKeys: PERSISTENCE_CONFIG.VOLATILE_KEYS,
-        };
+    set(path, value) {
+        try {
+            const keys = path.split(".");
+            /** @type {any} */
+            let current = this.state;
+
+            // Navigate to parent
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
+                if (key && !current[key]) {
+                    current[key] = {};
+                }
+                if (key) {
+                    current = current[key];
+                }
+            }
+
+            // Set value (will trigger reactive setter if property is reactive)
+            const finalKey = keys.at(-1);
+            if (finalKey) {
+                current[finalKey] = value;
+            }
+
+            return true;
+        } catch (error) {
+            console.error(`[AppState] Error setting ${path}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Setup automatic persistence for persistent keys
+     */
+    setupAutoPersistence() {
+        for (const path of PERSISTENCE_CONFIG.PERSISTENT_KEYS) {
+            this.on(`${path}-changed`, () => {
+                this.persistState(path);
+            });
+        }
+    }
+
+    /**
+     * Sets up reactive properties with getters/setters that trigger events
+     */
+    setupReactiveProperties() {
+        /**
+         * @param {StateValue} obj - Object to add reactive property to
+         * @param {string} path - Dot notation path
+         * @param {*} initialValue - Initial value for the property
+         */
+        const createReactiveProperty = (obj, path, initialValue) => {
+                const keys = path.split(".");
+                /** @type {any} */
+                let current = obj;
+
+                // Navigate to parent object
+                for (let i = 0; i < keys.length - 1; i++) {
+                    const key = keys[i];
+                    if (key && !current[key]) {
+                        current[key] = {};
+                    }
+                    if (key) {
+                        current = current[key];
+                    }
+                }
+
+                const finalKey = keys.at(-1);
+                if (!finalKey) {
+                    return;
+                }
+
+                let value = initialValue;
+
+                const self = this;
+                Object.defineProperty(current, finalKey, {
+                    configurable: true,
+                    enumerable: true,
+                    get() {
+                        return value;
+                    },
+                    /**
+                     * @param {*} newValue - New value to set
+                     */
+                    set(newValue) {
+                        const oldValue = value,
+                            // Validate if validator exists
+                            validator = self.validators.get(path);
+                        if (validator && !validator(newValue, oldValue)) {
+                            console.warn(`[AppState] Validation failed for ${path}:`, newValue);
+                            return;
+                        }
+
+                        value = newValue;
+
+                        // Emit change event
+                        self.emit(`${path}-changed`, {
+                            newValue,
+                            oldValue,
+                            path,
+                            timestamp: Date.now(),
+                        }); // Emit specific events based on path
+                        self.emitSpecificEvents(path, newValue, oldValue);
+                    },
+                });
+            },
+            // Setup reactive properties for key state paths
+            reactivePaths = [
+                "data.globalData",
+                "data.isLoaded",
+                "file.isOpening",
+                "ui.activeTab",
+                "ui.theme",
+                "charts.controlsVisible",
+                "charts.isRendered",
+            ];
+
+        for (const path of reactivePaths) {
+            const keys = path.split(".");
+            /** @type {any} */
+            let initialValue = this.state;
+            for (const key of keys) {
+                initialValue = initialValue[key];
+            }
+            createReactiveProperty(this.state, path, initialValue);
+        }
+    }
+
+    /**
+     * Update multiple state values atomically
+     * @param {Object} updates - Object with path:value pairs
+     */
+    update(updates) {
+        const oldState = this.getSnapshot();
+
+        try {
+            for (const [path, value] of Object.entries(updates)) {
+                this.set(path, value);
+            }
+
+            this.emit("state-batch-updated", {
+                newState: this.getSnapshot(),
+                oldState,
+                updates,
+            });
+        } catch (error) {
+            console.error("[AppState] Error in batch update:", error);
+            // Could implement rollback here if needed
+        }
     }
 }
 
@@ -532,29 +537,29 @@ class AppStateManager {
 const appState = new AppStateManager();
 
 // Expose convenience methods globally (following your existing patterns)
-if (typeof window !== "undefined") {
+if (globalThis.window !== undefined) {
     // Backward compatibility with existing globalData usage.
     // Guard against re-definition if another module already defined it (e.g., multiple imports of renderer/main-ui during tests).
     try {
-        const desc = Object.getOwnPropertyDescriptor(window, "globalData");
+        const desc = Object.getOwnPropertyDescriptor(globalThis, "globalData");
         if (!desc || desc.configurable) {
-            Object.defineProperty(window, "globalData", {
+            Object.defineProperty(globalThis, "globalData", {
+                configurable: true,
+                enumerable: true,
                 get() {
                     return appState.get("data.globalData");
                 },
                 set(value) {
                     appState.set("data.globalData", value);
                 },
-                configurable: true,
-                enumerable: true,
             });
         }
     } catch {
-        /* ignore */
+        /* Ignore */
     }
 
     // Expose app state for debugging
-    window.__appState = appState;
+    globalThis.__appState = appState;
 
     console.log("[AppState] Global window properties configured");
 }
@@ -564,18 +569,34 @@ if (typeof window !== "undefined") {
  */
 
 /**
- * Set global data (maintains backward compatibility)
- * @param {Object} data - FIT file data
+ * Add error to state
+ * @param {Error|string} error - Error to add
+ * @param {string} context - Error context
  */
-export function setGlobalData(data) {
-    /** @type {any} */
-    const fitData = data;
+export function addError(error, context = "") {
+    const currentErrors = appState.get("errors.current") || [],
+        errorHistory = appState.get("errors.history") || [],
+        errorObj = {
+            context,
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            timestamp: Date.now(),
+        };
+
     appState.update({
-        "data.globalData": data,
-        "data.isLoaded": Boolean(data),
-        "data.lastModified": Date.now(),
-        "data.recordCount": fitData?.recordMesgs?.length || 0,
+        "errors.current": [...currentErrors, errorObj],
+        "errors.history": [...errorHistory, errorObj].slice(-100), // Keep last 100 errors
+        "errors.lastError": errorObj,
     });
+
+    appState.emit(STATE_EVENTS.ERROR_OCCURRED, errorObj);
+}
+
+/**
+ * Clear current errors
+ */
+export function clearErrors() {
+    appState.set("errors.current", []);
 }
 
 /**
@@ -591,16 +612,12 @@ export function clearGlobalData() {
 }
 
 /**
- * Set file opening state
- * @param {boolean} isOpening - Whether file is currently opening
- * @param {string|null} [filePath] - Path to file being opened
+ * Get current state value
+ * @param {string} path - State path
+ * @returns {*} State value
  */
-export function setFileOpeningState(isOpening, filePath = null) {
-    appState.update({
-        "file.isOpening": isOpening,
-        "file.path": filePath,
-        "file.lastOpened": isOpening ? null : Date.now(),
-    });
+export function getState(path) {
+    return appState.get(path);
 }
 
 /**
@@ -620,42 +637,48 @@ export function setChartControlsVisible(visible) {
 }
 
 /**
+ * Set file opening state
+ * @param {boolean} isOpening - Whether file is currently opening
+ * @param {string|null} [filePath] - Path to file being opened
+ */
+export function setFileOpeningState(isOpening, filePath = null) {
+    appState.update({
+        "file.isOpening": isOpening,
+        "file.lastOpened": isOpening ? null : Date.now(),
+        "file.path": filePath,
+    });
+}
+
+/**
+ * Set global data (maintains backward compatibility)
+ * @param {Object} data - FIT file data
+ */
+export function setGlobalData(data) {
+    /** @type {any} */
+    const fitData = data;
+    appState.update({
+        "data.globalData": data,
+        "data.isLoaded": Boolean(data),
+        "data.lastModified": Date.now(),
+        "data.recordCount": fitData?.recordMesgs?.length || 0,
+    });
+}
+
+/**
+ * Set state value
+ * @param {string} path - State path
+ * @param {*} value - New value
+ */
+export function setState(path, value) {
+    return appState.set(path, value);
+}
+
+/**
  * Set theme
  * @param {string} theme - Theme name
  */
 export function setTheme(theme) {
     appState.set("ui.theme", theme);
-}
-
-/**
- * Add error to state
- * @param {Error|string} error - Error to add
- * @param {string} context - Error context
- */
-export function addError(error, context = "") {
-    const errorObj = {
-            message: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
-            context,
-            timestamp: Date.now(),
-        },
-        currentErrors = appState.get("errors.current") || [],
-        errorHistory = appState.get("errors.history") || [];
-
-    appState.update({
-        "errors.current": [...currentErrors, errorObj],
-        "errors.history": [...errorHistory, errorObj].slice(-100), // Keep last 100 errors
-        "errors.lastError": errorObj,
-    });
-
-    appState.emit(STATE_EVENTS.ERROR_OCCURRED, errorObj);
-}
-
-/**
- * Clear current errors
- */
-export function clearErrors() {
-    appState.set("errors.current", []);
 }
 
 /**
@@ -666,24 +689,6 @@ export function clearErrors() {
  */
 export function subscribe(event, callback) {
     return appState.on(event, callback);
-}
-
-/**
- * Get current state value
- * @param {string} path - State path
- * @returns {*} State value
- */
-export function getState(path) {
-    return appState.get(path);
-}
-
-/**
- * Set state value
- * @param {string} path - State path
- * @param {*} value - New value
- */
-export function setState(path, value) {
-    return appState.set(path, value);
 }
 
 // Export the state manager instance and constants

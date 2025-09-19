@@ -1,8 +1,8 @@
+import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { convertDistanceUnits } from "../converters/convertDistanceUnits.js";
 import { convertTemperatureUnits } from "../converters/convertTemperatureUnits.js";
 import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.js";
 import { formatSpeedTooltip } from "./formatSpeedTooltip.js";
-import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 
 /**
  * Formats tooltip with units based on user preferences
@@ -31,7 +31,7 @@ export function formatTooltipWithUnits(value, field) {
     }
 
     // Default formatting for other fields
-    const unitSymbol = getUnitSymbol(field),
-        convertedValue = convertValueToUserUnits(value, field);
+    const convertedValue = convertValueToUserUnits(value, field),
+        unitSymbol = getUnitSymbol(field);
     return `${convertedValue.toFixed(2)}${unitSymbol ? ` ${unitSymbol}` : ""}`;
 }

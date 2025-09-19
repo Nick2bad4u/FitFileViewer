@@ -3,22 +3,22 @@
  * @readonly
  */
 const FULLSCREEN_CONFIG = {
+    BUTTON_TITLE: "Exit Fullscreen",
     CSS_CLASSES: {
-        OVERLAY: "exit-fullscreen-overlay",
-        THEMED_BTN: "themed-btn",
         EXIT_BTN: "exit-fullscreen-btn",
         ICON: "fullscreen-exit-icon",
         INLINE_SVG: "inline-svg",
+        OVERLAY: "exit-fullscreen-overlay",
+        THEMED_BTN: "themed-btn",
     },
-    BUTTON_TITLE: "Exit Fullscreen",
     ICON_SIZE: {
-        WIDTH: 28,
         HEIGHT: 28,
         STROKE_WIDTH: 2,
+        WIDTH: 28,
     },
     MESSAGES: {
-        NO_FULLSCREEN_WARNING: "No element is currently in fullscreen mode.",
         EXIT_ERROR: "Failed to exit fullscreen mode:",
+        NO_FULLSCREEN_WARNING: "No element is currently in fullscreen mode.",
     },
 };
 
@@ -49,11 +49,33 @@ export function addExitFullscreenOverlay(container) {
 
     try {
         const exitButton = createExitButton();
-        container.appendChild(exitButton);
+        container.append(exitButton);
     } catch (error) {
         console.error("[addExitFullscreenOverlay] Failed to create overlay:", error);
         throw error;
     }
+}
+
+/**
+ * Creates the HTML content for the exit fullscreen button
+ * @returns {string} The HTML string for the button content
+ * @private
+ */
+function createButtonHTML() {
+    const { HEIGHT, STROKE_WIDTH, WIDTH } = FULLSCREEN_CONFIG.ICON_SIZE;
+
+    return `
+        <span class="${FULLSCREEN_CONFIG.CSS_CLASSES.ICON}" aria-hidden="true">
+            <!-- Material Design Exit Fullscreen Icon -->
+            <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" fill="none" xmlns="https://www.w3.org/2000/svg" class="${FULLSCREEN_CONFIG.CSS_CLASSES.INLINE_SVG}">
+                <title>Exit Fullscreen Icon</title>
+                <path d="M9 19H5V23" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 9H23V5" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 19H23V23" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 9H5V5" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </span>
+    `;
 }
 
 /**
@@ -75,31 +97,9 @@ function createExitButton() {
     button.innerHTML = createButtonHTML();
 
     // Add click event handler
-    button.onclick = handleExitFullscreen;
+    button.addEventListener('click', handleExitFullscreen);
 
     return button;
-}
-
-/**
- * Creates the HTML content for the exit fullscreen button
- * @returns {string} The HTML string for the button content
- * @private
- */
-function createButtonHTML() {
-    const { WIDTH, HEIGHT, STROKE_WIDTH } = FULLSCREEN_CONFIG.ICON_SIZE;
-
-    return `
-        <span class="${FULLSCREEN_CONFIG.CSS_CLASSES.ICON}" aria-hidden="true">
-            <!-- Material Design Exit Fullscreen Icon -->
-            <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" fill="none" xmlns="https://www.w3.org/2000/svg" class="${FULLSCREEN_CONFIG.CSS_CLASSES.INLINE_SVG}">
-                <title>Exit Fullscreen Icon</title>
-                <path d="M9 19H5V23" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M19 9H23V5" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M19 19H23V23" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M9 9H5V5" stroke="currentColor" stroke-width="${STROKE_WIDTH}" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </span>
-    `;
 }
 
 /**

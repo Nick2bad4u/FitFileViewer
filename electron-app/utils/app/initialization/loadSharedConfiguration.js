@@ -1,28 +1,28 @@
+import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
 
 // Function to load shared configuration from URL
 export function loadSharedConfiguration() {
     try {
-        const urlParams = new URLSearchParams(window.location.search),
+        const urlParams = new URLSearchParams(globalThis.location.search),
             configParam = urlParams.get("chartConfig");
 
         if (configParam) {
             const settings = JSON.parse(atob(configParam));
 
             // Apply settings to localStorage
-            Object.keys(settings).forEach((key) => {
+            for (const key of Object.keys(settings)) {
                 if (key === "visibleFields") {
-                    Object.keys(settings.visibleFields).forEach((field) => {
+                    for (const field of Object.keys(settings.visibleFields)) {
                         localStorage.setItem(`chartjs_field_${field}`, settings.visibleFields[field]);
-                    });
+                    }
                 } else if (typeof settings[key] === "boolean") {
                     localStorage.setItem(`chartjs_${key}`, settings[key].toString());
                 } else {
                     localStorage.setItem(`chartjs_${key}`, settings[key]);
                 }
-            });
+            }
 
             showNotification("Chart configuration loaded from URL", "success");
 

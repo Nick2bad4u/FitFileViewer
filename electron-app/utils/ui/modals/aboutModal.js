@@ -3,23 +3,23 @@
  * Provides modern design and animations with dynamic version l								<span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>ading
  */
 
+import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
-import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 
 // Constants for better maintainability
 const CONSTANTS = {
-    MODAL_ANIMATION_DURATION: 300,
     DEFAULT_VALUES: {
-        VERSION: "Loading...",
-        ELECTRON: "Loading...",
-        NODE: "Loading...",
-        CHROME: "Loading...",
-        PLATFORM: "Loading...",
         AUTHOR: "Nick2bad4u",
+        CHROME: "Loading...",
+        ELECTRON: "Loading...",
         LICENSE: "Unlicense",
+        NODE: "Loading...",
+        PLATFORM: "Loading...",
+        VERSION: "Loading...",
     },
     LOG_PREFIX: "[AboutModal]",
+    MODAL_ANIMATION_DURATION: 300,
 };
 
 // Module state
@@ -145,6 +145,131 @@ export function getAboutModalContent() {
 }
 
 /**
+ * Enhanced escape key handler with better UX
+ * @param {*} e
+ */
+export function handleEscapeKey(e) {
+    if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        hideAboutModal();
+    }
+}
+
+/**
+ * Enhanced modal display function with animations and improved accessibility
+ * @param {string} html - HTML content to display in the modal body
+ */
+export function showAboutModal(html = "") {
+    ensureAboutModal();
+    const modal = document.querySelector("#about-modal");
+    if (modal) {
+        const body = document.querySelector("#about-modal-body"),
+            closeBtn = document.querySelector("#about-modal-close"),
+            toggleBtn = document.querySelector("#toggle-info-btn");
+
+        if (body && closeBtn) {
+            // Set content
+            body.innerHTML = html;
+
+            // Save current focus
+            lastFocusedElement = /** @type {HTMLElement} */ (document.activeElement);
+
+            // Show modal with animation
+            modal.style.display = "flex";
+
+            // Trigger animation on next frame
+            requestAnimationFrame(() => {
+                modal.classList.add("show");
+            });
+
+            // Set up event listeners
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideAboutModal();
+            });
+
+            closeBtn.addEventListener('keydown', (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    hideAboutModal();
+                }
+            });
+            // Toggle button functionality
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggleInfoSection();
+                });
+
+                toggleBtn.addEventListener('keydown', (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleInfoSection();
+                    }
+                });
+            }
+
+            // Handle external links to open in user's default browser
+            const externalLinks = modal.querySelectorAll("[data-external-link]");
+            for (const link of externalLinks) {
+                /** @type {HTMLElement} */ (link).addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const url = link.getAttribute("href");
+                    if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
+                        globalThis.electronAPI.openExternal(url);
+                    } else if (url) {
+                        // Fallback for non-Electron environments
+                        window.open(url, "_blank", "noopener,noreferrer");
+                    }
+                });
+
+                /** @type {HTMLElement} */ (link).addEventListener('keydown', (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const url = link.getAttribute("href");
+                        if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
+                            globalThis.electronAPI.openExternal(url);
+                        } else if (url) {
+                            // Fallback for non-Electron environments
+                            window.open(url, "_blank", "noopener,noreferrer");
+                        }
+                    }
+                });
+            }
+
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideAboutModal();
+                }
+            });
+
+            // Prevent modal content clicks from closing modal
+            const modalContent = modal.querySelector(".modal-content");
+            if (modalContent) {
+                /** @type {HTMLElement} */ (modalContent).addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
+            // Focus management - focus close button after animation
+            setTimeout(() => {
+                closeBtn.focus();
+            }, modalAnimationDuration);
+
+            // Load version information after modal is displayed
+            try {
+                loadVersionInfo();
+            } catch (error) {
+                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`, error);
+            }
+            // Sound functionality removed as requested
+        }
+    }
+}
+
+/**
  * Creates and returns the features content HTML
  */
 function createFeaturesContent() {
@@ -241,11 +366,59 @@ function createSystemInfoContent() {
 }
 
 /**
+ * Enhanced modal hide function with smooth animations
+ */
+function hideAboutModal() {
+    const modal = document.querySelector("#about-modal");
+    if (modal) {
+        // Start closing animation
+        modal.classList.remove("show");
+
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            modal.style.display = "none";
+
+            // Reset to system info state when closing
+            showingFeatures = false;
+            const toggleButton = document.querySelector("#toggle-info-btn"),
+                toggleSection = document.querySelector("#info-toggle-section");
+            if (toggleSection && toggleButton) {
+                toggleSection.innerHTML = createSystemInfoContent();
+                const buttonIcon = toggleButton.querySelector(".btn-icon"),
+                    buttonText = toggleButton.querySelector(".btn-text");
+                if (buttonIcon) {
+                    buttonIcon.textContent = "✨";
+                }
+                if (buttonText) {
+                    buttonText.textContent = "Features";
+                }
+                toggleButton.setAttribute("aria-label", "View detailed features");
+                // Reload system info
+                try {
+                    loadVersionInfo();
+                } catch (error) {
+                    console.warn(`${CONSTANTS.LOG_PREFIX} Failed to reload version info:`, error);
+                }
+            }
+
+            // Restore focus to last focused element
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+                lastFocusedElement = null;
+            }
+
+            // Clean up event listeners
+            document.removeEventListener("keydown", handleEscapeKey, true);
+        }, modalAnimationDuration);
+    }
+}
+
+/**
  * Toggles between features and system info display
  */
 function toggleInfoSection() {
-    const toggleSection = document.getElementById("info-toggle-section"),
-        toggleButton = document.getElementById("toggle-info-btn");
+    const toggleButton = document.querySelector("#toggle-info-btn"),
+        toggleSection = document.querySelector("#info-toggle-section");
 
     if (!toggleSection || !toggleButton) {
         return;
@@ -296,185 +469,29 @@ function toggleInfoSection() {
 }
 
 /**
- * Enhanced modal hide function with smooth animations
- */
-function hideAboutModal() {
-    const modal = document.getElementById("about-modal");
-    if (modal) {
-        // Start closing animation
-        modal.classList.remove("show");
-
-        // Wait for animation to complete before hiding
-        setTimeout(() => {
-            modal.style.display = "none";
-
-            // Reset to system info state when closing
-            showingFeatures = false;
-            const toggleSection = document.getElementById("info-toggle-section"),
-                toggleButton = document.getElementById("toggle-info-btn");
-            if (toggleSection && toggleButton) {
-                toggleSection.innerHTML = createSystemInfoContent();
-                const buttonIcon = toggleButton.querySelector(".btn-icon"),
-                    buttonText = toggleButton.querySelector(".btn-text");
-                if (buttonIcon) {
-                    buttonIcon.textContent = "✨";
-                }
-                if (buttonText) {
-                    buttonText.textContent = "Features";
-                }
-                toggleButton.setAttribute("aria-label", "View detailed features");
-                // Reload system info
-                try {
-                    loadVersionInfo();
-                } catch (error) {
-                    console.warn(`${CONSTANTS.LOG_PREFIX} Failed to reload version info:`, error);
-                }
-            }
-
-            // Restore focus to last focused element
-            if (lastFocusedElement) {
-                lastFocusedElement.focus();
-                lastFocusedElement = null;
-            }
-
-            // Clean up event listeners
-            document.removeEventListener("keydown", handleEscapeKey, true);
-        }, modalAnimationDuration);
-    }
-}
-
-/**
- * Enhanced escape key handler with better UX
- * @param {*} e
- */
-export function handleEscapeKey(e) {
-    if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        hideAboutModal();
-    }
-}
-
-/**
- * Enhanced modal display function with animations and improved accessibility
- * @param {string} html - HTML content to display in the modal body
- */
-export function showAboutModal(html = "") {
-    ensureAboutModal();
-    const modal = document.getElementById("about-modal");
-    if (modal) {
-        const body = document.getElementById("about-modal-body"),
-            closeBtn = document.getElementById("about-modal-close"),
-            toggleBtn = document.getElementById("toggle-info-btn");
-
-        if (body && closeBtn) {
-            // Set content
-            body.innerHTML = html;
-
-            // Save current focus
-            lastFocusedElement = /** @type {HTMLElement} */ (document.activeElement);
-
-            // Show modal with animation
-            modal.style.display = "flex";
-
-            // Trigger animation on next frame
-            requestAnimationFrame(() => {
-                modal.classList.add("show");
-            });
-
-            // Set up event listeners
-            closeBtn.onclick = (e) => {
-                e.preventDefault();
-                hideAboutModal();
-            };
-
-            closeBtn.onkeydown = /** @param {*} e */ (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    hideAboutModal();
-                }
-            };
-            // Toggle button functionality
-            if (toggleBtn) {
-                toggleBtn.onclick = (e) => {
-                    e.preventDefault();
-                    toggleInfoSection();
-                };
-
-                toggleBtn.onkeydown = /** @param {*} e */ (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        toggleInfoSection();
-                    }
-                };
-            }
-
-            // Handle external links to open in user's default browser
-            const externalLinks = modal.querySelectorAll("[data-external-link]");
-            externalLinks.forEach((link) => {
-                /** @type {HTMLElement} */ (link).onclick = /** @param {*} e */ (e) => {
-                    e.preventDefault();
-                    const url = link.getAttribute("href");
-                    if (url && window.electronAPI && window.electronAPI.openExternal) {
-                        window.electronAPI.openExternal(url);
-                    } else if (url) {
-                        // Fallback for non-Electron environments
-                        window.open(url, "_blank", "noopener,noreferrer");
-                    }
-                };
-
-                /** @type {HTMLElement} */ (link).onkeydown = /** @param {*} e */ (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        const url = link.getAttribute("href");
-                        if (url && window.electronAPI && window.electronAPI.openExternal) {
-                            window.electronAPI.openExternal(url);
-                        } else if (url) {
-                            // Fallback for non-Electron environments
-                            window.open(url, "_blank", "noopener,noreferrer");
-                        }
-                    }
-                };
-            });
-
-            // Close on backdrop click
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    hideAboutModal();
-                }
-            };
-
-            // Prevent modal content clicks from closing modal
-            const modalContent = modal.querySelector(".modal-content");
-            if (modalContent) {
-                /** @type {HTMLElement} */ (modalContent).onclick = /** @param {*} e */ (e) => {
-                    e.stopPropagation();
-                };
-            }
-
-            // Focus management - focus close button after animation
-            setTimeout(() => {
-                closeBtn.focus();
-            }, modalAnimationDuration);
-
-            // Load version information after modal is displayed
-            try {
-                loadVersionInfo();
-            } catch (error) {
-                console.warn(`${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`, error);
-            }
-            // Sound functionality removed as requested
-        }
-    }
-}
-
-/**
  * Development helpers for testing and debugging
  */
 const devHelpers = {
     /**
      * Show modal with sample content for testing
-     */ showSample: () => {
+     */ /**
+     * Reset all styles and recreate modal
+     */
+    reset: () => {
+        const existingModal = document.querySelector("#about-modal"),
+            existingStyles = document.querySelector("#about-modal-styles");
+
+        if (existingModal) {
+            existingModal.remove();
+        }
+        if (existingStyles) {
+            existingStyles.remove();
+        }
+
+        ensureAboutModal();
+    },
+
+    showSample: () => {
         const sampleContent = `
 			<h3 style="color: var(--color-fg); opacity: 0.9; margin-top: 0;">Sample Content</h3>
 			<p style="color: var(--color-fg); opacity: 0.8;">This is a sample modal with some content to demonstrate the enhanced styling and features.</p>
@@ -493,7 +510,7 @@ const devHelpers = {
      * Test modal animations
      */
     testAnimations: () => {
-        const modal = document.getElementById("about-modal");
+        const modal = document.querySelector("#about-modal");
         if (modal) {
             modal.style.transition = "all 1000ms ease";
             const modalContent = modal.querySelector(".modal-content");
@@ -504,28 +521,11 @@ const devHelpers = {
         }
         devHelpers.showSample();
     },
-
-    /**
-     * Reset all styles and recreate modal
-     */
-    reset: () => {
-        const existingModal = document.getElementById("about-modal"),
-            existingStyles = document.getElementById("about-modal-styles");
-
-        if (existingModal) {
-            existingModal.remove();
-        }
-        if (existingStyles) {
-            existingStyles.remove();
-        }
-
-        ensureAboutModal();
-    },
 };
 
 // Export development helpers in development mode
 if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") {
-    window.aboutModalDevHelpers = devHelpers;
+    globalThis.aboutModalDevHelpers = devHelpers;
 }
 
 // Initialize modal styles when module loads

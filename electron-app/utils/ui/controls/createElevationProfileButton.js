@@ -24,10 +24,10 @@ export function createElevationProfileButton() {
     btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
     btn.title = "Show Elevation Profile";
 
-    btn.onclick = () => {
+    btn.addEventListener('click', () => {
         /** @type {Array<any>} */
         let fitFiles = [];
-        const w = /** @type {any} */ (window);
+        const w = /** @type {any} */ (globalThis);
         if (Array.isArray(w.loadedFitFiles) && w.loadedFitFiles.length > 0) {
             fitFiles = w.loadedFitFiles;
         } else if (w.globalData && Array.isArray(w.globalData.recordMesgs)) {
@@ -38,9 +38,9 @@ export function createElevationProfileButton() {
                 },
             ];
         }
-        const isDark = document.body.classList.contains("theme-dark"),
-            themeColors = getThemeColors(),
-            chartWin = window.open("", "Elevation Profile", "width=900,height=600");
+        const chartWin = window.open("", "Elevation Profile", "width=900,height=600"),
+            isDark = document.body.classList.contains("theme-dark"),
+            themeColors = getThemeColors();
         if (!chartWin) {
             // Popup likely blocked; fail silently or optionally notify
             return;
@@ -151,7 +151,6 @@ export function createElevationProfileButton() {
 			<script>
 				const fitFiles = ${JSON.stringify(
                     fitFiles.map((f, idx) => ({
-                        filePath: f.filePath || `File ${idx + 1}`,
                         altitudes:
                             f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
                                 ? /** @type {any[]} */ (f.data.recordMesgs)
@@ -167,6 +166,7 @@ export function createElevationProfileButton() {
                                       idx % window.opener.chartOverlayColorPalette.length
                                   ]
                                 : "#1976d2",
+                        filePath: f.filePath || `File ${idx + 1}`,
                     }))
                 )};
 				const isDark = ${isDark};
@@ -261,6 +261,6 @@ export function createElevationProfileButton() {
 		`;
         chartWin.document.write(chartHtml);
         chartWin.document.close();
-    };
+    });
     return btn;
 }

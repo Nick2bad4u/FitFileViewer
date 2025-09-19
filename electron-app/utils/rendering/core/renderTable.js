@@ -11,8 +11,8 @@ import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
  * renderTable(document.body, 'My Table', myTableObject, 0);
  */
 export function renderTable(container, title, table, index) {
-    const tableId = `datatable_${index}`,
-        section = document.createElement("div");
+    const section = document.createElement("div"),
+        tableId = `datatable_${index}`;
     section.classList.add("table-section");
     const header = document.createElement("div");
     header.classList.add("table-header");
@@ -25,25 +25,25 @@ export function renderTable(container, title, table, index) {
     const copyButton = document.createElement("button");
     copyButton.textContent = "Copy as CSV";
     copyButton.classList.add("copy-btn");
-    copyButton.onclick = (event) => {
+    copyButton.addEventListener('click', (event) => {
         event.stopPropagation();
         copyTableAsCSV(/** @type {any} */ (table));
-    };
+    });
     const icon = document.createElement("span");
     icon.textContent = "➕";
-    rightContainer.appendChild(copyButton);
-    rightContainer.appendChild(icon);
-    header.appendChild(leftSpan);
-    header.appendChild(rightContainer);
-    header.onclick = () => {
+    rightContainer.append(copyButton);
+    rightContainer.append(icon);
+    header.append(leftSpan);
+    header.append(rightContainer);
+    header.addEventListener('click', () => {
         const content = document.getElementById(`${tableId}_content`),
-            currentDisplay = window.getComputedStyle(/** @type {Element} */ (content)).display,
+            currentDisplay = globalThis.getComputedStyle(/** @type {Element} */ (content)).display,
             isVisible = currentDisplay === "block";
         if (content) {
             content.style.display = isVisible ? "none" : "block";
         }
         icon.textContent = isVisible ? "➕" : "➖";
-    };
+    });
     const content = document.createElement("div");
     content.classList.add("table-content");
     content.id = `${tableId}_content`;
@@ -52,12 +52,12 @@ export function renderTable(container, title, table, index) {
     tableElement.id = tableId;
     tableElement.classList.add("display");
     tableElement.innerHTML = /** @type {any} */ (table).toHTML({ limit: Infinity });
-    content.appendChild(tableElement);
-    section.appendChild(header);
-    section.appendChild(content);
-    container.appendChild(section);
-    if (/** @type {any} */ (window).jQuery) {
-        const jQ = /** @type {any} */ (window).jQuery;
+    content.append(tableElement);
+    section.append(header);
+    section.append(content);
+    container.append(section);
+    if (/** @type {any} */ (globalThis).jQuery) {
+        const jQ = /** @type {any} */ (globalThis).jQuery;
         jQ(document).ready(() => {
             setTimeout(() => {
                 try {
@@ -70,21 +70,21 @@ export function renderTable(container, title, table, index) {
                         }
                         console.log(`[DEBUG] Initializing DataTable for #${tableId}`);
                         jQ(tableSelector).DataTable({
-                            paging: true,
+                            autoWidth: true,
                             lengthMenu: [
                                 [10, 25, 50, 100, -1],
                                 [10, 25, 50, 100, "All"],
                             ],
-                            pageLength: 25,
-                            searching: true,
                             ordering: true,
-                            autoWidth: true,
+                            pageLength: 25,
+                            paging: true,
+                            searching: true,
                         });
                     } else {
                         console.error("[ERROR] DataTables.js is not loaded");
                     }
-                } catch (e) {
-                    console.error(`[ERROR] DataTable init failed for #${tableId}`, e);
+                } catch (error) {
+                    console.error(`[ERROR] DataTable init failed for #${tableId}`, error);
                 }
             }, 100);
         });

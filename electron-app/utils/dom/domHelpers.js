@@ -10,12 +10,100 @@
  *  @typedef {T & { [key:string]: any }} AnyElement */
 
 /**
+ * Add a class to an element if present.
+ * @param {Element|null|undefined} el
+ * @param {string} className
+ * @throws {Error} If className is empty
+ */
+export function addClass(el, className) {
+    if (!className) {
+        throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
+    }
+    if (isHTMLElement(el)) {
+        el.classList.add(className);
+    }
+}
+
+/**
+ * Remove all children from an element (no-op if invalid).
+ * @param {Element|null|undefined} el
+ */
+export function clearElement(el) {
+    if (isHTMLElement(el)) {
+        while (el.firstChild) {
+            el.firstChild.remove();
+        }
+    }
+}
+
+/**
+ * Focus an element if possible.
+ * @param {Element|null|undefined} el
+ */
+export function focus(el) {
+    if (isHTMLElement(el) && typeof el.focus === "function") {
+        el.focus();
+    }
+}
+
+/**
+ * Get checked state for checkbox/radio if supported.
+ * @param {Element|null|undefined} el
+ * @returns {boolean|undefined}
+ */
+export function getChecked(el) {
+    if (isHTMLElement(el) && "checked" in el) {
+        // @ts-ignore - runtime guarded
+        return Boolean(el.checked);
+    }
+    
+}
+
+/**
+ * Dataset convenience getter.
+ * @param {Element|null|undefined} el
+ * @param {string} key
+ * @returns {string|undefined}
+ */
+export function getData(el, key) {
+    if (isHTMLElement(el) && el.dataset) {
+        return el.dataset[key];
+    }
+    
+}
+
+/**
+ * Get value for input-like elements (returns undefined if unavailable).
+ * @param {Element|null|undefined} el
+ * @returns {string|undefined}
+ */
+export function getValue(el) {
+    if (isHTMLElement(el) && "value" in el) {
+        // @ts-ignore - runtime guarded
+        return el.value;
+    }
+    
+}
+
+/**
  * Type guard to assert a value is an HTMLElement (vs generic Element or null).
  * @param {any} el
  * @returns {el is HTMLElement}
  */
 export function isHTMLElement(el) {
     return Boolean(el) && typeof el === "object" && el.nodeType === 1;
+}
+
+/**
+ * Attach an event listener with automatic type narrowing and safe guard.
+ * @param {Element|null|undefined} el
+ * @param {string} type
+ * @param {(ev: Event) => void} handler
+ */
+export function on(el, type, handler) {
+    if (isHTMLElement(el)) {
+        el.addEventListener(type, handler);
+    }
 }
 
 /**
@@ -60,7 +148,7 @@ export function queryAll(selector, root = document) {
         return [];
     }
     try {
-        return Array.from(list).filter(isHTMLElement);
+        return [...list].filter(isHTMLElement);
     } catch {
         // In case Array.from fails on exotic list objects
         const result = [];
@@ -73,47 +161,6 @@ export function queryAll(selector, root = document) {
             }
         }
         return result;
-    }
-}
-
-/**
- * Assert a required element exists and return it as HTMLElement.
- * Throws a descriptive error if not found.
- * @param {string} selector
- * @param {ParentNode} [root=document]
- * @returns {HTMLElement}
- */
-export function requireElement(selector, root = document) {
-    const el = query(selector, root);
-    if (!el) {
-        throw new Error(`Required element not found: ${selector}`);
-    }
-    return el;
-}
-
-/**
- * Safely set textContent on an element if it exists.
- * @param {Element|null|undefined} el
- * @param {string|number|null|undefined} value
- */
-export function setText(el, value) {
-    if (isHTMLElement(el) && value != null) {
-        el.textContent = String(value);
-    }
-}
-
-/**
- * Add a class to an element if present.
- * @param {Element|null|undefined} el
- * @param {string} className
- * @throws {Error} If className is empty
- */
-export function addClass(el, className) {
-    if (!className) {
-        throw new Error("Failed to execute 'add' on 'DOMTokenList': The token provided must not be empty.");
-    }
-    if (isHTMLElement(el)) {
-        el.classList.add(className);
     }
 }
 
@@ -133,41 +180,18 @@ export function removeClass(el, className) {
 }
 
 /**
- * Toggle disabled flag for form controls (HTMLElement subset supporting disabled).
- * Silent no-op if element does not support the property.
- * @param {Element|null|undefined} el
- * @param {boolean} disabled
+ * Assert a required element exists and return it as HTMLElement.
+ * Throws a descriptive error if not found.
+ * @param {string} selector
+ * @param {ParentNode} [root=document]
+ * @returns {HTMLElement}
  */
-export function setDisabled(el, disabled) {
-    if (isHTMLElement(el) && "disabled" in el) {
-        // @ts-ignore - guarded by 'disabled' in el
-        el.disabled = Boolean(disabled);
+export function requireElement(selector, root = document) {
+    const el = query(selector, root);
+    if (!el) {
+        throw new Error(`Required element not found: ${selector}`);
     }
-}
-
-/**
- * Get value for input-like elements (returns undefined if unavailable).
- * @param {Element|null|undefined} el
- * @returns {string|undefined}
- */
-export function getValue(el) {
-    if (isHTMLElement(el) && "value" in el) {
-        // @ts-ignore - runtime guarded
-        return el.value;
-    }
-    return undefined;
-}
-
-/**
- * Set value for input-like elements if possible.
- * @param {Element|null|undefined} el
- * @param {string|number|null|undefined} value
- */
-export function setValue(el, value) {
-    if (isHTMLElement(el) && "value" in el && value != null) {
-        // @ts-ignore - runtime guarded
-        el.value = String(value);
-    }
+    return el;
 }
 
 /**
@@ -183,16 +207,28 @@ export function setChecked(el, checked) {
 }
 
 /**
- * Get checked state for checkbox/radio if supported.
+ * Dataset convenience setter.
  * @param {Element|null|undefined} el
- * @returns {boolean|undefined}
+ * @param {string} key
+ * @param {string} value
  */
-export function getChecked(el) {
-    if (isHTMLElement(el) && "checked" in el) {
-        // @ts-ignore - runtime guarded
-        return Boolean(el.checked);
+export function setData(el, key, value) {
+    if (isHTMLElement(el) && el.dataset) {
+        el.dataset[key] = value;
     }
-    return undefined;
+}
+
+/**
+ * Toggle disabled flag for form controls (HTMLElement subset supporting disabled).
+ * Silent no-op if element does not support the property.
+ * @param {Element|null|undefined} el
+ * @param {boolean} disabled
+ */
+export function setDisabled(el, disabled) {
+    if (isHTMLElement(el) && "disabled" in el) {
+        // @ts-ignore - guarded by 'disabled' in el
+        el.disabled = Boolean(disabled);
+    }
 }
 
 /**
@@ -208,81 +244,45 @@ export function setStyle(el, prop, value) {
 }
 
 /**
- * Remove all children from an element (no-op if invalid).
+ * Safely set textContent on an element if it exists.
  * @param {Element|null|undefined} el
+ * @param {string|number|null|undefined} value
  */
-export function clearElement(el) {
-    if (isHTMLElement(el)) {
-        while (el.firstChild) {
-            el.removeChild(el.firstChild);
-        }
+export function setText(el, value) {
+    if (isHTMLElement(el) && value != null) {
+        el.textContent = String(value);
     }
 }
 
 /**
- * Attach an event listener with automatic type narrowing and safe guard.
+ * Set value for input-like elements if possible.
  * @param {Element|null|undefined} el
- * @param {string} type
- * @param {(ev: Event) => void} handler
+ * @param {string|number|null|undefined} value
  */
-export function on(el, type, handler) {
-    if (isHTMLElement(el)) {
-        el.addEventListener(type, handler);
-    }
-}
-
-/**
- * Dataset convenience getter.
- * @param {Element|null|undefined} el
- * @param {string} key
- * @returns {string|undefined}
- */
-export function getData(el, key) {
-    if (isHTMLElement(el) && el.dataset) {
-        return el.dataset[key];
-    }
-    return undefined;
-}
-
-/**
- * Dataset convenience setter.
- * @param {Element|null|undefined} el
- * @param {string} key
- * @param {string} value
- */
-export function setData(el, key, value) {
-    if (isHTMLElement(el) && el.dataset) {
-        el.dataset[key] = value;
-    }
-}
-
-/**
- * Focus an element if possible.
- * @param {Element|null|undefined} el
- */
-export function focus(el) {
-    if (isHTMLElement(el) && typeof el.focus === "function") {
-        el.focus();
+export function setValue(el, value) {
+    if (isHTMLElement(el) && "value" in el && value != null) {
+        // @ts-ignore - runtime guarded
+        el.value = String(value);
     }
 }
 
 export default {
+    addClass,
+    clearElement,
+    focus,
+    getChecked,
+    getData,
+    getValue,
     isHTMLElement,
+    on,
     query,
     queryAll,
-    requireElement,
-    setText,
-    addClass,
     removeClass,
-    setDisabled,
-    getValue,
-    setValue,
+    requireElement,
     setChecked,
-    getChecked,
-    setStyle,
-    clearElement,
-    on,
-    getData,
     setData,
-    focus,
+    setDisabled,
+    setStyle,
+    setText,
+    setValue,
 };

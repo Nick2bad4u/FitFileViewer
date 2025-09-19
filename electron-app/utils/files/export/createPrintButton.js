@@ -27,7 +27,7 @@ export function createPrintButton() {
 
         printBtn.addEventListener("click", () => {
             try {
-                window.print();
+                globalThis.print();
             } catch (error) {
                 console.error("[MapActions] Print failed:", error);
                 showNotification("Print failed. Please try again.", "error");

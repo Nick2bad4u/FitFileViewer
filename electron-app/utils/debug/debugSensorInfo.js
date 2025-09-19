@@ -16,22 +16,45 @@
  * @since 1.0.0
  */
 
-import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
+import { getManufacturerName, getProductName } from "../formatting/display/formatAntNames.js";
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
-import { getManufacturerName, getProductName } from "../formatting/display/formatAntNames.js";
+import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
+
+/**
+ * Quick data availability check
+ */
+export function checkDataAvailability() {
+    console.log("🔍 DATA AVAILABILITY CHECK:");
+    console.log(`window.globalData exists: ${Boolean(globalThis.globalData)}`);
+    console.log(`window.globalData type: ${typeof globalThis.globalData}`);
+
+    if (globalThis.globalData) {
+        console.log(`Keys count: ${Object.keys(globalThis.globalData).length}`);
+        console.log(`Available keys: ${Object.keys(globalThis.globalData).join(", ")}`);
+
+        // Check specifically for sensor-related data
+        const sensorKeys = Object.keys(globalThis.globalData).filter(
+            (key) =>
+                key.includes("device") || key.includes("session") || key.includes("file_id") || key.includes("sensor")
+        );
+        console.log(`Sensor-related keys: ${sensorKeys.join(", ") || "none found"}`);
+    }
+
+    return globalThis.globalData;
+}
 
 /**
  * Extracts and displays detailed sensor information from global data
  * @returns {Object|null} Sensor analysis summary or null if no data
  */
 export function debugSensorInfo() {
-    if (!window.globalData || Object.keys(window.globalData).length === 0) {
+    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return null;
     }
 
-    const data = window.globalData;
+    const data = globalThis.globalData;
     console.log("🔍 SENSOR INFORMATION DEBUG");
     console.log("=".repeat(50));
     // Look for sensor data in different locations
@@ -142,29 +165,29 @@ export function debugSensorInfo() {
     console.log("-".repeat(50));
 
     const analysis = {
-        totalSensors: sensors.length,
         manufacturerIssues: /** @type {Array<*>} */ ([]),
         productIssues: /** @type {Array<*>} */ ([]),
         summary: {},
+        totalSensors: sensors.length,
     };
 
-    sensors.forEach((sensor, index) => {
+    for (const [index, sensor] of sensors.entries()) {
         console.log(`\n[${index + 1}] Source: ${sensor.source}`);
         console.log(`    Raw Data:`, {
-            manufacturer: sensor.manufacturer,
-            manufacturerId: sensor.manufacturerId,
-            manufacturer_id: sensor.manufacturer_id,
-            product: sensor.product,
-            productName: sensor.productName,
-            product_name: sensor.product_name,
-            garminProduct: sensor.garminProduct,
-            garmin_product: sensor.garmin_product,
-            deviceType: sensor.deviceType,
-            device_type: sensor.device_type,
-            serialNumber: sensor.serialNumber,
-            serial_number: sensor.serial_number,
-            deviceIndex: sensor.deviceIndex,
             device_index: sensor.device_index,
+            device_type: sensor.device_type,
+            deviceIndex: sensor.deviceIndex,
+            deviceType: sensor.deviceType,
+            garmin_product: sensor.garmin_product,
+            garminProduct: sensor.garminProduct,
+            manufacturer: sensor.manufacturer,
+            manufacturer_id: sensor.manufacturer_id,
+            manufacturerId: sensor.manufacturerId,
+            product: sensor.product,
+            product_name: sensor.product_name,
+            productName: sensor.productName,
+            serial_number: sensor.serial_number,
+            serialNumber: sensor.serialNumber,
         }); // Check manufacturer resolution
         let resolvedManufacturer = sensor.manufacturer;
         const manufacturerId = sensor.manufacturerId || sensor.manufacturer_id;
@@ -184,8 +207,8 @@ export function debugSensorInfo() {
                 console.log(`    📦 Resolved product ID ${productField} → "${resolvedProduct}"`);
             }
         } // Test formatting
-        const formattedName = formatSensorName(sensor),
-            formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer),
+        const formattedManufacturer = formatManufacturer(resolvedManufacturer || sensor.manufacturer),
+            formattedName = formatSensorName(sensor),
             formattedProduct =
                 (manufacturerId || sensor.manufacturer) && productField
                     ? formatProduct(manufacturerId || sensor.manufacturer, productField)
@@ -196,7 +219,7 @@ export function debugSensorInfo() {
         if (formattedProduct && formattedProduct !== productField) {
             console.log(`    � Formatted Product: "${formattedProduct}"`);
         }
-    });
+    }
 
     // Summary
     console.log(`\n📊 SUMMARY:`);
@@ -205,26 +228,43 @@ export function debugSensorInfo() {
 
     if (analysis.productIssues.length > 0) {
         console.log(`\n⚠️  PRODUCT FIELD ISSUES DETECTED:`);
-        analysis.productIssues.forEach((issue) => {
+        for (const issue of analysis.productIssues) {
             console.log(
                 `    Sensor ${issue.index}: product="${issue.product}" should be manufacturer="${issue.actualManufacturer}"`
             );
-        });
+        }
     }
 
     return analysis;
 }
 
 /**
- * Quick command to show just the sensor names
+ * Show all available data keys for debugging
  */
-export function showSensorNames() {
-    if (!window.globalData || Object.keys(window.globalData).length === 0) {
+export function showDataKeys() {
+    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
 
-    const data = window.globalData,
+    const data = globalThis.globalData;
+    console.log("🗂️  AVAILABLE DATA KEYS:");
+    for (const key of Object.keys(data)) {
+        const count = Array.isArray(data[key]) ? data[key].length : 1;
+        console.log(`    ${key}: ${count} ${Array.isArray(data[key]) ? "items" : "item"}`);
+    }
+}
+
+/**
+ * Quick command to show just the sensor names
+ */
+export function showSensorNames() {
+    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+        console.warn("❌ No global data available. Load a FIT file first.");
+        return;
+    }
+
+    const data = globalThis.globalData,
         sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
@@ -252,10 +292,10 @@ export function showSensorNames() {
     }
 
     console.log("🏷️  SENSOR NAMES:");
-    sensors.forEach((sensor, index) => {
+    for (const [index, sensor] of sensors.entries()) {
         const formattedName = formatSensorName(sensor);
         console.log(`  ${index + 1}. ${formattedName} (${sensor.source})`);
-    });
+    }
 }
 
 /**
@@ -263,7 +303,7 @@ export function showSensorNames() {
  * @param {number|string} manufacturerId - Manufacturer ID to test
  */
 export function testManufacturerId(manufacturerId) {
-    const id = parseInt(String(manufacturerId), 10),
+    const id = Number.parseInt(String(manufacturerId), 10),
         resolved = getManufacturerName(id),
         formatted = formatManufacturer(resolved);
 
@@ -271,7 +311,7 @@ export function testManufacturerId(manufacturerId) {
     console.log(`    Resolved to: "${resolved}"`);
     console.log(`    Formatted as: "${formatted}"`);
 
-    return { id, resolved, formatted };
+    return { formatted, id, resolved };
 }
 
 /**
@@ -280,11 +320,11 @@ export function testManufacturerId(manufacturerId) {
  * @param {number|string} productId - Product ID to test
  */
 export function testProductId(manufacturerId, productId) {
-    const mfgId = parseInt(String(manufacturerId), 10),
-        prodId = parseInt(String(productId), 10),
-        resolvedProduct = getProductName(mfgId, prodId),
+    const mfgId = Number.parseInt(String(manufacturerId), 10),
+        prodId = Number.parseInt(String(productId), 10),
         formattedProduct = formatProduct(mfgId, prodId),
-        manufacturerName = getManufacturerName(mfgId);
+        manufacturerName = getManufacturerName(mfgId),
+        resolvedProduct = getProductName(mfgId, prodId);
 
     console.log(`🧪 TESTING PRODUCT ID: ${prodId} for manufacturer ${mfgId}`);
     console.log(`    Manufacturer: "${manufacturerName}"`);
@@ -292,47 +332,7 @@ export function testProductId(manufacturerId, productId) {
     console.log(`    Product formatted as: "${formattedProduct}"`);
     console.log(`    Full sensor name: "${formatManufacturer(manufacturerName)} ${formattedProduct}"`);
 
-    return { manufacturerId: mfgId, productId: prodId, resolvedProduct, formattedProduct, manufacturerName };
-}
-
-/**
- * Show all available data keys for debugging
- */
-export function showDataKeys() {
-    if (!window.globalData || Object.keys(window.globalData).length === 0) {
-        console.warn("❌ No global data available. Load a FIT file first.");
-        return;
-    }
-
-    const data = window.globalData;
-    console.log("🗂️  AVAILABLE DATA KEYS:");
-    Object.keys(data).forEach((key) => {
-        const count = Array.isArray(data[key]) ? data[key].length : 1;
-        console.log(`    ${key}: ${count} ${Array.isArray(data[key]) ? "items" : "item"}`);
-    });
-}
-
-/**
- * Quick data availability check
- */
-export function checkDataAvailability() {
-    console.log("🔍 DATA AVAILABILITY CHECK:");
-    console.log(`window.globalData exists: ${Boolean(window.globalData)}`);
-    console.log(`window.globalData type: ${typeof window.globalData}`);
-
-    if (window.globalData) {
-        console.log(`Keys count: ${Object.keys(window.globalData).length}`);
-        console.log(`Available keys: ${Object.keys(window.globalData).join(", ")}`);
-
-        // Check specifically for sensor-related data
-        const sensorKeys = Object.keys(window.globalData).filter(
-            (key) =>
-                key.includes("device") || key.includes("session") || key.includes("file_id") || key.includes("sensor")
-        );
-        console.log(`Sensor-related keys: ${sensorKeys.join(", ") || "none found"}`);
-    }
-
-    return window.globalData;
+    return { formattedProduct, manufacturerId: mfgId, manufacturerName, productId: prodId, resolvedProduct };
 }
 
 // Debug functions are exported for use in renderer.js

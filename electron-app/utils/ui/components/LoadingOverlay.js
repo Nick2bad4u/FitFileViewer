@@ -5,31 +5,41 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
  */
 export const LoadingOverlay = {
     /**
+     * Hides the loading overlay
+     */
+    hide() {
+        const overlay = document.querySelector("#fitfile-loading-overlay");
+        if (overlay) {
+            overlay.remove();
+        }
+    },
+
+    /**
      * Shows a loading overlay with progress text
      * @param {string} progressText - Text to display
      * @param {string} fileName - Optional filename to display
      */
     show(progressText, fileName = "") {
-        let overlay = document.getElementById("fitfile-loading-overlay");
+        let overlay = document.querySelector("#fitfile-loading-overlay");
         if (!overlay) {
             overlay = document.createElement("div");
             overlay.id = "fitfile-loading-overlay";
 
             const themeColors = getThemeColors();
             Object.assign(overlay.style, {
-                position: "fixed",
-                top: "0",
-                left: "0",
-                width: "100vw",
-                height: "100vh",
+                alignItems: "center",
                 background: `${themeColors.background}d9`, // Add transparency
+                color: themeColors.textPrimary,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: "99999",
-                color: themeColors.textPrimary,
                 fontSize: "1.3em",
+                height: "100vh",
+                justifyContent: "center",
+                left: "0",
+                position: "fixed",
+                top: "0",
+                width: "100vw",
+                zIndex: "99999",
             });
 
             overlay.innerHTML = `
@@ -55,27 +65,17 @@ export const LoadingOverlay = {
                     <div id="fitfile-loading-filename" style="font-size:0.98em;color:${themeColors.textSecondary};max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
                 </div>
             `;
-            document.body.appendChild(overlay);
+            document.body.append(overlay);
         }
 
-        const textDiv = document.getElementById("fitfile-loading-text");
+        const textDiv = document.querySelector("#fitfile-loading-text");
         if (textDiv) {
             textDiv.textContent = progressText || "Loading...";
         }
 
-        const fileDiv = document.getElementById("fitfile-loading-filename");
+        const fileDiv = document.querySelector("#fitfile-loading-filename");
         if (fileDiv) {
             fileDiv.textContent = fileName ? `File: ${fileName}` : "";
-        }
-    },
-
-    /**
-     * Hides the loading overlay
-     */
-    hide() {
-        const overlay = document.getElementById("fitfile-loading-overlay");
-        if (overlay) {
-            overlay.remove();
         }
     },
 };

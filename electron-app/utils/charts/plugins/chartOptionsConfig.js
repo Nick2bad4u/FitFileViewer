@@ -14,9 +14,9 @@ export const DEFAULT_MAX_POINTS = 250;
 
 // Performance warning thresholds
 const PERFORMANCE_THRESHOLDS = {
-    SLOW_WARNING: 10000,
-    VERY_SLOW_WARNING: 100000,
-    NOT_RECOMMENDED: 1000000,
+    NOT_RECOMMENDED: 1_000_000,
+    SLOW_WARNING: 10_000,
+    VERY_SLOW_WARNING: 100_000,
 };
 
 /**
@@ -43,7 +43,7 @@ export const maxPointsOptions = [
     3000,
     5000,
     PERFORMANCE_THRESHOLDS.SLOW_WARNING, // 10,000 - Performance warning
-    50000, // Performance warning
+    50_000, // Performance warning
     PERFORMANCE_THRESHOLDS.VERY_SLOW_WARNING, // 100,000 - Very slow for most users
     PERFORMANCE_THRESHOLDS.NOT_RECOMMENDED, // 1,000,000 - Not recommended except for testing
     "all", // No limit; use with extreme caution
@@ -81,120 +81,120 @@ export const maxPointsOptions = [
  */
 export const chartOptionsConfig = [
     {
-        id: "maxpoints",
-        label: "Max Points",
-        type: "select",
-        options: maxPointsOptions,
         default: DEFAULT_MAX_POINTS,
         description: "Maximum number of data points to display (higher values may impact performance)",
+        id: "maxpoints",
+        label: "Max Points",
+        options: maxPointsOptions,
+        type: "select",
     },
     {
-        id: "chartType",
-        label: "Chart Type",
-        type: "select",
-        options: ["line", "bar", "scatter", "area"],
         default: "line",
         description:
             'Type of chart visualization ("area" displays filled area under line, distinct from "line" with optional Fill Area toggle)',
+        id: "chartType",
+        label: "Chart Type",
+        options: ["line", "bar", "scatter", "area"],
+        type: "select",
     },
     {
-        id: "interpolation",
-        label: "Interpolation",
-        type: "select",
-        options: ["linear", "monotone", "step"],
         default: "linear",
         description: "Line interpolation method for smooth curves or stepped visualization",
+        id: "interpolation",
+        label: "Interpolation",
+        options: ["linear", "monotone", "step"],
+        type: "select",
     },
     {
-        id: "animation",
-        label: "Animation",
-        type: "select",
-        options: ["smooth", "fast", "none"],
         default: "smooth",
         description: "Chart animation style (smooth for best visual effect, fast for performance, none to disable)",
+        id: "animation",
+        label: "Animation",
+        options: ["smooth", "fast", "none"],
+        type: "select",
     },
     {
-        id: "exportTheme",
-        label: "Export Theme",
-        type: "select",
-        options: ["auto", "light", "dark", "transparent"],
         default: "auto",
         description: "Background theme for exported chart images (auto uses current app theme)",
+        id: "exportTheme",
+        label: "Export Theme",
+        options: ["auto", "light", "dark", "transparent"],
+        type: "select",
     },
     {
-        id: "showGrid",
-        label: "Grid",
-        type: "toggle",
-        options: [true, false],
         default: true,
         description: "Show or hide chart grid lines for better data readability",
+        id: "showGrid",
+        label: "Grid",
+        options: [true, false],
+        type: "toggle",
     },
     {
-        id: "showLegend",
-        label: "Legend",
-        type: "toggle",
-        options: [true, false],
         default: true,
         description: "Show or hide chart legend identifying data series",
+        id: "showLegend",
+        label: "Legend",
+        options: [true, false],
+        type: "toggle",
     },
     {
-        id: "showTitle",
-        label: "Title",
-        type: "toggle",
-        options: [true, false],
         default: true,
         description: "Show or hide chart titles",
+        id: "showTitle",
+        label: "Title",
+        options: [true, false],
+        type: "toggle",
     },
     {
-        id: "showPoints",
-        label: "Data Points",
-        type: "toggle",
-        options: [true, false],
         default: false,
         description: "Show or hide individual data point markers on lines",
+        id: "showPoints",
+        label: "Data Points",
+        options: [true, false],
+        type: "toggle",
     },
     {
-        id: "showFill",
-        label: "Fill Area",
-        type: "toggle",
-        options: [true, false],
         default: true,
         description: "Fill the area under line charts for better visual impact",
+        id: "showFill",
+        label: "Fill Area",
+        options: [true, false],
+        type: "toggle",
     },
     {
-        id: "smoothing",
-        label: "Line Smoothing",
-        type: "range",
-        min: 0,
-        max: 1,
-        step: 0.1,
         default: 0.4,
         description:
             "Line curve smoothing amount (0 = no smoothing, 1 = maximum smoothing). Applies to 'line' and 'area' charts with 'monotone' or 'linear' interpolation.",
+        id: "smoothing",
+        label: "Line Smoothing",
+        max: 1,
+        min: 0,
+        step: 0.1,
+        type: "range",
     },
     {
-        id: "timeUnits",
-        label: "Time Units",
-        type: "select",
-        options: ["seconds", "minutes", "hours"],
         default: "seconds",
         description: "Units for time display on axes and tooltips",
+        id: "timeUnits",
+        label: "Time Units",
+        options: ["seconds", "minutes", "hours"],
+        type: "select",
     },
     {
-        id: "distanceUnits",
-        label: "Distance Units",
-        type: "select",
-        options: ["meters", "kilometers", "feet", "miles"],
         default: "kilometers",
         description: "Units for distance and altitude display on axes and tooltips",
+        id: "distanceUnits",
+        label: "Distance Units",
+        options: ["meters", "kilometers", "feet", "miles"],
+        type: "select",
     },
     {
-        id: "temperatureUnits",
-        label: "Temperature Units",
-        type: "select",
-        options: ["celsius", "fahrenheit"],
         default: "celsius",
         description: "Units for temperature display on axes and tooltips",
+        id: "temperatureUnits",
+        label: "Temperature Units",
+        options: ["celsius", "fahrenheit"],
+        type: "select",
     },
 ];
 
@@ -206,6 +206,28 @@ export const chartOptionsConfig = [
 export function getDefaultValue(optionId) {
     const option = chartOptionsConfig.find((opt) => opt.id === optionId);
     return option ? option.default : undefined;
+}
+
+/**
+ * Gets performance warning level for max points value
+ * @param {number|string} maxPoints - Max points value to check
+ * @returns {string|null} Warning level ("slow", "very-slow", "not-recommended") or null if no warning
+ */
+export function getMaxPointsWarningLevel(maxPoints) {
+    if (maxPoints === "all") {
+        return "not-recommended";
+    }
+
+    const numPoints = Number(maxPoints);
+    if (numPoints >= PERFORMANCE_THRESHOLDS.NOT_RECOMMENDED) {
+        return "not-recommended";
+    } else if (numPoints >= PERFORMANCE_THRESHOLDS.VERY_SLOW_WARNING) {
+        return "very-slow";
+    } else if (numPoints >= PERFORMANCE_THRESHOLDS.SLOW_WARNING) {
+        return "slow";
+    }
+
+    return null;
 }
 
 /**
@@ -230,38 +252,20 @@ export function isValidOptionValue(optionId, value) {
     }
 
     switch (option.type) {
-        case "select":
-            return Array.isArray(option.options) ? option.options.includes(value) : false;
-
-        case "toggle":
-            return typeof value === "boolean";
-
-        case "range":
+        case "range": {
             return typeof value === "number" && value >= (option.min || 0) && value <= (option.max || 1);
+        }
 
-        default:
+        case "select": {
+            return Array.isArray(option.options) ? option.options.includes(value) : false;
+        }
+
+        case "toggle": {
+            return typeof value === "boolean";
+        }
+
+        default: {
             return true;
+        }
     }
-}
-
-/**
- * Gets performance warning level for max points value
- * @param {number|string} maxPoints - Max points value to check
- * @returns {string|null} Warning level ("slow", "very-slow", "not-recommended") or null if no warning
- */
-export function getMaxPointsWarningLevel(maxPoints) {
-    if (maxPoints === "all") {
-        return "not-recommended";
-    }
-
-    const numPoints = Number(maxPoints);
-    if (numPoints >= PERFORMANCE_THRESHOLDS.NOT_RECOMMENDED) {
-        return "not-recommended";
-    } else if (numPoints >= PERFORMANCE_THRESHOLDS.VERY_SLOW_WARNING) {
-        return "very-slow";
-    } else if (numPoints >= PERFORMANCE_THRESHOLDS.SLOW_WARNING) {
-        return "slow";
-    }
-
-    return null;
 }

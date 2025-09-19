@@ -1,21 +1,21 @@
-import { DISTANCE_UNITS, convertDistanceUnits } from "./convertDistanceUnits.js";
-import { TEMPERATURE_UNITS, convertTemperatureUnits } from "./convertTemperatureUnits.js";
+import { convertDistanceUnits, DISTANCE_UNITS } from "./convertDistanceUnits.js";
+import { convertTemperatureUnits, TEMPERATURE_UNITS } from "./convertTemperatureUnits.js";
 
 /**
  * User unit preference storage keys
  * @readonly
  */
-const UNIT_STORAGE_KEYS = {
-        DISTANCE: "chartjs_distanceUnits",
-        TEMPERATURE: "chartjs_temperatureUnits",
-    },
-    /**
+const /**
      * Field categorization for unit conversion
      * @readonly
      */
     FIELD_CATEGORIES = {
         DISTANCE: ["distance", "altitude", "enhancedAltitude"],
         TEMPERATURE: ["temperature"],
+    },
+    UNIT_STORAGE_KEYS = {
+        DISTANCE: "chartjs_distanceUnits",
+        TEMPERATURE: "chartjs_temperatureUnits",
     };
 
 /**

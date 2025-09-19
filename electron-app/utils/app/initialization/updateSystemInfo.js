@@ -23,69 +23,12 @@ const DOM_SELECTORS = {
 let cachedSystemInfoItems = null;
 
 /**
- * Initializes and caches system info DOM elements
- * @returns {NodeList} Cached system info value elements
+ * Clears the cached DOM elements (useful for testing or DOM changes)
+ * @returns {void}
  */
-function initializeSystemInfoCache() {
-    if (cachedSystemInfoItems) {
-        return cachedSystemInfoItems;
-    }
-
-    cachedSystemInfoItems = document.querySelectorAll(DOM_SELECTORS.SYSTEM_INFO_VALUE);
-
-    // Validate expected DOM structure
-    if (cachedSystemInfoItems.length !== EXPECTED_INFO_FIELDS) {
-        console.warn(
-            `${LOG_PREFIX} Expected ${EXPECTED_INFO_FIELDS} ${DOM_SELECTORS.SYSTEM_INFO_VALUE} elements, ` +
-                `but found ${cachedSystemInfoItems.length}. ` +
-                "Check the HTML structure to ensure all system info fields are present."
-        );
-    }
-
-    return cachedSystemInfoItems;
-}
-
-/**
- * Validates system info object structure
- * @param {Object} info - System information object to validate
- * @returns {{isValid: boolean, missingFields?: string[]}} Validation result
- */
-function validateSystemInfo(info) {
-    if (!info || typeof info !== "object") {
-        return { isValid: false, missingFields: INFO_FIELD_ORDER };
-    }
-
-    const missingFields = INFO_FIELD_ORDER.filter(
-        (field) => /** @type {any} */ (info)[field] === undefined || /** @type {any} */ (info)[field] === null
-    );
-
-    if (missingFields.length > 0) {
-        console.warn(`${LOG_PREFIX} Missing system info fields:`, missingFields);
-    }
-
-    return {
-        isValid: true,
-        ...(missingFields.length > 0 ? { missingFields } : {}),
-    };
-}
-
-/**
- * Updates individual system info field in DOM
- * @param {Element} element - DOM element to update
- * @param {string} value - Value to set
- * @param {string} fieldName - Name of field for logging
- */
-function updateSystemInfoField(element, value, fieldName) {
-    if (!element) {
-        console.warn(`${LOG_PREFIX} Missing DOM element for field: ${fieldName}`);
-        return;
-    }
-
-    try {
-        element.textContent = value || "";
-    } catch (error) {
-        console.error(`${LOG_PREFIX} Error updating field ${fieldName}:`, error);
-    }
+export function clearSystemInfoCache() {
+    cachedSystemInfoItems = null;
+    console.log(`${LOG_PREFIX} DOM element cache cleared`);
 }
 
 /**
@@ -133,12 +76,12 @@ export function updateSystemInfo(info) {
         }
 
         // Update each field in the defined order
-        INFO_FIELD_ORDER.forEach((fieldName, index) => {
+        for (const [index, fieldName] of INFO_FIELD_ORDER.entries()) {
             if (index < systemInfoItems.length) {
                 const value = /** @type {any} */ (info)[fieldName];
                 updateSystemInfoField(/** @type {Element} */ (systemInfoItems[index]), value, fieldName);
             }
-        });
+        }
 
         console.log(`${LOG_PREFIX} System information updated successfully`);
         return true;
@@ -149,10 +92,67 @@ export function updateSystemInfo(info) {
 }
 
 /**
- * Clears the cached DOM elements (useful for testing or DOM changes)
- * @returns {void}
+ * Initializes and caches system info DOM elements
+ * @returns {NodeList} Cached system info value elements
  */
-export function clearSystemInfoCache() {
-    cachedSystemInfoItems = null;
-    console.log(`${LOG_PREFIX} DOM element cache cleared`);
+function initializeSystemInfoCache() {
+    if (cachedSystemInfoItems) {
+        return cachedSystemInfoItems;
+    }
+
+    cachedSystemInfoItems = document.querySelectorAll(DOM_SELECTORS.SYSTEM_INFO_VALUE);
+
+    // Validate expected DOM structure
+    if (cachedSystemInfoItems.length !== EXPECTED_INFO_FIELDS) {
+        console.warn(
+            `${LOG_PREFIX} Expected ${EXPECTED_INFO_FIELDS} ${DOM_SELECTORS.SYSTEM_INFO_VALUE} elements, ` +
+                `but found ${cachedSystemInfoItems.length}. ` +
+                "Check the HTML structure to ensure all system info fields are present."
+        );
+    }
+
+    return cachedSystemInfoItems;
+}
+
+/**
+ * Updates individual system info field in DOM
+ * @param {Element} element - DOM element to update
+ * @param {string} value - Value to set
+ * @param {string} fieldName - Name of field for logging
+ */
+function updateSystemInfoField(element, value, fieldName) {
+    if (!element) {
+        console.warn(`${LOG_PREFIX} Missing DOM element for field: ${fieldName}`);
+        return;
+    }
+
+    try {
+        element.textContent = value || "";
+    } catch (error) {
+        console.error(`${LOG_PREFIX} Error updating field ${fieldName}:`, error);
+    }
+}
+
+/**
+ * Validates system info object structure
+ * @param {Object} info - System information object to validate
+ * @returns {{isValid: boolean, missingFields?: string[]}} Validation result
+ */
+function validateSystemInfo(info) {
+    if (!info || typeof info !== "object") {
+        return { isValid: false, missingFields: INFO_FIELD_ORDER };
+    }
+
+    const missingFields = INFO_FIELD_ORDER.filter(
+        (field) => /** @type {any} */ (info)[field] === undefined || /** @type {any} */ (info)[field] === null
+    );
+
+    if (missingFields.length > 0) {
+        console.warn(`${LOG_PREFIX} Missing system info fields:`, missingFields);
+    }
+
+    return {
+        isValid: true,
+        ...(missingFields.length > 0 ? { missingFields } : {}),
+    };
 }

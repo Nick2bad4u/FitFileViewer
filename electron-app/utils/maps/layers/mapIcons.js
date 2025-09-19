@@ -7,13 +7,13 @@
  */
 
 /** @type {PointTuple} */
-const ICON_SIZE = [32, 32],
+const // Base path for asset URLs (ensure single trailing slash)
+    ASSET_BASE_PATH = "libs/assets/icons/",
     /** @type {PointTuple} */
     ICON_ANCHOR = [16, 32],
+    ICON_SIZE = [32, 32],
     /** @type {PointTuple} */
-    POPUP_ANCHOR = [0, -32],
-    // Base path for asset URLs (ensure single trailing slash)
-    ASSET_BASE_PATH = "libs/assets/icons/";
+    POPUP_ANCHOR = [0, -32];
 
 /**
  * Safely obtain the Leaflet global. If unavailable (e.g. during test without DOM), returns a no-op shim.
@@ -34,27 +34,27 @@ function getLeaflet() {
 const LRef = getLeaflet();
 
 /**
- * Creates a Leaflet icon for the start marker.
- * @returns {any} A Leaflet icon configured for the start marker.
- */
-export function createStartIcon() {
-    return LRef.icon({
-        iconUrl: `${ASSET_BASE_PATH}start-icon.png`,
-        iconSize: ICON_SIZE,
-        iconAnchor: ICON_ANCHOR,
-        popupAnchor: POPUP_ANCHOR,
-    });
-}
-
-/**
  * Creates a Leaflet icon for the end marker.
  * @returns {any} A Leaflet icon configured for the end marker.
  */
 export function createEndIcon() {
     return LRef.icon({
-        iconUrl: `${ASSET_BASE_PATH}end-icon.png`,
-        iconSize: ICON_SIZE,
         iconAnchor: ICON_ANCHOR,
+        iconSize: ICON_SIZE,
+        iconUrl: `${ASSET_BASE_PATH}end-icon.png`,
+        popupAnchor: POPUP_ANCHOR,
+    });
+}
+
+/**
+ * Creates a Leaflet icon for the start marker.
+ * @returns {any} A Leaflet icon configured for the start marker.
+ */
+export function createStartIcon() {
+    return LRef.icon({
+        iconAnchor: ICON_ANCHOR,
+        iconSize: ICON_SIZE,
+        iconUrl: `${ASSET_BASE_PATH}start-icon.png`,
         popupAnchor: POPUP_ANCHOR,
     });
 }

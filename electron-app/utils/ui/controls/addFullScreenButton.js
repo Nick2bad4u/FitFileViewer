@@ -15,69 +15,11 @@ import { addExitFullscreenOverlay } from "./addExitFullscreenOverlay.js";
 import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
 
 // Global reference to screenfull library
-const { screenfull } = window,
-    // Constants for better maintainability
+const // Constants for better maintainability
     FULLSCREEN_BUTTON_ID = "global-fullscreen-btn",
     FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper",
-    REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"];
-
-/**
- * Logs messages with context for fullscreen operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
- */
-function logWithContext(message, level = "info") {
-    const prefix = "[FullscreenButton]";
-    try {
-        switch (level) {
-            case "warn":
-                console.warn(`${prefix} ${message}`);
-                break;
-            case "error":
-                console.error(`${prefix} ${message}`);
-                break;
-            default:
-                console.log(`${prefix} ${message}`);
-        }
-    } catch {
-        // Silently fail if logging encounters an error
-    }
-}
-
-/**
- * Creates SVG icon for fullscreen enter state
- * @returns {string} SVG markup for enter fullscreen icon
- * @private
- */
-function createEnterFullscreenIcon() {
-    return `
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="https://www.w3.org/2000/svg" class="inline-svg">
-            <title>Enter Fullscreen</title>
-            <path d="M5 9V5H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 5H23V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M23 19V23H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 23H5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    `;
-}
-
-/**
- * Creates SVG icon for fullscreen exit state
- * @returns {string} SVG markup for exit fullscreen icon
- * @private
- */
-function createExitFullscreenIcon() {
-    return `
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="https://www.w3.org/2000/svg" class="inline-svg">
-            <title>Exit Fullscreen</title>
-            <path d="M9 5V9H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M23 9V5H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 23V19H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M5 19V23H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    `;
-}
+    REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"],
+    { screenfull } = globalThis;
 
 /**
  * Adds a global fullscreen toggle button to the application
@@ -127,8 +69,8 @@ export function addFullScreenButton() {
         // Add click handler with proper error handling
         btn.addEventListener("click", handleFullscreenToggle);
 
-        wrapper.appendChild(btn);
-        document.body.appendChild(wrapper);
+        wrapper.append(btn);
+        document.body.append(wrapper);
 
         logWithContext("Fullscreen button created successfully");
     } catch (error) {
@@ -137,67 +79,41 @@ export function addFullScreenButton() {
 }
 
 /**
- * Handles fullscreen toggle button click events
- * @param {Event} event - The click event
- * @private
+ * Alternative DOM setup function for backward compatibility
+ * Sets up fullscreen functionality when DOM content is loaded
+ *
+ * @returns {void}
+ *
+ * @example
+ * // Alternative setup method
+ * setupDOMContentLoaded();
+ *
+ * @public
+ * @since 1.0.0
+ * @deprecated Use setupFullscreenListeners() instead
  */
-function handleFullscreenToggle(event) {
+export function setupDOMContentLoaded() {
     try {
-        event.stopPropagation();
+        if (document.readyState === "loading") {
+            globalThis.addEventListener("DOMContentLoaded", () => {
+                const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
 
-        const activeContent = getActiveTabContent();
-        if (!activeContent) {
-            logWithContext("No active tab content found for fullscreen toggle", "warn");
-            return;
-        }
-
-        if (!screenfull || !screenfull.isEnabled) {
-            logWithContext("Screenfull not available for toggle operation", "warn");
-            return;
-        }
-
-        if (!screenfull.isFullscreen) {
-            screenfull.request(activeContent);
-            logWithContext(`Entering fullscreen for: ${activeContent.id}`);
+                if (hasRequiredElements) {
+                    addFullScreenButton();
+                    logWithContext("Legacy DOM setup: Fullscreen button initialized");
+                }
+            });
         } else {
-            screenfull.exit();
-            logWithContext("Exiting fullscreen mode");
+            // DOM already loaded
+            const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
+
+            if (hasRequiredElements) {
+                addFullScreenButton();
+                logWithContext("Legacy DOM setup: Fullscreen button initialized (immediate)");
+            }
         }
     } catch (error) {
-        logWithContext(`Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`, "error");
-    }
-}
-
-/**
- * Updates the fullscreen button icon and title based on current state
- * @param {HTMLElement} button - The fullscreen button element
- * @param {boolean} isFullscreen - Whether currently in fullscreen mode
- * @private
- */
-function updateButtonState(button, isFullscreen) {
-    try {
-        if (!button) {
-            logWithContext("Button element not found for state update", "warn");
-            return;
-        }
-
-        const icon = button.querySelector(".fullscreen-icon");
-        if (!icon) {
-            logWithContext("Fullscreen icon element not found", "warn");
-            return;
-        }
-
-        if (isFullscreen) {
-            button.title = "Exit Full Screen (F11)";
-            button.setAttribute("aria-label", "Exit full screen mode");
-            icon.innerHTML = createExitFullscreenIcon();
-        } else {
-            button.title = "Toggle Full Screen (F11)";
-            button.setAttribute("aria-label", "Enter full screen mode");
-            icon.innerHTML = createEnterFullscreenIcon();
-        }
-    } catch (error) {
-        logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(`Error in legacy DOM setup: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -225,11 +141,11 @@ export function setupFullscreenListeners() {
         screenfull.on("change", handleFullscreenStateChange);
 
         // Handle F11 key for fullscreen toggle
-        window.addEventListener("keydown", handleKeyboardShortcuts);
+        globalThis.addEventListener("keydown", handleKeyboardShortcuts);
 
         // Setup DOM content loaded handler
         if (document.readyState === "loading") {
-            window.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+            globalThis.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
         } else {
             handleDOMContentLoaded();
         }
@@ -237,6 +153,70 @@ export function setupFullscreenListeners() {
         logWithContext("Fullscreen listeners setup completed");
     } catch (error) {
         logWithContext(`Failed to setup fullscreen listeners: ${/** @type {any} */ (error).message}`, "error");
+    }
+}
+
+/**
+ * Creates SVG icon for fullscreen enter state
+ * @returns {string} SVG markup for enter fullscreen icon
+ * @private
+ */
+function createEnterFullscreenIcon() {
+    return `
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="https://www.w3.org/2000/svg" class="inline-svg">
+            <title>Enter Fullscreen</title>
+            <path d="M5 9V5H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 5H23V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 19V23H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 23H5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    `;
+}
+
+/**
+ * Creates SVG icon for fullscreen exit state
+ * @returns {string} SVG markup for exit fullscreen icon
+ * @private
+ */
+function createExitFullscreenIcon() {
+    return `
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="https://www.w3.org/2000/svg" class="inline-svg">
+            <title>Exit Fullscreen</title>
+            <path d="M9 5V9H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 9V5H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 23V19H23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 19V23H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    `;
+}
+
+/**
+ * Handles DOM content loaded initialization
+ * @private
+ */
+function handleDOMContentLoaded() {
+    try {
+        // Initialize Electron fullscreen state
+        if (globalThis.electronAPI && typeof globalThis.electronAPI.setFullScreen === "function") {
+            globalThis.electronAPI.setFullScreen(false);
+        }
+
+        // Check if required elements exist and add fullscreen button
+        const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
+
+        if (hasRequiredElements) {
+            addFullScreenButton();
+            logWithContext("DOM ready: Fullscreen button initialized");
+        } else {
+            logWithContext("DOM ready: No required content elements found", "warn");
+            for (const id of REQUIRED_CONTENT_IDS) {
+                if (!document.getElementById(id)) {
+                    logWithContext(`Missing element: ${id}`, "warn");
+                }
+            }
+        }
+    } catch (error) {
+        logWithContext(`Error during DOM content loaded: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -290,6 +270,38 @@ function handleFullscreenStateChange() {
 }
 
 /**
+ * Handles fullscreen toggle button click events
+ * @param {Event} event - The click event
+ * @private
+ */
+function handleFullscreenToggle(event) {
+    try {
+        event.stopPropagation();
+
+        const activeContent = getActiveTabContent();
+        if (!activeContent) {
+            logWithContext("No active tab content found for fullscreen toggle", "warn");
+            return;
+        }
+
+        if (!screenfull || !screenfull.isEnabled) {
+            logWithContext("Screenfull not available for toggle operation", "warn");
+            return;
+        }
+
+        if (screenfull.isFullscreen) {
+            screenfull.exit();
+            logWithContext("Exiting fullscreen mode");
+        } else {
+            screenfull.request(activeContent);
+            logWithContext(`Entering fullscreen for: ${activeContent.id}`);
+        }
+    } catch (error) {
+        logWithContext(`Failed to toggle fullscreen: ${/** @type {any} */ (error).message}`, "error");
+    }
+}
+
+/**
  * Handles keyboard shortcuts for fullscreen functionality
  * @param {KeyboardEvent} event - The keyboard event
  * @private
@@ -310,12 +322,12 @@ function handleKeyboardShortcuts(event) {
                 return;
             }
 
-            if (!screenfull.isFullscreen) {
-                screenfull.request(activeContent);
-                logWithContext(`F11: Entering fullscreen for: ${activeContent.id}`);
-            } else {
+            if (screenfull.isFullscreen) {
                 screenfull.exit();
                 logWithContext("F11: Exiting fullscreen mode");
+            } else {
+                screenfull.request(activeContent);
+                logWithContext(`F11: Entering fullscreen for: ${activeContent.id}`);
             }
         }
     } catch (error) {
@@ -324,70 +336,61 @@ function handleKeyboardShortcuts(event) {
 }
 
 /**
- * Handles DOM content loaded initialization
+ * Logs messages with context for fullscreen operations
+ * @param {string} message - The message to log
+ * @param {string} level - Log level ('info', 'warn', 'error')
  * @private
  */
-function handleDOMContentLoaded() {
+function logWithContext(message, level = "info") {
+    const prefix = "[FullscreenButton]";
     try {
-        // Initialize Electron fullscreen state
-        if (window.electronAPI && typeof window.electronAPI.setFullScreen === "function") {
-            window.electronAPI.setFullScreen(false);
+        switch (level) {
+            case "error": {
+                console.error(`${prefix} ${message}`);
+                break;
+            }
+            case "warn": {
+                console.warn(`${prefix} ${message}`);
+                break;
+            }
+            default: {
+                console.log(`${prefix} ${message}`);
+            }
         }
-
-        // Check if required elements exist and add fullscreen button
-        const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
-
-        if (hasRequiredElements) {
-            addFullScreenButton();
-            logWithContext("DOM ready: Fullscreen button initialized");
-        } else {
-            logWithContext("DOM ready: No required content elements found", "warn");
-            REQUIRED_CONTENT_IDS.forEach((id) => {
-                if (!document.getElementById(id)) {
-                    logWithContext(`Missing element: ${id}`, "warn");
-                }
-            });
-        }
-    } catch (error) {
-        logWithContext(`Error during DOM content loaded: ${/** @type {any} */ (error).message}`, "error");
+    } catch {
+        // Silently fail if logging encounters an error
     }
 }
 
 /**
- * Alternative DOM setup function for backward compatibility
- * Sets up fullscreen functionality when DOM content is loaded
- *
- * @returns {void}
- *
- * @example
- * // Alternative setup method
- * setupDOMContentLoaded();
- *
- * @public
- * @since 1.0.0
- * @deprecated Use setupFullscreenListeners() instead
+ * Updates the fullscreen button icon and title based on current state
+ * @param {HTMLElement} button - The fullscreen button element
+ * @param {boolean} isFullscreen - Whether currently in fullscreen mode
+ * @private
  */
-export function setupDOMContentLoaded() {
+function updateButtonState(button, isFullscreen) {
     try {
-        if (document.readyState === "loading") {
-            window.addEventListener("DOMContentLoaded", () => {
-                const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
+        if (!button) {
+            logWithContext("Button element not found for state update", "warn");
+            return;
+        }
 
-                if (hasRequiredElements) {
-                    addFullScreenButton();
-                    logWithContext("Legacy DOM setup: Fullscreen button initialized");
-                }
-            });
+        const icon = button.querySelector(".fullscreen-icon");
+        if (!icon) {
+            logWithContext("Fullscreen icon element not found", "warn");
+            return;
+        }
+
+        if (isFullscreen) {
+            button.title = "Exit Full Screen (F11)";
+            button.setAttribute("aria-label", "Exit full screen mode");
+            icon.innerHTML = createExitFullscreenIcon();
         } else {
-            // DOM already loaded
-            const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
-
-            if (hasRequiredElements) {
-                addFullScreenButton();
-                logWithContext("Legacy DOM setup: Fullscreen button initialized (immediate)");
-            }
+            button.title = "Toggle Full Screen (F11)";
+            button.setAttribute("aria-label", "Enter full screen mode");
+            icon.innerHTML = createEnterFullscreenIcon();
         }
     } catch (error) {
-        logWithContext(`Error in legacy DOM setup: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
     }
 }

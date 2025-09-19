@@ -33,10 +33,10 @@ class ComputedStateManager {
         this.computedValues.set(key, {
             computeFn,
             deps,
-            value: undefined,
+            error: null,
             isValid: false,
             lastComputed: null,
-            error: null,
+            value: undefined,
         });
 
         this.dependencies.set(key, deps);
@@ -60,69 +60,26 @@ class ComputedStateManager {
     }
 
     /**
-     * Remove a computed value
-     * @param {string} key - Key of computed value to remove
+     * Clean up all computed values
      */
-    removeComputed(key) {
-        if (!this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
-            return;
-        }
+    cleanup() {
+        console.log("[ComputedState] Cleaning up all computed values...");
 
-        // Clean up subscriptions
-        const subscriptions = this.subscriptions.get(key) || [];
-        subscriptions.forEach(
-            /** @param {*} unsubscribe */ (unsubscribe) => {
-                if (typeof unsubscribe === "function") {
-                    unsubscribe();
+        // Clean up all subscriptions
+        for (const subscriptions of this.subscriptions) {
+            for (const unsubscribe of subscriptions) {
+                    if (typeof unsubscribe === "function") {
+                        unsubscribe();
+                    }
                 }
-            }
-        );
-
-        // Remove from all maps
-        this.computedValues.delete(key);
-        this.dependencies.delete(key);
-        this.subscriptions.delete(key);
-        this.isComputing.delete(key);
-
-        console.log(`[ComputedState] Removed computed value "${key}"`);
-    }
-
-    /**
-     * Get a computed value
-     * @param {string} key - Key of computed value
-     * @returns {*} Computed value
-     */
-    getComputed(key) {
-        if (!this.computedValues.has(key)) {
-            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
-            return undefined;
+            
         }
 
-        const computed = this.computedValues.get(key);
-
-        // If value is invalid, recompute it
-        if (!computed.isValid || computed.error) {
-            this.computeValue(key);
-        }
-
-        return computed.value;
-    }
-
-    /**
-     * Invalidate a computed value (mark it for recomputation)
-     * @param {string} key - Key of computed value to invalidate
-     */
-    invalidateComputed(key) {
-        if (!this.computedValues.has(key)) {
-            return;
-        }
-
-        const computed = this.computedValues.get(key);
-        computed.isValid = false;
-        computed.error = null;
-
-        console.log(`[ComputedState] Invalidated computed value "${key}"`);
+        // Clear all maps
+        this.computedValues.clear();
+        this.dependencies.clear();
+        this.subscriptions.clear();
+        this.isComputing.clear();
     }
 
     /**
@@ -144,11 +101,11 @@ class ComputedStateManager {
         this.isComputing.add(key);
 
         try {
-            const state = getState(""), // Pass empty string to get root state
-                startTime = performance.now(),
+            const startTime = performance.now(),
+                duration = performance.now() - startTime,
+                state = getState(""), // Pass empty string to get root state
                 // Call the compute function with current state
-                newValue = computed.computeFn(state),
-                duration = performance.now() - startTime;
+                newValue = computed.computeFn(state);
 
             // Update the computed value
             computed.value = newValue;
@@ -179,29 +136,38 @@ class ComputedStateManager {
         /** @type {Record<string, any>} */
         const result = {};
 
-        this.computedValues.forEach((computed, key) => {
+        for (const [key, computed] of this.computedValues.entries()) {
             result[key] = {
-                value: computed.value,
-                isValid: computed.isValid,
-                lastComputed: computed.lastComputed,
                 dependencies: this.dependencies.get(key),
                 error: computed.error,
+                isValid: computed.isValid,
+                lastComputed: computed.lastComputed,
+                value: computed.value,
             };
-        });
+        }
 
         return result;
     }
 
     /**
-     * Force recomputation of all computed values
+     * Get a computed value
+     * @param {string} key - Key of computed value
+     * @returns {*} Computed value
      */
-    recomputeAll() {
-        console.log("[ComputedState] Recomputing all computed values...");
+    getComputed(key) {
+        if (!this.computedValues.has(key)) {
+            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
+            return;
+        }
 
-        this.computedValues.forEach((_, key) => {
-            this.invalidateComputed(key);
+        const computed = this.computedValues.get(key);
+
+        // If value is invalid, recompute it
+        if (!computed.isValid || computed.error) {
             this.computeValue(key);
-        });
+        }
+
+        return computed.value;
     }
 
     /**
@@ -212,35 +178,67 @@ class ComputedStateManager {
         /** @type {Record<string, any>} */
         const graph = {};
 
-        this.dependencies.forEach((deps, key) => {
+        for (const [key, deps] of this.dependencies.entries()) {
             graph[key] = deps;
-        });
+        }
 
         return graph;
     }
 
     /**
-     * Clean up all computed values
+     * Invalidate a computed value (mark it for recomputation)
+     * @param {string} key - Key of computed value to invalidate
      */
-    cleanup() {
-        console.log("[ComputedState] Cleaning up all computed values...");
+    invalidateComputed(key) {
+        if (!this.computedValues.has(key)) {
+            return;
+        }
 
-        // Clean up all subscriptions
-        this.subscriptions.forEach((subscriptions) => {
-            subscriptions.forEach(
-                /** @param {*} unsubscribe */ (unsubscribe) => {
-                    if (typeof unsubscribe === "function") {
-                        unsubscribe();
-                    }
+        const computed = this.computedValues.get(key);
+        computed.isValid = false;
+        computed.error = null;
+
+        console.log(`[ComputedState] Invalidated computed value "${key}"`);
+    }
+
+    /**
+     * Force recomputation of all computed values
+     */
+    recomputeAll() {
+        console.log("[ComputedState] Recomputing all computed values...");
+
+        for (const [key, _] of this.computedValues.entries()) {
+            this.invalidateComputed(key);
+            this.computeValue(key);
+        }
+    }
+
+    /**
+     * Remove a computed value
+     * @param {string} key - Key of computed value to remove
+     */
+    removeComputed(key) {
+        if (!this.computedValues.has(key)) {
+            console.warn(`[ComputedState] Computed value "${key}" does not exist`);
+            return;
+        }
+
+        // Clean up subscriptions
+        const subscriptions = this.subscriptions.get(key) || [];
+        for (const unsubscribe of subscriptions) {
+                if (typeof unsubscribe === "function") {
+                    unsubscribe();
                 }
-            );
-        });
+            }
+        
 
-        // Clear all maps
-        this.computedValues.clear();
-        this.dependencies.clear();
-        this.subscriptions.clear();
-        this.isComputing.clear();
+        // Remove from all maps
+        this.computedValues.delete(key);
+        this.dependencies.delete(key);
+        this.subscriptions.delete(key);
+        this.isComputing.delete(key);
+
+        console.log(`[ComputedState] Removed computed value "${key}"`);
     }
 }
 
@@ -259,6 +257,48 @@ export function addComputed(key, computeFn, deps = []) {
 }
 
 /**
+ * Cleanup common computed values
+ */
+export function cleanupCommonComputedValues() {
+    const commonKeys = [
+        "isFileLoaded",
+        "isAppReady",
+        "hasChartData",
+        "hasMapData",
+        "summaryData",
+        "performanceMetrics",
+        "themeInfo",
+        "uiStateSummary",
+    ];
+
+    for (const key of commonKeys) removeComputed(key);
+    console.log("[ComputedState] Common computed values cleaned up");
+}
+
+/**
+ * Create a reactive computed value that can be used with property descriptors
+ * @param {string} key - Computed value key
+ * @param {Function} computeFn - Compute function
+ * @param {Array<string>} deps - Dependencies
+ * @returns {Object} Property descriptor
+ */
+export function createReactiveComputed(key, computeFn, deps = []) {
+    addComputed(key, computeFn, deps);
+
+    return {
+        configurable: true,
+        enumerable: true,
+        get() {
+            return getComputed(key);
+        },
+    };
+}
+
+/**
+ * Predefined computed values for FitFileViewer
+ */
+
+/**
  * Get a computed value (convenience function)
  * @param {string} key - Key of computed value
  * @returns {*} Computed value
@@ -266,18 +306,6 @@ export function addComputed(key, computeFn, deps = []) {
 export function getComputed(key) {
     return computedStateManager.getComputed(key);
 }
-
-/**
- * Remove a computed value (convenience function)
- * @param {string} key - Key of computed value to remove
- */
-export function removeComputed(key) {
-    return computedStateManager.removeComputed(key);
-}
-
-/**
- * Predefined computed values for FitFileViewer
- */
 
 /**
  * Initialize common computed values for the FitFileViewer application
@@ -336,16 +364,16 @@ export function initializeCommonComputedValues() {
             }
 
             return {
-                totalTime: session.totalElapsedTime,
-                totalDistance: session.totalDistance,
-                avgSpeed: session.avgSpeed,
-                maxSpeed: session.maxSpeed,
                 avgHeartRate: session.avgHeartRate,
-                maxHeartRate: session.maxHeartRate,
                 avgPower: session.avgPower,
+                avgSpeed: session.avgSpeed,
+                maxHeartRate: session.maxHeartRate,
                 maxPower: session.maxPower,
+                maxSpeed: session.maxSpeed,
                 totalAscent: session.totalAscent,
                 totalDescent: session.totalDescent,
+                totalDistance: session.totalDistance,
+                totalTime: session.totalElapsedTime,
             };
         },
         ["globalData.sessionMesgs"]
@@ -361,10 +389,10 @@ export function initializeCommonComputedValues() {
             }
 
             return {
-                uptime: Date.now() - startTime,
                 isFileLoaded: Boolean(state.globalData && Object.keys(state.globalData).length > 0),
-                tabsEnabled: state.ui?.tabs || {},
                 lastActivity: state.system?.lastActivity || startTime,
+                tabsEnabled: state.ui?.tabs || {},
+                uptime: Date.now() - startTime,
             };
         },
         ["app.startTime", "globalData", "ui.tabs", "system.lastActivity"]
@@ -374,22 +402,22 @@ export function initializeCommonComputedValues() {
     addComputed(
         "themeInfo",
         /** @param {*} state */ (state) => {
-            const theme = state.settings?.theme || "dark",
-                mapTheme = state.settings?.mapTheme || true;
+            const mapTheme = state.settings?.mapTheme || true,
+                theme = state.settings?.theme || "dark";
 
             return {
                 currentTheme: theme,
-                mapThemeInverted: mapTheme,
                 isDarkTheme:
                     theme === "dark" ||
                     (theme === "auto" &&
-                        window.matchMedia &&
-                        window.matchMedia("(prefers-color-scheme: dark)").matches),
+                        globalThis.matchMedia &&
+                        globalThis.matchMedia("(prefers-color-scheme: dark)").matches),
                 isLightTheme:
                     theme === "light" ||
                     (theme === "auto" &&
-                        window.matchMedia &&
-                        !window.matchMedia("(prefers-color-scheme: dark)").matches),
+                        globalThis.matchMedia &&
+                        !globalThis.matchMedia("(prefers-color-scheme: dark)").matches),
+                mapThemeInverted: mapTheme,
             };
         },
         ["settings.theme", "settings.mapTheme"]
@@ -400,9 +428,9 @@ export function initializeCommonComputedValues() {
         "uiStateSummary",
         /** @param {*} state */ (state) => ({
             activeTab: state.ui?.activeTab || "summary",
+            controlsEnabled: state.ui?.controlsEnabled || false,
             loadingState: state.ui?.loading || false,
             notificationCount: state.ui?.notifications?.length || 0,
-            controlsEnabled: state.ui?.controlsEnabled || false,
             tabsVisible: state.ui?.tabsVisible || false,
         }),
         ["ui.activeTab", "ui.loading", "ui.notifications", "ui.controlsEnabled", "ui.tabsVisible"]
@@ -412,39 +440,9 @@ export function initializeCommonComputedValues() {
 }
 
 /**
- * Cleanup common computed values
+ * Remove a computed value (convenience function)
+ * @param {string} key - Key of computed value to remove
  */
-export function cleanupCommonComputedValues() {
-    const commonKeys = [
-        "isFileLoaded",
-        "isAppReady",
-        "hasChartData",
-        "hasMapData",
-        "summaryData",
-        "performanceMetrics",
-        "themeInfo",
-        "uiStateSummary",
-    ];
-
-    commonKeys.forEach((key) => removeComputed(key));
-    console.log("[ComputedState] Common computed values cleaned up");
-}
-
-/**
- * Create a reactive computed value that can be used with property descriptors
- * @param {string} key - Computed value key
- * @param {Function} computeFn - Compute function
- * @param {Array<string>} deps - Dependencies
- * @returns {Object} Property descriptor
- */
-export function createReactiveComputed(key, computeFn, deps = []) {
-    addComputed(key, computeFn, deps);
-
-    return {
-        get() {
-            return getComputed(key);
-        },
-        enumerable: true,
-        configurable: true,
-    };
+export function removeComputed(key) {
+    return computedStateManager.removeComputed(key);
 }

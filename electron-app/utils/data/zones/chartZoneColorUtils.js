@@ -48,78 +48,6 @@ export const DEFAULT_HR_ZONE_COLORS = getDefaultZoneColors("hr");
 export const DEFAULT_POWER_ZONE_COLORS = getDefaultZoneColors("power");
 
 /**
- * Gets the saved color for a specific zone or returns default
- * @param {string} zoneType - "hr" or "power"
- * @param {number} zoneIndex - 0-based zone index
- * @returns {string} Hex color code
- */
-export function getZoneColor(zoneType, zoneIndex) {
-    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`,
-        savedColor = localStorage.getItem(storageKey);
-
-    if (savedColor) {
-        return savedColor;
-    }
-
-    // Return default color
-    const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
-    return defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length] || "#808080";
-}
-
-/**
- * Saves a zone color to localStorage
- * @param {string} zoneType - "hr" or "power"
- * @param {number} zoneIndex - 0-based zone index
- * @param {string} color - Hex color code
- */
-export function saveZoneColor(zoneType, zoneIndex, color) {
-    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
-    localStorage.setItem(storageKey, color);
-}
-
-/**
- * Gets an array of colors for all zones of a given type
- * @param {string} zoneType - "hr" or "power"
- * @param {number} zoneCount - Number of zones
- * @returns {string[]} Array of hex color codes
- */
-export function getZoneColors(zoneType, zoneCount) {
-    const colors = [];
-    for (let i = 0; i < zoneCount; i++) {
-        colors.push(getZoneColor(zoneType, i));
-    }
-    return colors;
-}
-
-/**
- * Resets all zone colors to defaults
- * @param {string} zoneType - "hr" or "power"
- * @param {number} zoneCount - Number of zones to reset
- */
-export function resetZoneColors(zoneType, zoneCount) {
-    const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
-
-    for (let i = 0; i < zoneCount; i++) {
-        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length] || "#808080";
-        saveZoneColor(zoneType, i, defaultColor);
-    }
-}
-
-/**
- * Determines zone type from field name
- * @param {string} field - Field name (e.g., zone chart identifiers)
- * @returns {string|null} "hr", "power", or null if not a zone field
- */
-export function getZoneTypeFromField(field) {
-    if (field.includes("hr_zone") || field.includes("heart-rate")) {
-        return "hr";
-    } else if (field.includes("power_zone") || field.includes("power-zone")) {
-        return "power";
-    }
-    return null;
-}
-
-/**
  * Applies zone colors to zone data objects
  * @param {ZoneData[]} zoneData - Array of zone data objects
  * @param {string} zoneType - "hr" or "power"
@@ -143,53 +71,6 @@ export function applyZoneColors(zoneData, zoneType) {
 }
 
 /**
- * Gets zone colors for chart rendering based on color scheme
- * @param {string} zoneType - "hr" or "power"
- * @param {number} zoneCount - Number of zones
- * @param {string} colorScheme - "classic", "vibrant", "monochrome", or "custom"
- * @returns {string[]} Array of colors for chart use
- */
-export function getChartZoneColors(zoneType, zoneCount, colorScheme = "custom") {
-    if (colorScheme === "custom") {
-        // Use custom colors from localStorage or defaults
-        return getZoneColors(zoneType, zoneCount);
-    }
-
-    // Use predefined color scheme
-    const schemes = /** @type {ColorSchemes} */ (chartColorSchemes);
-    if (schemes[colorScheme] && schemes[colorScheme][zoneType]) {
-        const schemeColors = schemes[colorScheme][zoneType],
-            colors = [];
-        for (let i = 0; i < zoneCount; i++) {
-            colors.push(schemeColors[i] || schemeColors[i % schemeColors.length] || "#808080");
-        }
-        return colors;
-    }
-
-    // Fallback to custom colors
-    return getZoneColors(zoneType, zoneCount);
-}
-
-/**
- * Gets colors for display in the color picker UI based on the selected scheme
- * @param {string} zoneType - "hr" or "power"
- * @param {number} zoneCount - Number of zones
- * @param {string} colorScheme - "classic", "vibrant", "monochrome", or "custom"
- * @returns {string[]} Array of colors for UI display
- */
-export function getDisplayZoneColors(zoneType, zoneCount, colorScheme = "custom") {
-    return getChartZoneColors(zoneType, zoneCount, colorScheme);
-}
-
-/**
- * Gets all predefined color schemes
- * @returns {Object} Object containing all color schemes
- */
-export function getColorSchemes() {
-    return chartColorSchemes;
-}
-
-/**
  * Gets the saved color for a specific zone and chart type or returns default
  * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
  * @param {number} zoneIndex - 0-based zone index
@@ -209,17 +90,6 @@ export function getChartSpecificZoneColor(chartField, zoneIndex) {
 }
 
 /**
- * Saves a zone color for a specific chart type to localStorage
- * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
- * @param {number} zoneIndex - 0-based zone index
- * @param {string} color - Hex color code
- */
-export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
-    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
-    localStorage.setItem(storageKey, color);
-}
-
-/**
  * Gets an array of colors for all zones of a specific chart type
  * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
  * @param {number} zoneCount - Number of zones
@@ -231,6 +101,116 @@ export function getChartSpecificZoneColors(chartField, zoneCount) {
         colors.push(getChartSpecificZoneColor(chartField, i));
     }
     return colors;
+}
+
+/**
+ * Gets zone colors for chart rendering based on color scheme
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneCount - Number of zones
+ * @param {string} colorScheme - "classic", "vibrant", "monochrome", or "custom"
+ * @returns {string[]} Array of colors for chart use
+ */
+export function getChartZoneColors(zoneType, zoneCount, colorScheme = "custom") {
+    if (colorScheme === "custom") {
+        // Use custom colors from localStorage or defaults
+        return getZoneColors(zoneType, zoneCount);
+    }
+
+    // Use predefined color scheme
+    const schemes = /** @type {ColorSchemes} */ (chartColorSchemes);
+    if (schemes[colorScheme] && schemes[colorScheme][zoneType]) {
+        const colors = [],
+            schemeColors = schemes[colorScheme][zoneType];
+        for (let i = 0; i < zoneCount; i++) {
+            colors.push(schemeColors[i] || schemeColors[i % schemeColors.length] || "#808080");
+        }
+        return colors;
+    }
+
+    // Fallback to custom colors
+    return getZoneColors(zoneType, zoneCount);
+}
+
+/**
+ * Gets all predefined color schemes
+ * @returns {Object} Object containing all color schemes
+ */
+export function getColorSchemes() {
+    return chartColorSchemes;
+}
+
+/**
+ * Gets colors for display in the color picker UI based on the selected scheme
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneCount - Number of zones
+ * @param {string} colorScheme - "classic", "vibrant", "monochrome", or "custom"
+ * @returns {string[]} Array of colors for UI display
+ */
+export function getDisplayZoneColors(zoneType, zoneCount, colorScheme = "custom") {
+    return getChartZoneColors(zoneType, zoneCount, colorScheme);
+}
+
+/**
+ * Gets the saved color for a specific zone or returns default
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneIndex - 0-based zone index
+ * @returns {string} Hex color code
+ */
+export function getZoneColor(zoneType, zoneIndex) {
+    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`,
+        savedColor = localStorage.getItem(storageKey);
+
+    if (savedColor) {
+        return savedColor;
+    }
+
+    // Return default color
+    const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
+    return defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length] || "#808080";
+}
+
+/**
+ * Gets an array of colors for all zones of a given type
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneCount - Number of zones
+ * @returns {string[]} Array of hex color codes
+ */
+export function getZoneColors(zoneType, zoneCount) {
+    const colors = [];
+    for (let i = 0; i < zoneCount; i++) {
+        colors.push(getZoneColor(zoneType, i));
+    }
+    return colors;
+}
+
+/**
+ * Determines zone type from field name
+ * @param {string} field - Field name (e.g., zone chart identifiers)
+ * @returns {string|null} "hr", "power", or null if not a zone field
+ */
+export function getZoneTypeFromField(field) {
+    if (field.includes("hr_zone") || field.includes("heart-rate")) {
+        return "hr";
+    } else if (field.includes("power_zone") || field.includes("power-zone")) {
+        return "power";
+    }
+    return null;
+}
+
+/**
+ * Checks if a chart field has custom colors set
+ * @param {string} chartField - Full chart field name
+ * @param {number} zoneCount - Number of zones
+ * @returns {boolean} True if any custom colors are set
+ */
+export function hasChartSpecificColors(chartField, zoneCount) {
+    for (let i = 0; i < zoneCount; i++) {
+        const storageKey = `chartjs_${chartField}_zone_${i + 1}_color`;
+        if (localStorage.getItem(storageKey)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -252,17 +232,37 @@ export function resetChartSpecificZoneColors(chartField, zoneCount) {
 }
 
 /**
- * Checks if a chart field has custom colors set
- * @param {string} chartField - Full chart field name
- * @param {number} zoneCount - Number of zones
- * @returns {boolean} True if any custom colors are set
+ * Resets all zone colors to defaults
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneCount - Number of zones to reset
  */
-export function hasChartSpecificColors(chartField, zoneCount) {
+export function resetZoneColors(zoneType, zoneCount) {
+    const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
+
     for (let i = 0; i < zoneCount; i++) {
-        const storageKey = `chartjs_${chartField}_zone_${i + 1}_color`;
-        if (localStorage.getItem(storageKey)) {
-            return true;
-        }
+        const defaultColor = defaultColors[i] || defaultColors[i % defaultColors.length] || "#808080";
+        saveZoneColor(zoneType, i, defaultColor);
     }
-    return false;
+}
+
+/**
+ * Saves a zone color for a specific chart type to localStorage
+ * @param {string} chartField - Full chart field name (e.g., "hr_zone_doughnut", "power_lap_zone_stacked")
+ * @param {number} zoneIndex - 0-based zone index
+ * @param {string} color - Hex color code
+ */
+export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
+    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
+    localStorage.setItem(storageKey, color);
+}
+
+/**
+ * Saves a zone color to localStorage
+ * @param {string} zoneType - "hr" or "power"
+ * @param {number} zoneIndex - 0-based zone index
+ * @param {string} color - Hex color code
+ */
+export function saveZoneColor(zoneType, zoneIndex, color) {
+    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
+    localStorage.setItem(storageKey, color);
 }

@@ -16,25 +16,25 @@ export async function loadSingleOverlayFile(file) {
             try {
                 arrayBuffer = await new Response(file).arrayBuffer();
             } catch {
-                // ignore and fall through to FileReader
+                // Ignore and fall through to FileReader
             }
         }
         if (!arrayBuffer) {
             arrayBuffer = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = (event) => resolve(/** @type {any} */(event.target)?.result);
+                reader.addEventListener('load', (event) => resolve(/** @type {any} */(event.target)?.result));
                 reader.onerror = () => reject(new Error("Failed to read file"));
                 reader.readAsArrayBuffer(file);
             });
         }
 
-        if (!arrayBuffer || !window.electronAPI?.decodeFitFile) {
-            return { success: false, error: "No file data or decoder not available" };
+        if (!arrayBuffer || !globalThis.electronAPI?.decodeFitFile) {
+            return { error: "No file data or decoder not available", success: false };
         }
 
-        const fitData = await window.electronAPI.decodeFitFile(/** @type {ArrayBuffer} */(arrayBuffer));
+        const fitData = await globalThis.electronAPI.decodeFitFile(/** @type {ArrayBuffer} */(arrayBuffer));
         if (!fitData || fitData.error) {
-            return { success: false, error: fitData?.error || "Failed to parse FIT file" };
+            return { error: fitData?.error || "Failed to parse FIT file", success: false };
         }
 
         // Validate that file has location data
@@ -45,13 +45,13 @@ export async function loadSingleOverlayFile(file) {
             : 0;
 
         if (!Array.isArray(fitData.recordMesgs) || fitData.recordMesgs.length === 0 || validLocationCount === 0) {
-            return { success: false, error: "No valid location data found in file" };
+            return { error: "No valid location data found in file", success: false };
         }
 
-        return { success: true, data: fitData };
+        return { data: fitData, success: true };
     } catch (error) {
         console.error("[mapActionButtons] Error processing file:", file.name, error);
         const anyErr = /** @type {any} */ (error);
-        return { success: false, error: anyErr?.message || "Unknown error processing file" };
+        return { error: anyErr?.message || "Unknown error processing file", success: false };
     }
 }

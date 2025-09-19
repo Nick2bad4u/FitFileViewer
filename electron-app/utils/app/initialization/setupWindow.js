@@ -3,12 +3,26 @@
  * Modernized to use centralized state management and remove hardcoded logic
  */
 
-import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { chartTabIntegration } from "../../charts/core/chartTabIntegration.js";
 import { setupTheme } from "../../theming/core/setupTheme.js";
 import { applyTheme, listenForThemeChange } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
+
+/**
+ * Clean up resources on window close
+ */
+export function cleanup() {
+    try {
+        chartStateManager.cleanup();
+        tabStateManager.cleanup();
+        chartTabIntegration.cleanup();
+        console.log("[setupWindow] Cleanup completed");
+    } catch (error) {
+        console.error("[setupWindow] Cleanup failed:", error);
+    }
+}
 
 /**
  * Initialize the application window with modern state management
@@ -36,19 +50,5 @@ export async function setupWindow() {
         console.error("[setupWindow] Initialization failed:", error);
         showNotification("Application initialization failed", "error", 5000);
         throw error;
-    }
-}
-
-/**
- * Clean up resources on window close
- */
-export function cleanup() {
-    try {
-        chartStateManager.cleanup();
-        tabStateManager.cleanup();
-        chartTabIntegration.cleanup();
-        console.log("[setupWindow] Cleanup completed");
-    } catch (error) {
-        console.error("[setupWindow] Cleanup failed:", error);
     }
 }

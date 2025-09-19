@@ -1,9 +1,9 @@
-import { getThemeConfig } from "../../theming/core/theme.js";
-import { formatHeight } from "../../formatting/formatters/formatHeight.js";
-import { formatWeight } from "../../formatting/formatters/formatWeight.js";
-import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
-import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
 import { formatCapitalize } from "../../formatting/display/formatCapitalize.js";
+import { formatHeight } from "../../formatting/formatters/formatHeight.js";
+import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
+import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
+import { formatWeight } from "../../formatting/formatters/formatWeight.js";
+import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * @typedef {Object} UserProfileData
@@ -97,15 +97,15 @@ import { formatCapitalize } from "../../formatting/display/formatCapitalize.js";
 export function createUserDeviceInfoBox(container) {
     try {
         /** @type {UserProfileData} */
-        const userProfile = /** @type {any} */ (window).globalData?.userProfileMesgs?.[0] || {},
-            /** @type {DeviceInfo[]} */
-            deviceInfos = /** @type {any} */ (window).globalData?.deviceInfoMesgs || [],
+        const /** @type {DeviceInfo[]} */
+            deviceInfos = /** @type {any} */ (globalThis).globalData?.deviceInfoMesgs || [],
+            infoBox = document.createElement("div"),
             // Get theme configuration using the established theme system
             /** @type {ThemeConfig} */
             themeConfig = /** @type {ThemeConfig} */ (getThemeConfig()),
+            userProfile = /** @type {any} */ (globalThis).globalData?.userProfileMesgs?.[0] || {},
             /** @type {ThemeColors} */
-            { colors } = themeConfig, // Create info box container with theme-aware styling and hover effects
-            infoBox = document.createElement("div");
+            { colors } = themeConfig; // Create info box container with theme-aware styling and hover effects
         infoBox.className = "user-device-info-box chart-info-section";
         infoBox.style.cssText = `
             border: 2px solid ${colors.border};
@@ -153,7 +153,7 @@ export function createUserDeviceInfoBox(container) {
             z-index: -1;
             transition: opacity 0.4s ease;
         `;
-        infoBox.appendChild(glowOverlay);
+        infoBox.append(glowOverlay);
 
         infoBox.addEventListener("mouseenter", () => {
             glowOverlay.style.opacity = "0.3";
@@ -290,7 +290,7 @@ export function createUserDeviceInfoBox(container) {
                     <div style="display: flex; flex-wrap: wrap; gap: 12px;">
             `;
 
-            sensors.forEach((sensor) => {
+            for (const sensor of sensors) {
                 if (sensor.manufacturer || sensor.garminProduct) {
                     deviceHtml += `
                         <div style="
@@ -334,7 +334,7 @@ export function createUserDeviceInfoBox(container) {
                         </div>
                     `;
                 }
-            });
+            }
 
             deviceHtml += `
                     </div>
@@ -362,11 +362,11 @@ export function createUserDeviceInfoBox(container) {
         deviceSection.innerHTML = deviceHtml;
 
         // Add sections to info box
-        infoBox.appendChild(userSection);
-        infoBox.appendChild(deviceSection);
+        infoBox.append(userSection);
+        infoBox.append(deviceSection);
 
         // Add info box to container
-        container.appendChild(infoBox);
+        container.append(infoBox);
 
         console.log("[ChartJS] User and device info box created with theme:", themeConfig.name || "default");
     } catch (error) {

@@ -1,13 +1,6 @@
 // Product ID mappings by manufacturer
 
 export const dataAntProductIds = {
-    // Favero Electronics products
-    263: {
-        12: "assioma_duo",
-        13: "assioma_uno",
-        // Add more Favero products as discovered
-    },
-
     // Garmin products (ID: 1)
     1: {
         1: "hrm1",
@@ -456,18 +449,18 @@ export const dataAntProductIds = {
         4759: "instinct3_solar_50mm",
         4775: "tactix8_amoled",
         4776: "tactix8_solar",
-        10007: "sdm4",
-        10014: "edge_remote",
-        20533: "tacx_training_app_win",
-        20534: "tacx_training_app_mac",
-        20565: "tacx_training_app_mac_catalyst",
-        20119: "training_center",
-        30045: "tacx_training_app_android",
-        30046: "tacx_training_app_ios",
-        30047: "tacx_training_app_legacy",
-        65531: "connectiq_simulator",
-        65532: "android_antplus_plugin",
-        65534: "connect",
+        10_007: "sdm4",
+        10_014: "edge_remote",
+        20_119: "training_center",
+        20_533: "tacx_training_app_win",
+        20_534: "tacx_training_app_mac",
+        20_565: "tacx_training_app_mac_catalyst",
+        30_045: "tacx_training_app_android",
+        30_046: "tacx_training_app_ios",
+        30_047: "tacx_training_app_legacy",
+        65_531: "connectiq_simulator",
+        65_532: "android_antplus_plugin",
+        65_534: "connect",
     },
 
     // Wahoo Fitness products (ID: 32)
@@ -495,6 +488,13 @@ export const dataAntProductIds = {
         3: "power_meter_gen3",
         4: "power_meter_lr",
         // Add more Stages products as needed
+    },
+
+    // Favero Electronics products
+    263: {
+        12: "assioma_duo",
+        13: "assioma_uno",
+        // Add more Favero products as discovered
     },
 
     // SRAM products (ID: 280)

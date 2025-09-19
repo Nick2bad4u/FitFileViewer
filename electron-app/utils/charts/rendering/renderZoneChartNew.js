@@ -1,9 +1,9 @@
-import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
-import { createChartCanvas } from "../components/createChartCanvas.js";
-import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chartZoneColorUtils.js";
+import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
+import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 /**
  * @typedef {Object} ZoneDataItem
@@ -39,12 +39,12 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         console.log(`[ChartJS] renderZoneChart called for ${title} with data:`, zoneData);
 
         /** @type {any} */
-        const themeConfig = getThemeConfig(),
-            currentTheme = detectCurrentTheme(),
+        const // Second arg expects numeric index; provide 0 as default order
+            canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0)),
             // Determine chart type from options or default to doughnut
             chartType = options && options.chartType ? options.chartType : "doughnut",
-            // Second arg expects numeric index; provide 0 as default order
-            canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas(chartId, 0));
+            currentTheme = detectCurrentTheme(),
+            themeConfig = getThemeConfig();
 
         // Apply theme-aware canvas styling (background handled by plugin)
         if (themeConfig?.colors) {
@@ -54,7 +54,7 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
                 : "";
         }
 
-        container.appendChild(canvas);
+        container.append(canvas);
 
         // Determine zone type and get user-selected colors from theme
         /** @type {string[]} */
@@ -75,17 +75,168 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
         console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
-        const chart = new window.Chart(canvas, config);
+        const chart = new globalThis.Chart(canvas, config);
         if (chart) {
-            if (!window._chartjsInstances) {
-                window._chartjsInstances = [];
+            if (!globalThis._chartjsInstances) {
+                globalThis._chartjsInstances = [];
             }
-            window._chartjsInstances.push(chart);
+            globalThis._chartjsInstances.push(chart);
             console.log(`[ChartJS] Zone chart created successfully for ${title}`);
         }
     } catch (error) {
         console.error("[ChartJS] Failed to create zone chart", error);
     }
+}
+
+/**
+ * Creates bar chart configuration
+ */
+/**
+ * @param {ZoneDataItem[]} zoneData
+ * @param {string[]} colors
+ * @param {string} title
+ * @param {string} currentTheme
+ * @param {any} baseDataset
+ */
+function createBarChartConfig(
+    zoneData,
+    colors,
+    title,
+    /** @type {RenderZoneChartOptions|undefined} */ _options,
+    currentTheme,
+    baseDataset
+) {
+    // _options kept for parity
+    return {
+        data: {
+            datasets: [
+                {
+                    ...baseDataset,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
+                        const safe = /^#?[\dA-Fa-f]{6}$/.test(color) ? color.replace("#", "") : "999999",
+                            b = Number.parseInt(safe.slice(4, 6), 16),
+                            g = Number.parseInt(safe.slice(2, 4), 16),
+                            r = Number.parseInt(safe.slice(0, 2), 16);
+                        return `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, 0.9)`;
+                    }),
+                    hoverBorderColor: colors.slice(0, zoneData.length),
+                    hoverBorderWidth: 2,
+                    label: "Time in Zone",
+                },
+            ],
+            labels: zoneData.map((zone, i) => zone.label || `Zone ${zone.zone || i + 1}`),
+        },
+        options: {
+            animation: {
+                duration: 1500,
+                easing: "easeOutQuart",
+            },
+            interaction: {
+                intersect: false,
+                mode: "index",
+            },
+            maintainAspectRatio: true,
+            plugins: {
+                chartBackgroundColorPlugin: {
+                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                },
+                legend: {
+                    display: false, // Single dataset, no need for legend
+                },
+                title: {
+                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    display: true,
+                    font: {
+                        size: 16,
+                        weight: "bold",
+                    },
+                    padding: 20,
+                    text: title,
+                },
+                tooltip: {
+                    backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                    bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
+                    borderWidth: 1,
+                    callbacks: {
+                        label(/** @type {any} */ context) {
+                            const value = context?.parsed?.y || 0,
+                                timeFormatted = formatTime(value, true);
+                            return `Time: ${timeFormatted}`;
+                        },
+                        labelColor(/** @type {any} */ context) {
+                            return {
+                                backgroundColor:
+                                    context?.dataset?.backgroundColor?.[context?.dataIndex] ||
+                                    context?.dataset?.borderColor,
+                                borderColor: context?.dataset?.borderColor,
+                                borderRadius: 2,
+                                borderWidth: 2,
+                            };
+                        },
+                    },
+                    cornerRadius: 8,
+                    displayColors: true,
+                    enabled: true,
+                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
+                },
+            },
+            responsive: true,
+            scales: {
+                x: {
+                    grid: {
+                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                        lineWidth: 1,
+                    },
+                    ticks: {
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        font: {
+                            size: 12,
+                            weight: "600",
+                        },
+                    },
+                    title: {
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        display: true,
+                        font: {
+                            size: 14,
+                            weight: "bold",
+                        },
+                        text: "Zone",
+                    },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                        lineWidth: 1,
+                    },
+                    ticks: {
+                        callback(/** @type {number} */ value) {
+                            return formatTime(typeof value === "number" ? value : 0, true);
+                        },
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        font: {
+                            size: 12,
+                        },
+                    },
+                    title: {
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        display: true,
+                        font: {
+                            size: 14,
+                            weight: "bold",
+                        },
+                        text: "Time",
+                    },
+                },
+            },
+        },
+        plugins: [chartBackgroundColorPlugin],
+        type: "bar",
+    };
 }
 
 /**
@@ -114,10 +265,10 @@ function createChartConfig(
     currentTheme
 ) {
     const baseDataset = {
-        data: zoneData.map((zone) => (typeof zone.time === "number" ? zone.time : 0)),
         backgroundColor: colors.slice(0, zoneData.length),
         borderColor: currentTheme === "dark" ? "#333" : "#fff",
         borderWidth: chartType === "doughnut" ? 3 : 1,
+        data: zoneData.map((zone) => (typeof zone.time === "number" ? zone.time : 0)),
     };
 
     if (chartType === "bar") {
@@ -139,69 +290,72 @@ function createChartConfig(
  */
 function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
     return {
-        type: "doughnut",
         data: {
-            labels: zoneData.map((zone, i) => zone.label || `Zone ${zone.zone || i + 1}`),
             datasets: [
                 {
                     ...baseDataset,
                     borderAlign: "center",
-                    borderRadius: 4,
                     borderJoinStyle: "round",
+                    borderRadius: 4,
+                    circumference: 360, // Full circle
                     hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
                         // Lighten the color on hover
-                        const safe = /^#?[0-9a-fA-F]{6}$/.test(color) ? color.replace("#", "") : "999999",
-                            r = parseInt(safe.slice(0, 2), 16),
-                            g = parseInt(safe.slice(2, 4), 16),
-                            b = parseInt(safe.slice(4, 6), 16);
+                        const safe = /^#?[\dA-Fa-f]{6}$/.test(color) ? color.replace("#", "") : "999999",
+                            b = Number.parseInt(safe.slice(4, 6), 16),
+                            g = Number.parseInt(safe.slice(2, 4), 16),
+                            r = Number.parseInt(safe.slice(0, 2), 16);
                         return `rgba(${Math.min(255, r + 30)}, ${Math.min(255, g + 30)}, ${Math.min(255, b + 30)}, 0.9)`;
                     }),
                     hoverBorderColor: "#ffffff",
                     hoverBorderWidth: 4,
                     hoverOffset: 8,
                     offset: 2,
-                    spacing: 2,
                     rotation: -90, // Start from top
-                    circumference: 360, // Full circle
+                    spacing: 2,
                     weight: 1,
                 },
             ],
+            labels: zoneData.map((zone, i) => zone.label || `Zone ${zone.zone || i + 1}`),
         },
         options: {
-            responsive: true,
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 2000,
+                easing: "easeOutQuart",
+            },
+            elements: {
+                arc: {
+                    borderColor: "#ffffff",
+                    borderWidth: 3,
+                    hoverBorderWidth: 4,
+                },
+            },
+            interaction: {
+                intersect: false,
+                mode: "point",
+            },
             maintainAspectRatio: true,
-            // Creates a nice donut hole
-            radius: "90%",
             plugins: {
-                title: {
-                    display: true,
-                    text: title,
-                    font: {
-                        size: 16,
-                        weight: "bold",
-                    },
-                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    padding: 20,
+                chartBackgroundColorPlugin: {
+                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                 },
                 legend: {
                     display: options.showLegend !== false,
-                    position: "right",
                     labels: {
+                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
                         display: true,
                         font: {
                             size: 14,
                             weight: "600",
                         },
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: "circle",
                         generateLabels(/** @type {any} */ chart) {
-                            const data = chart?.data || { labels: [], datasets: [] };
+                            const data = chart?.data || { datasets: [], labels: [] };
                             if (
                                 Array.isArray(data.labels) &&
-                                data.labels.length &&
+                                data.labels.length > 0 &&
                                 Array.isArray(data.datasets) &&
-                                data.datasets.length
+                                data.datasets.length > 0
                             ) {
                                 const dataset = data.datasets[0],
                                     total = Array.isArray(dataset.data)
@@ -211,43 +365,52 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                           )
                                         : 0;
                                 return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
-                                    const value = Array.isArray(dataset.data) ? dataset.data[i] : 0,
-                                        percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0",
-                                        meta = chart.getDatasetMeta ? chart.getDatasetMeta(0) : { data: [] },
-                                        hidden = meta?.data?.[i]?.hidden;
+                                    const meta = chart.getDatasetMeta ? chart.getDatasetMeta(0) : { data: [] },
+                                        hidden = meta?.data?.[i]?.hidden,
+                                        value = Array.isArray(dataset.data) ? dataset.data[i] : 0,
+                                        percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
                                     return {
-                                        text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
                                         fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor?.[i],
-                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.borderColor,
-                                        lineWidth: 1,
                                         hidden,
                                         index: i,
+                                        lineWidth: 1,
                                         pointStyle: "circle",
+                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.borderColor,
+                                        text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
                                     };
                                 });
                             }
                             return [];
                         },
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        padding: 20,
+                        pointStyle: "circle",
+                        usePointStyle: true,
                     },
+                    position: "right",
+                },
+                title: {
+                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    display: true,
+                    font: {
+                        size: 16,
+                        weight: "bold",
+                    },
+                    padding: 20,
+                    text: title,
                 },
                 tooltip: {
-                    enabled: true,
                     backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
-                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
                     bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
                     borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
                     borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: true,
                     callbacks: {
                         label(/** @type {any} */ context) {
-                            const value = context?.parsed,
-                                datasetData = Array.isArray(context?.dataset?.data) ? context.dataset.data : [],
+                            const datasetData = Array.isArray(context?.dataset?.data) ? context.dataset.data : [],
                                 total = datasetData.reduce(
                                     (/** @type {number} */ a, /** @type {number} */ b) => a + b,
                                     0
                                 ),
+                                value = context?.parsed,
                                 percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0",
                                 timeFormatted = formatTime(
                                     typeof context?.parsed === "number" ? context.parsed : 0,
@@ -257,189 +420,26 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         },
                         labelColor(/** @type {any} */ context) {
                             return {
-                                borderColor: context?.dataset?.borderColor,
                                 backgroundColor:
                                     context?.dataset?.backgroundColor?.[context?.dataIndex] ||
                                     context?.dataset?.borderColor,
-                                borderWidth: 2,
+                                borderColor: context?.dataset?.borderColor,
                                 borderRadius: 2,
+                                borderWidth: 2,
                             };
                         },
                     },
-                },
-                chartBackgroundColorPlugin: {
-                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
-                },
-            },
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 2000,
-                easing: "easeOutQuart",
-            },
-            interaction: {
-                intersect: false,
-                mode: "point",
-            },
-            elements: {
-                arc: {
-                    borderWidth: 3,
-                    borderColor: "#ffffff",
-                    hoverBorderWidth: 4,
-                },
-            },
-        },
-        plugins: [chartBackgroundColorPlugin],
-    };
-}
-
-/**
- * Creates bar chart configuration
- */
-/**
- * @param {ZoneDataItem[]} zoneData
- * @param {string[]} colors
- * @param {string} title
- * @param {string} currentTheme
- * @param {any} baseDataset
- */
-function createBarChartConfig(
-    zoneData,
-    colors,
-    title,
-    /** @type {RenderZoneChartOptions|undefined} */ _options,
-    currentTheme,
-    baseDataset
-) {
-    // _options kept for parity
-    return {
-        type: "bar",
-        data: {
-            labels: zoneData.map((zone, i) => zone.label || `Zone ${zone.zone || i + 1}`),
-            datasets: [
-                {
-                    ...baseDataset,
-                    label: "Time in Zone",
-                    borderRadius: 4,
-                    borderSkipped: false,
-                    hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
-                        const safe = /^#?[0-9a-fA-F]{6}$/.test(color) ? color.replace("#", "") : "999999",
-                            r = parseInt(safe.slice(0, 2), 16),
-                            g = parseInt(safe.slice(2, 4), 16),
-                            b = parseInt(safe.slice(4, 6), 16);
-                        return `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)}, 0.9)`;
-                    }),
-                    hoverBorderColor: colors.slice(0, zoneData.length),
-                    hoverBorderWidth: 2,
-                },
-            ],
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: title,
-                    font: {
-                        size: 16,
-                        weight: "bold",
-                    },
-                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    padding: 20,
-                },
-                legend: {
-                    display: false, // Single dataset, no need for legend
-                },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: currentTheme === "dark" ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)",
-                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    bodyColor: currentTheme === "dark" ? "#ffffff" : "#333333",
-                    borderColor: currentTheme === "dark" ? "#555555" : "#cccccc",
-                    borderWidth: 1,
                     cornerRadius: 8,
                     displayColors: true,
-                    callbacks: {
-                        label(/** @type {any} */ context) {
-                            const value = context?.parsed?.y || 0,
-                                timeFormatted = formatTime(value, true);
-                            return `Time: ${timeFormatted}`;
-                        },
-                        labelColor(/** @type {any} */ context) {
-                            return {
-                                borderColor: context?.dataset?.borderColor,
-                                backgroundColor:
-                                    context?.dataset?.backgroundColor?.[context?.dataIndex] ||
-                                    context?.dataset?.borderColor,
-                                borderWidth: 2,
-                                borderRadius: 2,
-                            };
-                        },
-                    },
-                },
-                chartBackgroundColorPlugin: {
-                    backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
+                    enabled: true,
+                    titleColor: currentTheme === "dark" ? "#ffffff" : "#333333",
                 },
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
-                        lineWidth: 1,
-                    },
-                    ticks: {
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                        font: {
-                            size: 12,
-                        },
-                        callback(/** @type {number} */ value) {
-                            return formatTime(typeof value === "number" ? value : 0, true);
-                        },
-                    },
-                    title: {
-                        display: true,
-                        text: "Time",
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                        font: {
-                            size: 14,
-                            weight: "bold",
-                        },
-                    },
-                },
-                x: {
-                    grid: {
-                        color: currentTheme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
-                        lineWidth: 1,
-                    },
-                    ticks: {
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                        font: {
-                            size: 12,
-                            weight: "600",
-                        },
-                    },
-                    title: {
-                        display: true,
-                        text: "Zone",
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
-                        font: {
-                            size: 14,
-                            weight: "bold",
-                        },
-                    },
-                },
-            },
-            animation: {
-                duration: 1500,
-                easing: "easeOutQuart",
-            },
-            interaction: {
-                intersect: false,
-                mode: "index",
-            },
+            // Creates a nice donut hole
+            radius: "90%",
+            responsive: true,
         },
         plugins: [chartBackgroundColorPlugin],
+        type: "doughnut",
     };
 }

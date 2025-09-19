@@ -15,13 +15,13 @@ import { renderTable } from "../core/renderTable.js";
 export function createTables(dataFrames, containerOverride) {
     console.log("[DEBUG] createTables called", dataFrames);
 
-    const aq = /** @type {any} */ (window).aq;
+    const aq = /** @type {any} */ (globalThis).aq;
     if (!aq) {
         console.error("[ERROR] Arquero (window.aq) is not available.");
         return;
     }
 
-    const container = containerOverride || document.getElementById("content-data");
+    const container = containerOverride || document.querySelector("#content-data");
     if (!container) {
         console.error(
             '[ERROR] Container element with id "content-data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
@@ -34,7 +34,7 @@ export function createTables(dataFrames, containerOverride) {
     }
 
     while (container.firstChild) {
-        container.removeChild(container.firstChild);
+        container.firstChild.remove();
     }
     const keys = Object.keys(dataFrames).filter((key) => {
         const rows = /** @type {any} */ (dataFrames)[key];
@@ -43,12 +43,12 @@ export function createTables(dataFrames, containerOverride) {
     console.log("[DEBUG] Table keys:", keys);
 
     // Debug: print first row of each table
-    keys.forEach((key) => {
+    for (const key of keys) {
         const rows = /** @type {any} */ (dataFrames)[key];
         if (rows && rows.length > 0) {
             console.log(`[DEBUG] First row for ${key}:`, rows[0], "Type:", typeof rows[0]);
         }
-    });
+    }
 
     // Sort keys so 'recordMesgs' appears first, then alphabetically
     keys.sort((a, b) => {
@@ -61,7 +61,7 @@ export function createTables(dataFrames, containerOverride) {
         return a.localeCompare(b);
     });
 
-    keys.forEach((key, index) => {
+    for (const [index, key] of keys.entries()) {
         try {
             const rows = /** @type {any} */ (dataFrames)[key];
             if (
@@ -70,16 +70,16 @@ export function createTables(dataFrames, containerOverride) {
                 !rows.every((row) => row && typeof row === "object" && !Array.isArray(row))
             ) {
                 console.warn(`[WARNING] Skipping table for key: ${key} as it is not compatible with Arquero.`);
-                return;
+                continue;
             }
             const table = aq.from(rows);
             console.log(`[DEBUG] Rendering table for key: ${key}, rows:`, table.numRows());
             renderTable(container, key, table, index);
-        } catch (e) {
+        } catch (error) {
             console.error(
-                `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (e).message}. Stack trace:`,
-                /** @type {any} */ (e).stack
+                `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (error).message}. Stack trace:`,
+                /** @type {any} */ (error).stack
             );
         }
-    });
+    }
 }

@@ -16,83 +16,152 @@ import { getChartCounts } from "../core/getChartCounts.js";
 
 // Constants for better maintainability
 const CONSTANTS = {
-    IDS: {
-        CHART_TAB_CONTENT: "content-chartjs",
-        GLOBAL_CHART_STATUS: "global-chart-status",
-        CHART_CONTAINER: "chartjs-chart-container",
-        SETTINGS_WRAPPER: "chartjs-settings-wrapper",
-        CHART_CONTROLS_TOGGLE: "chart-controls-toggle",
-    },
     CLASSES: {
-        GLOBAL_CHART_STATUS: "global-chart-status",
         FIELDS_SECTION: "fields-section",
+        GLOBAL_CHART_STATUS: "global-chart-status",
     },
     ICONS: {
+        ALL_SET: "✨",
         ALL_VISIBLE: "✅",
-        SOME_HIDDEN: "⚠️",
+        LOAD_FILE: "📂",
         NONE_VISIBLE: "❌",
         SETTINGS: "⚙️",
-        ALL_SET: "✨",
-        LOAD_FILE: "📂",
+        SOME_HIDDEN: "⚠️",
     },
-    TEXTS: {
-        SHOW_SETTINGS: "Show Settings",
-        ALL_SET: "All Set",
-        LOAD_FIT: "Load FIT",
-        HIDE_CONTROLS: "▼ Hide Controls",
-    },
-    TOOLTIPS: {
-        ALL_VISIBLE: "All available charts are visible",
-        SOME_HIDDEN: "Some charts are hidden",
-        NONE_VISIBLE: "No charts are visible",
-        SHOW_SETTINGS: "Open chart settings to enable more charts",
-        ALL_SET: "All available charts are visible",
-        LOAD_FIT: "Load a FIT file to see charts",
+    IDS: {
+        CHART_CONTAINER: "chartjs-chart-container",
+        CHART_CONTROLS_TOGGLE: "chart-controls-toggle",
+        CHART_TAB_CONTENT: "content-chartjs",
+        GLOBAL_CHART_STATUS: "global-chart-status",
+        SETTINGS_WRAPPER: "chartjs-settings-wrapper",
     },
     LOG_PREFIX: "[GlobalChartStatus]",
+    TEXTS: {
+        ALL_SET: "All Set",
+        HIDE_CONTROLS: "▼ Hide Controls",
+        LOAD_FIT: "Load FIT",
+        SHOW_SETTINGS: "Show Settings",
+    },
+    TOOLTIPS: {
+        ALL_SET: "All available charts are visible",
+        ALL_VISIBLE: "All available charts are visible",
+        LOAD_FIT: "Load a FIT file to see charts",
+        NONE_VISIBLE: "No charts are visible",
+        SHOW_SETTINGS: "Open chart settings to enable more charts",
+        SOME_HIDDEN: "Some charts are hidden",
+    },
 };
 
 /**
- * Supported log levels for this module
- * @typedef {'log'|'info'|'warn'|'error'} LogLevel
+ * Creates a persistent global chart status indicator that's always visible
+ * at the top of the chart tab, regardless of settings panel visibility
+ *
+ * Provides visual feedback about chart availability and visibility status,
+ * with quick access to settings for enabling hidden charts.
+ *
+ * @returns {HTMLElement|null} The created indicator element or null on failure
+ *
+ * @example
+ * // Create or update the global chart status indicator
+ * const indicator = createGlobalChartStatusIndicator();
+ * if (indicator) {
+ *     console.log("Chart status indicator created successfully");
+ * }
  */
-/**
- * Enhanced logging with context (avoids dynamic console indexing for typing)
- * @param {LogLevel} level
- * @param {string} message
- * @param {Record<string, any>} [context]
- */
-function logWithContext(level, message, context) {
-    const timestamp = new Date().toISOString(),
-        logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`,
-        hasContext = context && Object.keys(context).length > 0;
-    switch (level) {
-        case "info":
-            hasContext ? console.info(logMessage, context) : console.info(logMessage);
-            break;
-        case "warn":
-            hasContext ? console.warn(logMessage, context) : console.warn(logMessage);
-            break;
-        case "error":
-            hasContext ? console.error(logMessage, context) : console.error(logMessage);
-            break;
-        default:
-            hasContext ? console.log(logMessage, context) : console.log(logMessage);
+export function createGlobalChartStatusIndicator() {
+    try {
+        logWithContext("info", "Creating global chart status indicator");
+
+        const chartTabContent = getElementSafely(CONSTANTS.IDS.CHART_TAB_CONTENT, "Chart tab content");
+
+        if (!chartTabContent) {
+            return null;
+        }
+
+        // Check if global indicator already exists
+        let globalIndicator = document.getElementById(CONSTANTS.IDS.GLOBAL_CHART_STATUS);
+        if (globalIndicator) {
+            logWithContext("info", "Global chart status indicator already exists");
+            return globalIndicator;
+        }
+
+        // Get chart counts and calculate status
+        /** @type {ChartCounts} */
+        const counts = getChartCounts(),
+            /** @type {ChartStatus} */
+            status = calculateChartStatus(counts);
+
+        logWithContext("info", "Chart status calculated", { status });
+
+        // Create the main indicator container
+        globalIndicator = document.createElement("div");
+        globalIndicator.id = CONSTANTS.IDS.GLOBAL_CHART_STATUS;
+        globalIndicator.className = CONSTANTS.CLASSES.GLOBAL_CHART_STATUS;
+
+        // Apply styles to the container
+        applyIndicatorStyles(globalIndicator);
+
+        // Create status info section (left side)
+        const statusInfo = document.createElement("div");
+        statusInfo.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        `;
+
+        // Create and add status components
+        const quickAction = createQuickActionButton(status),
+            statusIcon = createStatusIcon(status),
+            statusText = createStatusText(status);
+
+        // Assemble the indicator
+        statusInfo.append(statusIcon);
+        statusInfo.append(statusText);
+        globalIndicator.append(statusInfo);
+        globalIndicator.append(quickAction);
+
+        // Insert into DOM
+        insertIndicatorIntoDOM(globalIndicator, chartTabContent);
+
+        logWithContext("info", "Global chart status indicator created successfully", {
+            available: status.counts.available,
+            visible: status.counts.visible,
+        });
+
+        return globalIndicator;
+    } catch (/** @type {any} */ error) {
+        logWithContext("error", "Failed to create global chart status indicator", {
+            error:
+                error && typeof error === "object" && "message" in error
+                    ? /** @type {any} */ (error).message
+                    : String(error),
+            stack:
+                error && typeof error === "object" && "stack" in error ? /** @type {any} */ (error).stack : undefined,
+        });
+        return null;
     }
 }
 
 /**
- * Get DOM element with validation
- * @param {string} id - Element ID
- * @param {string} description - Element description for logging
- * @returns {HTMLElement|null} Element or null if not found
+ * Apply styles to the global indicator container
+ * @param {HTMLElement} globalIndicator - The indicator element
  */
-function getElementSafely(id, description) {
-    const element = document.getElementById(id);
-    if (!element) {
-        logWithContext("warn", `${description} not found`, { id });
-    }
-    return element;
+function applyIndicatorStyles(globalIndicator) {
+    globalIndicator.style.cssText = `
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--color-bg-alt);
+        border-bottom: 1px solid var(--color-border);
+        padding: 8px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: var(--backdrop-blur);
+        margin-bottom: 16px;
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 2px 4px var(--color-shadow);
+    `;
 }
 
 /**
@@ -101,16 +170,64 @@ function getElementSafely(id, description) {
  * @returns {ChartStatus}
  */
 function calculateChartStatus(counts) {
-    const isAllVisible = counts.visible === counts.available,
-        hasHiddenCharts = counts.available > counts.visible,
-        hasNoCharts = counts.available === 0;
+    const hasHiddenCharts = counts.available > counts.visible,
+        hasNoCharts = counts.available === 0,
+        isAllVisible = counts.visible === counts.available;
 
     return {
-        isAllVisible,
+        counts,
         hasHiddenCharts,
         hasNoCharts,
-        counts,
+        isAllVisible,
     };
+}
+
+/**
+ * Create quick action button based on chart status
+ * @param {ChartStatus} status
+ * @returns {HTMLElement}
+ */
+function createQuickActionButton(status) {
+    const quickAction = document.createElement("button");
+    quickAction.style.cssText = `
+        padding: 4px 8px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-btn-bg);
+        color: var(--color-fg-alt);
+        font-size: 12px;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+    `;
+
+    if (status.hasHiddenCharts) {
+        quickAction.textContent = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;
+        quickAction.title = CONSTANTS.TOOLTIPS.SHOW_SETTINGS;
+        quickAction.addEventListener("click", handleSettingsToggle);
+
+        // Add hover effects for interactive button
+        quickAction.addEventListener("mouseenter", () => {
+            quickAction.style.background = "var(--color-accent-hover)";
+            quickAction.style.transform = "translateY(-1px)";
+        });
+
+        quickAction.addEventListener("mouseleave", () => {
+            quickAction.style.background = "var(--color-btn-bg)";
+            quickAction.style.transform = "translateY(0)";
+        });
+    } else if (status.isAllVisible && status.counts.available > 0) {
+        quickAction.textContent = `${CONSTANTS.ICONS.ALL_SET} ${CONSTANTS.TEXTS.ALL_SET}`;
+        quickAction.title = CONSTANTS.TOOLTIPS.ALL_SET;
+        quickAction.style.opacity = "0.7";
+        quickAction.style.cursor = "default";
+    } else {
+        quickAction.textContent = `${CONSTANTS.ICONS.LOAD_FILE} ${CONSTANTS.TEXTS.LOAD_FIT}`;
+        quickAction.title = CONSTANTS.TOOLTIPS.LOAD_FIT;
+        quickAction.style.opacity = "0.7";
+        quickAction.style.cursor = "default";
+    }
+
+    return quickAction;
 }
 
 /**
@@ -172,12 +289,26 @@ function createStatusText(status) {
 }
 
 /**
+ * Get DOM element with validation
+ * @param {string} id - Element ID
+ * @param {string} description - Element description for logging
+ * @returns {HTMLElement|null} Element or null if not found
+ */
+function getElementSafely(id, description) {
+    const element = document.getElementById(id);
+    if (!element) {
+        logWithContext("warn", `${description} not found`, { id });
+    }
+    return element;
+}
+
+/**
  * Handle settings panel toggle
  */
 function handleSettingsToggle() {
     try {
-        const wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper"),
-            toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button");
+        const toggleBtn = getElementSafely(CONSTANTS.IDS.CHART_CONTROLS_TOGGLE, "Chart controls toggle button"),
+            wrapper = getElementSafely(CONSTANTS.IDS.SETTINGS_WRAPPER, "Settings wrapper");
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = "block";
@@ -208,76 +339,6 @@ function handleSettingsToggle() {
 }
 
 /**
- * Create quick action button based on chart status
- * @param {ChartStatus} status
- * @returns {HTMLElement}
- */
-function createQuickActionButton(status) {
-    const quickAction = document.createElement("button");
-    quickAction.style.cssText = `
-        padding: 4px 8px;
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-        background: var(--color-btn-bg);
-        color: var(--color-fg-alt);
-        font-size: 12px;
-        cursor: pointer;
-        transition: var(--transition-smooth);
-    `;
-
-    if (status.hasHiddenCharts) {
-        quickAction.textContent = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;
-        quickAction.title = CONSTANTS.TOOLTIPS.SHOW_SETTINGS;
-        quickAction.addEventListener("click", handleSettingsToggle);
-
-        // Add hover effects for interactive button
-        quickAction.addEventListener("mouseenter", () => {
-            quickAction.style.background = "var(--color-accent-hover)";
-            quickAction.style.transform = "translateY(-1px)";
-        });
-
-        quickAction.addEventListener("mouseleave", () => {
-            quickAction.style.background = "var(--color-btn-bg)";
-            quickAction.style.transform = "translateY(0)";
-        });
-    } else if (status.isAllVisible && status.counts.available > 0) {
-        quickAction.textContent = `${CONSTANTS.ICONS.ALL_SET} ${CONSTANTS.TEXTS.ALL_SET}`;
-        quickAction.title = CONSTANTS.TOOLTIPS.ALL_SET;
-        quickAction.style.opacity = "0.7";
-        quickAction.style.cursor = "default";
-    } else {
-        quickAction.textContent = `${CONSTANTS.ICONS.LOAD_FILE} ${CONSTANTS.TEXTS.LOAD_FIT}`;
-        quickAction.title = CONSTANTS.TOOLTIPS.LOAD_FIT;
-        quickAction.style.opacity = "0.7";
-        quickAction.style.cursor = "default";
-    }
-
-    return quickAction;
-}
-
-/**
- * Apply styles to the global indicator container
- * @param {HTMLElement} globalIndicator - The indicator element
- */
-function applyIndicatorStyles(globalIndicator) {
-    globalIndicator.style.cssText = `
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        background: var(--color-bg-alt);
-        border-bottom: 1px solid var(--color-border);
-        padding: 8px 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        backdrop-filter: var(--backdrop-blur);
-        margin-bottom: 16px;
-        border-radius: 8px 8px 0 0;
-        box-shadow: 0 2px 4px var(--color-shadow);
-    `;
-}
-
-/**
  * Insert the indicator into the DOM at the correct position
  * @param {HTMLElement} globalIndicator - The indicator element
  * @param {HTMLElement} chartTabContent - The chart tab content container
@@ -287,9 +348,9 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
         const chartContainer = getElementSafely(CONSTANTS.IDS.CHART_CONTAINER, "Chart container");
 
         if (chartContainer) {
-            chartTabContent.insertBefore(globalIndicator, chartContainer);
+            chartContainer.before(globalIndicator);
         } else {
-            chartTabContent.appendChild(globalIndicator);
+            chartTabContent.append(globalIndicator);
         }
 
         logWithContext("info", "Global chart status indicator inserted into DOM");
@@ -304,91 +365,34 @@ function insertIndicatorIntoDOM(globalIndicator, chartTabContent) {
 }
 
 /**
- * Creates a persistent global chart status indicator that's always visible
- * at the top of the chart tab, regardless of settings panel visibility
- *
- * Provides visual feedback about chart availability and visibility status,
- * with quick access to settings for enabling hidden charts.
- *
- * @returns {HTMLElement|null} The created indicator element or null on failure
- *
- * @example
- * // Create or update the global chart status indicator
- * const indicator = createGlobalChartStatusIndicator();
- * if (indicator) {
- *     console.log("Chart status indicator created successfully");
- * }
+ * Supported log levels for this module
+ * @typedef {'log'|'info'|'warn'|'error'} LogLevel
  */
-export function createGlobalChartStatusIndicator() {
-    try {
-        logWithContext("info", "Creating global chart status indicator");
-
-        const chartTabContent = getElementSafely(CONSTANTS.IDS.CHART_TAB_CONTENT, "Chart tab content");
-
-        if (!chartTabContent) {
-            return null;
+/**
+ * Enhanced logging with context (avoids dynamic console indexing for typing)
+ * @param {LogLevel} level
+ * @param {string} message
+ * @param {Record<string, any>} [context]
+ */
+function logWithContext(level, message, context) {
+    const hasContext = context && Object.keys(context).length > 0,
+        timestamp = new Date().toISOString(),
+        logMessage = `${timestamp} ${CONSTANTS.LOG_PREFIX} ${message}`;
+    switch (level) {
+        case "error": {
+            hasContext ? console.error(logMessage, context) : console.error(logMessage);
+            break;
         }
-
-        // Check if global indicator already exists
-        let globalIndicator = document.getElementById(CONSTANTS.IDS.GLOBAL_CHART_STATUS);
-        if (globalIndicator) {
-            logWithContext("info", "Global chart status indicator already exists");
-            return globalIndicator;
+        case "info": {
+            hasContext ? console.info(logMessage, context) : console.info(logMessage);
+            break;
         }
-
-        // Get chart counts and calculate status
-        /** @type {ChartCounts} */
-        const counts = getChartCounts(),
-            /** @type {ChartStatus} */
-            status = calculateChartStatus(counts);
-
-        logWithContext("info", "Chart status calculated", { status });
-
-        // Create the main indicator container
-        globalIndicator = document.createElement("div");
-        globalIndicator.id = CONSTANTS.IDS.GLOBAL_CHART_STATUS;
-        globalIndicator.className = CONSTANTS.CLASSES.GLOBAL_CHART_STATUS;
-
-        // Apply styles to the container
-        applyIndicatorStyles(globalIndicator);
-
-        // Create status info section (left side)
-        const statusInfo = document.createElement("div");
-        statusInfo.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        `;
-
-        // Create and add status components
-        const statusIcon = createStatusIcon(status),
-            statusText = createStatusText(status),
-            quickAction = createQuickActionButton(status);
-
-        // Assemble the indicator
-        statusInfo.appendChild(statusIcon);
-        statusInfo.appendChild(statusText);
-        globalIndicator.appendChild(statusInfo);
-        globalIndicator.appendChild(quickAction);
-
-        // Insert into DOM
-        insertIndicatorIntoDOM(globalIndicator, chartTabContent);
-
-        logWithContext("info", "Global chart status indicator created successfully", {
-            visible: status.counts.visible,
-            available: status.counts.available,
-        });
-
-        return globalIndicator;
-    } catch (/** @type {any} */ error) {
-        logWithContext("error", "Failed to create global chart status indicator", {
-            error:
-                error && typeof error === "object" && "message" in error
-                    ? /** @type {any} */ (error).message
-                    : String(error),
-            stack:
-                error && typeof error === "object" && "stack" in error ? /** @type {any} */ (error).stack : undefined,
-        });
-        return null;
+        case "warn": {
+            hasContext ? console.warn(logMessage, context) : console.warn(logMessage);
+            break;
+        }
+        default: {
+            hasContext ? console.log(logMessage, context) : console.log(logMessage);
+        }
     }
 }

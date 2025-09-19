@@ -1,6 +1,6 @@
-import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
 
 /**
  * Loads FIT files as overlays.
@@ -15,17 +15,13 @@ export async function loadOverlayFiles(files) {
         const invalidFiles = [];
 
         // Initialize loaded files array if needed
-        if (!window.loadedFitFiles || window.loadedFitFiles.length === 0) {
-            if (window.globalData && window.globalData.recordMesgs) {
-                window.loadedFitFiles = [
+        if (!globalThis.loadedFitFiles || globalThis.loadedFitFiles.length === 0) {
+            globalThis.loadedFitFiles = globalThis.globalData && globalThis.globalData.recordMesgs ? [
                     {
-                        data: window.globalData,
-                        filePath: window.globalData?.cachedFilePath,
+                        data: globalThis.globalData,
+                        filePath: globalThis.globalData?.cachedFilePath,
                     },
-                ];
-            } else {
-                window.loadedFitFiles = [];
-            }
+                ] : [];
         }
 
         // Process each file
@@ -36,19 +32,19 @@ export async function loadOverlayFiles(files) {
                 const result = await loadSingleOverlayFile(file);
                 if (result.success) {
                     if (
-                        !window.loadedFitFiles.some((f) => {
-                            const loadedBase = f.filePath ? f.filePath.split(/[\\/]/).pop() : "";
+                        globalThis.loadedFitFiles.some((f) => {
+                            const loadedBase = f.filePath ? f.filePath.split(/[/\\]/).pop() : "";
                             return loadedBase === file.name;
                         })
                     ) {
-                        window.loadedFitFiles.push({
+                        showNotification(/** @type {any} */ (`${file.name} is already shown on the map`), "warning");
+                    } else {
+                        globalThis.loadedFitFiles.push({
                             data: result.data,
                             filePath: file.name,
                         });
 
                         // UI update deferred until after all files are processed
-                    } else {
-                        showNotification(/** @type {any} */ (`${file.name} is already shown on the map`), "warning");
                     }
                 } else {
                     invalidFiles.push(file.name);
@@ -66,11 +62,11 @@ export async function loadOverlayFiles(files) {
         LoadingOverlay.hide();
 
         // Batch update UI after all files are processed
-        if (window.renderMap) {
-            window.renderMap();
+        if (globalThis.renderMap) {
+            globalThis.renderMap();
         }
-        if (/** @type {any} */ (window).updateShownFilesList) {
-            /** @type {any} */ window.updateShownFilesList();
+        if (/** @type {any} */ (globalThis).updateShownFilesList) {
+            /** @type {any} */ globalThis.updateShownFilesList();
         }
 
         // Show summary notification

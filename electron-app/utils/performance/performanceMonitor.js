@@ -10,25 +10,10 @@ class PerformanceMonitor {
     }
 
     /**
-     * Check if performance monitoring is enabled
-     * @returns {boolean} Whether monitoring is enabled
+     * Clear all timers
      */
-    isEnabled() {
-        return this.enabled;
-    }
-
-    /**
-     * Start a performance timer for an operation
-     * @param {string} operationId - Unique identifier for the operation
-     */
-    startTimer(operationId) {
-        if (!this.enabled) return;
-
-        this.timers.set(operationId, {
-            start: performance.now(),
-            end: null,
-            duration: null,
-        });
+    clearTimers() {
+        this.timers.clear();
     }
 
     /**
@@ -54,6 +39,14 @@ class PerformanceMonitor {
     }
 
     /**
+     * Get all timer data
+     * @returns {Map} All timer data
+     */
+    getAllTimers() {
+        return new Map(this.timers);
+    }
+
+    /**
      * Get timer information for an operation
      * @param {string} operationId - The operation identifier
      * @returns {object|null} Timer data or null if not found
@@ -63,18 +56,11 @@ class PerformanceMonitor {
     }
 
     /**
-     * Clear all timers
+     * Check if performance monitoring is enabled
+     * @returns {boolean} Whether monitoring is enabled
      */
-    clearTimers() {
-        this.timers.clear();
-    }
-
-    /**
-     * Get all timer data
-     * @returns {Map} All timer data
-     */
-    getAllTimers() {
-        return new Map(this.timers);
+    isEnabled() {
+        return this.enabled;
     }
 
     /**
@@ -83,6 +69,20 @@ class PerformanceMonitor {
      */
     setEnabled(enabled) {
         this.enabled = enabled;
+    }
+
+    /**
+     * Start a performance timer for an operation
+     * @param {string} operationId - Unique identifier for the operation
+     */
+    startTimer(operationId) {
+        if (!this.enabled) return;
+
+        this.timers.set(operationId, {
+            duration: null,
+            end: null,
+            start: performance.now(),
+        });
     }
 }
 

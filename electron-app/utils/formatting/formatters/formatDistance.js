@@ -10,15 +10,42 @@
 
 // Conversion constants
 const CONVERSION_FACTORS = {
+    DECIMAL_PLACES: 2,
     METERS_PER_KILOMETER: 1000,
     METERS_PER_MILE: 1609.34,
-    DECIMAL_PLACES: 2,
 };
 
 // Validation constants
 const VALIDATION = {
     MIN_DISTANCE: 0,
 };
+
+/**
+ * Formats a distance in meters to a string showing both kilometers and miles
+ *
+ * Converts the input distance to both metric (kilometers) and imperial (miles)
+ * units and returns a formatted string. Invalid inputs (negative, zero, NaN,
+ * or non-finite numbers) return an empty string.
+ *
+ * @param {number} meters - The distance in meters to format. Must be a finite positive number.
+ * @returns {string} The formatted distance as "X.XX km / Y.YY mi", or an empty string if invalid
+ *
+ * @example
+ * formatDistance(1000);     // "1.00 km / 0.62 mi"
+ * formatDistance(5000);     // "5.00 km / 3.11 mi"
+ * formatDistance(-100);     // ""
+ * formatDistance(NaN);      // ""
+ */
+export function formatDistance(meters) {
+    if (!isValidDistance(meters)) {
+        return "";
+    }
+
+    const kilometers = metersToKilometers(meters),
+        miles = metersToMiles(meters);
+
+    return `${kilometers.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
+}
 
 /**
  * Validates distance input value
@@ -50,31 +77,4 @@ function metersToKilometers(meters) {
  */
 function metersToMiles(meters) {
     return meters / CONVERSION_FACTORS.METERS_PER_MILE;
-}
-
-/**
- * Formats a distance in meters to a string showing both kilometers and miles
- *
- * Converts the input distance to both metric (kilometers) and imperial (miles)
- * units and returns a formatted string. Invalid inputs (negative, zero, NaN,
- * or non-finite numbers) return an empty string.
- *
- * @param {number} meters - The distance in meters to format. Must be a finite positive number.
- * @returns {string} The formatted distance as "X.XX km / Y.YY mi", or an empty string if invalid
- *
- * @example
- * formatDistance(1000);     // "1.00 km / 0.62 mi"
- * formatDistance(5000);     // "5.00 km / 3.11 mi"
- * formatDistance(-100);     // ""
- * formatDistance(NaN);      // ""
- */
-export function formatDistance(meters) {
-    if (!isValidDistance(meters)) {
-        return "";
-    }
-
-    const kilometers = metersToKilometers(meters),
-        miles = metersToMiles(meters);
-
-    return `${kilometers.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
 }

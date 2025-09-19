@@ -44,9 +44,9 @@ export function renderGPSTrackChart(container, data, options) {
                         lng = (row.positionLong * 180) / 2 ** 31;
 
                     return {
+                        pointIndex: index,
                         x: lng,
                         y: lat,
-                        pointIndex: index,
                     };
                 }
                 return null;
@@ -72,30 +72,31 @@ export function renderGPSTrackChart(container, data, options) {
             canvas.style.boxShadow = themeConfig.colors.shadow || "";
         }
         canvas.style.borderRadius = "12px";
-        container.appendChild(canvas);
+        container.append(canvas);
 
         const config = {
-                type: "scatter",
                 data: {
                     datasets: [
                         {
-                            label: "GPS Track",
-                            data: gpsData,
                             backgroundColor: themeConfig.colors.primaryAlpha,
                             borderColor: themeConfig.colors.primary,
-                            pointRadius: options.showPoints ? 2 : 1,
-                            pointHoverRadius: 4,
-                            showLine: true,
                             borderWidth: 2,
+                            data: gpsData,
                             fill: false,
+                            label: "GPS Track",
+                            pointHoverRadius: 4,
+                            pointRadius: options.showPoints ? 2 : 1,
+                            showLine: true,
                             tension: 0.1,
                         },
                     ],
                 },
                 options: {
-                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        chartBackgroundColorPlugin: {
+                            backgroundColor: themeConfig.colors.bgPrimary,
+                        },
                         legend: {
                             display: options.showLegend,
                             labels: {
@@ -103,14 +104,13 @@ export function renderGPSTrackChart(container, data, options) {
                             },
                         },
                         title: {
-                            display: options.showTitle,
-                            text: "GPS Track",
-                            font: { size: 16, weight: "bold" },
                             color: themeConfig.colors.textPrimary,
+                            display: options.showTitle,
+                            font: { size: 16, weight: "bold" },
+                            text: "GPS Track",
                         },
                         tooltip: {
                             backgroundColor: themeConfig.colors.bgSecondary,
-                            titleColor: themeConfig.colors.textPrimary,
                             bodyColor: themeConfig.colors.textPrimary,
                             borderColor: themeConfig.colors.border,
                             borderWidth: 1,
@@ -125,96 +125,96 @@ export function renderGPSTrackChart(container, data, options) {
                                     ];
                                 },
                             },
+                            titleColor: themeConfig.colors.textPrimary,
                         },
                         zoom: {
+                            limits: {
+                                x: {
+                                    max: "original",
+                                    min: "original",
+                                },
+                                y: {
+                                    max: "original",
+                                    min: "original",
+                                },
+                            },
                             pan: {
                                 enabled: true,
                                 mode: "xy",
                                 modifierKey: null,
                             },
                             zoom: {
+                                drag: {
+                                    backgroundColor: themeConfig.colors.primaryAlpha,
+                                    borderColor: themeConfig.colors.primary,
+                                    borderWidth: 2,
+                                    enabled: true,
+                                    modifierKey: "shift",
+                                },
+                                mode: "xy",
+                                pinch: {
+                                    enabled: true,
+                                },
                                 wheel: {
                                     enabled: true,
                                     speed: 0.1,
                                 },
-                                pinch: {
-                                    enabled: true,
-                                },
-                                drag: {
-                                    enabled: true,
-                                    backgroundColor: themeConfig.colors.primaryAlpha,
-                                    borderColor: themeConfig.colors.primary,
-                                    borderWidth: 2,
-                                    modifierKey: "shift",
-                                },
-                                mode: "xy",
                             },
-                            limits: {
-                                x: {
-                                    min: "original",
-                                    max: "original",
-                                },
-                                y: {
-                                    min: "original",
-                                    max: "original",
-                                },
-                            },
-                        },
-                        chartBackgroundColorPlugin: {
-                            backgroundColor: themeConfig.colors.bgPrimary,
                         },
                     },
+                    responsive: true,
                     scales: {
                         x: {
-                            type: "linear",
                             display: true,
                             grid: {
-                                display: options.showGrid,
                                 color: themeConfig.colors.gridLines,
+                                display: options.showGrid,
+                            },
+                            ticks: {
+                                /** @param {any} value */
+                                callback(value) {
+                                    return `${value.toFixed(4)}°`;
+                                },
+                                color: themeConfig.colors.textPrimary,
                             },
                             title: {
+                                color: themeConfig.colors.textPrimary,
                                 display: true,
                                 text: "Longitude (°)",
-                                color: themeConfig.colors.textPrimary,
                             },
-                            ticks: {
-                                color: themeConfig.colors.textPrimary,
-                                /** @param {any} value */
-                                callback(value) {
-                                    return `${value.toFixed(4)}°`;
-                                },
-                            },
+                            type: "linear",
                         },
                         y: {
-                            type: "linear",
                             display: true,
                             grid: {
-                                display: options.showGrid,
                                 color: themeConfig.colors.gridLines,
-                            },
-                            title: {
-                                display: true,
-                                text: "Latitude (°)",
-                                color: themeConfig.colors.textPrimary,
+                                display: options.showGrid,
                             },
                             ticks: {
-                                color: themeConfig.colors.textPrimary,
                                 /** @param {any} value */
                                 callback(value) {
                                     return `${value.toFixed(4)}°`;
                                 },
+                                color: themeConfig.colors.textPrimary,
                             },
+                            title: {
+                                color: themeConfig.colors.textPrimary,
+                                display: true,
+                                text: "Latitude (°)",
+                            },
+                            type: "linear",
                         },
                     },
                 },
                 plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
+                type: "scatter",
             },
-            chart = new window.Chart(canvas, config);
+            chart = new globalThis.Chart(canvas, config);
         if (chart) {
-            if (!window._chartjsInstances) {
-                window._chartjsInstances = [];
+            if (!globalThis._chartjsInstances) {
+                globalThis._chartjsInstances = [];
             }
-            window._chartjsInstances.push(chart);
+            globalThis._chartjsInstances.push(chart);
             console.log("[ChartJS] GPS track chart created successfully");
         }
     } catch (error) {

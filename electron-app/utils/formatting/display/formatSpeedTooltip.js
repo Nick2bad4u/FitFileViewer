@@ -7,14 +7,14 @@ import { convertMpsToMph } from "../converters/convertMpsToMph.js";
  */
 const SPEED_FORMAT_CONFIG = {
     DECIMAL_PLACES: 2,
+    ERROR_MESSAGES: {
+        CONVERSION_ERROR: "Error formatting speed tooltip:",
+        INVALID_SPEED: "Invalid speed value for tooltip formatting:",
+    },
     UNITS: {
-        MPS: "m/s",
         KMH: "km/h",
         MPH: "mph",
-    },
-    ERROR_MESSAGES: {
-        INVALID_SPEED: "Invalid speed value for tooltip formatting:",
-        CONVERSION_ERROR: "Error formatting speed tooltip:",
+        MPS: "m/s",
     },
 };
 
@@ -46,11 +46,11 @@ export function formatSpeedTooltip(mps) {
     try {
         // Convert to different units
         const kmh = convertMpsToKmh(mps),
-            mph = convertMpsToMph(mps),
-            // Format with consistent decimal places
-            mpsStr = mps.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
             kmhStr = kmh.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
-            mphStr = mph.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES);
+            mph = convertMpsToMph(mps),
+            mphStr = mph.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES),
+            // Format with consistent decimal places
+            mpsStr = mps.toFixed(SPEED_FORMAT_CONFIG.DECIMAL_PLACES);
 
         return `${mpsStr} ${SPEED_FORMAT_CONFIG.UNITS.MPS} (${kmhStr} ${SPEED_FORMAT_CONFIG.UNITS.KMH}, ${mphStr} ${SPEED_FORMAT_CONFIG.UNITS.MPH})`;
     } catch (error) {

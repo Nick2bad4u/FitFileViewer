@@ -1,15 +1,15 @@
-import { TIME_UNITS, convertTimeUnits } from "../converters/convertTimeUnits.js";
+import { convertTimeUnits, TIME_UNITS } from "../converters/convertTimeUnits.js";
 
 /**
  * Time formatting constants
  * @readonly
  */
 const TIME_FORMAT_CONSTANTS = {
+    DEFAULT_TIME_UNITS_KEY: "chartjs_timeUnits",
+    PAD_CHAR: "0",
+    PAD_LENGTH: 2,
     SECONDS_PER_HOUR: 3600,
     SECONDS_PER_MINUTE: 60,
-    PAD_LENGTH: 2,
-    PAD_CHAR: "0",
-    DEFAULT_TIME_UNITS_KEY: "chartjs_timeUnits",
 };
 
 /**
@@ -50,6 +50,26 @@ export function formatTime(seconds, useUserUnits = false) {
 }
 
 /**
+ * Formats time as HH:MM:SS or MM:SS string
+ * @param {number} seconds - Time in seconds
+ * @returns {string} Formatted time string
+ * @private
+ */
+function formatAsTimeString(seconds) {
+    const hours = Math.floor(seconds / TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR);
+    const minutes = Math.floor(
+        (seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR) / TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE
+    );
+    const secs = Math.floor(seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE);
+
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
+    } 
+        return `${minutes}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
+    
+}
+
+/**
  * Formats time using user's preferred units from localStorage
  * @param {number} seconds - Time in seconds
  * @returns {string} Formatted time string with units
@@ -57,7 +77,7 @@ export function formatTime(seconds, useUserUnits = false) {
  */
 function formatWithUserUnits(seconds) {
     // Attempt to read from multiple storage locations to honor whichever
-    // the runtime/tests have stubbed. Prefer globalThis, then window, then bare localStorage.
+    // The runtime/tests have stubbed. Prefer globalThis, then window, then bare localStorage.
     /** @type {any} */
     const storages = [];
     try {
@@ -65,8 +85,8 @@ function formatWithUserUnits(seconds) {
             storages.push(/** @type {any} */ (globalThis).localStorage);
     } catch {}
     try {
-        if (typeof window !== "undefined" && /** @type {any} */ (window).localStorage)
-            storages.push(/** @type {any} */ (window).localStorage);
+        if (globalThis.window !== undefined && /** @type {any} */ (globalThis).localStorage)
+            storages.push(/** @type {any} */ (globalThis).localStorage);
     } catch {}
     try {
         if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
@@ -84,52 +104,35 @@ function formatWithUserUnits(seconds) {
                         break;
                     }
                 }
-            } catch (e) {
+            } catch (error) {
                 // Surface storage access errors to the top-level handler for logging
-                throw e;
+                throw error;
             }
         }
-    } catch (e) {
+    } catch (error) {
         // Propagate to top-level handler which will log and return "0:00"
-        throw e;
+        throw error;
     }
 
     let convertedValue;
     try {
         convertedValue = convertTimeUnits(seconds, timeUnits);
-    } catch (e) {
+    } catch (error) {
         // Propagate to top-level handler which will log and return "0:00"
-        throw e;
+        throw error;
     }
 
     switch (timeUnits) {
-        case TIME_UNITS.HOURS:
+        case TIME_UNITS.HOURS: {
             return `${convertedValue.toFixed(2)}h`;
-        case TIME_UNITS.MINUTES:
+        }
+        case TIME_UNITS.MINUTES: {
             return `${convertedValue.toFixed(1)}m`;
+        }
         case TIME_UNITS.SECONDS:
-        default:
+        default: {
             // For seconds, still use MM:SS format for better readability
             return formatAsTimeString(seconds);
-    }
-}
-
-/**
- * Formats time as HH:MM:SS or MM:SS string
- * @param {number} seconds - Time in seconds
- * @returns {string} Formatted time string
- * @private
- */
-function formatAsTimeString(seconds) {
-    const hours = Math.floor(seconds / TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR);
-    const minutes = Math.floor(
-        (seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_HOUR) / TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE
-    );
-    const secs = Math.floor(seconds % TIME_FORMAT_CONSTANTS.SECONDS_PER_MINUTE);
-
-    if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
-    } else {
-        return `${minutes}:${secs.toString().padStart(TIME_FORMAT_CONSTANTS.PAD_LENGTH, TIME_FORMAT_CONSTANTS.PAD_CHAR)}`;
+        }
     }
 }

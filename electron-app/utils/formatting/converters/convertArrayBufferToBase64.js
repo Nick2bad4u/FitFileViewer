@@ -19,9 +19,9 @@ export function convertArrayBufferToBase64(buffer) {
         return "";
     }
 
-    const bytes = new Uint8Array(buffer),
-        binaryChunks = [],
-        CHUNK_SIZE = 0x8000; // 32KB chunks to prevent stack overflow
+    const binaryChunks = [],
+        bytes = new Uint8Array(buffer),
+        CHUNK_SIZE = 0x80_00; // 32KB chunks to prevent stack overflow
 
     // Process in chunks to handle large buffers efficiently
     for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {

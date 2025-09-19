@@ -3,8 +3,8 @@
  * @readonly
  */
 const TIME_CONVERSIONS = {
-    SECONDS_TO_MINUTES: 60,
     SECONDS_TO_HOURS: 3600,
+    SECONDS_TO_MINUTES: 60,
 };
 
 /**
@@ -12,9 +12,9 @@ const TIME_CONVERSIONS = {
  * @readonly
  */
 export const TIME_UNITS = {
-    SECONDS: "seconds",
-    MINUTES: "minutes",
     HOURS: "hours",
+    MINUTES: "minutes",
+    SECONDS: "seconds",
 };
 
 /**
@@ -39,15 +39,19 @@ export function convertTimeUnits(seconds, targetUnit) {
 
     try {
         switch (targetUnit) {
-            case TIME_UNITS.MINUTES:
-                return seconds / TIME_CONVERSIONS.SECONDS_TO_MINUTES;
-            case TIME_UNITS.HOURS:
+            case TIME_UNITS.HOURS: {
                 return seconds / TIME_CONVERSIONS.SECONDS_TO_HOURS;
-            case TIME_UNITS.SECONDS:
+            }
+            case TIME_UNITS.MINUTES: {
+                return seconds / TIME_CONVERSIONS.SECONDS_TO_MINUTES;
+            }
+            case TIME_UNITS.SECONDS: {
                 return seconds;
-            default:
+            }
+            default: {
                 console.warn(`[convertTimeUnits] Unknown unit '${targetUnit}', defaulting to seconds`);
                 return seconds;
+            }
         }
     } catch (error) {
         console.error("[convertTimeUnits] Conversion failed:", error);

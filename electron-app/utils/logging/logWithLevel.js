@@ -14,23 +14,23 @@ export function logWithLevel(level, message, context) {
             if (typeof globalThis !== "undefined")
                 /** @type {any} */ (globalThis).__vitest_object_keys_allow_throw = true;
         } catch {}
-        const timestamp = new Date().toISOString(),
-            prefix = `[FFV]`,
+        const prefix = `[FFV]`,
+            timestamp = new Date().toISOString(),
             base = `${timestamp} ${prefix} ${String(message)}`;
         // Only treat context as an object if it's a plain object
         const isObject = context != null && typeof context === "object" && !Array.isArray(context);
         /** @type {any} */
-        let payload = undefined;
+        let payload;
         if (isObject) {
             // First, attempt to detect if the object has any own properties using Object.keys.
             // Some tests intentionally mock Object.keys to throw; guard it and fallback gracefully.
             let hasProps = false;
             try {
                 hasProps = Object.keys(/** @type {any} */ (context)).length > 0;
-            } catch (err) {
+            } catch (error) {
                 // Treat failure to enumerate keys as a fatal logging path.
                 // Bubble to outer catch so we emit the minimal fallback line expected by tests.
-                throw err;
+                throw error;
             }
             // Shallow clone without relying on Object.entries to avoid other global mutations.
             // Also guard against getters that may throw during property access.
@@ -38,9 +38,9 @@ export function logWithLevel(level, message, context) {
             const clone = {};
             let hasAny = false;
             // Prefer for..in with hasOwnProperty to enumerate own-enumerable keys
-            // while avoiding reliance on global Object methods that tests may mock to throw.
+            // While avoiding reliance on global Object methods that tests may mock to throw.
             for (const k in /** @type {Record<string, any>} */ (context)) {
-                if (Object.prototype.hasOwnProperty.call(/** @type {any} */ (context), k)) {
+                if (Object.hasOwn(/** @type {any} */ (context), k)) {
                     try {
                         clone[k] = /** @type {any} */ (context)[k];
                         hasAny = true;
@@ -53,24 +53,28 @@ export function logWithLevel(level, message, context) {
         }
 
         switch (level) {
-            case "info":
-                payload ? console.info(base, payload) : console.info(base);
-                break;
-            case "warn":
-                payload ? console.warn(base, payload) : console.warn(base);
-                break;
-            case "error":
+            case "error": {
                 payload ? console.error(base, payload) : console.error(base);
                 break;
-            default:
+            }
+            case "info": {
+                payload ? console.info(base, payload) : console.info(base);
+                break;
+            }
+            case "warn": {
+                payload ? console.warn(base, payload) : console.warn(base);
+                break;
+            }
+            default: {
                 payload ? console.log(base, payload) : console.log(base);
+            }
         }
     } catch {
         // Fallback minimal logging if something unexpected occurs
         try {
             console.log("[FFV][logWithLevel] Logging failure");
         } catch {
-            /* no-op */
+            /* No-op */
         }
     } finally {
         // Reset throw-through flag to keep test runner stable

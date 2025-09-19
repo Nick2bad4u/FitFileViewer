@@ -47,13 +47,13 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
  * Middleware execution order
  */
 const MIDDLEWARE_PHASES = {
-    BEFORE_SET: "beforeSet",
+    AFTER_GET: "afterGet",
     AFTER_SET: "afterSet",
     BEFORE_GET: "beforeGet",
-    AFTER_GET: "afterGet",
+    BEFORE_SET: "beforeSet",
+    ON_ERROR: "onError",
     ON_SUBSCRIBE: "onSubscribe",
     ON_UNSUBSCRIBE: "onUnsubscribe",
-    ON_ERROR: "onError",
 };
 
 /**
@@ -70,99 +70,13 @@ class StateMiddlewareManager {
     }
 
     /**
-     * Register middleware
-     * @param {string} name - Middleware name
-     * @param {Object} middleware - Middleware object with phase handlers
-     * @param {number} priority - Execution priority (lower = earlier, default: 100)
+     * Clear all middleware
      */
-    /**
-     * @param {string} name
-     * @param {MiddlewareDefinition} middleware
-     * @param {number} [priority=100]
-     */
-    register(name, middleware, priority = 100) {
-        if (this.middleware.has(name)) {
-            console.warn(`[StateMiddleware] Middleware "${name}" already registered, replacing...`);
-        }
-
-        /** @type {RegisteredMiddleware} */
-        const wrappedMiddleware = {
-            name,
-            priority,
-            handlers: {},
-            isEnabled: true,
-            metadata: middleware.metadata || {},
-        };
-
-        // Wrap each phase handler with error handling
-        Object.values(MIDDLEWARE_PHASES).forEach((phase) => {
-            // Dynamic index access – cast to any for safety
-            const original = /** @type {any} */ (middleware)[phase];
-            if (original && typeof original === "function") {
-                wrappedMiddleware.handlers[phase] = this.wrapHandler(name, phase, original);
-            }
-        });
-
-        this.middleware.set(name, wrappedMiddleware);
-        this.updateExecutionOrder();
-
-        console.log(`[StateMiddleware] Registered middleware "${name}" with priority ${priority}`);
-    }
-
-    /**
-     * Unregister middleware
-     * @param {string} name - Middleware name
-     */
-    /**
-     * @param {string} name
-     * @returns {boolean}
-     */
-    unregister(name) {
-        if (!this.middleware.has(name)) {
-            console.warn(`[StateMiddleware] Middleware "${name}" not found`);
-            return false;
-        }
-
-        this.middleware.delete(name);
-        this.updateExecutionOrder();
-
-        console.log(`[StateMiddleware] Unregistered middleware "${name}"`);
-        return true;
-    }
-
-    /**
-     * Enable/disable specific middleware
-     * @param {string} name - Middleware name
-     * @param {boolean} enabled - Whether to enable the middleware
-     */
-    /**
-     * @param {string} name
-     * @param {boolean} enabled
-     * @returns {boolean}
-     */
-    setEnabled(name, enabled) {
-        const middleware = this.middleware.get(name);
-        if (!middleware) {
-            console.warn(`[StateMiddleware] Middleware "${name}" not found`);
-            return false;
-        }
-
-        middleware.isEnabled = enabled;
-        console.log(`[StateMiddleware] Middleware "${name}" ${enabled ? "enabled" : "disabled"}`);
-        return true;
-    }
-
-    /**
-     * Enable/disable all middleware
-     * @param {boolean} enabled - Whether to enable middleware system
-     */
-    /**
-     * @param {boolean} enabled
-     * @returns {void}
-     */
-    setGlobalEnabled(enabled) {
-        this.isEnabled = enabled;
-        console.log(`[StateMiddleware] Middleware system ${enabled ? "enabled" : "disabled"}`);
+    /** @returns {void} */
+    clear() {
+        this.middleware.clear();
+        this.executionOrder = [];
+        console.log("[StateMiddleware] All middleware cleared");
     }
 
     /**
@@ -214,9 +128,9 @@ class StateMiddlewareManager {
 
                 // Execute error handlers
                 await this.executeErrorHandlers(err, {
+                    context: currentContext,
                     middleware: middlewareName,
                     phase,
-                    context: currentContext,
                 });
             }
         }
@@ -251,18 +165,141 @@ class StateMiddlewareManager {
                 try {
                     // We intentionally treat the handler as any due to dynamic signature variability
                     const eh = /** @type {any} */ (errorHandler);
-                    if (eh.length >= 2) {
-                        await eh(error, errorContext);
-                    } else {
-                        await eh(error);
-                    }
-                } catch (invokeErr) {
-                    console.error("[StateMiddleware] Error invoking error handler", invokeErr);
+                    await (eh.length >= 2 ? eh(error, errorContext) : eh(error));
+                } catch (error_) {
+                    console.error("[StateMiddleware] Error invoking error handler", error_);
                 }
             } catch (handlerError) {
                 console.error(`[StateMiddleware] Error in error handler for "${middlewareName}":`, handlerError);
             }
         }
+    }
+
+    /**
+     * Get middleware information
+     * @returns {Array} List of registered middleware with metadata
+     */
+    /**
+     * @returns {{name:string, priority:number, isEnabled:boolean, phases:string[], metadata:Object<string,any>}[]}
+     */
+    getMiddlewareInfo() {
+        return [...this.middleware.values()].map((middleware) => ({
+            isEnabled: middleware.isEnabled,
+            metadata: middleware.metadata,
+            name: middleware.name,
+            phases: Object.keys(middleware.handlers),
+            priority: middleware.priority,
+        }));
+    }
+
+    /**
+     * Register middleware
+     * @param {string} name - Middleware name
+     * @param {Object} middleware - Middleware object with phase handlers
+     * @param {number} priority - Execution priority (lower = earlier, default: 100)
+     */
+    /**
+     * @param {string} name
+     * @param {MiddlewareDefinition} middleware
+     * @param {number} [priority=100]
+     */
+    register(name, middleware, priority = 100) {
+        if (this.middleware.has(name)) {
+            console.warn(`[StateMiddleware] Middleware "${name}" already registered, replacing...`);
+        }
+
+        /** @type {RegisteredMiddleware} */
+        const wrappedMiddleware = {
+            handlers: {},
+            isEnabled: true,
+            metadata: middleware.metadata || {},
+            name,
+            priority,
+        };
+
+        // Wrap each phase handler with error handling
+        for (const phase of Object.values(MIDDLEWARE_PHASES)) {
+            // Dynamic index access – cast to any for safety
+            const original = /** @type {any} */ (middleware)[phase];
+            if (original && typeof original === "function") {
+                wrappedMiddleware.handlers[phase] = this.wrapHandler(name, phase, original);
+            }
+        }
+
+        this.middleware.set(name, wrappedMiddleware);
+        this.updateExecutionOrder();
+
+        console.log(`[StateMiddleware] Registered middleware "${name}" with priority ${priority}`);
+    }
+
+    /**
+     * Enable/disable specific middleware
+     * @param {string} name - Middleware name
+     * @param {boolean} enabled - Whether to enable the middleware
+     */
+    /**
+     * @param {string} name
+     * @param {boolean} enabled
+     * @returns {boolean}
+     */
+    setEnabled(name, enabled) {
+        const middleware = this.middleware.get(name);
+        if (!middleware) {
+            console.warn(`[StateMiddleware] Middleware "${name}" not found`);
+            return false;
+        }
+
+        middleware.isEnabled = enabled;
+        console.log(`[StateMiddleware] Middleware "${name}" ${enabled ? "enabled" : "disabled"}`);
+        return true;
+    }
+
+    /**
+     * Enable/disable all middleware
+     * @param {boolean} enabled - Whether to enable middleware system
+     */
+    /**
+     * @param {boolean} enabled
+     * @returns {void}
+     */
+    setGlobalEnabled(enabled) {
+        this.isEnabled = enabled;
+        console.log(`[StateMiddleware] Middleware system ${enabled ? "enabled" : "disabled"}`);
+    }
+
+    /**
+     * Unregister middleware
+     * @param {string} name - Middleware name
+     */
+    /**
+     * @param {string} name
+     * @returns {boolean}
+     */
+    unregister(name) {
+        if (!this.middleware.has(name)) {
+            console.warn(`[StateMiddleware] Middleware "${name}" not found`);
+            return false;
+        }
+
+        this.middleware.delete(name);
+        this.updateExecutionOrder();
+
+        console.log(`[StateMiddleware] Unregistered middleware "${name}"`);
+        return true;
+    }
+
+    /**
+     * Update execution order based on priorities
+     */
+    /** @returns {void} */
+    updateExecutionOrder() {
+        this.executionOrder = [...this.middleware.keys()].sort((a, b) => {
+            const mwA = this.middleware.get(a),
+                mwB = this.middleware.get(b),
+                priorityA = mwA ? mwA.priority : 100,
+                priorityB = mwB ? mwB.priority : 100;
+            return priorityA - priorityB;
+        });
     }
 
     /**
@@ -283,8 +320,8 @@ class StateMiddlewareManager {
             const startTime = performance.now();
 
             try {
-                const result = await handler(context),
-                    duration = performance.now() - startTime;
+                const duration = performance.now() - startTime,
+                    result = await handler(context);
                 if (duration > 5) {
                     console.warn(
                         `[StateMiddleware] Slow middleware "${middlewareName}.${phase}": ${duration.toFixed(2)}ms`
@@ -298,47 +335,6 @@ class StateMiddlewareManager {
                 throw err;
             }
         };
-    }
-
-    /**
-     * Update execution order based on priorities
-     */
-    /** @returns {void} */
-    updateExecutionOrder() {
-        this.executionOrder = Array.from(this.middleware.keys()).sort((a, b) => {
-            const mwA = this.middleware.get(a),
-                mwB = this.middleware.get(b),
-                priorityA = mwA ? mwA.priority : 100,
-                priorityB = mwB ? mwB.priority : 100;
-            return priorityA - priorityB;
-        });
-    }
-
-    /**
-     * Get middleware information
-     * @returns {Array} List of registered middleware with metadata
-     */
-    /**
-     * @returns {{name:string, priority:number, isEnabled:boolean, phases:string[], metadata:Object<string,any>}[]}
-     */
-    getMiddlewareInfo() {
-        return Array.from(this.middleware.values()).map((middleware) => ({
-            name: middleware.name,
-            priority: middleware.priority,
-            isEnabled: middleware.isEnabled,
-            phases: Object.keys(middleware.handlers),
-            metadata: middleware.metadata,
-        }));
-    }
-
-    /**
-     * Clear all middleware
-     */
-    /** @returns {void} */
-    clear() {
-        this.middleware.clear();
-        this.executionOrder = [];
-        console.log("[StateMiddleware] All middleware cleared");
     }
 }
 
@@ -354,9 +350,12 @@ export const middlewareManager = new StateMiddlewareManager();
  */
 /** @type {MiddlewareDefinition} */
 export const loggingMiddleware = {
-    metadata: {
-        description: "Logs all state operations for debugging",
-        version: "1.0.0",
+    /** @param {MiddlewareContext} context */
+    afterSet(context) {
+        if (context.options && context.options.source !== "internal") {
+            console.log(`[StateLog] Set "${context.path}" completed`);
+        }
+        return context;
     },
 
     /** @param {MiddlewareContext} context */
@@ -367,22 +366,19 @@ export const loggingMiddleware = {
         return context;
     },
 
-    /** @param {MiddlewareContext} context */
-    afterSet(context) {
-        if (context.options && context.options.source !== "internal") {
-            console.log(`[StateLog] Set "${context.path}" completed`);
-        }
-        return context;
+    metadata: {
+        description: "Logs all state operations for debugging",
+        version: "1.0.0",
     },
 
+    /** @param {Error} error */
+    onError(error) {
+        console.error(`[StateLog] Error:`, error);
+    },
     /** @param {MiddlewareContext} context */
     onSubscribe(context) {
         console.log(`[StateLog] New subscription to "${context.path}"`);
         return context;
-    },
-    /** @param {Error} error */
-    onError(error) {
-        console.error(`[StateLog] Error:`, error);
     },
 };
 
@@ -391,11 +387,6 @@ export const loggingMiddleware = {
  */
 /** @type {MiddlewareDefinition} */
 export const validationMiddleware = {
-    metadata: {
-        description: "Validates state changes according to defined schemas",
-        version: "1.0.0",
-    },
-
     /** @param {MiddlewareContext} context */
     beforeSet(context) {
         // Prevent setting undefined values
@@ -417,6 +408,11 @@ export const validationMiddleware = {
 
         return context;
     },
+
+    metadata: {
+        description: "Validates state changes according to defined schemas",
+        version: "1.0.0",
+    },
     /** @param {Error} error */
     onError(error) {
         showNotification(`State validation error: ${error.message}`, "error");
@@ -428,15 +424,6 @@ export const validationMiddleware = {
  */
 /** @type {MiddlewareDefinition} */
 export const performanceMiddleware = {
-    metadata: {
-        description: "Monitors state operation performance",
-        version: "1.0.0",
-    },
-    /** @param {MiddlewareContext} context */
-    beforeSet(context) {
-        context._startTime = performance.now();
-        return context;
-    },
     /** @param {MiddlewareContext} context */
     afterSet(context) {
         if (context._startTime) {
@@ -447,14 +434,14 @@ export const performanceMiddleware = {
             }
 
             // Store performance data
-            const w = /** @type {any} */ (window);
+            const w = /** @type {any} */ (globalThis);
             if (!w._statePerformance) {
                 w._statePerformance = [];
             }
 
             w._statePerformance.push({
-                path: context.path,
                 duration,
+                path: context.path,
                 timestamp: Date.now(),
             });
 
@@ -466,6 +453,15 @@ export const performanceMiddleware = {
 
         return context;
     },
+    /** @param {MiddlewareContext} context */
+    beforeSet(context) {
+        context._startTime = performance.now();
+        return context;
+    },
+    metadata: {
+        description: "Monitors state operation performance",
+        version: "1.0.0",
+    },
 };
 
 /**
@@ -473,10 +469,6 @@ export const performanceMiddleware = {
  */
 /** @type {MiddlewareDefinition} */
 export const persistenceMiddleware = {
-    metadata: {
-        description: "Automatically persists certain state values to localStorage",
-        version: "1.0.0",
-    },
     /** @param {MiddlewareContext} context */
     afterSet(context) {
         // Define which paths should be persisted
@@ -484,7 +476,7 @@ export const persistenceMiddleware = {
 
         if (persistPaths.some((path) => context.path.startsWith(path))) {
             try {
-                const key = `ffv_state_${context.path.replace(/\./g, "_")}`;
+                const key = `ffv_state_${context.path.replaceAll('.', "_")}`;
                 localStorage.setItem(key, JSON.stringify(context.value));
                 console.log(`[StatePersist] Saved "${context.path}" to localStorage`);
             } catch (error) {
@@ -494,6 +486,10 @@ export const persistenceMiddleware = {
 
         return context;
     },
+    metadata: {
+        description: "Automatically persists certain state values to localStorage",
+        version: "1.0.0",
+    },
 };
 
 /**
@@ -501,10 +497,6 @@ export const persistenceMiddleware = {
  */
 /** @type {MiddlewareDefinition} */
 export const notificationMiddleware = {
-    metadata: {
-        description: "Shows notifications for important state changes",
-        version: "1.0.0",
-    },
     /** @param {MiddlewareContext} context */
     afterSet(context) {
         // Show notifications for specific state changes
@@ -522,23 +514,11 @@ export const notificationMiddleware = {
 
         return context;
     },
+    metadata: {
+        description: "Shows notifications for important state changes",
+        version: "1.0.0",
+    },
 };
-
-/**
- * Initialize default middleware
- */
-export function initializeDefaultMiddleware() {
-    console.log("[StateMiddleware] Initializing default middleware...");
-
-    // Register middleware in priority order
-    middlewareManager.register("validation", validationMiddleware, 10); // Highest priority
-    middlewareManager.register("logging", loggingMiddleware, 20);
-    middlewareManager.register("performance", performanceMiddleware, 30);
-    middlewareManager.register("persistence", persistenceMiddleware, 40);
-    middlewareManager.register("notification", notificationMiddleware, 50); // Lowest priority
-
-    console.log("[StateMiddleware] Default middleware initialized");
-}
 
 /**
  * Cleanup middleware system
@@ -546,23 +526,6 @@ export function initializeDefaultMiddleware() {
 export function cleanupMiddleware() {
     middlewareManager.clear();
     console.log("[StateMiddleware] Middleware system cleaned up");
-}
-
-/**
- * Convenience functions for middleware registration
- */
-/**
- * @param {string} name
- * @param {MiddlewareDefinition} middleware
- * @param {number} [priority=100]
- */
-export function registerMiddleware(name, middleware, priority = 100) {
-    return middlewareManager.register(name, middleware, priority);
-}
-
-/** @param {string} name */
-export function unregisterMiddleware(name) {
-    return middlewareManager.unregister(name);
 }
 
 /**
@@ -583,6 +546,39 @@ export function executeMiddleware(phase, context) {
 
 export function getMiddlewareInfo() {
     return middlewareManager.getMiddlewareInfo();
+}
+
+/**
+ * Initialize default middleware
+ */
+export function initializeDefaultMiddleware() {
+    console.log("[StateMiddleware] Initializing default middleware...");
+
+    // Register middleware in priority order
+    middlewareManager.register("validation", validationMiddleware, 10); // Highest priority
+    middlewareManager.register("logging", loggingMiddleware, 20);
+    middlewareManager.register("performance", performanceMiddleware, 30);
+    middlewareManager.register("persistence", persistenceMiddleware, 40);
+    middlewareManager.register("notification", notificationMiddleware, 50); // Lowest priority
+
+    console.log("[StateMiddleware] Default middleware initialized");
+}
+
+/**
+ * Convenience functions for middleware registration
+ */
+/**
+ * @param {string} name
+ * @param {MiddlewareDefinition} middleware
+ * @param {number} [priority=100]
+ */
+export function registerMiddleware(name, middleware, priority = 100) {
+    return middlewareManager.register(name, middleware, priority);
+}
+
+/** @param {string} name */
+export function unregisterMiddleware(name) {
+    return middlewareManager.unregister(name);
 }
 
 // Export phases for use by other modules

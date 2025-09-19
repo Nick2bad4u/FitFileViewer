@@ -6,67 +6,23 @@
 import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 /**
- * Displays a notification message in the UI with state tracking.
- *
- * @param {string} message - The message to display in the notification.
- * @param {'error'|'success'|'info'|'warning'} [type='error'] - The type of notification, which determines its styling.
- * @param {number} [timeout=5000] - Duration in milliseconds before the notification disappears. Set to 0 to keep it visible.
+ * Clear current notification
  */
-export function showNotification(message, type = "error", timeout = 5000) {
-    const notif = document.getElementById("notification");
-    if (!notif) {
-        console.warn("[RendererUtils] Notification element not found");
-        return;
+export function clearNotification() {
+    const notif = document.querySelector("#notification");
+    if (notif) {
+        notif.style.display = "none";
     }
 
-    notif.textContent = message;
-    notif.className = `notification ${type}`;
-    notif.style.display = "block";
-
-    // Track notification in state
-    setState(
-        "ui.currentNotification",
-        {
-            message,
-            type,
-            timestamp: Date.now(),
-        },
-        { source: "showNotification" }
-    );
-
-    if (timeout > 0) {
-        setTimeout(() => {
-            notif.style.display = "none";
-            setState("ui.currentNotification", null, { source: "showNotification" });
-        }, timeout);
-    }
-
-    console.log(`[RendererUtils] Notification shown: ${type} - ${message}`);
+    setState("ui.currentNotification", null, { source: "clearNotification" });
 }
 
 /**
- * Shows or hides the loading overlay and updates the cursor style with state integration.
- *
- * @param {boolean} isLoading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
+ * Get current notification
+ * @returns {Object|null} Current notification object or null
  */
-export function setLoading(isLoading) {
-    // Update state first
-    setState("isLoading", isLoading, { source: "setLoading" });
-
-    const overlay = document.getElementById("loadingOverlay");
-    if (!overlay) {
-        console.warn("[RendererUtils] Loading overlay element not found");
-        return;
-    }
-
-    overlay.style.display = isLoading ? "flex" : "none";
-    document.body.style.cursor = isLoading ? "wait" : "";
-
-    // Update aria attributes for accessibility
-    overlay.setAttribute("aria-hidden", (!isLoading).toString());
-    document.body.setAttribute("aria-busy", isLoading.toString());
-
-    console.log(`[RendererUtils] Loading state: ${isLoading}`);
+export function getCurrentNotification() {
+    return getState("ui.currentNotification");
 }
 
 /**
@@ -89,93 +45,36 @@ export function initializeRendererUtils() {
 }
 
 /**
- * Update loading UI based on state
- *
- * Shows/hides loading overlay and disables/enables interactive elements.
- * The Open File button (openFileBtn) is intentionally excluded from
- * being disabled to allow users to open new files at any time.
- *
- * @private
- * @param {boolean} isLoading - Loading state
+ * Get current loading state
+ * @returns {boolean} Current loading state
  */
-function updateLoadingUI(isLoading) {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) {
-        overlay.style.display = isLoading ? "flex" : "none";
-        overlay.setAttribute("aria-hidden", (!isLoading).toString());
-    }
-
-    document.body.style.cursor = isLoading ? "wait" : "";
-    document.body.setAttribute("aria-busy", isLoading.toString());
-
-    // Disable/enable interactive elements during loading
-    const interactiveElements = document.querySelectorAll("button, input, select, textarea");
-    interactiveElements.forEach((element) => {
-        // Never disable the Open File button - users should always be able to open new files
-        if (element.id === "openFileBtn") {
-            return;
-        }
-
-        if (
-            element instanceof HTMLButtonElement ||
-            element instanceof HTMLInputElement ||
-            element instanceof HTMLSelectElement ||
-            element instanceof HTMLTextAreaElement
-        ) {
-            if (isLoading) {
-                element.setAttribute("data-was-disabled", element.disabled.toString());
-                element.disabled = true;
-            } else {
-                const wasDisabled = element.getAttribute("data-was-disabled") === "true";
-                element.disabled = wasDisabled;
-                element.removeAttribute("data-was-disabled");
-            }
-        }
-    });
+export function isLoading() {
+    return getState("isLoading") || false;
 }
 
 /**
- * Update notification UI based on state
- * @private
- * @param {Object} notification - Notification object
+ * Shows or hides the loading overlay and updates the cursor style with state integration.
+ *
+ * @param {boolean} isLoading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
  */
-/**
- * @param {{message:string,type:string}} notification
- */
-function updateNotificationUI(notification) {
-    const notif = document.getElementById("notification");
-    if (!notif) {
+export function setLoading(isLoading) {
+    // Update state first
+    setState("isLoading", isLoading, { source: "setLoading" });
+
+    const overlay = document.querySelector("#loadingOverlay");
+    if (!overlay) {
+        console.warn("[RendererUtils] Loading overlay element not found");
         return;
     }
 
-    notif.textContent = notification.message;
-    notif.className = `notification ${notification.type}`;
-    notif.style.display = "block";
+    overlay.style.display = isLoading ? "flex" : "none";
+    document.body.style.cursor = isLoading ? "wait" : "";
 
-    // Set aria attributes for accessibility
-    notif.setAttribute("role", "alert");
-    notif.setAttribute("aria-live", "polite");
-}
+    // Update aria attributes for accessibility
+    overlay.setAttribute("aria-hidden", (!isLoading).toString());
+    document.body.setAttribute("aria-busy", isLoading.toString());
 
-/**
- * Clear current notification
- */
-export function clearNotification() {
-    const notif = document.getElementById("notification");
-    if (notif) {
-        notif.style.display = "none";
-    }
-
-    setState("ui.currentNotification", null, { source: "clearNotification" });
-}
-
-/**
- * Show success notification with standard styling
- * @param {string} message - Success message
- * @param {number} [timeout=3000] - Display timeout
- */
-export function showSuccess(message, timeout = 3000) {
-    showNotification(message, "success", timeout);
+    console.log(`[RendererUtils] Loading state: ${isLoading}`);
 }
 
 /**
@@ -197,6 +96,54 @@ export function showInfo(message, timeout = 4000) {
 }
 
 /**
+ * Displays a notification message in the UI with state tracking.
+ *
+ * @param {string} message - The message to display in the notification.
+ * @param {'error'|'success'|'info'|'warning'} [type='error'] - The type of notification, which determines its styling.
+ * @param {number} [timeout=5000] - Duration in milliseconds before the notification disappears. Set to 0 to keep it visible.
+ */
+export function showNotification(message, type = "error", timeout = 5000) {
+    const notif = document.querySelector("#notification");
+    if (!notif) {
+        console.warn("[RendererUtils] Notification element not found");
+        return;
+    }
+
+    notif.textContent = message;
+    notif.className = `notification ${type}`;
+    notif.style.display = "block";
+
+    // Track notification in state
+    setState(
+        "ui.currentNotification",
+        {
+            message,
+            timestamp: Date.now(),
+            type,
+        },
+        { source: "showNotification" }
+    );
+
+    if (timeout > 0) {
+        setTimeout(() => {
+            notif.style.display = "none";
+            setState("ui.currentNotification", null, { source: "showNotification" });
+        }, timeout);
+    }
+
+    console.log(`[RendererUtils] Notification shown: ${type} - ${message}`);
+}
+
+/**
+ * Show success notification with standard styling
+ * @param {string} message - Success message
+ * @param {number} [timeout=3000] - Display timeout
+ */
+export function showSuccess(message, timeout = 3000) {
+    showNotification(message, "success", timeout);
+}
+
+/**
  * Show warning notification with standard styling
  * @param {string} message - Warning message
  * @param {number} [timeout=4000] - Display timeout
@@ -206,17 +153,70 @@ export function showWarning(message, timeout = 4000) {
 }
 
 /**
- * Get current loading state
- * @returns {boolean} Current loading state
+ * Update loading UI based on state
+ *
+ * Shows/hides loading overlay and disables/enables interactive elements.
+ * The Open File button (openFileBtn) is intentionally excluded from
+ * being disabled to allow users to open new files at any time.
+ *
+ * @private
+ * @param {boolean} isLoading - Loading state
  */
-export function isLoading() {
-    return getState("isLoading") || false;
+function updateLoadingUI(isLoading) {
+    const overlay = document.querySelector("#loadingOverlay");
+    if (overlay) {
+        overlay.style.display = isLoading ? "flex" : "none";
+        overlay.setAttribute("aria-hidden", (!isLoading).toString());
+    }
+
+    document.body.style.cursor = isLoading ? "wait" : "";
+    document.body.setAttribute("aria-busy", isLoading.toString());
+
+    // Disable/enable interactive elements during loading
+    const interactiveElements = document.querySelectorAll("button, input, select, textarea");
+    for (const element of interactiveElements) {
+        // Never disable the Open File button - users should always be able to open new files
+        if (element.id === "openFileBtn") {
+            continue;
+        }
+
+        if (
+            element instanceof HTMLButtonElement ||
+            element instanceof HTMLInputElement ||
+            element instanceof HTMLSelectElement ||
+            element instanceof HTMLTextAreaElement
+        ) {
+            if (isLoading) {
+                element.dataset.wasDisabled = element.disabled.toString();
+                element.disabled = true;
+            } else {
+                const wasDisabled = element.dataset.wasDisabled === "true";
+                element.disabled = wasDisabled;
+                delete element.dataset.wasDisabled;
+            }
+        }
+    }
 }
 
 /**
- * Get current notification
- * @returns {Object|null} Current notification object or null
+ * Update notification UI based on state
+ * @private
+ * @param {Object} notification - Notification object
  */
-export function getCurrentNotification() {
-    return getState("ui.currentNotification");
+/**
+ * @param {{message:string,type:string}} notification
+ */
+function updateNotificationUI(notification) {
+    const notif = document.querySelector("#notification");
+    if (!notif) {
+        return;
+    }
+
+    notif.textContent = notification.message;
+    notif.className = `notification ${notification.type}`;
+    notif.style.display = "block";
+
+    // Set aria attributes for accessibility
+    notif.setAttribute("role", "alert");
+    notif.setAttribute("aria-live", "polite");
 }

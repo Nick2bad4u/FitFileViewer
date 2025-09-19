@@ -1,6 +1,9 @@
-import { getState, setState, updateState } from "../../state/core/stateManager.js";
-import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
 import { getCurrentSettings, getDefaultSettings } from "../../app/initialization/getCurrentSettings.js";
+import { setupChartStatusUpdates } from "../../charts/components/chartStatusIndicator.js";
+import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
+import { getState, setState, updateState } from "../../state/core/stateManager.js";
+import { createHRZoneControls, moveHRZoneControlsToSection } from "../controls/createHRZoneControls.js";
+import { createPowerZoneControls, movePowerZoneControlsToSection } from "../controls/createPowerZoneControls.js";
 import { applySettingsPanelStyles } from "./createSettingsHeader.js";
 import {
     createControlsSection,
@@ -8,39 +11,86 @@ import {
     createFieldTogglesSection,
     createSettingsHeader,
 } from "./createSettingsHeader.js";
-import { createPowerZoneControls, movePowerZoneControlsToSection } from "../controls/createPowerZoneControls.js";
-import { createHRZoneControls, moveHRZoneControlsToSection } from "../controls/createHRZoneControls.js";
-import { setupChartStatusUpdates } from "../../charts/components/chartStatusIndicator.js";
 
 /**
- * Toggles the visibility of the chart controls panel
+ * Ensures chart settings dropdowns exist and applies styling
+ * @param {Element|string} targetContainer - Container element or ID
+ * @returns {Object} Current settings object
  */
-function toggleChartControls() {
-    const wrapper = document.getElementById("chartjs-settings-wrapper");
-    if (!wrapper) {
-        console.warn("[ChartJS] Controls panel not found, creating it...");
-        ensureChartSettingsDropdowns("chartjs-chart-container");
-        return;
+export function ensureChartSettingsDropdowns(targetContainer) {
+    // Initialize chart controls state if not already set
+    if (getState("charts.controlsVisible") === undefined) {
+        setState("charts.controlsVisible", true, { source: "ensureChartSettingsDropdowns.init" });
     }
 
-    // First sync to ensure we're starting from the correct state
+    const chartContainer = targetContainer
+        ? typeof targetContainer === "string"
+            ? document.getElementById(targetContainer)
+            : targetContainer
+        : document.querySelector("#chartjs-chart-container");
+
+    if (!chartContainer) {
+        return getDefaultSettings();
+    }
+
+    // Create toggle button if it doesn't exist
+    createControlsToggleButton(
+        /** @type {HTMLElement} */ (
+            chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body
+        )
+    );
+
+    // Create main settings wrapper only if it doesn't exist
+    let wrapper = document.querySelector("#chartjs-settings-wrapper");
+    if (!wrapper) {
+        wrapper = document.createElement("div");
+        wrapper.id = "chartjs-settings-wrapper";
+        wrapper.className = "chart-settings-panel";
+        wrapper.style.display = "none"; // Hidden by default
+        applySettingsPanelStyles(wrapper);
+
+        const toggleBtn = document.querySelector("#chart-controls-toggle");
+        if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
+            toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
+        } else if (chartContainer.parentNode instanceof HTMLElement) {
+            chartContainer.parentNode.insertBefore(wrapper, chartContainer);
+        } // Initialize settings sections only once
+        createSettingsHeader(wrapper);
+        createControlsSection(wrapper);
+        createExportSection(wrapper);
+        createFieldTogglesSection(wrapper);
+        // Create power zone controls section and move existing controls to it
+        createPowerZoneControls(wrapper);
+
+        // Create heart rate zone controls section and move existing controls to it
+        createHRZoneControls(wrapper);
+
+        // Move zone controls after a short delay to ensure field toggles are rendered
+        setTimeout(() => {
+            movePowerZoneControlsToSection();
+            moveHRZoneControlsToSection();
+        }, 100);
+
+        // Setup chart status indicator automatic updates
+        setupChartStatusUpdates();
+
+        // Update state management system instead of chartControlsState
+        updateState(
+            "charts",
+            {
+                controlsInitialized: true,
+                controlsWrapper: wrapper.id, // Store wrapper ID instead of DOM reference
+            },
+            { merge: true, source: "ensureChartSettingsDropdowns" }
+        );
+
+        console.log("[ChartJS] Controls panel created and hidden by default");
+    }
+
+    // Ensure state synchronization - sync internal state with actual DOM state
     updateControlsState();
 
-    // Use state management system to toggle controls visibility
-    const currentVisibility = getState("charts.controlsVisible"),
-        newVisibility = !currentVisibility;
-
-    setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
-    wrapper.style.display = newVisibility ? "block" : "none";
-
-    // Update toggle button text if it exists
-    const toggleBtn = document.getElementById("chart-controls-toggle");
-    if (toggleBtn) {
-        toggleBtn.textContent = newVisibility ? "▼ Hide Controls" : "▶ Show Controls";
-        toggleBtn.setAttribute("aria-expanded", newVisibility.toString());
-    }
-
-    console.log(`[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`);
+    return getCurrentSettings();
 }
 /**
  * Creates a toggle button for the chart controls panel
@@ -49,7 +99,7 @@ function toggleChartControls() {
  * @param {HTMLElement} container
  */
 function createControlsToggleButton(container) {
-    let toggleBtn = document.getElementById("chart-controls-toggle");
+    let toggleBtn = document.querySelector("#chart-controls-toggle");
     if (toggleBtn) {
         return toggleBtn; // Already exists
     }
@@ -93,92 +143,42 @@ function createControlsToggleButton(container) {
     toggleBtn.addEventListener("click", toggleChartControls);
 
     // Insert before the chart container
-    const chartContainer = document.getElementById("chartjs-chart-container");
+    const chartContainer = document.querySelector("#chartjs-chart-container");
     if (chartContainer && chartContainer.parentNode) {
         chartContainer.parentNode.insertBefore(toggleBtn, chartContainer);
     } else {
-        container.appendChild(toggleBtn);
+        container.append(toggleBtn);
     }
 
     return toggleBtn;
 }
 /**
- * Ensures chart settings dropdowns exist and applies styling
- * @param {Element|string} targetContainer - Container element or ID
- * @returns {Object} Current settings object
+ * Toggles the visibility of the chart controls panel
  */
-export function ensureChartSettingsDropdowns(targetContainer) {
-    // Initialize chart controls state if not already set
-    if (getState("charts.controlsVisible") === undefined) {
-        setState("charts.controlsVisible", true, { source: "ensureChartSettingsDropdowns.init" });
-    }
-
-    const chartContainer = targetContainer
-        ? typeof targetContainer === "string"
-            ? document.getElementById(targetContainer)
-            : targetContainer
-        : document.getElementById("chartjs-chart-container");
-
-    if (!chartContainer) {
-        return getDefaultSettings();
-    }
-
-    // Create toggle button if it doesn't exist
-    createControlsToggleButton(
-        /** @type {HTMLElement} */ (
-            chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body
-        )
-    );
-
-    // Create main settings wrapper only if it doesn't exist
-    let wrapper = document.getElementById("chartjs-settings-wrapper");
+function toggleChartControls() {
+    const wrapper = document.querySelector("#chartjs-settings-wrapper");
     if (!wrapper) {
-        wrapper = document.createElement("div");
-        wrapper.id = "chartjs-settings-wrapper";
-        wrapper.className = "chart-settings-panel";
-        wrapper.style.display = "none"; // Hidden by default
-        applySettingsPanelStyles(wrapper);
-
-        const toggleBtn = document.getElementById("chart-controls-toggle");
-        if (toggleBtn && toggleBtn.parentNode instanceof HTMLElement) {
-            toggleBtn.parentNode.insertBefore(wrapper, toggleBtn.nextSibling);
-        } else if (chartContainer.parentNode instanceof HTMLElement) {
-            chartContainer.parentNode.insertBefore(wrapper, chartContainer);
-        } // Initialize settings sections only once
-        createSettingsHeader(wrapper);
-        createControlsSection(wrapper);
-        createExportSection(wrapper);
-        createFieldTogglesSection(wrapper);
-        // Create power zone controls section and move existing controls to it
-        createPowerZoneControls(wrapper);
-
-        // Create heart rate zone controls section and move existing controls to it
-        createHRZoneControls(wrapper);
-
-        // Move zone controls after a short delay to ensure field toggles are rendered
-        setTimeout(() => {
-            movePowerZoneControlsToSection();
-            moveHRZoneControlsToSection();
-        }, 100);
-
-        // Setup chart status indicator automatic updates
-        setupChartStatusUpdates();
-
-        // Update state management system instead of chartControlsState
-        updateState(
-            "charts",
-            {
-                controlsInitialized: true,
-                controlsWrapper: wrapper.id, // Store wrapper ID instead of DOM reference
-            },
-            { source: "ensureChartSettingsDropdowns", merge: true }
-        );
-
-        console.log("[ChartJS] Controls panel created and hidden by default");
+        console.warn("[ChartJS] Controls panel not found, creating it...");
+        ensureChartSettingsDropdowns("chartjs-chart-container");
+        return;
     }
 
-    // Ensure state synchronization - sync internal state with actual DOM state
+    // First sync to ensure we're starting from the correct state
     updateControlsState();
 
-    return getCurrentSettings();
+    // Use state management system to toggle controls visibility
+    const currentVisibility = getState("charts.controlsVisible"),
+        newVisibility = !currentVisibility;
+
+    setState("charts.controlsVisible", newVisibility, { source: "toggleChartControls" });
+    wrapper.style.display = newVisibility ? "block" : "none";
+
+    // Update toggle button text if it exists
+    const toggleBtn = document.querySelector("#chart-controls-toggle");
+    if (toggleBtn) {
+        toggleBtn.textContent = newVisibility ? "▼ Hide Controls" : "▶ Show Controls";
+        toggleBtn.setAttribute("aria-expanded", newVisibility.toString());
+    }
+
+    console.log(`[ChartJS] Controls panel ${newVisibility ? "shown" : "hidden"}`);
 }

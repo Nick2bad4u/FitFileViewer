@@ -3,8 +3,8 @@
  * @readonly
  */
 const HEIGHT_CONVERSIONS = {
-    METERS_TO_INCHES: 39.3701,
     INCHES_PER_FOOT: 12,
+    METERS_TO_INCHES: 39.3701,
 };
 
 /**

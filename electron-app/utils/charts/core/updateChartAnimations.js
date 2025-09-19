@@ -14,14 +14,14 @@ import { throttledAnimLog } from "../../debug/lastAnimLog.js";
 // Animation configuration constants
 const ANIMATION_CONFIG = {
         DURATION: {
+            COLORS: 1000,
             DEFAULT: 1200,
             TENSION: 1500,
-            COLORS: 1000,
         },
         EASING: {
+            COLORS: "easeOutQuart",
             DEFAULT: "easeInOutQuart",
             TENSION: "easeOutQuart",
-            COLORS: "easeOutQuart",
         },
         LINE_TENSION: {
             FROM: 0,
@@ -29,77 +29,11 @@ const ANIMATION_CONFIG = {
         },
     },
     CHART_TYPES = {
-        LINE: "line",
         BAR: "bar",
         DOUGHNUT: "doughnut",
+        LINE: "line",
     },
     LOG_PREFIX = "[ChartAnimations]";
-
-/**
- * Creates progress callback for chart animations
- * @param {string} type - Chart type for logging
- * @returns {Function} Progress callback function
- */
-function createProgressCallback(type) {
-    return function (/** @type {any} */ context) {
-        if (context && context.currentStep !== undefined && context.numSteps !== undefined && context.numSteps > 0) {
-            const percentage = Math.round((100 * context.currentStep) / context.numSteps);
-            throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
-        }
-    };
-}
-
-/**
- * Creates completion callback for chart animations
- * @param {string} type - Chart type for logging
- * @returns {Function} Completion callback function
- */
-function createCompletionCallback(type) {
-    return function () {
-        console.log(`[ChartJS] ${type} chart animation complete`);
-    };
-}
-
-/**
- * Configures type-specific animations for a chart
- * @param {Object} chart - Chart.js chart instance
- * @param {string} chartType - Type of chart (line, bar, doughnut)
- */
-function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
-    if (!chart.options || typeof chart.options !== "object") {
-        return;
-    }
-    if (!chart.options.animations) {
-        chart.options.animations = {};
-    }
-
-    switch (chartType) {
-        case CHART_TYPES.LINE:
-            chart.options.animations.tension = {
-                duration: ANIMATION_CONFIG.DURATION.TENSION,
-                easing: ANIMATION_CONFIG.EASING.TENSION,
-                from: ANIMATION_CONFIG.LINE_TENSION.FROM,
-                to: ANIMATION_CONFIG.LINE_TENSION.TO,
-            };
-            break;
-
-        case CHART_TYPES.BAR:
-            chart.options.animations.colors = {
-                duration: ANIMATION_CONFIG.DURATION.COLORS,
-                easing: ANIMATION_CONFIG.EASING.COLORS,
-            };
-            break;
-
-        case CHART_TYPES.DOUGHNUT:
-            chart.options.animations.animateRotate = true;
-            chart.options.animations.animateScale = true;
-            break;
-
-        default:
-            // No specific animations for other chart types
-            break;
-    }
-}
 
 /**
  * Updates animation configurations for Chart.js charts
@@ -139,8 +73,8 @@ export function updateChartAnimations(/** @type {any} */ chart, /** @type {strin
             ...chart.options.animation,
             duration: ANIMATION_CONFIG.DURATION.DEFAULT,
             easing: ANIMATION_CONFIG.EASING.DEFAULT,
-            onProgress: createProgressCallback(type),
             onComplete: createCompletionCallback(type),
+            onProgress: createProgressCallback(type),
         };
 
         // Configure type-specific animations
@@ -157,4 +91,74 @@ export function updateChartAnimations(/** @type {any} */ chart, /** @type {strin
         console.error(`${LOG_PREFIX} Error updating chart animations:`, error);
         return chart; // Return original chart to avoid breaking functionality
     }
+}
+
+/**
+ * Configures type-specific animations for a chart
+ * @param {Object} chart - Chart.js chart instance
+ * @param {string} chartType - Type of chart (line, bar, doughnut)
+ */
+function configureTypeSpecificAnimations(/** @type {any} */ chart, chartType) {
+    if (!chart.options || typeof chart.options !== "object") {
+        return;
+    }
+    if (!chart.options.animations) {
+        chart.options.animations = {};
+    }
+
+    switch (chartType) {
+        case CHART_TYPES.BAR: {
+            chart.options.animations.colors = {
+                duration: ANIMATION_CONFIG.DURATION.COLORS,
+                easing: ANIMATION_CONFIG.EASING.COLORS,
+            };
+            break;
+        }
+
+        case CHART_TYPES.DOUGHNUT: {
+            chart.options.animations.animateRotate = true;
+            chart.options.animations.animateScale = true;
+            break;
+        }
+
+        case CHART_TYPES.LINE: {
+            chart.options.animations.tension = {
+                duration: ANIMATION_CONFIG.DURATION.TENSION,
+                easing: ANIMATION_CONFIG.EASING.TENSION,
+                from: ANIMATION_CONFIG.LINE_TENSION.FROM,
+                to: ANIMATION_CONFIG.LINE_TENSION.TO,
+            };
+            break;
+        }
+
+        default: {
+            // No specific animations for other chart types
+            break;
+        }
+    }
+}
+
+/**
+ * Creates completion callback for chart animations
+ * @param {string} type - Chart type for logging
+ * @returns {Function} Completion callback function
+ */
+function createCompletionCallback(type) {
+    return function () {
+        console.log(`[ChartJS] ${type} chart animation complete`);
+    };
+}
+
+/**
+ * Creates progress callback for chart animations
+ * @param {string} type - Chart type for logging
+ * @returns {Function} Progress callback function
+ */
+function createProgressCallback(type) {
+    return function (/** @type {any} */ context) {
+        if (context && context.currentStep !== undefined && context.numSteps !== undefined && context.numSteps > 0) {
+            const percentage = Math.round((100 * context.currentStep) / context.numSteps);
+            throttledAnimLog(`[ChartJS] ${type} chart animation: ${percentage}%`);
+        }
+    };
 }

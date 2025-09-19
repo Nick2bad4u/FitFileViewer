@@ -17,26 +17,26 @@ export function extractDeveloperFieldsList(recordMesgs) {
     }
     const fieldSet = new Set();
 
-    recordMesgs.forEach((row) => {
+    for (const row of recordMesgs) {
         if (row.developerFields && typeof row.developerFields === "string") {
             try {
                 const devFields = JSON.parse(row.developerFields);
-                Object.keys(devFields).forEach((fieldId) => {
+                for (const fieldId of Object.keys(devFields)) {
                     const value = devFields[fieldId];
 
                     if (Array.isArray(value)) {
-                        value.forEach((_, arrayIndex) => {
+                        for (const [arrayIndex, _] of value.entries()) {
                             fieldSet.add(`dev_${fieldId}_${arrayIndex}`);
-                        });
+                        }
                     } else if (typeof value === "number" && !isNaN(value)) {
                         fieldSet.add(`dev_${fieldId}`);
                     }
-                });
+                }
             } catch {
                 // Skip malformed JSON
             }
         }
-    });
+    }
 
-    return /** @type {string[]} */ (Array.from(fieldSet));
+    return /** @type {string[]} */ ([...fieldSet]);
 }

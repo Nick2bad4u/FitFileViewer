@@ -77,11 +77,11 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
+import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
-import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static import of AppActions because tests sometimes mock the module
-// without exporting the named symbol. Always resolve via ensureCoreModules().
+// Without exporting the named symbol. Always resolve via ensureCoreModules().
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
 // Import domain-level appState for tests that mock this path explicitly
 // Note: app domain state functions are dynamically imported via ensureCoreModules()
@@ -90,80 +90,6 @@ import { getState, subscribe } from "./utils/state/core/stateManager.js";
 // Dynamic module cache and loader to support test-time mocking via vi.doMock
 /** @type {Record<string, any>} */
 const __moduleCache = {};
-
-/**
- * Try to resolve a Vitest manual mock by matching the end of the module path.
- * This lets us honor vi.doMock specifiers used in tests (e.g. '../../utils/...')
- * even when the renderer imports './utils/...'.
- * @param {string} pathSuffix e.g. '/utils/theming/core/setupTheme.js'
- * @returns {any|null}
- */
-function resolveManualMock(pathSuffix) {
-    try {
-        // @ts-ignore
-        const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
-        if (reg && typeof reg.forEach === "function") {
-            for (const [id, mod] of reg.entries()) {
-                if (String(id).endsWith(pathSuffix)) {
-                    return mod && mod.default ? mod.default : mod;
-                }
-            }
-        }
-    } catch { }
-    return null;
-}
-
-/**
- * Prefer an exact match in Vitest manual mock registry by test ID.
- * @param {string} testId The exact id used in vi.doMock (e.g., '../../utils/...')
- * @returns {any|null}
- */
-function resolveExactManualMock(testId) {
-    try {
-        // @ts-ignore
-        const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
-        if (reg && reg.has(testId)) {
-            const mod = reg.get(testId);
-            return mod && mod.default ? mod.default : mod;
-        }
-    } catch { }
-    return null;
-}
-
-/**
- * Attempt to dynamically import a module, preferring test-relative paths mocked in unit tests.
- * Falls back to the real renderer-relative path when test path fails.
- * Results are cached to avoid repeated imports.
- * @param {string} testPath - Path used by tests (e.g. ../../utils/...)
- * @param {string} realPath - Real path used by the app (e.g. ./utils/...)
- * @returns {Promise<any>}
- */
-async function importPreferTest(testPath, realPath) {
-    const IN_TEST =
-        (typeof process !== "undefined" && !!process.env && process.env.VITEST_WORKER_ID !== undefined) ||
-        (typeof globalThis !== "undefined" && !!(/** @type {any} */ (globalThis).__vitest_manual_mocks__));
-    const cacheKey = `test:${testPath}::real:${realPath}`;
-    // Only use cache outside tests so test mocks/spies always see fresh imports
-    if (!IN_TEST && cacheKey in __moduleCache) return __moduleCache[cacheKey];
-    let mod;
-    if (IN_TEST) {
-        // Attempt test path first so vi.doMock specifiers (../../) are honored
-        try {
-            mod = await import(testPath);
-        } catch {
-            try {
-                mod = await import(realPath);
-            } catch (e) {
-                throw e;
-            }
-        }
-    } else {
-        // Production: skip invalid testPath to avoid 404 noise
-        mod = await import(realPath);
-    }
-    if (!IN_TEST) __moduleCache[cacheKey] = mod;
-    return mod;
-}
 
 /**
  * Dynamically resolves core modules so Vitest doMock hooks (using ../../ paths) are respected.
@@ -236,15 +162,6 @@ async function ensureCoreModules() {
         ));
 
     return {
-        showNotification: notifMod.showNotification,
-        handleOpenFile: openFileMod.handleOpenFile,
-        setupTheme: setupThemeMod.setupTheme,
-        showUpdateNotification: updateNotifMod.showUpdateNotification,
-        setupListeners: listenersMod.setupListeners,
-        showAboutModal: aboutMod.showAboutModal,
-        applyTheme: themeMod.applyTheme,
-        listenForThemeChange: themeMod.listenForThemeChange,
-        masterStateManager: msmMod.masterStateManager ?? msmMod.default?.masterStateManager ?? msmMod,
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
         AppActions:
             appActionsMod &&
@@ -254,15 +171,63 @@ async function ensureCoreModules() {
                 (appActionsMod.default && typeof appActionsMod.default.setInitialized === "function"
                     ? appActionsMod.default
                     : undefined)),
+        applyTheme: themeMod.applyTheme,
         getAppDomainState: appDomainMod.getState ?? appDomainMod.default?.getState,
+        handleOpenFile: openFileMod.handleOpenFile,
+        listenForThemeChange: themeMod.listenForThemeChange,
+        masterStateManager: msmMod.masterStateManager ?? msmMod.default?.masterStateManager ?? msmMod,
+        setupListeners: listenersMod.setupListeners,
+        setupTheme: setupThemeMod.setupTheme,
+        showAboutModal: aboutMod.showAboutModal,
+        showNotification: notifMod.showNotification,
+        showUpdateNotification: updateNotifMod.showUpdateNotification,
         subscribeAppDomain: appDomainMod.subscribe ?? appDomainMod.default?.subscribe,
         uiStateManager: uiStateMod.uiStateManager ?? uiStateMod.default?.uiStateManager ?? uiStateMod,
     };
 }
 
-// ==========================================
-// Environment Detection
-// ==========================================
+/**
+ * Gets the current environment name
+ * @returns {string} Environment name
+ */
+function getEnvironment() {
+    return isDevelopmentMode() ? "development" : "production";
+}
+
+/**
+ * Attempt to dynamically import a module, preferring test-relative paths mocked in unit tests.
+ * Falls back to the real renderer-relative path when test path fails.
+ * Results are cached to avoid repeated imports.
+ * @param {string} testPath - Path used by tests (e.g. ../../utils/...)
+ * @param {string} realPath - Real path used by the app (e.g. ./utils/...)
+ * @returns {Promise<any>}
+ */
+async function importPreferTest(testPath, realPath) {
+    const IN_TEST =
+        (typeof process !== "undefined" && Boolean(process.env) && process.env.VITEST_WORKER_ID !== undefined) ||
+        (typeof globalThis !== "undefined" && Boolean((globalThis).__vitest_manual_mocks__));
+    const cacheKey = `test:${testPath}::real:${realPath}`;
+    // Only use cache outside tests so test mocks/spies always see fresh imports
+    if (!IN_TEST && cacheKey in __moduleCache) return __moduleCache[cacheKey];
+    let mod;
+    if (IN_TEST) {
+        // Attempt test path first so vi.doMock specifiers (../../) are honored
+        try {
+            mod = await import(testPath);
+        } catch {
+            try {
+                mod = await import(realPath);
+            } catch (error) {
+                throw error;
+            }
+        }
+    } else {
+        // Production: skip invalid testPath to avoid 404 noise
+        mod = await import(realPath);
+    }
+    if (!IN_TEST) __moduleCache[cacheKey] = mod;
+    return mod;
+}
 
 /**
  * Detects if the application is running in development mode
@@ -272,7 +237,7 @@ async function ensureCoreModules() {
 function isDevelopmentMode() {
     // Check for development indicators (guard window.location access for jsdom/mocks)
     try {
-        const loc = /** @type {any} */ (typeof window !== "undefined" ? window.location : undefined) || {};
+        const loc = /** @type {any} */ (globalThis.window === undefined ? undefined : globalThis.location) || {};
         const hostname = typeof loc.hostname === "string" ? loc.hostname : "";
         const search = typeof loc.search === "string" ? loc.search : "";
         const protocol = typeof loc.protocol === "string" ? loc.protocol : "";
@@ -282,15 +247,15 @@ function isDevelopmentMode() {
             hostname === "localhost" ||
             hostname === "127.0.0.1" ||
             (hostname && hostname.includes("dev")) ||
-            /** @type {any} */ (window).__DEVELOPMENT__ === true ||
+            /** @type {any} */ (globalThis).__DEVELOPMENT__ === true ||
             (search && search.includes("debug=true")) ||
             (typeof document !== "undefined" &&
                 document.documentElement &&
-                document.documentElement.hasAttribute("data-dev-mode")) ||
+                Object.hasOwn(document.documentElement.dataset, "devMode")) ||
             protocol === "file:" ||
-            (typeof window !== "undefined" &&
-                /** @type {any} */ (window).electronAPI &&
-                typeof (/** @type {any} */ (window.electronAPI).__devMode) !== "undefined") ||
+            (globalThis.window !== undefined &&
+                /** @type {any} */ (globalThis).electronAPI &&
+                (/** @type {any} */ (globalThis.electronAPI).__devMode) !== undefined) ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
         );
     } catch {
@@ -299,12 +264,47 @@ function isDevelopmentMode() {
     }
 }
 
+// ==========================================
+// Environment Detection
+// ==========================================
+
 /**
- * Gets the current environment name
- * @returns {string} Environment name
+ * Prefer an exact match in Vitest manual mock registry by test ID.
+ * @param {string} testId The exact id used in vi.doMock (e.g., '../../utils/...')
+ * @returns {any|null}
  */
-function getEnvironment() {
-    return isDevelopmentMode() ? "development" : "production";
+function resolveExactManualMock(testId) {
+    try {
+        // @ts-ignore
+        const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+        if (reg && reg.has(testId)) {
+            const mod = reg.get(testId);
+            return mod && mod.default ? mod.default : mod;
+        }
+    } catch { }
+    return null;
+}
+
+/**
+ * Try to resolve a Vitest manual mock by matching the end of the module path.
+ * This lets us honor vi.doMock specifiers used in tests (e.g. '../../utils/...')
+ * even when the renderer imports './utils/...'.
+ * @param {string} pathSuffix e.g. '/utils/theming/core/setupTheme.js'
+ * @returns {any|null}
+ */
+function resolveManualMock(pathSuffix) {
+    try {
+        // @ts-ignore
+        const reg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+        if (reg && typeof reg.forEach === "function") {
+            for (const [id, mod] of reg.entries()) {
+                if (String(id).endsWith(pathSuffix)) {
+                    return mod && mod.default ? mod.default : mod;
+                }
+            }
+        }
+    } catch { }
+    return null;
 }
 
 // ==========================================
@@ -326,6 +326,257 @@ let appState = /** @type {any} */ (null);
 const isOpeningFileRef = { value: false };
 
 /**
+ * Global error handler for uncaught exceptions
+ * @param {ErrorEvent} event - The error event
+ */
+async function handleUncaughtError(event) {
+    console.error("[Renderer] Uncaught error:", event.error);
+
+    try {
+        const { masterStateManager, showNotification } = await ensureCoreModules();
+        // Use state manager if available, fallback to direct notification
+        if (masterStateManager && masterStateManager.isInitialized) {
+            showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
+        } else {
+            showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
+        }
+    } catch (notifyError) {
+        console.error("[Renderer] Failed to show error notification:", notifyError);
+    }
+}
+
+// ==========================================
+// Error Handling
+// ==========================================
+
+/**
+ * Global error handler for unhandled promise rejections
+ * @param {PromiseRejectionEvent} event - The unhandled rejection event
+ */
+async function handleUnhandledRejection(event) {
+    console.error("[Renderer] Unhandled promise rejection:", event.reason);
+
+    try {
+        const { masterStateManager, showNotification } = await ensureCoreModules();
+        // Use state manager if available, fallback to direct notification
+        if (masterStateManager && masterStateManager.isInitialized) {
+            showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
+        } else {
+            showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
+        }
+    } catch (notifyError) {
+        console.error("[Renderer] Failed to show error notification:", notifyError);
+    }
+
+    // Prevent default browser behavior
+    event.preventDefault();
+}
+
+/**
+ * Initializes the application after DOM is ready
+ * @returns {Promise<void>}
+ */
+async function initializeApplication() {
+    PerformanceMonitor.start("app_initialization");
+
+    try {
+        console.log("[Renderer] Starting application initialization...");
+
+        // Initialize state management system first
+        await initializeStateManager();
+
+        // Validate DOM elements
+        if (!validateDOMElements()) {
+            throw new Error("Required DOM elements are missing");
+        }
+
+        // Get required DOM elements
+        const openFileBtn = document.querySelector("#openFileBtn");
+        // Also support tests that only provide a hidden file input
+        const fileInput = /** @type {HTMLInputElement | null} */ (document.querySelector("#fileInput"));
+
+        // Setup global error handlers
+        globalThis.addEventListener("unhandledrejection", handleUnhandledRejection);
+        globalThis.addEventListener("error", handleUncaughtError);
+
+        // Create dependencies object for setup functions
+        const {
+            applyTheme,
+            getAppDomainState,
+            handleOpenFile,
+            listenForThemeChange,
+            showAboutModal,
+            showNotification,
+            showUpdateNotification,
+        } = await ensureCoreModules();
+        const dependencies = {
+            applyTheme,
+            handleOpenFile,
+            isOpeningFileRef,
+            listenForThemeChange,
+            openFileBtn,
+            setLoading,
+            showAboutModal,
+            showNotification,
+            showUpdateNotification,
+        };
+
+        // Initialize core components
+        // Initialize core components regardless of openFileBtn presence (tests mock listeners)
+        await initializeComponents(/** @type {any} */(dependencies));
+
+        // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
+        if (fileInput && typeof handleOpenFile === "function") {
+            fileInput.addEventListener("change", () => {
+                const { files } = fileInput;
+                if (files && files.length > 0) {
+                    // Call mocked handleOpenFile with first file for coverage test visibility
+                    handleOpenFile(files[0]);
+                }
+            });
+        }
+
+        // Register minimal electronAPI hooks that coverage tests expect
+        if (globalThis.electronAPI) {
+            try {
+                if (typeof (/** @type {any} */ (globalThis.electronAPI).onMenuAction) === "function") {
+                    /** @type {any} */ (globalThis.electronAPI).onMenuAction((/** @type {any} */ action) => {
+                    if (action === "open-file" && openFileBtn) {
+                        openFileBtn.click?.();
+                    } else if (action === "about") {
+                        try {
+                            showAboutModal();
+                        } catch { }
+                    }
+                });
+                }
+                if (typeof (/** @type {any} */ (globalThis.electronAPI).onThemeChanged) === "function") {
+                    /** @type {any} */ (globalThis.electronAPI).onThemeChanged((/** @type {any} */ theme) => {
+                    try {
+                        applyTheme?.(theme);
+                    } catch { }
+                });
+                }
+                if (typeof (/** @type {any} */ (globalThis.electronAPI).isDevelopment) === "function") {
+                    // Probe development mode to satisfy test expectation
+                    /** @type {any} */ (globalThis.electronAPI).isDevelopment().catch(() => { });
+                }
+            } catch { }
+        }
+
+        // Touch app domain state once to satisfy coverage test that spies on getState
+        try {
+            getAppDomainState?.("app.startTime");
+        } catch { }
+
+        // Mark application as initialized using new state system
+        const { AppActions } = await ensureCoreModules();
+        AppActions.setInitialized(true);
+
+        const initTime = PerformanceMonitor.end("app_initialization");
+        console.log(`[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`);
+
+        // Show success notification for development
+        if (isDevelopmentMode()) {
+            showNotification(`App initialized in ${initTime.toFixed(0)}ms`, "success", 3000);
+        }
+    } catch (error) {
+        PerformanceMonitor.end("app_initialization");
+        console.error("[Renderer] Failed to initialize application:", error);
+
+        // Use state manager for error notification
+        try {
+            const { showNotification } = await ensureCoreModules();
+            showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10_000);
+        } catch { }
+        // Do not rethrow here to keep module import safe for tests
+    }
+}
+
+// ==========================================
+// DOM Ready & Initialization
+// ==========================================
+
+/**
+ * Initializes components that require async operations
+ * @returns {Promise<void>}
+ */
+async function initializeAsyncComponents() {
+    try {
+        // Initialize recent files if available
+        if (globalThis.electronAPI?.recentFiles) {
+            try {
+                await globalThis.electronAPI.recentFiles();
+                console.log("[Renderer] Recent files API available");
+            } catch (error) {
+                console.warn("[Renderer] Recent files initialization failed:", error);
+            }
+        }
+
+        // Check for updates if in production
+        if (globalThis.electronAPI?.checkForUpdates && !isDevelopmentMode()) {
+            try {
+                setTimeout(() => {
+                    globalThis.electronAPI.checkForUpdates();
+                }, 5000); // Delay to avoid blocking startup
+            } catch (error) {
+                console.warn("[Renderer] Update check failed:", error);
+            }
+        }
+    } catch (error) {
+        console.warn("[Renderer] Some async components failed to initialize:", error);
+        // Don't throw - these are non-critical
+    }
+}
+
+/**
+ * Initializes all application components in proper order
+ * @param {RendererDependencies} dependencies - Application dependencies
+ * @returns {Promise<void>}
+ */
+async function initializeComponents(dependencies) {
+    try {
+        // 1. Setup theme system first (affects all UI)
+        PerformanceMonitor.start("theme_setup");
+        console.log("[Renderer] Setting up theme system...");
+        try {
+            const { setupTheme: setupThemeDyn } = await ensureCoreModules();
+            setupThemeDyn(dependencies.applyTheme, dependencies.listenForThemeChange);
+        } catch { }
+        PerformanceMonitor.end("theme_setup");
+
+        // 2. Setup event listeners
+        PerformanceMonitor.start("listeners_setup");
+        console.log("[Renderer] Setting up event listeners...");
+        try {
+            // Prefer dynamically resolved (mockable) setupListeners for tests
+            const { setupListeners: setupListenersDyn } = await ensureCoreModules();
+            setupListenersDyn(/** @type {any} */(dependencies));
+        } catch {
+            // Fallback guard
+            try {
+                const { setupListeners: sl } = await ensureCoreModules();
+                sl(/** @type {any} */(dependencies));
+            } catch (error) {
+                console.warn("[Renderer] Listener setup skipped or failed:", /** @type {any} */(error)?.message || error);
+            }
+        }
+        PerformanceMonitor.end("listeners_setup");
+
+        // 3. Initialize any async components
+        PerformanceMonitor.start("async_components");
+        console.log("[Renderer] Initializing async components...");
+        await initializeAsyncComponents();
+        PerformanceMonitor.end("async_components");
+
+        console.log("[Renderer] All components initialized successfully");
+    } catch (error) {
+        console.error("[Renderer] Component initialization failed:", error);
+        throw error;
+    }
+}
+
+/**
  * Initialize the centralized state management system
  * @returns {Promise<void>}
  */
@@ -333,7 +584,7 @@ async function initializeStateManager() {
     try {
         console.log("[Renderer] Initializing state management system...");
         // Resolve via ensureCoreModules so Vitest manual mocks are honored
-        const { masterStateManager: msm, AppActions: AA } = await ensureCoreModules();
+        const { AppActions: AA, masterStateManager: msm } = await ensureCoreModules();
         // Initialize the master state manager (ensure spy in tests is triggered)
         await msm.initialize();
 
@@ -378,57 +629,6 @@ async function initializeStateManager() {
     }
 }
 
-// ==========================================
-// Error Handling
-// ==========================================
-
-/**
- * Global error handler for unhandled promise rejections
- * @param {PromiseRejectionEvent} event - The unhandled rejection event
- */
-async function handleUnhandledRejection(event) {
-    console.error("[Renderer] Unhandled promise rejection:", event.reason);
-
-    try {
-        const { masterStateManager, showNotification } = await ensureCoreModules();
-        // Use state manager if available, fallback to direct notification
-        if (masterStateManager && masterStateManager.isInitialized) {
-            showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
-        } else {
-            showNotification(`Application error: ${event.reason?.message || "Unknown error"}`, "error", 5000);
-        }
-    } catch (notifyError) {
-        console.error("[Renderer] Failed to show error notification:", notifyError);
-    }
-
-    // Prevent default browser behavior
-    event.preventDefault();
-}
-
-/**
- * Global error handler for uncaught exceptions
- * @param {ErrorEvent} event - The error event
- */
-async function handleUncaughtError(event) {
-    console.error("[Renderer] Uncaught error:", event.error);
-
-    try {
-        const { masterStateManager, showNotification } = await ensureCoreModules();
-        // Use state manager if available, fallback to direct notification
-        if (masterStateManager && masterStateManager.isInitialized) {
-            showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
-        } else {
-            showNotification(`Critical error: ${event.error?.message || "Unknown error"}`, "error", 7000);
-        }
-    } catch (notifyError) {
-        console.error("[Renderer] Failed to show error notification:", notifyError);
-    }
-}
-
-// ==========================================
-// DOM Ready & Initialization
-// ==========================================
-
 /**
  * Validates that required DOM elements exist
  * @returns {boolean} True if all required elements are present
@@ -466,206 +666,6 @@ function validateDOMElements() {
     return true;
 }
 
-/**
- * Initializes the application after DOM is ready
- * @returns {Promise<void>}
- */
-async function initializeApplication() {
-    PerformanceMonitor.start("app_initialization");
-
-    try {
-        console.log("[Renderer] Starting application initialization...");
-
-        // Initialize state management system first
-        await initializeStateManager();
-
-        // Validate DOM elements
-        if (!validateDOMElements()) {
-            throw new Error("Required DOM elements are missing");
-        }
-
-        // Get required DOM elements
-        const openFileBtn = document.getElementById("openFileBtn");
-        // Also support tests that only provide a hidden file input
-        const fileInput = /** @type {HTMLInputElement | null} */ (document.getElementById("fileInput"));
-
-        // Setup global error handlers
-        window.addEventListener("unhandledrejection", handleUnhandledRejection);
-        window.addEventListener("error", handleUncaughtError);
-
-        // Create dependencies object for setup functions
-        const {
-            applyTheme,
-            listenForThemeChange,
-            handleOpenFile,
-            showNotification,
-            showUpdateNotification,
-            showAboutModal,
-            getAppDomainState,
-        } = await ensureCoreModules();
-        const dependencies = {
-            openFileBtn,
-            isOpeningFileRef,
-            setLoading,
-            showNotification,
-            handleOpenFile,
-            showUpdateNotification,
-            showAboutModal,
-            applyTheme,
-            listenForThemeChange,
-        };
-
-        // Initialize core components
-        // Initialize core components regardless of openFileBtn presence (tests mock listeners)
-        await initializeComponents(/** @type {any} */(dependencies));
-
-        // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
-        if (fileInput && typeof handleOpenFile === "function") {
-            fileInput.addEventListener("change", () => {
-                const files = fileInput.files;
-                if (files && files.length > 0) {
-                    // Call mocked handleOpenFile with first file for coverage test visibility
-                    handleOpenFile(files[0]);
-                }
-            });
-        }
-
-        // Register minimal electronAPI hooks that coverage tests expect
-        if (window.electronAPI) {
-            try {
-                if (typeof (/** @type {any} */ (window.electronAPI)["onMenuAction"]) === "function") {
-                    /** @type {any} */ (window.electronAPI)["onMenuAction"]((/** @type {any} */ action) => {
-                    if (action === "open-file" && openFileBtn) {
-                        openFileBtn.click?.();
-                    } else if (action === "about") {
-                        try {
-                            showAboutModal();
-                        } catch { }
-                    }
-                });
-                }
-                if (typeof (/** @type {any} */ (window.electronAPI)["onThemeChanged"]) === "function") {
-                    /** @type {any} */ (window.electronAPI)["onThemeChanged"]((/** @type {any} */ theme) => {
-                    try {
-                        applyTheme?.(theme);
-                    } catch { }
-                });
-                }
-                if (typeof (/** @type {any} */ (window.electronAPI)["isDevelopment"]) === "function") {
-                    // Probe development mode to satisfy test expectation
-                    /** @type {any} */ (window.electronAPI)["isDevelopment"]().catch(() => { });
-                }
-            } catch { }
-        }
-
-        // Touch app domain state once to satisfy coverage test that spies on getState
-        try {
-            getAppDomainState?.("app.startTime");
-        } catch { }
-
-        // Mark application as initialized using new state system
-        const { AppActions } = await ensureCoreModules();
-        AppActions.setInitialized(true);
-
-        const initTime = PerformanceMonitor.end("app_initialization");
-        console.log(`[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`);
-
-        // Show success notification for development
-        if (isDevelopmentMode()) {
-            showNotification(`App initialized in ${initTime.toFixed(0)}ms`, "success", 3000);
-        }
-    } catch (error) {
-        PerformanceMonitor.end("app_initialization");
-        console.error("[Renderer] Failed to initialize application:", error);
-
-        // Use state manager for error notification
-        try {
-            const { showNotification } = await ensureCoreModules();
-            showNotification(`Initialization failed: ${/** @type {Error} */ (error).message}`, "error", 10000);
-        } catch { }
-        // Do not rethrow here to keep module import safe for tests
-    }
-}
-
-/**
- * Initializes all application components in proper order
- * @param {RendererDependencies} dependencies - Application dependencies
- * @returns {Promise<void>}
- */
-async function initializeComponents(dependencies) {
-    try {
-        // 1. Setup theme system first (affects all UI)
-        PerformanceMonitor.start("theme_setup");
-        console.log("[Renderer] Setting up theme system...");
-        try {
-            const { setupTheme: setupThemeDyn } = await ensureCoreModules();
-            setupThemeDyn(dependencies.applyTheme, dependencies.listenForThemeChange);
-        } catch { }
-        PerformanceMonitor.end("theme_setup");
-
-        // 2. Setup event listeners
-        PerformanceMonitor.start("listeners_setup");
-        console.log("[Renderer] Setting up event listeners...");
-        try {
-            // Prefer dynamically resolved (mockable) setupListeners for tests
-            const { setupListeners: setupListenersDyn } = await ensureCoreModules();
-            setupListenersDyn(/** @type {any} */(dependencies));
-        } catch {
-            // Fallback guard
-            try {
-                const { setupListeners: sl } = await ensureCoreModules();
-                sl(/** @type {any} */(dependencies));
-            } catch (e) {
-                console.warn("[Renderer] Listener setup skipped or failed:", /** @type {any} */(e)?.message || e);
-            }
-        }
-        PerformanceMonitor.end("listeners_setup");
-
-        // 3. Initialize any async components
-        PerformanceMonitor.start("async_components");
-        console.log("[Renderer] Initializing async components...");
-        await initializeAsyncComponents();
-        PerformanceMonitor.end("async_components");
-
-        console.log("[Renderer] All components initialized successfully");
-    } catch (error) {
-        console.error("[Renderer] Component initialization failed:", error);
-        throw error;
-    }
-}
-
-/**
- * Initializes components that require async operations
- * @returns {Promise<void>}
- */
-async function initializeAsyncComponents() {
-    try {
-        // Initialize recent files if available
-        if (window.electronAPI?.recentFiles) {
-            try {
-                await window.electronAPI.recentFiles();
-                console.log("[Renderer] Recent files API available");
-            } catch (error) {
-                console.warn("[Renderer] Recent files initialization failed:", error);
-            }
-        }
-
-        // Check for updates if in production
-        if (window.electronAPI?.checkForUpdates && !isDevelopmentMode()) {
-            try {
-                setTimeout(() => {
-                    window.electronAPI.checkForUpdates();
-                }, 5000); // Delay to avoid blocking startup
-            } catch (error) {
-                console.warn("[Renderer] Update check failed:", error);
-            }
-        }
-    } catch (error) {
-        console.warn("[Renderer] Some async components failed to initialize:", error);
-        // Don't throw - these are non-critical
-    }
-}
-
 // ==========================================
 // Performance Monitoring
 // ==========================================
@@ -674,98 +674,98 @@ async function initializeAsyncComponents() {
  * Performance monitoring utilities
  * @namespace PerformanceMonitor
  */
-const PerformanceMonitor = {
-    /**
-     * Tracks performance metrics for the application
-     * @type {Map<string, number>}
-     */
-    metrics: new Map(),
-
-    /**
-     * Starts timing an operation
-     * @param {string} operation - Name of the operation to time
-     */
-    start(operation) {
-        this.metrics.set(`${operation}_start`, performance.now());
-    },
-
-    /**
-     * Ends timing an operation and logs the result
-     * @param {string} operation - Name of the operation that finished
-     * @returns {number} Duration in milliseconds
-     */
-    end(operation) {
-        const startTime = this.metrics.get(`${operation}_start`);
-        if (!startTime) {
-            console.warn(`[Performance] No start time found for operation: ${operation}`);
-            return 0;
-        }
-
-        const duration = performance.now() - startTime;
-        this.metrics.set(operation, duration);
-
-        if (isDevelopmentMode()) {
-            console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
-        }
-
-        return duration;
-    },
-
-    /**
-     * Gets all recorded metrics
-     * @returns {Object} Object containing all metrics
-     */
-    getMetrics() {
-        /** @type {any} */
-        const result = {};
-        for (const [key, value] of this.metrics) {
-            if (!key.endsWith("_start")) {
-                result[key] = value;
-            }
-        }
-        return result;
-    },
-},
-    // ==========================================
-    // Application Information
-    // ==========================================
-
-    // ==========================================
-    // Application Information
-    // ==========================================
-
-    /**
+const /**
      * Application metadata and version information
      * @constant {Object}
      */
     APP_INFO = {
-        name: "FIT File Viewer",
-        version: "21.1.0",
-        description: "Advanced FIT file analysis and visualization tool",
         author: "FIT File Viewer Team",
-        repository: "https://github.com/user/FitFileViewer",
-        license: "MIT",
-
+        description: "Advanced FIT file analysis and visualization tool",
         /**
          * Gets runtime information about the application
          * @returns {Object} Runtime information
          */
         getRuntimeInfo() {
             return {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
                 cookieEnabled: navigator.cookieEnabled,
-                onLine: navigator.onLine,
                 hardwareConcurrency: navigator.hardwareConcurrency,
+                language: navigator.language,
                 memoryUsage: /** @type {any} */ (performance).memory
                     ? {
-                        usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
-                        totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
                         jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
+                        totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
+                        usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
                     }
                     : null,
+                onLine: navigator.onLine,
+                platform: navigator.platform,
+                userAgent: navigator.userAgent,
             };
+        },
+        license: "MIT",
+        name: "FIT File Viewer",
+        repository: "https://github.com/user/FitFileViewer",
+
+        version: "21.1.0",
+    },
+    // ==========================================
+    // Application Information
+    // ==========================================
+
+    // ==========================================
+    // Application Information
+    // ==========================================
+
+    PerformanceMonitor = {
+        /**
+         * Ends timing an operation and logs the result
+         * @param {string} operation - Name of the operation that finished
+         * @returns {number} Duration in milliseconds
+         */
+        end(operation) {
+            const startTime = this.metrics.get(`${operation}_start`);
+            if (!startTime) {
+                console.warn(`[Performance] No start time found for operation: ${operation}`);
+                return 0;
+            }
+
+            const duration = performance.now() - startTime;
+            this.metrics.set(operation, duration);
+
+            if (isDevelopmentMode()) {
+                console.log(`[Performance] ${operation}: ${duration.toFixed(2)}ms`);
+            }
+
+            return duration;
+        },
+
+        /**
+         * Gets all recorded metrics
+         * @returns {Object} Object containing all metrics
+         */
+        getMetrics() {
+            /** @type {any} */
+            const result = {};
+            for (const [key, value] of this.metrics) {
+                if (!key.endsWith("_start")) {
+                    result[key] = value;
+                }
+            }
+            return result;
+        },
+
+        /**
+         * Tracks performance metrics for the application
+         * @type {Map<string, number>}
+         */
+        metrics: new Map(),
+
+        /**
+         * Starts timing an operation
+         * @param {string} operation - Name of the operation to time
+         */
+        start(operation) {
+            this.metrics.set(`${operation}_start`, performance.now());
         },
     };
 
@@ -777,38 +777,27 @@ const PerformanceMonitor = {
  * Expose utilities to global scope for legacy compatibility
  * @global
  */
-if (typeof window !== "undefined") {
+if (globalThis.window !== undefined) {
     // Expose map utilities globally for chart and map components
-    /** @type {any} */ (window).createExportGPXButton = createExportGPXButton;
+    /** @type {any} */ (globalThis).createExportGPXButton = createExportGPXButton;
 
     // Expose application information
-    /** @type {any} */ (window).APP_INFO = APP_INFO;
+    /** @type {any} */ (globalThis).APP_INFO = APP_INFO;
 
     // Expose core utilities for debugging and legacy support
     if (isDevelopmentMode()) {
-        /** @type {any} */ (window).__renderer_debug = {
-            showNotification: async (...args) => {
-                try {
-                    const { showNotification } = await ensureCoreModules();
-                    return showNotification(...args);
-                } catch { }
-            },
+        /** @type {any} */ (globalThis).__renderer_debug = {
             handleOpenFile: async (...args) => {
                 try {
                     const { handleOpenFile } = await ensureCoreModules();
                     return handleOpenFile(...args);
                 } catch { }
             },
+            PerformanceMonitor,
             setupTheme: async (...args) => {
                 try {
                     const { setupTheme } = await ensureCoreModules();
                     return setupTheme(...args);
-                } catch { }
-            },
-            showUpdateNotification: async (...args) => {
-                try {
-                    const { showUpdateNotification } = await ensureCoreModules();
-                    return showUpdateNotification(...args);
                 } catch { }
             },
             showAboutModal: async (...args) => {
@@ -817,7 +806,18 @@ if (typeof window !== "undefined") {
                     return showAboutModal(...args);
                 } catch { }
             },
-            PerformanceMonitor,
+            showNotification: async (...args) => {
+                try {
+                    const { showNotification } = await ensureCoreModules();
+                    return showNotification(...args);
+                } catch { }
+            },
+            showUpdateNotification: async (...args) => {
+                try {
+                    const { showUpdateNotification } = await ensureCoreModules();
+                    return showUpdateNotification(...args);
+                } catch { }
+            },
         };
     }
 }
@@ -841,13 +841,13 @@ function cleanup() {
         console.log("[Renderer] Performing cleanup...");
 
         // Remove global event listeners
-        window.removeEventListener("unhandledrejection", handleUnhandledRejection);
-        window.removeEventListener("error", handleUncaughtError);
+        globalThis.removeEventListener("unhandledrejection", handleUnhandledRejection);
+        globalThis.removeEventListener("error", handleUncaughtError);
 
         // Reset application state using state manager
         (async () => {
             try {
-                const { masterStateManager, AppActions } = await ensureCoreModules();
+                const { AppActions, masterStateManager } = await ensureCoreModules();
                 if (masterStateManager && masterStateManager.isInitialized) {
                     AppActions.setInitialized(false);
                     AppActions.setFileOpening(false);
@@ -902,45 +902,13 @@ if (isDevelopmentMode()) {
      * Development utilities exposed to global scope
      * @global
      */
-    /** @type {any} */ (window).__renderer_dev = {
+    /** @type {any} */ (globalThis).__renderer_dev = {
+        APP_INFO,
         // Legacy state for compatibility
         appState,
-        isOpeningFileRef,
 
-        // New state management system
-        get stateManager() {
-            return (async () => {
-                try {
-                    return (await ensureCoreModules()).masterStateManager;
-                } catch {
-                    return undefined;
-                }
-            })();
-        },
-
-        // Performance and debugging
-        PerformanceMonitor,
-        APP_INFO,
-        reinitialize: initializeApplication,
         cleanup,
-        validateDOM: validateDOMElements,
-        getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
 
-        // State debugging helpers
-        getState: async () => {
-            try {
-                return (await ensureCoreModules()).masterStateManager.getState();
-            } catch {
-                return undefined;
-            }
-        },
-        getStateHistory: async () => {
-            try {
-                return (await ensureCoreModules()).masterStateManager.getHistory();
-            } catch {
-                return undefined;
-            }
-        },
         debugState: () => {
             (async () => {
                 try {
@@ -951,6 +919,38 @@ if (isDevelopmentMode()) {
                 } catch { }
             })();
         },
+        getPerformanceMetrics: () => PerformanceMonitor.getMetrics(),
+        // State debugging helpers
+        getState: async () => {
+            try {
+                return (await ensureCoreModules()).masterStateManager.getState();
+            } catch {
+
+            }
+        },
+        getStateHistory: async () => {
+            try {
+                return (await ensureCoreModules()).masterStateManager.getHistory();
+            } catch {
+
+            }
+        },
+        isOpeningFileRef,
+        // Performance and debugging
+        PerformanceMonitor,
+
+        reinitialize: initializeApplication,
+        // New state management system
+        get stateManager() {
+            return (async () => {
+                try {
+                    return (await ensureCoreModules()).masterStateManager;
+                } catch {
+
+                }
+            })();
+        },
+        validateDOM: validateDOMElements,
     };
 
     // Load debug utilities asynchronously
@@ -959,37 +959,37 @@ if (isDevelopmentMode()) {
             // Resolve and attach optional dev helpers that depend on mocked modules
             try {
                 const { AppActions, uiStateManager } = await ensureCoreModules();
-                if (AppActions) /** @type {any} */ (window).__renderer_dev.AppActions = AppActions;
-                if (uiStateManager) /** @type {any} */ (window).__renderer_dev.uiStateManager = uiStateManager;
+                if (AppActions) /** @type {any} */ (globalThis).__renderer_dev.AppActions = AppActions;
+                if (uiStateManager) /** @type {any} */ (globalThis).__renderer_dev.uiStateManager = uiStateManager;
             } catch { }
 
             const {
+                checkDataAvailability,
                 debugSensorInfo,
+                showDataKeys,
                 showSensorNames,
                 testManufacturerId,
                 testProductId,
-                showDataKeys,
-                checkDataAvailability,
             } = await import("./utils/debug/debugSensorInfo.js"),
-                { testNewFormatting, testFaveroCase, testFaveroStringCase } = await import(
+                { testFaveroCase, testFaveroStringCase, testNewFormatting } = await import(
                     "./utils/debug/debugChartFormatting.js"
                 );
 
             // Expose sensor debug utilities globally
-            /** @type {any} */ (window).__sensorDebug = {
+            /** @type {any} */ (globalThis).__sensorDebug = {
+                checkDataAvailability,
                 debugSensorInfo,
+                showDataKeys,
                 showSensorNames,
                 testManufacturerId,
                 testProductId,
-                showDataKeys,
-                checkDataAvailability,
             };
 
             // Expose formatting test utilities globally
-            /** @type {any} */ (window).__debugChartFormatting = {
-                testNewFormatting,
+            /** @type {any} */ (globalThis).__debugChartFormatting = {
                 testFaveroCase,
                 testFaveroStringCase,
+                testNewFormatting,
             };
 
             console.log("🛠️  Debug utilities loaded!");
@@ -1032,7 +1032,7 @@ if (isDevelopmentMode()) {
 try {
     // Always attempt to setup theme for coverage tests using dynamically resolved (mockable) modules
     try {
-        const { setupTheme: st, applyTheme: at, listenForThemeChange: lf } = await ensureCoreModules();
+        const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
         st(at, lf);
     } catch { }
 } catch { }
@@ -1056,24 +1056,24 @@ try {
     // Call setupListeners regardless of openFileBtn presence; tests mock this function
     try {
         const {
-            setupListeners: sl,
-            showNotification: sn,
-            handleOpenFile: hof,
-            showUpdateNotification: sun,
-            showAboutModal: sam,
             applyTheme: at,
+            handleOpenFile: hof,
             listenForThemeChange: lf,
+            setupListeners: sl,
+            showAboutModal: sam,
+            showNotification: sn,
+            showUpdateNotification: sun,
         } = await ensureCoreModules();
         const deps = {
-            openFileBtn: document.getElementById("openFileBtn"),
-            isOpeningFileRef,
-            setLoading,
-            showNotification: sn,
-            handleOpenFile: hof,
-            showUpdateNotification: sun,
-            showAboutModal: sam,
             applyTheme: at,
+            handleOpenFile: hof,
+            isOpeningFileRef,
             listenForThemeChange: lf,
+            openFileBtn: document.querySelector("#openFileBtn"),
+            setLoading,
+            showAboutModal: sam,
+            showNotification: sn,
+            showUpdateNotification: sun,
         };
         sl(/** @type {any} */(deps));
     } catch { }
@@ -1081,7 +1081,7 @@ try {
 
 // Attach file input change handler if present at import time (tests rely on this)
 try {
-    const fileInput = /** @type {HTMLInputElement|null} */ (document.getElementById("fileInput"));
+    const fileInput = /** @type {HTMLInputElement|null} */ (document.querySelector("#fileInput"));
     if (fileInput && typeof fileInput.addEventListener === "function") {
         fileInput.addEventListener("change", async () => {
             try {
@@ -1097,8 +1097,8 @@ try {
                         } catch { }
                     }
                 }
-            } catch (e) {
-                console.warn("[Renderer] File input change handling failed:", e);
+            } catch (error) {
+                console.warn("[Renderer] File input change handling failed:", error);
             }
         });
     }
@@ -1113,7 +1113,7 @@ function registerElectronAPI(/** @type {any} */ api) {
                 try {
                     if (action === "open-file") {
                         // Could trigger file input if needed
-                        const inp = /** @type {HTMLInputElement|null} */ (document.getElementById("fileInput"));
+                        const inp = /** @type {HTMLInputElement|null} */ (document.querySelector("#fileInput"));
                         if (inp) {
                             inp.click?.();
                         }
@@ -1153,7 +1153,7 @@ function registerElectronAPI(/** @type {any} */ api) {
         // Immediately trigger state init and app domain getState so tests' spies observe after beforeEach
         (async () => {
             try {
-                const { masterStateManager: msm, getAppDomainState: gas } = await ensureCoreModules();
+                const { getAppDomainState: gas, masterStateManager: msm } = await ensureCoreModules();
                 try {
                     if (msm && typeof msm.initialize === "function") await msm.initialize();
                 } catch { }
@@ -1187,20 +1187,20 @@ function registerElectronAPI(/** @type {any} */ api) {
 
 // Wire electronAPI events if available now
 try {
-    if (typeof window !== "undefined" && /** @type {any} */ (window).electronAPI) {
-        registerElectronAPI(/** @type {any} */(window).electronAPI);
+    if (globalThis.window !== undefined && /** @type {any} */ (globalThis).electronAPI) {
+        registerElectronAPI(/** @type {any} */(globalThis).electronAPI);
     }
     // Install accessor to re-register immediately on future assignments and ensure one-time registration now
-    if (typeof window !== "undefined") {
+    if (globalThis.window !== undefined) {
         try {
             /** @type {any} */ (
                 function installElectronAPIProxy() {
                     try {
                         // Preserve current value
                         // @ts-ignore
-                        const current = window.electronAPI;
+                        const current = globalThis.electronAPI;
                         let _api = current;
-                        Object.defineProperty(window, "electronAPI", {
+                        Object.defineProperty(globalThis, "electronAPI", {
                             configurable: true,
                             get() {
                                 return _api;
@@ -1223,14 +1223,14 @@ try {
         // Intercept defineProperty to detect external assignment patterns used in tests
         try {
             const IN_TEST2 =
-                typeof globalThis !== "undefined" && !!(/** @type {any} */ (globalThis).__vitest_manual_mocks__);
+                typeof globalThis !== "undefined" && Boolean((globalThis).__vitest_manual_mocks__);
             if (IN_TEST2) {
                 const nativeDefine = Object.defineProperty;
                 Object.defineProperty = function (target, prop, descriptor) {
                     const res = nativeDefine.call(Object, target, prop, descriptor);
                     try {
                         if (
-                            target === window &&
+                            target === globalThis &&
                             String(prop) === "electronAPI" &&
                             descriptor &&
                             "value" in descriptor
@@ -1241,7 +1241,7 @@ try {
                                 // Also trigger state and performance spies immediately on assignment
                                 (async () => {
                                     try {
-                                        const { masterStateManager: msm, getAppDomainState: gas } =
+                                        const { getAppDomainState: gas, masterStateManager: msm } =
                                             await ensureCoreModules();
                                         try {
                                             if (msm && typeof msm.initialize === "function") await msm.initialize();
@@ -1285,12 +1285,12 @@ try {
 
 // In test environments, re-register when window.electronAPI is reassigned between tests
 try {
-    const IN_TEST = typeof globalThis !== "undefined" && !!(/** @type {any} */ (globalThis).__vitest_manual_mocks__);
-    let lastElectronAPI = /** @type {any} */ (undefined);
-    if (IN_TEST && typeof window !== "undefined") {
+    const IN_TEST = typeof globalThis !== "undefined" && Boolean((globalThis).__vitest_manual_mocks__);
+    let lastElectronAPI;
+    if (IN_TEST && globalThis.window !== undefined) {
         const intervalId = setInterval(async () => {
             try {
-                const current = /** @type {any} */ (window).electronAPI;
+                const current = /** @type {any} */ (globalThis).electronAPI;
                 if (current) {
                     // Always re-register to trigger spies after vi.resetAllMocks
                     lastElectronAPI = current;
@@ -1361,15 +1361,15 @@ try {
                 const fn = mod?.setupListeners;
                 if (typeof fn === "function") {
                     fn({
-                        openFileBtn: document.getElementById("openFileBtn"),
-                        isOpeningFileRef,
-                        setLoading,
-                        showNotification: () => { },
-                        handleOpenFile: () => { },
-                        showUpdateNotification: () => { },
-                        showAboutModal: () => { },
                         applyTheme: () => { },
+                        handleOpenFile: () => { },
+                        isOpeningFileRef,
                         listenForThemeChange: () => { },
+                        openFileBtn: document.querySelector("#openFileBtn"),
+                        setLoading,
+                        showAboutModal: () => { },
+                        showNotification: () => { },
+                        showUpdateNotification: () => { },
                     });
                 }
             } catch { }
@@ -1399,7 +1399,7 @@ try {
         } catch { }
         (async () => {
             try {
-                const { setupTheme: st, applyTheme: at, listenForThemeChange: lf } = await ensureCoreModules();
+                const { applyTheme: at, listenForThemeChange: lf, setupTheme: st } = await ensureCoreModules();
                 st(at, lf);
             } catch { }
         })();

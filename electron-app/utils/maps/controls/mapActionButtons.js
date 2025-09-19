@@ -18,9 +18,13 @@
  * @since 1.0.0
  */
 
-import { showNotification } from "../../ui/notifications/showNotification.js";
+
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
-import { createMapThemeToggle } from "../../theming/specific/createMapThemeToggle.js";
+import { showNotification } from "../../ui/notifications/showNotification.js";
+
+export function hideLoadingOverlay() {
+    LoadingOverlay.hide();
+}
 
 // Export loading functions for backward compatibility
 /**
@@ -32,95 +36,8 @@ export function showLoadingOverlay(progressText, fileName = "") {
     LoadingOverlay.show(progressText, fileName);
 }
 
-export function hideLoadingOverlay() {
-    LoadingOverlay.hide();
-}
-
 // Export map theme toggle for map controls
-export { createMapThemeToggle };
 
-/**
- * Sets up interactive functionality for the active file name element
- * Makes the file name clickable to center map on the main file
- * @private
- */
-/**
- * Adds click/hover actions to the active file name element allowing centering and highlighting
- * on the primary (index 0) map overlay.
- * Safely guards all window global usages with casts to avoid type errors under checkJs.
- */
-function setupActiveFileNameMapActions() {
-    try {
-        const activeFileName = document.getElementById("activeFileName");
-        if (!activeFileName) {
-            console.log("[mapActionButtons] #activeFileName not found in DOM");
-            return;
-        }
-
-        // Configure element appearance and behavior
-        activeFileName.style.cursor = "pointer";
-        activeFileName.title = "Click to center map on main file";
-
-        // Remove any previous listeners to avoid stacking
-        activeFileName.onclick = null;
-        activeFileName.onmouseenter = null;
-        activeFileName.onmouseleave = null;
-
-        // Click handler - center map on main file
-        activeFileName.onclick = () => {
-            try {
-                console.log("[mapActionButtons] Active file name clicked");
-
-                // Switch to map tab if not active
-                const mapTabBtn = document.querySelector('[data-tab="map"]');
-                if (mapTabBtn instanceof HTMLElement && !mapTabBtn.classList.contains("active")) {
-                    console.log("[mapActionButtons] Switching to map tab");
-                    mapTabBtn.click();
-                }
-
-                // Center on main file with a slight delay to ensure tab switch completes
-                setTimeout(() => {
-                    _centerMapOnMainFile();
-                }, 100);
-            } catch (error) {
-                console.error("[mapActionButtons] Error in active filename click:", error);
-                // Correct argument order: (message, type)
-                showNotification("Failed to center map on file", "error");
-            }
-        };
-
-        // Hover handlers for visual feedback using CSS classes
-        activeFileName.onmouseenter = () => {
-            try {
-                console.log("[mapActionButtons] Active file name hover");
-                activeFileName.classList.add("highlighted");
-                const w = /** @type {any} */ (window);
-                w._highlightedOverlayIdx = 0;
-                if (w.updateOverlayHighlights) {
-                    w.updateOverlayHighlights();
-                }
-            } catch (error) {
-                console.error("[mapActionButtons] Error in mouseenter:", error);
-            }
-        };
-
-        activeFileName.onmouseleave = () => {
-            try {
-                console.log("[mapActionButtons] Active file name unhover");
-                activeFileName.classList.remove("highlighted");
-                const w = /** @type {any} */ (window);
-                w._highlightedOverlayIdx = null;
-                if (w.updateOverlayHighlights) {
-                    w.updateOverlayHighlights();
-                }
-            } catch (error) {
-                console.error("[mapActionButtons] Error in mouseleave:", error);
-            }
-        };
-    } catch (error) {
-        console.error("[mapActionButtons] Error setting up active filename actions:", error);
-    }
-}
 
 /**
  * Centers the map on the main file's track
@@ -135,7 +52,7 @@ function _centerMapOnMainFile() {
     try {
         const idx = 0; // Main file is always index 0
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
-        const w = /** @type {any} */ (window);
+        const w = /** @type {any} */ (globalThis);
 
         if (!w._overlayPolylines || !w._overlayPolylines[idx]) {
             console.warn("[mapActionButtons] No main polyline found");
@@ -157,22 +74,20 @@ function _centerMapOnMainFile() {
 
         // Bring associated markers to front
         if (w.L && w.L.CircleMarker && polyline?._map && polyline._map._layers) {
-            Object.values(polyline._map._layers).forEach((layer) => {
+            for (const layer of Object.values(polyline._map._layers)) {
                 try {
                     if (
                         layer instanceof w.L.CircleMarker &&
                         layer.options &&
                         polyline.options &&
                         layer.options.color === polyline.options.color
-                    ) {
-                        if (layer.bringToFront) {
+                     && layer.bringToFront) {
                             layer.bringToFront();
                         }
-                    }
                 } catch {
                     // Ignore best-effort bringToFront issues
                 }
-            });
+            }
         }
 
         // Add visual highlighting effect
@@ -182,7 +97,7 @@ function _centerMapOnMainFile() {
             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
 
             setTimeout(() => {
-                const w2 = /** @type {any} */ (window);
+                const w2 = /** @type {any} */ (globalThis);
                 if (w2._highlightedOverlayIdx === idx) {
                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                 }
@@ -232,10 +147,93 @@ function _centerMapOnMainFile() {
     }
 }
 
+/**
+ * Sets up interactive functionality for the active file name element
+ * Makes the file name clickable to center map on the main file
+ * @private
+ */
+/**
+ * Adds click/hover actions to the active file name element allowing centering and highlighting
+ * on the primary (index 0) map overlay.
+ * Safely guards all window global usages with casts to avoid type errors under checkJs.
+ */
+function setupActiveFileNameMapActions() {
+    try {
+        const activeFileName = document.querySelector("#activeFileName");
+        if (!activeFileName) {
+            console.log("[mapActionButtons] #activeFileName not found in DOM");
+            return;
+        }
+
+        // Configure element appearance and behavior
+        activeFileName.style.cursor = "pointer";
+        activeFileName.title = "Click to center map on main file";
+
+        // Remove any previous listeners to avoid stacking
+        activeFileName.onclick = null;
+        activeFileName.onmouseenter = null;
+        activeFileName.onmouseleave = null;
+
+        // Click handler - center map on main file
+        activeFileName.addEventListener('click', () => {
+            try {
+                console.log("[mapActionButtons] Active file name clicked");
+
+                // Switch to map tab if not active
+                const mapTabBtn = document.querySelector('[data-tab="map"]');
+                if (mapTabBtn instanceof HTMLElement && !mapTabBtn.classList.contains("active")) {
+                    console.log("[mapActionButtons] Switching to map tab");
+                    mapTabBtn.click();
+                }
+
+                // Center on main file with a slight delay to ensure tab switch completes
+                setTimeout(() => {
+                    _centerMapOnMainFile();
+                }, 100);
+            } catch (error) {
+                console.error("[mapActionButtons] Error in active filename click:", error);
+                // Correct argument order: (message, type)
+                showNotification("Failed to center map on file", "error");
+            }
+        });
+
+        // Hover handlers for visual feedback using CSS classes
+        activeFileName.addEventListener('mouseenter', () => {
+            try {
+                console.log("[mapActionButtons] Active file name hover");
+                activeFileName.classList.add("highlighted");
+                const w = /** @type {any} */ (globalThis);
+                w._highlightedOverlayIdx = 0;
+                if (w.updateOverlayHighlights) {
+                    w.updateOverlayHighlights();
+                }
+            } catch (error) {
+                console.error("[mapActionButtons] Error in mouseenter:", error);
+            }
+        });
+
+        activeFileName.addEventListener('mouseleave', () => {
+            try {
+                console.log("[mapActionButtons] Active file name unhover");
+                activeFileName.classList.remove("highlighted");
+                const w = /** @type {any} */ (globalThis);
+                w._highlightedOverlayIdx = null;
+                if (w.updateOverlayHighlights) {
+                    w.updateOverlayHighlights();
+                }
+            } catch (error) {
+                console.error("[mapActionButtons] Error in mouseleave:", error);
+            }
+        });
+    } catch (error) {
+        console.error("[mapActionButtons] Error setting up active filename actions:", error);
+    }
+}
+
 // Initialize active filename functionality with mutation observer
 (function initializeActiveFileName() {
     try {
-        const targetElement = document.getElementById("activeFileName"),
+        const targetElement = document.querySelector("#activeFileName"),
             parent = targetElement?.parentNode;
 
         if (!parent) {
@@ -264,18 +262,18 @@ function _centerMapOnMainFile() {
 
 // Export setup function for external use
 // Expose setup method on window for external triggers (cast for global augmentation safety)
-/** @type {any} */ (window)._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
+/** @type {any} */ (globalThis)._setupActiveFileNameMapActions = setupActiveFileNameMapActions;
 
 // Patch updateShownFilesList to always maintain active filename functionality
 (function patchUpdateShownFilesList() {
     try {
-        const w = /** @type {any} */ (window),
+        const w = /** @type {any} */ (globalThis),
             origUpdateShownFilesList = w.updateShownFilesList;
 
         w.updateShownFilesList = function () {
             try {
                 if (origUpdateShownFilesList) {
-                    origUpdateShownFilesList.apply(this, arguments);
+                    Reflect.apply(origUpdateShownFilesList, this, arguments);
                 }
                 console.log("[mapActionButtons] Files list updated, reapplying active filename setup");
                 setupActiveFileNameMapActions();
@@ -287,3 +285,4 @@ function _centerMapOnMainFile() {
         console.error("[mapActionButtons] Error patching updateShownFilesList:", error);
     }
 })();
+export {createMapThemeToggle} from "../../theming/specific/createMapThemeToggle.js";

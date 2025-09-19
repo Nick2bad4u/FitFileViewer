@@ -10,8 +10,8 @@ import * as __StateMgr from "../../state/core/stateManager.js";
 
 // Resolve document by preferring the canonical test-provided document
 // (`__vitest_effective_document__`) first, then falling back to the
-// active global/window document. This avoids cross-realm mismatches
-// across the full test suite.
+// Active global/window document. This avoids cross-realm mismatches
+// Across the full test suite.
 /**
  * @returns {Document}
  */
@@ -27,7 +27,7 @@ const getDoc = () => {
         }
     } catch {}
     try {
-        if (!d && typeof window !== "undefined" && window.document) d = /** @type {any} */ (window.document);
+        if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
     } catch {}
     try {
         if (!d && typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
@@ -53,8 +53,8 @@ const getDoc = () => {
             if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
-            } else if (typeof window !== "undefined" && window.document) {
-                d = /** @type {any} */ (window.document);
+            } else if (globalThis.window !== undefined && globalThis.document) {
+                d = /** @type {any} */ (globalThis.document);
             } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
                 d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
             } else if (
@@ -71,7 +71,7 @@ const getDoc = () => {
 import { showNotification } from "../notifications/showNotification.js";
 
 // Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
-// and only fall back to a canonical global mock if module functions are unavailable.
+// And only fall back to a canonical global mock if module functions are unavailable.
 /** @returns {{ getState: any, setState: any, subscribe: any }} */
 const getStateMgr = () => {
     try {
@@ -109,54 +109,54 @@ const getStateMgr = () => {
  * @typedef {{id:string; contentId:string; label:string; requiresData:boolean; handler:string|null}} TabDef
  */
 const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
-    summary: {
-        id: "tab-summary",
-        contentId: "content-summary",
-        label: "Summary",
-        requiresData: true,
-        handler: "renderSummary",
-    },
-    map: {
-        id: "tab-map",
-        contentId: "content-map",
-        label: "Map",
-        requiresData: true,
-        handler: "renderMap",
-    },
-    chartjs: {
-        id: "tab-chartjs",
-        contentId: "content-chartjs",
-        label: "Charts",
-        requiresData: true,
-        handler: "renderChartJS",
-    },
-    chart: {
-        id: "tab-chart",
-        contentId: "content-chart",
-        label: "Charts",
-        requiresData: true,
-        handler: "renderChartJS",
-    },
-    data: {
-        id: "tab-data",
-        contentId: "content-data",
-        label: "Data Tables",
-        requiresData: true,
-        handler: "createTables",
-    },
     altfit: {
-        id: "tab-altfit",
         contentId: "content-altfit",
+        handler: null,
+        id: "tab-altfit",
         label: "Alternative View",
         requiresData: false,
-        handler: null,
+    },
+    chart: {
+        contentId: "content-chart",
+        handler: "renderChartJS",
+        id: "tab-chart",
+        label: "Charts",
+        requiresData: true,
+    },
+    chartjs: {
+        contentId: "content-chartjs",
+        handler: "renderChartJS",
+        id: "tab-chartjs",
+        label: "Charts",
+        requiresData: true,
+    },
+    data: {
+        contentId: "content-data",
+        handler: "createTables",
+        id: "tab-data",
+        label: "Data Tables",
+        requiresData: true,
+    },
+    map: {
+        contentId: "content-map",
+        handler: "renderMap",
+        id: "tab-map",
+        label: "Map",
+        requiresData: true,
+    },
+    summary: {
+        contentId: "content-summary",
+        handler: "renderSummary",
+        id: "tab-summary",
+        label: "Summary",
+        requiresData: true,
     },
     zwift: {
-        id: "tab-zwift",
         contentId: "content-zwift",
+        handler: null,
+        id: "tab-zwift",
         label: "Zwift",
         requiresData: false,
-        handler: null,
     },
 });
 
@@ -164,9 +164,11 @@ const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
  * Tab State Manager - handles tab switching and content management
  */
 class TabStateManager {
+    isInitialized = false;
+
+    previousTab = null;
+
     constructor() {
-        this.isInitialized = false;
-        this.previousTab = null;
         // Track unsubscribe functions for state subscriptions
         /** @type {Array<() => void>} */
         this._unsubscribes = [];
@@ -192,69 +194,192 @@ class TabStateManager {
     }
 
     /**
-     * Initialize state subscriptions for reactive tab management
+     * Cleanup resources (placeholder for future unsubscribe logic)
      */
-    initializeSubscriptions() {
-        // Subscribe to active tab changes
-        const unsubActive = getStateMgr().subscribe(
-            "ui.activeTab",
-            (/** @type {string} */ newTab, /** @type {string} */ oldTab) => {
-                if (newTab !== oldTab) {
-                    this.handleTabChange(newTab, oldTab);
+    cleanup() {
+        // Unsubscribe state listeners
+        try {
+            if (Array.isArray(this._unsubscribes) && this._unsubscribes.length > 0) {
+                for (const unsub of this._unsubscribes.splice(0)) {
+                    try {
+                        typeof unsub === "function" && unsub();
+                    } catch {}
                 }
             }
-        );
-        if (typeof unsubActive === "function")
-            this._unsubscribes.push(() => {
-                try {
-                    unsubActive();
-                } catch {}
-            });
-
-        // Subscribe to data changes to enable/disable tabs
-        const unsubData = getStateMgr().subscribe("globalData", (/** @type {any} */ newData) => {
-            this.updateTabAvailability(newData);
-        });
-        if (typeof unsubData === "function")
-            this._unsubscribes.push(() => {
-                try {
-                    unsubData();
-                } catch {}
-            });
-
-        this.isInitialized = true;
-    }
-
-    /**
-     * Set up click handlers for all tab buttons
-     */
-    setupTabButtonHandlers() {
-        // Wait for DOM to be ready
-        const setupHandlers = () => {
+        } catch {}
+        // Remove document DOMContentLoaded handler if previously added
+        try {
+            if (this._setupHandlersFn) {
+                getDoc().removeEventListener("DOMContentLoaded", this._setupHandlersFn);
+                this._setupHandlersFn = null;
+            }
+        } catch {}
+        // Detach click handlers from current tab buttons
+        try {
             const tabButtons = getDoc().querySelectorAll(".tab-button");
-
-            tabButtons.forEach((button) => {
-                // Remove existing stable listener (if any) to prevent duplicates
+            for (const button of tabButtons) {
                 try {
                     button.removeEventListener("click", this._buttonClickHandler);
                 } catch {}
-                // Add stable listener
-                try {
-                    button.addEventListener("click", this._buttonClickHandler);
-                } catch {}
-            });
+            }
+        } catch {}
+        // Mark uninitialized so tests can re-init if they re-import or call setup explicitly
+        this.isInitialized = false;
+        console.log("[TabStateManager] cleanup invoked");
+    }
 
-            console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
+    /**
+     * Extract tab name from button ID
+     * @param {string} buttonId - Button element ID
+     * @returns {string|null} Tab name or null
+     */
+    extractTabName(buttonId) {
+        // Try direct lookup in config first
+        for (const [tabName, config] of Object.entries(TAB_CONFIG)) {
+            if (config.id === buttonId) {
+                return tabName;
+            }
+        }
+
+        // Fallback to pattern matching
+        const patterns = [/^tab-(.+)$/, /^(.+)-tab$/, /^btn-(.+)$/, /^(.+)-btn$/];
+
+        for (const pattern of patterns) {
+            const match = buttonId.match(pattern);
+            if (match && match[1] && TAB_CONFIG[match[1]]) {
+                return match[1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get current active tab information
+     * @returns {Object} Active tab information
+     */
+    getActiveTabInfo() {
+        const activeTab = getStateMgr().getState("ui.activeTab"),
+            config = TAB_CONFIG[activeTab];
+
+        return {
+            config,
+            contentElement: config ? getDoc().getElementById(config.contentId) : null,
+            element: config ? getDoc().getElementById(config.id) : null,
+            name: activeTab,
+            previous: this.previousTab,
         };
+    }
 
-        if (document.readyState === "loading") {
-            // Store reference so we can remove it during cleanup
-            this._setupHandlersFn = setupHandlers;
-            try {
-                getDoc().addEventListener("DOMContentLoaded", this._setupHandlersFn);
-            } catch {}
+    /**
+     * Handle alternative FIT viewer tab activation
+     */
+    handleAltFitTab() {
+        const el = getDoc().querySelector("#altfit-iframe");
+        // Avoid cross-realm instanceof checks; rely on tagName and presence of src
+        if (
+            el &&
+            typeof (/** @type {any} */ (el).tagName) === "string" &&
+            /** @type {any} */ (el).tagName.toUpperCase() === "IFRAME"
+        ) {
+            const iframe = /** @type {any} */ (el);
+            if (typeof iframe.src === "string" && !iframe.src.includes("libs/ffv/index.html")) {
+                iframe.src = "libs/ffv/index.html";
+            }
+        }
+    }
+
+    /**
+     * Handle chart tab activation
+     * @param {Object} globalData - Current global data
+     */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    async handleChartTab(globalData) {
+        if (!globalData || !globalData.recordMesgs) {
+            console.warn("[TabStateManager] No chart data available");
+            return;
+        }
+
+        // Let the chart state manager handle the rendering with proper state integration
+        const chartState = getStateMgr().getState("charts");
+
+        if (chartState?.isRendered) {
+            console.log("[TabStateManager] Chart tab activated - charts already rendered");
+            getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
         } else {
-            setupHandlers();
+            console.log("[TabStateManager] Chart tab activated - triggering initial render through state system");
+            // The chartStateManager will handle rendering through its subscriptions
+            // We just need to ensure the tab is marked as active in state
+            getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
+        }
+    }
+
+    /**
+     * Handle data tables tab activation
+     * @param {Object} globalData - Current global data
+     */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    async handleDataTab(globalData) {
+        if (!globalData || !(/** @type {any} */ (globalThis).createTables)) {
+            return;
+        }
+
+        // Check for background-rendered data first
+        const bgContainer = getDoc().querySelector("#background-data-container"),
+            visibleContainer = getDoc().querySelector("#content-data");
+
+        if (bgContainer && bgContainer.childNodes && bgContainer.childNodes.length > 0 && visibleContainer) {
+            // Move pre-rendered content
+            visibleContainer.innerHTML = "";
+            while (bgContainer.firstChild) {
+                visibleContainer.append(bgContainer.firstChild);
+            }
+        } else {
+            // Render fresh tables
+            console.log("[TabStateManager] Creating data tables");
+            /** @type {any} */ (globalThis).createTables(globalData);
+        }
+    }
+
+    /**
+     * Handle map tab activation
+     * @param {Object} globalData - Current global data
+     */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    async handleMapTab(globalData) {
+        if (!globalData || !globalData.recordMesgs) {
+            return;
+        }
+
+        // Check if map is already rendered
+        const mapState = getStateMgr().getState("map");
+        if (!mapState?.isRendered && /** @type {any} */ (globalThis).renderMap) {
+            console.log("[TabStateManager] Rendering map for first time");
+            /** @type {any} */ (globalThis).renderMap();
+            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab" });
+        }
+    }
+
+    /**
+     * Handle summary tab activation
+     * @param {Object} globalData - Current global data
+     */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    async handleSummaryTab(globalData) {
+        if (!globalData || !(/** @type {any} */ (globalThis).renderSummary)) {
+            return;
+        }
+
+        // Check if we need to re-render summary
+        const currentDataHash = this.hashData(globalData),
+            previousData = getStateMgr().getState("summary.lastDataHash");
+
+        if (previousData !== currentDataHash) {
+            console.log("[TabStateManager] Rendering summary with new data");
+            /** @type {any} */ (globalThis).renderSummary(globalData);
+            getStateMgr().setState("summary.lastDataHash", currentDataHash, {
+                source: "TabStateManager.handleSummaryTab",
+            });
         }
     }
 
@@ -326,58 +451,6 @@ class TabStateManager {
     }
 
     /**
-     * Update tab button visual states
-     * @param {string} activeTab - Currently active tab name
-     */
-    updateTabButtonStates(activeTab) {
-        const tabButtons = getDoc().querySelectorAll(".tab-button");
-
-        tabButtons.forEach((button) => {
-            try {
-                const tabName = this.extractTabName(button.id),
-                    isActive = tabName === activeTab;
-
-                // Defensive: ensure classList exists
-                if (button && button.classList && typeof button.classList.toggle === "function") {
-                    button.classList.toggle("active", isActive);
-                }
-                // Always set aria-selected for both active and inactive to maintain consistency
-                if (button && typeof button.setAttribute === "function") {
-                    button.setAttribute("aria-selected", isActive ? "true" : "false");
-                }
-            } catch {
-                // ignore individual button failures to keep others updated
-            }
-        });
-    }
-
-    /**
-     * Update content area visibility
-     * @param {string} activeTab - Currently active tab name
-     */
-    updateContentVisibility(activeTab) {
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[activeTab]);
-        if (!tabConfig) {
-            console.warn(`[TabStateManager] Unknown tab: ${activeTab}`);
-            return;
-        }
-
-        // Hide all content areas
-        Object.values(TAB_CONFIG).forEach((config) => {
-            const contentElement = getDoc().getElementById(config.contentId);
-            if (contentElement) {
-                contentElement.style.display = "none";
-            }
-        });
-
-        // Show active content area
-        const activeContent = getDoc().getElementById(tabConfig.contentId);
-        if (activeContent) {
-            activeContent.style.display = "block";
-        }
-    }
-
-    /**
      * Handle tab-specific initialization and rendering logic
      * @param {string} tabName - Name of the active tab
      */
@@ -391,199 +464,40 @@ class TabStateManager {
 
         try {
             switch (tabName) {
-                case "chartjs":
-                case "chart":
-                    await this.handleChartTab(globalData);
-                    break;
-
-                case "map":
-                    await this.handleMapTab(globalData);
-                    break;
-
-                case "summary":
-                    await this.handleSummaryTab(globalData);
-                    break;
-
-                case "data":
-                    await this.handleDataTab(globalData);
-                    break;
-
-                case "altfit":
+                case "altfit": {
                     this.handleAltFitTab();
                     break;
+                }
+                case "chart":
 
-                default:
+                case "chartjs": {
+                    await this.handleChartTab(globalData);
+                    break;
+                }
+
+                case "data": {
+                    await this.handleDataTab(globalData);
+                    break;
+                }
+
+                case "map": {
+                    await this.handleMapTab(globalData);
+                    break;
+                }
+
+                case "summary": {
+                    await this.handleSummaryTab(globalData);
+                    break;
+                }
+
+                default: {
                     console.log(`[TabStateManager] No specific handler for tab: ${tabName}`);
+                }
             }
         } catch (error) {
             console.error(`[TabStateManager] Error handling tab ${tabName}:`, error);
             showNotification(`Error loading ${tabConfig.label} tab`, "error");
         }
-    }
-
-    /**
-     * Handle chart tab activation
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    async handleChartTab(globalData) {
-        if (!globalData || !globalData.recordMesgs) {
-            console.warn("[TabStateManager] No chart data available");
-            return;
-        }
-
-        // Let the chart state manager handle the rendering with proper state integration
-        const chartState = getStateMgr().getState("charts");
-
-        if (!chartState?.isRendered) {
-            console.log("[TabStateManager] Chart tab activated - triggering initial render through state system");
-            // The chartStateManager will handle rendering through its subscriptions
-            // We just need to ensure the tab is marked as active in state
-            getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
-        } else {
-            console.log("[TabStateManager] Chart tab activated - charts already rendered");
-            getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
-        }
-    }
-
-    /**
-     * Handle map tab activation
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    async handleMapTab(globalData) {
-        if (!globalData || !globalData.recordMesgs) {
-            return;
-        }
-
-        // Check if map is already rendered
-        const mapState = getStateMgr().getState("map");
-        if (!mapState?.isRendered && /** @type {any} */ (window).renderMap) {
-            console.log("[TabStateManager] Rendering map for first time");
-            /** @type {any} */ (window).renderMap();
-            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab" });
-        }
-    }
-
-    /**
-     * Handle summary tab activation
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    async handleSummaryTab(globalData) {
-        if (!globalData || !(/** @type {any} */ (window).renderSummary)) {
-            return;
-        }
-
-        // Check if we need to re-render summary
-        const previousData = getStateMgr().getState("summary.lastDataHash"),
-            currentDataHash = this.hashData(globalData);
-
-        if (previousData !== currentDataHash) {
-            console.log("[TabStateManager] Rendering summary with new data");
-            /** @type {any} */ (window).renderSummary(globalData);
-            getStateMgr().setState("summary.lastDataHash", currentDataHash, {
-                source: "TabStateManager.handleSummaryTab",
-            });
-        }
-    }
-
-    /**
-     * Handle data tables tab activation
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    async handleDataTab(globalData) {
-        if (!globalData || !(/** @type {any} */ (window).createTables)) {
-            return;
-        }
-
-        // Check for background-rendered data first
-        const bgContainer = getDoc().getElementById("background-data-container"),
-            visibleContainer = getDoc().getElementById("content-data");
-
-        if (bgContainer && bgContainer.childNodes && bgContainer.childNodes.length > 0 && visibleContainer) {
-            // Move pre-rendered content
-            visibleContainer.innerHTML = "";
-            while (bgContainer.firstChild) {
-                visibleContainer.appendChild(bgContainer.firstChild);
-            }
-        } else {
-            // Render fresh tables
-            console.log("[TabStateManager] Creating data tables");
-            /** @type {any} */ (window).createTables(globalData);
-        }
-    }
-
-    /**
-     * Handle alternative FIT viewer tab activation
-     */
-    handleAltFitTab() {
-        const el = getDoc().getElementById("altfit-iframe");
-        // Avoid cross-realm instanceof checks; rely on tagName and presence of src
-        if (
-            el &&
-            typeof (/** @type {any} */ (el).tagName) === "string" &&
-            /** @type {any} */ (el).tagName.toUpperCase() === "IFRAME"
-        ) {
-            const iframe = /** @type {any} */ (el);
-            if (typeof iframe.src === "string" && !iframe.src.includes("libs/ffv/index.html")) {
-                iframe.src = "libs/ffv/index.html";
-            }
-        }
-    }
-
-    /**
-     * Update tab availability based on data availability
-     * @param {Object} globalData - Current global data
-     */
-    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    updateTabAvailability(globalData) {
-        const hasData = Boolean(globalData && globalData.recordMesgs);
-
-        Object.entries(TAB_CONFIG).forEach(([, config]) => {
-            if (!config.requiresData) {
-                return;
-            }
-            const el = getDoc().getElementById(config.id);
-            if (el) {
-                // Avoid cross-realm instanceof by duck-typing
-                /** @type {any} */
-                const button = /** @type {any} */ (el);
-                if (typeof button.classList?.toggle === "function") {
-                    if ("disabled" in button) button.disabled = !hasData;
-                    try {
-                        button.classList.toggle("disabled", !hasData);
-                    } catch {}
-                }
-            }
-        });
-    }
-
-    /**
-     * Extract tab name from button ID
-     * @param {string} buttonId - Button element ID
-     * @returns {string|null} Tab name or null
-     */
-    extractTabName(buttonId) {
-        // Try direct lookup in config first
-        for (const [tabName, config] of Object.entries(TAB_CONFIG)) {
-            if (config.id === buttonId) {
-                return tabName;
-            }
-        }
-
-        // Fallback to pattern matching
-        const patterns = [/^tab-(.+)$/, /^(.+)-tab$/, /^btn-(.+)$/, /^(.+)-btn$/];
-
-        for (const pattern of patterns) {
-            const match = buttonId.match(pattern);
-            if (match && match[1] && TAB_CONFIG[match[1]]) {
-                return match[1];
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -599,11 +513,78 @@ class TabStateManager {
 
         // Simple hash based on data size and some key fields
         const recordMesgs = data.recordMesgs || [],
-            size = recordMesgs.length || 0,
             firstRecord = recordMesgs[0] || {},
-            lastRecord = recordMesgs[size - 1] || {};
+            lastRecord = recordMesgs[size - 1] || {},
+            size = recordMesgs.length || 0;
 
         return `${size}-${firstRecord.timestamp || 0}-${lastRecord.timestamp || 0}`;
+    }
+
+    /**
+     * Initialize state subscriptions for reactive tab management
+     */
+    initializeSubscriptions() {
+        // Subscribe to active tab changes
+        const unsubActive = getStateMgr().subscribe(
+            "ui.activeTab",
+            (/** @type {string} */ newTab, /** @type {string} */ oldTab) => {
+                if (newTab !== oldTab) {
+                    this.handleTabChange(newTab, oldTab);
+                }
+            }
+        );
+        if (typeof unsubActive === "function")
+            this._unsubscribes.push(() => {
+                try {
+                    unsubActive();
+                } catch {}
+            });
+
+        // Subscribe to data changes to enable/disable tabs
+        const unsubData = getStateMgr().subscribe("globalData", (/** @type {any} */ newData) => {
+            this.updateTabAvailability(newData);
+        });
+        if (typeof unsubData === "function")
+            this._unsubscribes.push(() => {
+                try {
+                    unsubData();
+                } catch {}
+            });
+
+        this.isInitialized = true;
+    }
+
+    /**
+     * Set up click handlers for all tab buttons
+     */
+    setupTabButtonHandlers() {
+        // Wait for DOM to be ready
+        const setupHandlers = () => {
+            const tabButtons = getDoc().querySelectorAll(".tab-button");
+
+            for (const button of tabButtons) {
+                // Remove existing stable listener (if any) to prevent duplicates
+                try {
+                    button.removeEventListener("click", this._buttonClickHandler);
+                } catch {}
+                // Add stable listener
+                try {
+                    button.addEventListener("click", this._buttonClickHandler);
+                } catch {}
+            }
+
+            console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
+        };
+
+        if (document.readyState === "loading") {
+            // Store reference so we can remove it during cleanup
+            this._setupHandlersFn = setupHandlers;
+            try {
+                getDoc().addEventListener("DOMContentLoaded", this._setupHandlersFn);
+            } catch {}
+        } else {
+            setupHandlers();
+        }
     }
 
     /**
@@ -621,55 +602,80 @@ class TabStateManager {
     }
 
     /**
-     * Cleanup resources (placeholder for future unsubscribe logic)
+     * Update content area visibility
+     * @param {string} activeTab - Currently active tab name
      */
-    cleanup() {
-        // Unsubscribe state listeners
-        try {
-            if (Array.isArray(this._unsubscribes) && this._unsubscribes.length) {
-                for (const unsub of this._unsubscribes.splice(0, this._unsubscribes.length)) {
+    updateContentVisibility(activeTab) {
+        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[activeTab]);
+        if (!tabConfig) {
+            console.warn(`[TabStateManager] Unknown tab: ${activeTab}`);
+            return;
+        }
+
+        // Hide all content areas
+        for (const config of Object.values(TAB_CONFIG)) {
+            const contentElement = getDoc().getElementById(config.contentId);
+            if (contentElement) {
+                contentElement.style.display = "none";
+            }
+        }
+
+        // Show active content area
+        const activeContent = getDoc().getElementById(tabConfig.contentId);
+        if (activeContent) {
+            activeContent.style.display = "block";
+        }
+    }
+    /**
+     * Update tab availability based on data availability
+     * @param {Object} globalData - Current global data
+     */
+    /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
+    updateTabAvailability(globalData) {
+        const hasData = Boolean(globalData && globalData.recordMesgs);
+
+        for (const [, config] of Object.entries(TAB_CONFIG)) {
+            if (!config.requiresData) {
+                continue;
+            }
+            const el = getDoc().getElementById(config.id);
+            if (el) {
+                // Avoid cross-realm instanceof by duck-typing
+                /** @type {any} */
+                const button = /** @type {any} */ (el);
+                if (typeof button.classList?.toggle === "function") {
+                    if ("disabled" in button) button.disabled = !hasData;
                     try {
-                        typeof unsub === "function" && unsub();
+                        button.classList.toggle("disabled", !hasData);
                     } catch {}
                 }
             }
-        } catch {}
-        // Remove document DOMContentLoaded handler if previously added
-        try {
-            if (this._setupHandlersFn) {
-                getDoc().removeEventListener("DOMContentLoaded", this._setupHandlersFn);
-                this._setupHandlersFn = null;
-            }
-        } catch {}
-        // Detach click handlers from current tab buttons
-        try {
-            const tabButtons = getDoc().querySelectorAll(".tab-button");
-            tabButtons.forEach((button) => {
-                try {
-                    button.removeEventListener("click", this._buttonClickHandler);
-                } catch {}
-            });
-        } catch {}
-        // Mark uninitialized so tests can re-init if they re-import or call setup explicitly
-        this.isInitialized = false;
-        console.log("[TabStateManager] cleanup invoked");
+        }
     }
-
     /**
-     * Get current active tab information
-     * @returns {Object} Active tab information
+     * Update tab button visual states
+     * @param {string} activeTab - Currently active tab name
      */
-    getActiveTabInfo() {
-        const activeTab = getStateMgr().getState("ui.activeTab"),
-            config = TAB_CONFIG[activeTab];
+    updateTabButtonStates(activeTab) {
+        const tabButtons = getDoc().querySelectorAll(".tab-button");
 
-        return {
-            name: activeTab,
-            config,
-            previous: this.previousTab,
-            element: config ? getDoc().getElementById(config.id) : null,
-            contentElement: config ? getDoc().getElementById(config.contentId) : null,
-        };
+        for (const button of tabButtons) {
+            try {
+                const tabName = this.extractTabName(button.id),
+                    isActive = tabName === activeTab;
+
+                // Defensive: ensure classList exists
+                if (button && button.classList && typeof button.classList.toggle === "function") {
+                    button.classList.toggle("active", isActive);
+                }
+                // Always set aria-selected for both active and inactive to maintain consistency
+                if (button && typeof button.setAttribute === "function") {
+                    button.setAttribute("aria-selected", isActive ? "true" : "false");
+                }
+            } catch {
+                // Ignore individual button failures to keep others updated
+            }
+        }
     }
 }
 
@@ -680,8 +686,8 @@ export const tabStateManager = new TabStateManager();
 export { TAB_CONFIG };
 
 // Expose globally for debugging
-if (typeof window !== "undefined") {
-    /** @type {any} */ (window).tabStateManager = tabStateManager;
+if (globalThis.window !== undefined) {
+    /** @type {any} */ (globalThis).tabStateManager = tabStateManager;
 }
 
 export default tabStateManager;

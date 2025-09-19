@@ -9,8 +9,8 @@ export function createChartStatusIndicatorFromCounts(counts) {
         indicator.id = "chart-status-indicator";
 
         // Calculate status
-        const isAllVisible = counts.visible === counts.available,
-            hasHiddenCharts = counts.available > counts.visible;
+        const hasHiddenCharts = counts.available > counts.visible,
+            isAllVisible = counts.visible === counts.available;
 
         indicator.style.cssText = `
             display: flex;
@@ -160,11 +160,11 @@ export function createChartStatusIndicatorFromCounts(counts) {
                 }, 2000);
             }
         });
-        indicator.appendChild(statusIcon);
-        indicator.appendChild(statusText);
+        indicator.append(statusIcon);
+        indicator.append(statusText);
 
         // Add tooltip to document body for proper positioning
-        document.body.appendChild(breakdown);
+        document.body.append(breakdown);
 
         return indicator;
     } catch (error) {

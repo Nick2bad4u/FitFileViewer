@@ -35,27 +35,25 @@ function getErrorMessage(err) {
 // Constants for better maintainability
 const PATCH_CONSTANTS = {
     DECIMAL_PLACES: {
-        DEFAULT: 2,
-        TEMPERATURE: 1,
         CADENCE: 0,
-        HEART_RATE: 0,
-        POWER: 0,
         CALORIES: 0,
+        DEFAULT: 2,
+        HEART_RATE: 0,
         HIGH_PRECISION: 3,
+        POWER: 0,
+        TEMPERATURE: 1,
     },
     FIELD_MAPPINGS: {
-        DISTANCE: ["total_distance", "totalDistance"],
-        TIME: ["total_timer_time", "totalTimerTime", "total_elapsed_time", "totalElapsedTime"],
-        SPEED: [
-            "avg_speed",
-            "avgSpeed",
-            "max_speed",
-            "maxSpeed",
-            "enhanced_avg_speed",
-            "enhancedAvgSpeed",
-            "enhanced_max_speed",
-            "enhancedMaxSpeed",
+        CADENCE: [
+            "avg_cadence",
+            "avgCadence",
+            "max_cadence",
+            "maxCadence",
+            "avg_fractional_cadence",
+            "avgFractionalCadence",
         ],
+        DISTANCE: ["total_distance", "totalDistance"],
+        HEART_RATE: ["avg_heart_rate", "avgHeartRate", "max_heart_rate", "maxHeartRate"],
         POWER: [
             "avg_power",
             "avgPower",
@@ -66,118 +64,21 @@ const PATCH_CONSTANTS = {
             "total_work",
             "totalWork",
         ],
-        HEART_RATE: ["avg_heart_rate", "avgHeartRate", "max_heart_rate", "maxHeartRate"],
-        CADENCE: [
-            "avg_cadence",
-            "avgCadence",
-            "max_cadence",
-            "maxCadence",
-            "avg_fractional_cadence",
-            "avgFractionalCadence",
+        SPEED: [
+            "avg_speed",
+            "avgSpeed",
+            "max_speed",
+            "maxSpeed",
+            "enhanced_avg_speed",
+            "enhancedAvgSpeed",
+            "enhanced_max_speed",
+            "enhancedMaxSpeed",
         ],
         TEMPERATURE: ["avg_temperature", "avgTemperature", "max_temperature", "maxTemperature"],
+        TIME: ["total_timer_time", "totalTimerTime", "total_elapsed_time", "totalElapsedTime"],
     },
     LOG_PREFIX: "[SummaryPatcher]",
 };
-
-/**
- * Logs messages with context for patching operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
- */
-function logWithContext(message, level = "info") {
-    try {
-        const prefix = PATCH_CONSTANTS.LOG_PREFIX;
-        switch (level) {
-            case "warn":
-                console.warn(`${prefix} ${message}`);
-                break;
-            case "error":
-                console.error(`${prefix} ${message}`);
-                break;
-            default:
-                console.log(`${prefix} ${message}`);
-        }
-    } catch {
-        // Silently fail if logging encounters an error
-    }
-}
-
-/**
- * Safely converts a value to a number with validation
- * @param {any} value - Value to convert
- * @param {string} fieldName - Name of the field for error reporting
- * @returns {number|null} Converted number or null if invalid
- * @private
- */
-function safeToNumber(value, fieldName = "value") {
-    if (value == null) {
-        return null;
-    }
-
-    const num = Number(value);
-    if (!Number.isFinite(num)) {
-        logWithContext(`Invalid ${fieldName}: ${value}`, "warn");
-        return null;
-    }
-
-    return num;
-}
-
-/**
- * Patches field with a custom formatter function
- * @param {Object} obj - Object containing fields to patch
- * @param {string[]} fieldNames - Array of field names to check
- * @param {Function} formatter - Formatting function
- * @param {string} description - Description for logging
- * @private
- */
-/**
- * @param {SummaryRecord} obj
- * @param {string[]} fieldNames
- * @param {(value:number)=>any} formatter
- * @param {string} description
- */
-function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
-    for (const fieldName of fieldNames) {
-        if (Object.hasOwn(obj, fieldName) && obj[fieldName] != null) {
-            const raw = obj[fieldName],
-                value = safeToNumber(raw, fieldName);
-            if (value !== null) {
-                try {
-                    obj[fieldName] = formatter(value);
-                } catch (error) {
-                    logWithContext(
-                        `Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`,
-                        "error"
-                    );
-                }
-            }
-        }
-    }
-}
-
-/**
- * Patches decimal fields with specified precision
- * @param {Object} obj - Object containing fields to patch
- * @param {string[]} fieldNames - Array of field names to check
- * @param {number} decimalPlaces - Number of decimal places
- * @private
- */
-/**
- * @param {SummaryRecord} obj
- * @param {string[]} fieldNames
- * @param {number} decimalPlaces
- */
-function patchDecimalFields(obj, fieldNames, decimalPlaces) {
-    patchFieldsWithFormatter(
-        obj,
-        fieldNames,
-        /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
-        `decimal (${decimalPlaces} places)`
-    );
-}
 
 /**
  * Updates the fields of a summary object to ensure they are in a human-readable format.
@@ -251,28 +152,6 @@ export function patchSummaryFields(obj, options = {}) {
     }
 }
 
-// --- Helper functions ---
-
-/**
- * Formats the distance fields of the given object using the formatDistance function
- * @param {Object} obj - The object containing distance fields to patch
- * @private
- */
-/** @param {SummaryRecord} obj */
-function patchDistance(obj) {
-    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.DISTANCE, formatDistance, "distance");
-}
-
-/**
- * Formats the time fields of the given object using the formatDuration function
- * @param {Object} obj - The object containing time fields to patch
- * @private
- */
-/** @param {SummaryRecord} obj */
-function patchTime(obj) {
-    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TIME, formatDuration, "time");
-}
-
 /**
  * Converts a speed value from meters per second to a formatted string
  * @param {number} val - The speed value in meters per second
@@ -283,38 +162,35 @@ function patchTime(obj) {
 function formatSpeed(val) {
     const mps = Number(val),
         kmh = (mps * 3.6).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT),
-        mph = (mps * 2.23694).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+        mph = (mps * 2.236_94).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
     return `${kmh} km/h / ${mph} mph`;
 }
 
 /**
- * Formats speed fields in the given object
- * @param {Object} obj - The object containing speed fields to patch
+ * Logs messages with context for patching operations
+ * @param {string} message - The message to log
+ * @param {string} level - Log level ('info', 'warn', 'error')
  * @private
  */
-/** @param {SummaryRecord} obj */
-function patchSpeed(obj) {
-    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.SPEED, formatSpeed, "speed");
-}
-
-/**
- * Modernized power fields formatting
- * @param {Object} obj - The object containing power fields to patch
- * @private
- */
-/** @param {SummaryRecord} obj */
-function patchPowerModern(obj) {
-    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.POWER, PATCH_CONSTANTS.DECIMAL_PLACES.POWER);
-}
-
-/**
- * Modernized heart rate fields formatting
- * @param {Object} obj - The object containing heart rate fields to patch
- * @private
- */
-/** @param {SummaryRecord} obj */
-function patchHeartRateModern(obj) {
-    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.HEART_RATE, PATCH_CONSTANTS.DECIMAL_PLACES.HEART_RATE);
+function logWithContext(message, level = "info") {
+    try {
+        const prefix = PATCH_CONSTANTS.LOG_PREFIX;
+        switch (level) {
+            case "error": {
+                console.error(`${prefix} ${message}`);
+                break;
+            }
+            case "warn": {
+                console.warn(`${prefix} ${message}`);
+                break;
+            }
+            default: {
+                console.log(`${prefix} ${message}`);
+            }
+        }
+    } catch {
+        // Silently fail if logging encounters an error
+    }
 }
 
 /**
@@ -328,6 +204,102 @@ function patchCadenceModern(obj) {
 }
 
 /**
+ * Patches decimal fields with specified precision
+ * @param {Object} obj - Object containing fields to patch
+ * @param {string[]} fieldNames - Array of field names to check
+ * @param {number} decimalPlaces - Number of decimal places
+ * @private
+ */
+/**
+ * @param {SummaryRecord} obj
+ * @param {string[]} fieldNames
+ * @param {number} decimalPlaces
+ */
+function patchDecimalFields(obj, fieldNames, decimalPlaces) {
+    patchFieldsWithFormatter(
+        obj,
+        fieldNames,
+        /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
+        `decimal (${decimalPlaces} places)`
+    );
+}
+
+// --- Helper functions ---
+
+/**
+ * Formats the distance fields of the given object using the formatDistance function
+ * @param {Object} obj - The object containing distance fields to patch
+ * @private
+ */
+/** @param {SummaryRecord} obj */
+function patchDistance(obj) {
+    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.DISTANCE, formatDistance, "distance");
+}
+
+/**
+ * Patches field with a custom formatter function
+ * @param {Object} obj - Object containing fields to patch
+ * @param {string[]} fieldNames - Array of field names to check
+ * @param {Function} formatter - Formatting function
+ * @param {string} description - Description for logging
+ * @private
+ */
+/**
+ * @param {SummaryRecord} obj
+ * @param {string[]} fieldNames
+ * @param {(value:number)=>any} formatter
+ * @param {string} description
+ */
+function patchFieldsWithFormatter(obj, fieldNames, formatter, description) {
+    for (const fieldName of fieldNames) {
+        if (Object.hasOwn(obj, fieldName) && obj[fieldName] != null) {
+            const raw = obj[fieldName],
+                value = safeToNumber(raw, fieldName);
+            if (value !== null) {
+                try {
+                    obj[fieldName] = formatter(value);
+                } catch (error) {
+                    logWithContext(
+                        `Error formatting ${description} field '${fieldName}': ${getErrorMessage(error)}`,
+                        "error"
+                    );
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Modernized heart rate fields formatting
+ * @param {Object} obj - The object containing heart rate fields to patch
+ * @private
+ */
+/** @param {SummaryRecord} obj */
+function patchHeartRateModern(obj) {
+    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.HEART_RATE, PATCH_CONSTANTS.DECIMAL_PLACES.HEART_RATE);
+}
+
+/**
+ * Modernized power fields formatting
+ * @param {Object} obj - The object containing power fields to patch
+ * @private
+ */
+/** @param {SummaryRecord} obj */
+function patchPowerModern(obj) {
+    patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.POWER, PATCH_CONSTANTS.DECIMAL_PLACES.POWER);
+}
+
+/**
+ * Formats speed fields in the given object
+ * @param {Object} obj - The object containing speed fields to patch
+ * @private
+ */
+/** @param {SummaryRecord} obj */
+function patchSpeed(obj) {
+    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.SPEED, formatSpeed, "speed");
+}
+
+/**
  * Modernized temperature fields formatting
  * @param {Object} obj - The object containing temperature fields to patch
  * @private
@@ -337,124 +309,42 @@ function patchTemperatureModern(obj) {
     patchDecimalFields(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TEMPERATURE, PATCH_CONSTANTS.DECIMAL_PLACES.TEMPERATURE);
 }
 
-// Replace old implementations with modern ones
-const patchPower = patchPowerModern,
-    patchHeartRate = patchHeartRateModern,
-    patchCadence = patchCadenceModern,
-    patchTemperature = patchTemperatureModern;
-
-// Stub implementations for missing functions that aren't in FIELD_MAPPINGS
+/**
+ * Formats the time fields of the given object using the formatDuration function
+ * @param {Object} obj - The object containing time fields to patch
+ * @private
+ */
 /** @param {SummaryRecord} obj */
-function patchCalories(obj) {
-    const calorieFields = ["total_calories", "totalCalories"];
-    patchDecimalFields(obj, calorieFields, PATCH_CONSTANTS.DECIMAL_PLACES.CALORIES);
+function patchTime(obj) {
+    patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TIME, formatDuration, "time");
 }
 
-/** @param {SummaryRecord} obj */
-function patchRespirationRate(obj) {
-    const respirationFields = [
-        "enhanced_avg_respiration_rate",
-        "enhancedAvgRespirationRate",
-        "enhanced_max_respiration_rate",
-        "enhancedMaxRespirationRate",
-        "enhanced_min_respiration_rate",
-        "enhancedMinRespirationRate",
-    ];
-    patchDecimalFields(obj, respirationFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-}
-
-/** @param {SummaryRecord} obj */
-function patchGritFlow(obj) {
-    const gritFlowFields = ["avg_flow", "avgFlow", "avg_grit", "avgGrit"];
-    patchDecimalFields(obj, gritFlowFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-}
-
-/** @param {SummaryRecord} obj */
-function patchTrainingLoad(obj) {
-    const trainingLoadFields = ["training_stress_score", "trainingStressScore"];
-    patchDecimalFields(obj, trainingLoadFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-}
-
-/** @param {SummaryRecord} obj */
-function patchStrokes(obj) {
-    const strokeFields = ["total_strokes", "totalStrokes", "avg_stroke_distance", "avgStrokeDistance"];
-    patchDecimalFields(obj, strokeFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-}
-
-/** @param {SummaryRecord} obj */
-function patchFractionalCadence(obj) {
-    const fractionalCadenceFields = ["avg_fractional_cadence", "avgFractionalCadence"];
-    patchDecimalFields(obj, fractionalCadenceFields, PATCH_CONSTANTS.DECIMAL_PLACES.HIGH_PRECISION);
-}
-
-/** @param {SummaryRecord} obj */
-function patchTorquePedal(obj) {
-    const torqueFields = [
-        "avg_left_torque_effectiveness",
-        "avgLeftTorqueEffectiveness",
-        "avg_right_torque_effectiveness",
-        "avgRightTorqueEffectiveness",
-    ];
-    patchDecimalFields(obj, torqueFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-}
-
-/** @param {SummaryRecord} obj */
-function patchPCO(obj) {
-    const pcoFields = ["avg_left_pco", "avgLeftPco", "avg_right_pco", "avgRightPco"];
-    patchDecimalFields(obj, pcoFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-}
-
-/** @param {SummaryRecord} obj */
-function patchArrays(obj) {
-    const arrayFields = [
-        "avg_left_power_phase",
-        "avgLeftPowerPhase",
-        "avg_left_power_phase_peak",
-        "avgLeftPowerPhasePeak",
-        "avg_right_power_phase",
-        "avgRightPowerPhase",
-        "avg_right_power_phase_peak",
-        "avgRightPowerPhasePeak",
-    ];
-
-    arrayFields.forEach((field) => {
-        if (obj[field] != null) {
-            try {
-                obj[field] = formatArray(obj[field], PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-            } catch (error) {
-                logWithContext(`Error formatting array field '${field}': ${getErrorMessage(error)}`, "error");
-            }
-        }
-    });
-}
-
-/** @param {SummaryRecord} obj */
-function patchTimestamps(obj) {
-    const timestampFields = ["timestamp", "start_time", "startTime"];
-
-    timestampFields.forEach((field) => {
-        if (obj[field] != null && typeof obj[field] === "number") {
-            try {
-                obj[field] = new Date(obj[field] * 1000).toString();
-            } catch (error) {
-                logWithContext(`Error formatting timestamp field '${field}': ${getErrorMessage(error)}`, "error");
-            }
-        }
-    });
-}
-
-/** @param {SummaryRecord} obj */
-function patchDecimals(obj) {
-    try {
-        Object.keys(obj)
-            .filter((key) => typeof obj[key] === "number" && !Number.isInteger(obj[key]))
-            .forEach((key) => {
-                obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-            });
-    } catch (error) {
-        logWithContext(`Error formatting decimal fields: ${getErrorMessage(error)}`, "error");
+/**
+ * Safely converts a value to a number with validation
+ * @param {any} value - Value to convert
+ * @param {string} fieldName - Name of the field for error reporting
+ * @returns {number|null} Converted number or null if invalid
+ * @private
+ */
+function safeToNumber(value, fieldName = "value") {
+    if (value == null) {
+        return null;
     }
+
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+        logWithContext(`Invalid ${fieldName}: ${value}`, "warn");
+        return null;
+    }
+
+    return num;
 }
+
+// Replace old implementations with modern ones
+const patchCadence = patchCadenceModern,
+    patchHeartRate = patchHeartRateModern,
+    patchPower = patchPowerModern,
+    patchTemperature = patchTemperatureModern;
 
 // (Legacy doc removed; replaced by typed version below.)
 /**
@@ -472,4 +362,116 @@ function formatArray(val, digits = PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT) {
             .join(", ");
     }
     return val;
+}
+
+/** @param {SummaryRecord} obj */
+function patchArrays(obj) {
+    const arrayFields = [
+        "avg_left_power_phase",
+        "avgLeftPowerPhase",
+        "avg_left_power_phase_peak",
+        "avgLeftPowerPhasePeak",
+        "avg_right_power_phase",
+        "avgRightPowerPhase",
+        "avg_right_power_phase_peak",
+        "avgRightPowerPhasePeak",
+    ];
+
+    for (const field of arrayFields) {
+        if (obj[field] != null) {
+            try {
+                obj[field] = formatArray(obj[field], PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+            } catch (error) {
+                logWithContext(`Error formatting array field '${field}': ${getErrorMessage(error)}`, "error");
+            }
+        }
+    }
+}
+
+// Stub implementations for missing functions that aren't in FIELD_MAPPINGS
+/** @param {SummaryRecord} obj */
+function patchCalories(obj) {
+    const calorieFields = ["total_calories", "totalCalories"];
+    patchDecimalFields(obj, calorieFields, PATCH_CONSTANTS.DECIMAL_PLACES.CALORIES);
+}
+
+/** @param {SummaryRecord} obj */
+function patchDecimals(obj) {
+    try {
+        for (const key of Object.keys(obj)
+            .filter((key) => typeof obj[key] === "number" && !Number.isInteger(obj[key]))) {
+                obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+            }
+    } catch (error) {
+        logWithContext(`Error formatting decimal fields: ${getErrorMessage(error)}`, "error");
+    }
+}
+
+/** @param {SummaryRecord} obj */
+function patchFractionalCadence(obj) {
+    const fractionalCadenceFields = ["avg_fractional_cadence", "avgFractionalCadence"];
+    patchDecimalFields(obj, fractionalCadenceFields, PATCH_CONSTANTS.DECIMAL_PLACES.HIGH_PRECISION);
+}
+
+/** @param {SummaryRecord} obj */
+function patchGritFlow(obj) {
+    const gritFlowFields = ["avg_flow", "avgFlow", "avg_grit", "avgGrit"];
+    patchDecimalFields(obj, gritFlowFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+}
+
+/** @param {SummaryRecord} obj */
+function patchPCO(obj) {
+    const pcoFields = ["avg_left_pco", "avgLeftPco", "avg_right_pco", "avgRightPco"];
+    patchDecimalFields(obj, pcoFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+}
+
+/** @param {SummaryRecord} obj */
+function patchRespirationRate(obj) {
+    const respirationFields = [
+        "enhanced_avg_respiration_rate",
+        "enhancedAvgRespirationRate",
+        "enhanced_max_respiration_rate",
+        "enhancedMaxRespirationRate",
+        "enhanced_min_respiration_rate",
+        "enhancedMinRespirationRate",
+    ];
+    patchDecimalFields(obj, respirationFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+}
+
+/** @param {SummaryRecord} obj */
+function patchStrokes(obj) {
+    const strokeFields = ["total_strokes", "totalStrokes", "avg_stroke_distance", "avgStrokeDistance"];
+    patchDecimalFields(obj, strokeFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+}
+
+/** @param {SummaryRecord} obj */
+function patchTimestamps(obj) {
+    const timestampFields = ["timestamp", "start_time", "startTime"];
+
+    for (const field of timestampFields) {
+        if (obj[field] != null && typeof obj[field] === "number") {
+            try {
+                obj[field] = new Date(obj[field] * 1000).toString();
+            } catch (error) {
+                logWithContext(`Error formatting timestamp field '${field}': ${getErrorMessage(error)}`, "error");
+            }
+        }
+    }
+}
+
+/** @param {SummaryRecord} obj */
+function patchTorquePedal(obj) {
+    const torqueFields = [
+        "avg_left_torque_effectiveness",
+        "avgLeftTorqueEffectiveness",
+        "avg_right_torque_effectiveness",
+        "avgRightTorqueEffectiveness",
+    ];
+    patchDecimalFields(obj, torqueFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+}
+
+/** @param {SummaryRecord} obj */
+function patchTrainingLoad(obj) {
+    const trainingLoadFields = ["training_stress_score", "trainingStressScore"];
+    patchDecimalFields(obj, trainingLoadFields, PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
 }

@@ -24,7 +24,7 @@ import { getStorageKey, loadColPrefs, renderTable, showColModal } from "../helpe
  * });
  */
 export function renderSummary(data) {
-    const container = document.getElementById("content-summary");
+    const container = document.querySelector("#content-summary");
     if (!container) {
         return;
     } // Guard: container missing
@@ -34,49 +34,49 @@ export function renderSummary(data) {
     /** @type {Set<string>} */
     const keySet = new Set();
     if (data && data.sessionMesgs) {
-        data.sessionMesgs.forEach((row) => Object.keys(row || {}).forEach((k) => keySet.add(k)));
+        for (const row of data.sessionMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
     }
     if (data && data.lapMesgs) {
-        data.lapMesgs.forEach((row) => Object.keys(row || {}).forEach((k) => keySet.add(k)));
+        for (const row of data.lapMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
     }
     if (data && data.recordMesgs) {
-        data.recordMesgs.forEach((row) => Object.keys(row || {}).forEach((k) => keySet.add(k)));
+        for (const row of data.recordMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
     }
-    const allKeys = Array.from(keySet);
-    let visibleColumns = loadColPrefs(getStorageKey(data, allKeys), allKeys) || allKeys.slice();
+    const allKeys = [...keySet];
+    let visibleColumns = loadColPrefs(getStorageKey(data, allKeys), allKeys) || [...allKeys];
 
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";
     gearBtn.title = "Select columns";
     gearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.14.31.22.65.22 1v.09A1.65 1.65 0 0 0 21 12c0 .35-.08.69-.22 1z"/></svg>`;
-    gearBtn.onclick = (e) => {
+    gearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         showColModal({
             allKeys,
-            visibleColumns,
-            setVisibleColumns: (cols) => {
-                visibleColumns = cols;
-            },
             renderTable: () =>
                 renderTable({
                     container,
                     data: /** @type {FitSummaryData} */ (data),
-                    visibleColumns,
+                    gearBtn,
                     setVisibleColumns: (cols) => {
                         visibleColumns = cols;
                     },
-                    gearBtn,
+                    visibleColumns,
                 }),
+            setVisibleColumns: (cols) => {
+                visibleColumns = cols;
+            },
+            visibleColumns,
         });
-    };
+    });
 
     renderTable({
         container,
         data: /** @type {FitSummaryData} */ (data),
-        visibleColumns,
+        gearBtn,
         setVisibleColumns: (cols) => {
             visibleColumns = cols;
         },
-        gearBtn,
+        visibleColumns,
     });
 }

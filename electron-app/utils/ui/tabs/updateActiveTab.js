@@ -3,9 +3,9 @@ import * as __StateMgr from "../../state/core/stateManager.js";
 
 // Resolve the current document by preferring the canonical test-provided
 // `__vitest_effective_document__` first, then falling back to the
-// active global/window document. This guarantees that when the test
-// harness swaps documents between tests, all modules consistently use
-// the same per-test JSDOM instance.
+// Active global/window document. This guarantees that when the test
+// Harness swaps documents between tests, all modules consistently use
+// The same per-test JSDOM instance.
 /**
  * @returns {Document}
  */
@@ -20,7 +20,7 @@ const getDoc = () => {
         }
     } catch {}
     try {
-        if (!d && typeof window !== "undefined" && window.document) d = /** @type {any} */ (window.document);
+        if (!d && globalThis.window !== undefined && globalThis.document) d = /** @type {any} */ (globalThis.document);
     } catch {}
     try {
         // Then prefer the current global document; this reflects the active jsdom for this test file
@@ -36,7 +36,7 @@ const getDoc = () => {
             d = /** @type {any} */ (__vitest_effective_document__);
         }
     } catch {}
-    // final fallback to module document
+    // Final fallback to module document
     if (!d) {
         // @ts-ignore - JSDOM provides document at runtime
         d = /** @type {any} */ (document);
@@ -49,8 +49,8 @@ const getDoc = () => {
             if (typeof document !== "undefined" && document && typeof document.getElementById === "function") {
                 // @ts-ignore
                 d = /** @type {any} */ (document);
-            } else if (typeof window !== "undefined" && window.document) {
-                d = /** @type {any} */ (window.document);
+            } else if (globalThis.window !== undefined && globalThis.document) {
+                d = /** @type {any} */ (globalThis.document);
             } else if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).document) {
                 d = /** @type {any} */ (/** @type {any} */ (globalThis).document);
             } else if (
@@ -66,7 +66,7 @@ const getDoc = () => {
 };
 
 // Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
-// and only fall back to a canonical global mock if module functions are unavailable.
+// And only fall back to a canonical global mock if module functions are unavailable.
 /** @returns {{ getState: any, setState: any, subscribe: any }} */
 const getStateMgr = () => {
     try {
@@ -98,6 +98,132 @@ const getStateMgr = () => {
 };
 
 /**
+ * Get the currently active tab
+ * @returns {string} Currently active tab name
+ */
+export function getActiveTab() {
+    return getStateMgr().getState("ui.activeTab") || "summary";
+}
+
+// No persistent cache to avoid cross-test contamination. Use minimal DOM queries per call.
+
+/**
+ * Initialize active tab state management by wiring state subscription
+ */
+export function initializeActiveTabState() {
+    try {
+        /** @type {(activeTab: string) => void} */
+        const onActiveTabChange = (activeTab) => {
+            try {
+                updateTabButtonsFromState(activeTab);
+            } catch {
+                /* Ignore */
+            }
+        };
+        getStateMgr().subscribe("ui.activeTab", onActiveTabChange);
+
+        // Set up click listeners for tab buttons
+        const tabButtons = getDoc().querySelectorAll(".tab-button");
+        if (!tabButtons || tabButtons.length === 0) {
+            console.warn("initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up.");
+        } else {
+            for (const btn of tabButtons) {
+                const button = /** @type {any} */ (btn);
+                if (!button || typeof button.addEventListener !== "function") {
+                    console.warn("initializeActiveTabState: Invalid button element found:", button);
+                    continue;
+                }
+                /** @type {(evt: Event) => void} */
+                const onClick = (evt) => {
+                    // Ignore clicks on disabled buttons (including aria-disabled="true")
+                    const anyBtn = /** @type {any} */ (button);
+                    const hasDisabledClass = anyBtn?.classList?.contains?.("tab-disabled");
+                    const isDisabled =
+                        anyBtn.disabled === true ||
+                        button.getAttribute?.("aria-disabled") === "true" ||
+                        hasDisabledClass === true;
+                    if (isDisabled) {
+                        // Explicit debug log for coverage and diagnostics
+                        try {
+                            console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id}`);
+                        } catch {}
+                        try {
+                            evt?.preventDefault?.();
+                            evt?.stopPropagation?.();
+                        } catch {}
+                        return;
+                    }
+                    const btnId = typeof button.id === "string" ? button.id.trim() : "";
+                    if (!btnId) return; // Do not update state if element has no valid id
+                    const tabName = extractTabName(btnId);
+                    if (!tabName) return;
+                    // Handle potential state errors gracefully within event handler
+                    try {
+                        getStateMgr().setState("ui.activeTab", tabName, { source: "tabButtonClick" });
+                    } catch (error) {
+                        try {
+                            console.warn("[ActiveTab] Failed to set state from button click:", error);
+                        } catch {}
+                        // Prevent unhandled exception propagation in test environment
+                    }
+                };
+                button.addEventListener("click", onClick);
+            }
+        }
+
+        console.log("[ActiveTab] State management initialized");
+    } catch {
+        // Non-fatal in tests
+    }
+}
+
+/**
+ * Update active tab efficiently
+ * @param {string} tabId
+ * @returns {boolean}
+ */
+export function updateActiveTab(tabId) {
+    if (!tabId || typeof tabId !== "string") {
+        console.warn("[updateActiveTab] Invalid tabId:", tabId);
+        return false;
+    }
+
+    // Fast path: if the requested tab is already the only active one, avoid extra DOM work
+    try {
+        const currentActive = getDoc().querySelector(".tab-button.active");
+        if (currentActive && currentActive.id === tabId) {
+            const tabNameFast = extractTabName(tabId);
+            getStateMgr().setState("ui.activeTab", tabNameFast, { source: "updateActiveTab" });
+            return true;
+        }
+    } catch {}
+
+    // Remove 'active' from currently active buttons. If multiple exist, clean all.
+    const activeNow = getDoc().querySelectorAll(".tab-button.active");
+    if (activeNow && activeNow.length > 0) {
+        if (activeNow.length === 1) {
+            const only = /** @type {any} */ (activeNow[0]);
+            only?.classList?.remove?.("active");
+        } else {
+            for (const el of activeNow) (el)?.classList?.remove?.("active");
+        }
+    }
+
+    // Prefer cached lookup, fall back to DOM if not found
+    const target = getDoc().getElementById(tabId);
+    const anyTarget = /** @type {any} */ (target);
+    if (anyTarget && anyTarget.classList) {
+        anyTarget.classList.add("active");
+        const tabName = extractTabName(tabId);
+        // Let errors from setState propagate to satisfy tests expecting throws
+        getStateMgr().setState("ui.activeTab", tabName, { source: "updateActiveTab" });
+        return true;
+    }
+    console.error(`Element with ID "${tabId}" not found in the DOM or missing classList.`);
+    return false;
+}
+
+/**
  * Extract tab name from button ID
  * @param {string} tabId - The button ID
  * @returns {string|null} Tab name or null if not found
@@ -127,54 +253,6 @@ function extractTabName(tabId) {
     return tabId;
 }
 
-// No persistent cache to avoid cross-test contamination. Use minimal DOM queries per call.
-
-/**
- * Update active tab efficiently
- * @param {string} tabId
- * @returns {boolean}
- */
-export function updateActiveTab(tabId) {
-    if (!tabId || typeof tabId !== "string") {
-        console.warn("[updateActiveTab] Invalid tabId:", tabId);
-        return false;
-    }
-
-    // Fast path: if the requested tab is already the only active one, avoid extra DOM work
-    try {
-        const currentActive = getDoc().querySelector(".tab-button.active");
-        if (currentActive && currentActive.id === tabId) {
-            const tabNameFast = extractTabName(tabId);
-            getStateMgr().setState("ui.activeTab", tabNameFast, { source: "updateActiveTab" });
-            return true;
-        }
-    } catch {}
-
-    // Remove 'active' from currently active buttons. If multiple exist, clean all.
-    const activeNow = getDoc().querySelectorAll(".tab-button.active");
-    if (activeNow && activeNow.length) {
-        if (activeNow.length === 1) {
-            const only = /** @type {any} */ (activeNow[0]);
-            only?.classList?.remove?.("active");
-        } else {
-            activeNow.forEach((el) => /** @type {any} */ (el)?.classList?.remove?.("active"));
-        }
-    }
-
-    // Prefer cached lookup, fall back to DOM if not found
-    const target = getDoc().getElementById(tabId);
-    const anyTarget = /** @type {any} */ (target);
-    if (anyTarget && anyTarget.classList) {
-        anyTarget.classList.add("active");
-        const tabName = extractTabName(tabId);
-        // Let errors from setState propagate to satisfy tests expecting throws
-        getStateMgr().setState("ui.activeTab", tabName, { source: "updateActiveTab" });
-        return true;
-    }
-    console.error(`Element with ID "${tabId}" not found in the DOM or missing classList.`);
-    return false;
-}
-
 /**
  * Update tab button states based on current state
  * @param {string} activeTab - Currently active tab name
@@ -188,11 +266,11 @@ function updateTabButtonsFromState(activeTab) {
         return;
     }
 
-    tabButtons.forEach((btn) => {
+    for (const btn of tabButtons) {
         // CRITICAL BUG FIX: Defensive check for classList and setAttribute
         if (!btn || !btn.classList) {
             console.warn("updateTabButtonsFromState: Invalid button element found:", btn);
-            return;
+            continue;
         }
 
         const tabName = extractTabName(btn.id),
@@ -204,83 +282,5 @@ function updateTabButtonsFromState(activeTab) {
         if (btn.setAttribute) {
             btn.setAttribute("aria-selected", isActive.toString());
         }
-    });
-}
-
-/**
- * Initialize active tab state management by wiring state subscription
- */
-export function initializeActiveTabState() {
-    try {
-        /** @type {(activeTab: string) => void} */
-        const onActiveTabChange = (activeTab) => {
-            try {
-                updateTabButtonsFromState(activeTab);
-            } catch (e) {
-                /* ignore */
-            }
-        };
-        getStateMgr().subscribe("ui.activeTab", onActiveTabChange);
-
-        // Set up click listeners for tab buttons
-        const tabButtons = getDoc().querySelectorAll(".tab-button");
-        if (!tabButtons || tabButtons.length === 0) {
-            console.warn("initializeActiveTabState: No tab buttons found in DOM. Click listeners not set up.");
-        } else {
-            tabButtons.forEach((btn) => {
-                const button = /** @type {any} */ (btn);
-                if (!button || typeof button.addEventListener !== "function") {
-                    console.warn("initializeActiveTabState: Invalid button element found:", button);
-                    return;
-                }
-                /** @type {(evt: Event) => void} */
-                const onClick = (evt) => {
-                    // Ignore clicks on disabled buttons (including aria-disabled="true")
-                    const anyBtn = /** @type {any} */ (button);
-                    const hasDisabledClass = anyBtn?.classList?.contains?.("tab-disabled");
-                    const isDisabled =
-                        anyBtn.disabled === true ||
-                        button.getAttribute?.("aria-disabled") === "true" ||
-                        hasDisabledClass === true;
-                    if (isDisabled) {
-                        // Explicit debug log for coverage and diagnostics
-                        try {
-                            console.log(`[ActiveTab] Ignoring click on disabled button: ${button.id}`);
-                        } catch {}
-                        try {
-                            evt?.preventDefault?.();
-                            evt?.stopPropagation?.();
-                        } catch {}
-                        return;
-                    }
-                    const btnId = typeof button.id === "string" ? button.id.trim() : "";
-                    if (!btnId) return; // Do not update state if element has no valid id
-                    const tabName = extractTabName(btnId);
-                    if (!tabName) return;
-                    // Handle potential state errors gracefully within event handler
-                    try {
-                        getStateMgr().setState("ui.activeTab", tabName, { source: "tabButtonClick" });
-                    } catch (err) {
-                        try {
-                            console.warn("[ActiveTab] Failed to set state from button click:", err);
-                        } catch {}
-                        // Prevent unhandled exception propagation in test environment
-                    }
-                };
-                button.addEventListener("click", onClick);
-            });
-        }
-
-        console.log("[ActiveTab] State management initialized");
-    } catch (e) {
-        // non-fatal in tests
     }
-}
-
-/**
- * Get the currently active tab
- * @returns {string} Currently active tab name
- */
-export function getActiveTab() {
-    return getStateMgr().getState("ui.activeTab") || "summary";
 }

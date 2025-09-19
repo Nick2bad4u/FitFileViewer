@@ -3,8 +3,8 @@
  * @readonly
  */
 const DISTANCE_CONVERSIONS = {
+    METERS_TO_FEET: 3.280_84,
     METERS_TO_KILOMETERS: 1000,
-    METERS_TO_FEET: 3.28084,
     METERS_TO_MILES: 1609.344,
 };
 
@@ -13,9 +13,9 @@ const DISTANCE_CONVERSIONS = {
  * @readonly
  */
 export const DISTANCE_UNITS = {
-    METERS: "meters",
-    KILOMETERS: "kilometers",
     FEET: "feet",
+    KILOMETERS: "kilometers",
+    METERS: "meters",
     MILES: "miles",
 };
 
@@ -42,17 +42,22 @@ export function convertDistanceUnits(meters, targetUnit) {
 
     try {
         switch (targetUnit) {
-            case DISTANCE_UNITS.KILOMETERS:
-                return meters / DISTANCE_CONVERSIONS.METERS_TO_KILOMETERS;
-            case DISTANCE_UNITS.FEET:
+            case DISTANCE_UNITS.FEET: {
                 return meters * DISTANCE_CONVERSIONS.METERS_TO_FEET;
-            case DISTANCE_UNITS.MILES:
-                return meters / DISTANCE_CONVERSIONS.METERS_TO_MILES;
-            case DISTANCE_UNITS.METERS:
+            }
+            case DISTANCE_UNITS.KILOMETERS: {
+                return meters / DISTANCE_CONVERSIONS.METERS_TO_KILOMETERS;
+            }
+            case DISTANCE_UNITS.METERS: {
                 return meters;
-            default:
+            }
+            case DISTANCE_UNITS.MILES: {
+                return meters / DISTANCE_CONVERSIONS.METERS_TO_MILES;
+            }
+            default: {
                 console.warn(`[convertDistanceUnits] Unknown unit '${targetUnit}', defaulting to meters`);
                 return meters;
+            }
         }
     } catch (error) {
         console.error("[convertDistanceUnits] Conversion failed:", error);

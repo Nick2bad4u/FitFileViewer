@@ -1,5 +1,5 @@
-import { showNotification } from "../notifications/showNotification.js";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { showNotification } from "../notifications/showNotification.js";
 /**
  * @typedef {ReturnType<typeof getThemeColors>} ThemeColors
  */
@@ -24,9 +24,9 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 export function createMarkerCountSelector(onChange) {
     try {
         /** @type {ThemeColors} */
-        const themeColors = getThemeColors(), // Theming values (index signature access is fine at runtime)
-            /** @type {HTMLDivElement} */
-            container = document.createElement("div");
+        const /** @type {HTMLDivElement} */
+            container = document.createElement("div"),
+            themeColors = getThemeColors(); // Theming values (index signature access is fine at runtime)
         container.className = "map-action-btn marker-count-container";
 
         /** @type {HTMLLabelElement} */
@@ -49,20 +49,20 @@ export function createMarkerCountSelector(onChange) {
         select.className = "marker-count-select";
 
         const options = [10, 25, 50, 100, 200, 500, 1000, "All"];
-        options.forEach((val) => {
+        for (const val of options) {
             /** @type {HTMLOptionElement} */
             const opt = document.createElement("option");
             opt.value = val === "All" ? "all" : String(val);
             opt.textContent = String(val);
-            select.appendChild(opt);
-        });
+            select.append(opt);
+        }
 
         // Set initial value from global or default
         const validOptions = [10, 25, 50, 100, 200, 500, 1000, "all"];
         /** @type {string} */
         let initial;
         /** @type {any} */
-        const g = window, // Legacy global usage wrapper
+        const g = globalThis, // Legacy global usage wrapper
             current = g.mapMarkerCount;
         if (typeof current !== "number") {
             g.mapMarkerCount = 50;
@@ -81,11 +81,7 @@ export function createMarkerCountSelector(onChange) {
         select.addEventListener("change", () => {
             try {
                 const val = select.value;
-                if (val === "all") {
-                    g.mapMarkerCount = 0;
-                } else {
-                    g.mapMarkerCount = parseInt(val, 10);
-                }
+                g.mapMarkerCount = val === "all" ? 0 : Number.parseInt(val, 10);
 
                 if (typeof onChange === "function") {
                     onChange(g.mapMarkerCount);
@@ -108,8 +104,8 @@ export function createMarkerCountSelector(onChange) {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    const options = Array.from(select.options),
-                        idx = select.selectedIndex;
+                    const idx = select.selectedIndex,
+                        options = [...select.options];
 
                     if (e.deltaY > 0 && idx < options.length - 1) {
                         select.selectedIndex = idx + 1;
@@ -131,8 +127,8 @@ export function createMarkerCountSelector(onChange) {
 
         // Apply CSS classes for proper theming - no need for inline styles
         // The CSS already handles theming through .map-action-btn and theme-specific selectors
-        container.appendChild(label);
-        container.appendChild(select);
+        container.append(label);
+        container.append(select);
 
         return container;
     } catch (error) {

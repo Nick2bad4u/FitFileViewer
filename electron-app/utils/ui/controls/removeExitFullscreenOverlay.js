@@ -83,7 +83,7 @@ function removeOverlayElement(overlay) {
         overlay.remove();
     } else if (overlay.parentNode) {
         // Fallback to legacy removeChild for older browsers
-        overlay.parentNode.removeChild(overlay);
+        overlay.remove();
     } else {
         throw new Error("Unable to remove overlay: no removal method available");
     }

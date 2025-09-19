@@ -3,9 +3,9 @@
  * Specialized state management for FIT file operations and data
  */
 
-import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
-import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../app/initialization/rendererUtils.js";
+import { AppActions } from "../../app/lifecycle/appActions.js";
+import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 
 /**
  * Record message from FIT file (highly simplified subset)
@@ -148,95 +148,180 @@ export class FitFileStateManager {
     }
 
     /**
-     * Initialize FIT file state management
+     * Assess data quality
+     * @param {RawFitData} data
+     * @returns {DataQuality}
      */
-    initialize() {
-        // Set up file loading state listeners
-        this.setupFileLoadingListeners();
-
-        // Set up data processing listeners
-        this.setupDataProcessingListeners();
-
-        // Set up validation listeners
-        this.setupValidationListeners();
-
-        console.log("[FitFileState] Initialized");
-    }
-
-    /**
-     * Set up listeners for file loading events
-     */
-    setupFileLoadingListeners() {
-        // Track file loading progress
-        subscribe("fitFile.loadingProgress", (/** @type {number} */ progress) => {
-            this.updateLoadingProgress(progress);
-        });
-
-        // Handle file loading completion
-        subscribe("fitFile.loaded", (/** @type {RawFitData} */ fileData) => {
-            this.handleFileLoaded(fileData);
-        });
-
-        // Handle file loading errors
-        subscribe("fitFile.loadingError", (/** @type {Error} */ error) => {
-            this.handleFileLoadingError(error); // Error originates from fit parser integration
-        });
-    }
-
-    /**
-     * Set up listeners for data processing events
-     */
-    setupDataProcessingListeners() {
-        // Process data when global data changes
-        subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
-            if (data) {
-                this.processFileData(data);
-            }
-        });
-
-        // Update metrics when data changes
-        subscribe("fitFile.processedData", (/** @type {ProcessedData|null} */ processedData) => {
-            this.updateFileMetrics(processedData);
-        });
-    }
-
-    /**
-     * Set up data validation listeners
-     */
-    setupValidationListeners() {
-        // Validate data when it's loaded
-        subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
-            if (data) {
-                this.validateFileData(data);
-            }
-        });
-    }
-
-    /**
-     * Start file loading process
-     * @param {string} filePath - Path to the FIT file
-     */
-    startFileLoading(/** @type {string} */ filePath) {
-        setState("fitFile.isLoading", true, { source: "FitFileStateManager.startFileLoading" });
-        setState("fitFile.currentFile", filePath, { source: "FitFileStateManager.startFileLoading" });
-        setState("fitFile.loadingProgress", 0, { source: "FitFileStateManager.startFileLoading" });
-        setState("fitFile.loadingError", null, { source: "FitFileStateManager.startFileLoading" });
-
-        console.log(`[FitFileState] Started loading: ${filePath}`);
-    }
-
-    /**
-     * Update file loading progress
-     * @param {number} progress - Progress percentage (0-100)
-     */
-    updateLoadingProgress(/** @type {number} */ progress) {
-        const progressElement = document.getElementById("file-loading-progress");
-        if (progressElement) {
-            progressElement.style.width = `${progress}%`;
-            progressElement.setAttribute("aria-valuenow", progress.toString());
+    assessDataQuality(data) {
+        /** @type {DataQuality} */
+        const quality = {
+            completeness: 0,
+            hasAltitude: false,
+            hasCadence: false,
+            hasGPS: false,
+            hasHeartRate: false,
+            hasPower: false,
+            issues: [],
+        };
+        if (!data || !data.recordMesgs || !Array.isArray(data.recordMesgs)) {
+            quality.issues.push("No record data found");
+            return quality;
         }
 
-        console.log(`[FitFileState] Loading progress: ${progress}%`);
+        const records = data.recordMesgs,
+            totalRecords = records.length;
+
+        if (totalRecords === 0) {
+            quality.issues.push("No records in file");
+            return quality;
+        }
+        let altitudeCount = 0,
+            cadenceCount = 0,
+            gpsCount = 0,
+            hrCount = 0,
+            powerCount = 0;
+
+        for (const record of records) {
+            if (record.position_lat && record.position_long) {
+                gpsCount++;
+                quality.hasGPS = true;
+            }
+            if (record.heart_rate) {
+                hrCount++;
+                quality.hasHeartRate = true;
+            }
+            if (record.power) {
+                powerCount++;
+                quality.hasPower = true;
+            }
+            if (record.cadence) {
+                cadenceCount++;
+                quality.hasCadence = true;
+            }
+            if (record.altitude) {
+                altitudeCount++;
+                quality.hasAltitude = true;
+            }
+        }
+
+        // Calculate completeness as percentage of records with basic data
+        const basicDataCount = Math.max(gpsCount, hrCount, 1);
+        quality.completeness = Math.round((basicDataCount / totalRecords) * 100);
+
+        // Calculate coverage percentages for detailed metrics
+        quality.coverage = {
+            altitude: Math.round((altitudeCount / totalRecords) * 100),
+            cadence: Math.round((cadenceCount / totalRecords) * 100),
+            gps: Math.round((gpsCount / totalRecords) * 100),
+            heartRate: Math.round((hrCount / totalRecords) * 100),
+            power: Math.round((powerCount / totalRecords) * 100),
+        };
+
+        // Add quality warnings
+        if (quality.completeness < 50) {
+            quality.issues.push("Low data completeness");
+        }
+        if (!quality.hasGPS) {
+            quality.issues.push("No GPS data");
+        }
+        if (totalRecords < 10) {
+            quality.issues.push("Very short activity");
+        }
+
+        return quality;
+    }
+
+    /**
+     * Clear all file-related state
+     */
+    clearFileState() {
+        setState("fitFile.isLoading", false, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.currentFile", null, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.rawData", null, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.processedData", null, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.validation", null, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.metrics", null, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.loadingError", null, { source: "FitFileStateManager.clearFileState" });
+        setState("fitFile.processingError", null, { source: "FitFileStateManager.clearFileState" });
+
+        console.log("[FitFileState] File state cleared");
+    }
+
+    /**
+     * Extract activity information
+     * @param {RawFitData} data
+     * @returns {ActivityInfo|null}
+     */
+    extractActivityInfo(data) {
+        if (!data || !data.activities || !Array.isArray(data.activities) || data.activities.length === 0) {
+            return null;
+        }
+
+        const activity = data.activities[0];
+        if (!activity) {
+            return null;
+        }
+        return {
+            localTimestamp: activity.local_timestamp,
+            numSessions: activity.num_sessions,
+            timestamp: activity.timestamp,
+            totalTimerTime: activity.total_timer_time,
+        };
+    }
+
+    /**
+     * Extract device information
+     * @param {RawFitData} data
+     * @returns {DeviceInfo|null}
+     */
+    extractDeviceInfo(data) {
+        if (!data || !data.device_infos || !Array.isArray(data.device_infos) || data.device_infos.length === 0) {
+            return null;
+        }
+
+        const device = data.device_infos[0];
+        if (!device) {
+            return null;
+        }
+        return {
+            hardwareVersion: device.hardware_version,
+            manufacturer: device.manufacturer,
+            product: device.product,
+            serialNumber: device.serial_number,
+            softwareVersion: device.software_version,
+        };
+    }
+
+    extractSessionInfo(data) {
+        if (!data || !data.sessionMesgs || !Array.isArray(data.sessionMesgs) || data.sessionMesgs.length === 0) {
+            return null;
+        }
+
+        const session = data.sessionMesgs[0];
+        if (!session) {
+            return null;
+        }
+        return {
+            sport: session.sport,
+            startTime: session.start_time,
+            subSport: session.sub_sport,
+            totalCalories: session.total_calories,
+            totalDistance: session.total_distance,
+            totalElapsedTime: session.total_elapsed_time,
+        };
+    }
+
+    /**
+    /**
+     * Get record count from file data
+     * @param {RawFitData} data - File data
+     * @returns {number}
+     */
+    getRecordCount(/** @type {RawFitData} */ data) {
+        if (!data || !data.recordMesgs) {
+            return 0;
+        }
+        return Array.isArray(data.recordMesgs) ? data.recordMesgs.length : 0;
     }
 
     /**
@@ -270,6 +355,20 @@ export class FitFileStateManager {
     }
 
     /**
+     * Initialize FIT file state management
+     */
+    initialize() {
+        // Set up file loading state listeners
+        this.setupFileLoadingListeners();
+
+        // Set up data processing listeners
+        this.setupDataProcessingListeners();
+
+        // Set up validation listeners
+        this.setupValidationListeners();
+
+        console.log("[FitFileState] Initialized");
+    } /**
      * Process file data and extract useful information
      * @param {Object} data - Raw file data
      */
@@ -277,11 +376,11 @@ export class FitFileStateManager {
         try {
             /** @type {ProcessedData} */
             const processedData = {
-                recordCount: this.getRecordCount(data),
-                sessionInfo: this.extractSessionInfo(data),
-                deviceInfo: this.extractDeviceInfo(data),
                 activityInfo: this.extractActivityInfo(data),
                 dataQuality: this.assessDataQuality(data),
+                deviceInfo: this.extractDeviceInfo(data),
+                recordCount: this.getRecordCount(data),
+                sessionInfo: this.extractSessionInfo(data),
             };
 
             setState("fitFile.processedData", processedData, { source: "FitFileStateManager.processFileData" });
@@ -293,169 +392,107 @@ export class FitFileStateManager {
                 source: "FitFileStateManager.processFileData",
             });
         }
-    } /**
-    /**
-     * Get record count from file data
-     * @param {RawFitData} data - File data
-     * @returns {number}
-     */
-    getRecordCount(/** @type {RawFitData} */ data) {
-        if (!data || !data.recordMesgs) {
-            return 0;
-        }
-        return Array.isArray(data.recordMesgs) ? data.recordMesgs.length : 0;
     }
 
     /**
      * Extract session information
      * @param {RawFitData} data
      * @returns {SessionInfo|null}
-     */ extractSessionInfo(data) {
-        if (!data || !data.sessionMesgs || !Array.isArray(data.sessionMesgs) || data.sessionMesgs.length === 0) {
-            return null;
-        }
-
-        const session = data.sessionMesgs[0];
-        if (!session) {
-            return null;
-        }
-        return {
-            startTime: session.start_time,
-            totalElapsedTime: session.total_elapsed_time,
-            totalDistance: session.total_distance,
-            totalCalories: session.total_calories,
-            sport: session.sport,
-            subSport: session.sub_sport,
-        };
-    }
-
-    /**
-     * Extract device information
-     * @param {RawFitData} data
-     * @returns {DeviceInfo|null}
+     */ /**
+     * Set up listeners for data processing events
      */
-    extractDeviceInfo(data) {
-        if (!data || !data.device_infos || !Array.isArray(data.device_infos) || data.device_infos.length === 0) {
-            return null;
-        }
-
-        const device = data.device_infos[0];
-        if (!device) {
-            return null;
-        }
-        return {
-            manufacturer: device.manufacturer,
-            product: device.product,
-            serialNumber: device.serial_number,
-            softwareVersion: device.software_version,
-            hardwareVersion: device.hardware_version,
-        };
-    }
-
-    /**
-     * Extract activity information
-     * @param {RawFitData} data
-     * @returns {ActivityInfo|null}
-     */
-    extractActivityInfo(data) {
-        if (!data || !data.activities || !Array.isArray(data.activities) || data.activities.length === 0) {
-            return null;
-        }
-
-        const activity = data.activities[0];
-        if (!activity) {
-            return null;
-        }
-        return {
-            timestamp: activity.timestamp,
-            totalTimerTime: activity.total_timer_time,
-            localTimestamp: activity.local_timestamp,
-            numSessions: activity.num_sessions,
-        };
-    }
-
-    /**
-     * Assess data quality
-     * @param {RawFitData} data
-     * @returns {DataQuality}
-     */
-    assessDataQuality(data) {
-        /** @type {DataQuality} */
-        const quality = {
-            hasGPS: false,
-            hasHeartRate: false,
-            hasPower: false,
-            hasCadence: false,
-            hasAltitude: false,
-            completeness: 0,
-            issues: [],
-        };
-        if (!data || !data.recordMesgs || !Array.isArray(data.recordMesgs)) {
-            quality.issues.push("No record data found");
-            return quality;
-        }
-
-        const records = data.recordMesgs,
-            totalRecords = records.length;
-
-        if (totalRecords === 0) {
-            quality.issues.push("No records in file");
-            return quality;
-        }
-        let altitudeCount = 0,
-            cadenceCount = 0,
-            gpsCount = 0,
-            hrCount = 0,
-            powerCount = 0;
-
-        records.forEach((record) => {
-            if (record.position_lat && record.position_long) {
-                gpsCount++;
-                quality.hasGPS = true;
-            }
-            if (record.heart_rate) {
-                hrCount++;
-                quality.hasHeartRate = true;
-            }
-            if (record.power) {
-                powerCount++;
-                quality.hasPower = true;
-            }
-            if (record.cadence) {
-                cadenceCount++;
-                quality.hasCadence = true;
-            }
-            if (record.altitude) {
-                altitudeCount++;
-                quality.hasAltitude = true;
+    setupDataProcessingListeners() {
+        // Process data when global data changes
+        subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
+            if (data) {
+                this.processFileData(data);
             }
         });
 
-        // Calculate completeness as percentage of records with basic data
-        const basicDataCount = Math.max(gpsCount, hrCount, 1);
-        quality.completeness = Math.round((basicDataCount / totalRecords) * 100);
+        // Update metrics when data changes
+        subscribe("fitFile.processedData", (/** @type {ProcessedData|null} */ processedData) => {
+            this.updateFileMetrics(processedData);
+        });
+    }
 
-        // Calculate coverage percentages for detailed metrics
-        quality.coverage = {
-            gps: Math.round((gpsCount / totalRecords) * 100),
-            heartRate: Math.round((hrCount / totalRecords) * 100),
-            power: Math.round((powerCount / totalRecords) * 100),
-            cadence: Math.round((cadenceCount / totalRecords) * 100),
-            altitude: Math.round((altitudeCount / totalRecords) * 100),
-        };
+    /**
+     * Set up listeners for file loading events
+     */
+    setupFileLoadingListeners() {
+        // Track file loading progress
+        subscribe("fitFile.loadingProgress", (/** @type {number} */ progress) => {
+            this.updateLoadingProgress(progress);
+        });
 
-        // Add quality warnings
-        if (quality.completeness < 50) {
-            quality.issues.push("Low data completeness");
+        // Handle file loading completion
+        subscribe("fitFile.loaded", (/** @type {RawFitData} */ fileData) => {
+            this.handleFileLoaded(fileData);
+        });
+
+        // Handle file loading errors
+        subscribe("fitFile.loadingError", (/** @type {Error} */ error) => {
+            this.handleFileLoadingError(error); // Error originates from fit parser integration
+        });
+    }
+
+    /**
+     * Set up data validation listeners
+     */
+    setupValidationListeners() {
+        // Validate data when it's loaded
+        subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
+            if (data) {
+                this.validateFileData(data);
+            }
+        });
+    }
+
+    /**
+     * Start file loading process
+     * @param {string} filePath - Path to the FIT file
+     */
+    startFileLoading(/** @type {string} */ filePath) {
+        setState("fitFile.isLoading", true, { source: "FitFileStateManager.startFileLoading" });
+        setState("fitFile.currentFile", filePath, { source: "FitFileStateManager.startFileLoading" });
+        setState("fitFile.loadingProgress", 0, { source: "FitFileStateManager.startFileLoading" });
+        setState("fitFile.loadingError", null, { source: "FitFileStateManager.startFileLoading" });
+
+        console.log(`[FitFileState] Started loading: ${filePath}`);
+    }
+
+    /**
+     * Update file metrics display
+     * @param {Object} processedData - Processed file data
+     */
+    updateFileMetrics(/** @type {ProcessedData|null} */ processedData) {
+        if (!processedData) {
+            return;
         }
-        if (!quality.hasGPS) {
-            quality.issues.push("No GPS data");
-        }
-        if (totalRecords < 10) {
-            quality.issues.push("Very short activity");
+        updateState(
+            "fitFile.metrics",
+            {
+                dataQualityScore: processedData.dataQuality?.completeness || 0,
+                hasDevice: Boolean(processedData.deviceInfo),
+                hasSession: Boolean(processedData.sessionInfo),
+                lastUpdated: Date.now(),
+                recordCount: processedData.recordCount,
+            },
+            { source: "FitFileStateManager.updateFileMetrics" }
+        );
+    }
+
+    /**
+     * Update file loading progress
+     * @param {number} progress - Progress percentage (0-100)
+     */
+    updateLoadingProgress(/** @type {number} */ progress) {
+        const progressElement = document.querySelector("#file-loading-progress");
+        if (progressElement) {
+            progressElement.style.width = `${progress}%`;
+            progressElement.setAttribute("aria-valuenow", progress.toString());
         }
 
-        return quality;
+        console.log(`[FitFileState] Loading progress: ${progress}%`);
     }
 
     /**
@@ -465,14 +502,11 @@ export class FitFileStateManager {
     validateFileData(data) {
         /** @type {ValidationResult} */
         const validation = {
-            isValid: true,
             errors: [],
+            isValid: true,
             warnings: [],
         }; // Basic structure validation
-        if (!data) {
-            validation.isValid = false;
-            validation.errors.push("No data provided");
-        } else {
+        if (data) {
             // Check for required fields (using correct FIT file structure)
             if (!data.recordMesgs) {
                 validation.errors.push("No records found in file");
@@ -488,12 +522,13 @@ export class FitFileStateManager {
             }
 
             // Check data consistency
-            if (data.recordMesgs && Array.isArray(data.recordMesgs)) {
-                if (data.recordMesgs.length === 0) {
+            if (data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length === 0) {
                     validation.errors.push("File contains no activity records");
                     validation.isValid = false;
                 }
-            }
+        } else {
+            validation.isValid = false;
+            validation.errors.push("No data provided");
         }
 
         setState("fitFile.validation", validation, { source: "FitFileStateManager.validateFileData" });
@@ -507,43 +542,6 @@ export class FitFileStateManager {
 
         console.log("[FitFileState] File validation completed:", validation);
     }
-
-    /**
-     * Update file metrics display
-     * @param {Object} processedData - Processed file data
-     */
-    updateFileMetrics(/** @type {ProcessedData|null} */ processedData) {
-        if (!processedData) {
-            return;
-        }
-        updateState(
-            "fitFile.metrics",
-            {
-                lastUpdated: Date.now(),
-                recordCount: processedData.recordCount,
-                hasSession: Boolean(processedData.sessionInfo),
-                hasDevice: Boolean(processedData.deviceInfo),
-                dataQualityScore: processedData.dataQuality?.completeness || 0,
-            },
-            { source: "FitFileStateManager.updateFileMetrics" }
-        );
-    }
-
-    /**
-     * Clear all file-related state
-     */
-    clearFileState() {
-        setState("fitFile.isLoading", false, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.currentFile", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.rawData", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.processedData", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.validation", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.metrics", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.loadingError", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.processingError", null, { source: "FitFileStateManager.clearFileState" });
-
-        console.log("[FitFileState] File state cleared");
-    }
 }
 
 /**
@@ -551,19 +549,29 @@ export class FitFileStateManager {
  */
 export const FitFileSelectors = {
     /**
-     * Check if a file is currently loading
-     * @returns {boolean} True if loading
-     */
-    isLoading() {
-        return getState("fitFile.isLoading") || false;
-    },
-
-    /**
      * Get current file path
      * @returns {string|null} Current file path
      */
     getCurrentFile() {
         return getState("fitFile.currentFile");
+    },
+
+    /**
+     * Get data quality assessment
+     * @returns {Object|null} Data quality object
+     */
+    getDataQuality() {
+        /** @type {ProcessedData|null} */
+        const processedData = /** @type {any} */ (this.getProcessedData());
+        return processedData ? processedData.dataQuality : null;
+    },
+
+    /**
+     * Get loading error if any
+     * @returns {string|null} Error message
+     */
+    getLoadingError() {
+        return getState("fitFile.loadingError");
     },
 
     /**
@@ -575,21 +583,11 @@ export const FitFileSelectors = {
     },
 
     /**
-     * Get file validation status
-     * @returns {Object|null} Validation object
+     * Get file metrics
+     * @returns {Object|null} File metrics
      */
-    getValidation() {
-        return getState("fitFile.validation");
-    },
-
-    /**
-     * Check if file data is valid
-     * @returns {boolean} True if valid
-     */
-    isFileValid() {
-        /** @type {ValidationResult|null} */
-        const validation = /** @type {any} */ (this.getValidation());
-        return validation ? Boolean(validation.isValid) : false;
+    getMetrics() {
+        return getState("fitFile.metrics");
     },
 
     /**
@@ -601,21 +599,19 @@ export const FitFileSelectors = {
     },
 
     /**
-     * Get file metrics
-     * @returns {Object|null} File metrics
+     * Get processing error if any
+     * @returns {string|null} Error message
      */
-    getMetrics() {
-        return getState("fitFile.metrics");
+    getProcessingError() {
+        return getState("fitFile.processingError");
     },
 
     /**
-     * Get data quality assessment
-     * @returns {Object|null} Data quality object
+     * Get file validation status
+     * @returns {Object|null} Validation object
      */
-    getDataQuality() {
-        /** @type {ProcessedData|null} */
-        const processedData = /** @type {any} */ (this.getProcessedData());
-        return processedData ? processedData.dataQuality : null;
+    getValidation() {
+        return getState("fitFile.validation");
     },
 
     /**
@@ -649,19 +645,21 @@ export const FitFileSelectors = {
     },
 
     /**
-     * Get loading error if any
-     * @returns {string|null} Error message
+     * Check if file data is valid
+     * @returns {boolean} True if valid
      */
-    getLoadingError() {
-        return getState("fitFile.loadingError");
+    isFileValid() {
+        /** @type {ValidationResult|null} */
+        const validation = /** @type {any} */ (this.getValidation());
+        return validation ? Boolean(validation.isValid) : false;
     },
 
     /**
-     * Get processing error if any
-     * @returns {string|null} Error message
+     * Check if a file is currently loading
+     * @returns {boolean} True if loading
      */
-    getProcessingError() {
-        return getState("fitFile.processingError");
+    isLoading() {
+        return getState("fitFile.isLoading") || false;
     },
 };
 

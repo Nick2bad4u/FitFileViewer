@@ -43,6 +43,19 @@
  * @property {number} lng - Longitude
  */
 
+import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
+import { getLapNumForIdx } from "../../data/processing/getLapNumForIdx.js";
+import { createExportGPXButton } from "../../files/export/createExportGPXButton.js";
+import { createPrintButton } from "../../files/export/createPrintButton.js";
+import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
+import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
+import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
+import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
+import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
+import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
+import { createMapThemeToggle } from "../controls/mapActionButtons.js";
+import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
+import { addLapSelector } from "../controls/mapLapSelector.js";
 /**
  * Renders a Leaflet map inside the element with id 'content-map'.
  * If `window.globalData.recordMesgs` exists and contains valid latitude and longitude data,
@@ -56,31 +69,18 @@
  * - Leaflet.js library must be loaded and available as global `L`.
  */
 import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
-import { addLapSelector } from "../controls/mapLapSelector.js";
-import { getLapColor } from "./mapColors.js";
-import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
-import { getLapNumForIdx } from "../../data/processing/getLapNumForIdx.js";
-import { mapDrawLaps } from "../layers/mapDrawLaps.js";
-import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
-import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { baseLayers } from "../layers/mapBaseLayers.js";
-import { createMapThemeToggle } from "../controls/mapActionButtons.js";
-import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
-import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
-import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
-import { createExportGPXButton } from "../../files/export/createExportGPXButton.js";
-import { createPrintButton } from "../../files/export/createPrintButton.js";
-import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
-import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
-import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
+import { mapDrawLaps } from "../layers/mapDrawLaps.js";
 import { drawOverlayForFitFile } from "../layers/mapDrawLaps.js";
+import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
+import { getLapColor } from "./mapColors.js";
 
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
-    const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (window));
+    const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (globalThis));
     windowExt._overlayPolylines = {};
 
-    const mapContainer = document.getElementById("content-map");
+    const mapContainer = document.querySelector("#content-map");
     if (!mapContainer) {
         return;
     }
@@ -90,32 +90,32 @@ export function renderMap() {
         windowExt._leafletMapInstance.remove();
         windowExt._leafletMapInstance = null;
     }
-    const oldMapDiv = document.getElementById("leaflet-map");
+    const oldMapDiv = document.querySelector("#leaflet-map");
     if (oldMapDiv) {
         oldMapDiv.remove();
     }
     while (mapContainer.firstChild) {
-        mapContainer.removeChild(mapContainer.firstChild);
+        mapContainer.firstChild.remove();
     }
 
     const leafletMapDiv = document.createElement("div");
     leafletMapDiv.id = "leaflet-map";
-    mapContainer.appendChild(leafletMapDiv);
+    mapContainer.append(leafletMapDiv);
 
     const mapControlsDiv = document.createElement("div");
     mapControlsDiv.id = "map-controls";
-    mapContainer.appendChild(mapControlsDiv);
+    mapContainer.append(mapControlsDiv);
 
     const LeafletLib = /** @type {any} */ (windowExt).L,
         map = LeafletLib.map("leaflet-map", {
             center: [0, 0],
-            zoom: 2,
-            layers: [baseLayers.OpenStreetMap],
             fullscreenControl: true,
+            layers: [baseLayers.OpenStreetMap],
+            zoom: 2,
         });
     windowExt._leafletMapInstance = map;
 
-    LeafletLib.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
+    LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" }).addTo(map);
 
     // Add a custom floating label/button to indicate map type selection
     const mapTypeBtn = document.createElement("div");
@@ -126,10 +126,10 @@ export function renderMap() {
     mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
     mapTypeBtn.innerHTML = "🗺️ Change Map Type";
     mapTypeBtn.title = "Click to change the map type";
-    mapTypeBtn.onclick = handleMapTypeButtonClick;
-    const leafletMapDiv2 = document.getElementById("leaflet-map");
+    mapTypeBtn.addEventListener('click', handleMapTypeButtonClick);
+    const leafletMapDiv2 = document.querySelector("#leaflet-map");
     if (leafletMapDiv2) {
-        leafletMapDiv2.appendChild(mapTypeBtn);
+        leafletMapDiv2.append(mapTypeBtn);
     }
 
     /**
@@ -169,12 +169,12 @@ export function renderMap() {
     // --- Add a custom zoom slider bar (normalized 0-100%) ---
     const zoomSliderBar = document.createElement("div");
     zoomSliderBar.className = "custom-zoom-slider-bar";
-    const minZoom = map.getMinZoom(),
-        maxZoom = map.getMaxZoom(),
-        /** @param {number} zoom */
-        zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100,
+    const maxZoom = map.getMaxZoom(),
+        minZoom = map.getMinZoom(),
         /** @param {number} percent */
-        percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100;
+        percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100,
+        /** @param {number} zoom */
+        zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
     zoomSliderBar.innerHTML = `
 		<div class="custom-zoom-slider-label">Zoom</div>
 		<input type="range" min="0" max="100" value="${zoomToPercent(map.getZoom())}" step="1" id="zoom-slider-input">
@@ -255,14 +255,14 @@ export function renderMap() {
     };
     map.on("zoomend zoomlevelschange", updateZoomSlider);
     updateZoomSlider();
-    const leafletMapContainer = document.getElementById("leaflet-map");
+    const leafletMapContainer = document.querySelector("#leaflet-map");
     if (leafletMapContainer) {
-        leafletMapContainer.appendChild(zoomSliderBar);
+        leafletMapContainer.append(zoomSliderBar);
     }
 
     /** @type {any} */
     const L = LeafletLib;
-    L.control.scale({ position: "bottomleft", metric: true, imperial: true }).addTo(map);
+    L.control.scale({ imperial: true, metric: true, position: "bottomleft" }).addTo(map);
 
     // --- Fullscreen control (if plugin loaded) ---
     if (L.control.fullscreen) {
@@ -271,18 +271,18 @@ export function renderMap() {
 
     // --- Locate user button ---
     if (L.control.locate) {
-        L.control.locate({ position: "topleft", flyTo: true, keepCurrentZoomLevel: true }).addTo(map);
+        L.control.locate({ flyTo: true, keepCurrentZoomLevel: true, position: "topleft" }).addTo(map);
     }
 
     // --- Print/export button ---
-    const controlsDiv = document.getElementById("map-controls");
+    const controlsDiv = document.querySelector("#map-controls");
 
     if (controlsDiv) {
-        controlsDiv.appendChild(createPrintButton());
-        controlsDiv.appendChild(createMapThemeToggle());
-        controlsDiv.appendChild(createExportGPXButton());
-        controlsDiv.appendChild(createElevationProfileButton());
-        controlsDiv.appendChild(
+        controlsDiv.append(createPrintButton());
+        controlsDiv.append(createMapThemeToggle());
+        controlsDiv.append(createExportGPXButton());
+        controlsDiv.append(createElevationProfileButton());
+        controlsDiv.append(
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
                 if (windowExt.globalData && windowExt.globalData.recordMesgs) {
@@ -294,10 +294,10 @@ export function renderMap() {
             })
         );
         addSimpleMeasureTool(map, controlsDiv);
-        controlsDiv.appendChild(createAddFitFileToMapButton());
+        controlsDiv.append(createAddFitFileToMapButton());
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
             const shownFilesList = createShownFilesList();
-            controlsDiv.appendChild(shownFilesList);
+            controlsDiv.append(shownFilesList);
             if (windowExt.updateShownFilesList) {
                 windowExt.updateShownFilesList();
             }
@@ -308,8 +308,8 @@ export function renderMap() {
     addFullscreenControl(map);
 
     // --- Custom icons for start/end ---
-    const startIcon = createStartIcon(),
-        endIcon = createEndIcon();
+    const endIcon = createEndIcon(),
+        startIcon = createStartIcon();
 
     // --- Marker cluster group (if available) ---
     /** @type {any} */
@@ -325,20 +325,20 @@ export function renderMap() {
      */
     function mapDrawLapsWrapper(lapIdx) {
         mapDrawLaps(lapIdx, {
-            map,
             baseLayers,
+            endIcon,
+            formatTooltipData,
+            getLapColor,
+            getLapNumForIdx,
+            map,
+            mapContainer: /** @type {HTMLElement} */ (
+                mapContainer || document.querySelector("#leaflet-map") || document.body
+            ),
             markerClusterGroup,
             startIcon,
-            endIcon,
-            mapContainer: /** @type {HTMLElement} */ (
-                mapContainer || document.getElementById("leaflet-map") || document.body
-            ),
-            getLapColor,
-            formatTooltipData,
-            getLapNumForIdx,
         });
     }
-    const leafletMapElement = document.getElementById("leaflet-map");
+    const leafletMapElement = document.querySelector("#leaflet-map");
     if (leafletMapElement) {
         addLapSelector(map, leafletMapElement, mapDrawLapsWrapper);
     }
@@ -364,14 +364,14 @@ export function renderMap() {
         const drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
         const drawControl = new L.Control.Draw({
-            edt: false,
             draw: {
+                circle: true,
+                marker: true,
                 polygon: true,
                 polyline: true,
                 rectangle: true,
-                circle: true,
-                marker: true,
             },
+            edt: false,
         });
         map.addControl(drawControl);
         map.on(L.Draw.Event.CREATED, (/** @type {any} */ e) => {
@@ -384,49 +384,45 @@ export function renderMap() {
         console.log("[renderMap] Overlay logic: loadedFitFiles.length =", windowExt.loadedFitFiles.length);
         // Clear overlay polylines tracking before drawing
         windowExt._overlayPolylines = {};
-        windowExt.loadedFitFiles.forEach((/** @type {any} */ fitFile, /** @type {any} */ idx) => {
+        for (const [idx, fitFile] of windowExt.loadedFitFiles.entries()) {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
                     chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
                 ),
-                fileName = (fitFile.filePath || "").split(/[\\/]/).pop(),
+                fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
                 bounds = drawOverlayForFitFile({
-                    fitData: fitFile.data,
-                    map,
                     color,
-                    markerClusterGroup,
-                    startIcon,
                     endIcon,
+                    fileName,
+                    fitData: fitFile.data,
                     formatTooltipData: (/** @type {any} */ idx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
                         formatTooltipData(idx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
                     getLapNumForIdx,
-                    fileName,
+                    map,
+                    markerClusterGroup,
                     overlayIdx: idx,
+                    startIcon,
                 });
             console.log(`[renderMap] Overlay idx=${idx} bounds:`, bounds);
-        });
+        }
         // --- Bring overlay markers to front so they appear above all polylines ---
         setTimeout(() => {
             if (windowExt._overlayPolylines) {
-                Object.entries(windowExt._overlayPolylines).forEach(([idx, polyline]) => {
+                for (const [idx, polyline] of Object.entries(windowExt._overlayPolylines)) {
                     console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);
-                    if (polyline && polyline._map) {
-                        if (polyline._map && polyline._map._layers) {
-                            Object.values(polyline._map._layers).forEach((layer) => {
+                    if (polyline && polyline._map && polyline._map && polyline._map._layers) {
+                            for (const layer of Object.values(polyline._map._layers)) {
                                 if (
                                     layer instanceof L.CircleMarker &&
                                     layer.options &&
                                     polyline.options &&
                                     layer.options.color === polyline.options.color
-                                ) {
-                                    if (layer.bringToFront) {
+                                 && layer.bringToFront) {
                                         layer.bringToFront();
                                     }
-                                }
-                            });
+                            }
                         }
-                    }
-                });
+                }
             }
         }, 10);
         console.log("[renderMap] Overlay logic complete. No fitBounds/zoom called here.");
@@ -459,19 +455,15 @@ export function renderMap() {
     }
     // Enable/disable lap selector based on number of loaded files
     function updateLapSelectorEnabledState() {
-        const lapSelect = /** @type {HTMLInputElement} */ (document.getElementById("lap-select"));
+        const lapSelect = /** @type {HTMLInputElement} */ (document.querySelector("#lap-select"));
         if (lapSelect) {
-            if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
-                lapSelect.disabled = true;
-            } else {
-                lapSelect.disabled = false;
-            }
+            lapSelect.disabled = Boolean(windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1);
         }
     }
     updateLapSelectorEnabledState();
 
     // --- Theme support (dark/light) ---
-    if (document.getElementById("leaflet-map")) {
+    if (document.querySelector("#leaflet-map")) {
         updateMapTheme();
         if (!windowExt._mapThemeListener) {
             windowExt._mapThemeListener = () => updateMapTheme();

@@ -1,24 +1,33 @@
-#!/usr/bin/env node
 /*
  * Recursively rename test files to TypeScript extensions inside electron-app/tests
  * - *.test.js  -> *.test.ts
  * - *.spec.js  -> *.spec.ts
  * Skips files already using .ts/.tsx/.mts/.cts
  */
-import { readdir, rename, stat, lstat } from "node:fs/promises";
+import { lstat, readdir, rename, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 const TESTS_DIR = path.resolve(__dirname, "..", "tests");
+
+async function main() {
+  try {
+    await stat(TESTS_DIR);
+  } catch {
+    console.warn(`[convert-tests-to-ts] Tests directory not found: ${TESTS_DIR}`);
+    return;
+  }
+  await walk(TESTS_DIR);
+}
 
 /** @param {string} dir */
 async function walk(dir) {
   let entries;
   try {
     entries = await readdir(dir, { withFileTypes: true });
-  } catch (err) {
+  } catch {
     console.warn(`[convert-tests-to-ts] Skipping unreadable directory: ${dir}`);
     return;
   }
@@ -34,7 +43,7 @@ async function walk(dir) {
         await walk(full);
         continue;
       }
-    } catch (err) {
+    } catch {
       console.warn(`[convert-tests-to-ts] Skipping entry due to error: ${full}`);
       continue;
     }
@@ -46,23 +55,13 @@ async function walk(dir) {
     try {
       await rename(full, newFile);
       console.log(`[convert-tests-to-ts] Renamed: ${full} -> ${newFile}`);
-    } catch (err) {
-      console.error(`[convert-tests-to-ts] Failed to rename ${full}:`, err);
+    } catch (error) {
+      console.error(`[convert-tests-to-ts] Failed to rename ${full}:`, error);
     }
   }
 }
 
-async function main() {
-  try {
-    await stat(TESTS_DIR);
-  } catch {
-    console.warn(`[convert-tests-to-ts] Tests directory not found: ${TESTS_DIR}`);
-    return;
-  }
-  await walk(TESTS_DIR);
-}
-
-main().catch((e) => {
-  console.error("[convert-tests-to-ts] Unexpected error:", e);
+main().catch((error) => {
+  console.error("[convert-tests-to-ts] Unexpected error:", error);
   process.exitCode = 1;
 });

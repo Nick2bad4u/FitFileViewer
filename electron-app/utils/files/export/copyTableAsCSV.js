@@ -4,17 +4,17 @@
  */
 const CSV_CONFIG = {
     HEADER_ENABLED: true,
-    TEXTAREA_STYLES: {
-        position: "fixed",
-        opacity: "0",
-    },
     MESSAGES: {
-        SUCCESS: "Copied CSV to clipboard!",
-        FALLBACK_SUCCESS: "Copied CSV to clipboard using fallback!",
         CLIPBOARD_ERROR: "Failed to copy CSV:",
         FALLBACK_ERROR: "Failed to copy CSV using fallback:",
-        INVALID_TABLE: "Invalid table object: missing objects method",
+        FALLBACK_SUCCESS: "Copied CSV to clipboard using fallback!",
         FALLBACK_WARNING: "navigator.clipboard.writeText is not supported. Using fallback.",
+        INVALID_TABLE: "Invalid table object: missing objects method",
+        SUCCESS: "Copied CSV to clipboard!",
+    },
+    TEXTAREA_STYLES: {
+        opacity: "0",
+        position: "fixed",
     },
 };
 
@@ -48,9 +48,9 @@ export async function copyTableAsCSV(table) {
 
     try {
         // Serialize table data with object handling
-        const processedRows = processTableRows(table.objects()),
-            // Convert to CSV format
-            aq = /** @type {any} */ (window).aq,
+        const // Convert to CSV format
+            aq = /** @type {any} */ (globalThis).aq,
+            processedRows = processTableRows(table.objects()),
             flattenedTable = aq.from(processedRows),
             csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });
 
@@ -60,39 +60,6 @@ export async function copyTableAsCSV(table) {
         console.error("[copyTableAsCSV] Failed to copy table:", error);
         throw error;
     }
-}
-
-/**
- * Processes table rows, handling nested objects with caching for performance
- * @param {TableRow[]} rows - Array of row objects from the table
- * @returns {TableRow[]} Processed rows with serialized objects
- * @private
- */
-function processTableRows(rows) {
-    const cache = new Map();
-
-    return rows.map((row) => {
-        const processedRow = /** @type {TableRow} */ ({});
-
-        Object.keys(row).forEach((key) => {
-            const cell = row[key];
-
-            if (typeof cell === "object" && cell !== null) {
-                // Use cache to avoid re-serializing identical objects
-                if (cache.has(cell)) {
-                    processedRow[key] = cache.get(cell);
-                } else {
-                    const serialized = JSON.stringify(cell);
-                    cache.set(cell, serialized);
-                    processedRow[key] = serialized;
-                }
-            } else {
-                processedRow[key] = cell;
-            }
-        });
-
-        return processedRow;
-    });
 }
 
 /**
@@ -131,7 +98,7 @@ function copyToClipboardFallback(text) {
     // Apply styles to prevent visual disruption
     Object.assign(textarea.style, CSV_CONFIG.TEXTAREA_STYLES);
 
-    document.body.appendChild(textarea);
+    document.body.append(textarea);
     textarea.focus();
     textarea.select();
 
@@ -146,6 +113,39 @@ function copyToClipboardFallback(text) {
         console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`, error);
         throw error;
     } finally {
-        document.body.removeChild(textarea);
+        textarea.remove();
     }
+}
+
+/**
+ * Processes table rows, handling nested objects with caching for performance
+ * @param {TableRow[]} rows - Array of row objects from the table
+ * @returns {TableRow[]} Processed rows with serialized objects
+ * @private
+ */
+function processTableRows(rows) {
+    const cache = new Map();
+
+    return rows.map((row) => {
+        const processedRow = /** @type {TableRow} */ ({});
+
+        for (const key of Object.keys(row)) {
+            const cell = row[key];
+
+            if (typeof cell === "object" && cell !== null) {
+                // Use cache to avoid re-serializing identical objects
+                if (cache.has(cell)) {
+                    processedRow[key] = cache.get(cell);
+                } else {
+                    const serialized = JSON.stringify(cell);
+                    cache.set(cell, serialized);
+                    processedRow[key] = serialized;
+                }
+            } else {
+                processedRow[key] = cell;
+            }
+        }
+
+        return processedRow;
+    });
 }

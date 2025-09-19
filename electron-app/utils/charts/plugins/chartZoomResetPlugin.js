@@ -1,5 +1,5 @@
-import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Enhanced zoom reset plugin
 
@@ -24,25 +24,24 @@ import { getThemeConfig } from "../../theming/core/theme.js";
  * @type {{ id:string, afterDraw:(chart:MinimalChart)=>void, afterEvent:(chart:MinimalChart, args:ChartEventArgs)=>void }}
  */
 export const chartZoomResetPlugin = {
-    id: "chartZoomResetPlugin",
     afterDraw(chart) {
         try {
             if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) {
                 return;
             }
-            const ctx = chart?.ctx,
-                canvas = chart?.canvas;
+            const canvas = chart?.canvas,
+                ctx = chart?.ctx;
             if (!ctx || !canvas) {
                 return;
             }
-            const btnW = 100,
-                btnH = 30,
-                x = (canvas.width || 0) - btnW - 12,
-                y = 12,
-                themeConfig = getThemeConfig() || /** @type {any} */ ({}),
+            const themeConfig = getThemeConfig() || /** @type {any} */ ({}),
                 colors = /** @type {any} */ ((themeConfig && /** @type {any} */ (themeConfig).colors) || {}),
                 accent = typeof colors.accent === "string" ? colors.accent : "#667eea",
-                textPrimary = typeof colors.textPrimary === "string" ? colors.textPrimary : "#ffffff";
+                btnH = 30,
+                btnW = 100,
+                textPrimary = typeof colors.textPrimary === "string" ? colors.textPrimary : "#ffffff",
+                x = (canvas.width || 0) - btnW - 12,
+                y = 12;
 
             ctx.save();
             ctx.globalAlpha = 0.9;
@@ -71,15 +70,14 @@ export const chartZoomResetPlugin = {
             ctx.restore();
 
             // Store button bounds for click detection
-            chart._zoomResetBtnBounds = { x, y, w: btnW, h: btnH };
-        } catch (err) {
+            chart._zoomResetBtnBounds = { h: btnH, w: btnW, x, y };
+        } catch (error) {
             // Silent fail to avoid breaking charts
-            if (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev?.debug) {
-                console.warn("[chartZoomResetPlugin] afterDraw error", err);
+            if (globalThis.window !== undefined && /** @type {any} */ (globalThis).__renderer_dev?.debug) {
+                console.warn("[chartZoomResetPlugin] afterDraw error", error);
             }
         }
     },
-
     afterEvent(chart, args) {
         try {
             if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) {
@@ -95,10 +93,10 @@ export const chartZoomResetPlugin = {
             if (!canvas) {
                 return;
             }
-            const rect = canvas.getBoundingClientRect(),
+            const btn = chart._zoomResetBtnBounds,
+                rect = canvas.getBoundingClientRect(),
                 mouseX = (e.clientX || 0) - rect.left,
-                mouseY = (e.clientY || 0) - rect.top,
-                btn = chart._zoomResetBtnBounds;
+                mouseY = (e.clientY || 0) - rect.top;
             if (!btn) {
                 return;
             }
@@ -123,12 +121,14 @@ export const chartZoomResetPlugin = {
                     showNotification("Chart zoom reset", "success");
                 }
             }
-        } catch (err) {
-            if (typeof window !== "undefined" && /** @type {any} */ (window).__renderer_dev?.debug) {
-                console.warn("[chartZoomResetPlugin] afterEvent error", err);
+        } catch (error) {
+            if (globalThis.window !== undefined && /** @type {any} */ (globalThis).__renderer_dev?.debug) {
+                console.warn("[chartZoomResetPlugin] afterEvent error", error);
             }
         }
     },
+
+    id: "chartZoomResetPlugin",
 };
 
 // Utility function to create rounded rectangle path
@@ -146,12 +146,12 @@ if (typeof CanvasRenderingContext2D !== "undefined") {
         ctxProto.roundRect = function (x, y, width, height, radius) {
             let r;
             if (typeof radius === "number") {
-                r = { tl: radius, tr: radius, br: radius, bl: radius };
+                r = { bl: radius, br: radius, tl: radius, tr: radius };
             } else if (radius && typeof radius === "object") {
                 const o = /** @type {any} */ (radius);
-                r = { tl: o.tl || 0, tr: o.tr || 0, br: o.br || 0, bl: o.bl || 0 };
+                r = { bl: o.bl || 0, br: o.br || 0, tl: o.tl || 0, tr: o.tr || 0 };
             } else {
-                r = { tl: 5, tr: 5, br: 5, bl: 5 };
+                r = { bl: 5, br: 5, tl: 5, tr: 5 };
             }
             this.beginPath();
             this.moveTo(x + r.tl, y);

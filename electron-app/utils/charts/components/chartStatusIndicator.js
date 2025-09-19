@@ -4,71 +4,12 @@
  * out of the total available charts, helping users understand their chart selection status
  */
 
+import { getChartCounts } from "../core/getChartCounts.js";
 import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 import { createChartStatusIndicatorFromCounts } from "./createChartStatusIndicatorFromCounts.js";
 import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndicator.js";
 import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartStatusIndicatorFromCounts.js";
-import { getChartCounts } from "../core/getChartCounts.js";
 /** @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts */
-
-/**
- * Updates both the settings and global chart status indicators synchronously
- * This ensures they always show the same counts
- */
-export function updateAllChartStatusIndicators() {
-    try {
-        // Use a single call to get counts to ensure consistency
-        const counts = getChartCounts(),
-            // Update settings indicator
-            settingsIndicator = document.getElementById("chart-status-indicator");
-        if (settingsIndicator) {
-            const newSettingsIndicator = createChartStatusIndicatorFromCounts(counts),
-                parent = settingsIndicator.parentNode;
-            if (parent && newSettingsIndicator) {
-                parent.replaceChild(newSettingsIndicator, settingsIndicator);
-            }
-        }
-
-        // Update global indicator
-        const globalIndicator = document.getElementById("global-chart-status");
-        if (globalIndicator) {
-            const newGlobalIndicator = createGlobalChartStatusIndicatorFromCounts(counts);
-            if (newGlobalIndicator) {
-                const parent = globalIndicator.parentNode;
-                if (parent) {
-                    parent.replaceChild(newGlobalIndicator, globalIndicator);
-                }
-            }
-        } else {
-            // Create if it doesn't exist
-            createGlobalChartStatusIndicator();
-        }
-    } catch (error) {
-        console.error("[ChartStatus] Error updating all chart status indicators:", error);
-    }
-}
-
-/**
- * Update a single chart status indicator element
- * @param {HTMLElement|null} indicator
- */
-export function updateChartStatusIndicator(indicator = null) {
-    try {
-        const target = indicator || document.getElementById("chart-status-indicator");
-        if (!target) {
-            return;
-        }
-
-        // Replace the entire indicator with a new one
-        const newIndicator = createChartStatusIndicator(),
-            parent = target.parentNode;
-        if (parent && newIndicator) {
-            parent.replaceChild(newIndicator, target);
-        }
-    } catch (error) {
-        console.error("[ChartStatus] Error updating chart status indicator:", error);
-    }
-}
 
 /**
  * Sets up automatic updates for the chart status indicator
@@ -77,7 +18,7 @@ export function updateChartStatusIndicator(indicator = null) {
 export function setupChartStatusUpdates() {
     try {
         // Listen for storage changes (field toggles)
-        window.addEventListener("storage", (e) => {
+        globalThis.addEventListener("storage", (e) => {
             if (e.key && e.key.startsWith("chartjs_field_")) {
                 setTimeout(() => {
                     try {
@@ -90,7 +31,7 @@ export function setupChartStatusUpdates() {
         });
 
         // Listen for custom field toggle events (real-time updates in same window)
-        window.addEventListener("fieldToggleChanged", () => {
+        globalThis.addEventListener("fieldToggleChanged", () => {
             setTimeout(() => {
                 try {
                     updateAllChartStatusIndicators();
@@ -109,20 +50,22 @@ export function setupChartStatusUpdates() {
                 }
             }, 50);
         }); // Update when global data changes
-        const existingDescriptor = Object.getOwnPropertyDescriptor(window, "globalData");
+        const existingDescriptor = Object.getOwnPropertyDescriptor(globalThis, "globalData");
 
         // Only set up the property if it doesn't already have a custom setter
         if (!existingDescriptor || !existingDescriptor.set || existingDescriptor.configurable) {
             try {
                 // Store existing value if any
-                const currentValue = window.globalData;
+                const currentValue = globalThis.globalData;
 
-                Object.defineProperty(window, "globalData", {
+                Object.defineProperty(globalThis, "globalData", {
+                    configurable: true,
+                    enumerable: true,
                     get() {
-                        return /** @type {any} */ (window).___ffv_globalData || currentValue;
+                        return /** @type {any} */ (globalThis).___ffv_globalData || currentValue;
                     },
                     set(value) {
-                        /** @type {any} */ (window).___ffv_globalData = value;
+                        /** @type {any} */ (globalThis).___ffv_globalData = value;
                         setTimeout(() => {
                             try {
                                 updateAllChartStatusIndicators();
@@ -131,13 +74,11 @@ export function setupChartStatusUpdates() {
                             }
                         }, 100);
                     },
-                    configurable: true,
-                    enumerable: true,
                 });
 
                 // Set initial value if it existed
                 if (currentValue !== undefined) {
-                    /** @type {any} */ (window).___ffv_globalData = currentValue;
+                    /** @type {any} */ (globalThis).___ffv_globalData = currentValue;
                 }
             } catch (propertyError) {
                 console.warn(
@@ -156,5 +97,64 @@ export function setupChartStatusUpdates() {
         }, 100);
     } catch (error) {
         console.error("[ChartStatus] Error setting up chart status updates:", error);
+    }
+}
+
+/**
+ * Updates both the settings and global chart status indicators synchronously
+ * This ensures they always show the same counts
+ */
+export function updateAllChartStatusIndicators() {
+    try {
+        // Use a single call to get counts to ensure consistency
+        const counts = getChartCounts(),
+            // Update settings indicator
+            settingsIndicator = document.querySelector("#chart-status-indicator");
+        if (settingsIndicator) {
+            const newSettingsIndicator = createChartStatusIndicatorFromCounts(counts),
+                parent = settingsIndicator.parentNode;
+            if (parent && newSettingsIndicator) {
+                settingsIndicator.replaceWith(newSettingsIndicator);
+            }
+        }
+
+        // Update global indicator
+        const globalIndicator = document.querySelector("#global-chart-status");
+        if (globalIndicator) {
+            const newGlobalIndicator = createGlobalChartStatusIndicatorFromCounts(counts);
+            if (newGlobalIndicator) {
+                const parent = globalIndicator.parentNode;
+                if (parent) {
+                    globalIndicator.replaceWith(newGlobalIndicator);
+                }
+            }
+        } else {
+            // Create if it doesn't exist
+            createGlobalChartStatusIndicator();
+        }
+    } catch (error) {
+        console.error("[ChartStatus] Error updating all chart status indicators:", error);
+    }
+}
+
+/**
+ * Update a single chart status indicator element
+ * @param {HTMLElement|null} indicator
+ */
+export function updateChartStatusIndicator(indicator = null) {
+    try {
+        const target = indicator || document.querySelector("#chart-status-indicator");
+        if (!target) {
+            return;
+        }
+
+        // Replace the entire indicator with a new one
+        const newIndicator = createChartStatusIndicator(),
+            parent = target.parentNode;
+        if (parent && newIndicator) {
+            target.replaceWith(newIndicator);
+        }
+    } catch (error) {
+        console.error("[ChartStatus] Error updating chart status indicator:", error);
     }
 }

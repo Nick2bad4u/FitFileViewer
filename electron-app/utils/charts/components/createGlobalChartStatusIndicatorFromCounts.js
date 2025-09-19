@@ -4,7 +4,7 @@
  */
 export function createGlobalChartStatusIndicatorFromCounts(counts) {
     try {
-        const chartTabContent = document.getElementById("content-chartjs");
+        const chartTabContent = document.querySelector("#content-chartjs");
         if (!chartTabContent) {
             console.warn("[ChartStatus] Chart tab content not found");
             return null;
@@ -15,8 +15,8 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
         globalIndicator.className = "global-chart-status";
 
         // Calculate status
-        const isAllVisible = counts.visible === counts.available,
-            hasHiddenCharts = counts.available > counts.visible;
+        const hasHiddenCharts = counts.available > counts.visible,
+            isAllVisible = counts.visible === counts.available;
 
         globalIndicator.style.cssText = `
             position: sticky;
@@ -94,8 +94,8 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             quickAction.textContent = "⚙️ Show Settings";
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
-                const wrapper = document.getElementById("chartjs-settings-wrapper"),
-                    toggleBtn = document.getElementById("chart-controls-toggle");
+                const toggleBtn = document.querySelector("#chart-controls-toggle"),
+                    wrapper = document.querySelector("#chartjs-settings-wrapper");
                 if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
                     wrapper.style.display = "block";
                     toggleBtn.textContent = "▼ Hide Controls";
@@ -132,10 +132,10 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
                 quickAction.style.transform = "translateY(0)";
             });
         }
-        statusInfo.appendChild(statusIcon);
-        statusInfo.appendChild(statusText);
-        globalIndicator.appendChild(statusInfo);
-        globalIndicator.appendChild(quickAction);
+        statusInfo.append(statusIcon);
+        statusInfo.append(statusText);
+        globalIndicator.append(statusInfo);
+        globalIndicator.append(quickAction);
 
         // Add detailed breakdown tooltip for global indicator too
         const globalBreakdown = document.createElement("div");
@@ -205,7 +205,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             globalBreakdown.style.visibility = "hidden";
         });
 
-        globalIndicator.appendChild(globalBreakdown);
+        globalIndicator.append(globalBreakdown);
 
         return globalIndicator;
     } catch (error) {

@@ -6,19 +6,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
     test: {
-        environment: "jsdom",
-        setupFiles: ["./tests/setupVitest.js"],
-        exclude: [
-            "libs/**",
-            "../libs/**",
-            "**/libs/**",
-            "**/node_modules/**",
-            "node_modules/table/node_modules/json-schema-traverse/spec/index.spec.js",
-        ],
+        clearMocks: true,
         coverage: {
-            provider: "v8",
-            reporter: ["text", "html", "json", "lcov"],
-            reportsDirectory: "./coverage",
             exclude: [
                 "node_modules/**",
                 "libs/**",
@@ -34,27 +23,18 @@ export default defineConfig({
                 "*.js",
                 "!main.js", // Main process tested separately
             ],
+            provider: "v8",
+            reporter: ["text", "html", "json", "lcov"],
+            reportsDirectory: "./coverage",
             // Set aggressive thresholds for 100% coverage
             thresholds: {
+                "fitParser.js": {
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                    statements: 100,
+                },
                 global: {
-                    branches: 100,
-                    functions: 100,
-                    lines: 100,
-                    statements: 100,
-                },
-                "utils/**/*.js": {
-                    branches: 100,
-                    functions: 100,
-                    lines: 100,
-                    statements: 100,
-                },
-                "renderer.js": {
-                    branches: 100,
-                    functions: 100,
-                    lines: 100,
-                    statements: 100,
-                },
-                "preload.js": {
                     branches: 100,
                     functions: 100,
                     lines: 100,
@@ -66,7 +46,19 @@ export default defineConfig({
                     lines: 100,
                     statements: 100,
                 },
-                "fitParser.js": {
+                "preload.js": {
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                    statements: 100,
+                },
+                "renderer.js": {
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                    statements: 100,
+                },
+                "utils/**/*.js": {
                     branches: 100,
                     functions: 100,
                     lines: 100,
@@ -74,14 +66,22 @@ export default defineConfig({
                 },
             },
         },
+        environment: "jsdom",
+        exclude: [
+            "libs/**",
+            "../libs/**",
+            "**/libs/**",
+            "**/node_modules/**",
+            "node_modules/table/node_modules/json-schema-traverse/spec/index.spec.js",
+        ],
         globals: true,
-        restoreMocks: true,
-        clearMocks: true,
+        maxConcurrency: 10,
         mockReset: true,
-        // Timeout for complex tests
-        testTimeout: 15000,
         // Concurrent test execution
         pool: "threads",
-        maxConcurrency: 10,
+        restoreMocks: true,
+        setupFiles: ["./tests/setupVitest.js"],
+        // Timeout for complex tests
+        testTimeout: 15_000,
     },
 });

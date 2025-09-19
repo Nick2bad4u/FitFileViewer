@@ -1,9 +1,9 @@
-import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
-import { getChartZoneColors } from "./chartZoneColorUtils.js";
-import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
-import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
 import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackgroundColorPlugin.js";
+import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
+import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
+import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
+import { getChartZoneColors } from "./chartZoneColorUtils.js";
 
 /**
  * Renders a single power zone bar (e.g., for a summary or lap)
@@ -15,49 +15,48 @@ import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackground
 
 export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
     try {
-        if (!(/** @type {any} */ (window).Chart) || !canvas || !Array.isArray(zoneData)) {
+        if (!(/** @type {any} */ (globalThis).Chart) || !canvas || !Array.isArray(zoneData)) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
         const theme = detectCurrentTheme();
         console.log("[renderSinglePowerZoneBar] Detected theme:", theme);
 
         // Get saved Power zone colors
-        const savedColors = getChartZoneColors("power", zoneData.length),
-            // Create one dataset per zone for interactive legend
+        const // Create one dataset per zone for interactive legend
             datasets = zoneData.map((zone, index) => ({
-                label: zone.label,
-                data: [zone.value], // Single value array for this zone
                 backgroundColor: zone.color || savedColors[index] || (theme === "dark" ? "#f59e42" : "#fbbf24"),
                 borderColor: theme === "dark" ? "#333" : "#fff",
                 borderWidth: 1,
+                data: [zone.value], // Single value array for this zone
+                label: zone.label,
             })),
-            chart = new /** @type {any} */ (window).Chart(canvas, {
-                type: "bar",
+            chart = new /** @type {any} */ (globalThis).Chart(canvas, {
                 data: {
-                    labels: ["Time in Zone"], // Single category for all zones
                     datasets,
+                    labels: ["Time in Zone"], // Single category for all zones
                 },
                 options: {
-                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        chartBackgroundColorPlugin: {
+                            backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
+                        },
                         legend: {
                             display: true,
-                            position: "top",
                             labels: {
                                 color: theme === "dark" ? "#fff" : "#000",
                                 font: { size: 12 },
                             },
+                            position: "top",
                         },
                         title: {
-                            display: Boolean(options.title),
-                            text: options.title || "Power Zones",
                             color: theme === "dark" ? "#fff" : "#000",
+                            display: Boolean(options.title),
                             font: { size: 16, weight: "bold" },
+                            text: options.title || "Power Zones",
                         },
                         tooltip: {
                             backgroundColor: theme === "dark" ? "#222" : "#fff",
-                            titleColor: theme === "dark" ? "#fff" : "#000",
                             bodyColor: theme === "dark" ? "#fff" : "#000",
                             borderColor: theme === "dark" ? "#555" : "#ddd",
                             borderWidth: 1,
@@ -67,80 +66,81 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                                     return `${context.dataset.label}: ${timeFormatted}`;
                                 },
                             },
+                            titleColor: theme === "dark" ? "#fff" : "#000",
                         },
                         zoom: {
+                            limits: {
+                                y: {
+                                    max: "original",
+                                    min: 0,
+                                },
+                            },
                             pan: {
                                 enabled: true,
                                 mode: "y",
                                 modifierKey: null,
                             },
                             zoom: {
+                                drag: {
+                                    backgroundColor: "rgba(59, 130, 246, 0.2)",
+                                    borderColor: "rgba(59, 130, 246, 0.8)",
+                                    borderWidth: 2,
+                                    enabled: true,
+                                    modifierKey: "shift",
+                                },
+                                mode: "y",
+                                pinch: {
+                                    enabled: true,
+                                },
                                 wheel: {
                                     enabled: true,
                                     speed: 0.1,
                                 },
-                                pinch: {
-                                    enabled: true,
-                                },
-                                drag: {
-                                    enabled: true,
-                                    backgroundColor: "rgba(59, 130, 246, 0.2)",
-                                    borderColor: "rgba(59, 130, 246, 0.8)",
-                                    borderWidth: 2,
-                                    modifierKey: "shift",
-                                },
-                                mode: "y",
                             },
-                            limits: {
-                                y: {
-                                    min: 0,
-                                    max: "original",
-                                },
-                            },
-                        },
-                        chartBackgroundColorPlugin: {
-                            backgroundColor: theme === "dark" ? "#181c24" : "#ffffff",
                         },
                     },
+                    responsive: true,
                     scales: {
                         x: {
-                            title: {
-                                display: false, // Hide x-axis title since we only have one category
-                                text: "Zone",
-                                color: theme === "dark" ? "#fff" : "#000",
+                            grid: {
+                                color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
                             },
                             ticks: {
                                 color: theme === "dark" ? "#fff" : "#000",
                             },
-                            grid: {
-                                color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            title: {
+                                color: theme === "dark" ? "#fff" : "#000",
+                                display: false, // Hide x-axis title since we only have one category
+                                text: "Zone",
                             },
                         },
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: `Time (${getUnitSymbol("time", "time")})`,
-                                color: theme === "dark" ? "#fff" : "#000",
+                            grid: {
+                                color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
                             },
                             ticks: {
-                                color: theme === "dark" ? "#fff" : "#000",
                                 callback(/** @type {any} */ value) {
                                     return formatTime(value, true);
                                 },
+                                color: theme === "dark" ? "#fff" : "#000",
                             },
-                            grid: {
-                                color: theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                            title: {
+                                color: theme === "dark" ? "#fff" : "#000",
+                                display: true,
+                                text: `Time (${getUnitSymbol("time", "time")})`,
                             },
                         },
                     },
                 },
                 plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-            });
+                type: "bar",
+            }),
+            savedColors = getChartZoneColors("power", zoneData.length);
         return chart;
     } catch (error) {
-        if (/** @type {any} */ (window).showNotification) {
-            /** @type {any} */ window.showNotification("Failed to render power zone bar", "error");
+        if (/** @type {any} */ (globalThis).showNotification) {
+            /** @type {any} */ globalThis.showNotification("Failed to render power zone bar", "error");
         }
         console.error("[renderSinglePowerZoneBar] Error:", error);
         return null;

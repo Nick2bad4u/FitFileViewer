@@ -18,13 +18,13 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
     // Find all chart canvases in the container
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
 
-    chartCanvases.forEach((canvas) => {
+    for (const canvas of chartCanvases) {
         if (!(canvas instanceof HTMLElement)) {
-            return;
+            continue;
         }
         // Skip if hover effects already added
         if (canvas.dataset && canvas.dataset.hoverEffectsAdded) {
-            return;
+            continue;
         }
 
         // Mark as having hover effects
@@ -52,7 +52,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         if (canvas.parentNode instanceof HTMLElement) {
             canvas.parentNode.insertBefore(wrapper, canvas);
         }
-        wrapper.appendChild(canvas); // Update canvas styles to work with wrapper - ensure it stays inside
+        wrapper.append(canvas); // Update canvas styles to work with wrapper - ensure it stays inside
         if (canvas.style) {
             canvas.style.border = "none";
             canvas.style.boxShadow = "none";
@@ -84,7 +84,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             transition: opacity 0.4s ease;
             pointer-events: none;
         `;
-        wrapper.appendChild(glowOverlay);
+        wrapper.append(glowOverlay);
 
         // Add chart title overlay for better visual hierarchy
         const chartTitle = canvas.getAttribute("aria-label") || "Chart",
@@ -108,7 +108,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             box-shadow: 0 2px 8px ${themeConfig.colors.shadowLight};
         `;
         titleOverlay.textContent = chartTitle.replace("Chart for ", "").toUpperCase();
-        wrapper.appendChild(titleOverlay);
+        wrapper.append(titleOverlay);
 
         // Add hover event listeners to wrapper
         wrapper.addEventListener("mouseenter", () => {
@@ -149,8 +149,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
 
         // Add click ripple effect
         wrapper.addEventListener("click", (e) => {
-            const ripple = document.createElement("div"),
-                rect = wrapper.getBoundingClientRect(),
+            const rect = wrapper.getBoundingClientRect(),
+                ripple = document.createElement("div"),
                 size = Math.max(rect.width, rect.height),
                 x = e.clientX - rect.left - size / 2,
                 y = e.clientY - rect.top - size / 2;
@@ -169,21 +169,21 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 z-index: 5;
             `;
 
-            wrapper.appendChild(ripple);
+            wrapper.append(ripple);
 
             // Remove ripple after animation
             setTimeout(() => {
                 if (ripple.parentNode) {
-                    ripple.parentNode.removeChild(ripple);
+                    ripple.remove();
                 }
             }, 600);
         });
 
         console.log(`[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`);
-    });
+    }
 
     // Inject CSS keyframes for ripple effect if not already added
-    if (!document.getElementById("chart-hover-effects-styles")) {
+    if (!document.querySelector("#chart-hover-effects-styles")) {
         const style = document.createElement("style");
         style.id = "chart-hover-effects-styles";
         style.textContent = `
@@ -217,11 +217,34 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 display: block;
             }
         `;
-        document.head.appendChild(style);
+        document.head.append(style);
     }
 
     console.log(`[ChartHoverEffects] Added hover effects to ${chartCanvases.length} chart(s)`);
 }
+
+export function addHoverEffectsToExistingCharts() {
+    const chartContainer = document.querySelector("#chartjs-chart-container");
+    if (!chartContainer) {
+        console.warn("[DevHelper] Chart container not found");
+        return;
+    }
+
+    // Get theme configuration
+    let themeConfig;
+    if (/** @type {any} */ (globalThis).getThemeConfig) {
+        // @ts-ignore legacy global
+        themeConfig = /** @type {any} */ (globalThis).getThemeConfig();
+    } else {
+        themeConfig = getThemeConfig();
+    }
+
+    addChartHoverEffects(chartContainer, themeConfig);
+    console.log("[DevHelper] Hover effects added to existing charts");
+} /**
+ * Development helper function to manually add hover effects to existing charts
+ * This can be called from the browser console for testing
+ */
 
 /**
  * Removes hover effects from chart containers (cleanup function)
@@ -232,15 +255,15 @@ export function removeChartHoverEffects(chartContainer) {
         return;
     }
 
-    const themeConfig = /** @type {any} */ (getThemeConfig()),
-        colors = /** @type {any} */ (themeConfig && themeConfig.colors ? themeConfig.colors : {}),
-        chartWrappers = chartContainer.querySelectorAll(".chart-wrapper");
-    chartWrappers.forEach((wrapper) => {
+    const chartWrappers = chartContainer.querySelectorAll(".chart-wrapper"),
+        themeConfig = /** @type {any} */ (getThemeConfig()),
+        colors = /** @type {any} */ (themeConfig && themeConfig.colors ? themeConfig.colors : {});
+    for (const wrapper of chartWrappers) {
         const canvas = wrapper.querySelector(".chart-canvas");
         if (canvas instanceof HTMLElement && wrapper.parentNode instanceof HTMLElement) {
             // Move canvas back to original parent and remove wrapper
             wrapper.parentNode.insertBefore(canvas, wrapper);
-            wrapper.parentNode.removeChild(wrapper);
+            wrapper.remove();
             // Reset canvas styles to original createChartCanvas values
             if (canvas.style) {
                 canvas.style.border = "";
@@ -260,30 +283,7 @@ export function removeChartHoverEffects(chartContainer) {
                 delete canvas.dataset.hoverEffectsAdded;
             }
         }
-    });
+    }
 
     console.log(`[ChartHoverEffects] Removed hover effects from ${chartWrappers.length} chart(s)`);
-} /**
- * Development helper function to manually add hover effects to existing charts
- * This can be called from the browser console for testing
- */
-
-export function addHoverEffectsToExistingCharts() {
-    const chartContainer = document.getElementById("chartjs-chart-container");
-    if (!chartContainer) {
-        console.warn("[DevHelper] Chart container not found");
-        return;
-    }
-
-    // Get theme configuration
-    let themeConfig;
-    if (/** @type {any} */ (window).getThemeConfig) {
-        // @ts-ignore legacy global
-        themeConfig = /** @type {any} */ (window).getThemeConfig();
-    } else {
-        themeConfig = getThemeConfig();
-    }
-
-    addChartHoverEffects(chartContainer, themeConfig);
-    console.log("[DevHelper] Hover effects added to existing charts");
 }

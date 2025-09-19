@@ -14,51 +14,14 @@
  * @since 1.0.0
  */
 
-import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Constants for map theme management
-const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted", // Note: "inverted" now means "dark map theme"
-    MAP_THEME_EVENTS = {
+const MAP_THEME_EVENTS = {
         CHANGED: "mapThemeChanged",
-    };
-
-/**
- * Gets the current map theme preference
- * @returns {boolean} True if map should use dark theme, false for light theme
- */
-export function getMapThemeInverted() {
-    try {
-        const stored = localStorage.getItem(MAP_THEME_STORAGE_KEY);
-        // Default to true (dark map) if no preference is stored
-        return stored === null ? true : stored === "true";
-    } catch (error) {
-        console.error("[createMapThemeToggle] Error reading map theme preference:", error);
-        return true; // Default to dark map
-    }
-}
-
-/**
- * Sets the map theme preference
- * @param {boolean} inverted - Whether map should use dark theme (true) or light theme (false)
- */
-export function setMapThemeInverted(inverted) {
-    try {
-        localStorage.setItem(MAP_THEME_STORAGE_KEY, inverted.toString());
-
-        // Dispatch custom event for other components to listen to
-        const event = new CustomEvent(MAP_THEME_EVENTS.CHANGED, {
-            detail: { inverted },
-            bubbles: true,
-        });
-        document.dispatchEvent(event);
-
-        console.log(`[createMapThemeToggle] Map theme inversion set to: ${inverted}`);
-    } catch (error) {
-        console.error("[createMapThemeToggle] Error saving map theme preference:", error);
-        showNotification("Failed to save map theme preference", "error");
-    }
-}
+    },
+    MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted"; // Note: "inverted" now means "dark map theme"
 
 /**
  * Creates a map theme toggle button for controlling map inversion
@@ -79,14 +42,14 @@ export function createMapThemeToggle() {
         const label = document.createElement("span");
         label.textContent = "Map Theme";
 
-        button.appendChild(iconContainer);
-        button.appendChild(label);
+        button.append(iconContainer);
+        button.append(label);
 
         // Update button appearance based on current state
         const updateButtonState = () => {
             try {
-                const isInverted = getMapThemeInverted(),
-                    isDarkMode = document.body.classList.contains("theme-dark"),
+                const isDarkMode = document.body.classList.contains("theme-dark"),
+                    isInverted = getMapThemeInverted(),
                     // Apply theme colors for button styling
                     themeColors = getThemeColors();
                 // Update icon and tooltip based on current map theme state
@@ -134,8 +97,8 @@ export function createMapThemeToggle() {
                 updateButtonState();
 
                 // Apply the theme change immediately
-                if (window.updateMapTheme) {
-                    window.updateMapTheme();
+                if (globalThis.updateMapTheme) {
+                    globalThis.updateMapTheme();
                 }
 
                 const action = newInverted ? "dark" : "light";
@@ -173,5 +136,42 @@ export function createMapThemeToggle() {
     }
 }
 
+/**
+ * Gets the current map theme preference
+ * @returns {boolean} True if map should use dark theme, false for light theme
+ */
+export function getMapThemeInverted() {
+    try {
+        const stored = localStorage.getItem(MAP_THEME_STORAGE_KEY);
+        // Default to true (dark map) if no preference is stored
+        return stored === null ? true : stored === "true";
+    } catch (error) {
+        console.error("[createMapThemeToggle] Error reading map theme preference:", error);
+        return true; // Default to dark map
+    }
+}
+
+/**
+ * Sets the map theme preference
+ * @param {boolean} inverted - Whether map should use dark theme (true) or light theme (false)
+ */
+export function setMapThemeInverted(inverted) {
+    try {
+        localStorage.setItem(MAP_THEME_STORAGE_KEY, inverted.toString());
+
+        // Dispatch custom event for other components to listen to
+        const event = new CustomEvent(MAP_THEME_EVENTS.CHANGED, {
+            bubbles: true,
+            detail: { inverted },
+        });
+        document.dispatchEvent(event);
+
+        console.log(`[createMapThemeToggle] Map theme inversion set to: ${inverted}`);
+    } catch (error) {
+        console.error("[createMapThemeToggle] Error saving map theme preference:", error);
+        showNotification("Failed to save map theme preference", "error");
+    }
+}
+
 // Export constants for use by other modules
-export { MAP_THEME_STORAGE_KEY, MAP_THEME_EVENTS };
+export { MAP_THEME_EVENTS, MAP_THEME_STORAGE_KEY };

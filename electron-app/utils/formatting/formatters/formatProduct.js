@@ -5,14 +5,14 @@ import { getManufacturerIdFromName, getProductName } from "../display/formatAntN
  * @readonly
  */
 const PRODUCT_FORMAT_CONFIG = {
-    FALLBACK_PRODUCT_NAME: "Unknown Product",
-    WORD_SEPARATOR: "_",
-    FORMATTED_SEPARATOR: " ",
     ERROR_MESSAGES: {
         FORMATTING_ERROR: "Error formatting product:",
         MANUFACTURER_LOOKUP_ERROR: "Error looking up manufacturer ID:",
         PRODUCT_LOOKUP_ERROR: "Error looking up product name:",
     },
+    FALLBACK_PRODUCT_NAME: "Unknown Product",
+    FORMATTED_SEPARATOR: " ",
+    WORD_SEPARATOR: "_",
 };
 
 /**
@@ -61,6 +61,62 @@ export function formatProduct(manufacturer, productId) {
 }
 
 /**
+ * Formats fallback product name when lookup fails
+ * @param {number|string} productId - Original product ID
+ * @returns {string} Fallback product name
+ * @private
+ */
+function formatFallbackProduct(productId) {
+    if (productId === null || productId === undefined) {
+        return PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
+    }
+    const str = String(productId);
+    if (str.length === 0) {
+        return PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
+    }
+    const lower = str.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+/**
+ * Formats product name string from snake_case to human-readable format
+ * @param {string} productName - Raw product name from database
+ * @returns {string} Formatted product name
+ * @private
+ */
+function formatProductNameString(productName) {
+    return productName
+        .split(PRODUCT_FORMAT_CONFIG.WORD_SEPARATOR)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(PRODUCT_FORMAT_CONFIG.FORMATTED_SEPARATOR);
+}
+
+/**
+ * Gets and formats the product name from the ANT+ database
+ * @param {number} manufacturerId - Manufacturer ID
+ * @param {number|string} productId - Product ID
+ * @returns {string} Formatted product name
+ * @private
+ */
+function getFormattedProductName(manufacturerId, productId) {
+    try {
+        // Get the product name from the mapping
+        const productName = getProductName(manufacturerId, productId);
+
+        // If we found a mapped name and it's different from the original product ID, format it
+        if (productName && productName !== productId && typeof productName === "string") {
+            return formatProductNameString(productName);
+        }
+
+        // If no mapping found, return the original product ID as string
+        return formatFallbackProduct(productId);
+    } catch (error) {
+        console.warn(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.PRODUCT_LOOKUP_ERROR}`, error);
+        return formatFallbackProduct(productId);
+    }
+}
+
+/**
  * Validates if manufacturer value is usable
  * @param {any} manufacturer - Manufacturer value to validate
  * @returns {boolean} True if manufacturer is valid
@@ -104,60 +160,4 @@ function resolveManufacturerId(manufacturer) {
         console.warn(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.MANUFACTURER_LOOKUP_ERROR}`, error);
         return null;
     }
-}
-
-/**
- * Gets and formats the product name from the ANT+ database
- * @param {number} manufacturerId - Manufacturer ID
- * @param {number|string} productId - Product ID
- * @returns {string} Formatted product name
- * @private
- */
-function getFormattedProductName(manufacturerId, productId) {
-    try {
-        // Get the product name from the mapping
-        const productName = getProductName(manufacturerId, productId);
-
-        // If we found a mapped name and it's different from the original product ID, format it
-        if (productName && productName !== productId && typeof productName === "string") {
-            return formatProductNameString(productName);
-        }
-
-        // If no mapping found, return the original product ID as string
-        return formatFallbackProduct(productId);
-    } catch (error) {
-        console.warn(`[formatProduct] ${PRODUCT_FORMAT_CONFIG.ERROR_MESSAGES.PRODUCT_LOOKUP_ERROR}`, error);
-        return formatFallbackProduct(productId);
-    }
-}
-
-/**
- * Formats product name string from snake_case to human-readable format
- * @param {string} productName - Raw product name from database
- * @returns {string} Formatted product name
- * @private
- */
-function formatProductNameString(productName) {
-    return productName
-        .split(PRODUCT_FORMAT_CONFIG.WORD_SEPARATOR)
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(PRODUCT_FORMAT_CONFIG.FORMATTED_SEPARATOR);
-}
-
-/**
- * Formats fallback product name when lookup fails
- * @param {number|string} productId - Original product ID
- * @returns {string} Fallback product name
- * @private
- */
-function formatFallbackProduct(productId) {
-    if (productId === null || productId === undefined) {
-        return PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
-    }
-    const str = String(productId);
-    if (str.length === 0) {
-        return PRODUCT_FORMAT_CONFIG.FALLBACK_PRODUCT_NAME;
-    }
-    const lower = str.toLowerCase();
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
 }

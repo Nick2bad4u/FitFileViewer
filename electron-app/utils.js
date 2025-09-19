@@ -16,23 +16,23 @@
  * @author FitFileViewer Team
  */
 
+import { setLoading, showNotification } from "./utils/app/initialization/rendererUtils.js";
+import { patchSummaryFields } from "./utils/data/processing/patchSummaryFields.js";
+import { copyTableAsCSV } from "./utils/files/export/copyTableAsCSV.js";
 // Import utility functions
 import { formatDistance } from "./utils/formatting/formatters/formatDistance.js";
 import { formatDuration } from "./utils/formatting/formatters/formatDuration.js";
-import { patchSummaryFields } from "./utils/data/processing/patchSummaryFields.js";
-import { createTables } from "./utils/rendering/components/createTables.js";
-import { renderTable } from "./utils/rendering/core/renderTable.js";
-import { copyTableAsCSV } from "./utils/files/export/copyTableAsCSV.js";
+import { formatArray } from "./utils/formatting/formatters/formatUtils.js";
 import { renderMap } from "./utils/maps/core/renderMap.js";
+import { createTables } from "./utils/rendering/components/createTables.js";
 import { renderSummary } from "./utils/rendering/core/renderSummary.js";
-import { updateActiveTab } from "./utils/ui/tabs/updateActiveTab.js";
-import { updateTabVisibility } from "./utils/ui/tabs/updateTabVisibility.js";
+import { renderTable } from "./utils/rendering/core/renderTable.js";
 import { showFitData } from "./utils/rendering/core/showFitData.js";
 import { applyTheme, listenForThemeChange, loadTheme } from "./utils/theming/core/theme.js";
 import { updateMapTheme } from "./utils/theming/specific/updateMapTheme.js";
-import { setLoading, showNotification } from "./utils/app/initialization/rendererUtils.js";
-import { formatArray } from "./utils/formatting/formatters/formatUtils.js";
 import { setTabButtonsEnabled } from "./utils/ui/controls/enableTabButtons.js";
+import { updateActiveTab } from "./utils/ui/tabs/updateActiveTab.js";
+import { updateTabVisibility } from "./utils/ui/tabs/updateTabVisibility.js";
 
 /**
  * @typedef {Object} ConstantsType
@@ -44,13 +44,13 @@ import { setTabButtonsEnabled } from "./utils/ui/controls/enableTabButtons.js";
 
 // Constants for better maintainability
 const CONSTANTS = /** @type {ConstantsType} */ ({
-    NAMESPACE: "FitFileViewer",
     ERRORS: {
         FUNCTION_NOT_AVAILABLE: "Function is not available",
         INVALID_FUNCTION: "Invalid function provided",
         NAMESPACE_COLLISION: "Namespace collision detected",
     },
     LOG_PREFIX: "[utils.js]",
+    NAMESPACE: "FitFileViewer",
     VERSION: "unknown", // Default version
 });
 
@@ -77,10 +77,10 @@ async function loadVersionFromElectron() {
     versionLoadPromise = (async () => {
         try {
             if (
-            /** @type {any} */ (window).electronAPI &&
-                typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+            /** @type {any} */ (globalThis).electronAPI &&
+                typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
             ) {
-                const version = await /** @type {any} */ (window).electronAPI.getAppVersion();
+                const version = await /** @type {any} */ (globalThis).electronAPI.getAppVersion();
                 CONSTANTS.VERSION = version || "unknown";
                 logWithContext("info", `Version loaded from Electron: ${CONSTANTS.VERSION}`);
                 return CONSTANTS.VERSION;
@@ -97,11 +97,11 @@ async function loadVersionFromElectron() {
 }
 
 // Initialize version asynchronously when electronAPI becomes available
-if (typeof window !== "undefined") {
+if (globalThis.window !== undefined) {
     // Try immediately if electronAPI is already available
     if (
-        /** @type {any} */ (window).electronAPI &&
-        typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+        /** @type {any} */ (globalThis).electronAPI &&
+        typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
     ) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         loadVersionFromElectron();
@@ -114,8 +114,8 @@ if (typeof window !== "undefined") {
                 return;
             }
             if (
-                /** @type {any} */ (window).electronAPI &&
-                typeof (/** @type {any} */ (window).electronAPI.getAppVersion) === "function"
+                /** @type {any} */ (globalThis).electronAPI &&
+                typeof (/** @type {any} */ (globalThis).electronAPI.getAppVersion) === "function"
             ) {
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 loadVersionFromElectron();
@@ -167,36 +167,36 @@ function validateFunction(fn, name) {
 
 // List of utilities to expose globally with enhanced metadata
 const utils = {
+    // Theme utilities
+    applyTheme,
+    copyTableAsCSV,
+    createTables,
+
+    formatArray,
     // Formatting utilities
     formatDistance,
     formatDuration,
-    formatArray,
+    listenForThemeChange,
 
+    loadTheme,
     // Data processing utilities
     patchSummaryFields,
-    createTables,
-    renderTable,
-    copyTableAsCSV,
 
     // Visualization utilities
     renderMap,
     renderSummary,
+    renderTable,
+    setLoading,
 
-    // UI management utilities
-    updateActiveTab,
-    updateTabVisibility,
-    showFitData,
     setTabButtonsEnabled,
-
-    // Theme utilities
-    applyTheme,
-    loadTheme,
-    listenForThemeChange,
-    updateMapTheme,
-
+    showFitData,
     // Notification utilities
     showNotification,
-    setLoading,
+    // UI management utilities
+    updateActiveTab,
+
+    updateMapTheme,
+    updateTabVisibility,
 };
 
 /**
@@ -227,9 +227,9 @@ const utils = {
 function attachUtilitiesToWindow() {
     /** @type {AttachmentResults} */
     const attachmentResults = {
-        successful: [],
-        failed: [],
         collisions: [],
+        failed: [],
+        successful: [],
         total: 0,
     };
 
@@ -285,9 +285,9 @@ function attachUtilitiesToWindow() {
                         }
                         attachmentResults.collisions.push({
                             name: key,
+                            newType: typeof fn,
                             // @ts-expect-error - Dynamic window property access
                             previousType: typeof window[key],
-                            newType: typeof fn,
                             resolved: true,
                             serious: false,
                         });
@@ -302,11 +302,11 @@ function attachUtilitiesToWindow() {
                     });
                     attachmentResults.collisions.push({
                         name: key,
+                        newType: typeof fn,
                         // @ts-expect-error - Dynamic window property access
                         previousType: typeof window[key],
-                        newType: typeof fn,
-                        serious: true,
                         resolved: false,
+                        serious: true,
                     });
                 }
             }
@@ -329,16 +329,16 @@ function attachUtilitiesToWindow() {
 
         // Log attachment summary
         logWithContext("info", "Utility attachment completed", {
-            successful: attachmentResults.successful.length,
-            failed: attachmentResults.failed.length,
             collisions: attachmentResults.collisions.length,
+            failed: attachmentResults.failed.length,
+            successful: attachmentResults.successful.length,
             total: attachmentResults.total,
         });
 
         // Log failures in development
         const isDevelopment =
-            (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
-            (typeof window !== "undefined" && window.location && window.location.protocol === "file:");
+            (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
+            (globalThis.window !== undefined && globalThis.location && globalThis.location.protocol === "file:");
         if (isDevelopment) {
             if (attachmentResults.failed.length > 0) {
                 logWithContext("warn", "Failed attachments:", { failed: attachmentResults.failed });
@@ -355,9 +355,9 @@ function attachUtilitiesToWindow() {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         logWithContext("error", "Critical error during utility attachment:", { error: errorMessage });
         return {
-            successful: [],
-            failed: [{ name: "ALL", reason: errorMessage, type: "unknown" }],
             collisions: [],
+            failed: [{ name: "ALL", reason: errorMessage, type: "unknown" }],
+            successful: [],
             total: Object.keys(utils).length,
         };
     }
@@ -371,25 +371,22 @@ function attachUtilitiesToWindow() {
 
 // Enhanced namespace management
 const FitFileViewerUtils = {
-    // Core utilities object
-    utils,
-
-    // Metadata with dynamic version getter
-    get version() {
-        return CONSTANTS.VERSION;
+    // Cleanup function
+    cleanup: () => {
+        for (const key of Object.keys(utils)) {
+            try {
+                // @ts-expect-error - Dynamic window property deletion
+                delete window[key];
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : "Unknown error";
+                logWithContext("error", `Failed to cleanup utility: ${key}`, { error: errorMessage });
+            }
+        }
+        logWithContext("info", "Utils cleanup completed");
     },
-    namespace: CONSTANTS.NAMESPACE,
 
     // Utility management functions
     getAvailableUtils: () => Object.keys(utils),
-
-    /**
-     * @param {string} name - Utility name
-     * @returns {boolean} Is utility available
-     */
-    isUtilAvailable: (name) =>
-        // @ts-expect-error - Dynamic utils property access
-        Object.hasOwn(utils, name) && validateFunction(utils[name], name),
     /**
      * @param {string} name - Utility name
      * @returns {Function|null} The utility function or null
@@ -403,6 +400,15 @@ const FitFileViewerUtils = {
         return utils[name];
     },
 
+    /**
+     * @param {string} name - Utility name
+     * @returns {boolean} Is utility available
+     */
+    isUtilAvailable: (name) =>
+        // @ts-expect-error - Dynamic utils property access
+        Object.hasOwn(utils, name) && validateFunction(utils[name], name),
+
+    namespace: CONSTANTS.NAMESPACE,
     // Safe utility execution
     /**
      * @param {string} utilName - Utility name
@@ -420,17 +426,20 @@ const FitFileViewerUtils = {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Unknown error";
             logWithContext("error", `Error executing utility: ${utilName}`, {
-                error: errorMessage,
                 args: args.length,
+                error: errorMessage,
             });
             throw error;
         }
     },
 
+    // Core utilities object
+    utils,
+
     // Development helpers
     validateAllUtils: () => {
         /** @type {ValidationResults} */
-        const results = { valid: [], invalid: [] };
+        const results = { invalid: [], valid: [] };
         for (const [key, fn] of Object.entries(utils)) {
             if (validateFunction(fn, key)) {
                 results.valid.push(key);
@@ -441,18 +450,9 @@ const FitFileViewerUtils = {
         return results;
     },
 
-    // Cleanup function
-    cleanup: () => {
-        for (const key of Object.keys(utils)) {
-            try {
-                // @ts-expect-error - Dynamic window property deletion
-                delete window[key];
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "Unknown error";
-                logWithContext("error", `Failed to cleanup utility: ${key}`, { error: errorMessage });
-            }
-        }
-        logWithContext("info", "Utils cleanup completed");
+    // Metadata with dynamic version getter
+    get version() {
+        return CONSTANTS.VERSION;
     },
 };
 
@@ -465,21 +465,21 @@ setTimeout(() => {
 
 // Expose the utils namespace for advanced usage
 // @ts-expect-error - FitFileViewerUtils assigned to window
-window.FitFileViewerUtils = FitFileViewerUtils;
+globalThis.FitFileViewerUtils = FitFileViewerUtils;
 
 // Development mode enhancements
 const isDevelopment =
-    (typeof process !== "undefined" && process.env && process.env["NODE_ENV"] === "development") ||
-    (typeof window !== "undefined" && window.location && window.location.protocol === "file:");
+    (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
+    (globalThis.window !== undefined && globalThis.location && globalThis.location.protocol === "file:");
 if (isDevelopment) {
     // Expose additional development helpers
     // @ts-expect-error - devUtilsHelpers assigned to window
-    window.devUtilsHelpers = {
+    globalThis.devUtilsHelpers = {
+        cleanup: FitFileViewerUtils.cleanup,
+        getAttachmentResults: () => attachmentResults,
+        logLevel: "debug",
         reattachUtils: attachUtilitiesToWindow,
         validateUtils: FitFileViewerUtils.validateAllUtils,
-        getAttachmentResults: () => attachmentResults,
-        cleanup: FitFileViewerUtils.cleanup,
-        logLevel: "debug",
     };
 
     logWithContext("info", "Development helpers exposed on window.devUtilsHelpers");
@@ -489,4 +489,5 @@ if (isDevelopment) {
 logWithContext("info", `Utils module initialized successfully (v${CONSTANTS.VERSION})`);
 
 // Export for module usage (if needed)
-export { utils as default, FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };
+export default utils;
+export {  FitFileViewerUtils, CONSTANTS as UTILS_CONSTANTS };
