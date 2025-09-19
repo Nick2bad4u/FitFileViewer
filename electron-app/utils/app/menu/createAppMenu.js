@@ -5,9 +5,11 @@ let __electronCached = null;
 function getElectron() {
     if (
         __electronCached &&
-        /** @type {any} */ ((__electronCached).Menu ||
-            /** @type {any} */ (__electronCached).app ||
-            /** @type {any} */ (__electronCached).BrowserWindow)
+        /** @type {any} */ (
+            __electronCached.Menu ||
+                /** @type {any} */ (__electronCached).app ||
+                /** @type {any} */ (__electronCached).BrowserWindow
+        )
     ) {
         return __electronCached;
     }

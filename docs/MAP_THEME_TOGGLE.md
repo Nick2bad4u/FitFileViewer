@@ -68,6 +68,7 @@ visibility and personal preference.
 ### Button States
 
 1. **Dark Map Theme**:
+
    - Icon: Moon/crescent icon
    - State: Active (highlighted)
    - Tooltip: "Map: Dark theme (click for light theme)"
