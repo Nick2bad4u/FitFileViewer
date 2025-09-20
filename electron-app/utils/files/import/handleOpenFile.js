@@ -227,11 +227,11 @@ function updateUIState(uiElements, isLoading, isOpening) {
         }
 
         // Update state management - log first for better test traceability
-        console.log(`[HandleOpenFile] Setting ui.isLoading=${isLoading}, ui.isOpening=${isOpening}`);
+        console.log(`[HandleOpenFile] Setting isLoading=${isLoading}, app.isOpeningFile=${isOpening}`);
 
         // Use direct calls to stateManager.setState for both state updates
-        stateManager.setState("ui.isOpeningFile", isOpening, { source: "handleOpenFile" });
-        stateManager.setState("ui.isLoading", isLoading, { source: "handleOpenFile" });
+        stateManager.setState("app.isOpeningFile", isOpening, { source: "handleOpenFile" });
+        stateManager.setState("isLoading", isLoading, { source: "handleOpenFile" });
     } catch (error) {
         logWithContext(`Error updating UI state: ${error instanceof Error ? error.message : String(error)}`, "error");
     }
@@ -251,7 +251,7 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */ (method) =>
+        /** @param {string} method */(method) =>
             typeof (/** @type {*} */ (globalThis.electronAPI)[method]) !== "function"
     );
 

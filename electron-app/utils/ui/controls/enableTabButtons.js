@@ -70,7 +70,7 @@ export function debugTabButtons() {
     }
 
     const globalData = getState("globalData"),
-        isLoading = getState("ui.isLoading"),
+        isLoading = getState("isLoading"),
         tabButtonsEnabled = getState("ui.tabButtonsEnabled");
 
     console.log("[TabButtons] Current state:", {

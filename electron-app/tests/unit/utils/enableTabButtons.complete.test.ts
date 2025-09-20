@@ -407,7 +407,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
             mockGetState.mockImplementation((key) => {
                 if (key === "globalData") return { test: true };
-                if (key === "ui.isLoading") return false;
+                if (key === "isLoading") return false;
                 if (key === "ui.tabButtonsEnabled") return true;
                 return null;
             });
@@ -417,7 +417,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("DEBUG TAB BUTTONS"));
             expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("SKIPPING open file button"));
             expect(mockGetState).toHaveBeenCalledWith("globalData");
-            expect(mockGetState).toHaveBeenCalledWith("ui.isLoading");
+            expect(mockGetState).toHaveBeenCalledWith("isLoading");
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
         });
 

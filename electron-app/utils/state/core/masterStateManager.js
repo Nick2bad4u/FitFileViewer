@@ -34,7 +34,7 @@ import { settingsStateManager } from "../domain/settingsStateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
 import { initializeCompleteStateSystem } from "../integration/stateIntegration.js";
 import { computedStateManager, initializeCommonComputedValues } from "./computedStateManager.js";
-import { getState, setState, subscribe } from "./stateManager.js";
+import { getState, getStateHistory, getSubscriptions, setState, subscribe } from "./stateManager.js";
 import { cleanupMiddleware, initializeDefaultMiddleware } from "./stateMiddleware.js";
 
 /**
@@ -57,6 +57,31 @@ export class MasterStateManager {
             "devTools",
             "integration",
         ];
+    }
+
+    /**
+     * Get current state (forwards to core state manager)
+     * @param {string} [path] - Optional state path
+     * @returns {*} State value
+     */
+    getState(path) {
+        return getState(path);
+    }
+
+    /**
+     * Get state history (forwards to core state manager)
+     * @returns {Array<Object>} State history
+     */
+    getHistory() {
+        return getStateHistory();
+    }
+
+    /**
+     * Get active subscriptions for debugging
+     * @returns {Object} Subscription information
+     */
+    getSubscriptions() {
+        return getSubscriptions();
     }
 
     /**
@@ -96,9 +121,9 @@ export class MasterStateManager {
     /**
      * Initialize core state management
      */ /**
-     * Get initialization status
-     * @returns {Object} Status object
-     */
+    * Get initialization status
+    * @returns {Object} Status object
+    */
     getInitializationStatus() {
         return {
             components: Object.fromEntries(this.components),
@@ -225,8 +250,26 @@ export class MasterStateManager {
         // Initialize the complete state system
         initializeCompleteStateSystem();
 
+        // Read version from package.json instead of hard-coding
+        let appVersion = "unknown";
+        try {
+            // In Electron renderer, we can read from the main process
+            if (globalThis.electronAPI && typeof globalThis.electronAPI.getAppVersion === 'function') {
+                appVersion = await globalThis.electronAPI.getAppVersion();
+            } else {
+                // Fallback: try to import package.json
+                const packagePath = new URL('../../../package.json', import.meta.url);
+                const response = await fetch(packagePath);
+                const packageJson = await response.json();
+                appVersion = packageJson.version;
+            }
+        } catch {
+            console.warn("[MasterState] Could not read app version, using fallback");
+            appVersion = "26.5.0"; // Current version as fallback
+        }
+
         // Set initial application state
-        setState("system.version", "21.1.0", { source: "MasterStateManager" });
+        setState("system.version", appVersion, { source: "MasterStateManager" });
         setState("system.startupTime", Date.now(), { source: "MasterStateManager" });
 
         // Detect mode without using process (not available in renderer)
@@ -468,7 +511,7 @@ export class MasterStateManager {
         // Integrate file operations with UI state
         subscribe(
             "globalData",
-            /** @param {*} data */ (data) => {
+            /** @param {*} data */(data) => {
                 if (data) {
                     // Enable tabs when data is loaded
                     UIActions.showTab("summary");
@@ -482,7 +525,7 @@ export class MasterStateManager {
         // Integrate loading state with UI
         subscribe(
             "isLoading",
-            /** @param {boolean} isLoading */ (isLoading) => {
+            /** @param {boolean} isLoading */(isLoading) => {
                 // Update UI elements based on loading state
                 const elements = document.querySelectorAll(".loading-sensitive");
                 for (const el of elements) {
@@ -495,7 +538,7 @@ export class MasterStateManager {
         // Integrate theme changes with maps and charts
         subscribe(
             "ui.theme",
-            /** @param {string} theme */ (theme) => {
+            /** @param {string} theme */(theme) => {
                 // Notify other components about theme changes
                 globalThis.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
             }
@@ -569,19 +612,19 @@ export class MasterStateManager {
                             performance
                         ).memory
                             ? {
-                                  total: Math.round(
-                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */ (performance)
-                                          .memory.totalJSHeapSize /
-                                          1024 /
-                                          1024
-                                  ),
-                                  used: Math.round(
-                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */ (performance)
-                                          .memory.usedJSHeapSize /
-                                          1024 /
-                                          1024
-                                  ),
-                              }
+                                total: Math.round(
+                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */(performance)
+                                        .memory.totalJSHeapSize /
+                                    1024 /
+                                    1024
+                                ),
+                                used: Math.round(
+                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */(performance)
+                                        .memory.usedJSHeapSize /
+                                    1024 /
+                                    1024
+                                ),
+                            }
                             : null,
                     stateChangesPerMinute: Math.round((stateChangeCount * 60_000) / elapsed),
                     timestamp: now,

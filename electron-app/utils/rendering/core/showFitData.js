@@ -92,16 +92,8 @@ export function showFitData(data, filePath, options = {}) {
             // Enable tabs and send notifications
             enableTabsAndNotify(filePath);
 
-            // Update state with file information
-            setState(
-                "fileInfo",
-                {
-                    loadedAt: Date.now(),
-                    name: fileName,
-                    path: filePath,
-                },
-                { source: "showFitData" }
-            );
+            // Use central state management for file information
+            setState("currentFile", filePath, { source: "showFitData" });
         }
 
         // Create global chart status indicator if available
@@ -122,16 +114,9 @@ export function showFitData(data, filePath, options = {}) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error showing FIT data";
         logWithContext(`Error showing FIT data: ${errorMessage}`, "error");
 
-        // Update state with error information
-        setState(
-            "error",
-            {
-                message: errorMessage,
-                source: "showFitData",
-                timestamp: Date.now(),
-            },
-            { source: "showFitData" }
-        );
+        // Let the central error handling system manage this error
+        // instead of writing directly to state
+        console.error("[ShowFitData] Error:", error);
 
         throw error;
     }
