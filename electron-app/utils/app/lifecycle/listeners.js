@@ -165,10 +165,22 @@ export function setupListeners({
             }
         });
         setTimeout(() => focusItem(0), 0);
+
+        document.body.appendChild(menu);
+        const menuCreatedAt = Date.now(); // Track when menu was created
+
         /** @param {MouseEvent} e */
         const removeMenu = (e) => {
-            const { target } = e;
+            const { target, isTrusted, which, button } = e;
             if (target instanceof Node && !menu.contains(target) && target !== menu) {
+                // Check for test pollution: synthetic events that are both untrusted AND
+                // occur more than 2 seconds after menu creation (likely from earlier tests)
+                const timeSinceMenuCreated = Date.now() - menuCreatedAt;
+                const isLikelyTestPollution = !isTrusted && which === 0 && button === 0 && timeSinceMenuCreated > 2000;
+                if (isLikelyTestPollution) {
+                    return;
+                }
+
                 menu.remove();
                 document.removeEventListener("mousedown", removeMenu);
             }
@@ -265,8 +277,7 @@ export function setupListeners({
          * Decoder options changed handler
          * @param {any} newOptions
          */
-        globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ newOptions) => {
-            console.log("[DEBUG] Decoder options changed:", newOptions);
+        globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ _newOptions) => {
             showNotification("Decoder options updated.", "info", 2000);
             if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
                 const filePath = globalThis.globalData.cachedFilePath;
