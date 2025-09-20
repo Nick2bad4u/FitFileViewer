@@ -3,51 +3,40 @@
  */
 import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vitest';
 
-// Mock implementations
-const mockAppActions = {
-    switchTab: vi.fn(),
-    switchTheme: vi.fn(),
-    toggleChartControls: vi.fn(),
-    toggleMeasurementMode: vi.fn()
-};
+// Mock AppActions
+vi.mock('../../../../utils/app/lifecycle/appActions.js', () => ({
+    AppActions: {
+        switchTab: vi.fn(),
+        switchTheme: vi.fn(),
+        toggleChartControls: vi.fn(),
+        toggleMeasurementMode: vi.fn()
+    }
+}));
 
-const mockShowNotification = vi.fn();
+// Mock showNotification
+vi.mock('../../../../utils/ui/notifications/showNotification.js', () => ({
+    showNotification: vi.fn()
+}));
 
-const mockStateManager = {
+// Mock state manager
+vi.mock('../../../../utils/state/core/stateManager.js', () => ({
     getState: vi.fn(),
     setState: vi.fn(),
     subscribe: vi.fn(),
     updateState: vi.fn()
-};
-
-// Set up module mocks before imports
-vi.doMock('../../app/lifecycle/appActions.js', () => ({
-    AppActions: mockAppActions
 }));
 
-vi.doMock('../../ui/notifications/showNotification.js', () => ({
-    showNotification: mockShowNotification
-}));
-
-vi.doMock('../core/stateManager.js', () => ({
-    getState: mockStateManager.getState,
-    setState: mockStateManager.setState,
-    subscribe: mockStateManager.subscribe,
-    updateState: mockStateManager.updateState
-}));
+// Import the modules after mocks are set up
+import { UIStateManager, uiStateManager, UIActions } from '../../../../utils/state/domain/uiStateManager.js';
+import { AppActions } from '../../../../utils/app/lifecycle/appActions.js';
+import { showNotification } from '../../../../utils/ui/notifications/showNotification.js';
+import { getState, setState, subscribe, updateState } from '../../../../utils/state/core/stateManager.js';
 
 describe('UIStateManager - comprehensive coverage', () => {
-    let UIStateManager: any;
-    let uiStateManager: any;
-    let UIActions: any;
     let addEventListenerSpy: any;
 
     beforeAll(async () => {
-        // Import the module after mocks are set up
-        const module = await import('../../../../utils/state/domain/uiStateManager.js');
-        UIStateManager = module.UIStateManager;
-        uiStateManager = module.uiStateManager;
-        UIActions = module.UIActions;
+        // Modules are already imported above
     });
 
     beforeEach(() => {
@@ -110,15 +99,31 @@ describe('UIStateManager - comprehensive coverage', () => {
                 addListener: vi.fn(),
                 removeListener: vi.fn()
             })),
-            writable: true
+            writable: true,
+            configurable: true
         });
+
+        // Clear any active classes on theme buttons and reset DOM state
+        document.querySelectorAll('[data-theme]').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        // Clear any other state classes that might persist
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        // Reset document.documentElement theme
+        if (document.documentElement) {
+            delete document.documentElement.dataset.theme;
+        }
 
         // Spy on addEventListener
         addEventListenerSpy = vi.spyOn(Element.prototype, 'addEventListener');
 
         // Reset all mocks
         vi.clearAllMocks();
-        mockStateManager.getState.mockReturnValue(false);
+        vi.mocked(getState).mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -147,11 +152,11 @@ describe('UIStateManager - comprehensive coverage', () => {
             const manager = new UIStateManager();
 
             // Verify subscribe was called for each state property
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith('ui.activeTab', expect.any(Function));
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith('ui.theme', expect.any(Function));
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith('isLoading', expect.any(Function));
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith('charts.controlsVisible', expect.any(Function));
-            expect(mockStateManager.subscribe).toHaveBeenCalledWith('map.measurementMode', expect.any(Function));
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith('ui.activeTab', expect.any(Function));
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith('ui.theme', expect.any(Function));
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith('isLoading', expect.any(Function));
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith('charts.controlsVisible', expect.any(Function));
+            expect(vi.mocked(subscribe)).toHaveBeenCalledWith('map.measurementMode', expect.any(Function));
         });
     });
 
@@ -275,7 +280,7 @@ describe('UIStateManager - comprehensive coverage', () => {
             const tabButton = document.querySelector('[data-tab="charts"]') as HTMLElement;
             tabButton.click();
 
-            expect(mockAppActions.switchTab).toHaveBeenCalledWith('charts');
+            expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith('charts');
         });
 
         it('should set up theme button event listeners', () => {
@@ -291,7 +296,7 @@ describe('UIStateManager - comprehensive coverage', () => {
             const themeButton = document.querySelector('[data-theme="dark"]') as HTMLElement;
             themeButton.click();
 
-            expect(mockAppActions.switchTheme).toHaveBeenCalledWith('dark');
+            expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith('dark');
         });
 
         it('should set up chart controls toggle listener', () => {
@@ -307,7 +312,7 @@ describe('UIStateManager - comprehensive coverage', () => {
             const toggleButton = document.querySelector('#chart-controls-toggle') as HTMLElement;
             toggleButton.click();
 
-            expect(mockAppActions.toggleChartControls).toHaveBeenCalled();
+            expect(vi.mocked(AppActions.toggleChartControls)).toHaveBeenCalled();
         });
 
         it('should set up measurement mode toggle listener', () => {
@@ -323,7 +328,7 @@ describe('UIStateManager - comprehensive coverage', () => {
             const toggleButton = document.querySelector('#measurement-mode-toggle') as HTMLElement;
             toggleButton.click();
 
-            expect(mockAppActions.toggleMeasurementMode).toHaveBeenCalled();
+            expect(vi.mocked(AppActions.toggleMeasurementMode)).toHaveBeenCalled();
         });
 
         it('should handle missing elements gracefully', () => {
@@ -341,8 +346,8 @@ describe('UIStateManager - comprehensive coverage', () => {
 
             manager.showNotification('Test message');
 
-            expect(mockShowNotification).toHaveBeenCalledWith('Test message', 'info', 3000);
-            expect(mockStateManager.setState).toHaveBeenCalledWith('ui.lastNotification',
+            expect(vi.mocked(showNotification)).toHaveBeenCalledWith('Test message', 'info', 3000);
+            expect(vi.mocked(setState)).toHaveBeenCalledWith('ui.lastNotification',
                 expect.objectContaining({
                     message: 'Test message',
                     type: 'info'
@@ -361,8 +366,8 @@ describe('UIStateManager - comprehensive coverage', () => {
 
             manager.showNotification(notification);
 
-            expect(mockShowNotification).toHaveBeenCalledWith('Error occurred', 'error', 5000);
-            expect(mockStateManager.setState).toHaveBeenCalledWith('ui.lastNotification',
+            expect(vi.mocked(showNotification)).toHaveBeenCalledWith('Error occurred', 'error', 5000);
+            expect(vi.mocked(setState)).toHaveBeenCalledWith('ui.lastNotification',
                 expect.objectContaining({
                     message: 'Error occurred',
                     type: 'error'
@@ -377,7 +382,7 @@ describe('UIStateManager - comprehensive coverage', () => {
 
             manager.showNotification(notification);
 
-            expect(mockShowNotification).toHaveBeenCalledWith('Test', 'info', 3000);
+            expect(vi.mocked(showNotification)).toHaveBeenCalledWith('Test', 'info', 3000);
         });
 
         it('should handle invalid notification parameter', () => {
@@ -387,13 +392,13 @@ describe('UIStateManager - comprehensive coverage', () => {
             manager.showNotification(null);
 
             expect(consoleSpy).toHaveBeenCalledWith('[UIStateManager] Invalid notification parameter:', null);
-            expect(mockShowNotification).not.toHaveBeenCalled();
+            expect(vi.mocked(showNotification)).not.toHaveBeenCalled();
         });
 
         it('should fallback to console logging when showNotification fails', async () => {
             const manager = new UIStateManager();
             const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-            mockShowNotification.mockImplementation(() => {
+            vi.mocked(showNotification).mockImplementation(() => {
                 throw new Error('Notification failed');
             });
 
@@ -405,7 +410,7 @@ describe('UIStateManager - comprehensive coverage', () => {
         it('should handle error notification fallback', async () => {
             const manager = new UIStateManager();
             const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-            mockShowNotification.mockImplementation(() => {
+            vi.mocked(showNotification).mockImplementation(() => {
                 throw new Error('Notification failed');
             });
 
@@ -546,11 +551,11 @@ describe('UIStateManager - comprehensive coverage', () => {
     describe('Sidebar Management', () => {
         it('should toggle sidebar from state', () => {
             const manager = new UIStateManager();
-            mockStateManager.getState.mockReturnValue(false);
+            vi.mocked(getState).mockReturnValue(false);
 
             manager.toggleSidebar(undefined);
 
-            expect(mockStateManager.setState).toHaveBeenCalledWith('ui.sidebarCollapsed', true,
+            expect(vi.mocked(setState)).toHaveBeenCalledWith('ui.sidebarCollapsed', true,
                 { source: 'UIStateManager.toggleSidebar' });
         });
 
@@ -559,7 +564,7 @@ describe('UIStateManager - comprehensive coverage', () => {
 
             manager.toggleSidebar(true);
 
-            expect(mockStateManager.setState).toHaveBeenCalledWith('ui.sidebarCollapsed', true,
+            expect(vi.mocked(setState)).toHaveBeenCalledWith('ui.sidebarCollapsed', true,
                 { source: 'UIStateManager.toggleSidebar' });
         });
 
@@ -581,7 +586,7 @@ describe('UIStateManager - comprehensive coverage', () => {
 
             manager.updateWindowStateFromDOM();
 
-            expect(mockStateManager.updateState).toHaveBeenCalledWith('ui.windowState', {
+            expect(vi.mocked(updateState)).toHaveBeenCalledWith('ui.windowState', {
                 height: 800,
                 width: 1200,
                 maximized: false,
@@ -597,7 +602,7 @@ describe('UIStateManager - comprehensive coverage', () => {
 
             manager.updateWindowStateFromDOM();
 
-            expect(mockStateManager.updateState).toHaveBeenCalledWith('ui.windowState',
+            expect(vi.mocked(updateState)).toHaveBeenCalledWith('ui.windowState',
                 expect.objectContaining({ maximized: true }),
                 { source: 'UIStateManager.updateWindowStateFromDOM' }
             );
@@ -641,25 +646,25 @@ describe('UIStateManager - comprehensive coverage', () => {
         it('should provide UIActions.setTheme convenience function', () => {
             UIActions.setTheme('dark');
 
-            expect(mockAppActions.switchTheme).toHaveBeenCalledWith('dark');
+            expect(vi.mocked(AppActions.switchTheme)).toHaveBeenCalledWith('dark');
         });
 
         it('should provide UIActions.showTab convenience function', () => {
             UIActions.showTab('charts');
 
-            expect(mockAppActions.switchTab).toHaveBeenCalledWith('charts');
+            expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith('charts');
         });
 
         it('should provide UIActions.toggleChartControls convenience function', () => {
             UIActions.toggleChartControls();
 
-            expect(mockAppActions.toggleChartControls).toHaveBeenCalled();
+            expect(vi.mocked(AppActions.toggleChartControls)).toHaveBeenCalled();
         });
 
         it('should provide UIActions.toggleMeasurementMode convenience function', () => {
             UIActions.toggleMeasurementMode();
 
-            expect(mockAppActions.toggleMeasurementMode).toHaveBeenCalled();
+            expect(vi.mocked(AppActions.toggleMeasurementMode)).toHaveBeenCalled();
         });
 
         it('should provide UIActions.toggleSidebar convenience function', () => {
