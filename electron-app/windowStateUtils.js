@@ -90,6 +90,8 @@ function createWindow() {
                 webPreferences: {
                     preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
                     ...CONSTANTS.WEB_PREFERENCES,
+                    // Enable remote debugging for development
+                    webSecurity: process.env.NODE_ENV !== "production",
                 },
             };
 

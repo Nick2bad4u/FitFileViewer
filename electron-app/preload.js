@@ -514,13 +514,15 @@ const electronAPI = {
                 hasContextBridge = contextBridge !== undefined,
                 hasIpcRenderer = ipcRenderer !== undefined;
 
-            console.log("[preload.js] API Validation:", {
-                channelCount: Object.keys(CONSTANTS.CHANNELS).length,
-                eventCount: Object.keys(CONSTANTS.EVENTS).length,
-                hasConstants,
-                hasContextBridge,
-                hasIpcRenderer,
-            });
+            if (process.env.NODE_ENV === "development") {
+                console.log("[preload.js] API Validation:", {
+                    channelCount: Object.keys(CONSTANTS.CHANNELS).length,
+                    eventCount: Object.keys(CONSTANTS.EVENTS).length,
+                    hasConstants,
+                    hasContextBridge,
+                    hasIpcRenderer,
+                });
+            }
 
             return hasIpcRenderer && hasContextBridge && hasConstants;
         } catch (error) {
@@ -535,10 +537,10 @@ try {
     // Validate API before exposing
     if (electronAPI.validateAPI()) {
         contextBridge.exposeInMainWorld("electronAPI", electronAPI);
-        console.log("[preload.js] Successfully exposed electronAPI to main world");
 
         // Log API structure in development
         if (process.env.NODE_ENV === "development") {
+            console.log("[preload.js] Successfully exposed electronAPI to main world");
             const apiKeys = Object.keys(electronAPI),
                 /** @type {string[]} */
                 methods = apiKeys.filter((key) => typeof (/** @type {any} */ (electronAPI)[key]) === "function"),
@@ -598,7 +600,9 @@ if (process.env.NODE_ENV === "development") {
             },
         });
 
-        console.log("[preload.js] Development tools exposed");
+        if (process.env.NODE_ENV === "development") {
+            console.log("[preload.js] Development tools exposed");
+        }
     } catch (error) {
         console.error("[preload.js] Failed to expose development tools:", error);
     }
@@ -606,8 +610,12 @@ if (process.env.NODE_ENV === "development") {
 
 // Cleanup and final validation
 process.once("beforeExit", () => {
-    console.log("[preload.js] Process exiting, performing cleanup...");
+    if (process.env.NODE_ENV === "development") {
+        console.log("[preload.js] Process exiting, performing cleanup...");
+    }
 });
 
 // Report successful initialization
-console.log("[preload.js] Preload script initialized successfully");
+if (process.env.NODE_ENV === "development") {
+    console.log("[preload.js] Preload script initialized successfully");
+}

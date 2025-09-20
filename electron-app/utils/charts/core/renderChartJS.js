@@ -338,9 +338,9 @@ export const chartState = {
 
         return Array.isArray(formatChartFields)
             ? formatChartFields.filter((field) => {
-                  const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
-                  return visibility !== "hidden";
-              })
+                const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
+                return visibility !== "hidden";
+            })
             : [];
     },
 
@@ -478,9 +478,9 @@ try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
-            ChartRef.registry &&
-            ChartRef.registry.plugins &&
-            typeof ChartRef.registry.plugins.get === "function"
+        ChartRef.registry &&
+        ChartRef.registry.plugins &&
+        typeof ChartRef.registry.plugins.get === "function"
     );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
@@ -600,22 +600,24 @@ export function initializeChartStateManagement() {
         lastRender: getState("charts.lastRenderTime"),
     }));
 
-    // Set up state middleware for chart operations
-    middlewareManager.register("chart-render", {
-        afterSet: (/** @type {any} */ context) => {
-            console.log("[ChartJS] Chart render action completed:", context);
-            return context;
-        },
-        beforeSet: (/** @type {any} */ context) => {
-            console.log("[ChartJS] Starting chart render action:", context);
-            return context;
-        },
-        onError: (/** @type {any} */ context) => {
-            console.error("[ChartJS] Chart render action failed:", context);
-            showNotification("Chart rendering failed", "error");
-            return context;
-        },
-    });
+    // Set up state middleware for chart operations (only if not already registered)
+    if (!middlewareManager.middleware?.has?.("chart-render")) {
+        middlewareManager.register("chart-render", {
+            afterSet: (/** @type {any} */ context) => {
+                console.log("[ChartJS] Chart render action completed:", context);
+                return context;
+            },
+            beforeSet: (/** @type {any} */ context) => {
+                console.log("[ChartJS] Starting chart render action:", context);
+                return context;
+            },
+            onError: (/** @type {any} */ context) => {
+                console.error("[ChartJS] Chart render action failed:", context);
+                showNotification("Chart rendering failed", "error");
+                return context;
+            },
+        });
+    }
 
     console.log("[ChartJS] Chart state management initialized successfully");
 }
@@ -760,7 +762,7 @@ export async function renderChartJS(targetContainer) {
             performanceEnd = performance.now(),
             renderTime = performanceEnd - performanceStart,
             result = await renderChartsWithData(
-                /** @type {HTMLElement} */ (targetContainer),
+                /** @type {HTMLElement} */(targetContainer),
                 recordMesgs,
                 activityStartTime
             );
@@ -804,16 +806,16 @@ export async function renderChartJS(targetContainer) {
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
                         /** @type {any} */ (themeConfig).colors.text
-                    });">An error occurred while rendering the charts.</p>
+                });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                        });">Error Details</summary>
+                });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
                             /** @type {any} */ (themeConfig).colors.border
-                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
+                });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -1046,26 +1048,26 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
-                if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
-                    let value = Number.parseFloat(/** @type {any} */ (row)[field]);
+            if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
+                let value = Number.parseFloat(/** @type {any} */(row)[field]);
 
-                    // Apply unit conversion based on user preferences
-                    if (!isNaN(value)) {
-                        value = convertValueToUserUnits(value, field);
-                    }
-
-                    if (index < 3) {
-                        // Debug first few rows
-                        console.log(
-                            `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
-                                field
-                            )}`
-                        );
-                    }
-                    return isNaN(value) ? null : value;
+                // Apply unit conversion based on user preferences
+                if (!isNaN(value)) {
+                    value = convertValueToUserUnits(value, field);
                 }
-                return null;
-            }),
+
+                if (index < 3) {
+                    // Debug first few rows
+                    console.log(
+                        `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
+                            field
+                        )}`
+                    );
+                }
+                return isNaN(value) ? null : value;
+            }
+            return null;
+        }),
             validDataCount = numericData.filter((val) => val !== null).length;
         console.log(`[ChartJS] Field ${field}: ${validDataCount} valid data points out of ${numericData.length}`);
 
@@ -1107,7 +1109,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Create enhanced chart
         const chart = createEnhancedChart(
             canvas,
-            /** @type {any} */ ({
+            /** @type {any} */({
                 animationStyle,
                 chartData,
                 chartType,
@@ -1163,7 +1165,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneCharts(
             chartContainer,
-            /** @type {any} */ ({
+            /** @type {any} */({
                 // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
@@ -1419,9 +1421,9 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */ (computedStateManager).list?.(),
+                get: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).invalidate?.(key),
+                list: () => /** @type {any} */(computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({
@@ -1496,15 +1498,8 @@ if (globalThis.window !== undefined) {
             testStateSynchronization: () => {
                 console.log("[ChartJS Dev] Testing state synchronization...");
 
-                // Test theme change
-                const currentTheme = getState("ui.theme"),
-                    newTheme = currentTheme === "dark" ? "light" : "dark";
-                setState("ui.theme", newTheme, { silent: false, source: "dev-test" });
-
-                setTimeout(() => {
-                    setState("ui.theme", currentTheme, { silent: false, source: "dev-test" });
-                    console.log("[ChartJS Dev] State synchronization test completed");
-                }, 1000);
+                // Debug state access (removed automatic theme test to prevent redundant updates)
+                console.log("[ChartJS Dev] State access available for manual testing");
             },
         };
 

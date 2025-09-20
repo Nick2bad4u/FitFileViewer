@@ -101,17 +101,26 @@ export function setupListeners({
                 try {
                     const arrayBuffer = await globalThis.electronAPI.readFile(file),
                         result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
+
                     if (result && result.error) {
                         showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
-                    } else {
+                        return;
+                    }
+
+                    // Extract data using the same logic as handleOpenFile.js and IPC handler
+                    const dataToShow = result.data || result;
+
+                    if (dataToShow) {
                         // Optional chaining avoids undefined invocation
-                        globalThis.showFitData?.(result, file);
+                        globalThis.showFitData?.(dataToShow, file);
                         // Optional integration - guarded
                         if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
                             /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
                         }
+                        await globalThis.electronAPI.addRecentFile(file);
+                    } else {
+                        showNotification("Error: No valid FIT data found in file", "error");
                     }
-                    await globalThis.electronAPI.addRecentFile(file);
                 } catch (error) {
                     showNotification(`Error opening recent file: ${error}`, "error");
                 }
@@ -166,7 +175,7 @@ export function setupListeners({
         });
         setTimeout(() => focusItem(0), 0);
 
-        document.body.appendChild(menu);
+        document.body.append(menu);
         const menuCreatedAt = Date.now(); // Track when menu was created
 
         /** @param {MouseEvent} e */
@@ -254,20 +263,46 @@ export function setupListeners({
             try {
                 const arrayBuffer = await globalThis.electronAPI.readFile(filePath),
                     result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
+
+                // Handle parsing errors
                 if (result && result.error) {
                     showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
-                } else {
-                    globalThis.showFitData?.(result, filePath);
+                    return;
+                }
+
+                // Debug logging for development
+                if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
+                    console.log("[DEBUG] Recent file parse result:", result);
+                    const sessionCount = result.data?.sessions?.length || 0;
+                    console.log(`[Listeners] Debug: Parsed recent FIT data contains ${sessionCount} sessions`);
+                }
+
+                // Display the data with proper error handling
+                try {
+                    const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+
+                    if (globalThis.showFitData) {
+                        // Extract data using the same logic as handleOpenFile.js
+                        const dataToShow = result.data || result;
+                        globalThis.showFitData(dataToShow, filePathString);
+                    }
+
                     if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
                         /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
                     }
+                } catch (displayError) {
+                    showNotification(`Error displaying FIT data: ${displayError}`, "error");
+                    return;
                 }
+
+                // Add to recent files only if successfully displayed
                 await globalThis.electronAPI.addRecentFile(filePath);
             } catch (error) {
                 showNotification(`Error opening recent file: ${error}`, "error");
+            } finally {
+                openFileBtn.disabled = false;
+                setLoading(false);
             }
-            openFileBtn.disabled = false;
-            setLoading(false);
         });
     }
 

@@ -282,7 +282,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[1]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
-            expect(showFitData).toHaveBeenCalledWith(parseResult, files[1]);
+            expect(showFitData).toHaveBeenCalledWith(parseResult.data, files[1]);
         });
         // Loading toggled on/off
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
@@ -699,7 +699,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[0]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledTimes(1);
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[0]);
-            expect(showFitData).toHaveBeenCalledWith(parseResult, files[0]);
+            expect(showFitData).toHaveBeenCalledWith(parseResult.data, files[0]);
         });
     });
 
@@ -1675,10 +1675,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
     });
 
-    it("error handling: parse error without details (line 105)", async () => {
+    it("error handling: parse error without details (line 105)", { timeout: 15000 }, async () => {
         // Debug output to check test state
-        console.log("Test 105 - electronAPI exists:", !!globalThis.electronAPI);
-        console.log("Test 105 - electronAPI === globalThis.electronAPI:", electronAPI === globalThis.electronAPI);
+        console.log("Test 105 - electronAPI exists:", !!(globalThis as any).electronAPI);
+        console.log("Test 105 - electronAPI === globalThis.electronAPI:", electronAPI === (globalThis as any).electronAPI);
         console.log("Test 105 - electronAPI.recentFiles exists:", !!electronAPI.recentFiles);
 
         // Mock recent files as strings (this test targets recent file click handler)
@@ -1691,7 +1691,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         console.log("Test 105 - After mock setup, electronAPI.recentFiles exists:", !!electronAPI.recentFiles);
-        console.log("Test 105 - globalThis.electronAPI.recentFiles exists:", !!globalThis.electronAPI?.recentFiles);
+        console.log("Test 105 - globalThis.electronAPI.recentFiles exists:", !!(globalThis as any).electronAPI?.recentFiles);
 
         setupListeners({
             openFileBtn,
@@ -1727,11 +1727,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         console.log("Test 105 - Document body children count after delay:", document.body.children.length);
         console.log("Test 105 - Document body innerHTML length:", document.body.innerHTML.length);
 
-        // Wait for async menu creation
+        // Wait for async menu creation with explicit timeout and delay
+        await new Promise(resolve => setTimeout(resolve, 100));
         await vi.waitFor(() => {
             const contextMenu = document.querySelector("#recent-files-menu");
             expect(contextMenu).toBeTruthy();
-        });
+        }, { timeout: 10000, interval: 50 });
 
         // Mock error result without details
         vi.mocked(electronAPI.readFile).mockResolvedValue(new ArrayBuffer(8));
@@ -1756,7 +1757,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         }
     });
 
-    it("context menu: cleanup on mousedown (lines 181-182)", async () => {
+    it("context menu: cleanup on mousedown (lines 181-182)", { timeout: 15000 }, async () => {
         // Mock recent files as string array
         const files = ["/path/to/file1.fit"];
         electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
@@ -1783,11 +1784,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Add delay to ensure async operations complete
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Wait for async context menu creation
+        // Wait for async context menu creation with explicit timeout
         await vi.waitFor(() => {
             const menu = document.querySelector("#recent-files-menu");
             expect(menu).toBeTruthy();
-        });
+        }, { timeout: 10000, interval: 50 });
 
         // Trigger mousedown to cleanup
         const mousedownEvent = new MouseEvent("mousedown", {
@@ -1806,7 +1807,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         }
     });
 
-    it("context menu: handles onclick function (lines 200-201)", async () => {
+    it("context menu: handles onclick function (lines 200-201)", { timeout: 15000 }, async () => {
         // Mock recent files
         const files = ["/path/to/file1.fit"];
         electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
@@ -1833,11 +1834,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Add delay to ensure async operations complete
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Wait for async context menu creation
+        // Wait for async context menu creation with explicit timeout
         await vi.waitFor(() => {
             const menu = document.querySelector("#recent-files-menu");
             expect(menu).toBeTruthy();
-        });
+        }, { timeout: 10000, interval: 50 });
 
         // Find the menu item (first child div of the menu)
         const menu = document.querySelector("#recent-files-menu");

@@ -549,9 +549,19 @@ export function getMiddlewareInfo() {
 }
 
 /**
+ * @type {boolean} - Track if default middleware has been initialized
+ */
+let defaultMiddlewareInitialized = false;
+
+/**
  * Initialize default middleware
  */
 export function initializeDefaultMiddleware() {
+    if (defaultMiddlewareInitialized) {
+        console.log("[StateMiddleware] Default middleware already initialized, skipping...");
+        return;
+    }
+
     console.log("[StateMiddleware] Initializing default middleware...");
 
     // Register middleware in priority order
@@ -561,6 +571,7 @@ export function initializeDefaultMiddleware() {
     middlewareManager.register("persistence", persistenceMiddleware, 40);
     middlewareManager.register("notification", notificationMiddleware, 50); // Lowest priority
 
+    defaultMiddlewareInitialized = true;
     console.log("[StateMiddleware] Default middleware initialized");
 }
 

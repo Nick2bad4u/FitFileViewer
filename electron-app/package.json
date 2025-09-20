@@ -186,7 +186,7 @@
     "tests:convert-to-ts": "node ./scripts/convert-tests-to-ts.mjs",
     "test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --reporter=dot --silent",
     "test:jest": "jest",
-    "start": "electron . --inspect=9229",
+    "start": "electron . --inspect=9229 --remote-debugging-port=9222",
     "start-prod": "cross-env ELECTRON_IS_DEV=0 electron .",
     "build": "electron-builder",
     "build-all": "electron-builder -mwl",

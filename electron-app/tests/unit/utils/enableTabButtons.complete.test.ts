@@ -38,11 +38,11 @@ const mockSubscribe = vi.mocked(subscribe);
 const mockIsHTMLElement = vi.mocked(isHTMLElement);
 
 describe("enableTabButtons.js - Complete Test Suite", () => {
-    let testContainer;
-    let originalConsoleLog;
-    let originalConsoleWarn;
-    let consoleLogSpy;
-    let consoleWarnSpy;
+    let testContainer: HTMLElement;
+    let originalConsoleLog: typeof console.log;
+    let originalConsoleWarn: typeof console.warn;
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         // Reset all mocks
@@ -72,7 +72,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
         mockGetState.mockReturnValue(false);
 
         // Mock window properties
-        global.window = {
+        (global as any).window = {
             ...global.window,
             getComputedStyle: vi.fn().mockReturnValue({
                 pointerEvents: "auto",
@@ -261,7 +261,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                     return originalHasAttribute?.(attr) || false;
                 });
 
-                const mockParent = { replaceChild: vi.fn() };
+                const mockParent = { replaceChild: vi.fn() } as any;
                 vi.spyOn(testBtn, "parentNode", "get").mockReturnValue(mockParent);
                 vi.spyOn(testBtn, "cloneNode").mockReturnValue(testBtn);
             }
@@ -365,7 +365,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 
             // Set up existing observer
-            global.window.tabButtonObserver = { existing: true };
+            (global.window as any).tabButtonObserver = { existing: true };
 
             const mockObserver = {
                 observe: vi.fn(),
@@ -482,7 +482,8 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
             testContainer.innerHTML = `<button id="tab-summary" class="tab-button">Summary</button>`;
 
-            const summaryBtn = document.getElementById("tab-summary");
+            const summaryBtn = document.getElementById("tab-summary") as HTMLButtonElement;
+            expect(summaryBtn).toBeTruthy();
             const removeEventListenerSpy = vi.spyOn(summaryBtn, "removeEventListener");
 
             testTabButtonClicks();
@@ -587,7 +588,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
         it("should handle undefined window object", () => {
             const originalWindow = global.window;
-            global.window = undefined;
+            (global as any).window = undefined;
 
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 

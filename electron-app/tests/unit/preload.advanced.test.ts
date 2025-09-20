@@ -577,7 +577,7 @@ describe("preload.js - Advanced Test Coverage", () => {
         });
 
         test("should log successful initialization", () => {
-            createPreloadEnvironment();
+            createPreloadEnvironment({ NODE_ENV: "development" });
 
             expect(consoleSpy.log).toHaveBeenCalledWith("[preload.js] Preload script initialized successfully");
         });

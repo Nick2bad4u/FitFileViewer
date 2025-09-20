@@ -60,31 +60,6 @@ export class MasterStateManager {
     }
 
     /**
-     * Get current state (forwards to core state manager)
-     * @param {string} [path] - Optional state path
-     * @returns {*} State value
-     */
-    getState(path) {
-        return getState(path);
-    }
-
-    /**
-     * Get state history (forwards to core state manager)
-     * @returns {Array<Object>} State history
-     */
-    getHistory() {
-        return getStateHistory();
-    }
-
-    /**
-     * Get active subscriptions for debugging
-     * @returns {Object} Subscription information
-     */
-    getSubscriptions() {
-        return getSubscriptions();
-    }
-
-    /**
      * Clean up all state management
      */
     cleanup() {
@@ -119,8 +94,14 @@ export class MasterStateManager {
     }
 
     /**
-     * Initialize core state management
-     */ /**
+     * Get state history (forwards to core state manager)
+     * @returns {Array<Object>} State history
+     */
+    getHistory() {
+        return getStateHistory();
+    }
+
+    /**
     * Get initialization status
     * @returns {Object} Status object
     */
@@ -135,6 +116,25 @@ export class MasterStateManager {
                 version: getState("system.version"),
             },
         };
+    }
+
+    /**
+     * Get current state (forwards to core state manager)
+     * @param {string} [path] - Optional state path
+     * @returns {*} State value
+     */
+    getState(path) {
+        return getState(path);
+    }
+
+    /**
+     * Initialize core state management
+     */ /**
+     * Get active subscriptions for debugging
+     * @returns {Object} Subscription information
+     */
+    getSubscriptions() {
+        return getSubscriptions();
     }
 
     /**

@@ -622,25 +622,33 @@ function setState(path, value, options = {}) {
         (target)[finalKey] = value;
     }
 
-    // Add to history
-    if (stateHistory.length >= MAX_HISTORY_SIZE) {
-        stateHistory.shift();
+    // Check if value actually changed to prevent redundant updates
+    const hasChanged = !Object.is(oldValue, value);
+
+    // Add to history only if value changed
+    if (hasChanged) {
+        if (stateHistory.length >= MAX_HISTORY_SIZE) {
+            stateHistory.shift();
+        }
+
+        stateHistory.push({
+            newValue: value,
+            oldValue,
+            path,
+            source,
+            timestamp: Date.now(),
+        });
     }
 
-    stateHistory.push({
-        newValue: value,
-        oldValue,
-        path,
-        source,
-        timestamp: Date.now(),
-    });
-
-    // Notify listeners if not silent
-    if (!silent) {
+    // Notify listeners only if not silent AND value actually changed
+    if (!silent && hasChanged) {
         notifyListeners(path, value, oldValue);
     }
 
-    console.log(`[StateManager] ${path} updated by ${source}:`, { newValue: value, oldValue });
+    // Log only if value changed, or always if source indicates debug/dev
+    if (hasChanged || source.includes("dev") || source.includes("debug")) {
+        console.log(`[StateManager] ${path} updated by ${source}:`, { newValue: value, oldValue });
+    }
 }
 
 /**

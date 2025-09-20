@@ -957,7 +957,7 @@ function setupIPCHandlers(mainWindow) {
                         });
                         reject(err);
                     } else {
-                        resolve(data.buffer);
+                        resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
                     }
                 });
             });

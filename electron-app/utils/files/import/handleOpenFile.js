@@ -158,11 +158,14 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         }
         try {
             const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+
             if (globalThis.showFitData) {
-                globalThis.showFitData(result.data, filePathString);
+                // Try result.data first, but fall back to result if result.data is undefined/null
+                const dataToShow = result.data || result;
+                globalThis.showFitData(dataToShow, filePathString);
             }
             if (/** @type {*} */ (globalThis).sendFitFileToAltFitReader) {
-                /** @type {*} */ (globalThis).sendFitFileToAltFitReader(filePathString);
+                /** @type {*} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
             }
         } catch (error) {
             showNotification(`Error displaying FIT data: ${error}`, "error");
