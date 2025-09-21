@@ -3,24 +3,43 @@
  * @description Comprehensive test coverage for mainProcessStateManager.js
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
-
-// Mock electron before importing the module
+// Mock setup BEFORE any imports
 const mockBrowserWindow = {
     getAllWindows: vi.fn().mockReturnValue([]),
 };
-
-const mockElectron = {
-    BrowserWindow: mockBrowserWindow,
+const mockIpcMain = {
+    handle: vi.fn(),
+    removeHandler: vi.fn(),
 };
 
-vi.doMock('electron', () => mockElectron);
+// Mock electron module first - this should work for both ES6 imports and CommonJS require
+vi.mock('electron', () => ({
+    ipcMain: mockIpcMain,
+    BrowserWindow: mockBrowserWindow,
+}));
+
+// Set up global require mock to intercept require('electron') calls
+const originalRequire = global.require;
+global.require = vi.fn((id: string) => {
+    if (id === 'electron') {
+        return {
+            ipcMain: mockIpcMain,
+            BrowserWindow: mockBrowserWindow,
+        };
+    }
+    return originalRequire(id);
+}) as any;
+
+import { describe, test, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 
 // Create a comprehensive mock for logWithLevel
 vi.mock('../../../../../utils/logging/logWithLevel.js', () => ({
     default: vi.fn(),
     logWithLevel: vi.fn(),
 }));
+
+// Import the module after setting up the mock
+import * as MainProcessStateManager from '../../../../../utils/state/integration/mainProcessStateManager.js';
 
 describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
     let MainProcessState: any;
@@ -33,11 +52,11 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
 
         // Reset electron mocks
         mockBrowserWindow.getAllWindows.mockReturnValue([]);
+        mockIpcMain.handle.mockClear();
 
-        // Import after mocks are set up
-        const module = await import('../../../../../utils/state/integration/mainProcessStateManager.js');
-        MainProcessState = module.MainProcessState;
-        mainProcessState = module.mainProcessState;
+        // Use the statically imported module
+        MainProcessState = MainProcessStateManager.MainProcessState;
+        mainProcessState = MainProcessStateManager.mainProcessState;
 
         // Create fresh instance for testing
         stateInstance = new MainProcessState();
@@ -591,6 +610,15 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
             }).toThrow();
         });
 
+        test('should handle setByPath with null target', () => {
+            stateInstance.data.primitive = 'string';
+
+            // This will actually throw because you can't set properties on strings
+            expect(() => {
+                stateInstance.setByPath(stateInstance.data, 'primitive.property', 'value');
+            }).toThrow();
+        });
+
         test('should handle operations with missing operations map', () => {
             const originalOperations = stateInstance.data.operations;
 
@@ -608,4 +636,178 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
             stateInstance.data.operations = originalOperations;
         });
     });
-});
+
+    describe('IPC Handler Setup', () => {
+        test('should set up IPC handlers when ipcMain is available', () => {
+            // Create new instance to trigger setupIPCHandlers
+            const testInstance = new MainProcessState();
+
+            // Verify ipcMain.handle was called for each handler
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:get', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:set', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:listen', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:operation', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:operations', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:errors', expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith('main-state:metrics', expect.any(Function));
+        });
+
+        test('should skip IPC handler setup when ipcMain is not available', () => {
+            // Temporarily mock electron to not have ipcMain
+            const originalMock = vi.mocked(require('electron'));
+            vi.doMock('electron', () => ({
+                BrowserWindow: mockBrowserWindow,
+                // No ipcMain
+            }));
+
+            try {
+                // Create new instance - should not throw
+                expect(() => new MainProcessState()).not.toThrow();
+            } finally {
+                // Restore original mock
+                vi.doMock('electron', () => originalMock);
+            }
+        });
+        });
+
+        test('should handle main-state:get IPC calls', () => {
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const getHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:get')![1];
+
+            // Test getting specific path
+            const result1 = getHandler({}, 'loadedFitFilePath');
+            expect(result1).toBeNull();
+
+            // Test getting all data
+            const result2 = getHandler({}, '');
+            expect(result2).toBeDefined();
+        });
+
+        test('should handle main-state:set IPC calls with allowed paths', () => {
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const setHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:set')![1];
+
+            // Test allowed path
+            const result1 = setHandler({}, 'loadedFitFilePath', '/test/path');
+            expect(result1).toBe(true);
+
+            // Test restricted path
+            const result2 = setHandler({}, 'restrictedPath', 'value');
+            expect(result2).toBe(false);
+        });
+
+        test('should handle main-state:listen IPC calls', () => {
+            const mockSender = {
+                send: vi.fn(),
+            };
+            const mockEvent = { sender: mockSender };
+
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const listenHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:listen')![1];
+
+            const result = listenHandler(mockEvent, 'testPath');
+            expect(result).toBe(true);
+        });
+
+        test('should handle main-state:operation IPC calls', () => {
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const operationHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:operation')![1];
+
+            const result = operationHandler({}, 'test-op');
+            expect(result).toBeUndefined(); // No operation exists
+        });
+
+        test('should handle main-state:operations IPC calls', () => {
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const operationsHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:operations')![1];
+
+            const result = operationsHandler();
+            expect(result).toEqual({});
+        });
+
+        test('should handle main-state:errors IPC calls', () => {
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const errorsHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:errors')![1];
+
+            const result = errorsHandler({}, 10);
+            expect(Array.isArray(result)).toBe(true);
+        });
+
+        test('should handle main-state:metrics IPC calls', () => {
+            const mockIpcMain = {
+                handle: vi.fn(),
+            };
+
+            vi.mock('electron', () => ({
+                ipcMain: mockIpcMain,
+            }));
+
+            const testInstance = new MainProcessState();
+
+            // Get the handler function that was registered
+            const metricsHandler = mockIpcMain.handle.mock.calls.find(call => call[0] === 'main-state:metrics')![1];
+
+            const result = metricsHandler();
+            expect(result).toBeDefined();
+        });
+    });

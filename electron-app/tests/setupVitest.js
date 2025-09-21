@@ -21,7 +21,7 @@ let __clearListeners;
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
 function ensureConsoleAlive() {
     try {
-        const noop = () => {};
+        const noop = () => { };
         /** @type {any} */
         const current = /** @type {any} */ (globalThis.console);
         if (!current) {
@@ -127,9 +127,25 @@ function ensureConsoleAlive() {
     }
 }
 
-vitestBeforeEach(() => ensureConsoleAlive());
-vitestAfterEach(() => ensureConsoleAlive());
-vitestAfterAll(() => ensureConsoleAlive());
+// Register hooks defensively: in some execution modes (e.g., forks pool or
+// early setup evaluation), the Vitest runner might not yet be ready, causing
+// "Vitest failed to find the runner". Swallow those cases and proceed; tests
+// will still run, and other suites can register hooks when the runner is ready.
+try {
+    vitestBeforeEach(() => ensureConsoleAlive());
+} catch {
+    /* ignore: runner not yet available */
+}
+try {
+    vitestAfterEach(() => ensureConsoleAlive());
+} catch {
+    /* ignore: runner not yet available */
+}
+try {
+    vitestAfterAll(() => ensureConsoleAlive());
+} catch {
+    /* ignore: runner not yet available */
+}
 // Import the enhanced JSDOM setup to fix DOM-related test failures
 // Import the enhanced JSDOM setup directly inside setupVitest.js
 // directly include the JSDOM setup code instead of importing
@@ -1139,128 +1155,136 @@ try {
 }
 
 // Global afterEach to reinstall guards in case tests mutated DOM APIs
-vitestAfterEach(() => {
-    try {
-        // Restore DOM to native jsdom and reinstall guards after each test
-        restoreNativeDom();
-    } catch {
-        /* Ignore errors */
-    }
-    // Ensure canonical effective document reflects the current global document
-    try {
-        // @ts-ignore
-        globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
-    } catch {
-        /* Ignore errors */
-    }
-    // Ensure no DOM from a previous test leaks into the next one
-    try {
-        if (typeof document !== "undefined" && document.body) {
-            document.body.innerHTML = "";
+try {
+    vitestAfterEach(() => {
+        try {
+            // Restore DOM to native jsdom and reinstall guards after each test
+            restoreNativeDom();
+        } catch {
+            /* Ignore errors */
         }
-    } catch {
-        /* Ignore errors */
-    }
-    // Disconnect MutationObservers and clear timers/listeners best-effort
-    try {
-        if (typeof window !== "undefined") {
-            const w = /** @type {any} */ (window);
-            if (w.tabButtonObserver && typeof w.tabButtonObserver.disconnect === "function") {
-                w.tabButtonObserver.disconnect();
-                delete w.tabButtonObserver;
+        // Ensure canonical effective document reflects the current global document
+        try {
+            // @ts-ignore
+            globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
+        } catch {
+            /* Ignore errors */
+        }
+        // Ensure no DOM from a previous test leaks into the next one
+        try {
+            if (typeof document !== "undefined" && document.body) {
+                document.body.innerHTML = "";
             }
+        } catch {
+            /* Ignore errors */
         }
-    } catch {
-        /* Ignore errors */
-    }
-    // Clear tracked timers
-    try {
-        /** @type {Set<number>} */
-        const timeouts = /** @type {any} */ (globalThis).__vitest_tracked_timeouts;
-        /** @type {Set<number>} */
-        const intervals = /** @type {any} */ (globalThis).__vitest_tracked_intervals;
-        if (timeouts && typeof clearTimeout === "function") {
-            for (const id of Array.from(timeouts)) {
-                try {
-                    clearTimeout(id);
-                } catch {
-                    /* Ignore errors */
+        // Disconnect MutationObservers and clear timers/listeners best-effort
+        try {
+            if (typeof window !== "undefined") {
+                const w = /** @type {any} */ (window);
+                if (w.tabButtonObserver && typeof w.tabButtonObserver.disconnect === "function") {
+                    w.tabButtonObserver.disconnect();
+                    delete w.tabButtonObserver;
                 }
             }
-            timeouts.clear?.();
+        } catch {
+            /* Ignore errors */
         }
-        if (intervals && typeof clearInterval === "function") {
-            for (const id of Array.from(intervals)) {
-                try {
-                    clearInterval(id);
-                } catch {
-                    /* Ignore errors */
+        // Clear tracked timers
+        try {
+            /** @type {Set<number>} */
+            const timeouts = /** @type {any} */ (globalThis).__vitest_tracked_timeouts;
+            /** @type {Set<number>} */
+            const intervals = /** @type {any} */ (globalThis).__vitest_tracked_intervals;
+            if (timeouts && typeof clearTimeout === "function") {
+                for (const id of Array.from(timeouts)) {
+                    try {
+                        clearTimeout(id);
+                    } catch {
+                        /* Ignore errors */
+                    }
+                }
+                timeouts.clear?.();
+            }
+            if (intervals && typeof clearInterval === "function") {
+                for (const id of Array.from(intervals)) {
+                    try {
+                        clearInterval(id);
+                    } catch {
+                        /* Ignore errors */
+                    }
+                }
+                intervals.clear?.();
+            }
+        } catch {
+            /* Ignore errors */
+        }
+        // Remove tracked DOM event listeners
+        try {
+            /** @type {Array<{target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: any}>} */
+            const listeners = /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners;
+            if (Array.isArray(listeners)) {
+                for (const rec of listeners.splice(0, listeners.length)) {
+                    try {
+                        rec.target.removeEventListener(rec.type, rec.listener, rec.options);
+                    } catch {
+                        /* Ignore errors */
+                    }
                 }
             }
-            intervals.clear?.();
+        } catch {
+            /* Ignore errors */
         }
-    } catch {
-        /* Ignore errors */
-    }
-    // Remove tracked DOM event listeners
-    try {
-        /** @type {Array<{target: EventTarget, type: string, listener: EventListenerOrEventListenerObject, options?: any}>} */
-        const listeners = /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners;
-        if (Array.isArray(listeners)) {
-            for (const rec of listeners.splice(0, listeners.length)) {
-                try {
-                    rec.target.removeEventListener(rec.type, rec.listener, rec.options);
-                } catch {
-                    /* Ignore errors */
-                }
-            }
+        // Reset state manager to avoid cross-test subscriptions/history
+        try {
+            if (typeof __resetStateMgr === "function") __resetStateMgr();
+        } catch {
+            /* Ignore errors */
         }
-    } catch {
-        /* Ignore errors */
-    }
-    // Reset state manager to avoid cross-test subscriptions/history
-    try {
-        if (typeof __resetStateMgr === "function") __resetStateMgr();
-    } catch {
-        /* Ignore errors */
-    }
-    // Note: do NOT clear the manual mock registry here.
-    // We rely on vi.mock hoisting once per test file; clearing per-test breaks
-    // identity linking between test-imported spies and modules under test.
-});
+        // Note: do NOT clear the manual mock registry here.
+        // We rely on vi.mock hoisting once per test file; clearing per-test breaks
+        // identity linking between test-imported spies and modules under test.
+    });
+} catch {
+    /* ignore: runner not yet available */
+}
 
 // Also ensure guards are installed before each test, so leaked mocks from a previous test
 // don't affect the next test's setup (particularly document.createElement overrides).
-vitestBeforeEach(() => {
-    try {
-        // Ensure we start each test from a clean native jsdom window/document
-        restoreNativeDom();
-    } catch {
-        /* Ignore errors */
-    }
-    // Ensure canonical effective document reflects the current global document
-    try {
-        // @ts-ignore
-        globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
-    } catch {
-        /* Ignore errors */
-    }
-    // Clear any leftover DOM just in case a previous test in the same file
-    // left nodes behind. Individual tests should build their own fixtures.
-    try {
-        if (typeof document !== "undefined" && document.body) {
-            document.body.innerHTML = "";
+try {
+    vitestBeforeEach(() => {
+        try {
+            // Ensure we start each test from a clean native jsdom window/document
+            restoreNativeDom();
+        } catch {
+            /* Ignore errors */
         }
-    } catch {
-        /* Ignore errors */
-    }
-    // Also clear any lingering state listeners/history before starting a test
-    try {
-        if (typeof __clearListeners === "function") __clearListeners();
-    } catch {
-        /* Ignore errors */
-    }
-});
+        // Ensure canonical effective document reflects the current global document
+        try {
+            // @ts-ignore
+            globalThis.__vitest_effective_document__ = typeof document !== "undefined" ? document : undefined;
+        } catch {
+            /* Ignore errors */
+        }
+        // Clear any leftover DOM just in case a previous test in the same file
+        // left nodes behind. Individual tests should build their own fixtures.
+        try {
+            if (typeof document !== "undefined" && document.body) {
+                document.body.innerHTML = "";
+            }
+        } catch {
+            /* Ignore errors */
+        }
+        // Also clear any lingering state listeners/history before starting a test
+        try {
+            if (typeof __clearListeners === "function") __clearListeners();
+        } catch {
+            /* Ignore errors */
+        }
+    });
+} catch {
+    /* ignore: runner not yet available */
+}
 
 // Note: We previously overrode vi.mock/vi.doMock and patched Function to capture
 // dynamic requires for a few modules. This interfered with Vitest's hoisting

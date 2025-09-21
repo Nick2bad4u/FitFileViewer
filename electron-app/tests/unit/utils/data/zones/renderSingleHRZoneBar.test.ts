@@ -46,6 +46,7 @@ describe("renderSingleHRZoneBar", () => {
     let originalChart: any;
     let originalShowNotification: any;
     let mockChartInstance: any;
+    let lastChartConfig: any;
     let dom: JSDOM;
 
     beforeEach(() => {
@@ -88,10 +89,15 @@ describe("renderSingleHRZoneBar", () => {
             },
         };
 
+        // Reset last captured config
+        lastChartConfig = undefined;
+
         // Create a completely fresh Chart spy for each test
         // This is the key change to fix the failing tests
         const ChartSpy = vi.fn().mockImplementation((ctx, config) => {
             mockChartInstance.config = config;
+            lastChartConfig = config;
+            (global as any).__lastChartConfig = config;
             return mockChartInstance;
         });
 
@@ -178,11 +184,17 @@ describe("renderSingleHRZoneBar", () => {
         const zoneData = [{ label: "Zone 1", value: 300, color: "#ff0000" }];
 
         // Call with custom options
-        renderSingleHRZoneBar(canvas, zoneData, { title: "Custom HR Zones Title" });
+    const chartInstance = renderSingleHRZoneBar(canvas, zoneData, { title: "Custom HR Zones Title" });
+    expect(window.Chart).toHaveBeenCalled();
 
-        // Extract the options passed to Chart.js
-        const chartCall = (window.Chart as any).mock.calls[0];
-        const chartConfig = chartCall ? chartCall[1] : null;
+    // Prefer reading the config captured on our mock instance to avoid brittle mock.calls access
+        const chartConfig =
+            (mockChartInstance as any)?.config ??
+            (chartInstance as any)?.config ??
+            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ??
+            lastChartConfig ??
+            (global as any).__lastChartConfig;
+        expect(chartConfig).toBeDefined();
 
         // Verify title was set correctly
         expect(chartConfig?.options?.plugins?.title?.display).toBe(true);
@@ -190,10 +202,7 @@ describe("renderSingleHRZoneBar", () => {
     });
 
     it("should use zone colors from chartZoneColorUtils when colors not provided", () => {
-        // Create a fresh spy for this test
-        vi.restoreAllMocks();
-
-        // Mock Chart constructor specifically for this test
+        // Create a fresh Chart mock for this test
         window.Chart = vi.fn().mockImplementation((canvasElem, config) => {
             mockChartInstance.config = config;
             return mockChartInstance;
@@ -231,6 +240,36 @@ describe("renderSingleHRZoneBar", () => {
         // Verify colors were set (mocked getChartZoneColors would provide these)
         expect(chartConfig.data.datasets[0].backgroundColor).toBeDefined();
         expect(chartConfig.data.datasets[1].backgroundColor).toBeDefined();
+    });
+
+    it("should wire tooltip and y-axis callbacks that format time", () => {
+        const zoneData = [
+            { label: "Zone 1", value: 120 },
+        ];
+        const chartInstance = renderSingleHRZoneBar(canvas, zoneData);
+        // Prefer validating via the captured config rather than brittle constructor call counts
+        // Access the config stored on our mock instance with robust fallbacks
+        const cfg =
+            (mockChartInstance as any)?.config ??
+            (chartInstance as any)?.config ??
+            // Prefer globalThis.Chart mock calls since the module uses globalThis.Chart
+            (globalThis as any)?.Chart?.mock?.calls?.[0]?.[1] ??
+            (window as any)?.Chart?.mock?.calls?.[0]?.[1] ??
+            lastChartConfig ??
+            (global as any).__lastChartConfig;
+        expect(cfg).toBeDefined();
+    const yTickCb = cfg.options.scales.y.ticks.callback;
+    const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
+    expect(typeof yTickCb).toBe("function");
+    expect(typeof tooltipCb).toBe("function");
+    // Control the return values of formatTime at call-time to avoid environment brittleness
+    const ftSpy = vi.spyOn(formatTime, "formatTime");
+    ftSpy.mockReturnValueOnce("90s");
+    expect(yTickCb(90)).toBe("90s");
+    expect(ftSpy).toHaveBeenCalledWith(90, true);
+    ftSpy.mockReturnValueOnce("120s");
+    expect(tooltipCb({ dataset: { label: "Zone 1" }, parsed: { y: 120 } })).toBe("Zone 1: 120s");
+    expect(ftSpy).toHaveBeenCalledWith(120, true);
     });
 
     it.skip("should handle dark theme correctly", () => {

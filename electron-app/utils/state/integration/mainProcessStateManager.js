@@ -357,7 +357,9 @@ class MainProcessState {
 
         const { BrowserWindow } = safeElectron();
         const allWins =
-            BrowserWindow && typeof BrowserWindow.getAllWindows === "function" ? BrowserWindow.getAllWindows() : [];
+            BrowserWindow && typeof BrowserWindow.getAllWindows === "function"
+                ? BrowserWindow.getAllWindows() || []
+                : [];
         for (const win of allWins) {
             if (validateWindow(win)) {
                 try {

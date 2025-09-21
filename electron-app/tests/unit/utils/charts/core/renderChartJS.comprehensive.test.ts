@@ -318,7 +318,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
 
     describe('chartSettingsManager Object', () => {
         it('should provide getFieldVisibility method with localStorage integration', async () => {
-            const { chartSettingsManager } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartSettingsManager } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartSettingsManager.getFieldVisibility('speed');
 
@@ -332,7 +332,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should provide getSettings method with state fallback', async () => {
-            const { chartSettingsManager } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartSettingsManager } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartSettingsManager.getSettings();
 
@@ -353,7 +353,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should provide setFieldVisibility with state updates', async () => {
-            const { chartSettingsManager } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartSettingsManager } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartSettingsManager.setFieldVisibility('power', 'hidden');
 
@@ -367,7 +367,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should provide updateSettings method with persistence', async () => {
-            const { chartSettingsManager } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartSettingsManager } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const newSettings = { chartType: 'bar', showPoints: true };
             chartSettingsManager.updateSettings(newSettings);
@@ -388,7 +388,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 Zoom: {}
             };
 
-            await import('../../../../../../utils/charts/core/renderChartJS.js');
+            await import('../../../../../utils/charts/core/renderChartJS.js');
 
             expect(globalThis.Chart.register).toHaveBeenCalledWith(globalThis.Chart.Zoom);
         });
@@ -403,7 +403,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 }
             };
 
-            await import('../../../../../../utils/charts/core/renderChartJS.js');
+            await import('../../../../../utils/charts/core/renderChartJS.js');
 
             expect(globalThis.Chart.register).toHaveBeenCalled();
         });
@@ -411,7 +411,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         it('should handle Chart.js not available scenario', async () => {
             globalThis.Chart = null;
 
-            await import('../../../../../../utils/charts/core/renderChartJS.js');
+            await import('../../../../../utils/charts/core/renderChartJS.js');
 
             // Should not throw error and complete initialization
             expect(true).toBe(true);
@@ -420,7 +420,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
 
     describe('chartState Object - Computed Properties', () => {
         it('should provide chartData from state', async () => {
-            const { chartState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartState.chartData;
 
@@ -429,7 +429,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should provide hasValidData computed property', async () => {
-            const { chartState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartState.hasValidData;
 
@@ -439,7 +439,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
 
         it('should handle invalid data in hasValidData', async () => {
             mocks.stateManager.getState.mockReturnValue(null);
-            const { chartState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartState.hasValidData;
 
@@ -447,7 +447,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should provide renderableFields with visibility filtering', async () => {
-            const { chartState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartState.renderableFields;
 
@@ -456,7 +456,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
 
         it('should handle no valid data in renderableFields', async () => {
             mocks.stateManager.getState.mockReturnValue(null);
-            const { chartState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = chartState.renderableFields;
 
@@ -469,7 +469,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
             const mockChart = { destroy: vi.fn() };
             globalThis._chartjsInstances = [mockChart];
 
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartActions.clearCharts();
 
@@ -489,13 +489,13 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
             const mockChart = { destroy: vi.fn().mockImplementation(() => { throw new Error('Destroy failed'); }) };
             globalThis._chartjsInstances = [mockChart];
 
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             expect(() => chartActions.clearCharts()).not.toThrow();
         });
 
         it('should complete rendering with success', async () => {
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartActions.completeRendering(true, 3, 1500);
 
@@ -513,7 +513,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should complete rendering with failure', async () => {
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartActions.completeRendering(false);
 
@@ -528,7 +528,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should start rendering process', async () => {
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartActions.startRendering();
 
@@ -542,7 +542,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 return null;
             });
 
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartActions.selectChart('power');
 
@@ -550,7 +550,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should toggle controls visibility', async () => {
-            const { chartActions } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { chartActions } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             chartActions.toggleControls();
 
@@ -567,7 +567,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
             });
             globalThis._chartjsInstances = [];
 
-            const { exportChartsWithState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { exportChartsWithState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await exportChartsWithState('png');
 
@@ -584,7 +584,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 toBase64Image: vi.fn().mockReturnValue('data:image/png;base64,mockimage')
             }];
 
-            const { exportChartsWithState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { exportChartsWithState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await exportChartsWithState('png');
 
@@ -594,7 +594,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
 
     describe('Main renderChartJS Function - Core Rendering', () => {
         it('should execute chart rendering with valid data', async () => {
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const mockContainer = document.createElement('div');
             const result = await renderChartJS(mockContainer);
@@ -607,7 +607,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         it('should handle string container ID parameter', async () => {
             global.document.getElementById.mockReturnValue(document.createElement('div'));
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS('content-chart');
 
@@ -621,7 +621,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 return null;
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -632,7 +632,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         it('should handle Chart.js not available error', async () => {
             globalThis.Chart = null;
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -646,7 +646,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 return null;
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -655,7 +655,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should handle debouncing of rapid render calls', async () => {
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             // Mock Date.now to simulate rapid calls
             const originalDateNow = Date.now;
@@ -684,7 +684,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 throw new Error('Critical setup error');
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -698,7 +698,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 return null;
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -712,7 +712,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
             // Test is implicitly covered by main renderChartJS function
             // Since renderChartsWithData is private, it's tested through public interface
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -729,7 +729,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 showTitle: 'off'
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -741,7 +741,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         it('should track performance timing', async () => {
             global.window.performance.now.mockReturnValueOnce(1000).mockReturnValueOnce(1500);
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -750,7 +750,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should update performance state on completion', async () => {
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -770,7 +770,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 { destroy: vi.fn() }
             ];
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -783,7 +783,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should handle theme configuration integration', async () => {
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -792,7 +792,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should integrate with all chart rendering modules', async () => {
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -812,7 +812,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 return null;
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -822,7 +822,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         it('should handle missing field data gracefully', async () => {
             mocks.formatChartFields.formatChartFields = [];
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -834,7 +834,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
                 throw new Error('DOM error');
             });
 
-            const { renderChartJS } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { renderChartJS } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             const result = await renderChartJS();
 
@@ -845,7 +845,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
 
     describe('State Utility Functions', () => {
         it('should provide resetChartNotificationState function', async () => {
-            const { resetChartNotificationState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { resetChartNotificationState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             resetChartNotificationState();
 
@@ -854,7 +854,7 @@ describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection'
         });
 
         it('should provide updatePreviousChartState function', async () => {
-            const { updatePreviousChartState } = await import('../../../../../../utils/charts/core/renderChartJS.js');
+            const { updatePreviousChartState } = await import('../../../../../utils/charts/core/renderChartJS.js');
 
             updatePreviousChartState(5, 3, Date.now());
 

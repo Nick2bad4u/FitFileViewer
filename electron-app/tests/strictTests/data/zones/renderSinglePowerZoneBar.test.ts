@@ -23,7 +23,7 @@ describe("renderSinglePowerZoneBar", () => {
     it("renders chart when Chart is available", async () => {
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
-        (window as any).Chart = vi.fn(() => ({ destroy: vi.fn() }));
+        (window as any).Chart = vi.fn((_, cfg) => ({ destroy: vi.fn(), config: cfg }));
 
         // Ensure globalThis can access the Chart mock
         if (!(global as any).globalThis) {
@@ -43,6 +43,14 @@ describe("renderSinglePowerZoneBar", () => {
         );
         expect(chart).toBeTruthy();
         expect((window as any).Chart).toHaveBeenCalled();
+
+        // Exercise callbacks for coverage
+        const call = (window as any).Chart.mock.calls[0];
+        const cfg = call[1];
+        const yTickCb = cfg.options.scales.y.ticks.callback;
+        const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
+        expect(yTickCb(30)).toBe("30s");
+        expect(tooltipCb({ dataset: { label: "Z1" }, parsed: { y: 30 } })).toBe("Z1: 30s");
     });
 
     it("handles errors gracefully when Chart.js missing", async () => {

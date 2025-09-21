@@ -4,7 +4,10 @@
  * - State management functions
  * - Window management and validation
  * - IPC handlers and menu event handlers
- * - Application lifecycle events
+ * - A    // Mock utility modules
+    vi.mock('../../utils/state/integration/mainProcessStateManager', () => ({
+        mainProcessState: globalMocks.MockMainProcessState(),
+    }));cation lifecycle events
  * - Auto-updater functionality
  * - Gyazo OAuth server
  * - Error handling and edge cases
@@ -197,6 +200,12 @@ function createNodeMocks() {
         set: vi.fn(),
     }));
 
+    const mockOs = {
+        platform: vi.fn(() => 'win32'),
+        arch: vi.fn(() => 'x64'),
+        homedir: vi.fn(() => '/home/test'),
+    };
+
     const mockFitParser = {
         decodeFitFile: vi.fn().mockResolvedValue({ records: [] }),
     };
@@ -205,6 +214,7 @@ function createNodeMocks() {
         mockFs,
         mockPath,
         mockHttp,
+        mockOs,
         mockElectronLog,
         mockElectronConf,
         mockFitParser,
@@ -215,7 +225,7 @@ function createNodeMocks() {
  * Mock state management utilities
  */
 function createStateMocks() {
-    const MockMainProcessState = vi.fn(() => ({
+    const MockMainProcessState = {
         get: vi.fn((path: string) => {
             if (path === 'mainWindow') return globalMocks.mockWindow;
             if (path === 'loadedFitFilePath') return '/test/file.fit';
@@ -233,7 +243,7 @@ function createStateMocks() {
         notifyRenderers: vi.fn(),
         registerEventHandler: vi.fn(),
         recordMetric: vi.fn(),
-    }));
+    };
 
     return { MockMainProcessState };
 }
@@ -261,6 +271,7 @@ beforeAll(() => {
     vi.mock('electron-log', () => globalMocks.mockElectronLog);
     vi.mock('electron-updater', () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
     vi.mock('electron-conf', () => ({ Conf: globalMocks.mockElectronConf }));
+    vi.mock('os', () => globalMocks.mockOs);
 
     // Mock utility modules
     vi.mock('../../../utils/state/integration/mainProcessStateManager', () => ({
@@ -303,6 +314,33 @@ beforeAll(() => {
             };
         }
     }
+
+    // MODULE CACHE INJECTION: Inject electron mock directly into require cache
+    // This ensures main.js gets the mock even when imported via ES modules
+    try {
+        // Clear any existing electron from cache
+        delete require.cache['electron'];
+
+        // Create a mock module object
+        const mockModule = {
+            id: 'electron',
+            filename: 'electron',
+            loaded: true,
+            exports: globalMocks.mockElectron,
+        };
+
+        // Inject the mock directly into the require cache
+        require.cache['electron'] = mockModule as any;
+
+        // Also try the full path approach
+        const electronPath = require.resolve('electron');
+        require.cache[electronPath] = mockModule as any;
+
+        console.log('[TEST] Module cache injection completed for electron');
+        console.log(`Electron mock in cache: ${!!require.cache['electron']}`);
+    } catch (error) {
+        console.warn('[TEST] Module cache injection failed:', error);
+    }
 });
 
 beforeEach(() => {
@@ -323,6 +361,15 @@ beforeEach(() => {
 
     // Ensure hoisted mock is always available
     (globalThis as any).__electronHoistedMock = globalMocks.mockElectron;
+
+    // Clear main.js from module cache to ensure fresh import with mocks
+    try {
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        console.log('[TEST] Cleared main.js from module cache');
+    } catch (error) {
+        console.warn('[TEST] Failed to clear main.js from cache:', error);
+    }
 });
 
 afterEach(() => {
@@ -339,8 +386,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
         expect((globalThis as any).__electronHoistedMock.app).toBeTruthy();
         expect((globalThis as any).__electronHoistedMock.BrowserWindow).toBeTruthy();
 
-        // Import main.js to trigger all initialization code
-        const mainModule = await import('../../main.js');
+        // Clear module cache and require main.js to trigger all initialization code
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         // Give time for async initialization
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -350,31 +399,59 @@ describe('main.js - Comprehensive Coverage Tests', () => {
     });
 
     test('should exercise core initialization functions through direct calls', async () => {
-        // Set up state mock to be called
-        const mockStateInstance = {
-            get: vi.fn((path: string) => {
-                if (path === 'mainWindow') return globalMocks.mockWindow;
-                if (path === 'loadedFitFilePath') return '/test/file.fit';
-                if (path === 'autoUpdaterInitialized') return false;
-                if (path === 'appIsQuitting') return false;
-                return undefined;
-            }),
-            set: vi.fn(),
-            notifyChange: vi.fn(),
-            notifyRenderers: vi.fn(),
-            registerEventHandler: vi.fn(),
-            recordMetric: vi.fn(),
-        };
-        globalMocks.MockMainProcessState.mockReturnValue(mockStateInstance);
+        console.log('[TEST] Starting core initialization test');
 
-        await import('../../main.js');
+        // Clear module cache for main.js before requiring
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+
+        console.log('[TEST] About to require main.js');
+        // Use require() instead of import for CommonJS compatibility
+        const mainModule = require('../../main.js');
+        console.log('[TEST] main.js required successfully');
+        console.log('[TEST] mainModule keys:', Object.keys(mainModule || {}));
+
+        // Give time for any async initialization
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        console.log(`MockMainProcessState.set called: ${globalMocks.MockMainProcessState.set.mock.calls.length} times`);
+        console.log(`mockApp.whenReady called: ${globalMocks.mockApp.whenReady.mock.calls.length} times`);
+        console.log(`mockBrowserWindow.getAllWindows called: ${globalMocks.mockBrowserWindow.getAllWindows.mock.calls.length} times`);
+
+        // If initialization didn't happen automatically, try to trigger it manually
+        if (globalMocks.MockMainProcessState.mock.calls.length === 0) {
+            console.log('[TEST] Initialization did not happen automatically, trying manual trigger');
+
+            // Try to access internal functions if available
+            try {
+                // Check if we can access the module's internal functions
+                const mainModuleKeys = Object.keys(require.cache[mainPath]?.exports || {});
+                console.log('[TEST] Main module exports keys:', mainModuleKeys);
+
+                // Try to manually call initialization functions if they exist
+                if (typeof (global as any).initializeApplication === 'function') {
+                    console.log('[TEST] Calling initializeApplication manually');
+                    await (global as any).initializeApplication();
+                }
+
+                // Wait a bit more
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                console.log(`After manual trigger - MockMainProcessState.set called: ${globalMocks.MockMainProcessState.set.mock.calls.length} times`);
+            } catch (error) {
+                console.log('[TEST] Manual trigger failed:', error);
+            }
+        }
 
         // Verify state manager was called during initialization
-        expect(globalMocks.MockMainProcessState).toHaveBeenCalled();
+        expect(globalMocks.MockMainProcessState.set).toHaveBeenCalled();
     });
 
     test('should exercise window management through simulated events', async () => {
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         // Wait for initialization
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -390,7 +467,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
     });
 
     test('should exercise IPC handler registration during initialization', async () => {
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         // Wait for all initialization to complete
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -406,7 +486,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
             console.log('Auto-updater error handled:', error.message);
         });
 
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         // Test update events
         globalMocks.mockAutoUpdater.emit('update-available', { test: true });
@@ -419,7 +502,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
     });
 
     test('should exercise security handlers and web content management', async () => {
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         const mockWebContents = new EventEmitter();
         const mockWebContentsWithMethods = Object.assign(mockWebContents, {
@@ -438,7 +524,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
         // Test development mode
         process.env.NODE_ENV = 'development';
 
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -451,7 +540,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
             throw new Error('Cannot read package.json');
         });
 
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -460,7 +552,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
     });
 
     test('should exercise window lifecycle and theme management', async () => {
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         // Test theme retrieval
         globalMocks.mockWebContents.emit('did-finish-load');
@@ -474,7 +569,10 @@ describe('main.js - Comprehensive Coverage Tests', () => {
         // Test various environment conditions
         process.env.NODE_ENV = 'production';
 
-        await import('../../main.js');
+        // Clear module cache and require main.js
+        const mainPath = require.resolve('../../main.js');
+        delete require.cache[mainPath];
+        require('../../main.js');
 
         // Exercise dialog functionality
         expect(globalMocks.mockDialog.showOpenDialog).toBeDefined();

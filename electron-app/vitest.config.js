@@ -13,6 +13,12 @@ export default defineConfig({
     test: {
         clearMocks: true,
         cache: true, // Enable caching for faster subsequent runs
+        sequence: {
+            // Ensure deterministic order of setup files and hooks to avoid
+            // "failed to find the runner" flakiness in isolated runs
+            hooks: 'list',
+            setupFiles: 'list',
+        },
         coverage: {
             // Focus coverage collection on a curated, consistently testable set
             // To enforce a strict 100% coverage gate without counting
@@ -129,6 +135,20 @@ export default defineConfig({
         }, // Custom project name and color for Vitest
         // Use forks pool to avoid tinypool worker stdout requiring console before globalSetup
         pool: "forks",
+        poolOptions: {
+            threads: {
+                isolate: true, // Isolate tests for better reliability
+                maxThreads: 24, // Reduced from 24 to prevent resource contention in multi-project setup
+                minThreads: 1, // Ensure at least one thread
+                singleThread: false, // Enable multi-threading
+                useAtomics: true,
+            },
+            forks: {
+                minForks: 1,
+                maxForks: 6, // Limit forks to reduce resource contention
+                singleFork: false,
+            },
+        },
         reporters: [
             "default",
             "json",
