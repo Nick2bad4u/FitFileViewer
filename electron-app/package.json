@@ -185,6 +185,7 @@
   "scripts": {
     "tests:convert-to-ts": "node ./scripts/convert-tests-to-ts.mjs",
     "test": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --reporter=dot --silent",
+    "test:changed": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --changed --run --reporter=dot --silent",
     "test:jest": "jest",
     "start": "electron . --inspect=9229 --remote-debugging-port=9222",
     "start-prod": "cross-env ELECTRON_IS_DEV=0 electron .",
@@ -217,7 +218,9 @@
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "test:watch": "vitest --watch",
+    "test:watch-changed": "vitest --watch --changed",
     "test:coverage": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --coverage --run --reporter=dot --silent",
+    "test:coverage-changed": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --coverage --changed --run --reporter=dot --silent",
     "test:unit": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/unit",
     "test:integration": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/integration",
     "test:e2e": "jest --testPathPattern=e2e",

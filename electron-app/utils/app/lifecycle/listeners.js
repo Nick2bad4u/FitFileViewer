@@ -37,6 +37,7 @@ export function setupListeners({
             return;
         }
         const recentFiles = await globalThis.electronAPI.recentFiles();
+        console.log("DEBUG: recentFiles call completed. Result:", recentFiles, "Length:", recentFiles?.length);
         if (!recentFiles || recentFiles.length === 0) {
             showNotification("No recent files found.", "info", 2000);
             return;
@@ -175,23 +176,92 @@ export function setupListeners({
         });
         setTimeout(() => focusItem(0), 0);
 
-        document.body.append(menu);
+        console.log("DEBUG: About to append menu. Document:", !!document, "Body:", !!document.body, "Menu:", !!menu, "Menu ID:", menu.id);
+        console.log("DEBUG: Menu constructor:", menu.constructor.name, "Menu nodeName:", menu.nodeName, "Menu parentNode before append:", menu.parentNode);
+        console.log("DEBUG: Document.body type:", typeof document.body, "Document.body constructor:", document.body.constructor.name);
+        console.log("DEBUG: Document.body === body check:", document.body === document.body);
+        console.log("DEBUG: Document.body can append?", typeof document.body.append === 'function');
+
+        // Robust menu attachment with verification and retry
+        let attachmentAttempts = 0;
+        const maxAttempts = 3;
+
+        while (attachmentAttempts < maxAttempts) {
+            attachmentAttempts++;
+            console.log(`DEBUG: Attachment attempt ${attachmentAttempts}/${maxAttempts}`);
+
+            try {
+                document.body.append(menu);
+                console.log("DEBUG: append call succeeded");
+
+                // Immediately verify the menu is properly attached
+                const isAttached = document.body.contains(menu) && menu.parentNode === document.body;
+                const canBeFound = Boolean(document.querySelector("#recent-files-menu"));
+
+                console.log("DEBUG: Verification - isAttached:", isAttached, "canBeFound:", canBeFound);
+                console.log("DEBUG: Menu parentNode:", menu.parentNode, "parentNode === body:", menu.parentNode === document.body);
+
+                if (isAttached && canBeFound) {
+                    console.log("DEBUG: Menu successfully attached and verified");
+                    break;
+                } else {
+                    console.log("DEBUG: Menu attachment failed verification, retrying...");
+                    // Try to remove any existing menu before retry
+                    if (menu.parentNode) {
+                        menu.remove();
+                    }
+
+                    // Try alternative attachment method
+                    if (attachmentAttempts === 2) {
+                        console.log("DEBUG: Trying append with different approach");
+                        document.body.append(menu);
+                    } else if (attachmentAttempts === 3) {
+                        console.log("DEBUG: Trying insertBefore as last resort");
+                        document.body.insertBefore(menu, document.body.firstChild);
+                    }
+                }
+
+            } catch (error) {
+                console.log("DEBUG: append failed with error:", error.message);
+                if (attachmentAttempts === maxAttempts) {
+                    throw error;
+                }
+            }
+        }
+
+        // Final verification
+        const finalCheck = document.body.contains(menu) && Boolean(document.querySelector("#recent-files-menu"));
+        if (!finalCheck) {
+            console.error("DEBUG: CRITICAL - Menu attachment failed after all attempts");
+            throw new Error("Failed to attach context menu to DOM");
+        }
+
+        console.log("DEBUG: Final verification - Menu successfully attached");
+        console.log("DEBUG: Document body contains menu:", document.body.contains(menu), "Document contains menu:", document.contains(menu));
+        console.log("DEBUG: QuerySelector test:", Boolean(document.querySelector("#recent-files-menu")), "Body querySelector test:", Boolean(document.body.querySelector("#recent-files-menu")));
+        console.log("DEBUG: Document body children count:", document.body.children.length, "Body childNodes count:", document.body.childNodes.length);
         const menuCreatedAt = Date.now(); // Track when menu was created
 
         /** @param {MouseEvent} e */
         const removeMenu = (e) => {
+            console.log("DEBUG: removeMenu called - event:", e.type, "isTrusted:", e.isTrusted, "which:", e.which, "button:", e.button, "target:", e.target?.constructor?.name);
             const { target, isTrusted, which, button } = e;
             if (target instanceof Node && !menu.contains(target) && target !== menu) {
                 // Check for test pollution: synthetic events that are both untrusted AND
                 // occur more than 2 seconds after menu creation (likely from earlier tests)
                 const timeSinceMenuCreated = Date.now() - menuCreatedAt;
                 const isLikelyTestPollution = !isTrusted && which === 0 && button === 0 && timeSinceMenuCreated > 2000;
+                console.log("DEBUG: timeSinceMenuCreated:", timeSinceMenuCreated, "isLikelyTestPollution:", isLikelyTestPollution);
                 if (isLikelyTestPollution) {
+                    console.log("DEBUG: Ignoring test pollution event");
                     return;
                 }
 
+                console.log("DEBUG: Removing menu due to mousedown outside");
                 menu.remove();
                 document.removeEventListener("mousedown", removeMenu);
+            } else {
+                console.log("DEBUG: Not removing menu - target inside menu or is menu itself");
             }
         };
         document.addEventListener("mousedown", removeMenu);

@@ -264,8 +264,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const evt = new MouseEvent("contextmenu", { bubbles: true, clientX: 10, clientY: 15 });
         openFileBtn.dispatchEvent(evt);
 
-        // Wait for menu to be created
-        await Promise.resolve();
+        // Wait for async menu creation to complete
+        await vi.waitFor(() => {
+            const menu = document.getElementById("recent-files-menu");
+            expect(menu).toBeTruthy();
+        }, { timeout: 1000 });
 
         const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
         expect(menu).toBeTruthy();
@@ -1684,6 +1687,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Mock recent files as strings (this test targets recent file click handler)
         const files = ["/path/to/test.fit"];
         electronAPI.recentFiles = vi.fn().mockResolvedValue(files);
+
+        // Add detailed instrumentation to the mock to trace execution
+        electronAPI.recentFiles = vi.fn().mockImplementation(async () => {
+            console.log("Test 105 - recentFiles() called");
+            return files;
+        });
+
         electronAPI.readFile = vi.fn().mockResolvedValue(new ArrayBuffer(8));
         electronAPI.parseFitFile = vi.fn().mockResolvedValue({
             error: "Parse error",
@@ -1720,19 +1730,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         console.log("Test 105 - Menu exists immediately after event:", !!document.querySelector("#recent-files-menu"));
         console.log("Test 105 - Document body children count after event:", document.body.children.length);
 
-        // Add delay to ensure async operations complete
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        console.log("Test 105 - Menu exists after delay:", !!document.querySelector("#recent-files-menu"));
-        console.log("Test 105 - Document body children count after delay:", document.body.children.length);
-        console.log("Test 105 - Document body innerHTML length:", document.body.innerHTML.length);
-
-        // Wait for async menu creation with explicit timeout and delay
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for the async recentFiles call to complete and menu to be created
         await vi.waitFor(() => {
             const contextMenu = document.querySelector("#recent-files-menu");
-            expect(contextMenu).toBeTruthy();
-        }, { timeout: 10000, interval: 50 });
+            console.log("Test 105 - Menu found:", !!contextMenu);
+            return contextMenu !== null;
+        }, { timeout: 15000, interval: 100 });
+
+        const contextMenu = document.querySelector("#recent-files-menu");
+        expect(contextMenu).toBeTruthy();
 
         // Mock error result without details
         vi.mocked(electronAPI.readFile).mockResolvedValue(new ArrayBuffer(8));
@@ -1781,14 +1787,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
         openFileBtn.dispatchEvent(contextEvent);
 
-        // Add delay to ensure async operations complete
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Wait for async context menu creation with explicit timeout
+        // Wait for the async recentFiles call to complete and menu to be created
         await vi.waitFor(() => {
             const menu = document.querySelector("#recent-files-menu");
-            expect(menu).toBeTruthy();
-        }, { timeout: 10000, interval: 50 });
+            console.log("Test 181-182 - Menu found:", !!menu);
+            return menu !== null;
+        }, { timeout: 15000, interval: 100 });
+
+        const menu = document.querySelector("#recent-files-menu");
+        expect(menu).toBeTruthy();
 
         // Trigger mousedown to cleanup
         const mousedownEvent = new MouseEvent("mousedown", {
@@ -1831,17 +1838,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
         openFileBtn.dispatchEvent(contextEvent);
 
-        // Add delay to ensure async operations complete
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Wait for async context menu creation with explicit timeout
+        // Wait for the async recentFiles call to complete and menu to be created
         await vi.waitFor(() => {
             const menu = document.querySelector("#recent-files-menu");
-            expect(menu).toBeTruthy();
-        }, { timeout: 10000, interval: 50 });
+            console.log("Test 200-201 - Menu found:", !!menu);
+            return menu !== null;
+        }, { timeout: 15000, interval: 100 });
 
         // Find the menu item (first child div of the menu)
         const menu = document.querySelector("#recent-files-menu");
+        expect(menu).toBeTruthy();
         const menuItem = menu?.querySelector("div[role='menuitem']");
         expect(menuItem).toBeTruthy();
 

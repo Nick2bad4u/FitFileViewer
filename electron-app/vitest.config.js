@@ -3,6 +3,7 @@ import path from "node:path";
 import { coverageConfigDefaults, defaultExclude, defineConfig } from "vitest/config";
 
 export default defineConfig({
+    cacheDir: 'node_modules/.vite',
     resolve: {
         alias: {
             electron: "./tests/stubs/electron-virtual.js",
@@ -11,6 +12,7 @@ export default defineConfig({
 
     test: {
         clearMocks: true,
+        cache: true, // Enable caching for faster subsequent runs
         coverage: {
             // Focus coverage collection on a curated, consistently testable set
             // To enforce a strict 100% coverage gate without counting
@@ -166,5 +168,11 @@ export default defineConfig({
             tsconfig: "./tsconfig.vitest.json",
         },
         watch: false,
+        // Force rerun triggers - these files will trigger full test suite
+        forceRerunTriggers: [
+            '**/package.json',
+            '**/vitest.config.js',
+            '**/vitest.config.ts'
+        ],
     },
 });
