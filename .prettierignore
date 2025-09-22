@@ -15,5 +15,5 @@ coverage/
 **/CHANGELOG.md
 
 # Ignore package in electron-app
-electron-app/package.json
 electron-app/package-lock.json
+html/

@@ -736,6 +736,12 @@ export async function initializeFitFileViewerState() {
 export { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 export { UIActions } from "../domain/uiStateManager.js";
 
+function getAppLifecycleModule() {
+    const mocked = getModuleExportsFromCache("/utils/app/lifecycle/appactions.js");
+    if (mocked && mocked.AppActions && mocked.AppSelectors) return mocked;
+    return { AppActions, AppSelectors };
+}
+
 // Helper to dynamically resolve mocked state API in tests (require.cache injection)
 // Helper to obtain CommonJS require in both CJS and ESM contexts (used by Vitest cache-injection tests)
 function getCjsRequire() {
@@ -772,6 +778,24 @@ function getCjsRequire() {
         // ignore
     }
     return null;
+}
+
+function getComputedStateModule() {
+    const mocked = getModuleExportsFromCache("/utils/state/core/computedstatemanager.js");
+    if (mocked && (mocked.computedStateManager || mocked.initializeCommonComputedValues)) return mocked;
+    return { computedStateManager, initializeCommonComputedValues };
+}
+
+function getControlsHelperModule() {
+    const mocked = getModuleExportsFromCache("/utils/rendering/helpers/updatecontrolsstate.js");
+    if (mocked && typeof mocked.initializeControlsState === "function") return mocked;
+    return { initializeControlsState };
+}
+
+function getEnableTabButtonsModule() {
+    const mocked = getModuleExportsFromCache("/utils/ui/controls/enabletabbuttons.js");
+    if (mocked && typeof mocked.initializeTabButtonState === "function") return mocked;
+    return { initializeTabButtonState };
 }
 
 // Obtain the global Node module cache directly; compatible with require.cache mutations in tests
@@ -811,6 +835,31 @@ function getNodeModuleCache() {
     }
 }
 
+// Dynamic module resolvers: prefer require.cache-injected mocks (used by tests), fallback to static imports
+function getRendererUtilsModule() {
+    const mocked = getModuleExportsFromCache("/utils/app/initialization/rendererutils.js");
+    if (mocked && typeof mocked.initializeRendererUtils === "function") return mocked;
+    return { initializeRendererUtils, showNotification };
+}
+
+function getSettingsStateModule() {
+    const mocked = getModuleExportsFromCache("/utils/state/domain/settingsstatemanager.js");
+    if (mocked && mocked.settingsStateManager) return mocked;
+    return { settingsStateManager };
+}
+
+function getStateDevToolsModule() {
+    const mocked = getModuleExportsFromCache("/utils/debug/statedevtools.js");
+    if (mocked && (mocked.initializeStateDevTools || mocked.cleanupStateDevTools)) return mocked;
+    return { initializeStateDevTools, cleanupStateDevTools };
+}
+
+function getStateIntegrationModule() {
+    const mocked = getModuleExportsFromCache("/utils/state/integration/stateintegration.js");
+    if (mocked && typeof mocked.initializeCompleteStateSystem === "function") return mocked;
+    return { initializeCompleteStateSystem };
+}
+
 function getStateManagerAPI() {
     try {
         // Direct global override for tests
@@ -843,7 +892,6 @@ function getStateManagerAPI() {
             if (req) {
                 const cwd = typeof process !== "undefined" && process.cwd ? process.cwd() : "";
                 if (!__lazyNodePath) {
-                    // eslint-disable-next-line no-eval
                     __lazyNodePath = /** @type {any} */ (
                         eval("(function(){try{return require('node:path')}catch{return null}})()")
                     );
@@ -889,35 +937,16 @@ function getStateManagerAPI() {
     return { getState, getStateHistory, getSubscriptions, setState, subscribe };
 }
 
-// Dynamic module resolvers: prefer require.cache-injected mocks (used by tests), fallback to static imports
-function getRendererUtilsModule() {
-    const mocked = getModuleExportsFromCache("/utils/app/initialization/rendererutils.js");
-    if (mocked && typeof mocked.initializeRendererUtils === "function") return mocked;
-    return { initializeRendererUtils, showNotification };
+function getStateMiddlewareModule() {
+    const mocked = getModuleExportsFromCache("/utils/state/core/statemiddleware.js");
+    if (mocked && (mocked.cleanupMiddleware || mocked.initializeDefaultMiddleware)) return mocked;
+    return { cleanupMiddleware, initializeDefaultMiddleware };
 }
 
-function getAppLifecycleModule() {
-    const mocked = getModuleExportsFromCache("/utils/app/lifecycle/appactions.js");
-    if (mocked && mocked.AppActions && mocked.AppSelectors) return mocked;
-    return { AppActions, AppSelectors };
-}
-
-function getStateDevToolsModule() {
-    const mocked = getModuleExportsFromCache("/utils/debug/statedevtools.js");
-    if (mocked && (mocked.initializeStateDevTools || mocked.cleanupStateDevTools)) return mocked;
-    return { initializeStateDevTools, cleanupStateDevTools };
-}
-
-function getControlsHelperModule() {
-    const mocked = getModuleExportsFromCache("/utils/rendering/helpers/updatecontrolsstate.js");
-    if (mocked && typeof mocked.initializeControlsState === "function") return mocked;
-    return { initializeControlsState };
-}
-
-function getEnableTabButtonsModule() {
-    const mocked = getModuleExportsFromCache("/utils/ui/controls/enabletabbuttons.js");
-    if (mocked && typeof mocked.initializeTabButtonState === "function") return mocked;
-    return { initializeTabButtonState };
+function getUIStateModule() {
+    const mocked = getModuleExportsFromCache("/utils/state/domain/uistatemanager.js");
+    if (mocked && mocked.UIActions) return mocked;
+    return { UIActions };
 }
 
 function getUpdateActiveTabModule() {
@@ -932,34 +961,4 @@ function getUpdateTabVisibilityModule() {
     const mocked = getModuleExportsFromCache("/utils/ui/tabs/updatetabvisibility.js");
     if (mocked && typeof mocked.initializeTabVisibilityState === "function") return mocked;
     return { initializeTabVisibilityState };
-}
-
-function getSettingsStateModule() {
-    const mocked = getModuleExportsFromCache("/utils/state/domain/settingsstatemanager.js");
-    if (mocked && mocked.settingsStateManager) return mocked;
-    return { settingsStateManager };
-}
-
-function getUIStateModule() {
-    const mocked = getModuleExportsFromCache("/utils/state/domain/uistatemanager.js");
-    if (mocked && mocked.UIActions) return mocked;
-    return { UIActions };
-}
-
-function getStateIntegrationModule() {
-    const mocked = getModuleExportsFromCache("/utils/state/integration/stateintegration.js");
-    if (mocked && typeof mocked.initializeCompleteStateSystem === "function") return mocked;
-    return { initializeCompleteStateSystem };
-}
-
-function getComputedStateModule() {
-    const mocked = getModuleExportsFromCache("/utils/state/core/computedstatemanager.js");
-    if (mocked && (mocked.computedStateManager || mocked.initializeCommonComputedValues)) return mocked;
-    return { computedStateManager, initializeCommonComputedValues };
-}
-
-function getStateMiddlewareModule() {
-    const mocked = getModuleExportsFromCache("/utils/state/core/statemiddleware.js");
-    if (mocked && (mocked.cleanupMiddleware || mocked.initializeDefaultMiddleware)) return mocked;
-    return { cleanupMiddleware, initializeDefaultMiddleware };
 }
