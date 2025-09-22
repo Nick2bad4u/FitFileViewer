@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @fileoverview Comprehensive test suite for renderChartJS.js with Module Cache Injection
  * @description Tests the 1510-line chart rendering utility using proven Module cache injection technique
@@ -40,7 +41,6 @@ declare global {
     var _chartjsInstances: any[];
     var _fitFileViewerChartListener: boolean;
     var JSZip: any;
-    var require: (id: string) => any;
 }
 
 // Mock all dependencies before import using Module cache injection
@@ -266,16 +266,22 @@ function setupDOMEnvironment() {
         }
     };
 
-    global.globalThis = {
-        ...global.globalThis,
-        window: global.window,
-        document: global.document,
-        addEventListener: vi.fn(),
-        setTimeout: vi.fn((fn) => fn()),
-        clearTimeout: vi.fn(),
-        performance: global.window.performance,
-        Node: { ELEMENT_NODE: 1 }
-    };
+    // Do NOT overwrite globalThis; instead, patch properties to avoid clobbering Vitest internals
+    const g = /** @type {any} */ (globalThis);
+    g.window = global.window;
+    g.document = global.document;
+    if (typeof g.addEventListener !== 'function') g.addEventListener = vi.fn();
+    if (typeof g.setTimeout !== 'function') g.setTimeout = (fn: any) => { fn(); return 0; };
+    if (typeof g.clearTimeout !== 'function') g.clearTimeout = vi.fn();
+    g.performance = global.window.performance;
+    g.Node = { ELEMENT_NODE: 1 };
+    // Ensure a stable process.nextTick exists for any code importing this module
+    if (!g.process || typeof g.process !== 'object') g.process = {} as any;
+    if (typeof g.process.nextTick !== 'function') {
+        g.process.nextTick = (cb: any, ...args: any[]) => Promise.resolve().then(() => {
+            try { cb(...args); } catch { /* ignore */ }
+        });
+    }
 }
 
 describe('renderChartJS.js - Comprehensive Coverage with Module Cache Injection', () => {

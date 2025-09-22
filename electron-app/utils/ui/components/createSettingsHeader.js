@@ -2,7 +2,6 @@ import { reRenderChartsAfterSettingChange, resetAllSettings } from "../../app/in
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { createChartStatusIndicator } from "../../charts/components/createChartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
-import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { extractDeveloperFieldsList } from "../../data/processing/extractDeveloperFieldsList.js";
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
@@ -1081,7 +1080,9 @@ function createFieldToggle(/** @type {string} */ field) {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`Field toggle: ${field}`);
         } else {
-            renderChartJS("all"); // Fallback for compatibility
+            // Fallback without importing renderChartJS to avoid circular deps
+            /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.("Field toggle fallback");
+            globalThis.dispatchEvent(new CustomEvent("ffv:request-render-charts", { detail: { reason: "field-toggle" } }));
         }
 
         // Update status indicators after a short delay to allow charts to render
@@ -1444,7 +1445,10 @@ function toggleAllFields(enable) {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`All fields ${action}`);
         } else {
-            renderChartJS("all"); // Fallback for compatibility
+            /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.("Settings change fallback");
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv:request-render-charts", { detail: { reason: "settings-change" } })
+            );
         }
 
         setTimeout(() => {

@@ -671,14 +671,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
         });
 
         test('should handle main-state:get IPC calls', () => {
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered
@@ -694,14 +686,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
         });
 
         test('should handle main-state:set IPC calls with allowed paths', () => {
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered
@@ -722,14 +706,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
             };
             const mockEvent = { sender: mockSender };
 
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered
@@ -740,14 +716,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
         });
 
         test('should handle main-state:operation IPC calls', () => {
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered
@@ -758,14 +726,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
         });
 
         test('should handle main-state:operations IPC calls', () => {
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered
@@ -776,14 +736,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
         });
 
         test('should handle main-state:errors IPC calls', () => {
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered
@@ -794,14 +746,6 @@ describe('mainProcessStateManager.js - Comprehensive Coverage', () => {
         });
 
         test('should handle main-state:metrics IPC calls', () => {
-            const mockIpcMain = {
-                handle: vi.fn(),
-            };
-
-            vi.mock('electron', () => ({
-                ipcMain: mockIpcMain,
-            }));
-
             const testInstance = new MainProcessState();
 
             // Get the handler function that was registered

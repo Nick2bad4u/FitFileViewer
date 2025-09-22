@@ -131,6 +131,9 @@ describe('masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             } as any;
         }
 
+        // Also expose a predictable global mocks registry for ESM dynamic resolvers
+        (globalThis as any).__FFV_MOCKS__ = modules;
+
         // Store for test access
         mockDependencies = {
             rendererUtils: mockRendererUtils,
@@ -149,6 +152,9 @@ describe('masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             stateMiddleware: mockStateMiddleware
         };
 
+        // Provide a direct reference for the core state API for dynamic resolution fallback
+        (globalThis as any).__STATE_MANAGER_API__ = mockStateManager;
+
         console.log('[TEST] Module cache injection completed for masterStateManager dependencies');
         return mockDependencies;
     }
@@ -158,6 +164,8 @@ describe('masterStateManager.js - Comprehensive Coverage with Module Cache Injec
         if (originalRequireCache) {
             require.cache = originalRequireCache;
         }
+        delete (globalThis as any).__FFV_MOCKS__;
+        delete (globalThis as any).__STATE_MANAGER_API__;
     }
 
     beforeEach(() => {

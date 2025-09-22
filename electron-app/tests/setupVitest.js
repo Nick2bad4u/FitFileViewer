@@ -132,12 +132,34 @@ function ensureConsoleAlive() {
 // "Vitest failed to find the runner". Swallow those cases and proceed; tests
 // will still run, and other suites can register hooks when the runner is ready.
 try {
-    vitestBeforeEach(() => ensureConsoleAlive());
+    vitestBeforeEach(() => {
+        ensureConsoleAlive();
+        try {
+            const g = /** @type {any} */ (globalThis);
+            if (!g.process || typeof g.process !== "object") g.process = {};
+            if (typeof g.process.nextTick !== "function") {
+                g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => {
+                    try { cb(...args); } catch { /* ignore */ }
+                });
+            }
+        } catch { /* ignore */ }
+    });
 } catch {
     /* ignore: runner not yet available */
 }
 try {
-    vitestAfterEach(() => ensureConsoleAlive());
+    vitestAfterEach(() => {
+        ensureConsoleAlive();
+        try {
+            const g = /** @type {any} */ (globalThis);
+            if (!g.process || typeof g.process !== "object") g.process = {};
+            if (typeof g.process.nextTick !== "function") {
+                g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => {
+                    try { cb(...args); } catch { /* ignore */ }
+                });
+            }
+        } catch { /* ignore */ }
+    });
 } catch {
     /* ignore: runner not yet available */
 }
@@ -157,6 +179,23 @@ if (typeof document !== "undefined") {
         document.appendChild(body);
     }
 }
+
+// Ensure a stable global process object for libraries/tests that expect Node-like globals
+(() => {
+    try {
+        const g = /** @type {any} */ (globalThis);
+        if (!g.process || typeof g.process !== "object") {
+            g.process = {};
+        }
+        if (typeof g.process.nextTick !== "function") {
+            g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => {
+                try { cb(...args); } catch { /* ignore */ }
+            });
+        }
+    } catch {
+        /* ignore */
+    }
+})();
 
 // Capture native references to the initial jsdom window/document so we can restore
 // them between tests if a suite replaces global.document with a plain object.

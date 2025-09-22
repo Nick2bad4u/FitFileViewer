@@ -174,7 +174,7 @@ export default defineConfig({
         setupFiles: ["./tests/setupVitest.js"],
         // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
         testTransformMode: {
-            ssr: ["**/main.js", "**/utils/app/menu/createAppMenu.js"],
+            ssr: ["**/main.js", "**/utils/app/menu/createAppMenu.js", "**/preload.js"],
         },
         typecheck: {
             allowJs: false,

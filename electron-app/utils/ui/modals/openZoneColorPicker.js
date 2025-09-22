@@ -1,5 +1,5 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
-import { renderChartJS } from "../../charts/core/renderChartJS.js";
+// Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
     DEFAULT_HR_ZONE_COLORS,
@@ -486,8 +486,12 @@ export function openZoneColorPicker(field) {
             // Trigger chart re-render through state management instead of direct call
             if (chartStateManager) {
                 chartStateManager.debouncedRender("Zone colors applied");
+            } else if (typeof globalThis.renderChartJS === "function") {
+                globalThis.renderChartJS();
             } else {
-                renderChartJS(); // Fallback for compatibility
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-colors-applied" } })
+                );
             }
 
             showNotification(`${zoneType} zone colors updated`, "success");

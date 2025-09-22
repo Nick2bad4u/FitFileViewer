@@ -54,6 +54,9 @@ class MainProcessState {
             (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development") ||
             (typeof process !== "undefined" && Array.isArray(process.argv) && process.argv.includes("--dev"));
 
+        /** @type {boolean} */
+        this._ipcHandlersRegistered = false;
+
         this.setupIPCHandlers();
     }
 
@@ -355,23 +358,29 @@ class MainProcessState {
         // Filter out non-serializable data for IPC
         const serializableData = this.makeSerializable(data);
 
-        const { BrowserWindow } = safeElectron();
-        const allWins =
-            BrowserWindow && typeof BrowserWindow.getAllWindows === "function"
-                ? BrowserWindow.getAllWindows() || []
-                : [];
-        for (const win of allWins) {
-            if (validateWindow(win)) {
-                try {
-                    win.webContents.send(channel, serializableData);
-                } catch (error) {
-                    const err = /** @type {any} */ (error);
-                    logWithContext("warn", "Failed to send IPC message to renderer", {
-                        channel,
-                        error: err?.message,
-                    });
+        try {
+            const { BrowserWindow } = safeElectron();
+            const allWins =
+                BrowserWindow && typeof BrowserWindow.getAllWindows === "function"
+                    ? BrowserWindow.getAllWindows() || []
+                    : [];
+            for (const win of allWins) {
+                if (validateWindow(win)) {
+                    try {
+                        win.webContents.send(channel, serializableData);
+                    } catch (error) {
+                        const err = /** @type {any} */ (error);
+                        logWithContext("warn", "Failed to send IPC message to renderer", {
+                            channel,
+                            error: err?.message,
+                        });
+                    }
                 }
             }
+        } catch (error) {
+            // Handle cases where BrowserWindow API is unavailable or throws
+            const err = /** @type {any} */ (error);
+            logWithContext("warn", "BrowserWindow not available during notifyRenderers", { error: err?.message });
         }
     }
 
@@ -514,10 +523,15 @@ class MainProcessState {
      * Set up IPC handlers for renderer communication
      */
     setupIPCHandlers() {
+        // Prevent duplicate registration which would throw in Electron
+        if (this._ipcHandlersRegistered) {
+            return;
+        }
         const { ipcMain } = safeElectron();
         // If not running under Electron (e.g., unit tests without mocks), no-op safely
         if (!ipcMain || typeof ipcMain.handle !== "function") {
-            logWithContext("warn", "ipcMain not available; skipping IPC handler setup");
+            // Handlers will be set once Electron's app is ready (see deferral at module end)
+            logWithContext("debug", "ipcMain not yet available; deferring IPC handler setup");
             return;
         }
 
@@ -567,12 +581,21 @@ class MainProcessState {
         });
 
         // Get operation status
-        ipcMain.handle("main-state:operation", (/** @type {any} */ _event, /** @type {string} */ operationId) =>
-            this.get(`operations.${operationId}`)
-        );
+        ipcMain.handle("main-state:operation", (/** @type {any} */ _event, /** @type {string} */ operationId) => {
+            const val = this.get(`operations.${operationId}`);
+            return val === null ? undefined : val;
+        });
 
         // Get all operations
-        ipcMain.handle("main-state:operations", () => this.get("operations") || {});
+        ipcMain.handle("main-state:operations", () => {
+            const ops = this.get("operations");
+            if (!ops) return {};
+            // Convert Map to plain object if needed
+            if (ops instanceof Map) {
+                return Object.fromEntries(ops.entries());
+            }
+            return this.makeSerializable(ops) || {};
+        });
 
         // Get errors
         ipcMain.handle("main-state:errors", (/** @type {any} */ _event, /** @type {number} */ limit = 50) => {
@@ -582,6 +605,8 @@ class MainProcessState {
 
         // Get metrics
         ipcMain.handle("main-state:metrics", () => this.get("metrics") || {});
+
+        this._ipcHandlersRegistered = true;
     }
     /**
      * Start tracking an operation
@@ -769,12 +794,53 @@ function logWithContext(level, message, context = {}) {
 
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs
 function safeElectron() {
+    /** @type {any} */ let mod;
+    const unwrap = (m) => {
+        if (!m) return /** @type {any} */({});
+        // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
+        const hasApis = (x) => x && (x.app || x.ipcMain || x.BrowserWindow || x.Menu || x.shell || x.dialog);
+        if (hasApis(m)) return m;
+        const def = /** @type {any} */(m).default;
+        if (hasApis(def)) return def;
+        return m;
+    };
+
     try {
-        // Always resolve dynamically to pick up test-time mocks
-        return require("electron");
+        // Only clear cache in tests to pick up per-test mocks
+        if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "test") {
+            try {
+                // @ts-ignore
+                const key = typeof require.resolve === "function" ? require.resolve("electron") : undefined;
+                if (key && require.cache && require.cache[key]) {
+                    delete require.cache[key];
+                }
+            } catch {
+                /* ignore */
+            }
+        }
+        mod = require("electron");
     } catch {
-        return /** @type {any} */ ({});
+        mod = undefined;
     }
+
+    let resolved = unwrap(mod);
+
+    // If module-scoped require didn't yield a usable ipcMain, try global shim
+    if (!resolved || !resolved.ipcMain || typeof resolved.ipcMain.handle !== "function") {
+        try {
+            // @ts-ignore
+            const hasGlobal = typeof globalThis === "object" && globalThis !== null;
+            // @ts-ignore
+            const gReq = hasGlobal && typeof globalThis.require === "function" ? globalThis.require : undefined;
+            if (typeof gReq === "function") {
+                resolved = unwrap(gReq("electron"));
+            }
+        } catch {
+            /* ignore */
+        }
+    }
+
+    return /** @type {any} */ (resolved || {});
 }
 
 /**
@@ -795,6 +861,65 @@ function validateWindow(win) {
 
 // Create and export singleton instance
 const mainProcessState = new MainProcessState();
+
+// Defer IPC setup until Electron is ready if needed. This avoids startup races where
+// 'ipcMain' may appear unavailable extremely early in process bootstrap.
+(function ensureIpcHandlersReadyOnce() {
+    /** @type {{done?:boolean,logged?:boolean}} */
+    const state = /** @type {any} */(ensureIpcHandlersReadyOnce);
+    if (state.done) return;
+
+    const trySetup = () => {
+        const { ipcMain } = safeElectron();
+        if (ipcMain && typeof ipcMain.handle === "function") {
+            // Re-run setup now that ipcMain is available
+            try {
+                mainProcessState.setupIPCHandlers();
+            } catch {
+                // no-op
+            }
+            state.done = true;
+            return true;
+        }
+        return false;
+    };
+
+    if (trySetup()) return;
+
+    try {
+        const { app } = safeElectron();
+        if (app && typeof app.whenReady === "function") {
+            app.whenReady().then(() => {
+                if (!state.done) trySetup();
+            }).catch(() => {
+                // Fallback to small retry loop if whenReady rejects for any reason
+                let attempts = 0;
+                const tick = () => {
+                    if (!state.done && !trySetup() && attempts++ < 50) setTimeout(tick, 50);
+                };
+                setTimeout(tick, 10);
+            });
+            return;
+        }
+    } catch {
+        /* ignore */
+    }
+
+    // Final fallback: small bounded retry loop
+    let attempts = 0;
+    const tick = () => {
+        if (!state.done && !trySetup() && attempts++ < 50) setTimeout(tick, 50);
+    };
+    if (!state.logged) {
+        state.logged = true;
+        try {
+            console.warn("[mainProcessStateManager] Deferring IPC handler setup until Electron is ready");
+        } catch {
+            /* ignore */
+        }
+    }
+    setTimeout(tick, 10);
+})();
 
 module.exports = {
     mainProcessState,

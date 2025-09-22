@@ -31,6 +31,12 @@ describe('preload.js - Actual File Execution', () => {
         // Set up process.env for different test scenarios
         process.env.NODE_ENV = 'development';
 
+        // Provide hoisted override so modules that resolve lazily see our mock
+        ;(globalThis as any).__electronHoistedMock = {
+            contextBridge: mockContextBridge,
+            ipcRenderer: mockIpcRenderer,
+        };
+
         // Mock console methods to verify logging
         global.console = {
             ...console,
@@ -45,6 +51,9 @@ describe('preload.js - Actual File Execution', () => {
 
         // Reset environment
         delete process.env.NODE_ENV;
+
+        // Remove hoisted override
+        delete (globalThis as any).__electronHoistedMock;
     });
 
     describe('Development Mode Execution', () => {
@@ -56,8 +65,8 @@ describe('preload.js - Actual File Execution', () => {
             console.log('Before requiring preload.js');
             console.log('mockContextBridge.exposeInMainWorld calls before require:', mockContextBridge.exposeInMainWorld.mock.calls.length);
 
-            // Require the preload.js file to execute it
-            require('../../preload.js');
+            // Import the preload.js file to execute it (ensures vi.mock is applied)
+            await import('../../preload.js');
 
             console.log('After requiring preload.js');
             console.log('mockContextBridge.exposeInMainWorld calls after require:', mockContextBridge.exposeInMainWorld.mock.calls.length);
@@ -97,11 +106,11 @@ describe('preload.js - Actual File Execution', () => {
             );
         });
 
-        it('should provide working API methods when executed', () => {
+        it('should provide working API methods when executed', async () => {
             process.env.NODE_ENV = 'development';
 
-            // Require preload.js
-            require('../../preload.js');
+            // Import preload.js so mocks are honored
+            await import('../../preload.js');
 
             // Get the exposed electronAPI from the mock call
             const exposeMainWorldCalls = mockContextBridge.exposeInMainWorld.mock.calls;
@@ -129,7 +138,7 @@ describe('preload.js - Actual File Execution', () => {
             // Mock successful IPC response
             mockIpcRenderer.invoke.mockResolvedValue('test-result');
 
-            require('../../preload.js');
+            await import('../../preload.js');
 
             const exposeMainWorldCalls = mockContextBridge.exposeInMainWorld.mock.calls;
             const electronAPICall = exposeMainWorldCalls.find(call => call[0] === 'electronAPI');
@@ -143,11 +152,11 @@ describe('preload.js - Actual File Execution', () => {
     });
 
     describe('Production Mode Execution', () => {
-        it('should execute preload.js in production mode without devTools', () => {
+        it('should execute preload.js in production mode without devTools', async () => {
             // Set production mode
             process.env.NODE_ENV = 'production';
 
-            require('../../preload.js');
+            await import('../../preload.js');
 
             // Verify electronAPI was exposed
             expect(mockContextBridge.exposeInMainWorld).toHaveBeenCalledWith(

@@ -1,4 +1,4 @@
-import { previousChartState, updatePreviousChartState } from "../../charts/core/renderChartJS.js";
+import { previousChartState, updatePreviousChartState } from "../../charts/core/chartNotificationState.js";
 
 /**
  * Determines if a render notification should be shown based on state changes

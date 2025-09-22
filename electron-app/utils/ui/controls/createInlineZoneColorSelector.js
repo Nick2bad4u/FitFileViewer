@@ -4,7 +4,7 @@
  */
 
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
-import { renderChartJS } from "../../charts/core/renderChartJS.js";
+// Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
     DEFAULT_HR_ZONE_COLORS,
@@ -541,8 +541,10 @@ function createColorSchemeSelector(
                 chartStateManager.debouncedRender(`Zone scheme change: ${scheme}`);
             } else if (typeof globalThis.renderChartJS === "function") {
                 globalThis.renderChartJS();
-            } else if (typeof renderChartJS === "function") {
-                renderChartJS();
+            } else {
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-scheme-change" } })
+                );
             }
         } catch (error) {
             console.error("[ZoneColorSelector] Error during scheme change re-render:", error);
@@ -616,17 +618,10 @@ function createResetButton(field, zoneType, zoneData, onReset) {
                 chartStateManager.debouncedRender(`Zone colors reset for ${zoneType}`);
             } else if (typeof globalThis.renderChartJS === "function") {
                 globalThis.renderChartJS();
-            } else if (typeof renderChartJS === "function") {
-                renderChartJS();
             } else {
-                // Import and call renderChartJS if not available globally
-                import("../../charts/core/renderChartJS.js")
-                    .then(({ renderChartJS: importedRenderChartJS }) => {
-                        importedRenderChartJS();
-                    })
-                    .catch((error) => {
-                        console.error("[ZoneColorSelector] Error importing renderChartJS:", error);
-                    });
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-reset" } })
+                );
             }
 
             console.log(`[ZoneColorSelector] Chart re-render triggered for ${field} reset using unified mechanism`);
@@ -754,17 +749,10 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
                 chartStateManager.debouncedRender(`Zone color change: zone ${zoneIndex}`);
             } else if (typeof globalThis.renderChartJS === "function") {
                 globalThis.renderChartJS();
-            } else if (typeof renderChartJS === "function") {
-                renderChartJS();
             } else {
-                // Import and call renderChartJS if not available globally
-                import("../../charts/core/renderChartJS.js")
-                    .then(({ renderChartJS: importedRenderChartJS }) => {
-                        importedRenderChartJS();
-                    })
-                    .catch((/** @type {Error} */ error) => {
-                        console.error("[ZoneColorSelector] Error importing renderChartJS:", error);
-                    });
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", { detail: { reason: "zone-color" } })
+                );
             }
         } catch (error) {
             console.error("[ZoneColorSelector] Error triggering chart re-render:", error);

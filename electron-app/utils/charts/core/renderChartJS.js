@@ -117,10 +117,24 @@ import { settingsStateManager } from "../../state/domain/settingsStateManager.js
 import { uiStateManager } from "../../state/domain/uiStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
-import { showNotification } from "../../ui/notifications/showNotification.js";
+// Avoid direct usage in critical paths to prevent SSR init order issues
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
+// Safe, lazy notification caller to break potential import init cycles under SSR
+async function notify(message, type = "info", duration = null, options = {}) {
+    try {
+        const mod = await import("../../ui/notifications/showNotification.js");
+        if (mod && typeof mod.showNotification === "function") {
+            await mod.showNotification(message, /** @type {any} */(type), /** @type {any} */(duration), /** @type {any} */(options));
+        } else {
+            console.warn("[ChartJS] Notification module missing showNotification export");
+        }
+    } catch (error) {
+        console.warn("[ChartJS] notify() fallback failed:", error);
+    }
+}
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { createEnhancedChart } from "../components/createEnhancedChart.js";
+// moved up to satisfy import order lint rule
 import {
     addChartHoverEffects,
     addHoverEffectsToExistingCharts,
@@ -135,19 +149,23 @@ import { renderTimeInZoneCharts } from "../rendering/renderTimeInZoneCharts.js";
 import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 // Chart utility imports
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
+// Import the notification state module broadly; provide safe wrapper exports below to avoid
+// tight coupling during SSR and module cache injection in tests
+import * as chartNotificationState from "./chartNotificationState.js";
+const _previousChartState = chartNotificationState.previousChartState;
 
-// Test environment safety: ensure process.nextTick exists (jsdom may not provide it reliably)
-// This is a no-op shim that schedules microtasks via Promise when nextTick is missing
-// It prevents "Cannot set properties of undefined (setting 'nextTick')" during Vitest runs
-try {
-    // @ts-ignore - process is Node global; guard for browser/jsdom
-    if (typeof process !== "undefined" && typeof process.nextTick !== "function") {
-        // @ts-ignore - define minimal shim
-        process.nextTick = (cb, ...args) => Promise.resolve().then(() => cb(...args));
+// Test environment safety: ensure globalThis.process and process.nextTick exist (Vitest/jsdom)
+(() => {
+    try {
+        const g = /** @type {any} */ (globalThis);
+        if (!g.process) g.process = {};
+        if (typeof g.process.nextTick !== "function") {
+            g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => cb(...args));
+        }
+    } catch {
+        // ignore
     }
-} catch {
-    /* ignore */
-}
+})();
 
 /**
  * Enhanced chart settings management with state integration
@@ -277,12 +295,56 @@ function debounce(func, wait) {
 let lastRenderTime = 0;
 const RENDER_DEBOUNCE_MS = 200; // Minimum time between renders
 
-// Track previous render state for notification logic
-export const previousChartState = {
-    chartCount: 0,
-    fieldsRendered: [],
-    lastRenderTimestamp: 0,
-};
+// Safe DOM element detector that works in SSR/jsdom where Element/Node may be undefined
+function isElement(maybe) {
+    return (
+        Boolean(maybe) &&
+        typeof maybe === "object" &&
+        "nodeType" in /** @type {any} */ (maybe) &&
+        /** @type {any} */ (maybe).nodeType === 1
+    );
+}
+
+// Helper to avoid TDZ when referencing chartActions in early execution paths
+function safeCompleteRendering(success) {
+    try {
+        const maybe = /** @type {any} */ (globalThis).chartActions;
+        if (maybe && typeof maybe.completeRendering === "function") {
+            maybe.completeRendering(success);
+        }
+    } catch {
+        /* ignore */
+    }
+}
+
+// Safe wrapper exports for compatibility with tests that import from renderChartJS
+// even when module cache injection returns empty objects for nested modules.
+export const previousChartState =
+    chartNotificationState.previousChartState || {
+        chartCount: 0,
+        fieldsRendered: [],
+        lastRenderTimestamp: 0,
+    };
+
+export function resetChartNotificationState() {
+    try {
+        if (typeof chartNotificationState.resetChartNotificationState === "function") {
+            return chartNotificationState.resetChartNotificationState();
+        }
+    } catch {
+        /* no-op */
+    }
+}
+
+export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
+    try {
+        if (typeof chartNotificationState.updatePreviousChartState === "function") {
+            return chartNotificationState.updatePreviousChartState(chartCount, visibleFields, timestamp);
+        }
+    } catch {
+        /* no-op */
+    }
+}
 
 // Chart.js plugin registration
 /** @type {any} */
@@ -309,6 +371,37 @@ if (!windowAny._fitFileViewerChartListener) {
 
     console.log("[ChartJS] Chart state management is now handled by chartStateManager");
     console.log("[ChartJS] Old event-based system is being phased out in favor of reactive state");
+
+    // Bridge: handle generic render requests dispatched by other modules to avoid direct imports
+    try {
+        if (globalThis && typeof globalThis.addEventListener === "function") {
+            globalThis.addEventListener("ffv:request-render-charts", (/** @type {CustomEvent} */ ev) => {
+                const reason = ev && ev.detail && ev.detail.reason ? String(ev.detail.reason) : "event-trigger";
+                console.log(`[ChartJS] Received render request event: ${reason}`);
+
+                // Prefer chartStateManager if available
+                if (typeof /** @type {any} */ (globalThis).chartStateManager?.debouncedRender === "function") {
+                    /** @type {any} */ (globalThis).chartStateManager.debouncedRender(reason);
+                    return;
+                }
+
+                // Fallback: directly call renderChartJS with a sensible container
+                const container =
+                    document.querySelector("#chartjs-chart-container") ||
+                    document.querySelector("#content-chartjs") ||
+                    document.querySelector("#content-chart") ||
+                    document.body;
+                try {
+                    // Call without awaiting to keep handler non-blocking
+                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */(container)));
+                } catch (error) {
+                    console.warn("[ChartJS] Event-based render fallback failed:", error);
+                }
+            });
+        }
+    } catch (listenerError) {
+        console.warn("[ChartJS] Failed to register render request listener:", listenerError);
+    }
 }
 
 /**
@@ -490,6 +583,13 @@ if (globalThis.window !== undefined) {
     globalThis.addEventListener("DOMContentLoaded", loadSharedConfiguration);
 }
 
+// Expose chartActions globally after definition for safe reference in early error paths
+try {
+    /** @type {any} */ (globalThis).chartActions = chartActions;
+} catch {
+    /* ignore */
+}
+
 // Register the background color plugin globally
 try {
     const ChartRef = windowAny.Chart;
@@ -515,7 +615,8 @@ try {
  */
 export async function exportChartsWithState(format = "png") {
     if (!chartState.isRendered || !windowAny._chartjsInstances?.length) {
-        showNotification("No charts available for export", "warning");
+        // fire and forget
+        Promise.resolve().then(() => notify("No charts available for export", "warning"));
         return false;
     }
 
@@ -525,12 +626,12 @@ export async function exportChartsWithState(format = "png") {
         // Implementation would go here based on format
         // This is a placeholder for the full export implementation
 
-        showNotification(`Charts exported as ${format.toUpperCase()}`, "success");
+        Promise.resolve().then(() => notify(`Charts exported as ${format.toUpperCase()}`, "success"));
         setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState" });
         return true;
     } catch (error) {
         console.error("[ChartJS] Export failed:", error);
-        showNotification("Chart export failed", "error");
+        Promise.resolve().then(() => notify("Chart export failed", "error"));
         setState("ui.isExporting", false, { silent: false, source: "exportChartsWithState" });
         return false;
     }
@@ -630,7 +731,7 @@ export function initializeChartStateManagement() {
             },
             onError: (/** @type {any} */ context) => {
                 console.error("[ChartJS] Chart render action failed:", context);
-                showNotification("Chart rendering failed", "error");
+                Promise.resolve().then(() => notify("Chart rendering failed", "error"));
                 return context;
             },
         });
@@ -665,7 +766,16 @@ export async function renderChartJS(targetContainer) {
 
     try {
         // Start rendering process through state actions
-        chartActions.startRendering();
+        {
+            const ca = /** @type {any} */ (globalThis).chartActions;
+            if (ca && typeof ca.startRendering === "function") {
+                ca.startRendering();
+            } else {
+                // Fallback state updates to indicate rendering state
+                setState("charts.isRendering", true, { silent: false, source: "renderChartJS.start" });
+                setState("isLoading", true, { silent: false, source: "renderChartJS.start" });
+            }
+        }
 
         // Debounce multiple rapid calls
         const now = Date.now();
@@ -688,23 +798,45 @@ export async function renderChartJS(targetContainer) {
             windowAny._chartjsInstances = [];
         }
 
-        // Clear existing charts using state action
-        chartActions.clearCharts();
+        // Clear existing charts using state action (with safe fallback)
+        {
+            const ca = /** @type {any} */ (globalThis).chartActions;
+            if (ca && typeof ca.clearCharts === "function") {
+                ca.clearCharts();
+            } else {
+                // Local fallback clear
+                if (windowAny._chartjsInstances) {
+                    for (const [index, chart] of windowAny._chartjsInstances.entries()) {
+                        try {
+                            if (chart && typeof chart.destroy === "function") chart.destroy();
+                        } catch (error) {
+                            console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+                        }
+                    }
+                }
+                windowAny._chartjsInstances = [];
+                updateState(
+                    "charts",
+                    { chartData: null, isRendered: false, renderedCount: 0 },
+                    { silent: false, source: "renderChartJS.clear" }
+                );
+            }
+        }
 
         // Validate Chart.js availability
         if (!windowAny.Chart) {
             const error = "Chart.js library is not loaded or not available";
             console.error(`[ChartJS] ${error}`);
-            showNotification("Chart library not available", "error");
-            chartActions.completeRendering(false);
+            Promise.resolve().then(() => notify("Chart library not available", "error"));
+            safeCompleteRendering(false);
             return false;
         }
 
         // Use state-managed data validation
         if (!chartState.hasValidData) {
             console.warn("[ChartJS] No valid FIT file data available for charts");
-            showNotification("No FIT file data available for chart rendering", "warning");
-            chartActions.completeRendering(false);
+            Promise.resolve().then(() => notify("No FIT file data available for chart rendering", "warning"));
+            safeCompleteRendering(false);
             return false;
         }
 
@@ -718,7 +850,7 @@ export async function renderChartJS(targetContainer) {
         const { recordMesgs } = globalData;
         if (!recordMesgs || !Array.isArray(recordMesgs) || recordMesgs.length === 0) {
             console.warn("[ChartJS] No record messages found in FIT data");
-            showNotification("No chartable data found in this FIT file", "info");
+            Promise.resolve().then(() => notify("No chartable data found in this FIT file", "info"));
 
             // Still render the UI but show a helpful message using state-aware theming
             // Resolve target container (allow optional arg)
@@ -726,7 +858,7 @@ export async function renderChartJS(targetContainer) {
             if (targetContainer) {
                 if (typeof targetContainer === "string") {
                     container = document.getElementById(targetContainer) || document.querySelector(targetContainer);
-                } else if (targetContainer instanceof Element) {
+                } else if (isElement(targetContainer)) {
                     container = /** @type {HTMLElement} */ (targetContainer);
                 }
             }
@@ -751,7 +883,7 @@ export async function renderChartJS(targetContainer) {
 					</div>
 				`;
             }
-            chartActions.completeRendering(false);
+            safeCompleteRendering(false);
             return false;
         }
 
@@ -787,15 +919,24 @@ export async function renderChartJS(targetContainer) {
 
         // Complete rendering process through state actions
         const chartCount = windowAny._chartjsInstances ? windowAny._chartjsInstances.length : 0;
-        chartActions.completeRendering(result, chartCount, renderTime);
+        try {
+            const ca = /** @type {any} */ (globalThis).chartActions;
+            if (ca && typeof ca.completeRendering === "function") {
+                ca.completeRendering(result, chartCount, renderTime);
+            } else {
+                safeCompleteRendering(/** @type {any} */(result));
+            }
+        } catch {
+            safeCompleteRendering(/** @type {any} */(result));
+        }
 
         return result;
     } catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
-        showNotification("Failed to render charts due to an error", "error");
+        Promise.resolve().then(() => notify("Failed to render charts due to an error", "error"));
 
         // Handle error through state actions
-        chartActions.completeRendering(false);
+        safeCompleteRendering(false);
 
         // Try to show error information to user
         let container = document.querySelector("#content-chart");
@@ -803,7 +944,7 @@ export async function renderChartJS(targetContainer) {
             // Handle case where targetContainer is a string ID or DOM element
             if (typeof targetContainer === "string") {
                 container = document.getElementById(targetContainer);
-            } else if (targetContainer && targetContainer.nodeType === Node.ELEMENT_NODE) {
+            } else if (isElement(targetContainer)) {
                 container = /** @type {HTMLElement} */ (targetContainer);
             }
         }
@@ -845,24 +986,7 @@ export async function renderChartJS(targetContainer) {
  * Resets the chart state tracking - call when loading a new FIT file
  * This ensures notifications are shown for the first render of a new file
  */
-export function resetChartNotificationState() {
-    previousChartState.chartCount = 0;
-    previousChartState.fieldsRendered = [];
-    previousChartState.lastRenderTimestamp = 0;
-
-    // Reset state-managed notification tracking using updateState
-    updateState(
-        "charts.previousState",
-        {
-            chartCount: 0,
-            timestamp: 0,
-            visibleFields: 0,
-        },
-        { silent: false, source: "resetChartNotificationState" }
-    );
-
-    console.log("[ChartJS] Chart notification state reset for new file");
-}
+// resetChartNotificationState now imported and re-exported
 
 /**
  * Updates the previous chart state tracking
@@ -870,22 +994,7 @@ export function resetChartNotificationState() {
  * @param {number} visibleFields - Current visible field count
  * @param {number} timestamp - Current timestamp
  */
-export function updatePreviousChartState(chartCount, visibleFields, timestamp) {
-    previousChartState.chartCount = chartCount;
-    previousChartState.fieldsRendered = /** @type {any} */ (Array.from({ length: visibleFields }, () => true));
-    previousChartState.lastRenderTimestamp = timestamp;
-
-    // Update state for other components using updateState
-    updateState(
-        "charts.previousState",
-        {
-            chartCount,
-            timestamp,
-            visibleFields,
-        },
-        { silent: false, source: "updatePreviousChartState" }
-    );
-}
+// updatePreviousChartState now imported and re-exported
 
 /**
  * Renders charts with validated data
@@ -1258,7 +1367,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Use setTimeout to ensure notification shows after any DOM changes
         setTimeout(() => {
-            showNotification(message, "success", 3000);
+            Promise.resolve().then(() => notify(message, "success", 3000));
         }, 100);
 
         // Update notification state using updateState
@@ -1297,7 +1406,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         uiStateManager.updateChartControlsUI(true);
     }
 
-    // Update previous chart state for future comparisons
+    // Update previous chart state for future comparisons (safe wrapper)
     updatePreviousChartState(totalChartsRendered, visibleFieldCount, Date.now());
 
     // Emit comprehensive chart status event with state information

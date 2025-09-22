@@ -99,7 +99,35 @@ const // Constants for better maintainability
      * @property {() => boolean} validateAPI
      */
 
-    { contextBridge, ipcRenderer } = require("electron");
+    // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
+    __electronOverride = (typeof globalThis !== 'undefined' && /** @type {any} */(globalThis).__electronHoistedMock) || null,
+    contextBridge = (() => {
+        let lastErr;
+        try {
+            if (__electronOverride && __electronOverride.contextBridge) return __electronOverride.contextBridge;
+            const mod = /** @type {any} */ (require("electron"));
+            const m = mod && (mod.contextBridge || mod.ipcRenderer) ? mod : mod && mod.default ? mod.default : mod;
+            return m && m.contextBridge ? m.contextBridge : undefined;
+        } catch (error) {
+            lastErr = error;
+        }
+        // If require failed and no override provided anything, surface error for robustness tests
+        if (!__electronOverride) throw lastErr || new Error("Module loading failed");
+        return null;
+    })(),
+    ipcRenderer = (() => {
+        let lastErr;
+        try {
+            if (__electronOverride && __electronOverride.ipcRenderer) return __electronOverride.ipcRenderer;
+            const mod = /** @type {any} */ (require("electron"));
+            const m = mod && (mod.contextBridge || mod.ipcRenderer) ? mod : mod && mod.default ? mod.default : mod;
+            return m && m.ipcRenderer ? m.ipcRenderer : undefined;
+        } catch (error) {
+            lastErr = error;
+        }
+        if (!__electronOverride) throw lastErr || new Error("Module loading failed");
+        return null;
+    })();
 
 /**
  * Wrapper to create a safe event subscription handler.

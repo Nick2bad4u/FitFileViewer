@@ -11,7 +11,6 @@
 
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
-import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { isHTMLElement, query, queryAll, setChecked, setValue } from "../../dom/domHelpers.js";
 import { fieldColors, formatChartFields } from "../../formatting/display/formatChartFields.js";
@@ -211,15 +210,16 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         // Force re-render through modern state management
         if (chartStateManager) {
             chartStateManager.debouncedRender(`Setting change: ${settingName}`);
+        } else if (typeof /** @type {any} */ (globalThis).renderChartJS === "function") {
+            // Fallback: direct rendering for compatibility if globally exposed
+            const target = container || document.querySelector("#content-chart") || document.body;
+            /** @type {any} */ (globalThis).renderChartJS(target);
         } else {
-            // Fallback: direct rendering for compatibility
-            if (container) {
-                renderChartJS(container);
-            } else {
-                console.log(`${LOG_PREFIX} No container found, attempting fallback render`);
-                const fallback = document.querySelector("#content-chart") || document.body;
-                renderChartJS(fallback);
-            }
+            // Final fallback: dispatch a render request event handled elsewhere
+            console.log(`${LOG_PREFIX} Dispatching render request event fallback`);
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv:request-render-charts", { detail: { reason: `setting-change:${settingName}` } })
+            );
         }
 
         console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change`);
@@ -462,15 +462,13 @@ function reRenderChartsAfterReset() {
         // Force a complete re-render through modern state management
         if (chartStateManager) {
             chartStateManager.debouncedRender("Settings reset");
+        } else if (typeof /** @type {any} */ (globalThis).renderChartJS === "function") {
+            const target = chartsContainer || document.querySelector("#content-chart") || document.body;
+            /** @type {any} */ (globalThis).renderChartJS(target);
         } else {
-            // Fallback: direct rendering for compatibility
-            if (chartsContainer) {
-                renderChartJS(chartsContainer);
-            } else {
-                // Provide a fallback container (create or select root) to satisfy signature
-                const fallback = document.querySelector("#content-chart") || document.body;
-                renderChartJS(fallback);
-            }
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv:request-render-charts", { detail: { reason: "settings-reset" } })
+            );
         }
     } catch (error) {
         const err = /** @type {any} */ (error);
@@ -562,7 +560,7 @@ function resetUIControlsToDefaults(wrapper) {
         for (const picker of colorPickers) {
             const fieldName = picker.id.replace("field-color-", "").replace("chartjs-", "");
             if (/** @type {any} */ (fieldColors)[fieldName]) {
-                setValue(picker, /** @type {any} */ (fieldColors)[fieldName]);
+                setValue(picker, /** @type {any} */(fieldColors)[fieldName]);
             }
         }
         if (colorPickers.length > 0) {
