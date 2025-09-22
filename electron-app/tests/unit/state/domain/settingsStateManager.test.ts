@@ -3,7 +3,7 @@
  * Simplified test focusing on core functionality and coverage
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 // Mock stateManager functions
 const mockGetState = vi.fn();
@@ -14,14 +14,14 @@ const mockSubscribe = vi.fn();
 const mockShowNotification = vi.fn();
 
 // Setup mocks before importing the module
-vi.mock('../../../../utils/state/core/stateManager.js', () => ({
+vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     getState: mockGetState,
     setState: mockSetState,
-    subscribe: mockSubscribe
+    subscribe: mockSubscribe,
 }));
 
-vi.mock('../../../../utils/ui/notifications/showNotification.js', () => ({
-    showNotification: mockShowNotification
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: mockShowNotification,
 }));
 
 // Mock console methods
@@ -29,7 +29,7 @@ global.console = {
     ...console,
     log: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn()
+    error: vi.fn(),
 };
 
 // Mock localStorage implementation that properly simulates the real localStorage API
@@ -48,7 +48,7 @@ const mockLocalStorage = {
     }),
     removeItem: vi.fn((key: string) => {
         delete mockLocalStorage.data[key];
-        mockLocalStorage.keys = mockLocalStorage.keys.filter(k => k !== key);
+        mockLocalStorage.keys = mockLocalStorage.keys.filter((k) => k !== key);
     }),
     clear: vi.fn(() => {
         mockLocalStorage.data = {};
@@ -59,21 +59,21 @@ const mockLocalStorage = {
     }),
     get length() {
         return mockLocalStorage.keys.length;
-    }
+    },
 };
 
-Object.defineProperty(globalThis, 'localStorage', {
+Object.defineProperty(globalThis, "localStorage", {
     value: mockLocalStorage,
-    writable: true
+    writable: true,
 });
 
 // Mock globalThis.addEventListener for storage events
-Object.defineProperty(globalThis, 'addEventListener', {
+Object.defineProperty(globalThis, "addEventListener", {
     value: vi.fn(),
-    writable: true
+    writable: true,
 });
 
-describe('settingsStateManager.js - simplified coverage', () => {
+describe("settingsStateManager.js - simplified coverage", () => {
     let settingsStateManagerModule: any;
     let settingsStateManager: any;
 
@@ -94,7 +94,7 @@ describe('settingsStateManager.js - simplified coverage', () => {
         mockSubscribe.mockReturnValue(() => {});
 
         // Import the module fresh for each test
-        settingsStateManagerModule = await import('../../../../utils/state/domain/settingsStateManager.js');
+        settingsStateManagerModule = await import("../../../../utils/state/domain/settingsStateManager.js");
         settingsStateManager = settingsStateManagerModule.settingsStateManager;
 
         // Reset initialization state
@@ -110,19 +110,19 @@ describe('settingsStateManager.js - simplified coverage', () => {
         vi.clearAllMocks();
     });
 
-    describe('SettingsStateManager class', () => {
-        describe('constructor', () => {
-            it('should initialize with empty state', () => {
+    describe("SettingsStateManager class", () => {
+        describe("constructor", () => {
+            it("should initialize with empty state", () => {
                 expect(settingsStateManager.initialized).toBe(false);
-                expect(settingsStateManager.migrationVersion).toBe('1.0.0');
+                expect(settingsStateManager.migrationVersion).toBe("1.0.0");
                 expect(settingsStateManager.subscribers).toBeInstanceOf(Map);
             });
         });
 
-        describe('cleanup', () => {
-            it('should clear subscribers and reset initialized state', () => {
+        describe("cleanup", () => {
+            it("should clear subscribers and reset initialized state", () => {
                 settingsStateManager.initialized = true;
-                settingsStateManager.subscribers.set('test', 'value');
+                settingsStateManager.subscribers.set("test", "value");
 
                 settingsStateManager.cleanup();
 
@@ -131,34 +131,34 @@ describe('settingsStateManager.js - simplified coverage', () => {
             });
         });
 
-        describe('getChartSettings', () => {
-            it('should return chart settings from localStorage', () => {
+        describe("getChartSettings", () => {
+            it("should return chart settings from localStorage", () => {
                 // Set up localStorage data
-                mockLocalStorage.data['chartjs_setting1'] = JSON.stringify('value1');
-                mockLocalStorage.data['chartjs_setting2'] = JSON.stringify('value2');
-                mockLocalStorage.keys = ['chartjs_setting1', 'chartjs_setting2'];
+                mockLocalStorage.data["chartjs_setting1"] = JSON.stringify("value1");
+                mockLocalStorage.data["chartjs_setting2"] = JSON.stringify("value2");
+                mockLocalStorage.keys = ["chartjs_setting1", "chartjs_setting2"];
 
                 const result = settingsStateManager.getChartSettings();
 
                 expect(result).toEqual({
-                    setting1: 'value1',
-                    setting2: 'value2'
+                    setting1: "value1",
+                    setting2: "value2",
                 });
             });
 
-            it('should handle invalid JSON in chart settings', () => {
+            it("should handle invalid JSON in chart settings", () => {
                 // Set up localStorage data with invalid JSON
-                mockLocalStorage.data['chartjs_setting1'] = 'invalid json';
-                mockLocalStorage.keys = ['chartjs_setting1'];
+                mockLocalStorage.data["chartjs_setting1"] = "invalid json";
+                mockLocalStorage.keys = ["chartjs_setting1"];
 
                 const result = settingsStateManager.getChartSettings();
 
                 expect(result).toEqual({
-                    setting1: 'invalid json'
+                    setting1: "invalid json",
                 });
             });
 
-            it('should return empty object when no chart settings exist', () => {
+            it("should return empty object when no chart settings exist", () => {
                 // No chart settings in localStorage
                 const result = settingsStateManager.getChartSettings();
 
@@ -166,142 +166,144 @@ describe('settingsStateManager.js - simplified coverage', () => {
             });
         });
 
-        describe('getSetting', () => {
-            it('should get theme setting (raw value from localStorage)', () => {
+        describe("getSetting", () => {
+            it("should get theme setting (raw value from localStorage)", () => {
                 // Store JSON string as localStorage would after setSetting
-                mockLocalStorage.data['ffv-theme'] = '"light"';
+                mockLocalStorage.data["ffv-theme"] = '"light"';
 
-                const result = settingsStateManager.getSetting('theme');
+                const result = settingsStateManager.getSetting("theme");
 
                 // Implementation bug: returns raw localStorage value instead of parsing JSON
                 expect(result).toBe('"light"');
             });
 
-            it('should return default for missing theme', () => {
-                const result = settingsStateManager.getSetting('theme');
+            it("should return default for missing theme", () => {
+                const result = settingsStateManager.getSetting("theme");
 
-                expect(result).toBe('dark'); // default theme
+                expect(result).toBe("dark"); // default theme
             });
 
-            it('should get boolean mapTheme setting', () => {
-                mockLocalStorage.data['ffv-map-theme-inverted'] = 'false';
+            it("should get boolean mapTheme setting", () => {
+                mockLocalStorage.data["ffv-map-theme-inverted"] = "false";
 
-                const result = settingsStateManager.getSetting('mapTheme');
+                const result = settingsStateManager.getSetting("mapTheme");
 
                 expect(result).toBe(false);
             });
 
-            it('should return default for missing mapTheme', () => {
-                const result = settingsStateManager.getSetting('mapTheme');
+            it("should return default for missing mapTheme", () => {
+                const result = settingsStateManager.getSetting("mapTheme");
 
                 expect(result).toBe(true); // default mapTheme
             });
 
-            it('should get ui object setting', () => {
-                mockLocalStorage.data['ui_setting1'] = '"value1"';
-                mockLocalStorage.data['ui_setting2'] = '"value2"';
-                mockLocalStorage.keys = ['ui_setting1', 'ui_setting2'];
+            it("should get ui object setting", () => {
+                mockLocalStorage.data["ui_setting1"] = '"value1"';
+                mockLocalStorage.data["ui_setting2"] = '"value2"';
+                mockLocalStorage.keys = ["ui_setting1", "ui_setting2"];
 
-                const result = settingsStateManager.getSetting('ui');
+                const result = settingsStateManager.getSetting("ui");
 
                 // Should include defaults plus the stored settings
-                expect(result).toEqual(expect.objectContaining({
-                    setting1: 'value1',
-                    setting2: 'value2'
-                }));
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        setting1: "value1",
+                        setting2: "value2",
+                    })
+                );
             });
 
-            it('should get specific key from ui setting', () => {
-                mockLocalStorage.data['ui_specificKey'] = '"specificValue"';
-                mockLocalStorage.keys = ['ui_specificKey'];
+            it("should get specific key from ui setting", () => {
+                mockLocalStorage.data["ui_specificKey"] = '"specificValue"';
+                mockLocalStorage.keys = ["ui_specificKey"];
 
-                const result = settingsStateManager.getSetting('ui', 'specificKey');
+                const result = settingsStateManager.getSetting("ui", "specificKey");
 
-                expect(result).toBe('specificValue');
+                expect(result).toBe("specificValue");
             });
 
-            it('should return undefined for missing object setting key', () => {
-                const result = settingsStateManager.getSetting('ui', 'missingKey');
+            it("should return undefined for missing object setting key", () => {
+                const result = settingsStateManager.getSetting("ui", "missingKey");
 
                 expect(result).toBeUndefined();
             });
 
-            it('should return default for unknown category', () => {
-                const result = settingsStateManager.getSetting('unknown' as any);
+            it("should return default for unknown category", () => {
+                const result = settingsStateManager.getSetting("unknown" as any);
 
                 expect(result).toBeUndefined();
             });
         });
 
-        describe('setSetting', () => {
-            it('should set theme setting', () => {
-                const result = settingsStateManager.setSetting('theme', 'light');
+        describe("setSetting", () => {
+            it("should set theme setting", () => {
+                const result = settingsStateManager.setSetting("theme", "light");
 
                 expect(result).toBe(true);
-                expect(mockLocalStorage.setItem).toHaveBeenCalledWith('ffv-theme', '"light"');
+                expect(mockLocalStorage.setItem).toHaveBeenCalledWith("ffv-theme", '"light"');
             });
 
-            it('should set mapTheme setting', () => {
-                const result = settingsStateManager.setSetting('mapTheme', false);
+            it("should set mapTheme setting", () => {
+                const result = settingsStateManager.setSetting("mapTheme", false);
 
                 expect(result).toBe(true);
-                expect(mockLocalStorage.setItem).toHaveBeenCalledWith('ffv-map-theme-inverted', 'false');
+                expect(mockLocalStorage.setItem).toHaveBeenCalledWith("ffv-map-theme-inverted", "false");
             });
 
-            it('should set ui object setting with key', () => {
+            it("should set ui object setting with key", () => {
                 // For object settings with validation, passing individual values might fail validation
                 // The actual function might not work as expected due to validation constraints
-                const result = settingsStateManager.setSetting('ui', 'value1', 'key1');
+                const result = settingsStateManager.setSetting("ui", "value1", "key1");
 
                 // Expect validation to fail since ui expects object but we're passing string
                 expect(result).toBe(false);
             });
 
-            it('should handle invalid category', () => {
-                const result = settingsStateManager.setSetting('invalid' as any, 'value');
+            it("should handle invalid category", () => {
+                const result = settingsStateManager.setSetting("invalid" as any, "value");
 
                 expect(result).toBe(false);
             });
         });
 
-        describe('resetSettings', () => {
-            it('should reset theme setting', () => {
-                mockLocalStorage.data['ffv-theme'] = '"light"';
+        describe("resetSettings", () => {
+            it("should reset theme setting", () => {
+                mockLocalStorage.data["ffv-theme"] = '"light"';
 
-                const result = settingsStateManager.resetSettings('theme');
-
-                expect(result).toBe(true);
-                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('ffv-theme');
-            });
-
-            it('should reset ui object setting', () => {
-                mockLocalStorage.data['ui_key1'] = '"value1"';
-                mockLocalStorage.data['ui_key2'] = '"value2"';
-                mockLocalStorage.keys = ['ui_key1', 'ui_key2'];
-
-                const result = settingsStateManager.resetSettings('ui');
+                const result = settingsStateManager.resetSettings("theme");
 
                 expect(result).toBe(true);
-                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('ui_key1');
-                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('ui_key2');
+                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("ffv-theme");
             });
 
-            it('should handle invalid category', () => {
-                const result = settingsStateManager.resetSettings('invalid' as any);
+            it("should reset ui object setting", () => {
+                mockLocalStorage.data["ui_key1"] = '"value1"';
+                mockLocalStorage.data["ui_key2"] = '"value2"';
+                mockLocalStorage.keys = ["ui_key1", "ui_key2"];
+
+                const result = settingsStateManager.resetSettings("ui");
+
+                expect(result).toBe(true);
+                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("ui_key1");
+                expect(mockLocalStorage.removeItem).toHaveBeenCalledWith("ui_key2");
+            });
+
+            it("should handle invalid category", () => {
+                const result = settingsStateManager.resetSettings("invalid" as any);
 
                 expect(result).toBe(false);
             });
         });
 
-        describe('initialize', () => {
-            it('should initialize settings state manager', async () => {
+        describe("initialize", () => {
+            it("should initialize settings state manager", async () => {
                 await settingsStateManager.initialize();
 
                 expect(settingsStateManager.initialized).toBe(true);
                 expect(mockSetState).toHaveBeenCalled();
             });
 
-            it('should skip if already initialized', async () => {
+            it("should skip if already initialized", async () => {
                 settingsStateManager.initialized = true;
 
                 await settingsStateManager.initialize();
@@ -311,8 +313,8 @@ describe('settingsStateManager.js - simplified coverage', () => {
             });
         });
 
-        describe('exportSettings', () => {
-            it('should export all settings', () => {
+        describe("exportSettings", () => {
+            it("should export all settings", () => {
                 const mockDate = 1234567890;
                 vi.useFakeTimers();
                 vi.setSystemTime(new Date(mockDate));
@@ -320,93 +322,93 @@ describe('settingsStateManager.js - simplified coverage', () => {
                 const result = settingsStateManager.exportSettings();
 
                 expect(result).toEqual({
-                    version: '1.0.0',
+                    version: "1.0.0",
                     timestamp: mockDate,
                     settings: {
                         chart: {},
                         export: {
-                            format: 'png',
+                            format: "png",
                             includeWatermark: false,
                             quality: 0.9,
-                            theme: 'auto'
+                            theme: "auto",
                         },
                         mapTheme: true,
-                        theme: 'dark',
+                        theme: "dark",
                         ui: {
                             animationsEnabled: true,
                             compactMode: false,
-                            showAdvancedControls: false
+                            showAdvancedControls: false,
                         },
                         units: {
-                            distance: 'metric',
-                            temperature: 'celsius',
-                            time: '24h'
-                        }
-                    }
+                            distance: "metric",
+                            temperature: "celsius",
+                            time: "24h",
+                        },
+                    },
                 });
 
                 vi.useRealTimers();
             });
         });
 
-        describe('importSettings', () => {
-            it('should import valid settings data', () => {
+        describe("importSettings", () => {
+            it("should import valid settings data", () => {
                 const settingsData = {
-                    version: '1.0.0',
+                    version: "1.0.0",
                     timestamp: Date.now(),
                     settings: {
-                        theme: 'light',
-                        mapTheme: false
-                    }
+                        theme: "light",
+                        mapTheme: false,
+                    },
                 };
 
                 const result = settingsStateManager.importSettings(settingsData);
 
                 expect(result).toBe(true);
-                expect(mockShowNotification).toHaveBeenCalledWith('Settings imported successfully', 'success');
+                expect(mockShowNotification).toHaveBeenCalledWith("Settings imported successfully", "success");
             });
 
-            it('should reject invalid settings data', () => {
+            it("should reject invalid settings data", () => {
                 const result = settingsStateManager.importSettings(null);
 
                 expect(result).toBe(false);
             });
         });
 
-        describe('setupLocalStorageSync', () => {
-            it('should set up storage event listener', () => {
+        describe("setupLocalStorageSync", () => {
+            it("should set up storage event listener", () => {
                 settingsStateManager.setupLocalStorageSync();
 
-                expect(mockSubscribe).toHaveBeenCalledWith('settings', expect.any(Function));
-                expect(globalThis.addEventListener).toHaveBeenCalledWith('storage', expect.any(Function));
+                expect(mockSubscribe).toHaveBeenCalledWith("settings", expect.any(Function));
+                expect(globalThis.addEventListener).toHaveBeenCalledWith("storage", expect.any(Function));
             });
         });
 
-        describe('migrateFromLegacy', () => {
-            it('should complete migration process', () => {
-                mockLocalStorage.data['dark-theme'] = 'true';
+        describe("migrateFromLegacy", () => {
+            it("should complete migration process", () => {
+                mockLocalStorage.data["dark-theme"] = "true";
 
                 // Function should complete without throwing
                 expect(() => settingsStateManager.migrateFromLegacy()).not.toThrow();
             });
 
-            it('should handle case when new theme already exists', () => {
-                mockLocalStorage.data['dark-theme'] = 'true';
-                mockLocalStorage.data['ffv-theme'] = '"light"';
+            it("should handle case when new theme already exists", () => {
+                mockLocalStorage.data["dark-theme"] = "true";
+                mockLocalStorage.data["ffv-theme"] = '"light"';
 
                 expect(() => settingsStateManager.migrateFromLegacy()).not.toThrow();
             });
         });
 
-        describe('migrateSettings', () => {
-            it('should complete migration process', async () => {
-                mockGetState.mockReturnValue('1.0.0');
+        describe("migrateSettings", () => {
+            it("should complete migration process", async () => {
+                mockGetState.mockReturnValue("1.0.0");
 
                 // Function should complete without throwing
                 await expect(settingsStateManager.migrateSettings()).resolves.not.toThrow();
             });
 
-            it('should handle initial migration', async () => {
+            it("should handle initial migration", async () => {
                 mockGetState.mockReturnValue(null);
 
                 // Function should complete without throwing
@@ -415,11 +417,11 @@ describe('settingsStateManager.js - simplified coverage', () => {
         });
     });
 
-    describe('Convenience functions', () => {
-        describe('getThemeSetting', () => {
-            it('should delegate to settingsStateManager.getSetting', () => {
+    describe("Convenience functions", () => {
+        describe("getThemeSetting", () => {
+            it("should delegate to settingsStateManager.getSetting", () => {
                 const { getThemeSetting } = settingsStateManagerModule;
-                mockLocalStorage.data['ffv-theme'] = '"light"';
+                mockLocalStorage.data["ffv-theme"] = '"light"';
 
                 const result = getThemeSetting();
 
@@ -428,21 +430,21 @@ describe('settingsStateManager.js - simplified coverage', () => {
             });
         });
 
-        describe('setThemeSetting', () => {
-            it('should delegate to settingsStateManager.setSetting', () => {
+        describe("setThemeSetting", () => {
+            it("should delegate to settingsStateManager.setSetting", () => {
                 const { setThemeSetting } = settingsStateManagerModule;
 
-                const result = setThemeSetting('light');
+                const result = setThemeSetting("light");
 
                 expect(result).toBe(true);
-                expect(mockLocalStorage.setItem).toHaveBeenCalledWith('ffv-theme', '"light"');
+                expect(mockLocalStorage.setItem).toHaveBeenCalledWith("ffv-theme", '"light"');
             });
         });
 
-        describe('getMapThemeSetting', () => {
-            it('should delegate to settingsStateManager.getSetting', () => {
+        describe("getMapThemeSetting", () => {
+            it("should delegate to settingsStateManager.getSetting", () => {
                 const { getMapThemeSetting } = settingsStateManagerModule;
-                mockLocalStorage.data['ffv-map-theme-inverted'] = 'false';
+                mockLocalStorage.data["ffv-map-theme-inverted"] = "false";
 
                 const result = getMapThemeSetting();
 
@@ -450,24 +452,24 @@ describe('settingsStateManager.js - simplified coverage', () => {
             });
         });
 
-        describe('setMapThemeSetting', () => {
-            it('should delegate to settingsStateManager.setSetting', () => {
+        describe("setMapThemeSetting", () => {
+            it("should delegate to settingsStateManager.setSetting", () => {
                 const { setMapThemeSetting } = settingsStateManagerModule;
 
                 const result = setMapThemeSetting(false);
 
                 expect(result).toBe(true);
-                expect(mockLocalStorage.setItem).toHaveBeenCalledWith('ffv-map-theme-inverted', 'false');
+                expect(mockLocalStorage.setItem).toHaveBeenCalledWith("ffv-map-theme-inverted", "false");
             });
         });
 
-        describe('getChartSetting', () => {
-            it('should delegate to settingsStateManager.getSetting', () => {
+        describe("getChartSetting", () => {
+            it("should delegate to settingsStateManager.getSetting", () => {
                 const { getChartSetting } = settingsStateManagerModule;
-                mockLocalStorage.data['chart_testKey'] = '"chartValue"';
-                mockLocalStorage.keys = ['chart_testKey'];
+                mockLocalStorage.data["chart_testKey"] = '"chartValue"';
+                mockLocalStorage.keys = ["chart_testKey"];
 
-                const result = getChartSetting('testKey');
+                const result = getChartSetting("testKey");
 
                 // The function calls getSetting('chart', 'testKey') which looks for specific keys
                 // With the localStorage mock setup, it may not find the key due to iteration logic
@@ -475,50 +477,52 @@ describe('settingsStateManager.js - simplified coverage', () => {
             });
         });
 
-        describe('setChartSetting', () => {
-            it('should delegate to settingsStateManager.setSetting', () => {
+        describe("setChartSetting", () => {
+            it("should delegate to settingsStateManager.setSetting", () => {
                 const { setChartSetting } = settingsStateManagerModule;
 
                 // This might fail due to validation (chart expects object, but we're passing string)
                 // but the function should still handle it gracefully
-                const result = setChartSetting('testKey', 'testValue');
+                const result = setChartSetting("testKey", "testValue");
 
                 // The result might be false due to validation failure
-                expect(typeof result).toBe('boolean');
+                expect(typeof result).toBe("boolean");
             });
         });
 
-        describe('resetChartSettings', () => {
-            it('should delegate to settingsStateManager.resetSettings', () => {
+        describe("resetChartSettings", () => {
+            it("should delegate to settingsStateManager.resetSettings", () => {
                 const { resetChartSettings } = settingsStateManagerModule;
 
                 // Function should complete and return a boolean
                 const result = resetChartSettings();
 
-                expect(typeof result).toBe('boolean');
+                expect(typeof result).toBe("boolean");
             });
         });
 
-        describe('exportAllSettings', () => {
-            it('should delegate to settingsStateManager.exportSettings', () => {
+        describe("exportAllSettings", () => {
+            it("should delegate to settingsStateManager.exportSettings", () => {
                 const { exportAllSettings } = settingsStateManagerModule;
 
                 const result = exportAllSettings();
 
-                expect(result).toEqual(expect.objectContaining({
-                    version: '1.0.0',
-                    settings: expect.any(Object)
-                }));
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        version: "1.0.0",
+                        settings: expect.any(Object),
+                    })
+                );
             });
         });
 
-        describe('importAllSettings', () => {
-            it('should delegate to settingsStateManager.importSettings', () => {
+        describe("importAllSettings", () => {
+            it("should delegate to settingsStateManager.importSettings", () => {
                 const { importAllSettings } = settingsStateManagerModule;
                 const settingsData = {
-                    version: '1.0.0',
+                    version: "1.0.0",
                     timestamp: Date.now(),
-                    settings: { theme: 'light' }
+                    settings: { theme: "light" },
                 };
 
                 const result = importAllSettings(settingsData);
@@ -528,25 +532,25 @@ describe('settingsStateManager.js - simplified coverage', () => {
         });
     });
 
-    describe('Error handling', () => {
-        it('should handle localStorage errors gracefully', () => {
+    describe("Error handling", () => {
+        it("should handle localStorage errors gracefully", () => {
             // Make localStorage.getItem throw an error
             (mockLocalStorage.getItem as any).mockImplementation(() => {
-                throw new Error('localStorage error');
+                throw new Error("localStorage error");
             });
 
-            const result = settingsStateManager.getSetting('theme');
+            const result = settingsStateManager.getSetting("theme");
 
-            expect(result).toBe('dark'); // fallback to default
+            expect(result).toBe("dark"); // fallback to default
         });
 
-        it('should handle state manager errors gracefully during initialization', async () => {
+        it("should handle state manager errors gracefully during initialization", async () => {
             mockSetState.mockImplementation(() => {
-                throw new Error('State manager error');
+                throw new Error("State manager error");
             });
 
             // Initialize should handle the error gracefully
-            await expect(settingsStateManager.initialize()).rejects.toThrow('State manager error');
+            await expect(settingsStateManager.initialize()).rejects.toThrow("State manager error");
         });
     });
 });

@@ -47,7 +47,7 @@ export function setupTabButton(id, handler) {
     // Clean up any existing handlers to prevent memory leaks
     // Store the handler reference for potential cleanup
     if (/** @type {any} */ (btn)._setupTabButtonHandler) {
-        btn.removeEventListener("click", /** @type {any} */(btn)._setupTabButtonHandler);
+        btn.removeEventListener("click", /** @type {any} */ (btn)._setupTabButtonHandler);
     }
 
     // Store handler reference for cleanup and add new listener

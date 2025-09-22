@@ -22,7 +22,8 @@ const getDoc = () => {
         /* Ignore errors */
     }
     try {
-        if (!d && globalThis.window !== undefined && globalThis.window.document) d = /** @type {any} */ (globalThis.window.document);
+        if (!d && globalThis.window !== undefined && globalThis.window.document)
+            d = /** @type {any} */ (globalThis.window.document);
     } catch {
         /* Ignore errors */
     }

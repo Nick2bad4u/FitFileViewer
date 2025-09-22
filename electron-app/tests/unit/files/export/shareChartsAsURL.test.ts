@@ -2,33 +2,33 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock dependencies
-vi.mock('../../../../utils/ui/notifications/showNotification.js', () => ({
-    showNotification: vi.fn()
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: vi.fn(),
 }));
 
-vi.mock('../../../../utils/ui/components/createSettingsHeader.js', () => ({
-    showChartSelectionModal: vi.fn()
+vi.mock("../../../../utils/ui/components/createSettingsHeader.js", () => ({
+    showChartSelectionModal: vi.fn(),
 }));
 
 // Mock clipboard API
-Object.defineProperty(global, 'navigator', {
+Object.defineProperty(global, "navigator", {
     value: {
         clipboard: {
-            writeText: vi.fn().mockResolvedValue(undefined)
-        }
+            writeText: vi.fn().mockResolvedValue(undefined),
+        },
     },
-    configurable: true
+    configurable: true,
 });
 
 // Import the module after mocking
-import { exportUtils } from '../../../../utils/files/export/exportUtils.js';
-import { showNotification } from '../../../../utils/ui/notifications/showNotification.js';
-import { showChartSelectionModal } from '../../../../utils/ui/components/createSettingsHeader.js';
+import { exportUtils } from "../../../../utils/files/export/exportUtils.js";
+import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
+import { showChartSelectionModal } from "../../../../utils/ui/components/createSettingsHeader.js";
 
-describe('shareChartsAsURL with Imgur fallback', () => {
+describe("shareChartsAsURL with Imgur fallback", () => {
     // Get typed references to the mocked functions
     const mockShowNotification = vi.mocked(showNotification);
     const mockShowChartSelectionModal = vi.mocked(showChartSelectionModal);
@@ -38,14 +38,14 @@ describe('shareChartsAsURL with Imgur fallback', () => {
         vi.clearAllMocks();
 
         // Mock the getImgurConfig method to return default config
-        vi.spyOn(exportUtils, 'getImgurConfig').mockReturnValue({
-            clientId: '0046ee9e30ac578',
-            uploadUrl: 'https://api.imgur.com/3/image'
+        vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+            clientId: "0046ee9e30ac578",
+            uploadUrl: "https://api.imgur.com/3/image",
         });
 
         // Mock canvas methods
         HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-            fillStyle: '',
+            fillStyle: "",
             fillRect: vi.fn(),
             drawImage: vi.fn(),
             clearRect: vi.fn(),
@@ -60,47 +60,50 @@ describe('shareChartsAsURL with Imgur fallback', () => {
             lineTo: vi.fn(),
             closePath: vi.fn(),
             stroke: vi.fn(),
-            fill: vi.fn()
+            fill: vi.fn(),
         })) as any;
 
-        HTMLCanvasElement.prototype.toDataURL = vi.fn(() =>
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+        HTMLCanvasElement.prototype.toDataURL = vi.fn(
+            () =>
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
         );
     });
 
-    it('should call showChartSelectionModal when shareChartsAsURL is invoked', async () => {
+    it("should call showChartSelectionModal when shareChartsAsURL is invoked", async () => {
         // Arrange
-        mockShowChartSelectionModal.mockImplementation((actionType: any, singleCallback: any, combinedCallback: any) => {
-            // We'll test that the function is called with correct parameters
-            expect(actionType).toBe('share URL');
-            expect(typeof singleCallback).toBe('function');
-            expect(typeof combinedCallback).toBe('function');
-        });
+        mockShowChartSelectionModal.mockImplementation(
+            (actionType: any, singleCallback: any, combinedCallback: any) => {
+                // We'll test that the function is called with correct parameters
+                expect(actionType).toBe("share URL");
+                expect(typeof singleCallback).toBe("function");
+                expect(typeof combinedCallback).toBe("function");
+            }
+        );
 
         // Act
         await exportUtils.shareChartsAsURL();
 
         // Assert
         expect(mockShowChartSelectionModal).toHaveBeenCalledWith(
-            'share URL',
+            "share URL",
             expect.any(Function),
             expect.any(Function)
         );
     });
 
-    it('should handle Imgur client ID not configured error with data URL fallback', async () => {
+    it("should handle Imgur client ID not configured error with data URL fallback", async () => {
         // Arrange
         const mockChart = {
             canvas: {
                 width: 800,
-                height: 400
-            }
+                height: 400,
+            },
         };
 
         // Mock getImgurConfig to return unconfigured client ID to trigger fallback
-        vi.spyOn(exportUtils, 'getImgurConfig').mockReturnValue({
-            clientId: 'YOUR_IMGUR_CLIENT_ID',
-            uploadUrl: 'https://api.imgur.com/3/image'
+        vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+            clientId: "YOUR_IMGUR_CLIENT_ID",
+            uploadUrl: "https://api.imgur.com/3/image",
         });
 
         let singleCallback: any;
@@ -117,27 +120,22 @@ describe('shareChartsAsURL with Imgur fallback', () => {
         }
 
         // Assert
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-            expect.stringContaining('data:image/png;base64,')
-        );
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("data:image/png;base64,"));
 
         expect(mockShowNotification).toHaveBeenCalledWith(
-            'Chart image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.',
-            'info'
+            "Chart image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
+            "info"
         );
     });
 
-    it('should handle combined charts with Imgur fallback', async () => {
+    it("should handle combined charts with Imgur fallback", async () => {
         // Arrange
-        const mockCharts = [
-            { canvas: { width: 400, height: 300 } },
-            { canvas: { width: 400, height: 300 } }
-        ];
+        const mockCharts = [{ canvas: { width: 400, height: 300 } }, { canvas: { width: 400, height: 300 } }];
 
         // Mock getImgurConfig to return unconfigured client ID to trigger fallback
-        vi.spyOn(exportUtils, 'getImgurConfig').mockReturnValue({
-            clientId: 'YOUR_IMGUR_CLIENT_ID',
-            uploadUrl: 'https://api.imgur.com/3/image'
+        vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+            clientId: "YOUR_IMGUR_CLIENT_ID",
+            uploadUrl: "https://api.imgur.com/3/image",
         });
 
         let combinedCallback: any;
@@ -154,17 +152,15 @@ describe('shareChartsAsURL with Imgur fallback', () => {
         }
 
         // Assert
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-            expect.stringContaining('data:image/png;base64,')
-        );
+        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining("data:image/png;base64,"));
 
         expect(mockShowNotification).toHaveBeenCalledWith(
-            'Combined charts image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.',
-            'info'
+            "Combined charts image copied to clipboard as data URL (Imgur not configured). You can paste this directly into email, chat, or documents.",
+            "info"
         );
     });
 
-    it('should handle empty charts array gracefully', async () => {
+    it("should handle empty charts array gracefully", async () => {
         // Arrange
         let combinedCallback: any;
         mockShowChartSelectionModal.mockImplementation((actionType: any, single: any, combined: any) => {
@@ -180,25 +176,22 @@ describe('shareChartsAsURL with Imgur fallback', () => {
         }
 
         // Assert
-        expect(mockShowNotification).toHaveBeenCalledWith(
-            'No charts available to share',
-            'warning'
-        );
+        expect(mockShowNotification).toHaveBeenCalledWith("No charts available to share", "warning");
 
         expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
     });
 
-    it('should handle clipboard API errors gracefully', async () => {
+    it("should handle clipboard API errors gracefully", async () => {
         // Arrange
         const mockChart = {
             canvas: {
                 width: 800,
-                height: 400
-            }
+                height: 400,
+            },
         };
 
         // Mock clipboard to reject
-        mockWriteText.mockRejectedValue(new Error('Clipboard access denied'));
+        mockWriteText.mockRejectedValue(new Error("Clipboard access denied"));
 
         let singleCallback: any;
         mockShowChartSelectionModal.mockImplementation((actionType: any, single: any, combined: any) => {
@@ -214,9 +207,6 @@ describe('shareChartsAsURL with Imgur fallback', () => {
         }
 
         // Assert
-        expect(mockShowNotification).toHaveBeenCalledWith(
-            'Failed to share chart. Please try again.',
-            'error'
-        );
+        expect(mockShowNotification).toHaveBeenCalledWith("Failed to share chart. Please try again.", "error");
     });
 });

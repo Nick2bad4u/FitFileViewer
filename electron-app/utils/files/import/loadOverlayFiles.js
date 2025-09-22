@@ -19,11 +19,11 @@ export async function loadOverlayFiles(files) {
             globalThis.loadedFitFiles =
                 globalThis.globalData && globalThis.globalData.recordMesgs
                     ? [
-                        {
-                            data: globalThis.globalData,
-                            filePath: globalThis.globalData?.cachedFilePath,
-                        },
-                    ]
+                          {
+                              data: globalThis.globalData,
+                              filePath: globalThis.globalData?.cachedFilePath,
+                          },
+                      ]
                     : [];
         }
 
@@ -43,7 +43,7 @@ export async function loadOverlayFiles(files) {
                             return loadedBase === file.name;
                         })
                     ) {
-                        showNotification(/** @type {any} */(`${file.name} is already shown on the map`), "warning");
+                        showNotification(/** @type {any} */ (`${file.name} is already shown on the map`), "warning");
                     } else {
                         globalThis.loadedFitFiles.push({
                             data: result.data,
@@ -54,7 +54,7 @@ export async function loadOverlayFiles(files) {
                     }
                 } else {
                     invalidFiles.push(file.name);
-                    showNotification(/** @type {any} */(`Failed to load ${file.name}: ${result.error}`), "error");
+                    showNotification(/** @type {any} */ (`Failed to load ${file.name}: ${result.error}`), "error");
                 }
 
                 loaded++;
@@ -78,14 +78,14 @@ export async function loadOverlayFiles(files) {
         // Show summary notification
         if (invalidFiles.length === files.length) {
             // All files failed
-            showNotification(/** @type {any} */(`Failed to load any of the ${files.length} files.`), "error");
+            showNotification(/** @type {any} */ (`Failed to load any of the ${files.length} files.`), "error");
         } else if (invalidFiles.length > 0) {
             // Some files failed
             const message = `${files.length - invalidFiles.length} files loaded successfully. ${invalidFiles.length} files failed.`;
-            showNotification(/** @type {any} */(message), "warning");
+            showNotification(/** @type {any} */ (message), "warning");
         } else {
             // All files succeeded
-            showNotification(/** @type {any} */(`Successfully loaded ${files.length} files`), "success");
+            showNotification(/** @type {any} */ (`Successfully loaded ${files.length} files`), "success");
         }
     } catch (error) {
         console.error("[loadOverlayFiles] Error in loadOverlayFiles:", error);

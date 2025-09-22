@@ -1,71 +1,71 @@
 name: Vitest
 
 on:
-  push:
-    paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
-  pull_request:
-    paths-ignore:
-      - "*"
-      - "*/**"
-      - "!electron-app/**"
-      - "!electron-app"
-      - "**/CHANGELOG.md"
-      - "CHANGELOG.md"
-  workflow_dispatch:
+    push:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    pull_request:
+        paths-ignore:
+            - "*"
+            - "*/**"
+            - "!electron-app/**"
+            - "!electron-app"
+            - "**/CHANGELOG.md"
+            - "CHANGELOG.md"
+    workflow_dispatch:
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: vitest-${{ github.ref }}
-  cancel-in-progress: false
+    group: vitest-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  test:
-    name: Run unit tests with coverage
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: electron-app
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
-        with:
-          egress-policy: audit
+    test:
+        name: Run unit tests with coverage
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: electron-app
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+              with:
+                  egress-policy: audit
 
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+            - name: Checkout code
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 20
+            - name: Setup Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+              with:
+                  node-version: 20
 
-      - name: Cache node modules
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: electron-app/node_modules
-          key: ${{ runner.os }}-electron-app-node-modules-${{ hashFiles('electron-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-app-node-modules-
+            - name: Cache node modules
+              uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+              with:
+                  path: electron-app/node_modules
+                  key: ${{ runner.os }}-electron-app-node-modules-${{ hashFiles('electron-app/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-electron-app-node-modules-
 
-      - name: Install dependencies
-        run: |
-          npm ci
+            - name: Install dependencies
+              run: |
+                  npm ci
 
-      - name: Run vitest with coverage
-        run: |
-          npm run test:ci
+            - name: Run vitest with coverage
+              run: |
+                  npm run test:ci
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: always()
-        with:
-          name: coverage
-          path: electron-app/coverage
+            - name: Upload coverage artifact
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              if: always()
+              with:
+                  name: coverage
+                  path: electron-app/coverage

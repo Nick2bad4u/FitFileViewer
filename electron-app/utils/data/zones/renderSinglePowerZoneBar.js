@@ -26,13 +26,13 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
 
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
-            backgroundColor: zone.color || savedColors[index] || (theme === "dark" ? "#f59e42" : "#fbbf24"),
-            borderColor: theme === "dark" ? "#333" : "#fff",
-            borderWidth: 1,
-            data: [zone.value], // Single value array for this zone
-            label: zone.label,
-        })),
-            chart = new /** @type {any} */(globalThis).Chart(canvas, {
+                backgroundColor: zone.color || savedColors[index] || (theme === "dark" ? "#f59e42" : "#fbbf24"),
+                borderColor: theme === "dark" ? "#333" : "#fff",
+                borderWidth: 1,
+                data: [zone.value], // Single value array for this zone
+                label: zone.label,
+            })),
+            chart = new /** @type {any} */ (globalThis).Chart(canvas, {
                 data: {
                     datasets,
                     labels: ["Time in Zone"], // Single category for all zones

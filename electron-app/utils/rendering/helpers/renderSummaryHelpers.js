@@ -312,7 +312,12 @@ export function saveColPrefs(key, visibleColumns, _allKeys) {
  * }} params
  * @returns {void}
  */
-export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleColumns, visibleColumns: initialVisibleColumns }) {
+export function showColModal({
+    allKeys,
+    renderTable: reRenderTable,
+    setVisibleColumns,
+    visibleColumns: initialVisibleColumns,
+}) {
     // Remove any existing modal
     const old = document.querySelector(".summary-col-modal-overlay");
     if (old) {

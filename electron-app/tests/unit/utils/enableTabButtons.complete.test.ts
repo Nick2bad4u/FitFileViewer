@@ -90,15 +90,19 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
 
         // CRITICAL: Property descriptor pattern for tabButtonsCurrentlyEnabled scope synchronization
         let tabButtonsCurrentlyEnabledValue: boolean | undefined;
-        Object.defineProperty(global.window, 'tabButtonsCurrentlyEnabled', {
+        Object.defineProperty(global.window, "tabButtonsCurrentlyEnabled", {
             get: () => tabButtonsCurrentlyEnabledValue,
-            set: (value) => { tabButtonsCurrentlyEnabledValue = value; },
-            configurable: true
+            set: (value) => {
+                tabButtonsCurrentlyEnabledValue = value;
+            },
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'tabButtonsCurrentlyEnabled', {
+        Object.defineProperty(globalThis, "tabButtonsCurrentlyEnabled", {
             get: () => tabButtonsCurrentlyEnabledValue,
-            set: (value) => { tabButtonsCurrentlyEnabledValue = value; },
-            configurable: true
+            set: (value) => {
+                tabButtonsCurrentlyEnabledValue = value;
+            },
+            configurable: true,
         });
     });
 
@@ -195,18 +199,18 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             testContainer.innerHTML = `<button id="tab-test" class="tab-button">Test</button>`;
 
             // Debug scope relationships
-            console.log('Before setTabButtonsEnabled:');
-            console.log('globalThis === global.window:', globalThis === (global as any).window);
-            console.log('globalThis.window === global.window:', globalThis.window === (global as any).window);
-            console.log('window === global.window:', window === (global as any).window);
+            console.log("Before setTabButtonsEnabled:");
+            console.log("globalThis === global.window:", globalThis === (global as any).window);
+            console.log("globalThis.window === global.window:", globalThis.window === (global as any).window);
+            console.log("window === global.window:", window === (global as any).window);
 
             setTabButtonsEnabled(true);
 
             // Debug what gets set where
-            console.log('After setTabButtonsEnabled:');
-            console.log('globalThis.tabButtonsCurrentlyEnabled:', (globalThis as any).tabButtonsCurrentlyEnabled);
-            console.log('window.tabButtonsCurrentlyEnabled:', (window as any).tabButtonsCurrentlyEnabled);
-            console.log('global.window.tabButtonsCurrentlyEnabled:', (global as any).window.tabButtonsCurrentlyEnabled);
+            console.log("After setTabButtonsEnabled:");
+            console.log("globalThis.tabButtonsCurrentlyEnabled:", (globalThis as any).tabButtonsCurrentlyEnabled);
+            console.log("window.tabButtonsCurrentlyEnabled:", (window as any).tabButtonsCurrentlyEnabled);
+            console.log("global.window.tabButtonsCurrentlyEnabled:", (global as any).window.tabButtonsCurrentlyEnabled);
 
             expect((global as any).window.tabButtonsCurrentlyEnabled).toBe(true);
         });

@@ -100,15 +100,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         electronAPI = createElectronAPIMock();
 
         // Synchronize electronAPI between window and globalThis scopes using property descriptor pattern
-        Object.defineProperty(window, 'electronAPI', {
+        Object.defineProperty(window, "electronAPI", {
             value: electronAPI as any,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'electronAPI', {
+        Object.defineProperty(globalThis, "electronAPI", {
             value: electronAPI as any,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         setLoading = vi.fn();
@@ -238,15 +238,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const showFitData = vi.fn();
 
         // Synchronize showFitData between window and globalThis scopes using property descriptor pattern
-        Object.defineProperty(window, 'showFitData', {
+        Object.defineProperty(window, "showFitData", {
             value: showFitData,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'showFitData', {
+        Object.defineProperty(globalThis, "showFitData", {
             value: showFitData,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         const isOpeningFileRef = { current: false };
@@ -265,10 +265,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         openFileBtn.dispatchEvent(evt);
 
         // Wait for async menu creation to complete
-        await vi.waitFor(() => {
-            const menu = document.getElementById("recent-files-menu");
-            expect(menu).toBeTruthy();
-        }, { timeout: 1000 });
+        await vi.waitFor(
+            () => {
+                const menu = document.getElementById("recent-files-menu");
+                expect(menu).toBeTruthy();
+            },
+            { timeout: 1000 }
+        );
 
         const menu = document.getElementById("recent-files-menu") as HTMLDivElement;
         expect(menu).toBeTruthy();
@@ -653,15 +656,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
         const showFitData = vi.fn();
 
-        Object.defineProperty(window, 'showFitData', {
+        Object.defineProperty(window, "showFitData", {
             value: showFitData,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'showFitData', {
+        Object.defineProperty(globalThis, "showFitData", {
             value: showFitData,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         const isOpeningFileRef = { current: false };
@@ -811,7 +814,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Simulate clicking outside the menu
         const mouseDownEvent = new MouseEvent("mousedown", { bubbles: true });
-        Object.defineProperty(mouseDownEvent, 'target', { value: outsideElement });
+        Object.defineProperty(mouseDownEvent, "target", { value: outsideElement });
         document.dispatchEvent(mouseDownEvent);
 
         // Menu should be removed from DOM
@@ -967,10 +970,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Wait for async operations and error handling
         await vi.waitFor(() => {
-            expect(showNotification).toHaveBeenCalledWith(
-                expect.stringContaining("Error reloading file"),
-                "error"
-            );
+            expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("Error reloading file"), "error");
         });
 
         // Loading should be turned off
@@ -1118,15 +1118,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             // Missing onMenuOpenFile and onOpenRecentFile
         };
 
-        Object.defineProperty(window, 'electronAPI', {
+        Object.defineProperty(window, "electronAPI", {
             value: limitedElectronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'electronAPI', {
+        Object.defineProperty(globalThis, "electronAPI", {
             value: limitedElectronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         // Should not crash when electronAPI is missing methods
@@ -1144,15 +1144,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Restore full electronAPI
         electronAPI = createElectronAPIMock();
-        Object.defineProperty(window, 'electronAPI', {
+        Object.defineProperty(window, "electronAPI", {
             value: electronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'electronAPI', {
+        Object.defineProperty(globalThis, "electronAPI", {
             value: electronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
     });
 
@@ -1162,15 +1162,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             send: undefined, // Remove send method
         };
 
-        Object.defineProperty(window, 'electronAPI', {
+        Object.defineProperty(window, "electronAPI", {
             value: limitedElectronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'electronAPI', {
+        Object.defineProperty(globalThis, "electronAPI", {
             value: limitedElectronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         setupListeners({
@@ -1192,15 +1192,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Restore full electronAPI
         electronAPI = createElectronAPIMock();
-        Object.defineProperty(window, 'electronAPI', {
+        Object.defineProperty(window, "electronAPI", {
             value: electronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'electronAPI', {
+        Object.defineProperty(globalThis, "electronAPI", {
             value: electronAPI,
             writable: true,
-            configurable: true
+            configurable: true,
         });
     });
 
@@ -1258,7 +1258,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         const preventDefault = vi.fn();
         const contextMenuEvent = new MouseEvent("contextmenu", { bubbles: true });
-        Object.defineProperty(contextMenuEvent, 'preventDefault', { value: preventDefault });
+        Object.defineProperty(contextMenuEvent, "preventDefault", { value: preventDefault });
 
         menu.dispatchEvent(contextMenuEvent);
         expect(preventDefault).toHaveBeenCalled();
@@ -1276,26 +1276,26 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const showFitData = vi.fn();
         const sendFitFileToAltFitReader = vi.fn();
 
-        Object.defineProperty(window, 'showFitData', {
+        Object.defineProperty(window, "showFitData", {
             value: showFitData,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'showFitData', {
+        Object.defineProperty(globalThis, "showFitData", {
             value: showFitData,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
-        Object.defineProperty(window, 'sendFitFileToAltFitReader', {
+        Object.defineProperty(window, "sendFitFileToAltFitReader", {
             value: sendFitFileToAltFitReader,
             writable: true,
-            configurable: true
+            configurable: true,
         });
-        Object.defineProperty(globalThis, 'sendFitFileToAltFitReader', {
+        Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
             value: sendFitFileToAltFitReader,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         setupListeners({
@@ -1331,10 +1331,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         electronAPI.addRecentFile = vi.fn().mockResolvedValue(undefined);
 
         const sendFitFileToAltFitReader = vi.fn();
-        Object.defineProperty(globalThis, 'sendFitFileToAltFitReader', {
+        Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
             value: sendFitFileToAltFitReader,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         setupListeners({
@@ -1480,7 +1480,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const escapeEvent = new KeyboardEvent("keydown", {
             key: "Escape",
             bubbles: true,
-            cancelable: true
+            cancelable: true,
         });
         menu.dispatchEvent(escapeEvent);
 
@@ -1579,7 +1579,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Create valid coordinate data in semicircle format
         // Coordinates in semicircles: lat/lng * 2^31 / 180
-        const semicircleConversion = (degrees: number) => Math.round((degrees * (2 ** 31)) / 180);
+        const semicircleConversion = (degrees: number) => Math.round((degrees * 2 ** 31) / 180);
 
         // Mock globalData with valid coordinates
         (globalThis as any).globalData = {
@@ -1587,14 +1587,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
                 {
                     positionLat: semicircleConversion(40.7589), // NYC latitude in semicircles
                     positionLong: semicircleConversion(-73.9851), // NYC longitude in semicircles
-                    timestamp: 1000000
+                    timestamp: 1000000,
                 },
                 {
                     positionLat: semicircleConversion(40.7614), // Another NYC point
                     positionLong: semicircleConversion(-73.9776),
-                    timestamp: 1000001
-                }
-            ]
+                    timestamp: 1000001,
+                },
+            ],
         };
 
         // Mock URL methods
@@ -1605,7 +1605,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         global.Blob = vi.fn().mockImplementation((parts: any[], options: any) => ({
             parts,
             options,
-            type: options?.type || ''
+            type: options?.type || "",
         }));
 
         // Mock document.body.append and createElement
@@ -1613,7 +1613,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             href: "",
             download: "",
             click: vi.fn(),
-            remove: vi.fn()
+            remove: vi.fn(),
         };
         document.createElement = vi.fn().mockReturnValue(mockAnchorElement);
         document.body.append = vi.fn();
@@ -1681,7 +1681,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     it("error handling: parse error without details (line 105)", { timeout: 15000 }, async () => {
         // Debug output to check test state
         console.log("Test 105 - electronAPI exists:", !!(globalThis as any).electronAPI);
-        console.log("Test 105 - electronAPI === globalThis.electronAPI:", electronAPI === (globalThis as any).electronAPI);
+        console.log(
+            "Test 105 - electronAPI === globalThis.electronAPI:",
+            electronAPI === (globalThis as any).electronAPI
+        );
         console.log("Test 105 - electronAPI.recentFiles exists:", !!electronAPI.recentFiles);
 
         // Mock recent files as strings (this test targets recent file click handler)
@@ -1701,7 +1704,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         console.log("Test 105 - After mock setup, electronAPI.recentFiles exists:", !!electronAPI.recentFiles);
-        console.log("Test 105 - globalThis.electronAPI.recentFiles exists:", !!(globalThis as any).electronAPI?.recentFiles);
+        console.log(
+            "Test 105 - globalThis.electronAPI.recentFiles exists:",
+            !!(globalThis as any).electronAPI?.recentFiles
+        );
 
         setupListeners({
             openFileBtn,
@@ -1722,7 +1728,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             bubbles: true,
             cancelable: true,
             clientX: 100,
-            clientY: 100
+            clientY: 100,
         });
         openFileBtn.dispatchEvent(contextEvent);
 
@@ -1731,11 +1737,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         console.log("Test 105 - Document body children count after event:", document.body.children.length);
 
         // Wait for the async recentFiles call to complete and menu to be created
-        await vi.waitFor(() => {
-            const contextMenu = document.querySelector("#recent-files-menu");
-            console.log("Test 105 - Menu found:", !!contextMenu);
-            return contextMenu !== null;
-        }, { timeout: 15000, interval: 100 });
+        await vi.waitFor(
+            () => {
+                const contextMenu = document.querySelector("#recent-files-menu");
+                console.log("Test 105 - Menu found:", !!contextMenu);
+                return contextMenu !== null;
+            },
+            { timeout: 15000, interval: 100 }
+        );
 
         const contextMenu = document.querySelector("#recent-files-menu");
         expect(contextMenu).toBeTruthy();
@@ -1783,16 +1792,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             bubbles: true,
             cancelable: true,
             clientX: 100,
-            clientY: 100
+            clientY: 100,
         });
         openFileBtn.dispatchEvent(contextEvent);
 
         // Wait for the async recentFiles call to complete and menu to be created
-        await vi.waitFor(() => {
-            const menu = document.querySelector("#recent-files-menu");
-            console.log("Test 181-182 - Menu found:", !!menu);
-            return menu !== null;
-        }, { timeout: 15000, interval: 100 });
+        await vi.waitFor(
+            () => {
+                const menu = document.querySelector("#recent-files-menu");
+                console.log("Test 181-182 - Menu found:", !!menu);
+                return menu !== null;
+            },
+            { timeout: 15000, interval: 100 }
+        );
 
         const menu = document.querySelector("#recent-files-menu");
         expect(menu).toBeTruthy();
@@ -1800,7 +1812,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Trigger mousedown to cleanup
         const mousedownEvent = new MouseEvent("mousedown", {
             bubbles: true,
-            cancelable: true
+            cancelable: true,
         });
         document.dispatchEvent(mousedownEvent);
 
@@ -1834,16 +1846,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             bubbles: true,
             cancelable: true,
             clientX: 100,
-            clientY: 100
+            clientY: 100,
         });
         openFileBtn.dispatchEvent(contextEvent);
 
         // Wait for the async recentFiles call to complete and menu to be created
-        await vi.waitFor(() => {
-            const menu = document.querySelector("#recent-files-menu");
-            console.log("Test 200-201 - Menu found:", !!menu);
-            return menu !== null;
-        }, { timeout: 15000, interval: 100 });
+        await vi.waitFor(
+            () => {
+                const menu = document.querySelector("#recent-files-menu");
+                console.log("Test 200-201 - Menu found:", !!menu);
+                return menu !== null;
+            },
+            { timeout: 15000, interval: 100 }
+        );
 
         // Find the menu item (first child div of the menu)
         const menu = document.querySelector("#recent-files-menu");
@@ -1856,10 +1871,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         (menuItem as any).onclick = mockOnclick;
 
         // Click the menu item
-        menuItem!.dispatchEvent(new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true
-        }));
+        menuItem!.dispatchEvent(
+            new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+            })
+        );
 
         // Wait for the click handler to complete
         await vi.waitFor(() => {
@@ -1923,7 +1940,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Since there's no error message in the actual code for missing copyTableAsCSV,
         // we verify that nothing happens (no download link created)
-        const downloadLink = document.querySelector('a[download]');
+        const downloadLink = document.querySelector("a[download]");
         expect(downloadLink).toBeFalsy();
     });
 });

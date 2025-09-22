@@ -64,10 +64,14 @@ describe("renderGPSTrackChart", () => {
         // Ensure Chart is accessible from both window and globalThis
         (global as any).globalThis.Chart = window.Chart;
         // Sync chart instances between window and globalThis
-        Object.defineProperty((global as any).globalThis, '_chartjsInstances', {
-            get() { return (global as any).window._chartjsInstances; },
-            set(value) { (global as any).window._chartjsInstances = value; },
-            configurable: true
+        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
+            get() {
+                return (global as any).window._chartjsInstances;
+            },
+            set(value) {
+                (global as any).window._chartjsInstances = value;
+            },
+            configurable: true,
         });
 
         // Mock localStorage with proper typing

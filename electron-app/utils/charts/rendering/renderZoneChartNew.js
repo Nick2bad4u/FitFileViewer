@@ -360,9 +360,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                 const [dataset] = data.datasets,
                                     total = Array.isArray(dataset.data)
                                         ? dataset.data.reduce(
-                                            (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                            0
-                                        )
+                                              (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                              0
+                                          )
                                         : 0;
                                 return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
                                     const meta = chart.getDatasetMeta ? chart.getDatasetMeta(0) : { data: [] },

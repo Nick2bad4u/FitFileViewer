@@ -16,33 +16,33 @@ const mockElectron = {
         requestSingleInstanceLock: vi.fn().mockReturnValue(true),
         dock: {
             show: vi.fn(),
-            hide: vi.fn()
-        }
+            hide: vi.fn(),
+        },
     },
     BrowserWindow: {
         getAllWindows: vi.fn().mockReturnValue([]), // Must return iterable array
-        getFocusedWindow: vi.fn().mockReturnValue(null)
+        getFocusedWindow: vi.fn().mockReturnValue(null),
     },
     ipcMain: {
         handle: vi.fn(),
         on: vi.fn(),
-        removeAllListeners: vi.fn()
+        removeAllListeners: vi.fn(),
     },
     dialog: {
         showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/output.gpx" })
+        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/output.gpx" }),
     },
     Menu: {
         setApplicationMenu: vi.fn(),
-        buildFromTemplate: vi.fn().mockReturnValue({})
+        buildFromTemplate: vi.fn().mockReturnValue({}),
     },
     shell: {
-        openExternal: vi.fn().mockResolvedValue(undefined)
+        openExternal: vi.fn().mockResolvedValue(undefined),
     },
     autoUpdater: {
         checkForUpdatesAndNotify: vi.fn().mockResolvedValue(undefined),
-        on: vi.fn()
-    }
+        on: vi.fn(),
+    },
 };
 
 // Create mock window object
@@ -62,8 +62,8 @@ const mockWindow = {
         on: vi.fn(),
         once: vi.fn(),
         executeJavaScript: vi.fn().mockResolvedValue("light"),
-        isDestroyed: vi.fn().mockReturnValue(false)
-    }
+        isDestroyed: vi.fn().mockReturnValue(false),
+    },
 };
 
 // Create comprehensive state manager mock that prevents electron access
@@ -80,13 +80,13 @@ const mockState = {
     listen: vi.fn(),
     startOperation: vi.fn(),
     completeOperation: vi.fn(),
-    failOperation: vi.fn()
+    failOperation: vi.fn(),
 };
 
 // Create other mocks
 const mockRecentFiles = {
     addRecentFile: vi.fn(),
-    getRecentFiles: vi.fn().mockReturnValue([])
+    getRecentFiles: vi.fn().mockReturnValue([]),
 };
 
 const mockCreateWindow = vi.fn().mockReturnValue(mockWindow);
@@ -95,29 +95,50 @@ const mockCreateWindow = vi.fn().mockReturnValue(mockWindow);
 vi.mock("electron", () => mockElectron);
 vi.mock("../../utils/state/integration/mainProcessStateManager", () => ({
     MainProcessState: class MockMainProcessState {
-        get(key: string) { return mockState.get(key); }
-        set(key: string, value: any) { mockState.set(); return { success: true }; }
-        notifyChange() { return mockState.notifyChange(); }
-        notifyRenderers() { return mockState.notifyRenderers(); }
-        setupIPCHandlers() { return mockState.setupIPCHandlers(); }
-        makeSerializable(data: any) { return data; }
-        listen() { return mockState.listen(); }
-        startOperation() { return mockState.startOperation(); }
-        completeOperation() { return mockState.completeOperation(); }
-        failOperation() { return mockState.failOperation(); }
+        get(key: string) {
+            return mockState.get(key);
+        }
+        set(key: string, value: any) {
+            mockState.set();
+            return { success: true };
+        }
+        notifyChange() {
+            return mockState.notifyChange();
+        }
+        notifyRenderers() {
+            return mockState.notifyRenderers();
+        }
+        setupIPCHandlers() {
+            return mockState.setupIPCHandlers();
+        }
+        makeSerializable(data: any) {
+            return data;
+        }
+        listen() {
+            return mockState.listen();
+        }
+        startOperation() {
+            return mockState.startOperation();
+        }
+        completeOperation() {
+            return mockState.completeOperation();
+        }
+        failOperation() {
+            return mockState.failOperation();
+        }
     },
-    mainProcessState: mockState
+    mainProcessState: mockState,
 }));
 vi.mock("../../utils/files/recent/recentFiles", () => mockRecentFiles);
 vi.mock("../../windowStateUtils", () => ({ createWindow: mockCreateWindow }));
 vi.mock("../../utils/app/menu/createAppMenu", () => ({
-    createApplicationMenu: vi.fn().mockReturnValue({})
+    createApplicationMenu: vi.fn().mockReturnValue({}),
 }));
 
 // Intercept CommonJS require for electron module since main.js uses require("electron")
 const Module = require("module");
 const originalRequire = Module.prototype.require;
-Module.prototype.require = function(id: string) {
+Module.prototype.require = function (id: string) {
     if (id === "electron") {
         return mockElectron;
     }
@@ -153,7 +174,6 @@ describe("main.js - Minimal Coverage Tests", () => {
 
             // Test that the module loaded without errors (covers most initialization paths)
             expect(true).toBe(true);
-
         } finally {
             // Restore original environment
             process.env.NODE_ENV = originalEnv;

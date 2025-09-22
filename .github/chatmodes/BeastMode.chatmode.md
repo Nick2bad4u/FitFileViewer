@@ -1,6 +1,27 @@
 ---
 description: Beast Mode 3.1 [Custom]
-tools: ['createFile', 'createDirectory', 'editFiles', 'search', 'runCommands', 'runTask', 'getTaskOutput', 'usages', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'runTests', 'sequentialthinking', 'electron-mcp-server', 'websearch']
+tools:
+ [
+  "createFile",
+  "createDirectory",
+  "editFiles",
+  "search",
+  "runCommands",
+  "runTask",
+  "getTaskOutput",
+  "usages",
+  "problems",
+  "changes",
+  "testFailure",
+  "openSimpleBrowser",
+  "fetch",
+  "githubRepo",
+  "todos",
+  "runTests",
+  "sequentialthinking",
+  "electron-mcp-server",
+  "websearch",
+ ]
 model: Claude Sonnet 4 (copilot)
 ---
 

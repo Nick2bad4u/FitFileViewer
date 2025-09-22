@@ -124,7 +124,12 @@ async function notify(message, type = "info", duration = null, options = {}) {
     try {
         const mod = await import("../../ui/notifications/showNotification.js");
         if (mod && typeof mod.showNotification === "function") {
-            await mod.showNotification(message, /** @type {any} */(type), /** @type {any} */(duration), /** @type {any} */(options));
+            await mod.showNotification(
+                message,
+                /** @type {any} */ (type),
+                /** @type {any} */ (duration),
+                /** @type {any} */ (options)
+            );
         } else {
             console.warn("[ChartJS] Notification module missing showNotification export");
         }
@@ -319,12 +324,11 @@ function safeCompleteRendering(success) {
 
 // Safe wrapper exports for compatibility with tests that import from renderChartJS
 // even when module cache injection returns empty objects for nested modules.
-export const previousChartState =
-    chartNotificationState.previousChartState || {
-        chartCount: 0,
-        fieldsRendered: [],
-        lastRenderTimestamp: 0,
-    };
+export const previousChartState = chartNotificationState.previousChartState || {
+    chartCount: 0,
+    fieldsRendered: [],
+    lastRenderTimestamp: 0,
+};
 
 export function resetChartNotificationState() {
     try {
@@ -380,7 +384,7 @@ if (!windowAny._fitFileViewerChartListener) {
                 console.log(`[ChartJS] Received render request event: ${reason}`);
 
                 // Prefer chartStateManager if available
-                if (typeof /** @type {any} */ (globalThis).chartStateManager?.debouncedRender === "function") {
+                if (typeof (/** @type {any} */ (globalThis).chartStateManager?.debouncedRender) === "function") {
                     /** @type {any} */ (globalThis).chartStateManager.debouncedRender(reason);
                     return;
                 }
@@ -393,7 +397,7 @@ if (!windowAny._fitFileViewerChartListener) {
                     document.body;
                 try {
                     // Call without awaiting to keep handler non-blocking
-                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */(container)));
+                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */ (container)));
                 } catch (error) {
                     console.warn("[ChartJS] Event-based render fallback failed:", error);
                 }
@@ -448,9 +452,9 @@ export const chartState = {
 
         return Array.isArray(formatChartFields)
             ? formatChartFields.filter((field) => {
-                const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
-                return visibility !== "hidden";
-            })
+                  const visibility = localStorage.getItem(`chartjs_field_${field}`) || "visible";
+                  return visibility !== "hidden";
+              })
             : [];
     },
 
@@ -595,9 +599,9 @@ try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
-        ChartRef.registry &&
-        ChartRef.registry.plugins &&
-        typeof ChartRef.registry.plugins.get === "function"
+            ChartRef.registry &&
+            ChartRef.registry.plugins &&
+            typeof ChartRef.registry.plugins.get === "function"
     );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
@@ -911,7 +915,7 @@ export async function renderChartJS(targetContainer) {
             performanceEnd = performance.now(),
             renderTime = performanceEnd - performanceStart,
             result = await renderChartsWithData(
-                /** @type {HTMLElement} */(targetContainer),
+                /** @type {HTMLElement} */ (targetContainer),
                 recordMesgs,
                 activityStartTime
             );
@@ -924,10 +928,10 @@ export async function renderChartJS(targetContainer) {
             if (ca && typeof ca.completeRendering === "function") {
                 ca.completeRendering(result, chartCount, renderTime);
             } else {
-                safeCompleteRendering(/** @type {any} */(result));
+                safeCompleteRendering(/** @type {any} */ (result));
             }
         } catch {
-            safeCompleteRendering(/** @type {any} */(result));
+            safeCompleteRendering(/** @type {any} */ (result));
         }
 
         return result;
@@ -964,16 +968,16 @@ export async function renderChartJS(targetContainer) {
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
                         /** @type {any} */ (themeConfig).colors.text
-                });">An error occurred while rendering the charts.</p>
+                    });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                });">Error Details</summary>
+                        });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
                             /** @type {any} */ (themeConfig).colors.border
-                });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
+                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -1174,26 +1178,26 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
-            if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
-                let value = Number.parseFloat(/** @type {any} */(row)[field]);
+                if (/** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
+                    let value = Number.parseFloat(/** @type {any} */ (row)[field]);
 
-                // Apply unit conversion based on user preferences
-                if (!isNaN(value)) {
-                    value = convertValueToUserUnits(value, field);
-                }
+                    // Apply unit conversion based on user preferences
+                    if (!isNaN(value)) {
+                        value = convertValueToUserUnits(value, field);
+                    }
 
-                if (index < 3) {
-                    // Debug first few rows
-                    console.log(
-                        `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
-                            field
-                        )}`
-                    );
+                    if (index < 3) {
+                        // Debug first few rows
+                        console.log(
+                            `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
+                                field
+                            )}`
+                        );
+                    }
+                    return isNaN(value) ? null : value;
                 }
-                return isNaN(value) ? null : value;
-            }
-            return null;
-        }),
+                return null;
+            }),
             validDataCount = numericData.filter((val) => val !== null).length;
         console.log(`[ChartJS] Field ${field}: ${validDataCount} valid data points out of ${numericData.length}`);
 
@@ -1235,7 +1239,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Create enhanced chart
         const chart = createEnhancedChart(
             canvas,
-            /** @type {any} */({
+            /** @type {any} */ ({
                 animationStyle,
                 chartData,
                 chartType,
@@ -1291,7 +1295,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneCharts(
             chartContainer,
-            /** @type {any} */({
+            /** @type {any} */ ({
                 // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
@@ -1547,9 +1551,9 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */(computedStateManager).list?.(),
+                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
+                list: () => /** @type {any} */ (computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({

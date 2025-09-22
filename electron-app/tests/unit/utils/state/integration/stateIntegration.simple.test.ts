@@ -17,16 +17,16 @@ describe("stateIntegration.js - Essential Coverage", () => {
             getItem: vi.fn(),
             setItem: vi.fn(),
             removeItem: vi.fn(),
-            clear: vi.fn()
+            clear: vi.fn(),
         } as any;
 
         (globalThis as any).performance = {
             memory: {
                 jsHeapSizeLimit: 1024 * 1024 * 1024,
                 totalJSHeapSize: 512 * 1024 * 1024,
-                usedJSHeapSize: 256 * 1024 * 1024
+                usedJSHeapSize: 256 * 1024 * 1024,
             },
-            now: vi.fn(() => Date.now())
+            now: vi.fn(() => Date.now()),
         };
 
         // Clean up globals
@@ -271,7 +271,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
             // Mock renderer utils
             (globalThis as any).rendererUtils = {
                 updateUI: vi.fn(),
-                notify: vi.fn()
+                notify: vi.fn(),
             };
 
             (globalThis as any).isChartRendered = false;

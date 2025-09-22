@@ -3,7 +3,7 @@ import path from "node:path";
 import { coverageConfigDefaults, defaultExclude, defineConfig } from "vitest/config";
 
 export default defineConfig({
-    cacheDir: 'node_modules/.vite',
+    cacheDir: "node_modules/.vite",
     resolve: {
         alias: {
             electron: "./tests/stubs/electron-virtual.js",
@@ -16,8 +16,8 @@ export default defineConfig({
         sequence: {
             // Ensure deterministic order of setup files and hooks to avoid
             // "failed to find the runner" flakiness in isolated runs
-            hooks: 'list',
-            setupFiles: 'list',
+            hooks: "list",
+            setupFiles: "list",
         },
         coverage: {
             // Focus coverage collection on a curated, consistently testable set
@@ -189,10 +189,6 @@ export default defineConfig({
         },
         watch: false,
         // Force rerun triggers - these files will trigger full test suite
-        forceRerunTriggers: [
-            '**/package.json',
-            '**/vitest.config.js',
-            '**/vitest.config.ts'
-        ],
+        forceRerunTriggers: ["**/package.json", "**/vitest.config.js", "**/vitest.config.ts"],
     },
 });

@@ -23,12 +23,12 @@ function getElectron() {
         return /** @type {any} */ ({});
     }
 }
-const appRef = () => /** @type {any} */(getElectron().app);
-const browserWindowRef = () => /** @type {any} */(getElectron().BrowserWindow);
-const dialogRef = () => /** @type {any} */(getElectron().dialog);
-const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
-const menuRef = () => /** @type {any} */(getElectron().Menu);
-const shellRef = () => /** @type {any} */(getElectron().shell);
+const appRef = () => /** @type {any} */ (getElectron().app);
+const browserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
+const dialogRef = () => /** @type {any} */ (getElectron().dialog);
+const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
+const menuRef = () => /** @type {any} */ (getElectron().Menu);
+const shellRef = () => /** @type {any} */ (getElectron().shell);
 
 // Super-early minimal priming for import-based tests: ensure spies on whenReady/getAllWindows observe calls
 try {
@@ -322,7 +322,7 @@ function exposeDevHelpers() {
             const win = browserWindowRef().getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */(win),
+                    /** @type {any} */ (win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );
@@ -365,8 +365,8 @@ try {
         __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
             ? __prime_mod
             : __prime_mod && __prime_mod.default
-                ? __prime_mod.default
-                : __prime_mod;
+              ? __prime_mod.default
+              : __prime_mod;
     const __prime_app = __prime && __prime.app;
     const __prime_BW = __prime && __prime.BrowserWindow;
     let __prime_app_val = __prime_app;
@@ -502,8 +502,8 @@ async function initializeApplication() {
                 webContents: {
                     executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
                     isDestroyed: () => false,
-                    on: () => { },
-                    send: () => { },
+                    on: () => {},
+                    send: () => {},
                 },
             };
         }
@@ -636,18 +636,26 @@ try {
         try {
             const aProbe = appRef();
             if (aProbe && typeof aProbe.on === "function") {
-                aProbe.on("__test_probe__", () => { /* no-op */ });
+                aProbe.on("__test_probe__", () => {
+                    /* no-op */
+                });
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const iProbe = ipcMainRef();
             if (iProbe && typeof iProbe.handle === "function") {
                 iProbe.handle("__test_probe__", () => true);
             }
             if (iProbe && typeof iProbe.on === "function") {
-                iProbe.on("__test_probe__", () => { /* no-op */ });
+                iProbe.on("__test_probe__", () => {
+                    /* no-op */
+                });
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const { app: __t_app, BrowserWindow: __t_BW } = require("electron");
             if (__t_app && typeof __t_app.whenReady === "function") {
@@ -679,7 +687,11 @@ try {
         try {
             if (process.env.GYAZO_CLIENT_ID && process.env.GYAZO_CLIENT_SECRET) {
                 // Fire and forget – tests observe http.createServer being called
-                Promise.resolve().then(() => startGyazoOAuthServer()).catch(() => { /* ignore in tests */ });
+                Promise.resolve()
+                    .then(() => startGyazoOAuthServer())
+                    .catch(() => {
+                        /* ignore in tests */
+                    });
             }
         } catch {
             /* ignore */
@@ -691,28 +703,58 @@ try {
                 try {
                     const a = appRef();
                     if (a && typeof a.whenReady === "function") {
-                        try { a.whenReady(); } catch { /* ignore */ }
+                        try {
+                            a.whenReady();
+                        } catch {
+                            /* ignore */
+                        }
                     }
                     // Exercise app.on spy as tests may clear call history between imports
                     if (a && typeof a.on === "function") {
-                        try { a.on("__test_probe__", () => { /* no-op */ }); } catch { /* ignore */ }
+                        try {
+                            a.on("__test_probe__", () => {
+                                /* no-op */
+                            });
+                        } catch {
+                            /* ignore */
+                        }
                     }
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
                 try {
                     const BW = browserWindowRef();
                     if (BW && typeof BW.getAllWindows === "function") {
-                        try { BW.getAllWindows(); } catch { /* ignore */ }
+                        try {
+                            BW.getAllWindows();
+                        } catch {
+                            /* ignore */
+                        }
                     }
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
                 try {
                     const i = ipcMainRef();
                     if (i && typeof i.handle === "function") {
-                        try { i.handle("__test_probe__", () => true); } catch { /* ignore */ }
+                        try {
+                            i.handle("__test_probe__", () => true);
+                        } catch {
+                            /* ignore */
+                        }
                     }
                     if (i && typeof i.on === "function") {
-                        try { i.on("__test_probe__", () => { /* no-op */ }); } catch { /* ignore */ }
+                        try {
+                            i.on("__test_probe__", () => {
+                                /* no-op */
+                            });
+                        } catch {
+                            /* ignore */
+                        }
                     }
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
             };
             if (!g.__ffvTestKeepalive) {
                 // Fire immediately to satisfy tests that assert right after import
@@ -728,12 +770,20 @@ try {
                         const hasEnv = Boolean(process.env.GYAZO_CLIENT_ID && process.env.GYAZO_CLIENT_SECRET);
                         const hasServer = Boolean(getAppState("gyazoServer"));
                         if (hasEnv && !hasServer) {
-                            Promise.resolve().then(() => startGyazoOAuthServer()).catch(() => { /* ignore */ });
+                            Promise.resolve()
+                                .then(() => startGyazoOAuthServer())
+                                .catch(() => {
+                                    /* ignore */
+                                });
                         }
-                    } catch { /* ignore */ }
+                    } catch {
+                        /* ignore */
+                    }
                 }, 1);
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     }
 } catch {
     /* Ignore errors */
@@ -757,7 +807,8 @@ function setupApplicationEventHandlers() {
                     const win = createWindow();
                     safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
                 } else {
-                    const win = (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
+                    const win =
+                        (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
                         getAppState("mainWindow");
                     if (validateWindow(win, "app activate event")) {
                         safeCreateAppMenu(win, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
@@ -1011,8 +1062,8 @@ function setupIPCHandlers(mainWindow) {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "fit-file-loaded event")) {
             try {
-                const theme = await getThemeFromRenderer(/** @type {any} */(win));
-                safeCreateAppMenu(/** @type {any} */(win), theme, getAppState("loadedFitFilePath"));
+                const theme = await getThemeFromRenderer(/** @type {any} */ (win));
+                safeCreateAppMenu(/** @type {any} */ (win), theme, getAppState("loadedFitFilePath"));
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", {
                     error: /** @type {Error} */ (error).message,
@@ -1215,7 +1266,7 @@ function setupMenuAndEventHandlers() {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
             safeCreateAppMenu(
-                /** @type {any} */(win),
+                /** @type {any} */ (win),
                 theme || CONSTANTS.DEFAULT_THEME,
                 getAppState("loadedFitFilePath")
             );
@@ -1285,7 +1336,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
                     defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
                     filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                     title: "Export As",
@@ -1308,7 +1359,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
                     defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                     title: "Save As",
@@ -1347,7 +1398,7 @@ function setupMenuAndEventHandlers() {
                 win = browserWindowRef().fromWebContents(event.sender);
             logWithContext("info", "Manual menu injection requested", { fitFilePath: f, theme: t });
             if (win) {
-                safeCreateAppMenu(/** @type {any} */(win), t, f);
+                safeCreateAppMenu(/** @type {any} */ (win), t, f);
             }
             return true;
         }
@@ -1471,11 +1522,24 @@ try {
             }
             // Ensure IPC/menu/app handlers are exercised even if window is a minimal mock
             try {
-                const win2 = getAppState("mainWindow") || { webContents: { isDestroyed: () => false }, isDestroyed: () => false };
+                const win2 = getAppState("mainWindow") || {
+                    webContents: { isDestroyed: () => false },
+                    isDestroyed: () => false,
+                };
                 setupIPCHandlers(win2);
-            } catch { /* ignore */ }
-            try { setupMenuAndEventHandlers(); } catch { /* ignore */ }
-            try { setupApplicationEventHandlers(); } catch { /* ignore */ }
+            } catch {
+                /* ignore */
+            }
+            try {
+                setupMenuAndEventHandlers();
+            } catch {
+                /* ignore */
+            }
+            try {
+                setupApplicationEventHandlers();
+            } catch {
+                /* ignore */
+            }
             if (/** @type {any} */ (process.env).NODE_ENV === "development" || process.argv.includes("--dev")) {
                 try {
                     exposeDevHelpers();
@@ -1622,7 +1686,7 @@ async function startGyazoOAuthServer(port = 3000) {
                 throw new Error("HTTP module unavailable");
             }
             const server = _http.createServer((req, res) => {
-                const parsedUrl = new URL(/** @type {string} */(req.url), `http://localhost:${port}`);
+                const parsedUrl = new URL(/** @type {string} */ (req.url), `http://localhost:${port}`);
 
                 // Handle CORS and preflight requests
                 res.setHeader("Access-Control-Allow-Origin", "*");
@@ -1636,9 +1700,9 @@ async function startGyazoOAuthServer(port = 3000) {
                 }
 
                 if (parsedUrl.pathname === "/gyazo/callback") {
-                    const code = parsedUrl.searchParams.get('code');
-                    const error = parsedUrl.searchParams.get('error');
-                    const state = parsedUrl.searchParams.get('state');
+                    const code = parsedUrl.searchParams.get("code");
+                    const error = parsedUrl.searchParams.get("error");
+                    const state = parsedUrl.searchParams.get("state");
 
                     // Send a response to the browser
                     if (error) {

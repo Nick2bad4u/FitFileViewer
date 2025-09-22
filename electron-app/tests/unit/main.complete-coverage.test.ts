@@ -5,8 +5,8 @@
  * Uses simplified TypeScript to avoid compilation issues.
  */
 
-import { beforeAll, beforeEach, afterEach, describe, test, expect, vi } from 'vitest';
-import { EventEmitter } from 'events';
+import { beforeAll, beforeEach, afterEach, describe, test, expect, vi } from "vitest";
+import { EventEmitter } from "events";
 
 // Create comprehensive global mocks
 const globalMocks = {
@@ -70,58 +70,58 @@ beforeAll(() => {
     };
 
     // Set up module mocks for both ES6 and CommonJS
-    vi.mock('electron', () => electronMock);
-    vi.doMock('electron', () => electronMock);
+    vi.mock("electron", () => electronMock);
+    vi.doMock("electron", () => electronMock);
 
     // Set up Node.js module mocks
-    vi.mock('fs', () => globalMocks.mockFs);
-    vi.mock('path', () => globalMocks.mockPath);
-    vi.mock('os', () => globalMocks.mockOs);
-    vi.mock('http', () => globalMocks.mockHttp);
-    vi.mock('https', () => globalMocks.mockHttps);
-    vi.mock('url', () => globalMocks.mockUrl);
-    vi.mock('crypto', () => globalMocks.mockCrypto);
-    vi.mock('querystring', () => globalMocks.mockQuerystring);
+    vi.mock("fs", () => globalMocks.mockFs);
+    vi.mock("path", () => globalMocks.mockPath);
+    vi.mock("os", () => globalMocks.mockOs);
+    vi.mock("http", () => globalMocks.mockHttp);
+    vi.mock("https", () => globalMocks.mockHttps);
+    vi.mock("url", () => globalMocks.mockUrl);
+    vi.mock("crypto", () => globalMocks.mockCrypto);
+    vi.mock("querystring", () => globalMocks.mockQuerystring);
 
     // Set up utils module mocks
-    vi.mock('../../utils/state/integration/mainProcessStateManager.js', () => ({
+    vi.mock("../../utils/state/integration/mainProcessStateManager.js", () => ({
         MainProcessState: globalMocks.MockMainProcessState,
         default: globalMocks.MockMainProcessState,
     }));
 
-    vi.mock('../../windowStateUtils.js', () => globalMocks.mockWindowStateUtils);
-    vi.mock('../../utils/files/recent/recentFiles.js', () => globalMocks.mockRecentFiles);
+    vi.mock("../../windowStateUtils.js", () => globalMocks.mockWindowStateUtils);
+    vi.mock("../../utils/files/recent/recentFiles.js", () => globalMocks.mockRecentFiles);
 
     // Set up dynamic require mock for CommonJS compatibility
     const originalRequire = require;
     global.require = vi.fn((moduleId) => {
         switch (moduleId) {
-            case 'electron':
+            case "electron":
                 return electronMock;
-            case 'fs':
+            case "fs":
                 return globalMocks.mockFs;
-            case 'path':
+            case "path":
                 return globalMocks.mockPath;
-            case 'os':
+            case "os":
                 return globalMocks.mockOs;
-            case 'http':
+            case "http":
                 return globalMocks.mockHttp;
-            case 'https':
+            case "https":
                 return globalMocks.mockHttps;
-            case 'url':
+            case "url":
                 return globalMocks.mockUrl;
-            case 'crypto':
+            case "crypto":
                 return globalMocks.mockCrypto;
-            case 'querystring':
+            case "querystring":
                 return globalMocks.mockQuerystring;
-            case './windowStateUtils':
-            case './windowStateUtils.js':
+            case "./windowStateUtils":
+            case "./windowStateUtils.js":
                 return globalMocks.mockWindowStateUtils;
-            case './utils/files/recent/recentFiles':
-            case './utils/files/recent/recentFiles.js':
+            case "./utils/files/recent/recentFiles":
+            case "./utils/files/recent/recentFiles.js":
                 return globalMocks.mockRecentFiles;
-            case './utils/state/integration/mainProcessStateManager':
-            case './utils/state/integration/mainProcessStateManager.js':
+            case "./utils/state/integration/mainProcessStateManager":
+            case "./utils/state/integration/mainProcessStateManager.js":
                 return {
                     MainProcessState: globalMocks.MockMainProcessState,
                     default: globalMocks.MockMainProcessState,
@@ -136,7 +136,7 @@ beforeAll(() => {
     });
 
     // Mock global process
-    vi.stubGlobal('process', globalMocks.mockProcess);
+    vi.stubGlobal("process", globalMocks.mockProcess);
 });
 
 beforeEach(() => {
@@ -148,7 +148,7 @@ beforeEach(() => {
     Object.assign(mockWebContents, {
         send: vi.fn(),
         getId: vi.fn(() => 1),
-        getURL: vi.fn(() => 'https://example.com'),
+        getURL: vi.fn(() => "https://example.com"),
         loadURL: vi.fn(),
         reload: vi.fn(),
         executeJavaScript: vi.fn(() => Promise.resolve()),
@@ -209,16 +209,16 @@ beforeEach(() => {
     // Set up app event handlers
     Object.assign(globalMocks.mockApp, {
         quit: vi.fn(),
-        getVersion: vi.fn(() => '1.0.0'),
-        getName: vi.fn(() => 'FitFileViewer'),
-        getPath: vi.fn(() => '/app/path'),
+        getVersion: vi.fn(() => "1.0.0"),
+        getName: vi.fn(() => "FitFileViewer"),
+        getPath: vi.fn(() => "/app/path"),
         setUserTasks: vi.fn(),
         setJumpList: vi.fn(),
         isReady: vi.fn(() => true),
         whenReady: vi.fn(() => Promise.resolve()),
         setAsDefaultProtocolClient: vi.fn(),
         isDefaultProtocolClient: vi.fn(() => false),
-        getFileIcon: vi.fn(() => Promise.resolve({ toDataURL: () => 'data:image/png;base64,icon' })),
+        getFileIcon: vi.fn(() => Promise.resolve({ toDataURL: () => "data:image/png;base64,icon" })),
         hide: vi.fn(),
         show: vi.fn(),
         focus: vi.fn(),
@@ -242,8 +242,8 @@ beforeEach(() => {
 
     // Set up dialog mock
     Object.assign(globalMocks.mockDialog, {
-        showOpenDialog: vi.fn(() => Promise.resolve({ canceled: false, filePaths: ['/test/file.fit'] })),
-        showSaveDialog: vi.fn(() => Promise.resolve({ canceled: false, filePath: '/test/save.fit' })),
+        showOpenDialog: vi.fn(() => Promise.resolve({ canceled: false, filePaths: ["/test/file.fit"] })),
+        showSaveDialog: vi.fn(() => Promise.resolve({ canceled: false, filePath: "/test/save.fit" })),
         showMessageBox: vi.fn(() => Promise.resolve({ response: 0 })),
         showErrorBox: vi.fn(),
         showCertificateTrustDialog: vi.fn(() => Promise.resolve()),
@@ -258,7 +258,7 @@ beforeEach(() => {
     // Set up shell mock
     Object.assign(globalMocks.mockShell, {
         openExternal: vi.fn(() => Promise.resolve()),
-        openPath: vi.fn(() => Promise.resolve('')),
+        openPath: vi.fn(() => Promise.resolve("")),
         showItemInFolder: vi.fn(),
         beep: vi.fn(),
     });
@@ -269,32 +269,32 @@ afterEach(() => {
     vi.clearAllTimers();
 });
 
-describe('main.js - Complete Coverage Test', () => {
-    test('should achieve maximum coverage through comprehensive module import and event simulation', async () => {
+describe("main.js - Complete Coverage Test", () => {
+    test("should achieve maximum coverage through comprehensive module import and event simulation", async () => {
         // Test 1: Production Environment
-        process.env.NODE_ENV = 'production';
-        process.env.GYAZO_CLIENT_ID = 'prod_client_id';
-        process.env.GYAZO_CLIENT_SECRET = 'prod_client_secret';
-        process.env.GYAZO_REDIRECT_URI = 'http://localhost:8080/auth/callback';
+        process.env.NODE_ENV = "production";
+        process.env.GYAZO_CLIENT_ID = "prod_client_id";
+        process.env.GYAZO_CLIENT_SECRET = "prod_client_secret";
+        process.env.GYAZO_REDIRECT_URI = "http://localhost:8080/auth/callback";
 
-        console.log('[TEST] Testing production environment...');
-        await import('../../main.js');
+        console.log("[TEST] Testing production environment...");
+        await import("../../main.js");
 
         // Test 2: Development Environment
-        process.env.NODE_ENV = 'development';
+        process.env.NODE_ENV = "development";
 
-        console.log('[TEST] Testing development environment...');
-        await import('../../main.js');
+        console.log("[TEST] Testing development environment...");
+        await import("../../main.js");
 
         // Test 3: Test Environment
-        process.env.NODE_ENV = 'test';
+        process.env.NODE_ENV = "test";
 
-        console.log('[TEST] Testing test environment...');
-        await import('../../main.js');
+        console.log("[TEST] Testing test environment...");
+        await import("../../main.js");
 
         // Test 4: macOS Platform
-        globalMocks.mockOs.platform.mockReturnValue('darwin');
-        globalMocks.mockProcess.platform = 'darwin';
+        globalMocks.mockOs.platform.mockReturnValue("darwin");
+        globalMocks.mockProcess.platform = "darwin";
 
         // Add dock for macOS
         globalMocks.mockApp.dock = {
@@ -302,114 +302,118 @@ describe('main.js - Complete Coverage Test', () => {
             setBadge: vi.fn(),
         };
 
-        console.log('[TEST] Testing macOS platform...');
-        await import('../../main.js');
+        console.log("[TEST] Testing macOS platform...");
+        await import("../../main.js");
 
         // Test 5: Linux Platform
-        globalMocks.mockOs.platform.mockReturnValue('linux');
-        globalMocks.mockProcess.platform = 'linux';
+        globalMocks.mockOs.platform.mockReturnValue("linux");
+        globalMocks.mockProcess.platform = "linux";
         delete globalMocks.mockApp.dock;
 
-        console.log('[TEST] Testing Linux platform...');
-        await import('../../main.js');
+        console.log("[TEST] Testing Linux platform...");
+        await import("../../main.js");
 
         // Comprehensive event simulation
-        console.log('[TEST] Simulating comprehensive app events...');
+        console.log("[TEST] Simulating comprehensive app events...");
 
         // App lifecycle events
-        globalMocks.mockApp.emit('ready');
-        globalMocks.mockApp.emit('activate');
-        globalMocks.mockApp.emit('window-all-closed');
-        globalMocks.mockApp.emit('before-quit');
-        globalMocks.mockApp.emit('will-quit');
-        globalMocks.mockApp.emit('quit');
-        globalMocks.mockApp.emit('second-instance');
-        globalMocks.mockApp.emit('open-file', { preventDefault: vi.fn() }, '/test/file.fit');
-        globalMocks.mockApp.emit('web-contents-created', {}, {
-            on: vi.fn(),
-            setWindowOpenHandler: vi.fn(),
-            session: { setPermissionRequestHandler: vi.fn() },
-        });
+        globalMocks.mockApp.emit("ready");
+        globalMocks.mockApp.emit("activate");
+        globalMocks.mockApp.emit("window-all-closed");
+        globalMocks.mockApp.emit("before-quit");
+        globalMocks.mockApp.emit("will-quit");
+        globalMocks.mockApp.emit("quit");
+        globalMocks.mockApp.emit("second-instance");
+        globalMocks.mockApp.emit("open-file", { preventDefault: vi.fn() }, "/test/file.fit");
+        globalMocks.mockApp.emit(
+            "web-contents-created",
+            {},
+            {
+                on: vi.fn(),
+                setWindowOpenHandler: vi.fn(),
+                session: { setPermissionRequestHandler: vi.fn() },
+            }
+        );
 
         // Auto-updater events
-        globalMocks.mockAutoUpdater.emit('checking-for-update');
-        globalMocks.mockAutoUpdater.emit('update-available', { version: '2.0.0' });
-        globalMocks.mockAutoUpdater.emit('update-not-available');
-        globalMocks.mockAutoUpdater.emit('download-progress', { percent: 50 });
-        globalMocks.mockAutoUpdater.emit('update-downloaded', { version: '2.0.0' });
-        globalMocks.mockAutoUpdater.emit('error', new Error('Update error'));
+        globalMocks.mockAutoUpdater.emit("checking-for-update");
+        globalMocks.mockAutoUpdater.emit("update-available", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("update-not-available");
+        globalMocks.mockAutoUpdater.emit("download-progress", { percent: 50 });
+        globalMocks.mockAutoUpdater.emit("update-downloaded", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("error", new Error("Update error"));
 
         // Native theme events
-        globalMocks.mockNativeTheme.emit('updated');
+        globalMocks.mockNativeTheme.emit("updated");
 
         // Window events simulation
         const mockWindow = globalMocks.MockBrowserWindow.mock.results[0]?.value;
         if (mockWindow) {
-            mockWindow.emit('ready-to-show');
-            mockWindow.emit('closed');
-            mockWindow.emit('focus');
-            mockWindow.emit('blur');
-            mockWindow.emit('minimize');
-            mockWindow.emit('maximize');
-            mockWindow.emit('unmaximize');
-            mockWindow.emit('enter-full-screen');
-            mockWindow.emit('leave-full-screen');
-            mockWindow.emit('moved');
-            mockWindow.emit('resized');
-            mockWindow.emit('show');
-            mockWindow.emit('hide');
+            mockWindow.emit("ready-to-show");
+            mockWindow.emit("closed");
+            mockWindow.emit("focus");
+            mockWindow.emit("blur");
+            mockWindow.emit("minimize");
+            mockWindow.emit("maximize");
+            mockWindow.emit("unmaximize");
+            mockWindow.emit("enter-full-screen");
+            mockWindow.emit("leave-full-screen");
+            mockWindow.emit("moved");
+            mockWindow.emit("resized");
+            mockWindow.emit("show");
+            mockWindow.emit("hide");
 
             // WebContents events
-            mockWindow.webContents.emit('dom-ready');
-            mockWindow.webContents.emit('did-finish-load');
-            mockWindow.webContents.emit('did-fail-load', {}, 404, 'Not Found', 'https://example.com');
-            mockWindow.webContents.emit('new-window', {}, 'https://external.com');
-            mockWindow.webContents.emit('will-navigate', { preventDefault: vi.fn() }, 'https://external.com');
-            mockWindow.webContents.emit('did-navigate', {}, 'https://example.com');
-            mockWindow.webContents.emit('console-message', {}, 'log', 'Test message', 1, 'test.js');
+            mockWindow.webContents.emit("dom-ready");
+            mockWindow.webContents.emit("did-finish-load");
+            mockWindow.webContents.emit("did-fail-load", {}, 404, "Not Found", "https://example.com");
+            mockWindow.webContents.emit("new-window", {}, "https://external.com");
+            mockWindow.webContents.emit("will-navigate", { preventDefault: vi.fn() }, "https://external.com");
+            mockWindow.webContents.emit("did-navigate", {}, "https://example.com");
+            mockWindow.webContents.emit("console-message", {}, "log", "Test message", 1, "test.js");
         }
 
         // Error conditions simulation
-        console.log('[TEST] Simulating error conditions...');
+        console.log("[TEST] Simulating error conditions...");
 
         // File system errors
         globalMocks.mockFs.readFileSync.mockImplementationOnce(() => {
-            throw new Error('File not found');
+            throw new Error("File not found");
         });
 
         // Network errors
         globalMocks.mockHttp.createServer.mockImplementationOnce(() => {
-            throw new Error('Port in use');
+            throw new Error("Port in use");
         });
 
         // Dialog errors
         globalMocks.mockDialog.showOpenDialog.mockImplementationOnce(() => {
-            throw new Error('Dialog error');
+            throw new Error("Dialog error");
         });
 
         // Additional environment variables testing
-        console.log('[TEST] Testing environment variable configurations...');
+        console.log("[TEST] Testing environment variable configurations...");
 
         // Test missing Gyazo credentials
         delete process.env.GYAZO_CLIENT_ID;
         delete process.env.GYAZO_CLIENT_SECRET;
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Test different redirect URI
-        process.env.GYAZO_REDIRECT_URI = 'http://localhost:3000/callback';
-        await import('../../main.js');
+        process.env.GYAZO_REDIRECT_URI = "http://localhost:3000/callback";
+        await import("../../main.js");
 
-        console.log('[TEST] Complete coverage test finished');
+        console.log("[TEST] Complete coverage test finished");
 
         // Light assertion to ensure test validity
         expect(true).toBe(true);
     });
 
-    test('should exercise IPC handlers and menu functionality', async () => {
-        console.log('[TEST] Testing IPC handlers and menu functionality...');
+    test("should exercise IPC handlers and menu functionality", async () => {
+        console.log("[TEST] Testing IPC handlers and menu functionality...");
 
         // Import main.js to set up IPC handlers
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Simulate IPC handler calls for comprehensive coverage
         const ipcHandlers = globalMocks.mockIpcMain.handle.mock.calls;
@@ -419,22 +423,22 @@ describe('main.js - Complete Coverage Test', () => {
 
         // Simulate some common IPC patterns that might exist
         const commonIpcChannels = [
-            'app:get-version',
-            'app:get-name',
-            'app:quit',
-            'file:open-dialog',
-            'file:save-dialog',
-            'window:minimize',
-            'window:maximize',
-            'window:close',
-            'theme:get-current',
-            'theme:set',
-            'recent-files:get',
-            'recent-files:add',
-            'gyazo:auth-start',
-            'gyazo:upload',
-            'updater:check',
-            'updater:install',
+            "app:get-version",
+            "app:get-name",
+            "app:quit",
+            "file:open-dialog",
+            "file:save-dialog",
+            "window:minimize",
+            "window:maximize",
+            "window:close",
+            "theme:get-current",
+            "theme:set",
+            "recent-files:get",
+            "recent-files:add",
+            "gyazo:auth-start",
+            "gyazo:upload",
+            "updater:check",
+            "updater:install",
         ];
 
         // Trigger potential IPC handlers
@@ -443,7 +447,7 @@ describe('main.js - Complete Coverage Test', () => {
         }
 
         // Menu functionality testing
-        console.log('[TEST] Testing menu functionality...');
+        console.log("[TEST] Testing menu functionality...");
 
         // Trigger menu build
         globalMocks.mockMenu.buildFromTemplate.mockReturnValue({
@@ -456,13 +460,13 @@ describe('main.js - Complete Coverage Test', () => {
         globalMocks.mockMenu.setApplicationMenu({});
 
         // Platform-specific menu testing
-        if (globalMocks.mockOs.platform() === 'darwin') {
-            console.log('[TEST] Testing macOS-specific menu functionality...');
+        if (globalMocks.mockOs.platform() === "darwin") {
+            console.log("[TEST] Testing macOS-specific menu functionality...");
             globalMocks.mockApp.dock?.setMenu([]);
-            globalMocks.mockApp.dock?.setBadge('');
+            globalMocks.mockApp.dock?.setBadge("");
         }
 
-        console.log('[TEST] IPC and menu functionality test completed');
+        console.log("[TEST] IPC and menu functionality test completed");
 
         // Light assertion
         expect(true).toBe(true);

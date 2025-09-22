@@ -5,9 +5,11 @@ let __electronCached = null;
 function getElectron() {
     if (
         __electronCached &&
-        /** @type {any} */ ((__electronCached).Menu ||
-            /** @type {any} */ (__electronCached).app ||
-            /** @type {any} */ (__electronCached).BrowserWindow)
+        /** @type {any} */ (
+            __electronCached.Menu ||
+                /** @type {any} */ (__electronCached).app ||
+                /** @type {any} */ (__electronCached).BrowserWindow
+        )
     ) {
         return __electronCached;
     }
@@ -127,26 +129,26 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     /** @type {any[]} */
     const decoderOptionEmojis = {
-        applyScaleAndOffset: "📏",
-        convertDateTimesToDates: "📅",
-        convertTypesToStrings: "🔤",
-        expandComponents: "🔗",
-        expandSubFields: "🧩",
-        includeUnknownData: "❓",
-        mergeHeartRates: "❤️",
-    },
+            applyScaleAndOffset: "📏",
+            convertDateTimesToDates: "📅",
+            convertTypesToStrings: "🔤",
+            expandComponents: "🔗",
+            expandSubFields: "🧩",
+            includeUnknownData: "❓",
+            mergeHeartRates: "❤️",
+        },
         decoderOptions = getDecoderOptions(),
         recentMenuItems =
             recentFiles.length > 0
                 ? recentFiles.map((/** @type {string} */ file) => ({
-                    click: () => {
-                        if (mainWindow && mainWindow.webContents) {
-                            mainWindow.webContents.send("open-recent-file", file);
-                        }
-                    },
-                    label: recentUtils.getShortRecentName(file),
-                    tooltip: file,
-                }))
+                      click: () => {
+                          if (mainWindow && mainWindow.webContents) {
+                              mainWindow.webContents.send("open-recent-file", file);
+                          }
+                      },
+                      label: recentUtils.getShortRecentName(file),
+                      tooltip: file,
+                  }))
                 : [{ enabled: false, label: "No Recent Files" }];
     /**
      * @param {*} _decoderOptions
@@ -173,9 +175,9 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     }
 
     const decoderOptionsMenu = {
-        label: "💿 Decoder Options",
-        submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
-    },
+            label: "💿 Decoder Options",
+            submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
+        },
         /**
          * Defines the application menu template for the Electron app.
          *
@@ -224,7 +226,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                                         win.webContents.send("show-notification", "Recent files cleared.", "info");
                                         win.webContents.send("unload-fit-file");
                                     }
-                                    createAppMenu(win, /** @type {string} */(getTheme()));
+                                    createAppMenu(win, /** @type {string} */ (getTheme()));
                                 },
                                 enabled: recentFiles.length > 0,
                                 label: "🧹 Clear Recent Files",
@@ -605,7 +607,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     if (!app || !app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item).label);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item).label);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
             console.log(

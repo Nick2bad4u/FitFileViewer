@@ -93,7 +93,7 @@ describe("tabStateManager.behavior", () => {
         // Cleanup global fallback
         // eslint-disable-next-line no-underscore-dangle
         // @ts-ignore
-        delete /** @type {any} */ globalThis.__vitest_effective_stateManager__;
+        delete (/** @type {any} */ globalThis.__vitest_effective_stateManager__);
     });
 
     it("extractTabName returns known ids and patterns, null for unknown", () => {
@@ -326,7 +326,7 @@ describe("tabStateManager.behavior", () => {
         const prev = /** @type {any} */ window.renderSummary;
         // @ts-ignore
         // @ts-ignore
-        delete /** @type {any} */ window.renderSummary;
+        delete (/** @type {any} */ window.renderSummary);
         await tabStateManager.handleSummaryTab({ recordMesgs: [{}] });
         // No throw and no setState
         expect(mockSetState).not.toHaveBeenCalledWith("summary.lastDataHash", expect.anything(), expect.anything());

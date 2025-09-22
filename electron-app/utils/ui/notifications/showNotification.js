@@ -123,7 +123,7 @@ export async function showNotification(message, type = "info", duration = null, 
 
     // Promise that resolves when THIS notification becomes visible
     /** @type {(value?: void) => void} */
-    let resolveShown = () => { };
+    let resolveShown = () => {};
     const shownPromise = new Promise((resolve) => {
         resolveShown = /** @type {(value?: void) => void} */ (resolve);
     });
@@ -438,7 +438,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     persistent: (message, type = "info", options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
             ...options,
             persistent: true,
         }),
@@ -467,7 +467,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     withActions: (message, type = "info", actions = [], options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
             ...options,
             actions,
             persistent: true,

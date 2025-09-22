@@ -92,10 +92,10 @@ describe("chartStatusIndicator.js", () => {
         document.addEventListener = mockDocumentAddEventListener;
 
         // Synchronize addEventListener between window and globalThis scopes using property descriptor pattern
-        Object.defineProperty(globalThis, 'addEventListener', {
+        Object.defineProperty(globalThis, "addEventListener", {
             value: mockWindowAddEventListener,
             writable: true,
-            configurable: true
+            configurable: true,
         });
 
         // Synchronize Object.defineProperty behavior for globalData property
@@ -103,7 +103,7 @@ describe("chartStatusIndicator.js", () => {
         Object.defineProperty = vi.fn((obj, prop, descriptor) => {
             const result = originalDefineProperty.call(Object, obj, prop, descriptor);
             // When defineProperty is called on globalThis for globalData, also apply it to window
-            if (obj === globalThis && prop === 'globalData') {
+            if (obj === globalThis && prop === "globalData") {
                 originalDefineProperty.call(Object, window, prop, descriptor);
             }
             return result;

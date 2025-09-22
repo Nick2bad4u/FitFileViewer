@@ -59,18 +59,26 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
         (global as any).globalThis.Chart = Chart;
 
         // Sync Chart constructor between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, 'Chart', {
-            get() { return (global.window as any).Chart; },
-            set(value) { (global.window as any).Chart = value; },
-            configurable: true
+        Object.defineProperty((global as any).globalThis, "Chart", {
+            get() {
+                return (global.window as any).Chart;
+            },
+            set(value) {
+                (global.window as any).Chart = value;
+            },
+            configurable: true,
         });
 
         (global.window as any)._chartjsInstances = [];
         // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, '_chartjsInstances', {
-            get() { return (global.window as any)._chartjsInstances; },
-            set(value) { (global.window as any)._chartjsInstances = value; },
-            configurable: true
+        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
+            get() {
+                return (global.window as any)._chartjsInstances;
+            },
+            set(value) {
+                (global.window as any)._chartjsInstances = value;
+            },
+            configurable: true,
         });
 
         // Load the module dynamically with fresh imports

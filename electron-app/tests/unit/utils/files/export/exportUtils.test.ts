@@ -24,7 +24,13 @@ const mockJSZip = vi.fn(() => ({
 }));
 
 // Mock Chart.js instances
-const createMockChart = (label = "Test Chart", data = [{ x: 1, y: 10 }, { x: 2, y: 20 }]) => ({
+const createMockChart = (
+    label = "Test Chart",
+    data = [
+        { x: 1, y: 10 },
+        { x: 2, y: 20 },
+    ]
+) => ({
     canvas: {
         toBlob: vi.fn((callback) => callback(new Blob(["test"], { type: "image/png" }))),
         width: 800,
@@ -36,15 +42,21 @@ const createMockChart = (label = "Test Chart", data = [{ x: 1, y: 10 }, { x: 2, 
         })),
     },
     data: {
-        datasets: [{
-            label,
-            data,
-        }],
+        datasets: [
+            {
+                label,
+                data,
+            },
+        ],
     },
     options: {
         responsive: true,
     },
-    toBase64Image: vi.fn().mockReturnValue("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="),
+    toBase64Image: vi
+        .fn()
+        .mockReturnValue(
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        ),
     update: vi.fn(),
     destroy: vi.fn(),
 });
@@ -163,8 +175,14 @@ describe("exportUtils", () => {
             };
 
             const charts = [
-                createMockChart("Speed", [{ x: 1000, y: 25 }, { x: 2000, y: 30 }]),
-                createMockChart("Heart Rate", [{ x: 1000, y: 150 }, { x: 3000, y: 160 }]),
+                createMockChart("Speed", [
+                    { x: 1000, y: 25 },
+                    { x: 2000, y: 30 },
+                ]),
+                createMockChart("Heart Rate", [
+                    { x: 1000, y: 150 },
+                    { x: 3000, y: 160 },
+                ]),
             ];
 
             await exportUtils.addCombinedCSVToZip(mockZip, charts);
@@ -187,10 +205,7 @@ describe("exportUtils", () => {
 
             await exportUtils.addCombinedCSVToZip(mockZip, []);
 
-            expect(mockZip.file).toHaveBeenCalledWith(
-                "combined-data.csv",
-                "timestamp"
-            );
+            expect(mockZip.file).toHaveBeenCalledWith("combined-data.csv", "timestamp");
         });
 
         it("should handle charts with no data", async () => {
@@ -198,17 +213,11 @@ describe("exportUtils", () => {
                 file: vi.fn(),
             };
 
-            const charts = [
-                createMockChart("Speed", []),
-                createMockChart("Heart Rate", []),
-            ];
+            const charts = [createMockChart("Speed", []), createMockChart("Heart Rate", [])];
 
             await exportUtils.addCombinedCSVToZip(mockZip, charts);
 
-            expect(mockZip.file).toHaveBeenCalledWith(
-                "combined-data.csv",
-                "timestamp,Speed,Heart Rate"
-            );
+            expect(mockZip.file).toHaveBeenCalledWith("combined-data.csv", "timestamp,Speed,Heart Rate");
         });
     });
 
@@ -339,8 +348,6 @@ describe("exportUtils", () => {
         });
     });
 
-
-
     describe("getGyazoConfig", () => {
         it("should return complete Gyazo configuration with stored credentials", () => {
             mockLocalStorage.getItem
@@ -378,8 +385,6 @@ describe("exportUtils", () => {
             expect((config as any).clientSecret.length).toBeGreaterThan(0);
         });
     });
-
-
 
     describe("uploadToGyazo", () => {
         it("should upload base64 image to Gyazo", async () => {

@@ -194,17 +194,17 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     },
                     (/** @type {any} */ charts) => {
                         const allChartsData = {
-                            charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
-                                const [dataset] = chart.data.datasets;
-                                return {
-                                    data: dataset?.data || [],
-                                    field: dataset?.label || `chart-${index}`,
-                                    totalPoints: dataset?.data ? dataset.data.length : 0,
-                                    type: chart.config.type,
-                                };
-                            }),
-                            exportedAt: new Date().toISOString(),
-                        },
+                                charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
+                                    const [dataset] = chart.data.datasets;
+                                    return {
+                                        data: dataset?.data || [],
+                                        field: dataset?.label || `chart-${index}`,
+                                        totalPoints: dataset?.data ? dataset.data.length : 0,
+                                        type: chart.config.type,
+                                    };
+                                }),
+                                exportedAt: new Date().toISOString(),
+                            },
                             blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
                                 type: "application/json;charset=utf-8;",
                             }),
@@ -445,7 +445,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     // Add event messages toggle if data exists
     if (
         /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-        Array.isArray(/** @type {WindowExtensions} */(globalThis).globalData.eventMesgs) &&
+        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
         /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
@@ -458,7 +458,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
         /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
     ) {
         const devFields = extractDeveloperFieldsList(
-            /** @type {WindowExtensions} */(globalThis).globalData.recordMesgs
+            /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
         );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field);
@@ -881,8 +881,8 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             case "event_messages": {
                 hasValidData = Boolean(
-                    /** @type {WindowExtensions} */(globalThis).globalData?.eventMesgs &&
-                    Array.isArray(/** @type {WindowExtensions} */(globalThis).globalData.eventMesgs) &&
+                    /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
+                        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
                         /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
                 );
 
@@ -926,9 +926,9 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             case "power_vs_hr": {
                 const hasHeartRate = data.some((row) => {
-                    const hr = row.heartRate;
-                    return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
-                }),
+                        const hr = row.heartRate;
+                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                    }),
                     hasPower = data.some((row) => {
                         const { power } = row;
                         return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
@@ -939,9 +939,9 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             case "speed_vs_distance": {
                 const hasDistance = data.some((row) => {
-                    const { distance } = row;
-                    return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
-                }),
+                        const { distance } = row;
+                        return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                    }),
                     hasSpeed = data.some((row) => {
                         const speed = row.enhancedSpeed || row.speed;
                         return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
@@ -1082,7 +1082,9 @@ function createFieldToggle(/** @type {string} */ field) {
         } else {
             // Fallback without importing renderChartJS to avoid circular deps
             /** @type {any} */ (globalThis).__chartjs_dev?.requestRerender?.("Field toggle fallback");
-            globalThis.dispatchEvent(new CustomEvent("ffv:request-render-charts", { detail: { reason: "field-toggle" } }));
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv:request-render-charts", { detail: { reason: "field-toggle" } })
+            );
         }
 
         // Update status indicators after a short delay to allow charts to render
@@ -1238,10 +1240,10 @@ function createSelectControl(/** @type {ChartOption} */ option) {
                 val === "all"
                     ? "All Points"
                     : val === "on"
-                        ? "Enabled"
-                        : val === "off"
-                            ? "Disabled"
-                            : String(val).charAt(0).toUpperCase() + String(val).slice(1);
+                      ? "Enabled"
+                      : val === "off"
+                        ? "Disabled"
+                        : String(val).charAt(0).toUpperCase() + String(val).slice(1);
             optionEl.style.background = "var(--color-bg-solid)";
             optionEl.style.color = "var(--color-fg)";
             select.append(optionEl);
@@ -1416,7 +1418,7 @@ function toggleAllFields(enable) {
             /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
         ) {
             const devFields = extractDeveloperFieldsList(
-                /** @type {WindowExtensions} */(globalThis).globalData.recordMesgs
+                /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields

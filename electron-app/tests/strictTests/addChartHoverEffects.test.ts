@@ -483,10 +483,14 @@ describe("addHoverEffectsToExistingCharts", () => {
         (global as any).window = { getThemeConfig: vi.fn(() => ({ colors: {} })) };
 
         // Sync getThemeConfig between window and globalThis scopes
-        Object.defineProperty(globalThis, 'getThemeConfig', {
-            get() { return (global as any).window?.getThemeConfig; },
-            set(value) { if ((global as any).window) (global as any).window.getThemeConfig = value; },
-            configurable: true
+        Object.defineProperty(globalThis, "getThemeConfig", {
+            get() {
+                return (global as any).window?.getThemeConfig;
+            },
+            set(value) {
+                if ((global as any).window) (global as any).window.getThemeConfig = value;
+            },
+            configurable: true,
         });
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});

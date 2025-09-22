@@ -210,7 +210,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         // Force re-render through modern state management
         if (chartStateManager) {
             chartStateManager.debouncedRender(`Setting change: ${settingName}`);
-        } else if (typeof /** @type {any} */ (globalThis).renderChartJS === "function") {
+        } else if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
             // Fallback: direct rendering for compatibility if globally exposed
             const target = container || document.querySelector("#content-chart") || document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
@@ -462,7 +462,7 @@ function reRenderChartsAfterReset() {
         // Force a complete re-render through modern state management
         if (chartStateManager) {
             chartStateManager.debouncedRender("Settings reset");
-        } else if (typeof /** @type {any} */ (globalThis).renderChartJS === "function") {
+        } else if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
             const target = chartsContainer || document.querySelector("#content-chart") || document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
         } else {
@@ -560,7 +560,7 @@ function resetUIControlsToDefaults(wrapper) {
         for (const picker of colorPickers) {
             const fieldName = picker.id.replace("field-color-", "").replace("chartjs-", "");
             if (/** @type {any} */ (fieldColors)[fieldName]) {
-                setValue(picker, /** @type {any} */(fieldColors)[fieldName]);
+                setValue(picker, /** @type {any} */ (fieldColors)[fieldName]);
             }
         }
         if (colorPickers.length > 0) {

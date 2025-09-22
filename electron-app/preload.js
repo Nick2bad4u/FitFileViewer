@@ -100,7 +100,8 @@ const // Constants for better maintainability
      */
 
     // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
-    __electronOverride = (typeof globalThis !== 'undefined' && /** @type {any} */(globalThis).__electronHoistedMock) || null,
+    __electronOverride =
+        (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).__electronHoistedMock) || null,
     contextBridge = (() => {
         let lastErr;
         try {

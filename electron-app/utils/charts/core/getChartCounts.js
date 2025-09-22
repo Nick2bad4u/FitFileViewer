@@ -23,16 +23,16 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
  */
 export function getChartCounts() {
     const counts /** @type {ChartCounts} */ = {
-        available: 0,
-        categories: {
-            analysis: { available: 0, total: 0, visible: 0 },
-            gps: { available: 0, total: 0, visible: 0 },
-            metrics: { available: 0, total: 0, visible: 0 },
-            zones: { available: 0, total: 0, visible: 0 },
+            available: 0,
+            categories: {
+                analysis: { available: 0, total: 0, visible: 0 },
+                gps: { available: 0, total: 0, visible: 0 },
+                metrics: { available: 0, total: 0, visible: 0 },
+                zones: { available: 0, total: 0, visible: 0 },
+            },
+            total: 0,
+            visible: 0,
         },
-        total: 0,
-        visible: 0,
-    },
         // Check if we have data
         hasData =
             globalThis.globalData && globalThis.globalData.recordMesgs && globalThis.globalData.recordMesgs.length > 0;
@@ -48,8 +48,8 @@ export function getChartCounts() {
         const metricFields = Array.isArray(formatChartFields)
             ? /** @type {string[]} */ (formatChartFields)
             : typeof formatChartFields === "string"
-                ? [formatChartFields]
-                : [];
+              ? [formatChartFields]
+              : [];
 
         // Basic metric fields
         for (const field of metricFields) {
@@ -58,12 +58,12 @@ export function getChartCounts() {
 
             // Check if this field has valid numeric data (same logic as renderChartJS)
             const numericData = data.map((/** @type {any} */ row) => {
-                if (row[field] !== undefined && row[field] !== null) {
-                    const value = Number.parseFloat(row[field]);
-                    return isNaN(value) ? null : value;
-                }
-                return null;
-            }),
+                    if (row[field] !== undefined && row[field] !== null) {
+                        const value = Number.parseFloat(row[field]);
+                        return isNaN(value) ? null : value;
+                    }
+                    return null;
+                }),
                 // Only count as available if there's at least one valid data point
                 hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
             if (hasValidData) {
@@ -115,9 +115,9 @@ export function getChartCounts() {
                 }
                 case "power_vs_hr": {
                     const hasHeartRate = data.some((/** @type {any} */ row) => {
-                        const hr = row.heartRate;
-                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
-                    }),
+                            const hr = row.heartRate;
+                            return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                        }),
                         hasPower = data.some((/** @type {any} */ row) => {
                             const { power } = row;
                             return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
@@ -127,9 +127,9 @@ export function getChartCounts() {
                 }
                 case "speed_vs_distance": {
                     const hasDistance = data.some((/** @type {any} */ row) => {
-                        const { distance } = row;
-                        return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
-                    }),
+                            const { distance } = row;
+                            return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                        }),
                         hasSpeed = data.some((/** @type {any} */ row) => {
                             const speed = row.enhancedSpeed || row.speed;
                             return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
@@ -269,12 +269,12 @@ export function getChartCounts() {
             for (const field of developerFields) {
                 // Check if this field has valid numeric data (same logic as renderChartJS)
                 const numericData = data.map((/** @type {any} */ row) => {
-                    if (row[field] !== undefined && row[field] !== null) {
-                        const value = Number.parseFloat(row[field]);
-                        return isNaN(value) ? null : value;
-                    }
-                    return null;
-                }),
+                        if (row[field] !== undefined && row[field] !== null) {
+                            const value = Number.parseFloat(row[field]);
+                            return isNaN(value) ? null : value;
+                        }
+                        return null;
+                    }),
                     // Only count as available if there's at least one valid data point
                     hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
                 if (hasValidData) {

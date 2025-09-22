@@ -132,7 +132,7 @@ export function migrateChartControlsState() {
     if (/** @type {any} */ (globalThis).chartControlsState) {
         console.log("[StateMigration] Migrating chartControlsState...");
         // Copy existing state
-        setState("charts.controlsVisible", /** @type {any} */(globalThis).chartControlsState.isVisible, {
+        setState("charts.controlsVisible", /** @type {any} */ (globalThis).chartControlsState.isVisible, {
             source: "migration",
         });
 
@@ -208,7 +208,7 @@ export function setupStatePersistence() {
     for (const path of persistedPaths) {
         subscribe(path, () => {
             // Debounce the persistence to avoid excessive writes
-            clearTimeout(/** @type {any} */(globalThis).__persistenceTimeout);
+            clearTimeout(/** @type {any} */ (globalThis).__persistenceTimeout);
             /** @type {any} */ (globalThis).__persistenceTimeout = setTimeout(() => {
                 try {
                     const stateToSave = {};
@@ -298,7 +298,7 @@ function isDevelopmentMode() {
             protocol === "file:" ||
             /** @type {any} */ (
                 globalThis.window !== undefined &&
-                globalThis.electronAPI &&
+                    globalThis.electronAPI &&
                     /** @type {any} */ (globalThis).electronAPI.__devMode !== undefined
             ) ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
@@ -445,7 +445,7 @@ function setupStateDebugging() {
             console.log(`[StateDebug] Watching state changes for: ${path}`);
             return subscribe(
                 path,
-                /** @param {*} newValue */ /** @param {*} oldValue */(/** @type {any} */ newValue, oldValue) => {
+                /** @param {*} newValue */ /** @param {*} oldValue */ (/** @type {any} */ newValue, oldValue) => {
                     console.log(`[StateDebug] ${path} changed:`, { newValue, oldValue });
                 }
             );

@@ -266,7 +266,7 @@ function patchDecimalFields(obj, fieldNames, decimalPlaces) {
     patchFieldsWithFormatter(
         obj,
         fieldNames,
-        /** @param {number} value */(value) => Number(value.toFixed(decimalPlaces)),
+        /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
         `decimal (${decimalPlaces} places)`
     );
 }
@@ -378,9 +378,7 @@ function patchCalories(obj) {
 /** @param {SummaryRecord} obj */
 function patchDecimals(obj) {
     try {
-        for (const key of Object.keys(obj).filter(
-            (k) => typeof obj[k] === "number" && !Number.isInteger(obj[k])
-        )) {
+        for (const key of Object.keys(obj).filter((k) => typeof obj[k] === "number" && !Number.isInteger(obj[k]))) {
             obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
         }
     } catch (error) {

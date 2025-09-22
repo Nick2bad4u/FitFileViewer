@@ -375,9 +375,9 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
 
         if (!decoder.checkIntegrity()) {
             const integrityErrors =
-                typeof decoder.getIntegrityErrors === "function"
-                    ? decoder.getIntegrityErrors()
-                    : "No additional details available",
+                    typeof decoder.getIntegrityErrors === "function"
+                        ? decoder.getIntegrityErrors()
+                        : "No additional details available",
                 msg = `FIT file integrity check failed. Details: ${integrityErrors}`;
             console.error(msg);
 
@@ -499,7 +499,7 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         // Update state with generic error
         if (fitFileStateManager) {
             try {
-                fitFileStateManager.handleFileLoadingError(/** @type {Error} */(error));
+                fitFileStateManager.handleFileLoadingError(/** @type {Error} */ (error));
             } catch (stateError) {
                 console.warn("[FitParser] Failed to update error state:", stateError);
             }

@@ -341,8 +341,8 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                         fontColor: hidden
                                             ? "rgba(128, 128, 128, 0.7)"
                                             : currentTheme === "dark"
-                                                ? "#ffffff"
-                                                : "#333333",
+                                              ? "#ffffff"
+                                              : "#333333",
                                         hidden,
                                         index: i,
                                         lineWidth: 1,
@@ -394,9 +394,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         /** @param {any} context */
                         label(context) {
                             const total = context.dataset.data.reduce(
-                                (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                0
-                            ),
+                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                    0
+                                ),
                                 value = context.parsed,
                                 percentage = ((value / total) * 100).toFixed(1),
                                 timeFormatted = formatTime(context.parsed, true);

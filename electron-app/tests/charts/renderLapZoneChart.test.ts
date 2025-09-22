@@ -63,8 +63,8 @@ describe("renderLapZoneChart", () => {
             destroy: vi.fn(),
         };
 
-    (window as any).Chart = vi.fn(() => mockChart);
-    (window as any).showNotification = vi.fn();
+        (window as any).Chart = vi.fn(() => mockChart);
+        (window as any).showNotification = vi.fn();
     });
 
     afterEach(() => {
@@ -76,17 +76,17 @@ describe("renderLapZoneChart", () => {
         vi.clearAllMocks();
 
         // Remove Chart.js mock
-    delete (window as any).Chart;
-    delete (window as any).showNotification;
+        delete (window as any).Chart;
+        delete (window as any).showNotification;
     });
 
     it("should return null when Chart.js is missing", () => {
-    delete (window as any).Chart;
+        delete (window as any).Chart;
 
         const result = renderLapZoneChart(mockCanvas, []);
 
         expect(result).toBeNull();
-    expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+        expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
     });
 
     it("should return null when canvas is missing", () => {
@@ -94,7 +94,7 @@ describe("renderLapZoneChart", () => {
         const result = renderLapZoneChart(null, []);
 
         expect(result).toBeNull();
-    expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+        expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
     });
 
     it("should return null when lapZoneData is not an array", () => {
@@ -102,7 +102,7 @@ describe("renderLapZoneChart", () => {
         const result = renderLapZoneChart(mockCanvas, null);
 
         expect(result).toBeNull();
-    expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+        expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
     });
 
     it("should create a Chart.js chart with correct configuration", () => {
@@ -127,11 +127,11 @@ describe("renderLapZoneChart", () => {
 
         const result = renderLapZoneChart(mockCanvas, lapZoneData, options);
 
-    expect(result).toBe(mockChart);
-    expect((window as any).Chart).toHaveBeenCalledTimes(1);
+        expect(result).toBe(mockChart);
+        expect((window as any).Chart).toHaveBeenCalledTimes(1);
 
         // Check that Chart was called with the correct parameters
-    const chartCall = (window as any).Chart.mock.calls[0];
+        const chartCall = (window as any).Chart.mock.calls[0];
         expect(chartCall[0]).toBe(mockCanvas);
 
         const chartConfig = chartCall[1];
@@ -152,9 +152,9 @@ describe("renderLapZoneChart", () => {
         const result = renderLapZoneChart(mockCanvas, [], {});
 
         expect(result).toBe(mockChart);
-    expect((window as any).Chart).toHaveBeenCalledTimes(1);
+        expect((window as any).Chart).toHaveBeenCalledTimes(1);
 
-    const chartCall = (window as any).Chart.mock.calls[0];
+        const chartCall = (window as any).Chart.mock.calls[0];
         const chartConfig = chartCall[1];
         expect(chartConfig.data.labels).toEqual([]);
         expect(chartConfig.data.datasets).toHaveLength(0);
@@ -210,7 +210,7 @@ describe("renderLapZoneChart", () => {
 
         renderLapZoneChart(mockCanvas, lapZoneData, {});
 
-    const chartCall = (window as any).Chart.mock.calls[0];
+        const chartCall = (window as any).Chart.mock.calls[0];
         const chartConfig = chartCall[1];
 
         // Zones should be sorted by numeric index
@@ -239,7 +239,7 @@ describe("renderLapZoneChart", () => {
 
         renderLapZoneChart(mockCanvas, lapZoneData, {});
 
-    const chartCall = (window as any).Chart.mock.calls[0];
+        const chartCall = (window as any).Chart.mock.calls[0];
         const chartConfig = chartCall[1];
 
         // Check that missing zone data is properly handled
@@ -267,14 +267,11 @@ describe("renderLapZoneChart", () => {
 
         renderLapZoneChart(mockCanvas, lapZoneData, { title: "Heart Rate Zones by Lap" });
 
-    const chartConfig = ((window as any).Chart as any).mock.calls[0][1];
+        const chartConfig = ((window as any).Chart as any).mock.calls[0][1];
         const callbacks = chartConfig.options.plugins.tooltip.callbacks;
 
         // Footer should sum parsed.y values and format with formatTime mock
-        const footer = callbacks.footer([
-            { parsed: { y: 120 } },
-            { parsed: { y: 180 } },
-        ]);
+        const footer = callbacks.footer([{ parsed: { y: 120 } }, { parsed: { y: 180 } }]);
         expect(footer).toBe("Total: 0:05:00");
 
         // Label should compute percentage of total for the given dataIndex

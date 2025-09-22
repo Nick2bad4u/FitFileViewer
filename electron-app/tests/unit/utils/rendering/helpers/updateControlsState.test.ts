@@ -86,10 +86,7 @@ describe("updateControlsState", () => {
             initializeControlsState();
 
             // Verify subscription was set up
-            expect(mockSubscribe).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                expect.any(Function)
-            );
+            expect(mockSubscribe).toHaveBeenCalledWith("charts.controlsVisible", expect.any(Function));
         });
 
         it("should update DOM when state changes to visible", () => {
@@ -160,11 +157,9 @@ describe("updateControlsState", () => {
 
             // Verify
             expect(mockGetState).toHaveBeenCalledWith("charts.controlsVisible");
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                true,
-                { source: "toggleChartControls" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", true, {
+                source: "toggleChartControls",
+            });
         });
 
         it("should toggle state from true to false", () => {
@@ -176,11 +171,9 @@ describe("updateControlsState", () => {
 
             // Verify
             expect(mockGetState).toHaveBeenCalledWith("charts.controlsVisible");
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                false,
-                { source: "toggleChartControls" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", false, {
+                source: "toggleChartControls",
+            });
         });
 
         it("should handle undefined state", () => {
@@ -191,11 +184,9 @@ describe("updateControlsState", () => {
             toggleChartControls();
 
             // Verify - undefined becomes true when negated
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                true,
-                { source: "toggleChartControls" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", true, {
+                source: "toggleChartControls",
+            });
         });
     });
 
@@ -247,11 +238,10 @@ describe("updateControlsState", () => {
             updateControlsState();
 
             // Verify visible state detection
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                true,
-                { silent: true, source: "updateControlsState" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", true, {
+                silent: true,
+                source: "updateControlsState",
+            });
             expect(mockToggleButton.textContent).toBe("▼ Hide Controls");
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "true");
             expect(mockWrapper.style.display).toBe("block");
@@ -274,11 +264,10 @@ describe("updateControlsState", () => {
             updateControlsState();
 
             // Verify hidden state detection
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                false,
-                { silent: true, source: "updateControlsState" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", false, {
+                silent: true,
+                source: "updateControlsState",
+            });
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
             expect(mockWrapper.style.display).toBe("none");
@@ -301,11 +290,10 @@ describe("updateControlsState", () => {
             updateControlsState();
 
             // Verify hidden state detection
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                false,
-                { silent: true, source: "updateControlsState" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", false, {
+                silent: true,
+                source: "updateControlsState",
+            });
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
             expect(mockWrapper.style.display).toBe("none");
@@ -328,11 +316,10 @@ describe("updateControlsState", () => {
             updateControlsState();
 
             // Verify hidden state detection
-            expect(mockSetState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                false,
-                { silent: true, source: "updateControlsState" }
-            );
+            expect(mockSetState).toHaveBeenCalledWith("charts.controlsVisible", false, {
+                silent: true,
+                source: "updateControlsState",
+            });
             expect(mockToggleButton.textContent).toBe("▶ Show Controls");
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
             expect(mockWrapper.style.display).toBe("none");

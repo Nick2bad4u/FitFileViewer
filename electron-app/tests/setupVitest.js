@@ -21,7 +21,7 @@ let __clearListeners;
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
 function ensureConsoleAlive() {
     try {
-        const noop = () => { };
+        const noop = () => {};
         /** @type {any} */
         const current = /** @type {any} */ (globalThis.console);
         if (!current) {
@@ -138,11 +138,18 @@ try {
             const g = /** @type {any} */ (globalThis);
             if (!g.process || typeof g.process !== "object") g.process = {};
             if (typeof g.process.nextTick !== "function") {
-                g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => {
-                    try { cb(...args); } catch { /* ignore */ }
-                });
+                g.process.nextTick = (cb, ...args) =>
+                    Promise.resolve().then(() => {
+                        try {
+                            cb(...args);
+                        } catch {
+                            /* ignore */
+                        }
+                    });
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     });
 } catch {
     /* ignore: runner not yet available */
@@ -154,11 +161,18 @@ try {
             const g = /** @type {any} */ (globalThis);
             if (!g.process || typeof g.process !== "object") g.process = {};
             if (typeof g.process.nextTick !== "function") {
-                g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => {
-                    try { cb(...args); } catch { /* ignore */ }
-                });
+                g.process.nextTick = (cb, ...args) =>
+                    Promise.resolve().then(() => {
+                        try {
+                            cb(...args);
+                        } catch {
+                            /* ignore */
+                        }
+                    });
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     });
 } catch {
     /* ignore: runner not yet available */
@@ -188,9 +202,14 @@ if (typeof document !== "undefined") {
             g.process = {};
         }
         if (typeof g.process.nextTick !== "function") {
-            g.process.nextTick = (cb, ...args) => Promise.resolve().then(() => {
-                try { cb(...args); } catch { /* ignore */ }
-            });
+            g.process.nextTick = (cb, ...args) =>
+                Promise.resolve().then(() => {
+                    try {
+                        cb(...args);
+                    } catch {
+                        /* ignore */
+                    }
+                });
         }
     } catch {
         /* ignore */

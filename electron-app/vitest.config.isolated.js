@@ -6,9 +6,7 @@ export default defineConfig({
     cacheDir: "node_modules/.vite-isolated",
     test: {
         // Target only the appActions test to avoid loading the full suite
-        include: [
-            "tests/unit/utils/app/lifecycle/appActions.test.ts",
-        ],
+        include: ["tests/unit/utils/app/lifecycle/appActions.test.ts"],
         exclude: [],
         // Keep the environment minimal to avoid jsdom/setup complexity
         environment: "node",
@@ -32,15 +30,8 @@ export default defineConfig({
             clean: true,
             cleanOnRerun: true,
             allowExternal: false,
-            include: [
-                "utils/app/lifecycle/appActions.js",
-            ],
-            exclude: [
-                "**/tests/**",
-                "**/__mocks__/**",
-                "**/*.d.ts",
-                "coverage/**",
-            ],
+            include: ["utils/app/lifecycle/appActions.js"],
+            exclude: ["**/tests/**", "**/__mocks__/**", "**/*.d.ts", "coverage/**"],
             provider: "v8",
             reporter: ["text", "html", "json", "lcov"],
             reportOnFailure: true,

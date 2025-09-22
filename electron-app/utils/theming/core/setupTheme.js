@@ -235,7 +235,7 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
         if (typeof listenForThemeChange === "function") {
             // Set up external theme change listener
             listenForThemeChange(
-                /** @param {*} newTheme */(newTheme) => {
+                /** @param {*} newTheme */ (newTheme) => {
                     logWithContext(`Theme change received: ${newTheme}`);
                     applyAndTrackTheme(newTheme, applyTheme);
                 }
@@ -245,7 +245,7 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
         // Set up state-based theme change listener
         subscribe(
             "ui.theme",
-            /** @param {*} newTheme */(newTheme) => {
+            /** @param {*} newTheme */ (newTheme) => {
                 if (newTheme && newTheme !== getState("ui.previousTheme")) {
                     logWithContext(`State-driven theme change: ${newTheme}`);
                     setState("ui.previousTheme", newTheme, { source: "setupTheme" });

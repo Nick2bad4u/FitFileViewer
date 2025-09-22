@@ -74,8 +74,8 @@ export function drawOverlayForFitFile({
             typeof overlayIdx === "number" && /** @type {any} */ (getWin())._highlightedOverlayIdx === overlayIdx;
         const paletteColor =
             Array.isArray(chartOverlayColorPalette) &&
-                chartOverlayColorPalette.length > 0 &&
-                typeof overlayIdx === "number"
+            chartOverlayColorPalette.length > 0 &&
+            typeof overlayIdx === "number"
                 ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
                 : "#1976d2";
         const polyline = L.polyline(
@@ -138,7 +138,7 @@ export function drawOverlayForFitFile({
 
             let lapDisplay;
             if (getLapNumForIdx && fitData && Array.isArray(fitData.lapMesgs) && fitData.lapMesgs.length > 0) {
-                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */(fitData.lapMesgs));
+                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */ (fitData.lapMesgs));
             } else {
                 lapDisplay = c[8] || 1;
             }
@@ -177,7 +177,7 @@ export function drawOverlayForFitFile({
             }
         }
         if (!resultBounds) {
-            resultBounds = { extend: () => { } };
+            resultBounds = { extend: () => {} };
         }
         return resultBounds;
     }
@@ -395,7 +395,7 @@ export function mapDrawLaps(
             map.invalidateSize();
             if (/** @type {any} */ (getWin())._mainPolylineOriginalBounds) {
                 // Use safeFitBounds to handle invisible container timing and resized containers
-                safeFitBounds(map, /** @type {any} */(getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
+                safeFitBounds(map, /** @type {any} */ (getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
             }
 
             const end = coords.at(-1);
@@ -424,8 +424,8 @@ export function mapDrawLaps(
                 i +=
                     /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
                     !(/** @type {any} */ (getWin()).mapMarkerCount)
-                    ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
+                        ? 1
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
             ) {
                 const c = coords[i];
                 if (!c) {
@@ -454,7 +454,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
             /** @type {any} */ (getWin()).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -581,7 +581,7 @@ export function mapDrawLaps(
                 map.invalidateSize();
                 if (/** @type {any} */ (getWin())._mainPolylineOriginalBounds) {
                     // Use safeFitBounds to handle invisible container timing
-                    safeFitBounds(map, /** @type {any} */(getWin())._mainPolylineOriginalBounds, {
+                    safeFitBounds(map, /** @type {any} */ (getWin())._mainPolylineOriginalBounds, {
                         padding: [20, 20],
                     });
                 }
@@ -612,8 +612,8 @@ export function mapDrawLaps(
                     i +=
                         /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
                         !(/** @type {any} */ (getWin()).mapMarkerCount)
-                        ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
+                            ? 1
+                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
                 ) {
                     const c = coords[i];
                     if (!c) {
@@ -641,7 +641,7 @@ export function mapDrawLaps(
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
             if (
                 /** @type {any} */ (getWin()).loadedFitFiles &&
-                Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+                Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
                 /** @type {any} */ (getWin()).loadedFitFiles.length > 1
             ) {
                 const colorPalette = chartOverlayColorPalette;
@@ -773,12 +773,12 @@ export function mapDrawLaps(
 
                         const stepLap =
                             /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                                !(/** @type {any} */ (getWin()).mapMarkerCount)
+                            !(/** @type {any} */ (getWin()).mapMarkerCount)
                                 ? 1
                                 : Math.max(
-                                    1,
-                                    Math.floor(lapCoords.length / /** @type {any} */ (getWin().mapMarkerCount || 1))
-                                );
+                                      1,
+                                      Math.floor(lapCoords.length / /** @type {any} */ (getWin().mapMarkerCount || 1))
+                                  );
                         for (let j = 0; j < lapCoords.length; j += stepLap) {
                             const c = lapCoords[j];
                             if (!c) {
@@ -816,7 +816,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
             /** @type {any} */ (getWin()).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -911,8 +911,9 @@ export function mapDrawLaps(
                 return;
             }
         } else {
-            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${lap && lap.startPositionLat
-                }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${
+                lap && lap.startPositionLat
+            }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
             return;
         }
     } else {
@@ -962,7 +963,7 @@ export function mapDrawLaps(
         console.log("[mapDrawLaps] DEBUG .addTo(map) returned:", polylineWithMap);
 
         const polyline = polylineWithMap;
-    /** @type {any} */ (getWin())._mainPolyline = polyline;
+        /** @type {any} */ (getWin())._mainPolyline = polyline;
         console.log("[mapDrawLaps] DEBUG final polyline:", polyline);
         console.log("[mapDrawLaps] DEBUG polyline.getBounds exists?", typeof polyline?.getBounds);
 
@@ -979,7 +980,7 @@ export function mapDrawLaps(
         // Fix: Ensure map is sized before fitBounds
         map.invalidateSize();
         if (/** @type {any} */ (getWin())._mainPolylineOriginalBounds) {
-            map.fitBounds(/** @type {any} */(getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
+            map.fitBounds(/** @type {any} */ (getWin())._mainPolylineOriginalBounds, { padding: [20, 20] });
         }
 
         const end = coords.at(-1);
@@ -997,8 +998,8 @@ export function mapDrawLaps(
             i < coords.length;
             i +=
                 /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
+                    ? 1
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
         ) {
             const c = coords[i];
             if (!c) {
@@ -1025,7 +1026,7 @@ export function mapDrawLaps(
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
             /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
+            Array.isArray(/** @type {any} */ (getWin()).loadedFitFiles) &&
             /** @type {any} */ (getWin()).loadedFitFiles.length > 1
         ) {
             const colorPalette = chartOverlayColorPalette;
@@ -1153,7 +1154,7 @@ function patchLapIndices(lapMesgs, recordMesgs) {
     if (!(/** @type {any} */ (getWin())._overlayPolylines)) {
         return;
     }
-    for (const [idx, polyline] of Object.entries(/** @type {any} */(getWin())._overlayPolylines)) {
+    for (const [idx, polyline] of Object.entries(/** @type {any} */ (getWin())._overlayPolylines)) {
         const isHighlighted = Number(idx) === /** @type {any} */ (getWin())._highlightedOverlayIdx;
         polyline.setStyle({
             className: isHighlighted ? "overlay-highlight-glow" : "",
@@ -1181,7 +1182,11 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                 });
             }
             if (isMainHighlighted && typeof main.bringToFront === "function") {
-                try { main.bringToFront(); } catch { /* ignore */ }
+                try {
+                    main.bringToFront();
+                } catch {
+                    /* ignore */
+                }
             }
             const elem = main.getElement && main.getElement();
             if (elem) {
@@ -1247,7 +1252,7 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                     try {
                         if (/** @type {any} */ (getWin())._overlayPolylines) {
                             for (const [idx, polyline] of Object.entries(
-                                /** @type {any} */(getWin())._overlayPolylines
+                                /** @type {any} */ (getWin())._overlayPolylines
                             )) {
                                 const isHighlighted = Number(idx) === _val;
                                 polyline.setStyle({
@@ -1274,7 +1279,11 @@ function patchLapIndices(lapMesgs, recordMesgs) {
                                     });
                                 }
                                 if (isMainHighlighted && typeof main.bringToFront === "function") {
-                                    try { main.bringToFront(); } catch { /* ignore */ }
+                                    try {
+                                        main.bringToFront();
+                                    } catch {
+                                        /* ignore */
+                                    }
                                 }
                                 const elem = main.getElement && main.getElement();
                                 if (elem) {

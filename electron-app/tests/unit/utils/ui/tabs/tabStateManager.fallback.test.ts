@@ -54,7 +54,7 @@ describe("tabStateManager.fallback", () => {
         vi.resetAllMocks();
         // eslint-disable-next-line no-underscore-dangle
         // @ts-ignore
-        delete /** @type {any} */ globalThis.__vitest_effective_stateManager__;
+        delete (/** @type {any} */ globalThis.__vitest_effective_stateManager__);
     });
 
     it("uses global fallback state manager and renders summary path", async () => {

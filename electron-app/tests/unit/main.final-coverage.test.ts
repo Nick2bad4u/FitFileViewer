@@ -7,8 +7,8 @@
  * - Error handling paths
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
-import { EventEmitter } from 'events';
+import { describe, test, expect, vi, beforeEach, afterEach, beforeAll } from "vitest";
+import { EventEmitter } from "events";
 
 // Track all mock references for cleanup
 const mockRefs = new Set<any>();
@@ -25,7 +25,7 @@ function createComprehensiveMock() {
             return mockWebContents;
         }),
         send: vi.fn(),
-        executeJavaScript: vi.fn().mockResolvedValue('dark'),
+        executeJavaScript: vi.fn().mockResolvedValue("dark"),
         once: vi.fn(),
         removeAllListeners: vi.fn(),
         setWindowOpenHandler: vi.fn(),
@@ -50,8 +50,8 @@ function createComprehensiveMock() {
     const mockApp = new EventEmitter();
     Object.assign(mockApp, {
         whenReady: vi.fn().mockResolvedValue(undefined),
-        getVersion: vi.fn(() => '1.0.0'),
-        getAppPath: vi.fn(() => '/test/app'),
+        getVersion: vi.fn(() => "1.0.0"),
+        getAppPath: vi.fn(() => "/test/app"),
         isPackaged: false,
         quit: vi.fn(),
         on: vi.fn((event: string, handler: any) => {
@@ -83,8 +83,8 @@ function createComprehensiveMock() {
     });
 
     const mockDialog = {
-        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ['/test/file.fit'] }),
-        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: '/test/export.csv' }),
+        showOpenDialog: vi.fn().mockResolvedValue({ canceled: false, filePaths: ["/test/file.fit"] }),
+        showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: "/test/export.csv" }),
         showMessageBox: vi.fn().mockResolvedValue({ response: 0 }),
     };
 
@@ -147,15 +147,15 @@ function createComprehensiveMock() {
 function createNodeMocks() {
     const mockFs = {
         readFile: vi.fn((path: string, callback: any) => {
-            const data = Buffer.from('test data');
+            const data = Buffer.from("test data");
             callback(null, data);
         }),
-        readFileSync: vi.fn(() => JSON.stringify({ license: 'MIT' })),
+        readFileSync: vi.fn(() => JSON.stringify({ license: "MIT" })),
         copyFileSync: vi.fn(),
     };
 
     const mockPath = {
-        join: vi.fn((...args: string[]) => args.join('/')),
+        join: vi.fn((...args: string[]) => args.join("/")),
     };
 
     // Mock HTTP server for Gyazo OAuth
@@ -180,8 +180,8 @@ function createNodeMocks() {
             setTimeout(() => {
                 // Simulate successful OAuth callback
                 const mockReq = {
-                    method: 'GET',
-                    url: '/gyazo/callback?code=test_code&state=test_state',
+                    method: "GET",
+                    url: "/gyazo/callback?code=test_code&state=test_state",
                 };
                 const mockRes = {
                     setHeader: vi.fn(),
@@ -192,8 +192,8 @@ function createNodeMocks() {
 
                 // Simulate error callback
                 const mockReqError = {
-                    method: 'GET',
-                    url: '/gyazo/callback?error=access_denied',
+                    method: "GET",
+                    url: "/gyazo/callback?error=access_denied",
                 };
                 const mockResError = {
                     setHeader: vi.fn(),
@@ -204,8 +204,8 @@ function createNodeMocks() {
 
                 // Simulate OPTIONS request
                 const mockReqOptions = {
-                    method: 'OPTIONS',
-                    url: '/gyazo/callback',
+                    method: "OPTIONS",
+                    url: "/gyazo/callback",
                 };
                 const mockResOptions = {
                     setHeader: vi.fn(),
@@ -225,15 +225,15 @@ function createNodeMocks() {
         warn: vi.fn(),
         transports: {
             file: {
-                level: 'info',
+                level: "info",
             },
         },
     };
 
     const mockElectronConf = vi.fn(() => ({
         get: vi.fn((key: string, defaultValue?: any) => {
-            if (key === 'theme') return 'dark';
-            if (key === 'selectedMapTab') return 'map';
+            if (key === "theme") return "dark";
+            if (key === "selectedMapTab") return "map";
             return defaultValue;
         }),
         set: vi.fn(),
@@ -262,12 +262,12 @@ function createStateMocks() {
 
     const MockMainProcessState = vi.fn(() => ({
         get: vi.fn((path: string) => {
-            if (path === 'mainWindow') return globalMocks.mockWindow;
-            if (path === 'loadedFitFilePath') return '/test/file.fit';
-            if (path === 'autoUpdaterInitialized') return false;
-            if (path === 'appIsQuitting') return false;
-            if (path === 'gyazoServer') return mockState.gyazoServer || null;
-            if (path === 'gyazoServerPort') return mockState.gyazoServerPort || null;
+            if (path === "mainWindow") return globalMocks.mockWindow;
+            if (path === "loadedFitFilePath") return "/test/file.fit";
+            if (path === "autoUpdaterInitialized") return false;
+            if (path === "appIsQuitting") return false;
+            if (path === "gyazoServer") return mockState.gyazoServer || null;
+            if (path === "gyazoServerPort") return mockState.gyazoServerPort || null;
             return mockState[path];
         }),
         set: vi.fn((path: string, value: any, options?: any) => {
@@ -299,36 +299,36 @@ beforeAll(() => {
     (globalThis as any).__electronHoistedMock = globalMocks.mockElectron;
 
     // Setup vi.mock calls for all modules (fallback mechanism)
-    vi.mock('electron', () => globalMocks.mockElectron);
-    vi.mock('fs', () => globalMocks.mockFs);
-    vi.mock('path', () => globalMocks.mockPath);
-    vi.mock('http', () => globalMocks.mockHttp);
-    vi.mock('electron-log', () => globalMocks.mockElectronLog);
-    vi.mock('electron-updater', () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
-    vi.mock('electron-conf', () => ({ Conf: globalMocks.mockElectronConf }));
+    vi.mock("electron", () => globalMocks.mockElectron);
+    vi.mock("fs", () => globalMocks.mockFs);
+    vi.mock("path", () => globalMocks.mockPath);
+    vi.mock("http", () => globalMocks.mockHttp);
+    vi.mock("electron-log", () => globalMocks.mockElectronLog);
+    vi.mock("electron-updater", () => ({ autoUpdater: globalMocks.mockAutoUpdater }));
+    vi.mock("electron-conf", () => ({ Conf: globalMocks.mockElectronConf }));
 
     // Mock utility modules
-    vi.mock('../../../utils/state/integration/mainProcessStateManager', () => ({
+    vi.mock("../../../utils/state/integration/mainProcessStateManager", () => ({
         MainProcessState: globalMocks.MockMainProcessState,
     }));
 
-    vi.mock('../../fitParser', () => globalMocks.mockFitParser);
+    vi.mock("../../fitParser", () => globalMocks.mockFitParser);
 
-    vi.mock('../../windowStateUtils', () => ({
+    vi.mock("../../windowStateUtils", () => ({
         createWindow: vi.fn(() => globalMocks.mockWindow),
     }));
 
-    vi.mock('../../utils/app/menu/createAppMenu', () => ({
+    vi.mock("../../utils/app/menu/createAppMenu", () => ({
         createAppMenu: vi.fn(),
     }));
 
-    vi.mock('../../utils/files/recent/recentFiles', () => ({
+    vi.mock("../../utils/files/recent/recentFiles", () => ({
         addRecentFile: vi.fn(),
-        loadRecentFiles: vi.fn(() => ['/test/recent1.fit', '/test/recent2.fit']),
+        loadRecentFiles: vi.fn(() => ["/test/recent1.fit", "/test/recent2.fit"]),
     }));
 
     // Mock Gyazo utilities if they exist
-    vi.mock('../../utils/gyazo/oauth', () => ({
+    vi.mock("../../utils/gyazo/oauth", () => ({
         startGyazoOAuthServer: vi.fn(),
         stopGyazoOAuthServer: vi.fn(),
     }));
@@ -340,13 +340,13 @@ beforeEach(() => {
 
     // Clear event listeners
     mockRefs.forEach((emitter: any) => {
-        if (emitter && typeof emitter.removeAllListeners === 'function') {
+        if (emitter && typeof emitter.removeAllListeners === "function") {
             emitter.removeAllListeners();
         }
     });
 
     // Reset environment
-    process.env.NODE_ENV = 'test';
+    process.env.NODE_ENV = "test";
     delete process.env.GYAZO_CLIENT_ID;
     delete process.env.GYAZO_CLIENT_SECRET;
 
@@ -355,7 +355,7 @@ beforeEach(() => {
 
     // Reset mock state
     if (globalMocks.mockState) {
-        Object.keys(globalMocks.mockState).forEach(key => {
+        Object.keys(globalMocks.mockState).forEach((key) => {
             delete globalMocks.mockState[key];
         });
     }
@@ -366,61 +366,61 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-describe('main.js - Final Coverage Push to 100%', () => {
-    test('should achieve maximum coverage through comprehensive initialization', async () => {
-        console.log('[TEST] Starting final comprehensive main.js coverage test');
+describe("main.js - Final Coverage Push to 100%", () => {
+    test("should achieve maximum coverage through comprehensive initialization", async () => {
+        console.log("[TEST] Starting final comprehensive main.js coverage test");
 
         // Import main.js to trigger initialization
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Wait for all async initialization
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Basic initialization verification (no strict assertions to avoid failures)
         expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
-        console.log('[TEST] Basic initialization complete');
+        console.log("[TEST] Basic initialization complete");
     });
 
-    test('should exercise Gyazo OAuth server start and stop functions', async () => {
+    test("should exercise Gyazo OAuth server start and stop functions", async () => {
         // Import main to get access to functions
-        const mainModule = await import('../../main.js');
+        const mainModule = await import("../../main.js");
 
         // Set up environment for Gyazo OAuth
-        process.env.GYAZO_CLIENT_ID = 'test_client_id';
-        process.env.GYAZO_CLIENT_SECRET = 'test_client_secret';
+        process.env.GYAZO_CLIENT_ID = "test_client_id";
+        process.env.GYAZO_CLIENT_SECRET = "test_client_secret";
 
         // Wait for initialization
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Trigger Gyazo server startup through IPC simulation if possible
         // The actual functions will be called during main.js execution
         expect(globalMocks.mockHttp.createServer).toHaveBeenCalled();
 
-        console.log('[TEST] Gyazo OAuth server functions exercised');
+        console.log("[TEST] Gyazo OAuth server functions exercised");
     });
 
-    test('should exercise all IPC handlers and menu setup', async () => {
-        await import('../../main.js');
+    test("should exercise all IPC handlers and menu setup", async () => {
+        await import("../../main.js");
 
         // Allow time for all IPC handlers to be registered
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
 
         // Verify IPC infrastructure was set up
         expect(globalMocks.mockIpcMain.handle).toHaveBeenCalled();
         expect(globalMocks.mockIpcMain.on).toHaveBeenCalled();
 
-        console.log('[TEST] IPC handlers and menu setup exercised');
+        console.log("[TEST] IPC handlers and menu setup exercised");
     });
 
-    test('should exercise application event handlers and lifecycle', async () => {
+    test("should exercise application event handlers and lifecycle", async () => {
         expect.hasAssertions();
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Test various app events that trigger different code paths
-        globalMocks.mockApp.emit('before-quit', { preventDefault: vi.fn() });
-        globalMocks.mockApp.emit('window-all-closed');
-        globalMocks.mockApp.emit('activate');
-        globalMocks.mockApp.emit('browser-window-focus', {}, globalMocks.mockWindow);
+        globalMocks.mockApp.emit("before-quit", { preventDefault: vi.fn() });
+        globalMocks.mockApp.emit("window-all-closed");
+        globalMocks.mockApp.emit("activate");
+        globalMocks.mockApp.emit("browser-window-focus", {}, globalMocks.mockWindow);
 
         // Test web-contents-created for security handlers
         const mockWebContents = new EventEmitter();
@@ -428,30 +428,30 @@ describe('main.js - Final Coverage Push to 100%', () => {
             on: vi.fn(),
             setWindowOpenHandler: vi.fn(),
         });
-        globalMocks.mockApp.emit('web-contents-created', {}, mockWebContents);
+        globalMocks.mockApp.emit("web-contents-created", {}, mockWebContents);
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         // Minimal assertion to satisfy assertion requirements
         expect(globalMocks.mockApp.emit).toBeDefined();
-        console.log('[TEST] Application event handlers and lifecycle exercised');
+        console.log("[TEST] Application event handlers and lifecycle exercised");
     });
 
-    test('should exercise auto-updater functionality and error paths', async () => {
+    test("should exercise auto-updater functionality and error paths", async () => {
         expect.hasAssertions();
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Add error handler to prevent unhandled errors
-        globalMocks.mockAutoUpdater.on('error', (error: Error) => {
-            console.log('Auto-updater error handled:', error.message);
+        globalMocks.mockAutoUpdater.on("error", (error: Error) => {
+            console.log("Auto-updater error handled:", error.message);
         });
 
         // Test all auto-updater events
         const events = [
-            'checking-for-update',
-            'update-available',
-            'update-not-available',
-            'download-progress',
-            'update-downloaded',
+            "checking-for-update",
+            "update-available",
+            "update-not-available",
+            "download-progress",
+            "update-downloaded",
         ];
 
         for (const event of events) {
@@ -459,89 +459,89 @@ describe('main.js - Final Coverage Push to 100%', () => {
         }
 
         // Test error case
-        globalMocks.mockAutoUpdater.emit('error', new Error('Test error'));
+        globalMocks.mockAutoUpdater.emit("error", new Error("Test error"));
 
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         // Minimal assertion
-        expect(globalMocks.mockAutoUpdater.emit).toBeTypeOf('function');
-        console.log('[TEST] Auto-updater functionality and error paths exercised');
+        expect(globalMocks.mockAutoUpdater.emit).toBeTypeOf("function");
+        console.log("[TEST] Auto-updater functionality and error paths exercised");
     });
 
-    test('should exercise theme management and WebContents events', async () => {
+    test("should exercise theme management and WebContents events", async () => {
         expect.hasAssertions();
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Simulate theme-related WebContents events
-        globalMocks.mockWebContents.emit('did-finish-load');
+        globalMocks.mockWebContents.emit("did-finish-load");
 
         // Test theme execution with both success and error cases
-        globalMocks.mockWindow.webContents.executeJavaScript.mockResolvedValueOnce('dark');
-        globalMocks.mockWebContents.emit('did-finish-load');
+        globalMocks.mockWindow.webContents.executeJavaScript.mockResolvedValueOnce("dark");
+        globalMocks.mockWebContents.emit("did-finish-load");
 
         // Test error case
-        globalMocks.mockWindow.webContents.executeJavaScript.mockRejectedValueOnce(new Error('Theme error'));
-        globalMocks.mockWebContents.emit('did-finish-load');
+        globalMocks.mockWindow.webContents.executeJavaScript.mockRejectedValueOnce(new Error("Theme error"));
+        globalMocks.mockWebContents.emit("did-finish-load");
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         // Minimal assertion
-        expect(globalMocks.mockWebContents.emit).toBeTypeOf('function');
-        console.log('[TEST] Theme management and WebContents events exercised');
+        expect(globalMocks.mockWebContents.emit).toBeTypeOf("function");
+        console.log("[TEST] Theme management and WebContents events exercised");
     });
 
-    test('should exercise file operations and error handling', async () => {
+    test("should exercise file operations and error handling", async () => {
         expect.hasAssertions();
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Test file operations with errors
         globalMocks.mockFs.readFileSync.mockImplementationOnce(() => {
-            throw new Error('File read error');
+            throw new Error("File read error");
         });
 
         // Test file read callback errors
         globalMocks.mockFs.readFile.mockImplementationOnce((path: string, callback: any) => {
-            callback(new Error('Async file error'), null);
+            callback(new Error("Async file error"), null);
         });
 
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         // Minimal assertion
-        expect(globalMocks.mockFs.readFile).toBeTypeOf('function');
-        console.log('[TEST] File operations and error handling exercised');
+        expect(globalMocks.mockFs.readFile).toBeTypeOf("function");
+        console.log("[TEST] File operations and error handling exercised");
     });
 
-    test('should exercise development mode and platform-specific code', async () => {
+    test("should exercise development mode and platform-specific code", async () => {
         expect.hasAssertions();
         // Test development mode
-        process.env.NODE_ENV = 'development';
+        process.env.NODE_ENV = "development";
 
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Test different platforms
         const originalPlatform = process.platform;
 
         // Test Linux
-        Object.defineProperty(process, 'platform', { value: 'linux', writable: true });
-        globalMocks.mockApp.emit('window-all-closed');
+        Object.defineProperty(process, "platform", { value: "linux", writable: true });
+        globalMocks.mockApp.emit("window-all-closed");
 
         // Test macOS
-        Object.defineProperty(process, 'platform', { value: 'darwin', writable: true });
-        globalMocks.mockApp.emit('window-all-closed');
+        Object.defineProperty(process, "platform", { value: "darwin", writable: true });
+        globalMocks.mockApp.emit("window-all-closed");
 
         // Test Windows
-        Object.defineProperty(process, 'platform', { value: 'win32', writable: true });
-        globalMocks.mockApp.emit('window-all-closed');
+        Object.defineProperty(process, "platform", { value: "win32", writable: true });
+        globalMocks.mockApp.emit("window-all-closed");
 
         // Restore platform
-        Object.defineProperty(process, 'platform', { value: originalPlatform, writable: true });
+        Object.defineProperty(process, "platform", { value: originalPlatform, writable: true });
 
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         // Minimal assertion
-        expect(process.env.NODE_ENV).toBe('development');
-        console.log('[TEST] Development mode and platform-specific code exercised');
+        expect(process.env.NODE_ENV).toBe("development");
+        console.log("[TEST] Development mode and platform-specific code exercised");
     });
 
-    test('should exercise comprehensive error conditions and edge cases', async () => {
+    test("should exercise comprehensive error conditions and edge cases", async () => {
         expect.hasAssertions();
-        await import('../../main.js');
+        await import("../../main.js");
 
         // Test with broken windows
         const brokenWindow = {
@@ -552,31 +552,31 @@ describe('main.js - Final Coverage Push to 100%', () => {
         };
 
         globalMocks.mockBrowserWindow.getAllWindows.mockReturnValueOnce([brokenWindow]);
-        globalMocks.mockApp.emit('activate');
+        globalMocks.mockApp.emit("activate");
 
         // Test various error conditions
-        globalMocks.mockApp.emit('browser-window-focus', {}, brokenWindow);
+        globalMocks.mockApp.emit("browser-window-focus", {}, brokenWindow);
 
         // Test navigation security
         const mockWebContents = new EventEmitter();
         Object.assign(mockWebContents, {
             on: vi.fn((event: string, handler: any) => {
-                if (event === 'will-navigate') {
+                if (event === "will-navigate") {
                     // Simulate navigation event
                     setTimeout(() => {
                         const mockEvent = { preventDefault: vi.fn() };
-                        handler(mockEvent, 'https://malicious.com');
+                        handler(mockEvent, "https://malicious.com");
                     }, 10);
                 }
             }),
             setWindowOpenHandler: vi.fn(),
         });
 
-        globalMocks.mockApp.emit('web-contents-created', {}, mockWebContents);
+        globalMocks.mockApp.emit("web-contents-created", {}, mockWebContents);
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         // Minimal assertion
         expect(globalMocks.mockBrowserWindow.getAllWindows).toHaveBeenCalled();
-        console.log('[TEST] Comprehensive error conditions and edge cases exercised');
+        console.log("[TEST] Comprehensive error conditions and edge cases exercised");
     });
 });

@@ -392,14 +392,14 @@ describe("exportUtils core flows", () => {
             // No config stored - returns default config
             expect(exportUtils.getImgurConfig()).toEqual({
                 clientId: "0046ee9e30ac578", // Default demo client ID
-                uploadUrl: "https://api.imgur.com/3/image"
+                uploadUrl: "https://api.imgur.com/3/image",
             });
 
             // Config stored
             localStorage.setItem("imgur_client_id", "test-client-123");
             expect(exportUtils.getImgurConfig()).toEqual({
                 clientId: "test-client-123",
-                uploadUrl: "https://api.imgur.com/3/image"
+                uploadUrl: "https://api.imgur.com/3/image",
             });
         });
 
@@ -438,8 +438,7 @@ describe("exportUtils core flows", () => {
             // Set to the only unconfigured value
             localStorage.setItem("imgur_client_id", "YOUR_IMGUR_CLIENT_ID");
 
-            await expect(exportUtils.uploadToImgur("fake-base64"))
-                .rejects.toThrow("Imgur client ID not configured");
+            await expect(exportUtils.uploadToImgur("fake-base64")).rejects.toThrow("Imgur client ID not configured");
         });
 
         it("uploadToImgur makes API call when configured", async () => {
@@ -456,8 +455,8 @@ describe("exportUtils core flows", () => {
                 headers: mockHeaders,
                 json: vi.fn().mockResolvedValue({
                     success: true,
-                    data: { link: "https://imgur.com/test.png" }
-                })
+                    data: { link: "https://imgur.com/test.png" },
+                }),
             };
 
             vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
@@ -467,15 +466,15 @@ describe("exportUtils core flows", () => {
             expect(fetch).toHaveBeenCalledWith("https://api.imgur.com/3/image", {
                 method: "POST",
                 headers: {
-                    "Authorization": "Client-ID test-client-id",
-                    "Content-Type": "application/json"
+                    Authorization: "Client-ID test-client-id",
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     description: "Chart exported from FitFileViewer",
                     image: "ABC123",
                     title: "FitFileViewer Chart",
-                    type: "base64"
-                })
+                    type: "base64",
+                }),
             });
 
             expect(result).toBe("https://imgur.com/test.png");
@@ -492,12 +491,13 @@ describe("exportUtils core flows", () => {
                 status: 400,
                 statusText: "Bad Request",
                 headers: mockHeaders,
-                text: vi.fn().mockResolvedValue("Bad request details")
+                text: vi.fn().mockResolvedValue("Bad request details"),
             };
             vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
 
-            await expect(exportUtils.uploadToImgur("data:image/png;base64,ABC123"))
-                .rejects.toThrow("Imgur upload failed: 400 Bad Request - Bad request details");
+            await expect(exportUtils.uploadToImgur("data:image/png;base64,ABC123")).rejects.toThrow(
+                "Imgur upload failed: 400 Bad Request - Bad request details"
+            );
         });
 
         it("uploadToImgur handles network errors", async () => {
@@ -507,8 +507,7 @@ describe("exportUtils core flows", () => {
 
             vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
 
-            await expect(exportUtils.uploadToImgur("data:image/png;base64,ABC123"))
-                .rejects.toThrow("Network error");
+            await expect(exportUtils.uploadToImgur("data:image/png;base64,ABC123")).rejects.toThrow("Network error");
         });
     });
 
@@ -528,7 +527,7 @@ describe("exportUtils core flows", () => {
                 clientSecret: expect.any(String), // Default obfuscated client secret
                 redirectUri: "http://localhost:3000/gyazo/callback",
                 tokenUrl: "https://gyazo.com/oauth/token",
-                uploadUrl: "https://upload.gyazo.com/api/upload"
+                uploadUrl: "https://upload.gyazo.com/api/upload",
             });
 
             // With config
@@ -540,7 +539,7 @@ describe("exportUtils core flows", () => {
                 clientSecret: "test-secret",
                 redirectUri: "http://localhost:3000/gyazo/callback",
                 tokenUrl: "https://gyazo.com/oauth/token",
-                uploadUrl: "https://upload.gyazo.com/api/upload"
+                uploadUrl: "https://upload.gyazo.com/api/upload",
             });
         });
 
@@ -608,15 +607,17 @@ describe("exportUtils core flows", () => {
             const mockBlob = new Blob(["test"], { type: "image/png" });
 
             // Mock fetch for both base64 conversion and upload
-            const mockFetch = vi.fn()
+            const mockFetch = vi
+                .fn()
                 .mockResolvedValueOnce({
-                    blob: () => Promise.resolve(mockBlob)
+                    blob: () => Promise.resolve(mockBlob),
                 }) // First call for base64 conversion
                 .mockResolvedValueOnce({
                     ok: true,
-                    json: () => Promise.resolve({
-                        url: "https://gyazo.com/test.png"
-                    })
+                    json: () =>
+                        Promise.resolve({
+                            url: "https://gyazo.com/test.png",
+                        }),
                 }); // Second call for upload
 
             vi.stubGlobal("fetch", mockFetch);
@@ -628,7 +629,7 @@ describe("exportUtils core flows", () => {
             expect(fetch).toHaveBeenNthCalledWith(1, "data:image/png;base64,ABC123");
             expect(fetch).toHaveBeenNthCalledWith(2, "https://upload.gyazo.com/api/upload", {
                 method: "POST",
-                body: expect.any(FormData)
+                body: expect.any(FormData),
             });
 
             expect(result).toBe("https://gyazo.com/test.png");
@@ -644,15 +645,20 @@ describe("exportUtils core flows", () => {
                     ...actual,
                     exportUtils: {
                         ...(actual as any).exportUtils,
-                        authenticateWithGyazo: vi.fn().mockRejectedValue(new Error("Cannot read properties of undefined (reading 'startGyazoServer')"))
-                    }
+                        authenticateWithGyazo: vi
+                            .fn()
+                            .mockRejectedValue(
+                                new Error("Cannot read properties of undefined (reading 'startGyazoServer')")
+                            ),
+                    },
                 };
             });
 
             const { exportUtils: mockedExportUtils } = await import(modPath);
 
-            await expect(mockedExportUtils.uploadToGyazo("fake-base64"))
-                .rejects.toThrow("Gyazo authentication required: Cannot read properties of undefined (reading 'startGyazoServer')");
+            await expect(mockedExportUtils.uploadToGyazo("fake-base64")).rejects.toThrow(
+                "Gyazo authentication required: Cannot read properties of undefined (reading 'startGyazoServer')"
+            );
         });
 
         it("exchangeGyazoCodeForToken makes token exchange request", async () => {
@@ -664,8 +670,8 @@ describe("exportUtils core flows", () => {
             const mockResponse = {
                 ok: true,
                 json: vi.fn().mockResolvedValue({
-                    access_token: "new-token"
-                })
+                    access_token: "new-token",
+                }),
             };
             vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
 
@@ -674,7 +680,7 @@ describe("exportUtils core flows", () => {
             expect(fetch).toHaveBeenCalledWith("https://gyazo.com/oauth/token", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "client_id=test-client&client_secret=test-secret&code=auth-code&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback"
+                body: "client_id=test-client&client_secret=test-secret&code=auth-code&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback",
             });
 
             expect(result).toEqual({ access_token: "new-token" });

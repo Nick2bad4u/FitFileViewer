@@ -78,11 +78,9 @@ const DEFAULTS = {
 // CLI flags
 const noColor = process.argv.includes("--no-color");
 const formatIndex = process.argv.indexOf("--format");
-const outputFormat =
-    formatIndex === -1 ? DEFAULTS.defaultFormat : process.argv[formatIndex + 1];
+const outputFormat = formatIndex === -1 ? DEFAULTS.defaultFormat : process.argv[formatIndex + 1];
 const limitArgIndex2 = process.argv.indexOf("--limit");
-const limitOverride =
-    limitArgIndex2 === -1 ? null : Number(process.argv[limitArgIndex2 + 1]);
+const limitOverride = limitArgIndex2 === -1 ? null : Number(process.argv[limitArgIndex2 + 1]);
 
 // Respect --no-color by overriding color helpers to pass-through
 if (noColor) {
@@ -108,29 +106,20 @@ for (const [filePath, data] of Object.entries(coverageData)) {
     // Calculate statement coverage
     const totalStatements = Object.keys(statements).length;
     // In Istanbul format, statements map values are counts (0 = missed, >0 = covered)
-    const coveredStatements = Object.values(statements).filter(
-        (count) => Number(count) > 0
-    ).length;
-    const statementCoverage =
-        totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 100;
+    const coveredStatements = Object.values(statements).filter((count) => Number(count) > 0).length;
+    const statementCoverage = totalStatements > 0 ? (coveredStatements / totalStatements) * 100 : 100;
 
     // Calculate line coverage
     // If l (lines) map is missing or empty, try to derive per-line coverage from statementMap
     const statementMap = data.statementMap ?? data.statementMap ?? {};
     let derivedLines = lines;
-    if (
-        Object.keys(derivedLines).length === 0 &&
-        statementMap &&
-        Object.keys(statementMap).length > 0
-    ) {
+    if (Object.keys(derivedLines).length === 0 && statementMap && Object.keys(statementMap).length > 0) {
         // Build a map of line -> coveredCount based on statements covering those lines
         derivedLines = {};
         for (const [stmtId, loc] of Object.entries(statementMap)) {
             // Loc has start.line and end.line typically
-            const startLine =
-                loc && loc.start && loc.start.line ? loc.start.line : null;
-            const endLine =
-                loc && loc.end && loc.end.line ? loc.end.line : startLine;
+            const startLine = loc && loc.start && loc.start.line ? loc.start.line : null;
+            const endLine = loc && loc.end && loc.end.line ? loc.end.line : startLine;
             if (startLine === null || startLine === undefined) continue;
             const covered = Number(statements[stmtId]) > 0 ? 1 : 0;
             for (let ln = startLine; ln <= (endLine ?? startLine); ln++) {
@@ -142,19 +131,13 @@ for (const [filePath, data] of Object.entries(coverageData)) {
 
     const totalLines = Object.keys(derivedLines).length;
     // Line map values are counts as well (or derived counts)
-    const coveredLines = Object.values(derivedLines).filter(
-        (count) => Number(count) > 0
-    ).length;
-    const lineCoverage =
-        totalLines > 0 ? (coveredLines / totalLines) * 100 : 100;
+    const coveredLines = Object.values(derivedLines).filter((count) => Number(count) > 0).length;
+    const lineCoverage = totalLines > 0 ? (coveredLines / totalLines) * 100 : 100;
 
     // Calculate function coverage
     const totalFunctions = Object.keys(functions).length;
-    const coveredFunctions = Object.values(functions).filter(
-        (count) => count > 0
-    ).length;
-    const functionCoverage =
-        totalFunctions > 0 ? (coveredFunctions / totalFunctions) * 100 : 100;
+    const coveredFunctions = Object.values(functions).filter((count) => count > 0).length;
+    const functionCoverage = totalFunctions > 0 ? (coveredFunctions / totalFunctions) * 100 : 100;
 
     // Helper to determine if a branch is covered
     /**
@@ -166,18 +149,13 @@ for (const [filePath, data] of Object.entries(coverageData)) {
      * @returns {boolean} True if the branch is covered, false otherwise.
      */
     function isBranchCovered(branchArray) {
-        return Array.isArray(branchArray)
-            ? branchArray.some((count) => count > 0)
-            : branchArray > 0;
+        return Array.isArray(branchArray) ? branchArray.some((count) => count > 0) : branchArray > 0;
     }
 
     // Calculate branch coverage
     const totalBranches = Object.keys(branches).length;
-    const coveredBranches = Object.values(branches).filter((element) =>
-        isBranchCovered(element)
-    ).length;
-    const branchCoverage =
-        totalBranches > 0 ? (coveredBranches / totalBranches) * 100 : 100;
+    const coveredBranches = Object.values(branches).filter((element) => isBranchCovered(element)).length;
+    const branchCoverage = totalBranches > 0 ? (coveredBranches / totalBranches) * 100 : 100;
 
     /**
      * Represents coverage analysis for a single file.
@@ -226,9 +204,7 @@ for (const [filePath, data] of Object.entries(coverageData)) {
 }
 
 // Sort by function coverage (lowest first) using immutable operation
-const sortedByFunctionCoverage = fileAnalysis.toSorted(
-    (a, b) => a.functions.percentage - b.functions.percentage
-);
+const sortedByFunctionCoverage = fileAnalysis.toSorted((a, b) => a.functions.percentage - b.functions.percentage);
 
 // Get limit from CLI argument or environment variable
 const fileDisplayLimit = limitOverride ?? DEFAULTS.fileDisplayLimit;
@@ -239,9 +215,7 @@ const debugFile = debugIndex === -1 ? null : process.argv[debugIndex + 1];
 
 // If debug flag provided, print the matching processed entry and raw coverage entry and exit
 if (debugFile) {
-    const match = fileAnalysis.find(
-        (f) => f.file === debugFile || f.file.endsWith(debugFile)
-    );
+    const match = fileAnalysis.find((f) => f.file === debugFile || f.file.endsWith(debugFile));
     if (match) {
         console.log("\n=== DEBUG COVERAGE ENTRY (processed) ===");
         console.log(JSON.stringify(match, null, 2));
@@ -272,19 +246,11 @@ function computeColWidths(displayed) {
     const minFileCol = 30;
     const fileCol = Math.max(
         minFileCol,
-        ...displayed.map(
-            (/** @type {{ file: string | any[] }} */ f) => f.file.length
-        )
+        ...displayed.map((/** @type {{ file: string | any[] }} */ f) => f.file.length)
     );
     // Other columns get a reasonable width
     const numCol = numericColumnWidth ?? 20;
-    return [
-        fileCol,
-        numCol,
-        numCol,
-        numCol,
-        numCol,
-    ];
+    return [fileCol, numCol, numCol, numCol, numCol];
 }
 
 // Shorten long paths by keeping head and tail with ellipsis in the middle
@@ -339,30 +305,18 @@ function printCoverageSection(header, files) {
         const Table = requireC("cli-table3");
 
         const table = new Table({
-            head: [
-                "File",
-                "Functions",
-                "Branches",
-                "Statements",
-                "Lines",
-            ].map((h) => colors.bold(h)),
+            head: ["File", "Functions", "Branches", "Statements", "Lines"].map((h) => colors.bold(h)),
             style: { head: [], border: [] },
             colWidths: computeColWidths(displayed),
         });
 
         for (const f of displayed) {
-            const fmt = (
-                /** @type {{ percentage: number; covered: any; total: any }} */ cov
-            ) => {
+            const fmt = (/** @type {{ percentage: number; covered: any; total: any }} */ cov) => {
                 if (!cov) return "-";
                 const pct = cov.percentage ?? 0;
                 const pctStr = `${pct.toFixed(2)}%`;
                 const text = `${cov.covered}/${cov.total} (${pctStr})`;
-                return pct >= 90
-                    ? colors.green(text)
-                    : pct >= 75
-                        ? colors.yellow(text)
-                        : colors.red(text);
+                return pct >= 90 ? colors.green(text) : pct >= 75 ? colors.yellow(text) : colors.red(text);
             };
             table.push([
                 ellipsize(f.file, truncateFilePath),
@@ -382,34 +336,19 @@ function printCoverageSection(header, files) {
 
     // Fallback: pad-based renderer (keeps previous behavior)
     const minFileCol = minFileColumnWidth;
-    const fileCol = Math.max(
-        minFileCol,
-        ...displayed.map(
-            (f) => ellipsize(f.file, truncateFilePath).length
-        )
-    );
+    const fileCol = Math.max(minFileCol, ...displayed.map((f) => ellipsize(f.file, truncateFilePath).length));
     const hdr = `${padRight("File", fileCol)}  ${padLeft("Functions", 14)}  ${padLeft("Branches", 14)}  ${padLeft("Statements", 14)}  ${padLeft("Lines", 14)}`;
     console.log(colors.bold(hdr));
 
     for (const f of displayed) {
-        const rFile = padRight(
-            ellipsize(f.file, truncateFilePath),
-            fileCol
-        );
-        const cell = (
-            /** @type {{ percentage: number; covered: any; total: any }} */ cov
-        ) => {
+        const rFile = padRight(ellipsize(f.file, truncateFilePath), fileCol);
+        const cell = (/** @type {{ percentage: number; covered: any; total: any }} */ cov) => {
             if (!cov) return padLeft("-", 14);
             const pct = cov.percentage ?? 0;
             const pctStr = `${pct.toFixed(2)}%`;
             const plain = `${cov.covered}/${cov.total} (${pctStr})`;
             const padded = padLeft(plain, 14);
-            const colored =
-                pct >= 90
-                    ? colors.green(padded)
-                    : pct >= 75
-                        ? colors.yellow(padded)
-                        : colors.red(padded);
+            const colored = pct >= 90 ? colors.green(padded) : pct >= 75 ? colors.yellow(padded) : colors.red(padded);
             return colored;
         };
 
@@ -421,9 +360,7 @@ function printCoverageSection(header, files) {
 }
 
 // Show files with function coverage < 90%
-const lowFunctionCoverage = sortedByFunctionCoverage.filter(
-    (file) => file.functions.percentage < 90
-);
+const lowFunctionCoverage = sortedByFunctionCoverage.filter((file) => file.functions.percentage < 90);
 // If output format is JSON or CSV, emit that and exit early for tooling/CI
 if (outputFormat === "json") {
     // Emit the full analysis as JSON
@@ -481,46 +418,26 @@ if (outputFormat === "csv") {
 }
 
 // Default: table output
-printCoverageSection(
-    "FILES WITH LOWEST FUNCTION COVERAGE",
-    lowFunctionCoverage
-);
+printCoverageSection("FILES WITH LOWEST FUNCTION COVERAGE", lowFunctionCoverage);
 
 // Sort by branch coverage using immutable operation
-const sortedByBranchCoverage = fileAnalysis.toSorted(
-    (a, b) => a.branches.percentage - b.branches.percentage
-);
-const lowBranchCoverage = sortedByBranchCoverage.filter(
-    (file) => file.branches.percentage < 90
-);
+const sortedByBranchCoverage = fileAnalysis.toSorted((a, b) => a.branches.percentage - b.branches.percentage);
+const lowBranchCoverage = sortedByBranchCoverage.filter((file) => file.branches.percentage < 90);
 printCoverageSection("FILES WITH LOWEST BRANCH COVERAGE", lowBranchCoverage);
 
 // Sort by statement coverage using immutable operation
-const sortedByStatementCoverage = fileAnalysis.toSorted(
-    (a, b) => a.statements.percentage - b.statements.percentage
-);
-const lowStatementCoverage = sortedByStatementCoverage.filter(
-    (file) => file.statements.percentage < 90
-);
-printCoverageSection(
-    "FILES WITH LOWEST STATEMENT COVERAGE",
-    lowStatementCoverage
-);
+const sortedByStatementCoverage = fileAnalysis.toSorted((a, b) => a.statements.percentage - b.statements.percentage);
+const lowStatementCoverage = sortedByStatementCoverage.filter((file) => file.statements.percentage < 90);
+printCoverageSection("FILES WITH LOWEST STATEMENT COVERAGE", lowStatementCoverage);
 
 // Sort by line coverage using immutable operation
 const sortedByLineCoverage = fileAnalysis.toSorted(
     (a, b) => (a.lines?.percentage ?? 100) - (b.lines?.percentage ?? 100)
 );
-const lowLineCoverage = sortedByLineCoverage.filter(
-    (file) => (file.lines?.percentage ?? 100) < 90
-);
+const lowLineCoverage = sortedByLineCoverage.filter((file) => (file.lines?.percentage ?? 100) < 90);
 printCoverageSection("FILES WITH LOWEST LINE COVERAGE", lowLineCoverage);
 
 console.log("\n=== SUMMARY ===");
 console.log(`Total files analyzed: ${fileAnalysis.length}`);
-console.log(
-    `Files with <90% function coverage: ${fileAnalysis.filter((f) => f.functions.percentage < 90).length}`
-);
-console.log(
-    `Files with <90% branch coverage: ${fileAnalysis.filter((f) => f.branches.percentage < 90).length}`
-);
+console.log(`Files with <90% function coverage: ${fileAnalysis.filter((f) => f.functions.percentage < 90).length}`);
+console.log(`Files with <90% branch coverage: ${fileAnalysis.filter((f) => f.branches.percentage < 90).length}`);

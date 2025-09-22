@@ -113,9 +113,9 @@ export class MasterStateManager {
     }
 
     /**
-    * Get initialization status
-    * @returns {Object} Status object
-    */
+     * Get initialization status
+     * @returns {Object} Status object
+     */
     getInitializationStatus() {
         const stateAPI = getStateManagerAPI();
         return {
@@ -143,9 +143,9 @@ export class MasterStateManager {
     /**
      * Initialize core state management
      */ /**
-* Get active subscriptions for debugging
-* @returns {Object} Subscription information
-*/
+     * Get active subscriptions for debugging
+     * @returns {Object} Subscription information
+     */
     getSubscriptions() {
         const stateAPI = getStateManagerAPI();
         return stateAPI.getSubscriptions();
@@ -259,7 +259,8 @@ export class MasterStateManager {
      */
     async initializeComputedState() {
         console.log("[MasterState] Initializing computed state system...");
-        const { initializeCommonComputedValues: dynInitComputed, computedStateManager: dynComputed } = getComputedStateModule();
+        const { initializeCommonComputedValues: dynInitComputed, computedStateManager: dynComputed } =
+            getComputedStateModule();
         dynInitComputed();
         this.components.set("computed", dynComputed);
     }
@@ -547,7 +548,7 @@ export class MasterStateManager {
         // Integrate file operations with UI state
         stateAPI.subscribe(
             "globalData",
-            /** @param {*} data */(data) => {
+            /** @param {*} data */ (data) => {
                 if (data) {
                     // Enable tabs when data is loaded
                     const { UIActions: dynUI } = getUIStateModule();
@@ -563,7 +564,7 @@ export class MasterStateManager {
         // Integrate loading state with UI
         stateAPI.subscribe(
             "isLoading",
-            /** @param {boolean} isLoading */(isLoading) => {
+            /** @param {boolean} isLoading */ (isLoading) => {
                 // Update UI elements based on loading state
                 const elements = document.querySelectorAll(".loading-sensitive");
                 for (const el of elements) {
@@ -576,7 +577,7 @@ export class MasterStateManager {
         // Integrate theme changes with maps and charts
         stateAPI.subscribe(
             "ui.theme",
-            /** @param {string} theme */(theme) => {
+            /** @param {string} theme */ (theme) => {
                 // Notify other components about theme changes
                 globalThis.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
             }
@@ -656,19 +657,19 @@ export class MasterStateManager {
                             performance
                         ).memory
                             ? {
-                                total: Math.round(
-                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */(performance)
-                                        .memory.totalJSHeapSize /
-                                    1024 /
-                                    1024
-                                ),
-                                used: Math.round(
-                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */(performance)
-                                        .memory.usedJSHeapSize /
-                                    1024 /
-                                    1024
-                                ),
-                            }
+                                  total: Math.round(
+                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */ (performance)
+                                          .memory.totalJSHeapSize /
+                                          1024 /
+                                          1024
+                                  ),
+                                  used: Math.round(
+                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */ (performance)
+                                          .memory.usedJSHeapSize /
+                                          1024 /
+                                          1024
+                                  ),
+                              }
                             : null,
                     stateChangesPerMinute: elapsed > 0 ? Math.round((stateChangeCount * 60_000) / elapsed) : 0,
                     timestamp: now,
@@ -781,12 +782,16 @@ function getModuleExportsFromCache(pathSuffixLower) {
         // Prefer an explicit global mocks registry if tests provided one
         const globalMocks = /** @type {any} */ (globalThis && /** @type {any} */ (globalThis).__FFV_MOCKS__);
         if (globalMocks && typeof globalMocks === "object") {
-            const key = Object.keys(globalMocks).find((p) => String(p).replaceAll("\\", "/").toLowerCase().endsWith(pathSuffixLower));
+            const key = Object.keys(globalMocks).find((p) =>
+                String(p).replaceAll("\\", "/").toLowerCase().endsWith(pathSuffixLower)
+            );
             if (key) return globalMocks[key];
         }
         const cache = (getCjsRequire() && getCjsRequire().cache) || getNodeModuleCache();
         if (!cache) return null;
-        const key = Object.keys(cache).find((p) => String(p).replaceAll("\\", "/").toLowerCase().endsWith(pathSuffixLower));
+        const key = Object.keys(cache).find((p) =>
+            String(p).replaceAll("\\", "/").toLowerCase().endsWith(pathSuffixLower)
+        );
         return key && cache[key] ? cache[key].exports : null;
     } catch {
         return null;
@@ -810,7 +815,12 @@ function getStateManagerAPI() {
     try {
         // Direct global override for tests
         const direct = /** @type {any} */ (globalThis && /** @type {any} */ (globalThis).__STATE_MANAGER_API__);
-        if (direct && typeof direct.getState === "function" && typeof direct.setState === "function" && typeof direct.subscribe === "function") {
+        if (
+            direct &&
+            typeof direct.getState === "function" &&
+            typeof direct.setState === "function" &&
+            typeof direct.subscribe === "function"
+        ) {
             return direct;
         }
         const req = getCjsRequire();
@@ -834,7 +844,9 @@ function getStateManagerAPI() {
                 const cwd = typeof process !== "undefined" && process.cwd ? process.cwd() : "";
                 if (!__lazyNodePath) {
                     // eslint-disable-next-line no-eval
-                    __lazyNodePath = /** @type {any} */ (eval("(function(){try{return require('node:path')}catch{return null}})()"));
+                    __lazyNodePath = /** @type {any} */ (
+                        eval("(function(){try{return require('node:path')}catch{return null}})()")
+                    );
                 }
                 const candidates = [
                     __lazyNodePath && __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.js"),
@@ -845,7 +857,12 @@ function getStateManagerAPI() {
                     try {
                         if (!cand) continue;
                         const mod = req(cand);
-                        if (mod && typeof mod.getState === "function" && typeof mod.setState === "function" && typeof mod.subscribe === "function") {
+                        if (
+                            mod &&
+                            typeof mod.getState === "function" &&
+                            typeof mod.setState === "function" &&
+                            typeof mod.subscribe === "function"
+                        ) {
                             return mod;
                         }
                     } catch {
@@ -856,7 +873,12 @@ function getStateManagerAPI() {
             // Fallback: find any cached module that exposes the expected API surface
             for (const p of keys) {
                 const exp = cache[p] && cache[p].exports;
-                if (exp && typeof exp.getState === "function" && typeof exp.setState === "function" && typeof exp.subscribe === "function") {
+                if (
+                    exp &&
+                    typeof exp.getState === "function" &&
+                    typeof exp.setState === "function" &&
+                    typeof exp.subscribe === "function"
+                ) {
                     return exp;
                 }
             }
@@ -899,7 +921,8 @@ function getEnableTabButtonsModule() {
 }
 
 function getUpdateActiveTabModule() {
-    const mocked = getModuleExportsFromCache("/utils/ui/tabs/activetab.js") ||
+    const mocked =
+        getModuleExportsFromCache("/utils/ui/tabs/activetab.js") ||
         getModuleExportsFromCache("/utils/ui/tabs/updateactivetab.js");
     if (mocked && typeof mocked.initializeActiveTabState === "function") return mocked;
     return { initializeActiveTabState };

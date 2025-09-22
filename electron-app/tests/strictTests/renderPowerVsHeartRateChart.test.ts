@@ -59,10 +59,14 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
         (global as any).globalThis.Chart = Chart;
         (global.window as any)._chartjsInstances = [];
         // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty((global as any).globalThis, '_chartjsInstances', {
-            get() { return (global.window as any)._chartjsInstances; },
-            set(value) { (global.window as any)._chartjsInstances = value; },
-            configurable: true
+        Object.defineProperty((global as any).globalThis, "_chartjsInstances", {
+            get() {
+                return (global.window as any)._chartjsInstances;
+            },
+            set(value) {
+                (global.window as any)._chartjsInstances = value;
+            },
+            configurable: true,
         });
 
         // Load the module dynamically with fresh imports

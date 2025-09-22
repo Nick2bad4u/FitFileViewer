@@ -26,14 +26,14 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
 
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
-            backgroundColor:
+                backgroundColor:
                     /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
-            borderColor: theme === "dark" ? "#333" : "#fff",
-            borderWidth: 1,
-            data: [/** @type {any} */ (zone).value], // Single value array for this zone
-            label: /** @type {any} */ (zone).label,
-        })),
-            chart = new /** @type {any} */(globalThis).Chart(canvas, {
+                borderColor: theme === "dark" ? "#333" : "#fff",
+                borderWidth: 1,
+                data: [/** @type {any} */ (zone).value], // Single value array for this zone
+                label: /** @type {any} */ (zone).label,
+            })),
+            chart = new /** @type {any} */ (globalThis).Chart(canvas, {
                 data: {
                     datasets,
                     labels: ["Time in Zone"], // Single category for all zones

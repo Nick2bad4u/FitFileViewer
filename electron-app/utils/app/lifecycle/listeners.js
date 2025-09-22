@@ -193,16 +193,32 @@ export function setupListeners({
         setTimeout(() => focusItem(0), 0);
 
         console.log(
-            "DEBUG: About to append menu. Document:", Boolean(document),
-            "Body:", Boolean(document.body),
-            "Menu:", Boolean(menu),
-            "Menu ID:", menu.id
+            "DEBUG: About to append menu. Document:",
+            Boolean(document),
+            "Body:",
+            Boolean(document.body),
+            "Menu:",
+            Boolean(menu),
+            "Menu ID:",
+            menu.id
         );
-        console.log("DEBUG: Menu constructor:", menu.constructor.name, "Menu nodeName:", menu.nodeName, "Menu parentNode before append:", menu.parentNode);
-        console.log("DEBUG: Document.body type:", typeof document.body, "Document.body constructor:", document.body.constructor.name);
+        console.log(
+            "DEBUG: Menu constructor:",
+            menu.constructor.name,
+            "Menu nodeName:",
+            menu.nodeName,
+            "Menu parentNode before append:",
+            menu.parentNode
+        );
+        console.log(
+            "DEBUG: Document.body type:",
+            typeof document.body,
+            "Document.body constructor:",
+            document.body.constructor.name
+        );
         // Log a safe property instead of comparing an object to itself
         console.log("DEBUG: Document.body present:", Boolean(document.body));
-        console.log("DEBUG: Document.body can append?", typeof document.body.append === 'function');
+        console.log("DEBUG: Document.body can append?", typeof document.body.append === "function");
 
         // Robust menu attachment with verification and retry
         let attachmentAttempts = 0;
@@ -221,7 +237,12 @@ export function setupListeners({
                 const canBeFound = Boolean(document.querySelector("#recent-files-menu"));
 
                 console.log("DEBUG: Verification - isAttached:", isAttached, "canBeFound:", canBeFound);
-                console.log("DEBUG: Menu parentNode:", menu.parentNode, "parentNode === body:", menu.parentNode === document.body);
+                console.log(
+                    "DEBUG: Menu parentNode:",
+                    menu.parentNode,
+                    "parentNode === body:",
+                    menu.parentNode === document.body
+                );
 
                 if (isAttached && canBeFound) {
                     console.log("DEBUG: Menu successfully attached and verified");
@@ -242,7 +263,6 @@ export function setupListeners({
                         document.body.insertBefore(menu, document.body.firstChild);
                     }
                 }
-
             } catch (error) {
                 console.log("DEBUG: append failed with error:", error.message);
                 if (attachmentAttempts === maxAttempts) {
@@ -259,21 +279,52 @@ export function setupListeners({
         }
 
         console.log("DEBUG: Final verification - Menu successfully attached");
-        console.log("DEBUG: Document body contains menu:", document.body.contains(menu), "Document contains menu:", document.contains(menu));
-        console.log("DEBUG: QuerySelector test:", Boolean(document.querySelector("#recent-files-menu")), "Body querySelector test:", Boolean(document.body.querySelector("#recent-files-menu")));
-        console.log("DEBUG: Document body children count:", document.body.children.length, "Body childNodes count:", document.body.childNodes.length);
+        console.log(
+            "DEBUG: Document body contains menu:",
+            document.body.contains(menu),
+            "Document contains menu:",
+            document.contains(menu)
+        );
+        console.log(
+            "DEBUG: QuerySelector test:",
+            Boolean(document.querySelector("#recent-files-menu")),
+            "Body querySelector test:",
+            Boolean(document.body.querySelector("#recent-files-menu"))
+        );
+        console.log(
+            "DEBUG: Document body children count:",
+            document.body.children.length,
+            "Body childNodes count:",
+            document.body.childNodes.length
+        );
         const menuCreatedAt = Date.now(); // Track when menu was created
 
         /** @param {MouseEvent} e */
         const removeMenu = (e) => {
-            console.log("DEBUG: removeMenu called - event:", e.type, "isTrusted:", e.isTrusted, "which:", e.which, "button:", e.button, "target:", e.target?.constructor?.name);
+            console.log(
+                "DEBUG: removeMenu called - event:",
+                e.type,
+                "isTrusted:",
+                e.isTrusted,
+                "which:",
+                e.which,
+                "button:",
+                e.button,
+                "target:",
+                e.target?.constructor?.name
+            );
             const { target, isTrusted, which, button } = e;
             if (target instanceof Node && !menu.contains(target) && target !== menu) {
                 // Check for test pollution: synthetic events that are both untrusted AND
                 // occur more than 2 seconds after menu creation (likely from earlier tests)
                 const timeSinceMenuCreated = Date.now() - menuCreatedAt;
                 const isLikelyTestPollution = !isTrusted && which === 0 && button === 0 && timeSinceMenuCreated > 2000;
-                console.log("DEBUG: timeSinceMenuCreated:", timeSinceMenuCreated, "isLikelyTestPollution:", isLikelyTestPollution);
+                console.log(
+                    "DEBUG: timeSinceMenuCreated:",
+                    timeSinceMenuCreated,
+                    "isLikelyTestPollution:",
+                    isLikelyTestPollution
+                );
                 if (isLikelyTestPollution) {
                     console.log("DEBUG: Ignoring test pollution event");
                     return;

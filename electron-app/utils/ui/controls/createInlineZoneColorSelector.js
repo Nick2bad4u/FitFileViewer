@@ -325,7 +325,8 @@ export function createInlineZoneColorSelector(field, container) {
                             chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
                             defaultPalette =
                                 zoneTypeForStorage === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS,
-                            defaultColor = defaultPalette[zoneIndex] || defaultPalette[zoneIndex % defaultPalette.length];
+                            defaultColor =
+                                defaultPalette[zoneIndex] || defaultPalette[zoneIndex % defaultPalette.length];
                         return chartSpecificColor !== defaultColor;
                     });
 
@@ -679,7 +680,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
     `;
 
     const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
-        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */(zone).time, true) : "";
+        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
     label.innerHTML = `
         <div>${zoneName}</div>
         ${zoneTime ? `<div style="font-size: 10px; color: var(--color-fg-alt); margin-top: 2px;">${zoneTime}</div>` : ""}
@@ -835,14 +836,14 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
 
                 // Check if this chart contains zone data that matches our field
                 const isHRZoneChart =
-                    field.includes("hr_zone") &&
-                    chart.data.datasets.some(
-                        (/** @type {any} */ dataset) =>
-                            dataset.label &&
-                            (dataset.label.includes("Heart Rate") ||
-                                dataset.label.includes("HR Zone") ||
-                                dataset.label.toLowerCase().includes("heart"))
-                    ),
+                        field.includes("hr_zone") &&
+                        chart.data.datasets.some(
+                            (/** @type {any} */ dataset) =>
+                                dataset.label &&
+                                (dataset.label.includes("Heart Rate") ||
+                                    dataset.label.includes("HR Zone") ||
+                                    dataset.label.toLowerCase().includes("heart"))
+                        ),
                     isPowerZoneChart =
                         field.includes("power_zone") &&
                         chart.data.datasets.some(

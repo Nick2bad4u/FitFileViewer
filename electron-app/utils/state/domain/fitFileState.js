@@ -399,8 +399,8 @@ export class FitFileStateManager {
      * @param {RawFitData} data
      * @returns {SessionInfo|null}
      */ /**
-    * Set up listeners for data processing events
-    */
+     * Set up listeners for data processing events
+     */
     setupDataProcessingListeners() {
         // Process data when global data changes
         subscribe("globalData", (/** @type {RawFitData|null} */ data) => {

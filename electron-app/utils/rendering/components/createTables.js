@@ -78,7 +78,7 @@ export function createTables(dataFrames, containerOverride) {
         } catch (error) {
             console.error(
                 `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (error).message}. Stack trace:`,
-                /** @type {any} */(error).stack
+                /** @type {any} */ (error).stack
             );
         }
     }

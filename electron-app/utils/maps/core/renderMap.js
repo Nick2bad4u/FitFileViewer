@@ -216,9 +216,9 @@ export function renderMap() {
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            /** @type {EventListener} */(
+            /** @type {EventListener} */ (
                 debounce(
-                    /** @param {Event} e */(e) => {
+                    /** @param {Event} e */ (e) => {
                         isDragging = true;
                         const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
@@ -389,16 +389,19 @@ export function renderMap() {
             }
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
-                chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
-            ),
+                    chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
+                ),
                 fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
                 bounds = drawOverlayForFitFile({
                     color,
                     endIcon,
                     fileName,
                     fitData: fitFile.data,
-                    formatTooltipData: (/** @type {any} */ pointIdx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
-                        formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                    formatTooltipData: (
+                        /** @type {any} */ pointIdx,
+                        /** @type {any} */ row,
+                        /** @type {any} */ lapNum
+                    ) => formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
                     getLapNumForIdx,
                     map,
                     markerClusterGroup,
@@ -475,7 +478,7 @@ export function renderMap() {
         updateMapTheme();
         if (!windowExt._mapThemeListener) {
             windowExt._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", /** @type {EventListener} */(windowExt._mapThemeListener));
+            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
         }
     }
 }

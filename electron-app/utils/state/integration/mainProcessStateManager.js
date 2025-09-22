@@ -71,13 +71,13 @@ class MainProcessState {
      */
     addError(error, context = {}) {
         const errorObj = {
-            context,
-            id: Date.now().toString(),
-            message: error instanceof Error ? error.message : String(error),
-            source: "mainProcess",
-            stack: error instanceof Error ? error.stack : null,
-            timestamp: Date.now(),
-        },
+                context,
+                id: Date.now().toString(),
+                message: error instanceof Error ? error.message : String(error),
+                source: "mainProcess",
+                stack: error instanceof Error ? error.stack : null,
+                timestamp: Date.now(),
+            },
             errors = this.get("errors") || [];
         errors.unshift(errorObj); // Add to beginning
 
@@ -157,13 +157,13 @@ class MainProcessState {
         }
 
         const errorObj =
-            error instanceof Error
-                ? {
-                    message: error.message,
-                    name: error.name,
-                    stack: error.stack,
-                }
-                : { message: String(error) },
+                error instanceof Error
+                    ? {
+                          message: error.message,
+                          name: error.name,
+                          stack: error.stack,
+                      }
+                    : { message: String(error) },
             failedOp = {
                 ...operation,
                 duration: Date.now() - operation.startTime,
@@ -208,7 +208,7 @@ class MainProcessState {
                 return current[key];
             }
             return null;
-        }, /** @type {any} */(obj));
+        }, /** @type {any} */ (obj));
     }
 
     /**
@@ -512,7 +512,7 @@ class MainProcessState {
                     return current[key];
                 }
                 return {};
-            }, /** @type {any} */(obj));
+            }, /** @type {any} */ (obj));
         if (lastKey) {
             // @ts-ignore dynamic expansion
             target[lastKey] = value;
@@ -796,11 +796,11 @@ function logWithContext(level, message, context = {}) {
 function safeElectron() {
     /** @type {any} */ let mod;
     const unwrap = (m) => {
-        if (!m) return /** @type {any} */({});
+        if (!m) return /** @type {any} */ ({});
         // Prefer the variant that actually exposes Electron APIs (handles ESM default wrappers)
         const hasApis = (x) => x && (x.app || x.ipcMain || x.BrowserWindow || x.Menu || x.shell || x.dialog);
         if (hasApis(m)) return m;
-        const def = /** @type {any} */(m).default;
+        const def = /** @type {any} */ (m).default;
         if (hasApis(def)) return def;
         return m;
     };
@@ -866,7 +866,7 @@ const mainProcessState = new MainProcessState();
 // 'ipcMain' may appear unavailable extremely early in process bootstrap.
 (function ensureIpcHandlersReadyOnce() {
     /** @type {{done?:boolean,logged?:boolean}} */
-    const state = /** @type {any} */(ensureIpcHandlersReadyOnce);
+    const state = /** @type {any} */ (ensureIpcHandlersReadyOnce);
     if (state.done) return;
 
     const trySetup = () => {
@@ -889,16 +889,18 @@ const mainProcessState = new MainProcessState();
     try {
         const { app } = safeElectron();
         if (app && typeof app.whenReady === "function") {
-            app.whenReady().then(() => {
-                if (!state.done) trySetup();
-            }).catch(() => {
-                // Fallback to small retry loop if whenReady rejects for any reason
-                let attempts = 0;
-                const tick = () => {
-                    if (!state.done && !trySetup() && attempts++ < 50) setTimeout(tick, 50);
-                };
-                setTimeout(tick, 10);
-            });
+            app.whenReady()
+                .then(() => {
+                    if (!state.done) trySetup();
+                })
+                .catch(() => {
+                    // Fallback to small retry loop if whenReady rejects for any reason
+                    let attempts = 0;
+                    const tick = () => {
+                        if (!state.done && !trySetup() && attempts++ < 50) setTimeout(tick, 50);
+                    };
+                    setTimeout(tick, 10);
+                });
             return;
         }
     } catch {
