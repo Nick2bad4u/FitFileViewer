@@ -7,14 +7,215 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[800fe0a](https://github.com/Nick2bad4u/FitFileViewer/commit/800fe0af122a21ea660c3ffd0b9d0d4fafb986d4)...
+[800fe0a](https://github.com/Nick2bad4u/FitFileViewer/commit/800fe0af122a21ea660c3ffd0b9d0d4fafb986d4)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/800fe0af122a21ea660c3ffd0b9d0d4fafb986d4...800fe0af122a21ea660c3ffd0b9d0d4fafb986d4))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 26.6.0 [`(800fe0a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/800fe0af122a21ea660c3ffd0b9d0d4fafb986d4)
+
+
+
+
+
+
+## [26.6.0] - 2025-09-22
+
+
 [[ab6d03b](https://github.com/Nick2bad4u/FitFileViewer/commit/ab6d03ba6be402246265b3ab0fa1c8f7e47c712e)...
-[ab6d03b](https://github.com/Nick2bad4u/FitFileViewer/commit/ab6d03ba6be402246265b3ab0fa1c8f7e47c712e)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/ab6d03ba6be402246265b3ab0fa1c8f7e47c712e...ab6d03ba6be402246265b3ab0fa1c8f7e47c712e))
+[fddee17](https://github.com/Nick2bad4u/FitFileViewer/commit/fddee17b70389d96050cfa6287efa4f82dcaf7a0)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/ab6d03ba6be402246265b3ab0fa1c8f7e47c712e...fddee17b70389d96050cfa6287efa4f82dcaf7a0))
+
+
+### 💼 Other
+
+- 🔧 [build] Update ESLint and Git Cliff dependencies to latest versions
+
+ - Updated @eslint/js from ^9.35.0 to ^9.36.0
+ - Updated eslint from ^9.35.0 to ^9.36.0
+ - Updated git-cliff from ^2.10.0 to ^2.10.1
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(fddee17)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fddee17b70389d96050cfa6287efa4f82dcaf7a0)
+
+
+- 🎨 [style] Overhaul Prettier configuration and apply formatting
+
+- Upgrades the Prettier configuration with numerous plugins for enhanced formatting across various file types, including JSDoc, JSON, INI, SQL, and Tailwind CSS.
+- Reduces the default print width to 80 characters for improved readability.
+- Applies the new formatting rules, which reorders the `package.json` file and alphabetizes helper functions in the master state manager.
+- Updates Prettier npm scripts to leverage caching, improving performance.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(5d8af1e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d8af1e728efb8350e908f1dbdfde873db3eaaaf)
+
+
+- 🎨 [style] Apply consistent formatting and style across the codebase
+
+Improves code readability and consistency by applying standardized formatting across various file types.
+
+- 🎨 [style] Reformats YAML arrays in prompt and chatmode files to be multi-line.
+- 🎨 [style] Standardizes indentation in the Vitest workflow file.
+- 📝 [docs] Aligns column widths in Markdown tables for better presentation.
+- 🚜 [refactor] Simplifies expressions and improves formatting in the coverage analysis script.
+- 🎨 [style] Adds consistent spacing within JSDoc type casts across multiple JavaScript files.
+- 🎨 [style] Enhances code formatting in tests, including indentation and object definitions, for improved readability.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(56b47cd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/56b47cd416fd9f268624aec6257b4327c479be01)
+
+
+- 🧪 [test] Improve test robustness and module mocking
+
+Improves the testing infrastructure to increase reliability, coverage, and compatibility with Vitest's module mocking capabilities.
+
+- 🚜 [refactor] Introduces robust, dynamic module resolvers for Electron and Node built-ins (`http`, `path`, etc.) to ensure `vi.mock` is respected across CJS/ESM boundaries.
+- 🧪 [test] Adds test-only code paths, including keep-alive ticks and probes, to ensure spies and coverage metrics are reliably captured even when mocks are cleared between test runs.
+- 🛠️ [fix] Polyfills `process.nextTick` in the test setup to prevent crashes in dependencies that expect a Node.js-like environment.
+- 🚜 [refactor] Replaces direct calls to `renderChartJS` with a custom event system (`ffv:request-render-charts`) to decouple modules and prevent circular dependencies.
+- ✨ [feat] Extracts chart notification state into a separate module to break an import cycle between rendering and notification logic.
+- ⚡ [perf] Enables caching for ESLint to speed up linting operations.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6c44af7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6c44af7f15b993acdda1590a91213c1411216eec)
+
+
+- 🚜 [refactor] Improve code quality and apply linting fixes
+
+This commit introduces a wide range of refactorings and code quality improvements across the application to enhance consistency, readability, and robustness, while also addressing numerous linting violations.
+
+- 🧹 [chore] Adds ESLint disable comments with justifications for intentional `await-in-loop` usage in scripts and middleware to maintain sequential processing.
+- 🎨 [style] Consistently renames the `isLoading` parameter to `loading` for clarity in UI loading functions.
+- 🚜 [refactor] Extracts event handler creation from loops in multiple files to resolve `no-loop-func` warnings and improve performance.
+- 🚜 [refactor] Adopts modern JavaScript features like destructuring for array and object access (e.g., `const [item] = array`, `const { prop } = object`).
+- 🛠️ [fix] Implements a `process.nextTick` shim to prevent crashes during tests in JSDOM environments where it is not available.
+- 🚜 [refactor] Reorganizes code in `patchSummaryFields.js` to fix `no-use-before-define` lint errors by moving function definitions before their usage.
+- 🎨 [style] Standardizes parameter naming conventions, such as prefixing unused parameters with an underscore.
+- 🛠️ [fix] Enhances the map overlay highlight logic to correctly apply styles to the main track when it is selected (index 0).
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(814ef2a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/814ef2a95ca962570163c1520752b7c3caaf576b)
+
+
+- 🧪 [test] Add comprehensive unit and integration tests for app and state modules
+
+- Adds extensive test coverage for app lifecycle actions, chart rendering, theming, map layers, zone color utilities, file import fallbacks, and state integration, increasing confidence in core logic and edge cases.
+- Introduces isolated test configs and local Vitest runner scripts to improve reliability and reproducibility of targeted test runs.
+- Refactors mocks and test setups to ensure compatibility across environments, support for ES and CJS imports, and proper module cache injection for Electron.
+- Improves test robustness by handling environment-specific issues (e.g., jsdom, threads/forks pool, global require fallback).
+- Updates coverage analysis tooling to summarize files with lowest coverage and support CLI/CI integration.
+- Fixes minor logic bug in main process state window detection for empty or missing window arrays.
+- Relates to ongoing efforts for 100% code coverage and improved CI reliability.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d7e5c7a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d7e5c7ad8cd7e1e6777fade4d37c707cea26d97d)
+
+
+- 🧪 [test] Add comprehensive unit tests and robust debugging
+
+- Introduces extensive test suites for key modules, dramatically boosting coverage for main, preload, chart rendering, and state integration logic.
+- Improves reliability of recent files menu attachment with robust DOM verification and debugging instrumentation.
+- Enhances Vitest config for faster cached runs and better rerun triggers, supporting more efficient test execution and coverage gating.
+- Addresses edge cases and error handling, ensuring more resilient state management and DOM operations.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(514ed6a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/514ed6a7746f5e9404c60563e9f1bcf7219e750a)
+
+
+- 🚜 [refactor] Unifies state keys and centralizes state management
+
+- Standardizes usage of state keys for loading and file info, removing legacy UI-prefixed paths and consolidating file state under a central key.
+- Introduces state subscription debugging and exposes history access for improved diagnostics.
+- Updates version management to dynamically read from app metadata, reducing hard-coded values.
+- Streamlines error handling and defers error state updates to a central mechanism, supporting better maintainability.
+- Improves code consistency and test traceability throughout state-related logic.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c0b26b8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c0b26b8aadacad313f888fff0009a461fbaf0ca7)
+
+
+- 🧪 [test] Add unit tests for master state manager
+
+- Validates introspection methods, state integration, subscription tracking, and initialization status.
+ - Improves reliability by ensuring core state management features behave as expected.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(95561e1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/95561e1c4750e2d883fc451c8cea7a109d33eb6a)
+
+
+- 🧪 [test] Expand and refactor unit tests for coverage and clarity
+
+- Adds comprehensive test cases for Imgur and Gyazo integrations, including configuration management, error handling, and API call validation.
+- Refactors UI state manager and IPC preload tests to use stricter mocking, improved assertions, and clearer separation of concerns.
+- Extends map drawing functionality tests to cover edge cases, multiple laps, overlays, and invalid input handling.
+- Improves clipboard, modal, and notification interaction tests for chart sharing features, ensuring fallback and error scenarios are robustly checked.
+- Streamlines mock setup and usage across test suites for greater maintainability and reliability.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(891e7a1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/891e7a12f6b4a316d7e293f1e30d853c404155f8)
+
+
+- 🧪 [test] Add comprehensive unit tests for app features
+
+Adds extensive unit and integration tests covering chart state management, app lifecycle listeners, main process initialization, map overlays, theming, export utilities, and preload script API exposure.
+
+Improves coverage for key interactive features, error handling, theme switching, export formats, Gyazo integration, and chart controls state.
+
+Refines context menu event logic to better avoid test pollution in DOM-based tests.
+
+Removes obsolete debug mock script no longer needed.
+
+Facilitates more robust regression prevention and confidence in refactoring core features.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9e51a58)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e51a58c9b1a223c70b35014844497a4b41ee2f0)
+
+
+- ✨ [feat] Add Imgur integration with fallback and settings UI
+
+- Implements Imgur chart sharing with data URL fallback if Imgur is not configured.
+- Adds Imgur configuration management UI to settings, including client ID setup and a step-by-step guide for user onboarding.
+- Improves clipboard and notification logic for sharing single and combined charts.
+- Introduces thorough unit tests for new sharing logic and error handling.
+- Enhances user experience by warning about rate limits when using the default Imgur client ID.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3f809f9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3f809f988936f2ea1b683d2c6b52980b6f07a386)
+
+
+- 🧪 [test] Improve test reliability and global scope sync
+
+Synchronizes global and window properties in tests to prevent scope mismatches, ensuring mocks and property descriptors behave consistently.
+
+Fixes brittle tests by standardizing property definition, event handler setup, and DOM manipulation patterns.
+
+Updates file and chart tests for more accurate assertions and robust cleanup.
+
+Refactors usage of localStorage, MutationObserver, and event listeners for improved test isolation.
+
+Improves error handling and fallback mechanisms in UI and chart component tests.
+
+Relates to improved cross-environment test support and maintainability.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(4f8f423)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4f8f4233f5108d6a6df95655d65876dcb08de23e)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v26.5.0 [skip ci] [`(b98cab8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b98cab8ef4eef742bd63578e8d1b5173acdaed2d)
+
 
 
 ### 📦 Dependencies
 
 - [dependency] Update version 26.5.0 [`(ab6d03b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ab6d03ba6be402246265b3ab0fa1c8f7e47c712e)
+
+
+
+### 🛡️ Security
+
+- 🛠️ [fix] Improve FIT file loading, state, and middleware robustness
+
+- Refines FIT file loading to consistently extract and display parsed data, improving error handling and notification logic for recent file access and UI.
+- Adds development-only logging to preload, reduces console noise in production, and tightens test assertions for better reliability and clarity.
+- Updates chart rendering, state change tracking, and computed state to avoid redundant updates and ensure proper initialization.
+- Introduces backward-compatible API aliases, corrects observer and window mocks in tests, and enables remote debugging and web security for development.
+- Ensures state middleware and computed values are initialized once, preventing duplicate registration and improving diagnostics.
+
+Relates to improved stability and debugging in Electron-based FIT file viewer.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e00c458)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e00c458fdeceaa1b0bea238be2a707a590e398c9)
 
 
 
