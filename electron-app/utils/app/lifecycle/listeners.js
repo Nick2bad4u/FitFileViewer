@@ -72,21 +72,12 @@ export function setupListeners({
         let focusedIndex = 0;
         /** @type {HTMLDivElement[]} */
         const items = [];
-        for (const [idx, file] of recentFiles.entries()) {
-            const /** @type {HTMLDivElement} */
-                item = document.createElement("div"),
-                parts = file.split(/\\|\//g),
-                shortName = parts.length >= 2 ? `${parts.at(-2)}\\${parts.at(-1)}` : parts.at(-1);
-            // TextContent expects string | null; ensure fallback string
-            item.textContent = shortName || "";
-            item.title = file;
-            item.style.padding = "8px 18px";
-            item.style.whiteSpace = "nowrap";
-            item.style.overflow = "hidden";
-            item.style.textOverflow = "ellipsis";
-            item.setAttribute("role", "menuitem");
-            item.setAttribute("tabindex", "-1");
-            item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
+        // Predefine handlers factory to avoid function-in-loop lint warnings
+        /**
+         * @param {HTMLDivElement} item
+         * @param {number} idx
+         */
+        function attachHoverHandlers(item, idx) {
             item.addEventListener("mouseenter", () => {
                 item.style.background = "var(--color-glass-border)";
                 item.style.color = "var(--color-fg-alt)";
@@ -95,7 +86,13 @@ export function setupListeners({
                 item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";
                 item.style.color = "var(--color-fg)";
             });
-            item.addEventListener("click", async () => {
+        }
+
+        /**
+         * @param {string} file
+         */
+        function createClickHandler(file) {
+            return async () => {
                 menu.remove();
                 openFileBtn.disabled = true;
                 setLoading(true);
@@ -127,7 +124,26 @@ export function setupListeners({
                 }
                 openFileBtn.disabled = false;
                 setLoading(false);
-            });
+            };
+        }
+
+        for (const [idx, file] of recentFiles.entries()) {
+            const /** @type {HTMLDivElement} */
+                item = document.createElement("div"),
+                parts = file.split(/\\|\//g),
+                shortName = parts.length >= 2 ? `${parts.at(-2)}\\${parts.at(-1)}` : parts.at(-1);
+            // TextContent expects string | null; ensure fallback string
+            item.textContent = shortName || "";
+            item.title = file;
+            item.style.padding = "8px 18px";
+            item.style.whiteSpace = "nowrap";
+            item.style.overflow = "hidden";
+            item.style.textOverflow = "ellipsis";
+            item.setAttribute("role", "menuitem");
+            item.setAttribute("tabindex", "-1");
+            item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
+            attachHoverHandlers(item, idx);
+            item.addEventListener("click", createClickHandler(file));
             items.push(item);
             menu.append(item);
         }
@@ -176,10 +192,16 @@ export function setupListeners({
         });
         setTimeout(() => focusItem(0), 0);
 
-        console.log("DEBUG: About to append menu. Document:", !!document, "Body:", !!document.body, "Menu:", !!menu, "Menu ID:", menu.id);
+        console.log(
+            "DEBUG: About to append menu. Document:", Boolean(document),
+            "Body:", Boolean(document.body),
+            "Menu:", Boolean(menu),
+            "Menu ID:", menu.id
+        );
         console.log("DEBUG: Menu constructor:", menu.constructor.name, "Menu nodeName:", menu.nodeName, "Menu parentNode before append:", menu.parentNode);
         console.log("DEBUG: Document.body type:", typeof document.body, "Document.body constructor:", document.body.constructor.name);
-        console.log("DEBUG: Document.body === body check:", document.body === document.body);
+        // Log a safe property instead of comparing an object to itself
+        console.log("DEBUG: Document.body present:", Boolean(document.body));
         console.log("DEBUG: Document.body can append?", typeof document.body.append === 'function');
 
         // Robust menu attachment with verification and retry

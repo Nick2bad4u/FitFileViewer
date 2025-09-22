@@ -110,6 +110,7 @@ class StateMiddlewareManager {
             }
 
             try {
+                // eslint-disable-next-line no-await-in-loop -- Handlers must run sequentially to respect execution order and context updates
                 const result = await handler(currentContext);
 
                 // If handler returns an object, use it as new context
@@ -126,7 +127,8 @@ class StateMiddlewareManager {
                 const err = /** @type {Error} */ (error);
                 console.error(`[StateMiddleware] Error in middleware "${middlewareName}" phase "${phase}":`, err);
 
-                // Execute error handlers
+                // Execute error handlers in sequence before continuing. This ensures deterministic recovery behavior.
+                // eslint-disable-next-line no-await-in-loop -- Intentional sequential execution for correctness
                 await this.executeErrorHandlers(err, {
                     context: currentContext,
                     middleware: middlewareName,
@@ -165,6 +167,7 @@ class StateMiddlewareManager {
                 try {
                     // We intentionally treat the handler as any due to dynamic signature variability
                     const eh = /** @type {any} */ (errorHandler);
+                    // eslint-disable-next-line no-await-in-loop -- Error handlers must execute in-order for deterministic handling
                     await (eh.length >= 2 ? eh(error, errorContext) : eh(error));
                 } catch (error_) {
                     console.error("[StateMiddleware] Error invoking error handler", error_);

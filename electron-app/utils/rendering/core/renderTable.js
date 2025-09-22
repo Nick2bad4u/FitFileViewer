@@ -27,7 +27,7 @@ export function renderTable(container, title, table, index) {
     copyButton.classList.add("copy-btn");
     copyButton.addEventListener("click", (event) => {
         event.stopPropagation();
-        copyTableAsCSV(/** @type {any} */ (table));
+        copyTableAsCSV(/** @type {any} */(table));
     });
     const icon = document.createElement("span");
     icon.textContent = "➕";
@@ -37,7 +37,7 @@ export function renderTable(container, title, table, index) {
     header.append(rightContainer);
     header.addEventListener("click", () => {
         const content = document.getElementById(`${tableId}_content`),
-            currentDisplay = globalThis.getComputedStyle(/** @type {Element} */ (content)).display,
+            currentDisplay = globalThis.getComputedStyle(/** @type {Element} */(content)).display,
             isVisible = currentDisplay === "block";
         if (content) {
             content.style.display = isVisible ? "none" : "block";
@@ -91,8 +91,8 @@ export function renderTable(container, title, table, index) {
     } else {
         console.warn("[WARNING] jQuery is not available. Falling back to native DOM methods.");
         setTimeout(() => {
-            const tableElement = document.getElementById(tableId);
-            if (tableElement) {
+            const tblElem = document.getElementById(tableId);
+            if (tblElem) {
                 console.log(`[DEBUG] DataTable initialization skipped for #${tableId}`);
             } else {
                 console.error(`[ERROR] Table element not found for #${tableId}`);

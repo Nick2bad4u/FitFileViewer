@@ -157,7 +157,7 @@ export function renderMap() {
     document.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
         const layersControlEl = document.querySelector(".leaflet-control-layers");
         if (layersControlEl && layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
-            const target = /** @type {Node} */ (e.target);
+            const { target } = /** @type {{ target: Node }} */ (e);
             if (!layersControlEl.contains(target) && !mapTypeBtn.contains(target)) {
                 layersControlEl.classList.remove("leaflet-control-layers-expanded");
                 const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
@@ -220,7 +220,7 @@ export function renderMap() {
                 debounce(
                     /** @param {Event} e */(e) => {
                         isDragging = true;
-                        const target = /** @type {HTMLInputElement} */ (e.target),
+                        const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
                         zoomSliderCurrent.textContent = `${percent}%`;
                     },
@@ -229,7 +229,7 @@ export function renderMap() {
             ) // Adjust debounce delay as needed
         );
         zoomSlider.addEventListener("change", (e) => {
-            const target = /** @type {HTMLInputElement} */ (e.target),
+            const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                 percent = Number(target.value),
                 newZoom = percentToZoom(percent);
             map.setZoom(Math.round(newZoom));
@@ -383,6 +383,10 @@ export function renderMap() {
         // Clear overlay polylines tracking before drawing
         windowExt._overlayPolylines = {};
         for (const [idx, fitFile] of windowExt.loadedFitFiles.entries()) {
+            // Skip index 0 (main file) here to avoid duplicating the main track as an overlay
+            if (idx === 0) {
+                continue;
+            }
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
                 chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
@@ -454,9 +458,14 @@ export function renderMap() {
     }
     // Enable/disable lap selector based on number of loaded files
     function updateLapSelectorEnabledState() {
-        const lapSelect = /** @type {HTMLInputElement} */ (document.querySelector("#lap-select"));
-        if (lapSelect) {
-            lapSelect.disabled = Boolean(windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1);
+        const lapSelect = /** @type {HTMLSelectElement} */ (document.querySelector("#lap-select"));
+        if (!lapSelect) return;
+        // Keep lap selector enabled. Optionally disable only if there are no laps available.
+        try {
+            const laps = /** @type {any} */ (windowExt.globalData && windowExt.globalData.lapMesgs);
+            lapSelect.disabled = !laps || !Array.isArray(laps) || laps.length === 0 ? false : false;
+        } catch {
+            lapSelect.disabled = false;
         }
     }
     updateLapSelectorEnabledState();

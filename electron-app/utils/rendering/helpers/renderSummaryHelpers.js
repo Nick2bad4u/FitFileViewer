@@ -339,6 +339,78 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             }
         };
     selectAllBtn.className = "select-all-btn themed-btn";
+    // Column list (declare before updateColList to avoid no-use-before-define)
+    const colList = document.createElement("div");
+    colList.className = "col-list";
+    modal.append(colList);
+    /** @type {number|null} */
+    let lastCheckedIndex = null;
+
+    // Handlers factory to avoid declaring functions within the loop (no-loop-func)
+    /**
+     * Create a mousedown handler for range selection with Shift.
+     * @param {number} idx
+     * @param {string} key
+     */
+    function createMouseDownHandler(idx, key) {
+        /** @param {MouseEvent} e */
+        return (e) => {
+            if (e.shiftKey && lastCheckedIndex !== null) {
+                e.preventDefault();
+                const end = Math.max(lastCheckedIndex, idx);
+                const start = Math.min(lastCheckedIndex, idx);
+                const shouldCheck = !visibleColumns.includes(key);
+                let newCols = [...visibleColumns];
+                for (let i = start; i <= end; ++i) {
+                    const k = allKeys[i];
+                    if (typeof k !== "string") {
+                        continue;
+                    }
+                    if (shouldCheck && !newCols.includes(k)) {
+                        newCols.push(k);
+                    }
+                    if (!shouldCheck && newCols.includes(k)) {
+                        newCols = newCols.filter((x) => x !== k);
+                    }
+                }
+                newCols = allKeys.filter((k) => newCols.includes(k));
+                updateVisibleColumns(newCols);
+                updateColList();
+                reRenderTable();
+                saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+            }
+        };
+    }
+
+    /**
+     * Create a change handler for single checkbox toggle.
+     * @param {number} idx
+     * @param {string} key
+     * @param {HTMLInputElement} loopCheckbox
+     */
+    function createChangeHandler(idx, key, loopCheckbox) {
+        /** @param {Event & { shiftKey?: boolean}} e */
+        return (e) => {
+            if (e.shiftKey && lastCheckedIndex !== null) {
+                return; // handled in mousedown
+            }
+            lastCheckedIndex = idx;
+            let newCols = [...visibleColumns];
+            if (loopCheckbox.checked) {
+                if (!newCols.includes(key)) {
+                    newCols.push(key);
+                }
+            } else {
+                newCols = newCols.filter((k) => k !== key);
+            }
+            newCols = allKeys.filter((k) => newCols.includes(k));
+            updateVisibleColumns(newCols);
+            selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
+            updateColList();
+            reRenderTable();
+            saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+        };
+    }
     /**
      * Refresh checkbox list based on current visibleColumns
      * @returns {void}
@@ -360,58 +432,9 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
             loopCheckbox.type = "checkbox";
             loopCheckbox.checked = visibleColumns.includes(key);
             loopCheckbox.tabIndex = 0;
-            /**
-             * @param {MouseEvent} e
-             */
-            loopCheckbox.addEventListener("mousedown", (e) => {
-                if (e.shiftKey && lastCheckedIndex !== null) {
-                    e.preventDefault();
-                    const end = Math.max(lastCheckedIndex, idx),
-                        shouldCheck = !visibleColumns.includes(key),
-                        start = Math.min(lastCheckedIndex, idx);
-                    let newCols = [...visibleColumns];
-                    for (let i = start; i <= end; ++i) {
-                        const k = allKeys[i];
-                        if (typeof k !== "string") {
-                            continue;
-                        }
-                        if (shouldCheck && !newCols.includes(k)) {
-                            newCols.push(k);
-                        }
-                        if (!shouldCheck && newCols.includes(k)) {
-                            newCols = newCols.filter((x) => x !== k);
-                        }
-                    }
-                    newCols = allKeys.filter((k) => newCols.includes(k));
-                    updateVisibleColumns(newCols);
-                    updateColList();
-                    reRenderTable();
-                    saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
-                }
-            });
-            /**
-             * @param {Event & { shiftKey?: boolean}} e
-             */
-            loopCheckbox.addEventListener("change", (e) => {
-                if (e.shiftKey && lastCheckedIndex !== null) {
-                    return;
-                } // Handled in onmousedown
-                lastCheckedIndex = idx;
-                let newCols = [...visibleColumns];
-                if (loopCheckbox.checked) {
-                    if (!newCols.includes(key)) {
-                        newCols.push(key);
-                    }
-                } else {
-                    newCols = newCols.filter((k) => k !== key);
-                }
-                newCols = allKeys.filter((k) => newCols.includes(k));
-                updateVisibleColumns(newCols);
-                selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
-                updateColList();
-                reRenderTable();
-                saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
-            });
+            // Use factory-created handlers to avoid declaring functions in the loop
+            loopCheckbox.addEventListener("mousedown", createMouseDownHandler(idx, key));
+            loopCheckbox.addEventListener("change", createChangeHandler(idx, key, loopCheckbox));
             loopLabel.append(loopCheckbox);
             loopLabel.append(document.createTextNode(key));
             colList.append(loopLabel);
@@ -428,12 +451,6 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
         saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
     });
     modal.append(selectAllBtn);
-    // Column list
-    const colList = document.createElement("div");
-    colList.className = "col-list";
-    modal.append(colList);
-    /** @type {number|null} */
-    let lastCheckedIndex = null;
     updateColList();
     // Actions
     const actions = document.createElement("div");
@@ -481,7 +498,7 @@ function getSummaryRows(data) {
         /** @type {AugmentedWindow} */ (globalThis)?.aq
     ) {
         try {
-            const aq = /** @type {AugmentedWindow} */ (globalThis).aq,
+            const { aq } = /** @type {AugmentedWindow} */ (globalThis),
                 table = aq.from(data.recordMesgs),
                 /** @type {SummaryStats} */
                 stats = {

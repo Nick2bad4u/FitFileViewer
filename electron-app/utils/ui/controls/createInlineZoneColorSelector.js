@@ -194,14 +194,14 @@ export function createInlineZoneColorSelector(field, container) {
 
             // Debounced visual update
             setTimeout(() => {
-                const zoneItems = zoneGrid.querySelectorAll(".zone-color-item");
-                for (const item of zoneItems) {
+                const zoneElems = zoneGrid.querySelectorAll(".zone-color-item");
+                for (const item of zoneElems) {
                     const el = /** @type {HTMLElement} */ (item);
                     el.style.transform = "scale(1.02)";
                 }
 
                 setTimeout(() => {
-                    for (const item of zoneItems) {
+                    for (const item of zoneElems) {
                         const el = /** @type {HTMLElement} */ (item);
                         el.style.transform = "scale(1)";
                     }
@@ -260,10 +260,11 @@ export function createInlineZoneColorSelector(field, container) {
         header.append(schemeSelector);
 
         // Create zone color items
+        const getCurrentScheme = () => currentScheme; // stable reference for callbacks (avoid no-loop-func)
         if (Array.isArray(zoneData)) {
             for (const [index, zone] of zoneData.entries()) {
                 const zoneIndex = ((zone && zone.zone) || index + 1) - 1, // Convert to 0-based index
-                    zoneItem = createZoneColorItem(field, zone, zoneIndex, () => currentScheme);
+                    zoneItem = createZoneColorItem(field, zone, zoneIndex, getCurrentScheme);
                 zoneGrid.append(zoneItem);
             }
         }
@@ -301,8 +302,8 @@ export function createInlineZoneColorSelector(field, container) {
                 const zoneIndex = ((zone && zone.zone) || index + 1) - 1,
                     chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
                     // Save to generic storage if it's different from default
-                    defaultColors = zoneTypeForStorage === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS,
-                    defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
+                    defaultPalette = zoneTypeForStorage === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS,
+                    defaultColor = defaultPalette[zoneIndex] || defaultPalette[zoneIndex % defaultPalette.length];
 
                 if (chartSpecificColor !== defaultColor) {
                     saveZoneColor(zoneTypeForStorage, zoneIndex, chartSpecificColor);
@@ -322,9 +323,9 @@ export function createInlineZoneColorSelector(field, container) {
                     zoneData.some((zone, index) => {
                         const zoneIndex = ((zone && zone.zone) || index + 1) - 1,
                             chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
-                            defaultColors =
+                            defaultPalette =
                                 zoneTypeForStorage === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS,
-                            defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
+                            defaultColor = defaultPalette[zoneIndex] || defaultPalette[zoneIndex % defaultPalette.length];
                         return chartSpecificColor !== defaultColor;
                     });
 
@@ -620,8 +621,8 @@ function createResetButton(field, zoneType, zoneData, onReset) {
             } else {
                 // Import and call renderChartJS if not available globally
                 import("../../charts/core/renderChartJS.js")
-                    .then(({ renderChartJS }) => {
-                        renderChartJS();
+                    .then(({ renderChartJS: importedRenderChartJS }) => {
+                        importedRenderChartJS();
                     })
                     .catch((error) => {
                         console.error("[ZoneColorSelector] Error importing renderChartJS:", error);
@@ -683,7 +684,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
     `;
 
     const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
-        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
+        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */(zone).time, true) : "";
     label.innerHTML = `
         <div>${zoneName}</div>
         ${zoneTime ? `<div style="font-size: 10px; color: var(--color-fg-alt); margin-top: 2px;">${zoneTime}</div>` : ""}
@@ -758,8 +759,8 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
             } else {
                 // Import and call renderChartJS if not available globally
                 import("../../charts/core/renderChartJS.js")
-                    .then(({ renderChartJS }) => {
-                        renderChartJS();
+                    .then(({ renderChartJS: importedRenderChartJS }) => {
+                        importedRenderChartJS();
                     })
                     .catch((/** @type {Error} */ error) => {
                         console.error("[ZoneColorSelector] Error importing renderChartJS:", error);
@@ -846,14 +847,14 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
 
                 // Check if this chart contains zone data that matches our field
                 const isHRZoneChart =
-                        field.includes("hr_zone") &&
-                        chart.data.datasets.some(
-                            (/** @type {any} */ dataset) =>
-                                dataset.label &&
-                                (dataset.label.includes("Heart Rate") ||
-                                    dataset.label.includes("HR Zone") ||
-                                    dataset.label.toLowerCase().includes("heart"))
-                        ),
+                    field.includes("hr_zone") &&
+                    chart.data.datasets.some(
+                        (/** @type {any} */ dataset) =>
+                            dataset.label &&
+                            (dataset.label.includes("Heart Rate") ||
+                                dataset.label.includes("HR Zone") ||
+                                dataset.label.toLowerCase().includes("heart"))
+                    ),
                     isPowerZoneChart =
                         field.includes("power_zone") &&
                         chart.data.datasets.some(

@@ -15,7 +15,7 @@ import { renderTable } from "../core/renderTable.js";
 export function createTables(dataFrames, containerOverride) {
     console.log("[DEBUG] createTables called", dataFrames);
 
-    const aq = /** @type {any} */ (globalThis).aq;
+    const { aq } = /** @type {any} */ (globalThis);
     if (!aq) {
         console.error("[ERROR] Arquero (window.aq) is not available.");
         return;
@@ -78,7 +78,7 @@ export function createTables(dataFrames, containerOverride) {
         } catch (error) {
             console.error(
                 `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (error).message}. Stack trace:`,
-                /** @type {any} */ (error).stack
+                /** @type {any} */(error).stack
             );
         }
     }

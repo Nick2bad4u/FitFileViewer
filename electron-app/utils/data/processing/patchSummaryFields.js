@@ -1,3 +1,4 @@
+/* eslint-disable perfectionist/sort-modules */
 /**
  * Summary fields patching utility for FitFileViewer
  * Provides consistent formatting and validation for summary data fields
@@ -122,12 +123,12 @@ export function patchSummaryFields(obj, options = {}) {
             patchDistance(obj);
             patchTime(obj);
             patchSpeed(obj);
-            patchPower(obj);
+            patchPowerModern(obj);
             patchCalories(obj);
-            patchHeartRate(obj);
-            patchCadence(obj);
+            patchHeartRateModern(obj);
+            patchCadenceModern(obj);
             patchRespirationRate(obj);
-            patchTemperature(obj);
+            patchTemperatureModern(obj);
             patchGritFlow(obj);
             patchTrainingLoad(obj);
             patchStrokes(obj);
@@ -150,6 +151,24 @@ export function patchSummaryFields(obj, options = {}) {
         logWithContext(`Error patching summary fields: ${getErrorMessage(error)}`, "error");
         throw error; // Rethrow for upstream handling
     }
+}
+
+// (Legacy doc removed; replaced by typed version below.)
+/**
+ * @param {any[] | string} val
+ * @param {number} [digits]
+ */
+function formatArray(val, digits = PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT) {
+    if (Array.isArray(val)) {
+        return val.map((v) => Number(v).toFixed(digits)).join(", ");
+    }
+    if (typeof val === "string" && val.includes(",")) {
+        return val
+            .split(",")
+            .map((v) => Number(v.trim()).toFixed(digits))
+            .join(", ");
+    }
+    return val;
 }
 
 /**
@@ -193,6 +212,34 @@ function logWithContext(message, level = "info") {
     }
 }
 
+/** noop: formatArray moved above for sorted order */
+
+/** @param {SummaryRecord} obj */
+function patchArrays(obj) {
+    const arrayFields = [
+        "avg_left_power_phase",
+        "avgLeftPowerPhase",
+        "avg_left_power_phase_peak",
+        "avgLeftPowerPhasePeak",
+        "avg_right_power_phase",
+        "avgRightPowerPhase",
+        "avg_right_power_phase_peak",
+        "avgRightPowerPhasePeak",
+    ];
+
+    for (const field of arrayFields) {
+        if (obj[field] != null) {
+            try {
+                obj[field] = formatArray(obj[field], PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
+            } catch (error) {
+                logWithContext(`Error formatting array field '${field}': ${getErrorMessage(error)}`, "error");
+            }
+        }
+    }
+}
+
+// Stub implementations for missing functions that aren't in FIELD_MAPPINGS
+
 /**
  * Modernized cadence fields formatting
  * @param {Object} obj - The object containing cadence fields to patch
@@ -219,7 +266,7 @@ function patchDecimalFields(obj, fieldNames, decimalPlaces) {
     patchFieldsWithFormatter(
         obj,
         fieldNames,
-        /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
+        /** @param {number} value */(value) => Number(value.toFixed(decimalPlaces)),
         `decimal (${decimalPlaces} places)`
     );
 }
@@ -319,74 +366,7 @@ function patchTime(obj) {
     patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TIME, formatDuration, "time");
 }
 
-/**
- * Safely converts a value to a number with validation
- * @param {any} value - Value to convert
- * @param {string} fieldName - Name of the field for error reporting
- * @returns {number|null} Converted number or null if invalid
- * @private
- */
-function safeToNumber(value, fieldName = "value") {
-    if (value == null) {
-        return null;
-    }
-
-    const num = Number(value);
-    if (!Number.isFinite(num)) {
-        logWithContext(`Invalid ${fieldName}: ${value}`, "warn");
-        return null;
-    }
-
-    return num;
-}
-
-// Replace old implementations with modern ones
-const patchCadence = patchCadenceModern,
-    patchHeartRate = patchHeartRateModern,
-    patchPower = patchPowerModern,
-    patchTemperature = patchTemperatureModern;
-
-// (Legacy doc removed; replaced by typed version below.)
-/**
- * @param {any[] | string} val
- * @param {number} [digits]
- */
-function formatArray(val, digits = PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT) {
-    if (Array.isArray(val)) {
-        return val.map((v) => Number(v).toFixed(digits)).join(", ");
-    }
-    if (typeof val === "string" && val.includes(",")) {
-        return val
-            .split(",")
-            .map((v) => Number(v.trim()).toFixed(digits))
-            .join(", ");
-    }
-    return val;
-}
-
-/** @param {SummaryRecord} obj */
-function patchArrays(obj) {
-    const arrayFields = [
-        "avg_left_power_phase",
-        "avgLeftPowerPhase",
-        "avg_left_power_phase_peak",
-        "avgLeftPowerPhasePeak",
-        "avg_right_power_phase",
-        "avgRightPowerPhase",
-        "avg_right_power_phase_peak",
-        "avgRightPowerPhasePeak",
-    ];
-
-    for (const field of arrayFields) {
-        if (obj[field] != null) {
-            try {
-                obj[field] = formatArray(obj[field], PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
-            } catch (error) {
-                logWithContext(`Error formatting array field '${field}': ${getErrorMessage(error)}`, "error");
-            }
-        }
-    }
-}
+// Legacy aliases removed to avoid no-use-before-define under lint; callers use Modern names directly
 
 // Stub implementations for missing functions that aren't in FIELD_MAPPINGS
 /** @param {SummaryRecord} obj */
@@ -399,13 +379,27 @@ function patchCalories(obj) {
 function patchDecimals(obj) {
     try {
         for (const key of Object.keys(obj).filter(
-            (key) => typeof obj[key] === "number" && !Number.isInteger(obj[key])
+            (k) => typeof obj[k] === "number" && !Number.isInteger(obj[k])
         )) {
             obj[key] = Number(obj[key]).toFixed(PATCH_CONSTANTS.DECIMAL_PLACES.DEFAULT);
         }
     } catch (error) {
         logWithContext(`Error formatting decimal fields: ${getErrorMessage(error)}`, "error");
     }
+}
+
+function safeToNumber(value, fieldName = "value") {
+    if (value == null) {
+        return null;
+    }
+
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+        logWithContext(`Invalid ${fieldName}: ${value}`, "warn");
+        return null;
+    }
+
+    return num;
 }
 
 /** @param {SummaryRecord} obj */

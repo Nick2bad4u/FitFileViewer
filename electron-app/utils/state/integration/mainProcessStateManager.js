@@ -770,6 +770,7 @@ function logWithContext(level, message, context = {}) {
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs
 function safeElectron() {
     try {
+        // Always resolve dynamically to pick up test-time mocks
         return require("electron");
     } catch {
         return /** @type {any} */ ({});

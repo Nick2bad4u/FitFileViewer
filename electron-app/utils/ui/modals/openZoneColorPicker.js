@@ -107,6 +107,15 @@ export function openZoneColorPicker(field) {
 						backdrop-filter: blur(4px);
 					`;
 
+        // ESC key handler (declare early to avoid no-use-before-define in listeners)
+        /** @param {KeyboardEvent} e */
+        const handleEscape = (e) => {
+            if (e.key === "Escape" && document.body.contains(overlay)) {
+                overlay.remove();
+                document.removeEventListener("keydown", handleEscape);
+            }
+        };
+
         // Create modal content
         const modal = document.createElement("div");
         modal.style.cssText = `
@@ -254,7 +263,7 @@ export function openZoneColorPicker(field) {
 
             // Color picker change handler
             colorPicker.addEventListener("change", (e) => {
-                const newColor = /** @type {HTMLInputElement} */ (e.target).value;
+                const { value: newColor } = /** @type {HTMLInputElement} */ (e.target);
                 colorPreview.style.background = newColor;
 
                 // Set color scheme to custom when manually changing a zone color
@@ -493,13 +502,6 @@ export function openZoneColorPicker(field) {
         modal.append(actions);
         overlay.append(modal);
 
-        // ESC key handler
-        const handleEscape = /** @param {*} e */ (e) => {
-            if (e.key === "Escape" && document.body.contains(overlay)) {
-                overlay.remove();
-                document.removeEventListener("keydown", handleEscape);
-            }
-        };
         document.addEventListener("keydown", handleEscape);
 
         // Click outside to close
@@ -530,7 +532,7 @@ export function updateZoneColorPreview(field, zoneIndex, newColor) {
     try {
         // Find the corresponding chart instance
         const targetChart = globalThis._chartjsInstances?.find((chart) => {
-            const dataset = chart.data.datasets[0];
+            const [dataset] = chart.data.datasets;
             return (
                 dataset &&
                 ((field.includes("hr_zone") && dataset.label && dataset.label.includes("Heart Rate")) ||
@@ -539,7 +541,7 @@ export function updateZoneColorPreview(field, zoneIndex, newColor) {
         });
 
         if (targetChart && targetChart.data.datasets[0]) {
-            const dataset = targetChart.data.datasets[0];
+            const [dataset] = targetChart.data.datasets;
             if (Array.isArray(dataset.backgroundColor) && dataset.backgroundColor[zoneIndex]) {
                 dataset.backgroundColor[zoneIndex] = newColor;
                 targetChart.update("none"); // Update without animation for real-time preview

@@ -269,10 +269,10 @@ function setupActiveFileNameMapActions() {
         const w = /** @type {any} */ (globalThis),
             origUpdateShownFilesList = w.updateShownFilesList;
 
-        w.updateShownFilesList = function () {
+        w.updateShownFilesList = function (...args) {
             try {
                 if (origUpdateShownFilesList) {
-                    Reflect.apply(origUpdateShownFilesList, this, arguments);
+                    Reflect.apply(origUpdateShownFilesList, this, args);
                 }
                 console.log("[mapActionButtons] Files list updated, reapplying active filename setup");
                 setupActiveFileNameMapActions();

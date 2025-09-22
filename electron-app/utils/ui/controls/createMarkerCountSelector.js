@@ -105,9 +105,9 @@ export function createMarkerCountSelector(onChange) {
                     e.stopPropagation();
 
                     const idx = select.selectedIndex,
-                        options = [...select.options];
+                        optionElements = [...select.options];
 
-                    if (e.deltaY > 0 && idx < options.length - 1) {
+                    if (e.deltaY > 0 && idx < optionElements.length - 1) {
                         select.selectedIndex = idx + 1;
                         select.dispatchEvent(
                             new Event("change", { bubbles: false, cancelable: true, composed: false })

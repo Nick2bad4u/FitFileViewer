@@ -136,6 +136,19 @@ import { setupChartThemeListener } from "../theming/chartThemeListener.js";
 // Chart utility imports
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
+// Test environment safety: ensure process.nextTick exists (jsdom may not provide it reliably)
+// This is a no-op shim that schedules microtasks via Promise when nextTick is missing
+// It prevents "Cannot set properties of undefined (setting 'nextTick')" during Vitest runs
+try {
+    // @ts-ignore - process is Node global; guard for browser/jsdom
+    if (typeof process !== "undefined" && typeof process.nextTick !== "function") {
+        // @ts-ignore - define minimal shim
+        process.nextTick = (cb, ...args) => Promise.resolve().then(() => cb(...args));
+    }
+} catch {
+    /* ignore */
+}
+
 /**
  * Enhanced chart settings management with state integration
  * Provides centralized settings access with reactive updates
@@ -209,7 +222,9 @@ export const chartSettingsManager = {
         computedStateManager.invalidateComputed("charts.renderableFieldCount");
 
         // Trigger re-render if needed
+        // eslint-disable-next-line no-use-before-define -- chartState is declared later in this module but accessed lazily at runtime
         if (chartState.isRendered) {
+            // eslint-disable-next-line no-use-before-define -- chartActions is declared later in this module but accessed lazily at runtime
             chartActions.requestRerender(`Field ${field} visibility changed to ${visibility}`);
         }
     },
@@ -232,7 +247,9 @@ export const chartSettingsManager = {
         });
 
         // Trigger chart re-render if charts are currently displayed
+        // eslint-disable-next-line no-use-before-define -- chartState is declared later in this module but accessed lazily at runtime
         if (chartState.isRendered) {
+            // eslint-disable-next-line no-use-before-define -- chartActions is declared later in this module but accessed lazily at runtime
             chartActions.requestRerender("Settings updated");
         }
     },
@@ -888,9 +905,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     ensureChartSettingsDropdowns(targetContainer);
 
     // Setup theme listener for real-time theme updates
-    const settingsWrapper = document.querySelector("#chartjs-settings-wrapper");
-    if (targetContainer && settingsWrapper) {
-        setupChartThemeListener(targetContainer, settingsWrapper);
+    const settingsWrapperElem = document.querySelector("#chartjs-settings-wrapper");
+    if (targetContainer && settingsWrapperElem) {
+        setupChartThemeListener(targetContainer, settingsWrapperElem);
     }
 
     // Get chart container
@@ -910,9 +927,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 			border-radius: 12px;
 		`;
 
-        const settingsWrapper = document.querySelector("#chartjs-settings-wrapper");
-        if (settingsWrapper && settingsWrapper.parentNode) {
-            settingsWrapper.parentNode.insertBefore(chartContainer, settingsWrapper.nextSibling);
+        const settingsWrapperElem2 = document.querySelector("#chartjs-settings-wrapper");
+        if (settingsWrapperElem2 && settingsWrapperElem2.parentNode) {
+            settingsWrapperElem2.parentNode.insertBefore(chartContainer, settingsWrapperElem2.nextSibling);
         } else {
             document.body.append(chartContainer);
         }
@@ -1265,16 +1282,16 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Add hover effects to all rendered charts
     if (totalChartsRendered > 0) {
         // Get theme configuration for hover effects
-        let themeConfig;
+        let hoverThemeConfig;
         if (windowAny.getThemeConfig) {
-            themeConfig = windowAny.getThemeConfig();
+            hoverThemeConfig = windowAny.getThemeConfig();
         } else {
             // Use the established theme configuration
-            themeConfig = getThemeConfig();
+            hoverThemeConfig = getThemeConfig();
         }
 
         // Add hover effects to charts
-        addChartHoverEffects(chartContainer, themeConfig);
+        addChartHoverEffects(chartContainer, hoverThemeConfig);
 
         // Update UI state for chart interactions using existing method
         uiStateManager.updateChartControlsUI(true);

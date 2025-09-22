@@ -388,7 +388,7 @@ export function initializeCommonComputedValues() {
                 return null;
             }
 
-            const session = state.globalData.sessionMesgs[0];
+            const [session] = state.globalData.sessionMesgs;
             if (!session) {
                 return null;
             }

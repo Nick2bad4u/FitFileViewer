@@ -46,14 +46,17 @@ export const chartBackgroundColorPlugin = {
     beforeDraw: (chart, options) => {
         // Precedence: use backgroundColor from plugin options if provided, otherwise fallback to chart config
         // Use plugin option, then chart config, then fallback to CSS variable or white
-        let backgroundColor = options && options.backgroundColor;
+        let backgroundColor;
+        if (options) {
+            ({ backgroundColor } = options);
+        }
         if (!backgroundColor) {
             try {
                 // Access via bracket notation to satisfy index signature constraints under exactOptionalPropertyTypes
                 const pluginCfg =
                     chart?.options && chart.options.plugins && chart.options.plugins.chartBackgroundColorPlugin;
                 if (pluginCfg && typeof pluginCfg.backgroundColor === "string") {
-                    backgroundColor = pluginCfg.backgroundColor;
+                    ({ backgroundColor } = pluginCfg);
                 }
             } catch {
                 /* Ignore */

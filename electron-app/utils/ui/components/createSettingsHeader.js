@@ -143,7 +143,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 showChartSelectionModal(
                     "Save as PNG",
                     (/** @type {any} */ chart) => {
-                        const dataset = chart.data.datasets[0],
+                        const [dataset] = chart.data.datasets,
                             fieldName = dataset?.label || "chart",
                             filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-chart.png`;
                         exportUtils.downloadChartAsPNG(chart, filename);
@@ -168,7 +168,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 showChartSelectionModal(
                     "Export as CSV",
                     (/** @type {any} */ chart) => {
-                        const dataset = chart.data.datasets[0];
+                        const [dataset] = chart.data.datasets;
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
                                 filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.csv`;
@@ -186,7 +186,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 showChartSelectionModal(
                     "Export as JSON",
                     (/** @type {any} */ chart) => {
-                        const dataset = chart.data.datasets[0];
+                        const [dataset] = chart.data.datasets;
                         if (dataset && dataset.data) {
                             const fieldName = dataset.label || "chart",
                                 filename = `${fieldName.replaceAll(/\s+/g, "-").toLowerCase()}-data.json`;
@@ -196,7 +196,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     (/** @type {any} */ charts) => {
                         const allChartsData = {
                             charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
-                                const dataset = chart.data.datasets[0];
+                                const [dataset] = chart.data.datasets;
                                 return {
                                     data: dataset?.data || [],
                                     field: dataset?.label || `chart-${index}`,
@@ -417,7 +417,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
 
     // Add lap zone chart toggles if data exists
     if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-        const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
+        const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
             lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
         if (lapZoneMsgs.length > 0) {
@@ -623,7 +623,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
     for (const [index, chart] of validCharts.entries()) {
         const chartItem = document.createElement("button"),
-            dataset = chart.data.datasets[0],
+            [dataset] = chart.data.datasets,
             fieldName = dataset?.label || `Chart ${index + 1}`;
         chartItem.textContent = `📊 ${fieldName}`;
         chartItem.style.cssText = `
@@ -905,7 +905,7 @@ function createFieldToggle(/** @type {string} */ field) {
             case "hr_lap_zone_stacked": {
                 // Check for HR lap zone data
                 if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-                    const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
+                    const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
                         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
                         hrLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInHrZone);
                     hasValidData = hrLapZones.length > 0;
@@ -917,7 +917,7 @@ function createFieldToggle(/** @type {string} */ field) {
             case "power_lap_zone_stacked": {
                 // Check for Power lap zone data
                 if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
-                    const timeInZoneMesgs = /** @type {WindowExtensions} */ (globalThis).globalData.timeInZoneMesgs,
+                    const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
                         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
                         powerLapZones = lapZoneMsgs.filter((/** @type {any} */ msg) => msg.timeInPowerZone);
                     hasValidData = powerLapZones.length > 0;
@@ -1169,7 +1169,7 @@ function createRangeControl(/** @type {ChartOption} */ option) {
 	`;
 
     slider.addEventListener("input", (/** @type {Event} */ e) => {
-        const target = /** @type {HTMLInputElement} */ (e.target);
+        const { target } = /** @type {HTMLInputElement} */ (e);
         if (target) {
             valueDisplay.textContent = target.value;
             localStorage.setItem(`chartjs_${option.id}`, target.value);
@@ -1271,7 +1271,7 @@ function createSelectControl(/** @type {ChartOption} */ option) {
     }
 
     select.addEventListener("change", (/** @type {Event} */ e) => {
-        const target = /** @type {HTMLSelectElement} */ (e.target);
+        const { target } = /** @type {HTMLSelectElement} */ (e);
         if (target) {
             localStorage.setItem(`chartjs_${option.id}`, target.value);
             reRenderChartsAfterSettingChange(option.id, target.value);

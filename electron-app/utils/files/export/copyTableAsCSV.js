@@ -49,7 +49,8 @@ export async function copyTableAsCSV(table) {
     try {
         // Serialize table data with object handling
         const // Convert to CSV format
-            aq = /** @type {any} */ (globalThis).aq,
+            { aq } = /** @type {any} */ (globalThis),
+            // Avoid repeated property lookups and satisfy prefer-destructuring
             processedRows = processTableRows(table.objects()),
             flattenedTable = aq.from(processedRows),
             csvString = flattenedTable.toCSV({ header: CSV_CONFIG.HEADER_ENABLED });

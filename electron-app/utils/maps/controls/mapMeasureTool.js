@@ -26,6 +26,21 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         measurePoints = [],
         /** @type {boolean} */
         measuring = false;
+    // Button reference will be the created element below
+
+    // Create the measure button up front so it's available to handlers
+    const measureBtn = document.createElement("button"),
+        themeColors = getThemeColors();
+    measureBtn.className = "map-action-btn";
+    measureBtn.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
+            <circle cx="5" cy="19" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
+            <circle cx="19" cy="5" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
+            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors.primary}">↔</text>
+        </svg>
+        <span>Measure</span>`;
+    measureBtn.title = "Click, then click two points on the map to measure distance";
 
     function clearMeasure() {
         measurePoints = [];
@@ -45,23 +60,24 @@ export function addSimpleMeasureTool(map, controlsDiv) {
      * Disable measurement mode, restore button icon/text.
      * @param {HTMLButtonElement | null | undefined} measureBtn
      */
-    function disableMeasure(measureBtn) {
+    function disableMeasure(btn) {
         measuring = false;
         map.off("click", onMapClickMeasure);
-        if (measureBtn) {
-            measureBtn.innerHTML =
+        if (btn) {
+            btn.innerHTML =
                 '<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><rect x="2" y="9" width="16" height="2" rx="1" fill="#1976d2"/><rect x="2" y="5" width="2" height="10" rx="1" fill="#1976d2"/><rect x="16" y="5" width="2" height="10" rx="1" fill="#1976d2"/></svg> <span>Measure</span>';
-            measureBtn.title = "Click, then click two points on the map to measure distance";
+            btn.title = "Click, then click two points on the map to measure distance";
         }
     }
 
     // Add Escape key handler to clear measurement
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
+        const { key } = e;
+        if (key === "Escape") {
             clearMeasure();
             // Also disable measurement mode if active
             if (measuring) {
-                disableMeasure(measureBtnRef);
+                disableMeasure(measureBtn);
             }
         }
     });
@@ -75,7 +91,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
      * @param {MouseEvent} e
      */
     function onLabelExitClick(e) {
-        const target = /** @type {HTMLElement|null} */ (e.target);
+        const { target } = /** @type {{target: HTMLElement|null}} */ (e);
         if (target && target.classList.contains("measure-exit-btn")) {
             clearMeasure();
         }
@@ -95,8 +111,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         measureMarkers.push(marker);
         if (measurePoints.length === 2) {
             measureLine = L.polyline(measurePoints, { color: "#222", dashArray: "4,6", weight: 3 }).addTo(map);
-            const p0 = measurePoints[0],
-                p1 = measurePoints[1];
+            const [p0, p1] = measurePoints;
             // Defensive: ensure both points exist (should by length check)
             if (!p0 || !p1) {
                 return;
@@ -120,7 +135,7 @@ export function addSimpleMeasureTool(map, controlsDiv) {
                 labelEl.addEventListener("click", onLabelExitClick);
             }
             // Auto-disable after measurement
-            disableMeasure(measureBtnRef);
+            disableMeasure(measureBtn);
         }
     }
 
@@ -128,34 +143,19 @@ export function addSimpleMeasureTool(map, controlsDiv) {
      * Enable measurement mode and update button appearance.
      * @param {HTMLButtonElement | null | undefined} measureBtn
      */
-    function enableSimpleMeasure(measureBtn) {
+    function enableSimpleMeasure(btn) {
         if (measuring) {
             return;
         }
         measuring = true;
         map.on("click", onMapClickMeasure);
-        if (measureBtn) {
-            measureBtn.innerHTML =
+        if (btn) {
+            btn.innerHTML =
                 '<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><circle cx="10" cy="10" r="8" fill="none" stroke="#b71c1c" stroke-width="2"/><line x1="6" y1="6" x2="14" y2="14" stroke="#b71c1c" stroke-width="2"/><line x1="14" y1="6" x2="6" y2="14" stroke="#b71c1c" stroke-width="2"/></svg> <span>Cancel</span>';
-            measureBtn.title = "Cancel measurement mode";
+            btn.title = "Cancel measurement mode";
         }
     }
 
-    // Get theme colors for button styling
-    const measureBtn = document.createElement("button"),
-        themeColors = getThemeColors();
-    measureBtn.className = "map-action-btn";
-    measureBtn.innerHTML = `
-        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
-            <circle cx="5" cy="19" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-            <circle cx="19" cy="5" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors.primary}">↔</text>
-        </svg>
-        <span>Measure</span>`;
-    measureBtn.title = "Click, then click two points on the map to measure distance";
-    /** @type {HTMLButtonElement} */
-    const measureBtnRef = measureBtn;
     measureBtn.addEventListener("click", () => {
         if (measuring) {
             clearMeasure();

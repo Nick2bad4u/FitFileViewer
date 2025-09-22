@@ -8,9 +8,9 @@
  * @param {string[]} array - Array of color hex strings.
  * @returns {string[]} Filtered and shuffled palette.
  */
-export function getChartOverlayColorPalette(array) {
+export function getChartOverlayColorPalette(inputArray) {
     // Remove duplicates
-    const unique = [...new Set(array)];
+    const unique = [...new Set(inputArray)];
 
     // Helper to compute color distance in RGB space
     /**

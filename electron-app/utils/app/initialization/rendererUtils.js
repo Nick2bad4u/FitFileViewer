@@ -30,8 +30,8 @@ export function getCurrentNotification() {
  */
 export function initializeRendererUtils() {
     // Subscribe to loading state changes to update UI
-    subscribe("isLoading", (/** @type {boolean} */ isLoading) => {
-        updateLoadingUI(isLoading);
+    subscribe("isLoading", (/** @type {boolean} */ loading) => {
+        updateLoadingUI(loading);
     });
 
     // Subscribe to notification state changes
@@ -57,9 +57,9 @@ export function isLoading() {
  *
  * @param {boolean} isLoading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
  */
-export function setLoading(isLoading) {
+export function setLoading(loading) {
     // Update state first
-    setState("isLoading", isLoading, { source: "setLoading" });
+    setState("isLoading", loading, { source: "setLoading" });
 
     const overlay = document.querySelector("#loadingOverlay");
     if (!overlay) {
@@ -67,14 +67,14 @@ export function setLoading(isLoading) {
         return;
     }
 
-    overlay.style.display = isLoading ? "flex" : "none";
-    document.body.style.cursor = isLoading ? "wait" : "";
+    overlay.style.display = loading ? "flex" : "none";
+    document.body.style.cursor = loading ? "wait" : "";
 
     // Update aria attributes for accessibility
-    overlay.setAttribute("aria-hidden", (!isLoading).toString());
-    document.body.setAttribute("aria-busy", isLoading.toString());
+    overlay.setAttribute("aria-hidden", (!loading).toString());
+    document.body.setAttribute("aria-busy", loading.toString());
 
-    console.log(`[RendererUtils] Loading state: ${isLoading}`);
+    console.log(`[RendererUtils] Loading state: ${loading}`);
 }
 
 /**
@@ -162,15 +162,15 @@ export function showWarning(message, timeout = 4000) {
  * @private
  * @param {boolean} isLoading - Loading state
  */
-function updateLoadingUI(isLoading) {
+function updateLoadingUI(loading) {
     const overlay = document.querySelector("#loadingOverlay");
     if (overlay) {
-        overlay.style.display = isLoading ? "flex" : "none";
-        overlay.setAttribute("aria-hidden", (!isLoading).toString());
+        overlay.style.display = loading ? "flex" : "none";
+        overlay.setAttribute("aria-hidden", (!loading).toString());
     }
 
-    document.body.style.cursor = isLoading ? "wait" : "";
-    document.body.setAttribute("aria-busy", isLoading.toString());
+    document.body.style.cursor = loading ? "wait" : "";
+    document.body.setAttribute("aria-busy", loading.toString());
 
     // Disable/enable interactive elements during loading
     const interactiveElements = document.querySelectorAll("button, input, select, textarea");
@@ -191,7 +191,7 @@ function updateLoadingUI(isLoading) {
             element instanceof HTMLSelectElement ||
             element instanceof HTMLTextAreaElement
         ) {
-            if (isLoading) {
+            if (loading) {
                 element.dataset.wasDisabled = element.disabled.toString();
                 element.disabled = true;
             } else {

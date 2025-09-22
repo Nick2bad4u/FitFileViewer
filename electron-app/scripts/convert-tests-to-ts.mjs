@@ -33,12 +33,14 @@ async function walk(dir) {
     for (const entry of entries) {
         const full = path.join(dir, entry.name);
         try {
+            // eslint-disable-next-line no-await-in-loop -- Intentional sequential FS access to avoid overwhelming the filesystem and to preserve deterministic traversal
             const lst = await lstat(full);
             if (lst.isSymbolicLink()) {
                 // Avoid following symlinks to prevent escaping tests directory or broken targets
                 continue;
             }
             if (lst.isDirectory()) {
+                // eslint-disable-next-line no-await-in-loop -- Recursion is intentionally sequential to limit open handles and simplify error handling
                 await walk(full);
                 continue;
             }
@@ -52,6 +54,7 @@ async function walk(dir) {
         if (!/(\.test\.js|\.spec\.js)$/.test(full)) continue;
         const newFile = full.replace(/\.test\.js$/, ".test.ts").replace(/\.spec\.js$/, ".spec.ts");
         try {
+            // eslint-disable-next-line no-await-in-loop -- Renames are performed one-by-one to avoid race conditions on the same directory
             await rename(full, newFile);
             console.log(`[convert-tests-to-ts] Renamed: ${full} -> ${newFile}`);
         } catch (error) {

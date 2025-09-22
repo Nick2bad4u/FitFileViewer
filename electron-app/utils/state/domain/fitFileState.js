@@ -257,7 +257,7 @@ export class FitFileStateManager {
             return null;
         }
 
-        const activity = data.activities[0];
+        const [activity] = data.activities;
         if (!activity) {
             return null;
         }
@@ -279,7 +279,7 @@ export class FitFileStateManager {
             return null;
         }
 
-        const device = data.device_infos[0];
+        const [device] = data.device_infos;
         if (!device) {
             return null;
         }
@@ -297,7 +297,7 @@ export class FitFileStateManager {
             return null;
         }
 
-        const session = data.sessionMesgs[0];
+        const [session] = data.sessionMesgs;
         if (!session) {
             return null;
         }
@@ -399,8 +399,8 @@ export class FitFileStateManager {
      * @param {RawFitData} data
      * @returns {SessionInfo|null}
      */ /**
-     * Set up listeners for data processing events
-     */
+    * Set up listeners for data processing events
+    */
     setupDataProcessingListeners() {
         // Process data when global data changes
         subscribe("globalData", (/** @type {RawFitData|null} */ data) => {

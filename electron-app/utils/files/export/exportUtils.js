@@ -152,7 +152,7 @@ export const exportUtils = {
             for (const timestamp of timestamps) {
                 const row = [timestamp];
                 for (const chart of charts) {
-                    const dataset = /** @type {any} */ (chart.data).datasets[0],
+                    const [dataset] = /** @type {any} */ (chart.data).datasets,
                         point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
                     row.push(point ? point.y : "");
                 }
@@ -866,7 +866,7 @@ export const exportUtils = {
             for (const [i, chart] of charts.entries()) {
                 const // Add chart image
                     canvas = document.createElement("canvas"),
-                    dataset = /** @type {any} */ (chart.data).datasets[0],
+                    [dataset] = /** @type {any} */ (chart.data).datasets,
                     fieldName = dataset?.label || `chart-${i}`,
                     safeFieldName = fieldName.replaceAll(/[^\dA-Za-z]/g, "-");
                 canvas.width = chart.canvas.width;
@@ -885,7 +885,7 @@ export const exportUtils = {
                 if (ctx) {
                     ctx.drawImage(chart.canvas, 0, 0);
                 }
-                const imageData = canvas.toDataURL("image/png").split(",")[1];
+                const [, imageData] = canvas.toDataURL("image/png").split(",");
                 zip.file(`${safeFieldName}-chart.png`, imageData, { base64: true });
 
                 // Add chart data as CSV
@@ -960,7 +960,7 @@ export const exportUtils = {
                     }
                 }
 
-                const combinedImageData = combinedCanvas.toDataURL("image/png").split(",")[1];
+                const [, combinedImageData] = combinedCanvas.toDataURL("image/png").split(",");
                 zip.file("combined-charts.png", combinedImageData, { base64: true });
             }
 
@@ -970,7 +970,7 @@ export const exportUtils = {
             // Add combined JSON data
             const allChartsData = {
                 charts: charts.map((chart, index) => {
-                    const dataset = /** @type {any} */ (chart.data).datasets[0];
+                    const [dataset] = /** @type {any} */ (chart.data).datasets;
                     return {
                         data: dataset?.data || [],
                         field: dataset?.label || `chart-${index}`,
@@ -1068,7 +1068,7 @@ export const exportUtils = {
             // Get all unique timestamps
             const allTimestamps = new Set();
             for (const chart of charts) {
-                const dataset = /** @type {any} */ (chart.data).datasets[0];
+                const [dataset] = /** @type {any} */ (chart.data).datasets;
                 if (dataset && dataset.data) {
                     for (const point of dataset.data) allTimestamps.add(point.x);
                 }
@@ -1078,7 +1078,7 @@ export const exportUtils = {
                 headers = ["timestamp"],
                 timestamps = [...allTimestamps].sort();
             for (const chart of charts) {
-                const dataset = /** @type {any} */ (chart.data).datasets[0],
+                const [dataset] = /** @type {any} */ (chart.data).datasets,
                     fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
                 headers.push(fieldName);
             }
@@ -1088,7 +1088,7 @@ export const exportUtils = {
             for (const timestamp of timestamps) {
                 const row = [timestamp];
                 for (const chart of charts) {
-                    const dataset = /** @type {any} */ (chart.data).datasets[0],
+                    const [dataset] = /** @type {any} */ (chart.data).datasets,
                         point = dataset?.data?.find((/** @type {any} */ p) => p.x === timestamp);
                     row.push(point ? point.y : "");
                 }
@@ -1363,7 +1363,7 @@ export const exportUtils = {
             for (const [index, chart] of charts.entries()) {
                 const // Create canvas with theme background
                     canvas = document.createElement("canvas"),
-                    dataset = /** @type {any} */ (chart.data).datasets[0],
+                    [dataset] = /** @type {any} */ (chart.data).datasets,
                     fieldName = dataset?.label || `Chart ${index + 1}`;
                 canvas.width = chart.canvas.width;
                 canvas.height = chart.canvas.height;
@@ -2004,7 +2004,10 @@ export const exportUtils = {
         // Clear all data
         if (clearDataBtn) {
             clearDataBtn.addEventListener("click", () => {
+                // Using native confirm dialog for critical destructive action is acceptable in this Electron context
+                // and avoids building a full modal UI here.
                 if (
+                    // eslint-disable-next-line no-alert -- Electron renderer UI: native confirm is acceptable for destructive action
                     confirm(
                         "Are you sure you want to clear all Gyazo data? This will remove your credentials and disconnect your account."
                     )

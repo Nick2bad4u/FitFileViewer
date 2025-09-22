@@ -69,7 +69,7 @@ Object.assign(setupTabButton, {
  * Useful for cleanup during page navigation or testing
  */
 export function clearTabButtonCache() {
-    const cache = /** @type {Map<string, HTMLElement>|undefined} */ (/** @type {any} */ (setupTabButton).cache);
+    const { cache } = /** @type {Map<string, HTMLElement>|undefined} */ (/** @type {any} */ (setupTabButton));
     if (cache) {
         // Clean up event handlers before clearing cache
         for (const btn of cache.values()) {

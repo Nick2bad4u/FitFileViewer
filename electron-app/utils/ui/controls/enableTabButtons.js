@@ -475,7 +475,7 @@ function ensureObserverInstalled() {
         const callback = (mutations) => {
             for (const mutation of mutations) {
                 if (mutation.type === "attributes" && mutation.attributeName === "disabled") {
-                    const target = /** @type {HTMLElement} */ (mutation.target);
+                    const { target } = /** @type {HTMLElement} */ (mutation);
                     if (target.classList.contains("tab-button")) {
                         const hasDisabled = target.hasAttribute("disabled");
                         const isEnabled = w.tabButtonsCurrentlyEnabled || false;

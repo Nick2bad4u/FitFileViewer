@@ -321,18 +321,18 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                             size: 14,
                             weight: "600",
                         },
-                        /** @param {any} chart */
-                        generateLabels(chart) {
-                            const { data } = chart;
+                        /** @param {any} chartInstance */
+                        generateLabels(chartInstance) {
+                            const { data } = chartInstance;
                             if (data.labels.length > 0 && data.datasets.length > 0) {
-                                const dataset = data.datasets[0],
+                                const [dataset] = data.datasets,
                                     total = dataset.data.reduce(
                                         (/** @type {number} */ a, /** @type {number} */ b) => a + b,
                                         0
                                     );
 
                                 return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
-                                    const meta = chart.getDatasetMeta(0),
+                                    const meta = chartInstance.getDatasetMeta(0),
                                         hidden = meta.data[i] && meta.data[i].hidden,
                                         value = dataset.data[i],
                                         percentage = ((value / total) * 100).toFixed(1);
@@ -341,8 +341,8 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                         fontColor: hidden
                                             ? "rgba(128, 128, 128, 0.7)"
                                             : currentTheme === "dark"
-                                              ? "#ffffff"
-                                              : "#333333",
+                                                ? "#ffffff"
+                                                : "#333333",
                                         hidden,
                                         index: i,
                                         lineWidth: 1,
@@ -365,8 +365,8 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                      */
                     onClick(_event, legendItem, legend) {
                         // Get the chart instance and dataset meta
-                        const meta = chart.getDatasetMeta(0),
-                            { chart } = legend,
+                        const { chart } = legend,
+                            meta = chart.getDatasetMeta(0),
                             { index } = legendItem;
 
                         // Toggle visibility
@@ -394,9 +394,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                         /** @param {any} context */
                         label(context) {
                             const total = context.dataset.data.reduce(
-                                    (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                    0
-                                ),
+                                (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                0
+                            ),
                                 value = context.parsed,
                                 percentage = ((value / total) * 100).toFixed(1),
                                 timeFormatted = formatTime(context.parsed, true);

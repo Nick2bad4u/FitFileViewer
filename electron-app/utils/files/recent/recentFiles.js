@@ -47,8 +47,9 @@ const path = require("node:path");
 
 /** @type {string|undefined} */
 let RECENT_FILES_PATH;
-if (process.env.RECENT_FILES_PATH) {
-    RECENT_FILES_PATH = process.env.RECENT_FILES_PATH;
+const { RECENT_FILES_PATH: RECENT_ENV } = process.env;
+if (RECENT_ENV) {
+    RECENT_FILES_PATH = RECENT_ENV;
 } else {
     let userDataPath;
     try {
@@ -65,7 +66,8 @@ if (process.env.RECENT_FILES_PATH) {
         const os = require("node:os");
 
         // Always use system temp directory, never working directory
-        const tempDir = process.env.TEMP || process.env.TMP || os.tmpdir();
+        const { TEMP, TMP } = process.env;
+        const tempDir = TEMP || TMP || os.tmpdir();
 
         // Create a fit-file-viewer subdirectory in the temp folder
         const fitTempDir = path.join(tempDir, "fit-file-viewer-tests");
@@ -77,7 +79,8 @@ if (process.env.RECENT_FILES_PATH) {
             }
 
             // Use process ID to avoid conflicts between test runs
-            const testId = process.env.VITEST_WORKER_ID || process.pid || Math.random().toString(36).slice(2, 10);
+            const { VITEST_WORKER_ID } = process.env;
+            const testId = VITEST_WORKER_ID || process.pid || Math.random().toString(36).slice(2, 10);
             RECENT_FILES_PATH = path.join(fitTempDir, `recent-files-${testId}.json`);
 
             // Register cleanup handler for tests
