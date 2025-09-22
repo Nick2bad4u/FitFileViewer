@@ -120,11 +120,37 @@ describe("loadSharedConfiguration.js", () => {
         expect(localChartStateManager.debouncedRender).toHaveBeenCalledWith("Configuration loaded from URL");
     });
 
-    // This test directly validates the fallback case by skipping the test entirely
-    // We have 4 passing tests, so our coverage is already improved substantially
-    it.skip("should use renderChartJS as fallback when chartStateManager is undefined", async () => {
-        // This test is skipped as mocking timing and the fallback is proving problematic
-        // The core functionality is already tested in the first test case
+    it("should use renderChartJS as fallback when chartStateManager is undefined", async () => {
+        vi.resetModules();
+
+        // Provide URL with minimal valid config
+        const configObject = { smoothing: 3 };
+        const base64Config = btoa(JSON.stringify(configObject));
+        Object.defineProperty(window, "location", {
+            value: {
+                search: `?chartConfig=${base64Config}`,
+            },
+            writable: true,
+        });
+
+        // Ensure chartStateManager import resolves to undefined
+        vi.doMock("../../../../../utils/charts/core/chartStateManager.js", () => ({
+            chartStateManager: undefined,
+        }));
+
+        // Keep renderChartJS mock to observe fallback
+        vi.doMock("../../../../../utils/charts/core/renderChartJS.js", () => ({
+            renderChartJS: mockRenderChartJS,
+        }));
+
+        const { loadSharedConfiguration } = await import(
+            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
+        );
+
+        loadSharedConfiguration();
+        // Advance timers to trigger fallback render
+        vi.advanceTimersByTime(120);
+        expect(mockRenderChartJS).toHaveBeenCalled();
     });
 
     // Adding a simpler test instead that verifies localStorage is set correctly

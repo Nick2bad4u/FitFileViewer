@@ -3,25 +3,15 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock renderChartJS state module to control previousChartState
+// Mock chartNotificationState module to control previousChartState
 // Ensure the SUT's import specifier and the test's import specifier resolve to the same mocked instance.
 const sharedState: { lastRenderTimestamp: number; chartCount: number; fieldsRendered: any[] } = {
     lastRenderTimestamp: 0,
     chartCount: 0,
     fieldsRendered: [] as any[],
 };
-function factory() {
-    return {
-        previousChartState: sharedState,
-        updatePreviousChartState: vi.fn((chartCount: number, fieldsCount: number, now: number) => {
-            sharedState.chartCount = chartCount;
-            sharedState.fieldsRendered = new Array(fieldsCount).fill(true) as any[];
-            sharedState.lastRenderTimestamp = now;
-        }),
-    };
-}
 // Path used by SUT (relative to utils/ui/notifications/showRenderNotification.js)
-vi.mock("../../charts/core/renderChartJS.js", () => ({
+vi.mock("../../charts/core/chartNotificationState.js", () => ({
     previousChartState: sharedState,
     updatePreviousChartState: vi.fn((chartCount: number, fieldsCount: number, now: number) => {
         sharedState.chartCount = chartCount;
@@ -30,7 +20,7 @@ vi.mock("../../charts/core/renderChartJS.js", () => ({
     }),
 }));
 // Path resolvable from test file location
-vi.mock("../../utils/charts/core/renderChartJS.js", () => ({
+vi.mock("../../utils/charts/core/chartNotificationState.js", () => ({
     previousChartState: sharedState,
     updatePreviousChartState: vi.fn((chartCount: number, fieldsCount: number, now: number) => {
         sharedState.chartCount = chartCount;
@@ -55,7 +45,7 @@ describe("showRenderNotification strict", () => {
     });
 
     it("shows when time gap exceeds 10s", async () => {
-        const { previousChartState } = await import("../../utils/charts/core/renderChartJS.js");
+        const { previousChartState } = await import("../../utils/charts/core/chartNotificationState.js");
         previousChartState.lastRenderTimestamp = 0;
         nowSpy.mockReturnValue(20_000);
         const mod = await import("../../utils/ui/notifications/showRenderNotification.js");
@@ -63,7 +53,7 @@ describe("showRenderNotification strict", () => {
     });
 
     it("shows for significant chart count change or from 0", async () => {
-        const { previousChartState } = await import("../../utils/charts/core/renderChartJS.js");
+        const { previousChartState } = await import("../../utils/charts/core/chartNotificationState.js");
         previousChartState.lastRenderTimestamp = 1_000; // within 10s gate
         previousChartState.chartCount = 0; // from 0 triggers
         nowSpy.mockReturnValue(5_000);
@@ -72,7 +62,7 @@ describe("showRenderNotification strict", () => {
     });
 
     it("shows for significant visible field change (>2)", async () => {
-        const { updatePreviousChartState } = await import("../../utils/charts/core/renderChartJS.js");
+        const { updatePreviousChartState } = await import("../../utils/charts/core/chartNotificationState.js");
         // prior state: 5 charts, 3 fields, within 10s window
         updatePreviousChartState(5, 3, 1_000);
         nowSpy.mockReturnValue(5_000);
@@ -82,7 +72,7 @@ describe("showRenderNotification strict", () => {
     });
 
     it("shows for significant chart count change (>2) from non-zero", async () => {
-        const { updatePreviousChartState } = await import("../../utils/charts/core/renderChartJS.js");
+        const { updatePreviousChartState } = await import("../../utils/charts/core/chartNotificationState.js");
         // prior state: 5 charts, 3 fields, recent render (within 10s)
         updatePreviousChartState(5, 3, 1_000);
         nowSpy.mockReturnValue(5_000);
@@ -101,7 +91,7 @@ describe("showRenderNotification strict", () => {
         nowSpy.mockReturnValue(5_000);
         expect(mod.showRenderNotification(5, 4)).toBe(false);
         // Verify shared state got updated
-        const { previousChartState } = await import("../../utils/charts/core/renderChartJS.js");
+        const { previousChartState } = await import("../../utils/charts/core/chartNotificationState.js");
         expect(previousChartState.chartCount).toBe(5);
         expect(previousChartState.fieldsRendered.length).toBe(4);
         expect(typeof previousChartState.lastRenderTimestamp).toBe("number");
@@ -118,7 +108,7 @@ describe("showRenderNotification strict", () => {
         // chart count diff = 6 - 5 = 1 (<=2) and prev was non-zero; field diff = 4 - 3 = 1
         expect(mod.showRenderNotification(6, 4)).toBe(false);
 
-        const { previousChartState } = await import("../../utils/charts/core/renderChartJS.js");
+        const { previousChartState } = await import("../../utils/charts/core/chartNotificationState.js");
         // state should still update
         expect(previousChartState.chartCount).toBe(6);
         expect(previousChartState.fieldsRendered.length).toBe(4);

@@ -2,6 +2,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { createRequire } from "node:module";
 import { Buffer } from "buffer";
 
 // Shared mock instances
@@ -63,7 +64,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
         // Use dynamic mocking to ensure electron and electron-conf are mocked before fitParser import
         vi.doMock("electron", () => ({
             app: {
-                getPath: vi.fn((name) => {
+                getPath: vi.fn((name: string) => {
                     const paths = {
                         userData: "/mock/path/userData",
                         appData: "/mock/path/appData",
@@ -76,7 +77,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
                         videos: "/mock/path/videos",
                         home: "/mock/path/home",
                     };
-                    return paths[name] || `/mock/path/${name}`;
+                    return (paths as Record<string, string>)[name] || `/mock/path/${name}`;
                 }),
                 isPackaged: false,
                 getVersion: vi.fn(() => "1.0.0"),
@@ -87,12 +88,26 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             },
         }));
 
+        // Primary mock via vi.doMock
         vi.doMock("electron-conf", () => {
             const ConfMock = vi.fn().mockImplementation(() => mockConf);
-            return {
-                Conf: ConfMock,
-            };
+            return { Conf: ConfMock };
         });
+
+        // Hard guarantee: inject mock into Node's require cache so CJS require() sees it
+        try {
+            const req = createRequire(import.meta.url);
+            const resolved = req.resolve("electron-conf");
+            // Minimal export shape expected by fitParser.getConf()
+            (req as any).cache[resolved] = {
+                id: resolved,
+                filename: resolved,
+                loaded: true,
+                exports: { Conf: vi.fn().mockImplementation(() => mockConf) },
+            } as any;
+        } catch {
+            // ignore if resolution fails; vi.doMock fallback should handle it
+        }
 
         // Setup mock decoder
         mockDecoder = {
@@ -273,14 +288,31 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             expect(options.applyScaleAndOffset).toBe(false);
         });
 
-        it.skip("should fallback to electron-conf when state manager fails", () => {
-            // Skip this test due to electron-conf requiring actual electron runtime
-            // This functionality is covered in integration tests
+        it("should fallback to electron-conf when state manager fails (smoke)", async () => {
+            // Arrange: ensure state manager update throws, electron-conf present
+            fitParser.initializeStateManagement({
+                settingsStateManager: {
+                    updateCategory: vi.fn().mockImplementation(() => {
+                        throw new Error("fail");
+                    }),
+                    getCategory: vi.fn().mockReturnValue(undefined),
+                },
+            } as any);
+            // Force import of electron-conf mock from earlier doMock in beforeEach
+            const { Conf } = await import("electron-conf");
+            expect(Conf).toBeDefined();
+            const result = fitParser.updateDecoderOptions({ applyScaleAndOffset: true });
+            expect(result.success).toBe(true);
         });
 
-        it.skip("should get persisted decoder options from electron-conf when no state manager", () => {
-            // Skip this test due to electron-conf requiring actual electron runtime
-            // This functionality is covered in integration tests
+        it("should get persisted decoder options from electron-conf when no state manager (smoke)", async () => {
+            // Arrange: no state manager
+            fitParser.initializeStateManagement(undefined as any);
+            const { Conf } = await import("electron-conf");
+            expect(Conf).toBeDefined();
+            const options = fitParser.getPersistedDecoderOptions();
+            // Should be defined (falls back to defaults if none persisted)
+            expect(options).toBeDefined();
         });
 
         it("should update decoder options in state manager", () => {
@@ -298,24 +330,44 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             );
         });
 
-        it.skip("should fallback to electron-conf when state manager update fails", () => {
-            // Skip this test due to electron-conf requiring actual electron runtime
-            // This functionality is covered in integration tests
+        it("should fallback to electron-conf when state manager update fails (smoke)", async () => {
+            fitParser.initializeStateManagement({
+                settingsStateManager: {
+                    updateCategory: vi.fn().mockImplementation(() => {
+                        throw new Error("update failed");
+                    }),
+                    getCategory: vi.fn(),
+                },
+            } as any);
+            const { Conf } = await import("electron-conf");
+            expect(Conf).toBeDefined();
+            const result = fitParser.updateDecoderOptions({ applyScaleAndOffset: false });
+            expect(result.success).toBe(true);
         });
 
-        it.skip("should update decoder options in electron-conf when no state manager", () => {
-            // Skip this test due to electron-conf requiring actual electron runtime
-            // This functionality is covered in integration tests
+        it("should update decoder options in electron-conf when no state manager (smoke)", async () => {
+            fitParser.initializeStateManagement(undefined as any);
+            const { Conf } = await import("electron-conf");
+            expect(Conf).toBeDefined();
+            const result = fitParser.updateDecoderOptions({ applyScaleAndOffset: true });
+            expect(result.success).toBe(true);
         });
 
-        it.skip("should handle settings state manager update failure and fallback to electron-conf", () => {
-            // Skip this test due to electron-conf requiring actual electron runtime
-            // This functionality is covered in integration tests
+        it("should handle settings state manager update failure and fallback to electron-conf (smoke)", async () => {
+            fitParser.initializeStateManagement({
+                settingsStateManager: {
+                    updateCategory: vi.fn().mockRejectedValue(new Error("reject")),
+                    getCategory: vi.fn(),
+                },
+            } as any);
+            const res = fitParser.updateDecoderOptions({ applyScaleAndOffset: false });
+            expect(res.success).toBe(true);
         });
 
-        it.skip("should use electron-conf directly when no settings state manager", () => {
-            // Skip this test due to electron-conf requiring actual electron runtime
-            // This functionality is covered in integration tests
+        it("should use electron-conf directly when no settings state manager (smoke)", async () => {
+            fitParser.initializeStateManagement({} as any);
+            const res = fitParser.updateDecoderOptions({ applyScaleAndOffset: true });
+            expect(res.success).toBe(true);
         });
 
         it("should reject invalid options in update", () => {

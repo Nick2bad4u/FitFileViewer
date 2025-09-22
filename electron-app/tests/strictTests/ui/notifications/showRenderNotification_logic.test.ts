@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
+vi.mock("../../../../utils/charts/core/chartNotificationState.js", () => ({
     previousChartState: { chartCount: 0, fieldsRendered: [], lastRenderTimestamp: 0 },
     updatePreviousChartState: vi.fn(),
 }));
@@ -17,7 +17,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("shows when chart count changes significantly or from 0", async () => {
-        const rc = await import("../../../../utils/charts/core/renderChartJS.js");
+        const rc = await import("../../../../utils/charts/core/chartNotificationState.js");
         (rc.previousChartState.chartCount as any) = 5;
         (rc.previousChartState.lastRenderTimestamp as any) = Date.now();
         const mod = await import("../../../../utils/ui/notifications/showRenderNotification.js");
@@ -29,7 +29,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("suppresses for minor changes", async () => {
-        const rc = await import("../../../../utils/charts/core/renderChartJS.js");
+        const rc = await import("../../../../utils/charts/core/chartNotificationState.js");
         (rc.previousChartState.chartCount as any) = 3;
         (rc.previousChartState.fieldsRendered as any) = [1, 2, 3];
         (rc.previousChartState.lastRenderTimestamp as any) = Date.now();
@@ -38,7 +38,7 @@ describe("showRenderNotification logic", () => {
     });
 
     it("shows when visible fields change significantly", async () => {
-        const rc = await import("../../../../utils/charts/core/renderChartJS.js");
+        const rc = await import("../../../../utils/charts/core/chartNotificationState.js");
         (rc.previousChartState.chartCount as any) = 3;
         (rc.previousChartState.fieldsRendered as any) = [1, 2, 3];
         (rc.previousChartState.lastRenderTimestamp as any) = Date.now();

@@ -391,6 +391,9 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             });
 
             test("should limit error history to 100 items", () => {
+                // Prevent repeated notifyRenderers calls from adding overhead during coverage runs
+                // We only care about the error list length behavior here.
+                const notifyStub = vi.spyOn(stateInstance, "notifyRenderers").mockImplementation(() => {});
                 // Add 105 errors
                 for (let i = 0; i < 105; i++) {
                     stateInstance.addError(`Error ${i}`);
@@ -400,6 +403,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 expect(errors.length).toBe(100);
                 // Should keep newest errors (higher numbers)
                 expect(errors[0].message).toBe("Error 104");
+                notifyStub.mockRestore();
             });
         });
 

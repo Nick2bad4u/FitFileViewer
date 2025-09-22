@@ -39,9 +39,14 @@ describe("showNotification.js - advanced coverage", () => {
         expect(console.warn).toHaveBeenCalledWith("Notification element not found. Unable to display notification.");
     });
 
-    // We'll skip this test as it's proving difficult to properly simulate the error case
-    it.skip("handles error cases in notification processing", () => {
-        // This test has been skipped until we can find a better way to test error handling
+    it("processes queue gracefully when element missing (smoke)", async () => {
+        // Ensure no notification element exists
+        document.body.innerHTML = "";
+        const p = showNotification("No element present");
+        await p;
+        expect(console.warn).toHaveBeenCalledWith(
+            "Notification element not found. Unable to display notification."
+        );
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {

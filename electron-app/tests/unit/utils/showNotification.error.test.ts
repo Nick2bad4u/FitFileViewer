@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { showNotification, notify, clearAllNotifications } from "../../../utils/ui/notifications/showNotification.js";
+import {
+    showNotification,
+    notify,
+    clearAllNotifications,
+    notificationQueue,
+    processNotificationQueue,
+    __testResetNotifications,
+} from "../../../utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - error handling coverage", () => {
     const originalWarn = console.warn;
@@ -29,8 +36,40 @@ describe("showNotification.js - error handling coverage", () => {
         clearAllNotifications();
     });
 
-    it.skip("handles errors when resolveShown throws", async () => {
-        // Skip this test for now - we'll verify this with the try-finally.test.ts
+    it("handles errors when resolveShown throws", async () => {
+        // Craft a queued notification with a resolveShown that throws
+        const throwingResolve = vi.fn(() => {
+            throw new Error("resolveShown failure");
+        });
+
+        /** @type {any} */
+        const notification = {
+            message: "Throwing resolveShown",
+            type: "info",
+            duration: 100,
+            icon: "ℹ️",
+            ariaLabel: "Information",
+            onClick: undefined,
+            actions: [],
+            timestamp: Date.now(),
+            resolveShown: throwingResolve,
+        };
+
+        // Ensure element exists so displayNotification path is taken
+        document.body.innerHTML = '<div id="notification" class="notification" style="display:none"></div>';
+
+        // Queue and process
+        notificationQueue.push(notification);
+        await processNotificationQueue();
+
+        // Error should be logged and queue processing should not crash
+        expect(console.error).toHaveBeenCalledWith(
+            "Error displaying notification:",
+            expect.any(Error)
+        );
+
+        // Reset state
+        __testResetNotifications();
     });
 
     it("handles errors during displayNotification process", async () => {
