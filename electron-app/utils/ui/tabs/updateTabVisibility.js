@@ -136,7 +136,7 @@ export function initializeTabVisibilityState() {
     // Subscribe to active tab changes to update content visibility
     getStateMgr().subscribe(
         "ui.activeTab",
-        /** @param {any} activeTab */ (activeTab) => {
+        /** @param {any} activeTab */(activeTab) => {
             const contentId = getContentIdFromTabName(activeTab);
             updateTabVisibility(contentId);
         }
@@ -145,7 +145,7 @@ export function initializeTabVisibilityState() {
     // Subscribe to data loading to show/hide appropriate content
     getStateMgr().subscribe(
         "globalData",
-        /** @param {any} data */ (data) => {
+        /** @param {any} data */(data) => {
             const currentTab = getStateMgr().getState("ui.activeTab") || "summary",
                 hasData = data !== null && data !== undefined;
 
@@ -188,7 +188,7 @@ export function updateTabVisibility(visibleTabId) {
             "content-zwift",
         ];
     for (const id of tabContentIds) {
-        const el = getDoc().getElementById(/** @type {string} */ (id));
+        const el = getDoc().getElementById(/** @type {string} */(id));
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
@@ -202,16 +202,32 @@ export function updateTabVisibility(visibleTabId) {
     const DISPLAY_BLOCK = "block",
         DISPLAY_NONE = "none";
 
+    // Normalize the requested visible tab id to a canonical content id when possible.
+    // This allows inputs like "summary-content" (pattern) to correctly map to "content-summary".
+    /** @type {string|null|undefined} */
+    let targetId = visibleTabId;
+    /** @type {string|null} */ let derivedTabName = null;
+    if (targetId && !(targetId in elementMap)) {
+        const maybeName = extractTabNameFromContentId(String(targetId));
+        if (maybeName) {
+            const canonicalId = getContentIdFromTabName(maybeName);
+            if (canonicalId in elementMap) {
+                targetId = canonicalId;
+                derivedTabName = maybeName;
+            }
+        }
+    }
+
     // Toggle visibility using the cached elements
     for (const [id, el] of Object.entries(elementMap)) {
-        const isVisible = id === visibleTabId;
+        const isVisible = id === targetId;
         el.style.display = isVisible ? DISPLAY_BLOCK : DISPLAY_NONE;
         el.setAttribute("aria-hidden", (!isVisible).toString());
     }
 
     // Update state to track visible tab content
-    if (visibleTabId) {
-        const tabName = extractTabNameFromContentId(visibleTabId);
+    if (targetId) {
+        const tabName = derivedTabName ?? extractTabNameFromContentId(targetId);
         if (tabName) {
             getStateMgr().setState("ui.activeTabContent", tabName, { source: "updateTabVisibility" });
         }

@@ -341,7 +341,9 @@ function setupDOMEnvironment() {
             getItem: vi.fn().mockReturnValue("visible"),
             setItem: vi.fn(),
         },
-        matchMedia: vi.fn().mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+        matchMedia: vi
+            .fn()
+            .mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
         requestAnimationFrame: vi.fn((cb: FrameRequestCallback) => setTimeout(cb, 0)),
         cancelAnimationFrame: vi.fn((id: number) => clearTimeout(id as unknown as number)),
     };

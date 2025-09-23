@@ -382,11 +382,11 @@ describe("main.js - Complete Coverage Test", () => {
         // Auto-updater events
         // Attach error handler BEFORE emitting to avoid unhandled rejection
         globalMocks.mockAutoUpdater.on("error", () => {});
-    globalMocks.mockAutoUpdater.emit("checking-for-update");
-    globalMocks.mockAutoUpdater.emit("update-available", { version: "2.0.0" });
-    globalMocks.mockAutoUpdater.emit("update-not-available");
-    globalMocks.mockAutoUpdater.emit("download-progress", { percent: 50 });
-    globalMocks.mockAutoUpdater.emit("update-downloaded", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("checking-for-update");
+        globalMocks.mockAutoUpdater.emit("update-available", { version: "2.0.0" });
+        globalMocks.mockAutoUpdater.emit("update-not-available");
+        globalMocks.mockAutoUpdater.emit("download-progress", { percent: 50 });
+        globalMocks.mockAutoUpdater.emit("update-downloaded", { version: "2.0.0" });
         // Do not emit a throwing error event here; error paths are covered elsewhere
 
         // Native theme events

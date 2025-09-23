@@ -35,7 +35,6 @@
  * @property {Object} Zoom - Chart.js zoom plugin
  */
 
-
 /**
  * @typedef {Object} ChartSettings
  * @property {string|number} maxpoints - Maximum data points to display
@@ -159,7 +158,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.showNotification === "function") {
             // Tests expect exactly (message, type)
-            return await g.showNotification(message, /** @type {any} */(type));
+            return await g.showNotification(message, /** @type {any} */ (type));
         }
 
         // Try module cache injection path used by tests
@@ -168,7 +167,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
                 const reqMod = g.require("../../ui/notifications/showNotification.js");
                 const fn = reqMod?.showNotification || reqMod?.default?.showNotification || reqMod?.default;
                 if (typeof fn === "function") {
-                    return await fn(message, /** @type {any} */(type));
+                    return await fn(message, /** @type {any} */ (type));
                 }
             } catch {
                 // ignore and fall through to dynamic import
@@ -178,7 +177,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         // Dynamically import to avoid static ESM cycles
         const mod = await import("../../ui/notifications/showNotification.js");
         if (mod && typeof mod.showNotification === "function") {
-            await mod.showNotification(message, /** @type {any} */(type));
+            await mod.showNotification(message, /** @type {any} */ (type));
         } else {
             console.warn("[ChartJS] Notification module missing showNotification export");
         }
@@ -316,7 +315,8 @@ function getHoverPluginsSafe() {
         try {
             const m = g.require("../plugins/addChartHoverEffects.js");
             if (m?.addChartHoverEffects) result.addChartHoverEffects = m.addChartHoverEffects;
-            if (m?.addHoverEffectsToExistingCharts) result.addHoverEffectsToExistingCharts = m.addHoverEffectsToExistingCharts;
+            if (m?.addHoverEffectsToExistingCharts)
+                result.addHoverEffectsToExistingCharts = m.addHoverEffectsToExistingCharts;
             if (m?.removeChartHoverEffects) result.removeChartHoverEffects = m.removeChartHoverEffects;
         } catch {
             /* ignore */
@@ -340,31 +340,46 @@ function getRendererModulesSafe() {
         try {
             const m1 = g.require("../components/createChartCanvas.js");
             if (m1?.createChartCanvas) result.createChartCanvas = m1.createChartCanvas;
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const m2 = g.require("../components/createEnhancedChart.js");
             if (m2?.createEnhancedChart) result.createEnhancedChart = m2.createEnhancedChart;
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const m3 = g.require("../rendering/renderEventMessagesChart.js");
             if (m3?.renderEventMessagesChart) result.renderEventMessagesChart = m3.renderEventMessagesChart;
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const m4 = g.require("../rendering/renderGPSTrackChart.js");
             if (m4?.renderGPSTrackChart) result.renderGPSTrackChart = m4.renderGPSTrackChart;
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const m5 = g.require("../rendering/renderLapZoneCharts.js");
             if (m5?.renderLapZoneCharts) result.renderLapZoneCharts = m5.renderLapZoneCharts;
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
         try {
             const m6 = g.require("../rendering/renderPerformanceAnalysisCharts.js");
-            if (m6?.renderPerformanceAnalysisCharts) result.renderPerformanceAnalysisCharts = m6.renderPerformanceAnalysisCharts;
-        } catch { /* ignore */ }
+            if (m6?.renderPerformanceAnalysisCharts)
+                result.renderPerformanceAnalysisCharts = m6.renderPerformanceAnalysisCharts;
+        } catch {
+            /* ignore */
+        }
         try {
             const m7 = g.require("../rendering/renderTimeInZoneCharts.js");
             if (m7?.renderTimeInZoneCharts) result.renderTimeInZoneCharts = m7.renderTimeInZoneCharts;
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     }
     return result;
 }
@@ -470,7 +485,8 @@ export const chartSettingsManager = {
      */
     getFieldVisibility(field) {
         // Use window.localStorage to satisfy test spies
-        const ls = /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
+        const ls =
+            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
         const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
 
         // Update field visibility state for reactive access
@@ -522,7 +538,8 @@ export const chartSettingsManager = {
      */
     setFieldVisibility(field, visibility) {
         // Use window.localStorage to satisfy test spies
-        const ls = /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
+        const ls =
+            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
         ls?.setItem?.(`chartjs_field_${field}`, visibility);
 
         // Update state for reactive access
@@ -614,7 +631,7 @@ function isElement(maybe) {
 // Safe append utility for environments where Element.append may be missing (e.g., jsdom mocks)
 function safeAppend(parent, child) {
     try {
-        if (parent && typeof /** @type {any} */ (parent).append === "function") {
+        if (parent && typeof (/** @type {any} */ (parent).append) === "function") {
             /** @type {any} */ (parent).append(child);
         } else if (parent && parent.insertBefore && parent.firstChild) {
             parent.insertBefore(child, parent.firstChild);
@@ -622,7 +639,7 @@ function safeAppend(parent, child) {
     } catch (error) {
         console.warn("[ChartJS] safeAppend fallback used:", error);
         // Final best-effort attempt using append only (prefer append over appendChild)
-        if (parent && typeof /** @type {any} */ (parent).append === "function") {
+        if (parent && typeof (/** @type {any} */ (parent).append) === "function") {
             try {
                 /** @type {any} */ (parent).append(child);
             } catch {
@@ -704,10 +721,16 @@ try {
                         if (v.Zoom) v.register(v.Zoom);
                         else if (g.chartjsPluginZoom) v.register(g.chartjsPluginZoom);
                         else if (g.ChartZoom) v.register(g.ChartZoom);
-                        try { v.register(chartBackgroundColorPlugin); } catch { /* ignore */ }
+                        try {
+                            v.register(chartBackgroundColorPlugin);
+                        } catch {
+                            /* ignore */
+                        }
                         markRegistered(v);
                     }
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
                 return _Chart;
             },
             set(v) {
@@ -719,7 +742,11 @@ try {
                         else if (g.chartjsPluginZoom) v.register(g.chartjsPluginZoom);
                         else if (g.ChartZoom) v.register(g.ChartZoom);
                         // Always attempt to register background color plugin
-                        try { v.register(chartBackgroundColorPlugin); } catch { /* ignore */ }
+                        try {
+                            v.register(chartBackgroundColorPlugin);
+                        } catch {
+                            /* ignore */
+                        }
                         markRegistered(v);
                     }
                 } catch {
@@ -728,7 +755,11 @@ try {
             },
         });
         // Trigger getter/setter once to ensure registration for pre-existing Chart
-        try { g.Chart = _Chart; } catch { /* ignore */ }
+        try {
+            g.Chart = _Chart;
+        } catch {
+            /* ignore */
+        }
     }
 } catch {
     /* ignore */
@@ -781,7 +812,7 @@ if (!windowAny._fitFileViewerChartListener) {
                     document.body;
                 try {
                     // Call without awaiting to keep handler non-blocking
-                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */(container)));
+                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */ (container)));
                 } catch (error) {
                     console.warn("[ChartJS] Event-based render fallback failed:", error);
                 }
@@ -856,9 +887,7 @@ export const chartState = {
         // In module-injected tests, null means explicitly no data (false).
         // In simpler tests without module cache injection, null should be treated as unknown (null).
         if (data === null) return hasModuleInjection ? false : null;
-        return Boolean(
-            data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0
-        );
+        return Boolean(data && data.recordMesgs && Array.isArray(data.recordMesgs) && data.recordMesgs.length > 0);
     },
 
     // Use computed state for reactive updates
@@ -877,12 +906,13 @@ export const chartState = {
 
         const fields = getFormatChartFieldsSafe();
         // Prefer window.localStorage to satisfy test spies
-        const ls = /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
+        const ls =
+            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
         return Array.isArray(fields)
             ? fields.filter((field) => {
-                const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
-                return visibility !== "hidden";
-            })
+                  const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+                  return visibility !== "hidden";
+              })
             : [];
     },
 
@@ -1007,7 +1037,7 @@ export const chartActions = {
         const newVisibility = !chartState.controlsVisible;
         callSetState("charts.controlsVisible", newVisibility, { silent: false, source: "chartActions.toggleControls" });
         const uiMgr = getUIStateManagerMaybe();
-    /** @type {any} */ (uiMgr)?.updatePanelVisibility?.("chart-controls", newVisibility);
+        /** @type {any} */ (uiMgr)?.updatePanelVisibility?.("chart-controls", newVisibility);
     },
 };
 
@@ -1028,9 +1058,9 @@ try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
-        ChartRef.registry &&
-        ChartRef.registry.plugins &&
-        typeof ChartRef.registry.plugins.get === "function"
+            ChartRef.registry &&
+            ChartRef.registry.plugins &&
+            typeof ChartRef.registry.plugins.get === "function"
     );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
@@ -1079,7 +1109,9 @@ export async function exportChartsWithState(format = "png") {
 
     // Placeholder: real export implementation handled elsewhere; here we just signal success
     try {
-        Promise.resolve().then(() => notify(`Charts exported as ${format?.toUpperCase?.() || String(format)}`, "success"));
+        Promise.resolve().then(() =>
+            notify(`Charts exported as ${format?.toUpperCase?.() || String(format)}`, "success")
+        );
     } catch {
         /* non-fatal */
     }
@@ -1359,7 +1391,7 @@ export async function renderChartJS(targetContainer) {
                 if (!themeConfig || typeof themeConfig !== "object") {
                     themeConfig = /** @type {any} */ ({ colors: {} });
                 }
-                if (!/** @type {any} */ (themeConfig).colors) {
+                if (!(/** @type {any} */ (themeConfig).colors)) {
                     /** @type {any} */ (themeConfig).colors = {
                         text: "#1e293b",
                         textPrimary: "#0f172a",
@@ -1394,8 +1426,13 @@ export async function renderChartJS(targetContainer) {
         let activityStartTime = null;
         if (recordMesgs && recordMesgs.length > 0) {
             for (const rec of recordMesgs) {
-                if (rec && typeof rec === "object" && "timestamp" in /** @type {any} */(rec) && /** @type {any} */(rec).timestamp != null) {
-                    activityStartTime = /** @type {any} */(rec).timestamp;
+                if (
+                    rec &&
+                    typeof rec === "object" &&
+                    "timestamp" in /** @type {any} */ (rec) &&
+                    /** @type {any} */ (rec).timestamp != null
+                ) {
+                    activityStartTime = /** @type {any} */ (rec).timestamp;
                     break;
                 }
             }
@@ -1426,26 +1463,40 @@ export async function renderChartJS(targetContainer) {
             if (/** @type {any} */ (process.env).NODE_ENV === "test") {
                 const modules = getRendererModulesSafe();
                 const tmp = document.createElement("div");
-                try { modules.renderEventMessagesChart?.(tmp, {}, activityStartTime); } catch { /* ignore */ }
-                try { modules.renderTimeInZoneCharts?.(tmp, {}); } catch { /* ignore */ }
-                try { modules.renderLapZoneCharts?.(tmp, /** @type {any} */({ visibilitySettings: {} })); } catch { /* ignore */ }
-                try { modules.renderGPSTrackChart?.(tmp, recordMesgs, {}); } catch { /* ignore */ }
                 try {
-                    const labelsProbe = Array.isArray(recordMesgs)
-                        ? recordMesgs.map((_, i) => i)
-                        : [];
+                    modules.renderEventMessagesChart?.(tmp, {}, activityStartTime);
+                } catch {
+                    /* ignore */
+                }
+                try {
+                    modules.renderTimeInZoneCharts?.(tmp, {});
+                } catch {
+                    /* ignore */
+                }
+                try {
+                    modules.renderLapZoneCharts?.(tmp, /** @type {any} */ ({ visibilitySettings: {} }));
+                } catch {
+                    /* ignore */
+                }
+                try {
+                    modules.renderGPSTrackChart?.(tmp, recordMesgs, {});
+                } catch {
+                    /* ignore */
+                }
+                try {
+                    const labelsProbe = Array.isArray(recordMesgs) ? recordMesgs.map((_, i) => i) : [];
                     modules.renderPerformanceAnalysisCharts?.(tmp, recordMesgs, labelsProbe, {});
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
 
         let result = false;
         try {
-            result = await renderChartsWithData(
-                /** @type {any} */(targetContainer),
-                recordMesgs,
-                activityStartTime
-            );
+            result = await renderChartsWithData(/** @type {any} */ (targetContainer), recordMesgs, activityStartTime);
         } catch (innerError) {
             console.warn("[ChartJS] renderChartsWithData threw, continuing with graceful completion:", innerError);
             // If we have valid data, treat inner errors as non-fatal so that overall rendering
@@ -1463,10 +1514,10 @@ export async function renderChartJS(targetContainer) {
             if (ca && typeof ca.completeRendering === "function") {
                 ca.completeRendering(success, chartCount, renderTime);
             } else {
-                safeCompleteRendering(/** @type {any} */(success));
+                safeCompleteRendering(/** @type {any} */ (success));
             }
         } catch {
-            safeCompleteRendering(/** @type {any} */(success));
+            safeCompleteRendering(/** @type {any} */ (success));
         }
         // Ensure hover-effects dev helper is invoked even if inner renderer short-circuited,
         // so integration tests observing this spy still pass.
@@ -1502,7 +1553,7 @@ export async function renderChartJS(targetContainer) {
             if (!themeConfig || typeof themeConfig !== "object") {
                 themeConfig = /** @type {any} */ ({ colors: {} });
             }
-            if (!/** @type {any} */ (themeConfig).colors) {
+            if (!(/** @type {any} */ (themeConfig).colors)) {
                 /** @type {any} */ (themeConfig).colors = {
                     text: "#1e293b",
                     textPrimary: "#0f172a",
@@ -1524,16 +1575,16 @@ export async function renderChartJS(targetContainer) {
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
                         /** @type {any} */ (themeConfig).colors.text
-                });">An error occurred while rendering the charts.</p>
+                    });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                });">Error Details</summary>
+                        });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
                             /** @type {any} */ (themeConfig).colors.border
-                });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
+                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -1740,7 +1791,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Process each field using state-managed visibility settings
     let visibleFieldCount = 0;
     // Prefer configured renderable fields; if unavailable, infer from data to ensure charts render in tests
-    let { renderableFields } = chartState;
+    const { renderableFields } = chartState;
     /** @type {string[]} */
     let fieldsToRender = Array.isArray(renderableFields) ? [...renderableFields] : [];
     if (!fieldsToRender.length) {
@@ -1748,9 +1799,12 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             const sample = Array.isArray(recordMesgs) ? recordMesgs.find((r) => r && typeof r === "object") || {} : {};
             fieldsToRender = Object.keys(sample)
                 .filter((k) => k !== "timestamp")
-                .filter((k) => typeof /** @type {any} */(sample)[k] === "number");
+                .filter((k) => typeof (/** @type {any} */ (sample)[k]) === "number");
             // Provide a sane default if still empty
-            if (!fieldsToRender.length) fieldsToRender = ["speed", "elevation", "heart_rate", "power"].filter((f) => f in /** @type {any} */(sample));
+            if (!fieldsToRender.length)
+                fieldsToRender = ["speed", "elevation", "heart_rate", "power"].filter(
+                    (f) => f in /** @type {any} */ (sample)
+                );
         } catch {
             // ignore and proceed with empty, which will show no-data messages later
         }
@@ -1772,26 +1826,31 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         // Extract numeric data with unit conversion and better debugging
         const numericData = data.map((row, index) => {
-            if (row && typeof row === "object" && /** @type {any} */ (row)[field] !== undefined && /** @type {any} */ (row)[field] !== null) {
-                let value = Number.parseFloat(/** @type {any} */(row)[field]);
+                if (
+                    row &&
+                    typeof row === "object" &&
+                    /** @type {any} */ (row)[field] !== undefined &&
+                    /** @type {any} */ (row)[field] !== null
+                ) {
+                    let value = Number.parseFloat(/** @type {any} */ (row)[field]);
 
-                // Apply unit conversion based on user preferences
-                if (!isNaN(value)) {
-                    value = convert(value, field);
-                }
+                    // Apply unit conversion based on user preferences
+                    if (!isNaN(value)) {
+                        value = convert(value, field);
+                    }
 
-                if (index < 3) {
-                    // Debug first few rows
-                    console.log(
-                        `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
-                            field
-                        )}`
-                    );
+                    if (index < 3) {
+                        // Debug first few rows
+                        console.log(
+                            `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
+                                field
+                            )}`
+                        );
+                    }
+                    return isNaN(value) ? null : value;
                 }
-                return isNaN(value) ? null : value;
-            }
-            return null;
-        }),
+                return null;
+            }),
             validDataCount = numericData.filter((val) => val !== null).length;
         console.log(`[ChartJS] Field ${field}: ${validDataCount} valid data points out of ${numericData.length}`);
 
@@ -1808,7 +1867,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Prepare chart data for enhanced chart with comprehensive unit conversion
         let chartData = data
             .map((row, i) => {
-                let value = row && typeof row === "object" ? (/** @type {any} */ (row)[field] ?? null) : null;
+                let value = row && typeof row === "object" ? /** @type {any} */ ((row)[field] ?? null) : null;
 
                 // Apply unit conversion based on user preferences
                 if (value !== null && typeof value === "number") {
@@ -1833,7 +1892,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         // Create enhanced chart
         const chart = createEnhancedChartSafe(
             canvas,
-            /** @type {any} */({
+            /** @type {any} */ ({
                 animationStyle,
                 chartData,
                 chartType,
@@ -1889,7 +1948,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneChartsSafe(
             chartContainer,
-            /** @type {any} */({
+            /** @type {any} */ ({
                 // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
@@ -2015,7 +2074,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     }
     // Also call dev-helper variant unconditionally to satisfy certain integration tests
     try {
-        const { addHoverEffectsToExistingCharts: addHoverEffectsToExistingChartsSafe } = getHoverPluginsSafe();
+        // This function was already imported as addHoverEffectsToExistingChartsSafe above; call it directly
         addHoverEffectsToExistingChartsSafe?.();
     } catch {
         /* ignore */
@@ -2028,9 +2087,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Compute directly to avoid relying on chartState in tests that import during init
     const hasValidData = Boolean(
         getState("globalData") &&
-        getState("globalData").recordMesgs &&
-        Array.isArray(getState("globalData").recordMesgs) &&
-        getState("globalData").recordMesgs.length > 0
+            getState("globalData").recordMesgs &&
+            Array.isArray(getState("globalData").recordMesgs) &&
+            getState("globalData").recordMesgs.length > 0
     );
     try {
         const CE = /** @type {any} */ (globalThis).CustomEvent;
@@ -2180,9 +2239,9 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */(computedStateManager).list?.(),
+                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
+                list: () => /** @type {any} */ (computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({

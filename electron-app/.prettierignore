@@ -16,3 +16,4 @@ coverage/
 
 # Ignore package.json in electron-app
 electron-app/package.json
+html/

@@ -14,6 +14,9 @@
   <a href="https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml">
     <img alt="Badge: Electron Builds (dynamic status, flat-square style)" src="https://img.shields.io/github/actions/workflow/status/Nick2bad4u/FitFileViewer/Build.yml?branch=main&style=flat-square&logo=electron&logoColor=white&logoSize=auto&label=Cross-Platform%20Builds&cacheSeconds=3600&link=https%3A%2F%2Fgithub.com%2FNick2bad4u%2FFitFileViewer%2Factions%2Fworkflows%2FBuild.yml" title="Windows - Mac - Linux Builds">
   </a>
+  <a href="https://codecov.io/gh/Nick2bad4u/FitFileViewer">
+    <img src="https://img.shields.io/codecov/c/github/Nick2bad4u/FitFileViewer?logo=codecov" alt="Coverage">
+  </a>
   <a href="https://github.com/nick2bad4u/fitfileviewer/pulls" title="View or submit pull requests">
     <img alt="Badge: PRs Welcome (green, flat-square style)" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square&logo=github" title="PRs Welcome">
   </a>
@@ -218,7 +221,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <sub> - Most Windows users should download the "Installer EXE", "MSI" or "Portable" versions </sub>
 
 | Platform | Architecture | Format        | Filename Example                        |
-| -------- | ------------ | ------------- | --------------------------------------- |
+|----------|--------------|---------------|-----------------------------------------|
 | :------- | :----------- | :------------ | :-------------------------------------- |
 | Windows  | x64          | Installer EXE | Fit-File-Viewer-nsis-x64-X.X.X.exe      |
 | Windows  | x64          | Installer Web | Fit-File-Viewer-nsis-web-x64-X.X.X.exe  |
@@ -246,7 +249,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <details><summary>🗂️ Update Files (Nupkg &amp; Blockmap)</summary>
 
 | Platform | Architecture | Format            | Filename Example                             |
-| -------- | ------------ | ----------------- | -------------------------------------------- |
+|----------|--------------|-------------------|----------------------------------------------|
 | :------- | :----------- | :---------------- | :------------------------------------------- |
 | Windows  | x64          | Blockmap          | Fit-File-Viewer-nsis-x64-X.X.X.exe.blockmap  |
 | Windows  | ia32 / win32 | Blockmap          | Fit-File-Viewer-nsis-ia32-X.X.X.exe.blockmap |
@@ -268,7 +271,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <sub> - Most Mac users should download the "DMG" or "PKG" versions </sub>
 
 | Platform | Architecture | Format  | Filename Example                               |
-| -------- | ------------ | ------- | ---------------------------------------------- |
+|----------|--------------|---------|------------------------------------------------|
 | :------- | :----------- | :------ | :--------------------------------------------- |
 | macOS    | x64          | DMG     | Fit-File-Viewer-dmg-x64-X.X.X.dmg              |
 | macOS    | x64          | PKG     | Fit-File-Viewer-pkg-x64-X.X.X.pkg              |
@@ -291,7 +294,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <details><summary>🗂️ Update Files (Blockmap)</summary>
 
 | Platform | Architecture | Format       | Filename Example                                    |
-| -------- | ------------ | ------------ | --------------------------------------------------- |
+|----------|--------------|--------------|-----------------------------------------------------|
 | :------- | :----------- | :----------- | :-------------------------------------------------- |
 | macOS    | x64          | DMG Blockmap | Fit-File-Viewer-dmg-x64-X.X.X.dmg.blockmap          |
 | macOS    | universal    | DMG Blockmap | Fit-File-Viewer-dmg-universal-X.X.X.dmg.blockmap    |
@@ -312,7 +315,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <sub> - Most Linux users should download the "AppImage" or "DEB" versions </sub>
 
 | Platform | Architecture | Format       | Filename Example                               |
-| -------- | ------------ | ------------ | ---------------------------------------------- |
+|----------|--------------|--------------|------------------------------------------------|
 | :------- | :----------- | :----------- | :--------------------------------------------- |
 | Linux    | x64          | AppImage     | Fit-File-Viewer-appimage-x86_64-X.X.X.AppImage |
 | Linux    | x64          | DEB          | Fit-File-Viewer-deb-amd64-X.X.X.deb            |

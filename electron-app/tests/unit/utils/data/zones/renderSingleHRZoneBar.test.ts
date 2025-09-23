@@ -5,7 +5,7 @@ import { JSDOM } from "jsdom";
 declare global {
     interface Window {
         Chart?: any;
-    showNotification?: (message: string, type?: string, duration?: number, options?: any) => Promise<void>;
+        showNotification?: (message: string, type?: string, duration?: number, options?: any) => Promise<void>;
     }
 }
 

@@ -26,7 +26,7 @@ import { initializeRendererUtils, showNotification } from "../../app/initializat
 // Avoid importing Node core modules in the renderer; acquire lazily only when available (tests/CJS)
 /** @type {any} */ let __lazyNodePath = null;
 /** @type {any} */ let __lazyModule = null;
-/** @type {any} */ let __lazyCreateRequire = null;
+/** @type {any} */ const __lazyCreateRequire = null;
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { cleanupStateDevTools, initializeStateDevTools } from "../../debug/stateDevTools.js";
 import { initializeControlsState } from "../../rendering/helpers/updateControlsState.js";
@@ -745,35 +745,32 @@ function getAppLifecycleModule() {
 // Helper to dynamically resolve mocked state API in tests (require.cache injection)
 // Helper to obtain CommonJS require in both CJS and ESM contexts (used by Vitest cache-injection tests)
 function getCjsRequire() {
-    // Try to access the ambient CommonJS require used by tests first
+    // Prefer globally exposed require when available (some test runners set global.require)
     try {
-        // eslint-disable-next-line no-eval
-        const evalRequire = /** @type {any} */ (eval("require"));
-        if (evalRequire && evalRequire.cache) return evalRequire;
+        const gReq = /** @type {any} */ (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).require);
+        if (gReq && gReq.cache) return gReq;
     } catch {
         // ignore
     }
-    // Prefer globally exposed require when available (some test runners set global.require)
-    const gReq = /** @type {any} */ (globalThis && /** @type {any} */ (globalThis).require);
-    if (gReq && gReq.cache) return gReq;
     // Fall back to native require when present (CommonJS context)
     try {
-        // Direct reference first (CJS modules)
         if (typeof require !== "undefined" && /** @type {any} */ (require).cache) {
             return /** @type {any} */ (require);
         }
     } catch {
-        // ignore and try eval below
+        // ignore
     }
-    // As a last resort in pure ESM, use createRequire (separate cache)
+    // As a last resort, use Module.createRequire if available
     try {
-        if (!__lazyCreateRequire) {
-            // eslint-disable-next-line no-eval
-            const m = /** @type {any} */ (eval("(function(){try{return require('module')}catch{return null}})()"));
-            __lazyCreateRequire = m && typeof m.createRequire === "function" ? m.createRequire : null;
+        if (typeof require !== "undefined") {
+            const Module = /** @type {any} */ (require("node:module"));
+            if (Module && typeof Module.createRequire === "function") {
+                const basePath = typeof __filename === "undefined" ? process.cwd() : __filename;
+                const req = Module.createRequire(basePath);
+                if (req && req.cache) return req;
+                return req;
+            }
         }
-        const req = __lazyCreateRequire ? __lazyCreateRequire(import.meta.url) : null;
-        if (req && req.cache) return req;
     } catch {
         // ignore
     }
@@ -824,9 +821,9 @@ function getModuleExportsFromCache(pathSuffixLower) {
 
 function getNodeModuleCache() {
     try {
+        if (typeof require === "undefined") return null;
         if (!__lazyModule) {
-            // eslint-disable-next-line no-eval
-            __lazyModule = /** @type {any} */ (eval("(function(){try{return require('module')}catch{return null}})()"));
+            __lazyModule = /** @type {any} */ (require("node:module"));
         }
         const cache = /** @type {any} */ (__lazyModule && /** @type {any} */ (__lazyModule)._cache);
         return cache && typeof cache === "object" ? cache : null;
@@ -892,15 +889,19 @@ function getStateManagerAPI() {
             if (req) {
                 const cwd = typeof process !== "undefined" && process.cwd ? process.cwd() : "";
                 if (!__lazyNodePath) {
-                    __lazyNodePath = /** @type {any} */ (
-                        eval("(function(){try{return require('node:path')}catch{return null}})()")
-                    );
+                    try {
+                        __lazyNodePath = req("node:path");
+                    } catch {
+                        __lazyNodePath = null;
+                    }
                 }
-                const candidates = [
-                    __lazyNodePath && __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.js"),
-                    __lazyNodePath && __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.cjs"),
-                    __lazyNodePath && __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.mjs"),
-                ];
+                const candidates = __lazyNodePath
+                    ? [
+                          __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.js"),
+                          __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.cjs"),
+                          __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.mjs"),
+                      ]
+                    : [];
                 for (const cand of candidates) {
                     try {
                         if (!cand) continue;

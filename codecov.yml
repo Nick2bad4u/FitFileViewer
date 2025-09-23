@@ -1,0 +1,216 @@
+# Codecov configuration for FitFileViewer
+# See: https://docs.codecov.com/docs/codecov-yaml
+# Optimized for Electron architecture with FIT file parsing and visualization
+# Updated for 2025 Codecov best practices
+
+codecov:
+    archive:
+        uploads: true # Keep historical data for analytics
+
+    branch: main
+    max_report_age: "24h" # Modern syntax - reject reports older than 24 hours
+    notify:
+        manual_trigger: false # Explicit setting for modern CI/CD pipelines
+        notify_error: true # Show upload failures in comments
+        wait_for_ci: true
+    require_ci_to_pass: true
+comment:
+    behavior: default
+    hide_project_coverage: false
+
+    layout: "header, flags, diff, tree, files, reach, betaprofiling, components, footer, feedback"
+    require_base: false # Allow comments on first PR
+    require_changes: false
+    require_head: false # Require head report to comment
+component_management:
+    default_rules:
+        statuses:
+            - branches:
+                  - "!main"
+              target: auto
+              threshold: 2%
+              type: project
+    individual_components:
+        # === CORE ELECTRON PROCESS (Highest Coverage Requirements) ===
+        - component_id: core_electron
+          name: "⚡ Core Electron Process"
+          paths:
+              - electron-app/main.js
+              - electron-app/preload.js
+          statuses:
+              - target: 95%
+                threshold: 1%
+                type: project
+              - target: 90%
+                threshold: 3%
+                type: patch
+        # === RENDERER AND UI (Medium-High Coverage) ===
+        - component_id: renderer_ui
+          name: "🖥️ Renderer & UI"
+          paths:
+              - electron-app/renderer.js
+              - electron-app/main-ui.js
+              - electron-app/index.html
+              - electron-app/style.css
+          statuses:
+              - target: 80%
+                threshold: 3%
+                type: project
+              - target: 75%
+                threshold: 7%
+                type: patch
+        # === UTILITIES (High Coverage - Easy to Test) ===
+        - component_id: utilities
+          name: "🛠️ Utilities"
+          paths:
+              - electron-app/utils/**
+          statuses:
+              - target: 90%
+                threshold: 2%
+                type: project
+              - target: 85%
+                threshold: 5%
+                type: patch
+        # === FIT PARSING (Core Business Logic) ===
+        - component_id: fit_parsing
+          name: "📊 FIT Parsing"
+          paths:
+              - electron-app/fitParser.js
+          statuses:
+              - target: 95%
+                threshold: 1%
+                type: project
+              - target: 90%
+                threshold: 3%
+                type: patch
+        # === WINDOW STATE MANAGEMENT (Medium Coverage) ===
+        - component_id: window_state
+          name: "🪟 Window State Management"
+          paths:
+              - electron-app/windowStateUtils.js
+          statuses:
+              - target: 85%
+                threshold: 2%
+                type: project
+              - target: 80%
+                threshold: 5%
+                type: patch
+coverage:
+    ignore:
+        # Build outputs and compiled files
+        - "dist/**/*"
+        - "dist-electron/**/*"
+        - "**/dist/**/*"
+        - "electron-app/dist/**/*"
+        - "coverage/**/*"
+        - "release/**/*"
+
+        # Development and configuration files
+        - "scripts/**/*"
+        - "docs/**/*"
+        - "**/*.config.*"
+        - "**/*.d.ts"
+        - "**/node_modules/**/*"
+        - "vite.config.ts"
+        - "vitest.config.ts"
+        - "vitest.electron.config.ts"
+        - "vitest.shared.config.ts"
+        - "tsconfig*.json"
+        - "eslint.config.mjs"
+        - "tailwind.config.mjs"
+        - "postcss.config.mjs"
+
+        # Test files (don't test the tests)
+        - "**/*.test.*"
+        - "**/*.spec.*"
+        - "**/test/**/*"
+        - "electron-app/test/**/*"
+        - "**/__tests__/**/*"
+        - "**/tests/**/*"
+
+        # Static assets and documentation
+        - "public/**/*"
+        - "icons/**/*"
+        - "**/*.md"
+        - "**/*.yml"
+        - "**/*.yaml"
+        - "**/*.json"
+
+        # Project-specific ignores
+        - "fit-test-files/**/*"
+        - "vscode-extension/**/*"
+        - "vis/**/*"
+        - "libs/**/*"
+
+        # Generated files
+        - "**/*.generated.*"
+        - "**/generated/**/*"
+
+        # Entry points (often just imports)
+        - "electron-app/main.js" # Already covered in components, but ignore for coverage if minimal
+        - "**/index.js" # Index files are usually just exports
+
+    precision: 2
+    range: "60...100" # Realistic range for Electron app
+
+    round: down
+    status:
+        patch:
+            default:
+                only_pulls: false
+                target: 65% # Realistic for new code
+                threshold: 10%
+            electron_app:
+                flags:
+                    - electron_app
+                paths:
+                    - "electron-app/"
+                target: 70% # Backend should have higher coverage
+                threshold: 10%
+        project:
+            default:
+                base: auto
+                if_ci_failed: error
+                only_pulls: false
+                target: auto
+                threshold: 2% # Slightly more lenient for complex architecture
+            electron_app:
+                flags:
+                    - electron_app
+                paths:
+                    - "electron-app/"
+                target: 85% # Higher target for core logic
+                threshold: 2%
+flags:
+    electron_app:
+        carryforward: false
+        ignore:
+            - "electron-app/**/*.test.*"
+            - "electron-app/**/*.spec.*"
+            - "electron-app/test/**/*"
+            - "electron-app/main.js" # Entry point
+        paths:
+            - electron-app/
+# Modern GitHub integration (replaces deprecated github_checks)
+github_checks:
+    annotations: true
+
+parsers:
+    cobertura:
+        handle_missing_conditions: true # Better error handling
+
+        partials_as_hits: false # Default setting for Cobertura reports
+    gcov:
+        branch_detection:
+            conditional: true # Track if/else branches
+            loop: true # Track loop branches
+            macro: false # Don't track macro expansions
+            method: false # Don't track method entry/exit
+    javascript:
+        enable_partials: true # Enhanced for modern JS/TS projects
+    v1:
+        include_full_missed_files: true # Show files with 0% coverage
+# Modern Slack integration
+slack_app: false # Set to true to enable Codecov Slack App notifications
+
+# Enhanced component management for FitFileViewer Electron app

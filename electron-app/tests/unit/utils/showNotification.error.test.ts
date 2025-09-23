@@ -63,10 +63,7 @@ describe("showNotification.js - error handling coverage", () => {
         await processNotificationQueue();
 
         // Error should be logged and queue processing should not crash
-        expect(console.error).toHaveBeenCalledWith(
-            "Error displaying notification:",
-            expect.any(Error)
-        );
+        expect(console.error).toHaveBeenCalledWith("Error displaying notification:", expect.any(Error));
 
         // Reset state
         __testResetNotifications();

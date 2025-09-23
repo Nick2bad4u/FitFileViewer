@@ -44,9 +44,7 @@ describe("showNotification.js - advanced coverage", () => {
         document.body.innerHTML = "";
         const p = showNotification("No element present");
         await p;
-        expect(console.warn).toHaveBeenCalledWith(
-            "Notification element not found. Unable to display notification."
-        );
+        expect(console.warn).toHaveBeenCalledWith("Notification element not found. Unable to display notification.");
     });
 
     it("clears existing hideTimeout when displaying new notification", async () => {

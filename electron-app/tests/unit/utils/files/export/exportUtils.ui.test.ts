@@ -80,11 +80,11 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect((overlay2.querySelector("#imgur-client-id") as HTMLInputElement).value).toBe(
             exportUtils.getImgurConfig().clientId
         );
-    // Status reflects current configuration logic: default client id is considered configured
-    expect((overlay2.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Configured/);
+        // Status reflects current configuration logic: default client id is considered configured
+        expect((overlay2.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Configured/);
 
         // Close button removes overlay
-        ;(overlay2.querySelector("#imgur-close") as HTMLButtonElement).click();
+        (overlay2.querySelector("#imgur-close") as HTMLButtonElement).click();
         expect(document.querySelector(".imgur-account-manager-modal")).toBeNull();
 
         // Reopen and test ESC
@@ -106,19 +106,19 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const modal = document.querySelector(".imgur-account-manager-modal") as HTMLElement;
         expect(modal).toBeTruthy();
 
-    // With default client id -> considered configured in current logic
-    exportUtils.updateImgurStatus(modal);
-    expect((modal.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Configured/);
-
-    // Force unconfigured/limited by setting placeholder client id
-    exportUtils.setImgurConfig("YOUR_IMGUR_CLIENT_ID");
+        // With default client id -> considered configured in current logic
         exportUtils.updateImgurStatus(modal);
-    expect((modal.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Default|Limited/);
+        expect((modal.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Configured/);
 
-    // Custom client id -> configured
-    exportUtils.setImgurConfig("abc");
-    exportUtils.updateImgurStatus(modal);
-    expect((modal.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Configured/);
+        // Force unconfigured/limited by setting placeholder client id
+        exportUtils.setImgurConfig("YOUR_IMGUR_CLIENT_ID");
+        exportUtils.updateImgurStatus(modal);
+        expect((modal.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Default|Limited/);
+
+        // Custom client id -> configured
+        exportUtils.setImgurConfig("abc");
+        exportUtils.updateImgurStatus(modal);
+        expect((modal.querySelector("#imgur-status") as HTMLElement).textContent).toMatch(/Configured/);
         // cleanup
         modal.parentElement?.remove();
     });
@@ -165,7 +165,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         (globalThis as any).confirm = () => true;
         (overlay1.querySelector("#clear-all-data") as HTMLButtonElement).click();
         expect(document.querySelector(".gyazo-account-manager-modal")).toBeNull();
-        ;(globalThis as any).confirm = oldConfirm;
+        (globalThis as any).confirm = oldConfirm;
 
         // Reopen then close button
         exportUtils.showGyazoAccountManager();
@@ -194,7 +194,9 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const rejectSpy = vi.fn();
 
         // Mock exchange function to return token
-        const spyExchange = vi.spyOn(exportUtils, "exchangeGyazoCodeForToken").mockResolvedValue({ access_token: "tok" } as any);
+        const spyExchange = vi
+            .spyOn(exportUtils, "exchangeGyazoCodeForToken")
+            .mockResolvedValue({ access_token: "tok" } as any);
 
         const overlay = exportUtils.createGyazoAuthModal("http://auth", "state", resolveSpy, rejectSpy, false);
         document.body.append(overlay);
@@ -252,13 +254,17 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const beforeEscCalls = ((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls.length;
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
         // ESC may trigger multiple listeners (from current and prior modals); ensure it increases by at least 1
-        expect(((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls.length).toBeGreaterThanOrEqual(beforeEscCalls + 1);
+        expect(((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls.length).toBeGreaterThanOrEqual(
+            beforeEscCalls + 1
+        );
 
         // Click outside
         const overlay3 = exportUtils.createGyazoAuthModal("http://auth", "state", vi.fn(), vi.fn(), true);
         document.body.append(overlay3);
         const beforeClickCalls = ((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls.length;
         overlay3.click();
-        expect(((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls.length).toBeGreaterThanOrEqual(beforeClickCalls + 1);
+        expect(((globalThis as any).electronAPI.stopGyazoServer as any).mock.calls.length).toBeGreaterThanOrEqual(
+            beforeClickCalls + 1
+        );
     });
 });

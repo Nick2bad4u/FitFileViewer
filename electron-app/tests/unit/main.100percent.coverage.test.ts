@@ -397,7 +397,7 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(globalMocks.mockApp.whenReady).toHaveBeenCalled();
-    expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe("function");
+        expect(typeof globalMocks.mockBrowserWindow.getAllWindows).toBe("function");
     });
 
     test("should exercise core initialization functions through direct calls", async () => {
@@ -416,18 +416,18 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         // Give time for any async initialization
         await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Safely report set() calls on the first instantiated state manager
-    const stateMockResults = (globalMocks as any).MockMainProcessState?.mock?.results || [];
-    const firstStateInstance = stateMockResults[0]?.value;
-    const setCalls = firstStateInstance?.set?.mock?.calls?.length ?? 0;
-    console.log(`MockMainProcessState.set called: ${setCalls} times`);
+        // Safely report set() calls on the first instantiated state manager
+        const stateMockResults = (globalMocks as any).MockMainProcessState?.mock?.results || [];
+        const firstStateInstance = stateMockResults[0]?.value;
+        const setCalls = firstStateInstance?.set?.mock?.calls?.length ?? 0;
+        console.log(`MockMainProcessState.set called: ${setCalls} times`);
         console.log(`mockApp.whenReady called: ${globalMocks.mockApp.whenReady.mock.calls.length} times`);
         console.log(
             `mockBrowserWindow.getAllWindows called: ${globalMocks.mockBrowserWindow.getAllWindows.mock.calls.length} times`
         );
 
         // If initialization didn't happen automatically, try to trigger it manually
-    if (setCalls === 0) {
+        if (setCalls === 0) {
             console.log("[TEST] Initialization did not happen automatically, trying manual trigger");
 
             // Try to access internal functions if available
@@ -486,9 +486,9 @@ describe("main.js - Comprehensive Coverage Tests", () => {
         // Wait for all initialization to complete
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Verify IPC handler registration capability exists (avoid timing brittleness)
-    expect(typeof globalMocks.mockIpcMain.handle).toBe("function");
-    expect(typeof globalMocks.mockIpcMain.on).toBe("function");
+        // Verify IPC handler registration capability exists (avoid timing brittleness)
+        expect(typeof globalMocks.mockIpcMain.handle).toBe("function");
+        expect(typeof globalMocks.mockIpcMain.on).toBe("function");
     });
 
     test("should exercise auto-updater initialization", async () => {
@@ -560,8 +560,8 @@ describe("main.js - Comprehensive Coverage Tests", () => {
 
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-    // Verify file operations hook exists (the probe may be swallowed by try/catch)
-    expect(typeof globalMocks.mockFs.readFileSync).toBe("function");
+        // Verify file operations hook exists (the probe may be swallowed by try/catch)
+        expect(typeof globalMocks.mockFs.readFileSync).toBe("function");
     });
 
     test("should exercise window lifecycle and theme management", async () => {
