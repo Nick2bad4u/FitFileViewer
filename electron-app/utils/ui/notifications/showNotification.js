@@ -119,14 +119,7 @@ export async function showNotification(message, type = "info", duration = null, 
 
     /** @type {NotificationTypeConfig} */
     const config = NOTIFICATION_TYPES[type];
-    const finalDuration = options.persistent ? null : typeof duration === "number" ? duration : config.duration;
-
-    // Promise that resolves when THIS notification becomes visible
-    /** @type {(value?: void) => void} */
-    let resolveShown = () => {};
-    const shownPromise = new Promise((resolve) => {
-        resolveShown = /** @type {(value?: void) => void} */ (resolve);
-    });
+    const finalDuration = options.persistent ? null : duration ?? config.duration;
 
     // Create notification object
     /** @type {QueuedNotification} */
