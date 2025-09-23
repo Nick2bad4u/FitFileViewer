@@ -1,29 +1,6 @@
 ---
 mode: "BeastMode"
-tools:
- [
-  "createFile",
-  "createDirectory",
-  "editFiles",
-  "search",
-  "runCommands",
-  "runTasks",
-  "usages",
-  "think",
-  "problems",
-  "changes",
-  "testFailure",
-  "openSimpleBrowser",
-  "fetch",
-  "githubRepo",
-  "todos",
-  "runTests",
-  "sequentialthinking",
-  "review",
-  "reviewStaged",
-  "reviewUnstaged",
-  "websearch",
- ]
+tools: ['createFile', 'createDirectory', 'editFiles', 'search', 'runCommands', 'runTask', 'getTaskOutput', 'usages', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'runTests', 'sequentialthinking', 'electron-mcp-server', 'websearch']
 description: "Generate 100% Test Coverage"
 ---
 
