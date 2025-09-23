@@ -221,6 +221,8 @@
     "test:watch": "vitest --watch",
     "test:watch-changed": "vitest --watch --changed",
     "test:coverage": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --coverage --run --reporter=dot --silent",
+    "test:coverage:enhanced": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --config vitest.config.enhanced.js --coverage --run --reporter=dot --silent",
+    "test:enhanced": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --config vitest.config.enhanced.js --run --reporter=dot --silent",
     "test:coverage-changed": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --coverage --changed --run --reporter=dot --silent",
     "test:unit": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/unit",
     "test:integration": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/integration",
