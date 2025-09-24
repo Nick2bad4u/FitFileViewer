@@ -242,12 +242,15 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         );
     });
 
-    it("updateLoadingProgress updates DOM styles and aria", () => {
+    it("updateLoadingProgress updates ui.loadingIndicator state", () => {
         const mgr = new FitFileStateManager();
-        const el = document.getElementById("file-loading-progress")!;
+        const uspy = vi.spyOn(stateManager, "updateState");
         mgr.updateLoadingProgress(30);
-        expect(el.style.width).toBe("30%");
-        expect(el.getAttribute("aria-valuenow")).toBe("30");
+        expect(uspy).toHaveBeenCalledWith(
+            "ui.loadingIndicator",
+            { active: true, progress: 30 },
+            expect.objectContaining({ source: "FitFileStateManager.updateLoadingProgress" })
+        );
     });
 
     it("validateFileData sets validation, shows error/warning/happy notifications", () => {

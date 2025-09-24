@@ -16,23 +16,27 @@
  * @author FitFileViewer Team
  */
 
-import { setLoading, showNotification } from "./utils/app/initialization/rendererUtils.js";
-import { patchSummaryFields } from "./utils/data/processing/patchSummaryFields.js";
-import { copyTableAsCSV } from "./utils/files/export/copyTableAsCSV.js";
-// Import utility functions
-import { formatDistance } from "./utils/formatting/formatters/formatDistance.js";
-import { formatDuration } from "./utils/formatting/formatters/formatDuration.js";
-import { formatArray } from "./utils/formatting/formatters/formatUtils.js";
-import { renderMap } from "./utils/maps/core/renderMap.js";
-import { createTables } from "./utils/rendering/components/createTables.js";
-import { renderSummary } from "./utils/rendering/core/renderSummary.js";
-import { renderTable } from "./utils/rendering/core/renderTable.js";
-import { showFitData } from "./utils/rendering/core/showFitData.js";
-import { applyTheme, listenForThemeChange, loadTheme } from "./utils/theming/core/theme.js";
-import { updateMapTheme } from "./utils/theming/specific/updateMapTheme.js";
-import { setTabButtonsEnabled } from "./utils/ui/controls/enableTabButtons.js";
-import { updateActiveTab } from "./utils/ui/tabs/updateActiveTab.js";
-import { updateTabVisibility } from "./utils/ui/tabs/updateTabVisibility.js";
+import {
+    applyTheme,
+    copyTableAsCSV,
+    createTables,
+    formatArray,
+    formatDistance,
+    formatDuration,
+    listenForThemeChange,
+    loadTheme,
+    patchSummaryFields,
+    renderMap,
+    renderSummary,
+    renderTable,
+    setLoading,
+    setTabButtonsEnabled,
+    showFitData,
+    showNotification,
+    updateActiveTab,
+    updateMapTheme,
+    updateTabVisibility,
+} from "./utils/index.js";
 
 /**
  * @typedef {Object} ConstantsType

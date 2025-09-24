@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { setState } from "../../../../utils/state/core/stateManager.js";
 
 vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     setState: vi.fn(),
@@ -40,9 +41,29 @@ describe("showFitData", () => {
         const filePath = "C:/tmp/file.fit";
         showFitData(data, filePath);
 
-        // Verify UI update
-        const nameSpan = document.getElementById("activeFileName")!;
-        expect(nameSpan.textContent).toContain("Active:");
+        const setStateCalls = vi.mocked(setState).mock.calls;
+        const callPaths = setStateCalls.map((call) => call[0]);
+        expect(callPaths).toEqual(
+            expect.arrayContaining([
+                "globalData",
+                "ui.isMapRendered",
+                "ui.isChartRendered",
+                "ui.fileInfo",
+                "ui.unloadButtonVisible",
+                "currentFile",
+            ])
+        );
+
+        const fileInfoCall = setStateCalls.find((call) => call[0] === "ui.fileInfo");
+        expect(fileInfoCall?.[1]).toEqual(
+            expect.objectContaining({
+                displayName: "file.fit",
+                hasFile: true,
+                title: "Fit File Viewer - file.fit",
+            })
+        );
+
+        expect(setState).toHaveBeenCalledWith("currentFile", filePath, expect.any(Object));
 
         // setTimeout branch for tab visibility and map render
         vi.runAllTimers();

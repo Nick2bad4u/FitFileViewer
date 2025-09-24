@@ -7,6 +7,9 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 
+const DEFAULT_DOCUMENT_TITLE =
+    typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer";
+
 /**
  * UI State Manager - handles common UI state operations
  */
@@ -128,6 +131,21 @@ export class UIStateManager {
             this.applyTheme(theme);
         });
 
+        // Subscribe to unload button visibility
+        subscribe("ui.unloadButtonVisible", (/** @type {*} */ isVisible) => {
+            this.updateUnloadButtonVisibility(Boolean(isVisible));
+        });
+
+        // Subscribe to file display updates
+        subscribe("ui.fileInfo", (/** @type {*} */ fileInfo) => {
+            this.updateFileDisplayUI(fileInfo);
+        });
+
+        // Subscribe to loading indicator progress
+        subscribe("ui.loadingIndicator", (/** @type {*} */ indicator) => {
+            this.updateLoadingProgressUI(indicator);
+        });
+
         // Subscribe to loading state changes
         subscribe("isLoading", (/** @type {*} */ isLoading) => {
             this.updateLoadingIndicator(isLoading);
@@ -142,6 +160,18 @@ export class UIStateManager {
         subscribe("map.measurementMode", (/** @type {*} */ isActive) => {
             this.updateMeasurementModeUI(isActive);
         });
+
+        // Subscribe to drop overlay visibility changes
+        subscribe("ui.dropOverlay.visible", (/** @type {*} */ isVisible) => {
+            this.updateDropOverlayVisibility(Boolean(isVisible));
+        });
+
+        // Apply persisted states on startup
+        this.updateUnloadButtonVisibility(Boolean(getState("ui.unloadButtonVisible")));
+        this.updateFileDisplayUI(getState("ui.fileInfo"));
+        this.updateLoadingProgressUI(getState("ui.loadingIndicator"));
+        this.updateLoadingIndicator(Boolean(getState("isLoading")));
+        this.updateDropOverlayVisibility(Boolean(getState("ui.dropOverlay.visible")));
     }
 
     /**
@@ -316,6 +346,95 @@ export class UIStateManager {
         }
     }
     /**
+     * Update drop overlay visibility and related iframe pointer state
+     * @param {boolean} isVisible - Whether the drop overlay should be shown
+     */
+    updateDropOverlayVisibility(isVisible) {
+        const dropOverlay = (() => {
+            try {
+                return /** @type {HTMLElement|null} */ (document.getElementById("drop-overlay"));
+            } catch {
+                return null;
+            }
+        })();
+
+        if (dropOverlay) {
+            dropOverlay.style.display = isVisible ? "flex" : "none";
+        }
+
+        const altFitIframe = (() => {
+            try {
+                return /** @type {HTMLElement|null} */ (document.getElementById("altfit-iframe"));
+            } catch {
+                return null;
+            }
+        })();
+
+        if (altFitIframe) {
+            altFitIframe.style.pointerEvents = isVisible ? "none" : "";
+        }
+
+        const zwiftIframe = (() => {
+            try {
+                return /** @type {HTMLElement|null} */ (document.getElementById("zwift-iframe"));
+            } catch {
+                return null;
+            }
+        })();
+
+        if (zwiftIframe) {
+            zwiftIframe.style.pointerEvents = isVisible ? "none" : "";
+        }
+    }
+    /**
+     * Update active file display elements based on state
+     * @param {{displayName?: string, hasFile?: boolean, title?: string}|null} fileInfo - File info state
+     */
+    updateFileDisplayUI(fileInfo) {
+        const info = fileInfo || {},
+            hasFile = Boolean(info.hasFile),
+            displayName = typeof info.displayName === "string" ? info.displayName : "",
+            title = typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_DOCUMENT_TITLE;
+
+        const fileNameContainer = (() => {
+            try {
+                return document.getElementById("activeFileNameContainer");
+            } catch {
+                return null;
+            }
+        })();
+        if (fileNameContainer) {
+            fileNameContainer.classList.toggle("has-file", hasFile);
+        }
+
+        const fileSpan = (() => {
+            try {
+                return document.getElementById("activeFileName");
+            } catch {
+                return null;
+            }
+        })();
+
+        if (fileSpan) {
+            if (hasFile && displayName) {
+                fileSpan.innerHTML = `<span class="active-label">Active:</span> ${displayName}`;
+                fileSpan.title = displayName;
+                fileSpan.classList.remove("marquee");
+                fileSpan.scrollLeft = 0;
+            } else {
+                fileSpan.textContent = "";
+                fileSpan.title = "";
+                fileSpan.classList.remove("marquee");
+            }
+        }
+
+        try {
+            document.title = title;
+        } catch {
+            /* Ignore errors */
+        }
+    }
+    /**
      * Update loading indicator visibility
      * @param {boolean} isLoading - Whether the app is loading
      */
@@ -349,6 +468,28 @@ export class UIStateManager {
             document.body.style.cursor = isLoading ? "wait" : "default";
         } catch {
             /* Ignore errors */
+        }
+    }
+    /**
+     * Update loading progress UI based on indicator state
+     * @param {{progress?: number, active?: boolean}|null} indicator - Loading indicator state
+     */
+    updateLoadingProgressUI(indicator) {
+        const progressValue = typeof indicator?.progress === "number" ? indicator.progress : 0,
+            isActive = Boolean(indicator?.active);
+
+        const progressElement = (() => {
+            try {
+                return document.querySelector("#file-loading-progress");
+            } catch {
+                return null;
+            }
+        })();
+
+        if (progressElement) {
+            progressElement.style.width = `${progressValue}%`;
+            progressElement.setAttribute("aria-valuenow", progressValue.toString());
+            progressElement.setAttribute("aria-hidden", (!isActive).toString());
         }
     }
     /**
@@ -443,6 +584,24 @@ export class UIStateManager {
         }
 
         console.log(`[UIStateManager] Tab visibility updated: ${activeTab}`);
+    }
+
+    /**
+     * Update unload button visibility
+     * @param {boolean} isVisible - Whether unload button should be visible
+     */
+    updateUnloadButtonVisibility(isVisible) {
+        const unloadBtn = (() => {
+            try {
+                return document.getElementById("unloadFileBtn");
+            } catch {
+                return null;
+            }
+        })();
+
+        if (unloadBtn) {
+            unloadBtn.style.display = isVisible ? "" : "none";
+        }
     }
 
     /**

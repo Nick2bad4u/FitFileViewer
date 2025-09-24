@@ -86,8 +86,8 @@ export function showFitData(data, filePath, options = {}) {
         if (filePath && config.updateUI) {
             const fileName = getCachedFileName(data, filePath);
 
-            // Update file display elements
-            updateFileDisplay(fileName);
+            // Update file display state
+            updateFileState(fileName);
 
             // Enable tabs and send notifications
             enableTabsAndNotify(filePath);
@@ -283,35 +283,25 @@ function resetRenderingStates() {
  * @param {string} fileName - Name of the active file
  * @private
  */
-function updateFileDisplay(fileName) {
+function updateFileState(fileName) {
     try {
-        const // Destructure constants for cleaner code
-            { CSS_CLASSES, SELECTORS, TITLE_PREFIX } = DISPLAY_CONSTANTS,
-            // Update file name container
-            fileNameContainer = document.getElementById(SELECTORS.FILE_NAME_CONTAINER);
-        if (fileNameContainer) {
-            fileNameContainer.classList.add(CSS_CLASSES.HAS_FILE);
-        }
+        const { TITLE_PREFIX } = DISPLAY_CONSTANTS,
+            hasFile = Boolean(fileName),
+            sanitizedName = hasFile ? fileName : "",
+            title = hasFile ? `${TITLE_PREFIX} - ${sanitizedName}` : TITLE_PREFIX;
 
-        // Update file name display
-        const fileSpan = document.getElementById(SELECTORS.ACTIVE_FILE_NAME);
-        if (fileSpan) {
-            fileSpan.classList.remove(CSS_CLASSES.MARQUEE);
-            fileSpan.innerHTML = `<span class="active-label">Active:</span> ${fileName}`;
-            fileSpan.title = fileName;
-            fileSpan.scrollLeft = 0;
-        }
+        setState(
+            "ui.fileInfo",
+            {
+                displayName: sanitizedName,
+                hasFile,
+                title,
+            },
+            { source: "showFitData.updateFileState" }
+        );
+        setState("ui.unloadButtonVisible", hasFile, { source: "showFitData.updateFileState" });
 
-        // Show unload button
-        const unloadBtn = document.getElementById(SELECTORS.UNLOAD_BUTTON);
-        if (unloadBtn) {
-            unloadBtn.style.display = "";
-        }
-
-        // Update document title
-        document.title = fileName ? `${TITLE_PREFIX} - ${fileName}` : TITLE_PREFIX;
-
-        logWithContext(`File display updated: ${fileName}`);
+        logWithContext(`File state updated for display: ${sanitizedName}`);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error updating file display";
         logWithContext(`Error updating file display: ${errorMessage}`, "error");

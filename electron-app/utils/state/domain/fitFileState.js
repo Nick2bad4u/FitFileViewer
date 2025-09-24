@@ -399,8 +399,8 @@ export class FitFileStateManager {
      * @param {RawFitData} data
      * @returns {SessionInfo|null}
      */ /**
-     * Set up listeners for data processing events
-     */
+    * Set up listeners for data processing events
+    */
     setupDataProcessingListeners() {
         // Process data when global data changes
         subscribe("globalData", (/** @type {RawFitData|null} */ data) => {
@@ -486,13 +486,14 @@ export class FitFileStateManager {
      * @param {number} progress - Progress percentage (0-100)
      */
     updateLoadingProgress(/** @type {number} */ progress) {
-        const progressElement = document.querySelector("#file-loading-progress");
-        if (progressElement) {
-            progressElement.style.width = `${progress}%`;
-            progressElement.setAttribute("aria-valuenow", progress.toString());
-        }
+        const indicatorState = {
+            active: progress > 0 && progress < 100,
+            progress,
+        };
 
-        console.log(`[FitFileState] Loading progress: ${progress}%`);
+        updateState("ui.loadingIndicator", indicatorState, { source: "FitFileStateManager.updateLoadingProgress" });
+
+        console.log(`[FitFileState] Loading progress state updated: ${progress}%`);
     }
 
     /**

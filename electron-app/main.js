@@ -30,6 +30,61 @@ const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
 const menuRef = () => /** @type {any} */(getElectron().Menu);
 const shellRef = () => /** @type {any} */(getElectron().shell);
 
+const IPC_HANDLE_REGISTRY = new Map();
+const IPC_EVENT_LISTENER_REGISTRY = new Map();
+
+/**
+ * @template {(...args: any[]) => any} T
+ * @param {string} channel
+ * @param {T} handler
+ */
+function registerIpcHandle(channel, handler) {
+    const ipcMain = ipcMainRef();
+    if (!ipcMain || typeof ipcMain.handle !== "function") {
+        return;
+    }
+
+    const existing = IPC_HANDLE_REGISTRY.get(channel);
+    if (existing === handler) {
+        return;
+    }
+
+    if (typeof ipcMain.removeHandler === "function") {
+        try {
+            ipcMain.removeHandler(channel);
+        } catch {
+            /* Ignore handler removal errors */
+        }
+    }
+
+    ipcMain.handle(channel, handler);
+    IPC_HANDLE_REGISTRY.set(channel, handler);
+}
+
+/**
+ * @template {(...args: any[]) => any} T
+ * @param {string} channel
+ * @param {T} listener
+ */
+function registerIpcListener(channel, listener) {
+    const ipcMain = ipcMainRef();
+    if (!ipcMain || typeof ipcMain.on !== "function") {
+        return;
+    }
+
+    const existing = IPC_EVENT_LISTENER_REGISTRY.get(channel);
+    if (existing && typeof ipcMain.removeListener === "function") {
+        try {
+            ipcMain.removeListener(channel, existing);
+        } catch {
+            /* Ignore listener removal errors */
+        }
+    }
+
+    ipcMain.on(channel, listener);
+    IPC_EVENT_LISTENER_REGISTRY.set(channel, listener);
+}
+
 // Super-early minimal priming for import-based tests: ensure spies on whenReady/getAllWindows observe calls
 try {
     if (
@@ -1452,8 +1507,11 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
         },
     }; // Register all update event handlers
     for (const [event, handler] of Object.entries(updateEventHandlers)) {
-        /** @type {any} */ (autoUpdater).on(event, handler);
-        mainProcessState.registerEventHandler(autoUpdater, event, handler, `autoUpdater:${event}`);
+        const handlerId = `autoUpdater:${event}`;
+        if (typeof mainProcessState.unregisterEventHandler === "function") {
+            mainProcessState.unregisterEventHandler(handlerId);
+        }
+        mainProcessState.registerEventHandler(autoUpdater, event, handler, handlerId);
     }
 }
 
@@ -1469,7 +1527,7 @@ function setupIPCHandlers(mainWindow) {
     });
 
     // File dialog handler
-    ipcMainRef().handle("dialog:openFile", async (/** @type {any} */ _event) => {
+    registerIpcHandle("dialog:openFile", async (/** @type {any} */ _event) => {
         try {
             const { canceled, filePaths } = await dialogRef().showOpenDialog({
                 filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
@@ -1504,7 +1562,7 @@ function setupIPCHandlers(mainWindow) {
             throw error;
         }
     });
-    ipcMainRef().on("fit-file-loaded", async (/** @type {any} */ event, /** @type {string} */ filePath) => {
+    registerIpcListener("fit-file-loaded", async (/** @type {any} */ event, /** @type {string} */ filePath) => {
         setAppState("loadedFitFilePath", filePath);
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "fit-file-loaded event")) {
@@ -1520,7 +1578,7 @@ function setupIPCHandlers(mainWindow) {
     });
 
     // Recent files handlers
-    ipcMainRef().handle("recentFiles:get", async (/** @type {any} */ _event) => {
+    registerIpcHandle("recentFiles:get", async (/** @type {any} */ _event) => {
         try {
             return loadRecentFiles();
         } catch (error) {
@@ -1530,7 +1588,7 @@ function setupIPCHandlers(mainWindow) {
             throw error;
         }
     });
-    ipcMainRef().handle("recentFiles:add", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
+    registerIpcHandle("recentFiles:add", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
         try {
             addRecentFile(filePath);
             const win =
@@ -1551,7 +1609,7 @@ function setupIPCHandlers(mainWindow) {
     });
 
     // File operations handlers
-    ipcMainRef().handle("file:read", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
+    registerIpcHandle("file:read", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
         try {
             return new Promise((resolve, reject) => {
                 fs.readFile(filePath, (/** @type {any} */ err, /** @type {any} */ data) => {
@@ -1575,7 +1633,7 @@ function setupIPCHandlers(mainWindow) {
     });
 
     // FIT file parsing handlers
-    ipcMainRef().handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
+    registerIpcHandle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
             await ensureFitParserStateIntegration();
             const buffer = Buffer.from(arrayBuffer),
@@ -1589,7 +1647,7 @@ function setupIPCHandlers(mainWindow) {
         }
     });
 
-    ipcMainRef().handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
+    registerIpcHandle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
             await ensureFitParserStateIntegration();
             const buffer = Buffer.from(arrayBuffer),
@@ -1643,7 +1701,7 @@ function setupIPCHandlers(mainWindow) {
     };
 
     for (const [channel, /** @type {Function} */ handler] of Object.entries(infoHandlers)) {
-        ipcMainRef().handle(
+        registerIpcHandle(
             channel,
             /**
              * @param {any} event
@@ -1663,7 +1721,7 @@ function setupIPCHandlers(mainWindow) {
     }
 
     // External link handler
-    ipcMainRef().handle("shell:openExternal", async (/** @type {any} */ _event, /** @type {string} */ url) => {
+    registerIpcHandle("shell:openExternal", async (/** @type {any} */ _event, /** @type {string} */ url) => {
         try {
             if (!url || typeof url !== "string") {
                 throw new Error("Invalid URL provided");
@@ -1685,7 +1743,7 @@ function setupIPCHandlers(mainWindow) {
     });
 
     // Gyazo OAuth Server Handlers
-    ipcMainRef().handle("gyazo:server:start", async (/** @type {any} */ _event, /** @type {number} */ port = 3000) => {
+    registerIpcHandle("gyazo:server:start", async (/** @type {any} */ _event, /** @type {number} */ port = 3000) => {
         try {
             return await startGyazoOAuthServer(port);
         } catch (error) {
@@ -1696,7 +1754,7 @@ function setupIPCHandlers(mainWindow) {
         }
     });
 
-    ipcMainRef().handle("gyazo:server:stop", async (/** @type {any} */ _event) => {
+    registerIpcHandle("gyazo:server:stop", async (/** @type {any} */ _event) => {
         try {
             return await stopGyazoOAuthServer();
         } catch (error) {
@@ -1711,7 +1769,7 @@ function setupIPCHandlers(mainWindow) {
 // Enhanced menu and event handlers
 function setupMenuAndEventHandlers() {
     // Theme change handler
-    ipcMainRef().on("theme-changed", async (/** @type {any} */ event, /** @type {any} */ theme) => {
+    registerIpcListener("theme-changed", async (/** @type {any} */ event, /** @type {any} */ theme) => {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
             safeCreateAppMenu(
@@ -1774,7 +1832,7 @@ function setupMenuAndEventHandlers() {
 
     // Register update handlers
     for (const [event, handler] of Object.entries(updateHandlers)) {
-        ipcMainRef().on(event, handler);
+        registerIpcListener(event, handler);
     } // File menu action handlers
     const fileMenuHandlers = {
         "menu-export": async (/** @type {any} */ event) => {
@@ -1827,11 +1885,11 @@ function setupMenuAndEventHandlers() {
 
     // Register file menu handlers
     for (const [event, handler] of Object.entries(fileMenuHandlers)) {
-        ipcMainRef().on(event, handler);
+        registerIpcListener(event, handler);
     }
 
     // Fullscreen handler
-    ipcMainRef().on("set-fullscreen", (/** @type {any} */ _event, /** @type {any} */ flag) => {
+    registerIpcListener("set-fullscreen", (/** @type {any} */ _event, /** @type {any} */ flag) => {
         const win = browserWindowRef().getFocusedWindow();
         if (validateWindow(win, "set-fullscreen event")) {
             /** @type {any} */ (win).setFullScreen(Boolean(flag));
@@ -1839,7 +1897,7 @@ function setupMenuAndEventHandlers() {
     });
 
     // Development helper for menu injection
-    ipcMainRef().handle(
+    registerIpcHandle(
         "devtools-inject-menu",
         (/** @type {any} */ event, /** @type {any} */ theme, /** @type {any} */ fitFilePath) => {
             const f = fitFilePath || null,

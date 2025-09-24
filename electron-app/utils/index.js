@@ -26,22 +26,10 @@ export { default as debug } from "./debug/index.js";
 export * from "./docs/documentationStandards.js";
 export * from "./dom/index.js";
 export { default as dom } from "./dom/index.js";
-
-/**
- * Legacy compatibility exports
- * These maintain backward compatibility during the migration period
- * TODO: Remove after migration is complete
- */
-
-export * from "./errors/errorHandling.js";
 export * from "./errors/index.js";
 export { default as errors } from "./errors/index.js";
-export { handleOpenFile } from "./files/import/handleOpenFile.js";
 export * from "./files/index.js";
 export { default as files } from "./files/index.js";
-// Legacy direct exports for commonly used utilities
-export { formatDistance } from "./formatting/formatters/formatDistance.js";
-export { formatDuration } from "./formatting/formatters/formatDuration.js";
 
 export * from "./formatting/index.js";
 export { default as formatting } from "./formatting/index.js";

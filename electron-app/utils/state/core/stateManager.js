@@ -12,11 +12,31 @@
  * @property {boolean} maximized
  */
 /**
+ * @typedef {Object} DropOverlayState
+ * @property {boolean} visible
+ */
+/**
+ * @typedef {Object} UIFileInfo
+ * @property {boolean} hasFile
+ * @property {string} displayName
+ * @property {string} title
+ */
+/**
+ * @typedef {Object} LoadingIndicatorState
+ * @property {number} progress
+ * @property {boolean} active
+ */
+/**
  * @typedef {Object} UIState
  * @property {string} activeTab
+ * @property {number} dragCounter
+ * @property {DropOverlayState} dropOverlay
+ * @property {UIFileInfo} fileInfo
+ * @property {LoadingIndicatorState} loadingIndicator
  * @property {boolean} sidebarCollapsed
  * @property {string} theme
  * @property {boolean} isFullscreen
+ * @property {boolean} unloadButtonVisible
  * @property {WindowState} windowState
  */
 /**
@@ -140,9 +160,23 @@ const AppState = {
     // UI state
     ui: {
         activeTab: "summary",
+        dragCounter: 0,
+        dropOverlay: {
+            visible: false,
+        },
+        fileInfo: {
+            displayName: "",
+            hasFile: false,
+            title: typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer",
+        },
         isFullscreen: false,
+        loadingIndicator: {
+            active: false,
+            progress: 0,
+        },
         sidebarCollapsed: false,
         theme: "system",
+        unloadButtonVisible: false,
         windowState: {
             height: 800,
             maximized: false,
@@ -537,9 +571,23 @@ function resetState(path) {
             },
             ui: {
                 activeTab: "summary",
+                dragCounter: 0,
+                dropOverlay: {
+                    visible: false,
+                },
+                fileInfo: {
+                    displayName: "",
+                    hasFile: false,
+                    title: typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer",
+                },
                 isFullscreen: false,
+                loadingIndicator: {
+                    active: false,
+                    progress: 0,
+                },
                 sidebarCollapsed: false,
                 theme: "system",
+                unloadButtonVisible: false,
                 windowState: {
                     height: 800,
                     maximized: false,
@@ -725,3 +773,39 @@ export { resetState };
 export { setState };
 export { subscribe };
 export { updateState };
+
+try {
+    const g = /** @type {any} */ (typeof globalThis === "object" ? globalThis : undefined);
+    if (g && typeof g === "object") {
+        const api = {
+            __clearAllListenersForTests,
+            __debugState,
+            __resetStateManagerForTests,
+            clearStateHistory,
+            createReactiveProperty,
+            getState,
+            getStateHistory,
+            getSubscriptions,
+            initializeStateManager,
+            loadPersistedState,
+            persistState,
+            resetState,
+            setState,
+            subscribe,
+            updateState,
+        };
+
+        if (!g.__STATE_MANAGER_API__ || typeof g.__STATE_MANAGER_API__ !== "object") {
+            Object.defineProperty(g, "__STATE_MANAGER_API__", {
+                configurable: true,
+                enumerable: false,
+                writable: true,
+                value: api,
+            });
+        } else {
+            Object.assign(g.__STATE_MANAGER_API__, api);
+        }
+    }
+} catch {
+    /* ignore global exposure errors */
+}

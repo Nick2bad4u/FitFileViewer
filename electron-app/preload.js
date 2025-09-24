@@ -638,11 +638,125 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Cleanup and final validation
-process.once("beforeExit", () => {
+/**
+ * Ensure the process beforeExit handler is only registered once even if this module
+ * is executed multiple times during tests.
+ */
+const BEFORE_EXIT_REGISTRY_KEY = "__ffv_preload_beforeExitRegistry__",
+    BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for("ffv.preload.beforeExitListener");
+
+/**
+ * Retrieve (or initialize) the global registry that tracks beforeExit listener wrappers per process.
+ * @returns {WeakMap<NodeJS.Process, Function>|null}
+ */
+function getProcessRegistry() {
+    if (typeof globalThis === "undefined") {
+        return null;
+    }
+    const scope = /** @type {any} */ (globalThis);
+    if (!scope[BEFORE_EXIT_REGISTRY_KEY]) {
+        try {
+            scope[BEFORE_EXIT_REGISTRY_KEY] = new WeakMap();
+        } catch (error) {
+            console.warn("[preload.js] Unable to initialize beforeExit registry:", error);
+            scope[BEFORE_EXIT_REGISTRY_KEY] = null;
+        }
+    }
+    return scope[BEFORE_EXIT_REGISTRY_KEY];
+}
+
+function handleBeforeExit() {
     if (process.env.NODE_ENV === "development") {
         console.log("[preload.js] Process exiting, performing cleanup...");
     }
-});
+    const registry = getProcessRegistry();
+    if (registry && typeof registry.delete === "function") {
+        const existingWrapper = registry.get(process);
+        registry.delete(process);
+        if (existingWrapper && typeof process.removeListener === "function") {
+            try {
+                process.removeListener("beforeExit", existingWrapper);
+            } catch (error) {
+                console.warn("[preload.js] Unable to remove beforeExit listener during cleanup:", error);
+            }
+        }
+    }
+}
+
+function registerBeforeExitHandler() {
+    const hasOnce = typeof process.once === "function";
+    if (!hasOnce) {
+        return;
+    }
+
+    const hasListeners = typeof process.listeners === "function";
+    const hasRemove = typeof process.removeListener === "function";
+    const registry = getProcessRegistry();
+
+    if (registry && typeof registry.get === "function") {
+        const existingWrapper = registry.get(process);
+        if (existingWrapper) {
+            if (hasRemove) {
+                try {
+                    process.removeListener("beforeExit", existingWrapper);
+                } catch (error) {
+                    console.warn("[preload.js] Unable to remove stale beforeExit listener:", error);
+                }
+            }
+
+            registry.delete(process);
+        }
+    }
+
+    if (hasListeners && hasRemove) {
+        try {
+            const currentListeners = process.listeners("beforeExit");
+            if (Array.isArray(currentListeners)) {
+                for (const listener of currentListeners) {
+                    if (
+                        listener &&
+                        (listener === handleBeforeExit || listener.listener === handleBeforeExit || listener[BEFORE_EXIT_LISTENER_SYMBOL])
+                    ) {
+                        process.removeListener("beforeExit", listener);
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn("[preload.js] Unable to prune stale beforeExit listeners:", error);
+        }
+    }
+
+    process.once("beforeExit", handleBeforeExit);
+
+    if (registry && typeof registry.set === "function") {
+        let storedWrapper = handleBeforeExit;
+        if (hasListeners) {
+            try {
+                const listeners = process.listeners("beforeExit");
+                if (Array.isArray(listeners)) {
+                    for (const listener of listeners) {
+                        if (listener === handleBeforeExit || listener.listener === handleBeforeExit) {
+                            storedWrapper = listener;
+                            break;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn("[preload.js] Unable to capture beforeExit listener wrapper:", error);
+            }
+        }
+
+        try {
+            storedWrapper[BEFORE_EXIT_LISTENER_SYMBOL] = true;
+        } catch {
+            // Ignore if wrapper is not extensible
+        }
+
+        registry.set(process, storedWrapper);
+    }
+}
+
+registerBeforeExitHandler();
 
 // Report successful initialization
 if (process.env.NODE_ENV === "development") {

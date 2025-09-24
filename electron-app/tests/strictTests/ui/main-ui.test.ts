@@ -34,12 +34,71 @@ vi.mock("../../../utils/app/initialization/setupWindow.js", () => ({ setupWindow
 const renderChartJS = vi.fn();
 vi.mock("../../../utils/charts/core/renderChartJS.js", () => ({ renderChartJS }));
 
-const getState = vi.fn((key: string) => {
-    if (key === "globalData") return undefined;
-    if (key === "ui.dragCounter") return 0;
-    return undefined;
+const DEFAULT_TITLE = "Fit File Viewer";
+const mockState: Record<string, any> = {
+    globalData: undefined,
+    "ui.dragCounter": 0,
+    "ui.dropOverlay.visible": false,
+    "ui.fileInfo": { displayName: "", hasFile: false, title: DEFAULT_TITLE },
+    "ui.loadingIndicator": { active: false, progress: 0 },
+    "ui.unloadButtonVisible": false,
+};
+const getState = vi.fn((key: string) => mockState[key]);
+const setState = vi.fn((key: string, value: any) => {
+    mockState[key] = value;
+    if (key === "ui.dropOverlay.visible") {
+        const isVisible = Boolean(value);
+        const overlay = document.getElementById("drop-overlay") as HTMLElement | null;
+        if (overlay) {
+            overlay.style.display = isVisible ? "flex" : "none";
+        }
+        const alt = document.getElementById("altfit-iframe") as HTMLElement | null;
+        if (alt) {
+            alt.style.pointerEvents = isVisible ? "none" : "";
+        }
+        const zwift = document.getElementById("zwift-iframe") as HTMLElement | null;
+        if (zwift) {
+            zwift.style.pointerEvents = isVisible ? "none" : "";
+        }
+    } else if (key === "ui.fileInfo") {
+        const info = value || {};
+        const hasFile = Boolean(info.hasFile);
+        const displayName = typeof info.displayName === "string" ? info.displayName : "";
+        const title = typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_TITLE;
+
+        const fileNameContainer = document.getElementById("activeFileNameContainer");
+        if (fileNameContainer) {
+            fileNameContainer.classList.toggle("has-file", hasFile);
+        }
+
+        const fileSpan = document.getElementById("activeFileName");
+        if (fileSpan) {
+            if (hasFile && displayName) {
+                fileSpan.innerHTML = `<span class="active-label">Active:</span> ${displayName}`;
+                fileSpan.setAttribute("title", displayName);
+            } else {
+                fileSpan.textContent = "";
+                fileSpan.removeAttribute("title");
+            }
+        }
+
+        document.title = title;
+    } else if (key === "ui.unloadButtonVisible") {
+        const unloadBtn = document.getElementById("unloadFileBtn");
+        if (unloadBtn) {
+            unloadBtn.style.display = value ? "" : "none";
+        }
+    } else if (key === "ui.loadingIndicator") {
+        const indicator = value || {};
+        const progressElement = document.getElementById("file-loading-progress");
+        if (progressElement) {
+            const progressValue = typeof indicator.progress === "number" ? indicator.progress : 0;
+            progressElement.style.width = `${progressValue}%`;
+            progressElement.setAttribute("aria-valuenow", progressValue.toString());
+            progressElement.setAttribute("aria-hidden", (!indicator.active).toString());
+        }
+    }
 });
-const setState = vi.fn();
 vi.mock("../../../utils/state/core/stateManager.js", () => ({ getState, setState }));
 
 const UIActions = { showTab: vi.fn(), setTheme: vi.fn() };
@@ -70,10 +129,13 @@ vi.mock("../../../utils/charts/core/chartTabIntegration.js", () => ({ chartTabIn
 
 // Helpers
 function installBaseDOM() {
+    document.title = "FitFileViewer Tests";
     document.body.innerHTML = `
     <div id="${"activeFileName"}"></div>
     <div id="${"activeFileNameContainer"}"></div>
     <button id="${"unloadFileBtn"}"></button>
+    <div id="${"loading-indicator"}"></div>
+    <div id="${"file-loading-progress"}"></div>
     <div id="${"tab-chart"}" class="tab"></div>
     <button id="${"tab-summary"}" class="tab"></button>
     <button id="${"tab-map"}" class="tab"></button>
@@ -120,6 +182,9 @@ describe("main-ui.js core flows", () => {
         vi.useFakeTimers();
         vi.resetModules();
         vi.clearAllMocks();
+        mockState["globalData"] = undefined;
+        mockState["ui.dragCounter"] = 0;
+        mockState["ui.dropOverlay.visible"] = false;
         installBaseDOM();
         (window as any).enableDragAndDrop = true;
         installElectronAPI();
