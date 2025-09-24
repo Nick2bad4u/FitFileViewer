@@ -6,18 +6,15 @@
  *
  * @author FitFileViewer Team
  * @since 1.0.0
+ * @version 2.0.0 - Updated to use centralized configuration
  */
 
-// Time conversion constants
-const TIME_CONSTANTS = {
-    SECONDS_PER_HOUR: 3600,
-    SECONDS_PER_MINUTE: 60,
-};
+import { CONVERSION_FACTORS } from "../../config/constants.js";
 
-// Formatting thresholds
+// Formatting thresholds using centralized constants
 const THRESHOLDS = {
-    MINUTES_ONLY: TIME_CONSTANTS.SECONDS_PER_HOUR,
-    SECONDS_ONLY: TIME_CONSTANTS.SECONDS_PER_MINUTE,
+    MINUTES_ONLY: CONVERSION_FACTORS.SECONDS_PER_HOUR,
+    SECONDS_ONLY: CONVERSION_FACTORS.SECONDS_PER_MINUTE,
 };
 
 /**
@@ -72,9 +69,9 @@ export function formatDuration(seconds) {
  * @returns {string} Formatted string like "2 hrs 30 min"
  */
 function formatHoursAndMinutes(seconds) {
-    const hours = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_HOUR);
-    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_HOUR;
-    const minutes = Math.floor(remainingSeconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
+    const hours = Math.floor(seconds / CONVERSION_FACTORS.SECONDS_PER_HOUR);
+    const remainingSeconds = seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR;
+    const minutes = Math.floor(remainingSeconds / CONVERSION_FACTORS.SECONDS_PER_MINUTE);
 
     const hourText = hours === 1 ? "hr" : "hrs";
     return `${hours} ${hourText} ${minutes} min`;
@@ -86,8 +83,8 @@ function formatHoursAndMinutes(seconds) {
  * @returns {string} Formatted string like "5 min 30 sec"
  */
 function formatMinutesAndSeconds(seconds) {
-    const minutes = Math.floor(seconds / TIME_CONSTANTS.SECONDS_PER_MINUTE);
-    const remainingSeconds = seconds % TIME_CONSTANTS.SECONDS_PER_MINUTE;
+    const minutes = Math.floor(seconds / CONVERSION_FACTORS.SECONDS_PER_MINUTE);
+    const remainingSeconds = seconds % CONVERSION_FACTORS.SECONDS_PER_MINUTE;
     return `${minutes} min ${remainingSeconds} sec`;
 }
 

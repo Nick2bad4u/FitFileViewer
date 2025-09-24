@@ -6,19 +6,11 @@
  *
  * @author FitFileViewer Team
  * @since 1.0.0
+ * @version 2.0.0 - Updated to use centralized configuration
  */
 
-// Conversion constants
-const CONVERSION_FACTORS = {
-    DECIMAL_PLACES: 2,
-    METERS_PER_KILOMETER: 1000,
-    METERS_PER_MILE: 1609.34,
-};
-
-// Validation constants
-const VALIDATION = {
-    MIN_DISTANCE: 0,
-};
+import { CONVERSION_FACTORS } from "../../config/constants.js";
+import { validateInput, validators } from "../../errors/errorHandling.js";
 
 /**
  * Formats a distance in meters to a string showing both kilometers and miles
@@ -37,32 +29,26 @@ const VALIDATION = {
  * formatDistance(NaN);      // ""
  */
 export function formatDistance(meters) {
-    if (!isValidDistance(meters)) {
+    // Use unified validation
+    const validation = validateInput(meters, [
+        validators.isRequired,
+        validators.isFiniteNumber,
+        validators.isPositiveNumber
+    ], "distance");
+
+    if (!validation.isValid) {
+        // Fail-safe: return empty string for backward compatibility
         return "";
     }
 
-    const kilometers = metersToKilometers(meters),
-        miles = metersToMiles(meters);
+    const kilometers = metersToKilometers(validation.validatedValue),
+        miles = metersToMiles(validation.validatedValue);
 
     return `${kilometers.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} km / ${miles.toFixed(CONVERSION_FACTORS.DECIMAL_PLACES)} mi`;
 }
 
 /**
- * Validates distance input value
- * @param {number} meters - Distance value to validate
- * @returns {boolean} True if valid, false otherwise
- */
-function isValidDistance(meters) {
-    return (
-        typeof meters === "number" &&
-        Number.isFinite(meters) &&
-        !Number.isNaN(meters) &&
-        meters > VALIDATION.MIN_DISTANCE
-    );
-}
-
-/**
- * Converts meters to kilometers
+ * Converts meters to kilometers using centralized constants
  * @param {number} meters - Distance in meters
  * @returns {number} Distance in kilometers
  */
@@ -71,7 +57,7 @@ function metersToKilometers(meters) {
 }
 
 /**
- * Converts meters to miles
+ * Converts meters to miles using centralized constants
  * @param {number} meters - Distance in meters
  * @returns {number} Distance in miles
  */

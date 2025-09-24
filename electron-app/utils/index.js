@@ -16,12 +16,13 @@ export * from "./charts/index.js";
  * Allows imports like: import { charts, state } from './utils';
  */
 export { default as charts } from "./charts/index.js";
+// New consistency utilities
+export * from "./config/constants.js";
 export * from "./data/index.js";
 export { default as data } from "./data/index.js";
 export * from "./debug/index.js";
 export { default as debug } from "./debug/index.js";
-export { handleOpenFile } from "./files/import/handleOpenFile.js";
-export * from "./files/index.js";
+export * from "./docs/documentationStandards.js";
 
 /**
  * Legacy compatibility exports
@@ -29,17 +30,21 @@ export * from "./files/index.js";
  * TODO: Remove after migration is complete
  */
 
+export * from "./errors/errorHandling.js";
+export { handleOpenFile } from "./files/import/handleOpenFile.js";
+export * from "./files/index.js";
 export { default as files } from "./files/index.js";
 // Legacy direct exports for commonly used utilities
 export { formatDistance } from "./formatting/formatters/formatDistance.js";
 export { formatDuration } from "./formatting/formatters/formatDuration.js";
+
 export * from "./formatting/index.js";
 export { default as formatting } from "./formatting/index.js";
 export * from "./maps/index.js";
-
 export { default as maps } from "./maps/index.js";
-export * from "./rendering/index.js";
 export { default as rendering } from "./rendering/index.js";
+export * from "./rendering/index.js";
+export { unifiedState } from "./state/core/unifiedStateManager.js";
 export * from "./state/index.js";
 export { default as state } from "./state/index.js";
 export { theme } from "./theming/core/theme.js";
