@@ -10,6 +10,9 @@
  * @version 1.0.0
  */
 
+// screenfull is loaded globally from index.html (libs/screenfull.min.js)
+// Avoid bare module imports to satisfy CSP and runtime module resolution in Electron
+
 import { getActiveTabContent } from "../../rendering/helpers/getActiveTabContent.js";
 import { addExitFullscreenOverlay } from "./addExitFullscreenOverlay.js";
 import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
@@ -19,7 +22,8 @@ const // Constants for better maintainability
     FULLSCREEN_BUTTON_ID = "global-fullscreen-btn",
     FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper",
     REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"],
-    { screenfull } = globalThis;
+    // Use global screenfull if available (loaded via libs/screenfull.min.js in index.html)
+    { screenfull } = /** @type {any} */ (globalThis);
 
 /**
  * Adds a global fullscreen toggle button to the application
@@ -45,7 +49,26 @@ export function addFullScreenButton() {
 
         // Validate screenfull availability
         if (!screenfull || !screenfull.isEnabled) {
-            logWithContext("Screenfull not available or not enabled", "warn");
+            // As a fallback, attempt to attach a native requestFullscreen-based button
+            const wrapper = document.createElement("div");
+            wrapper.className = "fullscreen-btn-wrapper";
+            wrapper.id = FULLSCREEN_WRAPPER_ID;
+
+            const btn = document.createElement("button");
+            btn.id = FULLSCREEN_BUTTON_ID;
+            btn.className = "fullscreen-btn improved themed-btn";
+            btn.title = "Toggle Full Screen (F11)";
+            btn.setAttribute("aria-label", "Toggle full screen mode");
+            btn.setAttribute("role", "button");
+            btn.setAttribute("tabindex", "0");
+            btn.style.pointerEvents = "auto";
+            btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
+            btn.addEventListener("click", () => nativeToggleFullscreen());
+
+            wrapper.append(btn);
+            document.body.append(wrapper);
+
+            logWithContext("Screenfull not available or not enabled; using native fullscreen fallback", "warn");
             return;
         }
         const wrapper = document.createElement("div");
@@ -133,11 +156,41 @@ export function setupDOMContentLoaded() {
 export function setupFullscreenListeners() {
     try {
         if (!screenfull || !screenfull.isEnabled) {
-            logWithContext("Screenfull not enabled, skipping listener setup", "warn");
+            // Use native fullscreen events when screenfull is not available/enabled
+            const onFsChange = () => {
+                try {
+                    handleFullscreenStateChange();
+                } catch (error) {
+                    logWithContext(`Error in native fullscreen change handler: ${/** @type {any} */ (error).message}`, "error");
+                }
+            };
+
+            // Vendor-prefixed event names for broader compatibility
+            const events = [
+                "fullscreenchange",
+                "webkitfullscreenchange",
+                "mozfullscreenchange",
+                "MSFullscreenChange",
+            ];
+            for (const evt of events) {
+                document.addEventListener(evt, onFsChange);
+            }
+
+            // Handle F11 key for fullscreen toggle via native fallback
+            globalThis.addEventListener("keydown", handleKeyboardShortcuts);
+
+            // Setup DOM content loaded handler
+            if (document.readyState === "loading") {
+                globalThis.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+            } else {
+                handleDOMContentLoaded();
+            }
+
+            logWithContext("Using native fullscreen listeners (screenfull not enabled)");
             return;
         }
 
-        // Handle fullscreen state changes
+        // Handle fullscreen state changes via screenfull
         screenfull.on("change", handleFullscreenStateChange);
 
         // Handle F11 key for fullscreen toggle
@@ -150,7 +203,7 @@ export function setupFullscreenListeners() {
             handleDOMContentLoaded();
         }
 
-        logWithContext("Fullscreen listeners setup completed");
+        logWithContext("Fullscreen listeners setup completed (screenfull)");
     } catch (error) {
         logWithContext(`Failed to setup fullscreen listeners: ${/** @type {any} */ (error).message}`, "error");
     }
@@ -234,7 +287,7 @@ function handleFullscreenStateChange() {
         if (screenfull.isFullscreen) {
             // Entering fullscreen
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -251,7 +304,7 @@ function handleFullscreenStateChange() {
         } else {
             // Exiting fullscreen
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -320,7 +373,8 @@ function handleKeyboardShortcuts(event) {
             }
 
             if (!screenfull || !screenfull.isEnabled) {
-                logWithContext("Screenfull not available for F11 toggle", "warn");
+                logWithContext("Screenfull not available for F11 toggle; using native fallback", "warn");
+                nativeToggleFullscreen();
                 return;
             }
 
@@ -363,6 +417,37 @@ function logWithContext(message, level = "info") {
         // Silently fail if logging encounters an error
     }
 }
+
+/**
+ * Native fullscreen fallback when screenfull is unavailable
+ */
+function nativeToggleFullscreen() {
+    try {
+        const activeContent = getActiveTabContent();
+        const doc = /** @type {any} */ (document);
+        const docEl = /** @type {any} */ (activeContent || document.documentElement);
+
+        const isFs = Boolean(
+            document.fullscreenElement ||
+            doc.webkitFullscreenElement ||
+            doc.mozFullScreenElement ||
+            doc.msFullscreenElement
+        );
+        if (isFs) {
+            const exit = document.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+            if (typeof exit === "function") exit.call(document);
+            logWithContext("Exiting fullscreen mode (native fallback)");
+        } else {
+            const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+            if (typeof req === "function") req.call(docEl);
+            logWithContext("Entering fullscreen mode (native fallback)");
+        }
+    } catch (error) {
+        logWithContext(`Native fullscreen fallback failed: ${/** @type {any} */ (error).message}`, "error");
+    }
+}
+
+// logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
 
 /**
  * Updates the fullscreen button icon and title based on current state

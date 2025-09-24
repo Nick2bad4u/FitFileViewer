@@ -778,4 +778,22 @@ function setTheme(theme) {
     getConf().set("theme", theme);
 }
 
-module.exports = { createAppMenu };
+const createAppMenuExports = { createAppMenu };
+
+if (typeof globalThis !== "undefined") {
+    try {
+        Object.defineProperty(globalThis, "__FFV_createAppMenuExports", {
+            configurable: true,
+            enumerable: false,
+            value: createAppMenuExports,
+            writable: true,
+        });
+    } catch {
+        // Fallback if defineProperty fails (e.g., frozen globalThis)
+        /** @type {any} */ (globalThis).__FFV_createAppMenuExports = createAppMenuExports;
+    }
+}
+
+if (typeof module !== "undefined" && module && module.exports) {
+    module.exports = createAppMenuExports;
+}

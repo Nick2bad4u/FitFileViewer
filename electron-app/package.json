@@ -410,13 +410,13 @@
     "prettier-plugin-sort-json": "^4.1.1",
     "prettier-plugin-sql": "^0.19.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "screenfull": "^6.0.2",
     "stylelint-config-standard": "^39.0.0",
     "ts-migrate": "^0.1.35",
     "ts-migrate-plugins": "^0.1.35",
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "screenfull": "^6.0.2",
     "@garmin/fitsdk": "^21.178.0",
     "@vitest/ui": "^3.2.4",
     "electron-conf": "^1.3.0",

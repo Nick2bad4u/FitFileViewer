@@ -292,11 +292,11 @@ export function initializeTheme() {
 export function listenForSystemThemeChange() {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
         const handleSystemThemeChange = () => {
-                const currentTheme = loadTheme();
-                if (currentTheme === THEME_MODES.AUTO) {
-                    applyTheme(THEME_MODES.AUTO, true);
-                }
-            },
+            const currentTheme = loadTheme();
+            if (currentTheme === THEME_MODES.AUTO) {
+                applyTheme(THEME_MODES.AUTO, true);
+            }
+        },
             mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
 
         // Use the newer addEventListener if available, fallback to addListener
@@ -331,13 +331,13 @@ export function listenForThemeChange(onThemeChange) {
     ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
         /** @type {any} */ (globalThis).electronAPI.onSetTheme((/** @type {string} */ theme) => {
-            onThemeChange(theme);
-            if (typeof (/** @type {any} */ (globalThis).electronAPI.sendThemeChanged) === "function") {
+        onThemeChange(theme);
+        if (typeof (/** @type {any} */ (globalThis).electronAPI.sendThemeChanged) === "function") {
                 /** @type {any} */ (globalThis).electronAPI.sendThemeChanged(theme);
-            } else {
-                console.warn("sendThemeChanged method is not available on electronAPI.");
-            }
-        });
+        } else {
+            console.warn("sendThemeChanged method is not available on electronAPI.");
+        }
+    });
     } else {
         console.warn("Electron API is not available. Theme change listener is not active.");
     }
@@ -425,3 +425,20 @@ function updateMetaThemeColor(theme) {
     }
     /** @type {HTMLMetaElement} */ (metaThemeColor).content = themeColor;
 }
+
+/**
+ * Legacy aggregated theme API for compatibility with modules expecting a namespace export.
+ * Provides direct access to the primary theme helpers via an object reference.
+ */
+export const theme = {
+    THEME_MODES,
+    applyTheme,
+    getEffectiveTheme,
+    getSystemTheme,
+    getThemeConfig,
+    initializeTheme,
+    listenForSystemThemeChange,
+    listenForThemeChange,
+    loadTheme,
+    toggleTheme,
+};
