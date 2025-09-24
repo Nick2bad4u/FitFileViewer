@@ -33,9 +33,13 @@ global.require = vi.fn((id: string) => {
 import { describe, test, expect, beforeEach, afterEach, vi, Mock } from "vitest";
 
 // Create a comprehensive mock for logWithLevel
-vi.mock("../../../../../utils/logging/logWithLevel.js", () => ({
-    default: vi.fn(),
+vi.mock("../../../../../utils/logging/index.js", () => ({
+    default: {
+        logWithLevel: vi.fn(),
+        getErrorInfo: vi.fn(),
+    },
     logWithLevel: vi.fn(),
+    getErrorInfo: vi.fn(),
 }));
 
 // Import the module after setting up the mock

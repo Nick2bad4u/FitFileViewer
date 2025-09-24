@@ -6,8 +6,7 @@
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import { getErrorInfo } from "../../../utils/logging/getErrorInfo.js";
-import { logWithLevel } from "../../../utils/logging/logWithLevel.js";
+import { getErrorInfo, logWithLevel } from "../../../utils/logging/index.js";
 
 // Mock console for testing logging functions
 const mockConsole = {
@@ -66,7 +65,7 @@ describe("Logging Utilities", () => {
 
             it("should extract message and stack from custom Error subclass", () => {
                 class CustomError extends Error {
-                    constructor(message) {
+                    constructor(message: string) {
                         super(message);
                         this.name = "CustomError";
                     }

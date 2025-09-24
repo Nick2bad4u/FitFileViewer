@@ -9,11 +9,11 @@
  * @version 2.0.0 - Updated to use centralized configuration and unified error handling
  */
 
-import { CONVERSION_FACTORS, DISTANCE_UNITS } from "../../config/constants.js";
-import { withErrorHandling } from "../../errors/errorHandling.js";
+import { CONVERSION_FACTORS, DISTANCE_UNITS } from "../../config/index.js";
+import { withErrorHandling } from "../../errors/index.js";
 
 // Re-export DISTANCE_UNITS for backward compatibility
-export { DISTANCE_UNITS } from "../../config/constants.js";
+export { DISTANCE_UNITS } from "../../config/index.js";
 
 /**
  * Converts distance from meters to user's preferred units

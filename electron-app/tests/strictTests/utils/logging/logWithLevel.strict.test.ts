@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-const MOD = "../../../../utils/logging/logWithLevel.js";
+const MOD = "../../../../utils/logging/index.js";
 async function fresh() {
     vi.resetModules();
     const url = new URL(MOD, import.meta.url).href;

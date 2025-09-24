@@ -14,7 +14,7 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
 }));
 
 // Mock DOM helpers
-vi.mock("../../../utils/dom/domHelpers.js", () => ({
+vi.mock("../../../utils/dom/index.js", () => ({
     isHTMLElement: vi.fn(),
 }));
 
@@ -30,7 +30,7 @@ import {
 } from "../../../utils/ui/controls/enableTabButtons.js";
 
 import { getState, setState, subscribe } from "../../../utils/state/core/stateManager.js";
-import { isHTMLElement } from "../../../utils/dom/domHelpers.js";
+import { isHTMLElement } from "../../../utils/dom/index.js";
 
 const mockGetState = vi.mocked(getState);
 const mockSetState = vi.mocked(setState);

@@ -17,12 +17,15 @@ export * from "./charts/index.js";
  */
 export { default as charts } from "./charts/index.js";
 // New consistency utilities
-export * from "./config/constants.js";
+export * from "./config/index.js";
+export { default as config } from "./config/index.js";
 export * from "./data/index.js";
 export { default as data } from "./data/index.js";
 export * from "./debug/index.js";
 export { default as debug } from "./debug/index.js";
 export * from "./docs/documentationStandards.js";
+export * from "./dom/index.js";
+export { default as dom } from "./dom/index.js";
 
 /**
  * Legacy compatibility exports
@@ -31,6 +34,8 @@ export * from "./docs/documentationStandards.js";
  */
 
 export * from "./errors/errorHandling.js";
+export * from "./errors/index.js";
+export { default as errors } from "./errors/index.js";
 export { handleOpenFile } from "./files/import/handleOpenFile.js";
 export * from "./files/index.js";
 export { default as files } from "./files/index.js";
@@ -40,6 +45,8 @@ export { formatDuration } from "./formatting/formatters/formatDuration.js";
 
 export * from "./formatting/index.js";
 export { default as formatting } from "./formatting/index.js";
+export * from "./logging/index.js";
+export { default as logging } from "./logging/index.js";
 export * from "./maps/index.js";
 export { default as maps } from "./maps/index.js";
 export { default as rendering } from "./rendering/index.js";

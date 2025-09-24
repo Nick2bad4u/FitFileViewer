@@ -34,7 +34,7 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
     subscribe: mockStateManager.subscribe,
 }));
 
-vi.mock("../../../utils/dom/domHelpers.js", () => ({
+vi.mock("../../../utils/dom/index.js", () => ({
     isHTMLElement: (el) => el instanceof HTMLElement,
 }));
 

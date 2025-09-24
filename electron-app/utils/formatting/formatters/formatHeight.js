@@ -9,7 +9,7 @@
  * @version 2.0.0 - Updated to use centralized configuration and unified error handling
  */
 
-import { CONVERSION_FACTORS } from "../../config/constants.js";
+import { CONVERSION_FACTORS } from "../../config/index.js";
 
 /**
  * Converts height from meters to feet and inches with metric display

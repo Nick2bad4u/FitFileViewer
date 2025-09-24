@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { logWithLevel } from "../../../utils/logging/logWithLevel.js";
+import { logWithLevel } from "../../../utils/logging/index.js";
 
 describe("logWithLevel.js - Logging Utility", () => {
     let consoleSpy: any;

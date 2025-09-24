@@ -344,7 +344,7 @@ Consistent error handling across the application.
 #### Error Wrapper Functions
 
 ```javascript
-import { withErrorHandling } from './utils/errors/errorHandling.js';
+import { withErrorHandling } from './utils/errors/index.js';
 
 /**
  * Wrap function with error handling
@@ -369,7 +369,7 @@ const safeFunction = withErrorHandling(
 #### Input Validation
 
 ```javascript
-import { validateInput, validators } from './utils/errors/errorHandling.js';
+import { validateInput, validators } from './utils/errors/index.js';
 
 /**
  * Validate function inputs
@@ -392,7 +392,7 @@ if (!validation.isValid) {
 #### Custom Error Types
 
 ```javascript
-import { AppError, ValidationError } from './utils/errors/errorHandling.js';
+import { AppError, ValidationError } from './utils/errors/index.js';
 
 // Application-specific error
 throw new AppError('Operation failed', {
@@ -411,7 +411,7 @@ throw new ValidationError('Invalid input format', {
 ### Resilient Functions
 
 ```javascript
-import { makeResilient } from './utils/errors/errorHandling.js';
+import { makeResilient } from './utils/errors/index.js';
 
 /**
  * Make function resilient to errors
@@ -436,7 +436,7 @@ import {
     DISTANCE_UNITS,
     CONVERSION_FACTORS,
     UI_CONSTANTS
-} from './utils/config/constants.js';
+} from './utils/config/index.js';
 
 // Distance units
 const units = DISTANCE_UNITS; // { METERS, KILOMETERS, FEET, MILES }
@@ -451,7 +451,7 @@ const ui = UI_CONSTANTS; // { DEFAULT_THEME, ANIMATION_DURATION, etc. }
 ### Dynamic Configuration
 
 ```javascript
-import { getConfig, setConfig } from './utils/config/appConfig.js';
+import { getConfig, setConfig } from './utils/config/index.js';
 
 // Get configuration value
 const theme = getConfig('theme.default', 'light');

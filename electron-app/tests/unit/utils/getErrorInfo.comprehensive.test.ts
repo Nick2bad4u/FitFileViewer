@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { getErrorInfo } from "../../../utils/logging/getErrorInfo.js";
+import { getErrorInfo } from "../../../utils/logging/index.js";
 
 describe("getErrorInfo.js - Error Information Extraction Utility", () => {
     beforeEach(() => {
@@ -237,7 +237,7 @@ describe("getErrorInfo.js - Error Information Extraction Utility", () => {
         });
 
         it("should handle empty array", () => {
-            const emptyArrayError = [];
+            const emptyArrayError: unknown[] = [];
             const result = getErrorInfo(emptyArrayError);
 
             expect(result.message).toBe("");

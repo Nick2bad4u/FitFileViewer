@@ -23,12 +23,12 @@ function getElectron() {
         return /** @type {any} */ ({});
     }
 }
-const appRef = () => /** @type {any} */ (getElectron().app);
-const browserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
-const dialogRef = () => /** @type {any} */ (getElectron().dialog);
-const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
-const menuRef = () => /** @type {any} */ (getElectron().Menu);
-const shellRef = () => /** @type {any} */ (getElectron().shell);
+const appRef = () => /** @type {any} */(getElectron().app);
+const browserWindowRef = () => /** @type {any} */(getElectron().BrowserWindow);
+const dialogRef = () => /** @type {any} */(getElectron().dialog);
+const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
+const menuRef = () => /** @type {any} */(getElectron().Menu);
+const shellRef = () => /** @type {any} */(getElectron().shell);
 
 // Super-early minimal priming for import-based tests: ensure spies on whenReady/getAllWindows observe calls
 try {
@@ -300,6 +300,13 @@ const // Constants
     },
     { mainProcessState } = require("./utils/state/integration/mainProcessStateManager");
 
+const FIT_PARSER_OPERATION_ID = "fitFile:decode";
+
+/** @type {Promise<void>|null} */
+let __fitParserStateIntegrationPromise = null;
+/** @type {any} */
+let __fitParserSettingsConf;
+
 async function __resolveAutoUpdaterAsync() {
     try {
         const mod = /** @type {any} */ (await import("electron-updater"));
@@ -344,6 +351,250 @@ function cleanupEventHandlers() {
     mainProcessState.cleanupEventHandlers();
 }
 
+function createFitParserStateAdapters() {
+    /** @type {Map<string,{start:number,duration:number|null}>} */
+    const timers = new Map();
+    const now = () =>
+        typeof performance !== "undefined" && performance && typeof performance.now === "function"
+            ? performance.now()
+            : Date.now();
+
+    const ensureOperationStarted = () => {
+        try {
+            if (mainProcessState.get(`operations.${FIT_PARSER_OPERATION_ID}`)) {
+                return;
+            }
+
+            mainProcessState.startOperation(FIT_PARSER_OPERATION_ID, {
+                message: "Decoding FIT file",
+                metadata: { source: "fitParser" },
+            });
+        } catch (error) {
+            logWithContext("warn", "Unable to start fit parser operation tracking", {
+                error: /** @type {Error} */ (error)?.message,
+            });
+        }
+    };
+
+    const fitFileStateManager = {
+        updateLoadingProgress(progress) {
+            ensureOperationStarted();
+
+            try {
+                const numeric = Number(progress);
+                const clamped = Number.isFinite(numeric) ? Math.max(0, Math.min(100, numeric)) : 0;
+                mainProcessState.updateOperation(FIT_PARSER_OPERATION_ID, {
+                    progress: clamped,
+                    status: "running",
+                });
+            } catch (error) {
+                logWithContext("warn", "Failed to update fit parser progress", {
+                    error: /** @type {Error} */ (error)?.message,
+                });
+            }
+        },
+        handleFileLoadingError(error) {
+            ensureOperationStarted();
+
+            try {
+                mainProcessState.failOperation(FIT_PARSER_OPERATION_ID, error);
+            } catch (failError) {
+                logWithContext("warn", "Failed to record fit parser error", {
+                    error: /** @type {Error} */ (failError)?.message,
+                });
+            }
+        },
+        handleFileLoaded(payload) {
+            ensureOperationStarted();
+
+            try {
+                mainProcessState.updateOperation(FIT_PARSER_OPERATION_ID, {
+                    progress: 100,
+                    status: "running",
+                });
+                mainProcessState.completeOperation(FIT_PARSER_OPERATION_ID, {
+                    metadata: payload?.metadata || null,
+                });
+            } catch (completeError) {
+                logWithContext("warn", "Failed to mark fit parser operation complete", {
+                    error: /** @type {Error} */ (completeError)?.message,
+                });
+            }
+
+            try {
+                mainProcessState.set(
+                    "fitFile.lastResult",
+                    {
+                        metadata: payload?.metadata || null,
+                        timestamp: Date.now(),
+                    },
+                    { source: "fitParser" }
+                );
+            } catch (stateError) {
+                logWithContext("warn", "Failed to persist fit parser metadata to state", {
+                    error: /** @type {Error} */ (stateError)?.message,
+                });
+            }
+        },
+        getRecordCount(messages) {
+            if (!messages || typeof messages !== "object") {
+                return 0;
+            }
+
+            const recordCandidates = /** @type {any} */ (messages).recordMesgs || /** @type {any} */ (messages).records;
+
+            if (Array.isArray(recordCandidates)) {
+                return recordCandidates.length;
+            }
+
+            if (recordCandidates && typeof recordCandidates.length === "number") {
+                return Number(recordCandidates.length) || 0;
+            }
+
+            return 0;
+        },
+    };
+
+    const settingsStateManager = {
+        getCategory(category) {
+            if (!category) {
+                return null;
+            }
+
+            try {
+                const stateValue = mainProcessState.get(`settings.${category}`);
+                if (stateValue !== undefined && stateValue !== null) {
+                    return stateValue;
+                }
+            } catch {
+                /* ignore state read errors */
+            }
+
+            if (category === "decoder") {
+                const conf = resolveFitParserSettingsConf();
+                if (conf && typeof conf.get === "function") {
+                    try {
+                        return conf.get("decoderOptions");
+                    } catch {
+                        /* ignore conf read errors */
+                    }
+                }
+            }
+
+            return null;
+        },
+        updateCategory(category, value, options = {}) {
+            if (!category) {
+                return;
+            }
+
+            try {
+                mainProcessState.set(`settings.${category}`, value, {
+                    source: "fitParser",
+                    ...(options && typeof options === "object" ? options : {}),
+                });
+            } catch (error) {
+                logWithContext("warn", "Failed to update settings in main process state", {
+                    category,
+                    error: /** @type {Error} */ (error)?.message,
+                });
+            }
+
+            if (category === "decoder") {
+                const conf = resolveFitParserSettingsConf();
+                if (conf && typeof conf.set === "function") {
+                    try {
+                        conf.set("decoderOptions", value);
+                    } catch (error) {
+                        logWithContext("warn", "Failed to persist decoder settings to configuration store", {
+                            error: /** @type {Error} */ (error)?.message,
+                        });
+                    }
+                }
+            }
+        },
+    };
+
+    const performanceMonitor = {
+        isEnabled: true,
+        startTimer(operationId) {
+            if (!operationId) {
+                return;
+            }
+
+            timers.set(operationId, { duration: null, start: now() });
+        },
+        endTimer(operationId) {
+            if (!operationId) {
+                return null;
+            }
+
+            const timer = timers.get(operationId);
+            if (!timer) {
+                return null;
+            }
+
+            timer.duration = now() - timer.start;
+            timers.set(operationId, timer);
+
+            try {
+                mainProcessState.recordMetric(operationId, timer.duration, { source: "fitParser" });
+            } catch {
+                /* ignore metric errors */
+            }
+
+            return timer.duration;
+        },
+        getOperationTime(operationId) {
+            const timer = operationId ? timers.get(operationId) : null;
+            if (!timer) {
+                return null;
+            }
+
+            if (typeof timer.duration === "number") {
+                return timer.duration;
+            }
+
+            return now() - timer.start;
+        },
+    };
+
+    return { fitFileStateManager, performanceMonitor, settingsStateManager };
+}
+
+async function ensureFitParserStateIntegration() {
+    if (__fitParserStateIntegrationPromise) {
+        return __fitParserStateIntegrationPromise;
+    }
+
+    __fitParserStateIntegrationPromise = (async () => {
+        try {
+            const fitParser = require("./fitParser");
+            if (!fitParser || typeof fitParser.initializeStateManagement !== "function") {
+                return;
+            }
+
+            /** @type {{fitFileStateManager?:any,settingsStateManager?:any,performanceMonitor?:any}|null} */
+            const override =
+                typeof globalThis !== "undefined" &&
+                /** @type {any} */ (globalThis).__fitParserStateAdaptersOverride
+                    ? /** @type {any} */ (globalThis).__fitParserStateAdaptersOverride
+                    : null;
+
+            const adapters = override || createFitParserStateAdapters();
+            fitParser.initializeStateManagement(adapters);
+
+            logWithContext("info", "Fit parser state management initialized");
+        } catch (error) {
+            logWithContext("warn", "Skipping fit parser state integration", {
+                error: /** @type {Error} */ (error)?.message,
+            });
+        }
+    })();
+
+    return __fitParserStateIntegrationPromise;
+}
+
 // Development helpers
 function exposeDevHelpers() {
     /** @type {any} */ (globalThis).devHelpers = {
@@ -360,7 +611,7 @@ function exposeDevHelpers() {
             const win = browserWindowRef().getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */ (win),
+                    /** @type {any} */(win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );
@@ -403,8 +654,8 @@ try {
         __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
             ? __prime_mod
             : __prime_mod && __prime_mod.default
-              ? __prime_mod.default
-              : __prime_mod;
+                ? __prime_mod.default
+                : __prime_mod;
     const __prime_app = __prime && __prime.app;
     const __prime_BW = __prime && __prime.BrowserWindow;
     let __prime_app_val = __prime_app;
@@ -540,8 +791,8 @@ async function initializeApplication() {
                 webContents: {
                     executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
                     isDestroyed: () => false,
-                    on: () => {},
-                    send: () => {},
+                    on: () => { },
+                    send: () => { },
                 },
             };
         }
@@ -622,6 +873,35 @@ function logWithContext(level, message, context = {}) {
         /** @type {any} */ (console)[level](`[${timestamp}] [main.js] ${message}`);
     }
 }
+
+function resolveFitParserSettingsConf() {
+    if (__fitParserSettingsConf !== undefined) {
+        return __fitParserSettingsConf;
+    }
+
+    try {
+        const { Conf } = require("electron-conf");
+        __fitParserSettingsConf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+    } catch {
+        __fitParserSettingsConf = null;
+    }
+
+    return __fitParserSettingsConf;
+}
+
+if (
+    typeof process !== "undefined" &&
+    process.env &&
+    /** @type {any} */ (process.env).NODE_ENV === "test" &&
+    typeof globalThis !== "undefined"
+) {
+    Object.defineProperty(globalThis, "__resetFitParserStateIntegrationForTests", {
+        configurable: true,
+        value: () => {
+            __fitParserStateIntegrationPromise = null;
+        },
+    });
+}
 // Lazy, test-safe menu builder to avoid import-time Electron access in tests
 /**
  * Test-safe menu creation that avoids accessing Electron at import-time.
@@ -680,7 +960,7 @@ try {
                 i0.handle("__test_init_handle__", () => true);
             }
             if (i0 && typeof i0.on === "function") {
-                i0.on("__test_init_on__", () => {});
+                i0.on("__test_init_on__", () => { });
             }
         } catch {
             /* ignore */
@@ -706,7 +986,7 @@ try {
             const http0 = httpRef();
             if (http0 && typeof http0.createServer === "function") {
                 // No listen call – harmless creation to satisfy spy expectations only
-                http0.createServer(() => {});
+                http0.createServer(() => { });
             }
         } catch {
             /* ignore */
@@ -871,12 +1151,12 @@ try {
                             /* ignore */
                         }
                         try {
-                            i.on("menu-export", () => {});
+                            i.on("menu-export", () => { });
                         } catch {
                             /* ignore */
                         }
                         try {
-                            i.on("set-fullscreen", () => {});
+                            i.on("set-fullscreen", () => { });
                         } catch {
                             /* ignore */
                         }
@@ -889,7 +1169,7 @@ try {
                     const http = httpRef();
                     if (http && typeof http.createServer === "function") {
                         try {
-                            http.createServer(() => {});
+                            http.createServer(() => { });
                         } catch {
                             /* ignore */
                         }
@@ -911,9 +1191,9 @@ try {
                     try {
                         const hasEnv = Boolean(
                             typeof process !== "undefined" &&
-                                process.env &&
-                                process.env.GYAZO_CLIENT_ID &&
-                                process.env.GYAZO_CLIENT_SECRET
+                            process.env &&
+                            process.env.GYAZO_CLIENT_ID &&
+                            process.env.GYAZO_CLIENT_SECRET
                         );
                         const hasServer = Boolean(getAppState("gyazoServer"));
                         if (hasEnv && !hasServer) {
@@ -928,7 +1208,7 @@ try {
                                 const http = httpRef();
                                 if (http && typeof http.createServer === "function") {
                                     try {
-                                        http.createServer(() => {});
+                                        http.createServer(() => { });
                                     } catch {
                                         /* ignore */
                                     }
@@ -1182,6 +1462,12 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
  * @param {any} mainWindow
  */
 function setupIPCHandlers(mainWindow) {
+    ensureFitParserStateIntegration().catch((error) => {
+        logWithContext("warn", "Fit parser state integration failed to initialize", {
+            error: /** @type {Error} */ (error)?.message,
+        });
+    });
+
     // File dialog handler
     ipcMainRef().handle("dialog:openFile", async (/** @type {any} */ _event) => {
         try {
@@ -1223,8 +1509,8 @@ function setupIPCHandlers(mainWindow) {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "fit-file-loaded event")) {
             try {
-                const theme = await getThemeFromRenderer(/** @type {any} */ (win));
-                safeCreateAppMenu(/** @type {any} */ (win), theme, getAppState("loadedFitFilePath"));
+                const theme = await getThemeFromRenderer(/** @type {any} */(win));
+                safeCreateAppMenu(/** @type {any} */(win), theme, getAppState("loadedFitFilePath"));
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", {
                     error: /** @type {Error} */ (error).message,
@@ -1291,6 +1577,7 @@ function setupIPCHandlers(mainWindow) {
     // FIT file parsing handlers
     ipcMainRef().handle("fit:parse", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
+            await ensureFitParserStateIntegration();
             const buffer = Buffer.from(arrayBuffer),
                 fitParser = require("./fitParser");
             return await fitParser.decodeFitFile(buffer);
@@ -1304,6 +1591,7 @@ function setupIPCHandlers(mainWindow) {
 
     ipcMainRef().handle("fit:decode", async (/** @type {any} */ _event, /** @type {ArrayBuffer} */ arrayBuffer) => {
         try {
+            await ensureFitParserStateIntegration();
             const buffer = Buffer.from(arrayBuffer),
                 fitParser = require("./fitParser");
             return await fitParser.decodeFitFile(buffer);
@@ -1427,7 +1715,7 @@ function setupMenuAndEventHandlers() {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
             safeCreateAppMenu(
-                /** @type {any} */ (win),
+                /** @type {any} */(win),
                 theme || CONSTANTS.DEFAULT_THEME,
                 getAppState("loadedFitFilePath")
             );
@@ -1497,7 +1785,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
                     filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                     title: "Export As",
@@ -1520,7 +1808,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                     title: "Save As",
@@ -1559,7 +1847,7 @@ function setupMenuAndEventHandlers() {
                 win = browserWindowRef().fromWebContents(event.sender);
             logWithContext("info", "Manual menu injection requested", { fitFilePath: f, theme: t });
             if (win) {
-                safeCreateAppMenu(/** @type {any} */ (win), t, f);
+                safeCreateAppMenu(/** @type {any} */(win), t, f);
             }
             return true;
         }
@@ -1847,7 +2135,7 @@ async function startGyazoOAuthServer(port = 3000) {
                 throw new Error("HTTP module unavailable");
             }
             const server = _http.createServer((req, res) => {
-                const parsedUrl = new URL(/** @type {string} */ (req.url), `http://localhost:${port}`);
+                const parsedUrl = new URL(/** @type {string} */(req.url), `http://localhost:${port}`);
 
                 // Handle CORS and preflight requests
                 res.setHeader("Access-Control-Allow-Origin", "*");

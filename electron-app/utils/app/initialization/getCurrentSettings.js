@@ -12,7 +12,7 @@
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
-import { isHTMLElement, query, queryAll, setChecked, setValue } from "../../dom/domHelpers.js";
+import { isHTMLElement, query, queryAll, setChecked, setValue } from "../../dom/index.js";
 import { fieldColors, formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { setState } from "../../state/core/stateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
@@ -560,7 +560,7 @@ function resetUIControlsToDefaults(wrapper) {
         for (const picker of colorPickers) {
             const fieldName = picker.id.replace("field-color-", "").replace("chartjs-", "");
             if (/** @type {any} */ (fieldColors)[fieldName]) {
-                setValue(picker, /** @type {any} */ (fieldColors)[fieldName]);
+                setValue(picker, /** @type {any} */(fieldColors)[fieldName]);
             }
         }
         if (colorPickers.length > 0) {

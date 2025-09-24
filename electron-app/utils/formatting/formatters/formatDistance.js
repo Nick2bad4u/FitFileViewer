@@ -9,8 +9,8 @@
  * @version 2.0.0 - Updated to use centralized configuration
  */
 
-import { CONVERSION_FACTORS } from "../../config/constants.js";
-import { validateInput, validators } from "../../errors/errorHandling.js";
+import { CONVERSION_FACTORS } from "../../config/index.js";
+import { validateInput, validators } from "../../errors/index.js";
 
 /**
  * Formats a distance in meters to a string showing both kilometers and miles

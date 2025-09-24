@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../../../../utils/app/initialization/updateSystemInfo.js", () => ({ updateSystemInfo: vi.fn() }));
-vi.mock("../../../utils/logging/logWithLevel.js", () => ({ logWithLevel: vi.fn() }));
+vi.mock("../../../../utils/logging/index.js", () => ({ logWithLevel: vi.fn() }));
 
 const modPath = "../../../../utils/app/initialization/loadVersionInfo.js";
 

@@ -113,8 +113,8 @@ export function convertDistanceUnits(meters, targetUnit) {
  */
 
 // Imports (grouped by type)
-import { CONSTANTS } from '../../config/constants.js';
-import { errorHandler } from '../../errors/errorHandling.js';
+import { CONVERSION_FACTORS as CONSTANTS } from '../../config/index.js';
+import { errorHandler } from '../../errors/index.js';
 import externalLibrary from 'external-library';
 
 // Constants
@@ -141,7 +141,7 @@ export default mainFunction;
 
 ```javascript
 // Use unified error handling
-import { withErrorHandling, validators, validateInput } from '../errors/errorHandling.js';
+import { withErrorHandling, validators, validateInput } from '../errors/index.js';
 
 // Standard validation pattern
 export const processData = withErrorHandling(
@@ -193,8 +193,8 @@ utils/[category]/newModule.js
  * @since [Version]
  */
 
-import { CONSTANTS } from '../config/constants.js';
-import { withErrorHandling } from '../errors/errorHandling.js';
+import { CONVERSION_FACTORS as CONSTANTS } from '../config/index.js';
+import { withErrorHandling } from '../errors/index.js';
 
 // Export main functionality
 export const newFunction = withErrorHandling(
@@ -369,7 +369,7 @@ vi.mock('electron', () => ({
 }));
 
 // Mock modules
-vi.mock('../../../utils/config/constants.js', () => ({
+vi.mock('../../../utils/config/index.js', () => ({
     DISTANCE_UNITS: { METERS: 'meters', KILOMETERS: 'kilometers' },
     CONVERSION_FACTORS: { METERS_PER_KILOMETER: 1000 }
 }));

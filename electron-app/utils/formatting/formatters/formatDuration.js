@@ -9,7 +9,7 @@
  * @version 2.0.0 - Updated to use centralized configuration
  */
 
-import { CONVERSION_FACTORS } from "../../config/constants.js";
+import { CONVERSION_FACTORS } from "../../config/index.js";
 
 // Formatting thresholds using centralized constants
 const THRESHOLDS = {

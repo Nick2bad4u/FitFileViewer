@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { logWithLevel } from "../../../utils/logging/logWithLevel.js";
+import { logWithLevel } from "../../../utils/logging/index.js";
 
 describe("logWithLevel.js - additional branch coverage", () => {
     const originalConsole = { ...console } as any;

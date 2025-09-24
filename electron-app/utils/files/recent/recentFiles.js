@@ -87,8 +87,8 @@ if (RECENT_ENV) {
             if (typeof process !== "undefined" && process.on) {
                 process.on("exit", () => {
                     try {
-                        if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
-                            fs.unlinkSync(/** @type {string} */ (RECENT_FILES_PATH));
+                        if (RECENT_FILES_PATH && fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
+                            fs.unlinkSync(/** @type {string} */(RECENT_FILES_PATH));
                         }
                     } catch {
                         // Ignore cleanup errors
@@ -150,8 +150,8 @@ function getShortRecentName(file) {
  */
 function loadRecentFiles() {
     try {
-        if (fs.existsSync(/** @type {string} */ (RECENT_FILES_PATH))) {
-            const data = fs.readFileSync(/** @type {string} */ (RECENT_FILES_PATH));
+        if (fs.existsSync(/** @type {string} */(RECENT_FILES_PATH))) {
+            const data = fs.readFileSync(/** @type {string} */(RECENT_FILES_PATH));
             return JSON.parse(data);
         }
     } catch (error) {
@@ -169,7 +169,7 @@ function loadRecentFiles() {
 function saveRecentFiles(list) {
     try {
         fs.writeFileSync(
-            /** @type {string} */ (RECENT_FILES_PATH),
+            /** @type {string} */(RECENT_FILES_PATH),
             JSON.stringify(list.slice(0, MAX_RECENT_FILES)),
             "utf8"
         );

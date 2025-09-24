@@ -227,7 +227,7 @@ import {
 const { renderMap } = await import('./utils/maps/renderMap.js');
 
 // Centralized configuration
-import { DISTANCE_UNITS, CONVERSION_FACTORS } from './utils/config/constants.js';
+import { DISTANCE_UNITS, CONVERSION_FACTORS } from './utils/config/index.js';
 ```
 
 ### Module Categories

@@ -9,7 +9,7 @@
  * @version 2.0.0 - Updated to use centralized configuration and unified error handling
  */
 
-import { CONVERSION_FACTORS, TIME_UNITS } from "../../config/constants.js";
+import { CONVERSION_FACTORS, TIME_UNITS } from "../../config/index.js";
 // No imports needed from errorHandling for current implementation
 import { convertTimeUnits } from "../converters/convertTimeUnits.js";
 

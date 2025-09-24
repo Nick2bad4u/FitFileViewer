@@ -110,7 +110,7 @@ electron-app/utils/
 │   └── vegaLiteHelpers.js          # Vega-Lite utilities
 │
 ├── config/                           # Configuration management
-│   ├── constants.js                 # Centralized constants (500+ lines)
+│   ├── constants.js                 # Centralized constants + config helpers
 │   │   ├── CONVERSION_FACTORS       # Unit conversion factors
 │   │   ├── DISTANCE_UNITS          # Distance unit definitions
 │   │   ├── TIME_UNITS              # Time unit definitions
@@ -118,15 +118,7 @@ electron-app/utils/
 │   │   ├── CHART_CONSTANTS         # Chart configuration
 │   │   ├── MAP_CONSTANTS           # Map configuration
 │   │   └── ERROR_MESSAGES          # Error message templates
-│   ├── appConfig.js                 # Application configuration
-│   ├── buildConfig.js               # Build-time configuration
-│   ├── electronConfig.js            # Electron-specific config
-│   ├── environmentConfig.js         # Environment variables
-│   ├── featureFlags.js              # Feature toggle system
-│   ├── performanceConfig.js         # Performance settings
-│   ├── securityConfig.js            # Security configuration
-│   ├── themeConfig.js               # Theme configuration
-│   └── userPreferences.js           # User preference management
+│   └── index.js                     # Barrel & namespace export for config
 │
 ├── data/                             # Data processing & management
 │   ├── arrayUtils.js                # Array manipulation utilities
@@ -465,8 +457,8 @@ Root Level Files:
 | File | Size/Complexity | Primary Responsibility |
 |------|-----------------|----------------------|
 | `main.js` | 2,000+ lines | Electron main process, app lifecycle |
-| `utils/config/constants.js` | 500+ lines | Centralized configuration |
-| `utils/errors/errorHandling.js` | 400+ lines | Unified error handling |
+| `utils/config/index.js` | 500+ lines via `constants.js` | Centralized configuration |
+| `utils/errors/index.js` | 400+ lines | Unified error handling |
 | `utils/state/core/unifiedStateManager.js` | 300+ lines | State management facade |
 | `fitParser.js` | 200+ lines | FIT file parsing logic |
 | `main-ui.js` | 150+ lines | UI management and tabs |

@@ -22,7 +22,7 @@ import {
     getData,
     setData,
     focus,
-} from "../../../utils/dom/domHelpers.js";
+} from "../../../utils/dom/index.js";
 
 describe("domHelpers.js - Comprehensive Tests", () => {
     let testContainer;

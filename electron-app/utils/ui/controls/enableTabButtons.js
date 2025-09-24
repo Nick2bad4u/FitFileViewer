@@ -2,7 +2,7 @@
 // Utility to enable or disable all tab buttons (except Open FIT File)
 
 // Reuse central DOM helpers for safe narrowing
-import { isHTMLElement } from "../../dom/domHelpers.js";
+import { isHTMLElement } from "../../dom/index.js";
 import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
 // Ensure console.trace exists for tests/environments where it's missing

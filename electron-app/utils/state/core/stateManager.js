@@ -79,79 +79,79 @@
  * @type {AppStateShape}
  */
 const AppState = {
-        // Application lifecycle state
-        app: {
-            initialized: false,
-            isOpeningFile: false,
-            startTime: performance.now(),
-        },
+    // Application lifecycle state
+    app: {
+        initialized: false,
+        isOpeningFile: false,
+        startTime: performance.now(),
+    },
 
-        // Chart state
-        charts: {
-            chartData: null,
-            chartOptions: {},
-            controlsVisible: true,
-            isRendered: false,
-            selectedChart: "elevation",
-            zoomLevel: 1,
-        },
-        currentFile: null,
-        // Core application data
-        globalData: null,
+    // Chart state
+    charts: {
+        chartData: null,
+        chartOptions: {},
+        controlsVisible: true,
+        isRendered: false,
+        selectedChart: "elevation",
+        zoomLevel: 1,
+    },
+    currentFile: null,
+    // Core application data
+    globalData: null,
 
-        isLoading: false,
+    isLoading: false,
 
-        // Map state
-        map: {
-            baseLayer: "openstreetmap",
-            center: null,
-            isRendered: false,
-            measurementMode: false,
-            selectedLap: 0,
-            showElevationProfile: true,
-            trackVisible: true,
-            zoom: 13,
-        },
+    // Map state
+    map: {
+        baseLayer: "openstreetmap",
+        center: null,
+        isRendered: false,
+        measurementMode: false,
+        selectedLap: 0,
+        showElevationProfile: true,
+        trackVisible: true,
+        zoom: 13,
+    },
 
-        // Performance metrics
-        performance: {
-            lastLoadTime: null,
-            memoryUsage: null,
-            renderTimes: {},
-        },
+    // Performance metrics
+    performance: {
+        lastLoadTime: null,
+        memoryUsage: null,
+        renderTimes: {},
+    },
 
-        // System information
-        system: {
-            initialized: false,
-            mode: "production",
-            startupTime: null,
-            version: null,
-        },
-        // Table state
-        tables: {
-            currentPage: 1,
-            filters: {},
-            isRendered: false,
-            pageSize: 50,
-            sortColumn: null,
-            sortDirection: "asc",
-        },
+    // System information
+    system: {
+        initialized: false,
+        mode: "production",
+        startupTime: null,
+        version: null,
+    },
+    // Table state
+    tables: {
+        currentPage: 1,
+        filters: {},
+        isRendered: false,
+        pageSize: 50,
+        sortColumn: null,
+        sortDirection: "asc",
+    },
 
-        // UI state
-        ui: {
-            activeTab: "summary",
-            isFullscreen: false,
-            sidebarCollapsed: false,
-            theme: "system",
-            windowState: {
-                height: 800,
-                maximized: false,
-                width: 1200,
-                x: null,
-                y: null,
-            },
+    // UI state
+    ui: {
+        activeTab: "summary",
+        isFullscreen: false,
+        sidebarCollapsed: false,
+        theme: "system",
+        windowState: {
+            height: 800,
+            maximized: false,
+            width: 1200,
+            x: null,
+            y: null,
         },
     },
+},
     /**
      * Maximum number of state changes to keep in history
      */
@@ -166,6 +166,12 @@ const AppState = {
      * @type {Map<string, Set<Function>>}
      */
     stateListeners = new Map();
+
+/**
+ * Tracks whether initializeStateManager has completed to prevent duplicate subscriptions
+ * @type {{initialized: boolean}}
+ */
+const stateManagerInitState = { initialized: false };
 
 /**
  * TEST-ONLY: Clear all registered state listeners.
@@ -202,6 +208,7 @@ function __resetStateManagerForTests() {
     } catch {
         /* Ignore errors */
     }
+    stateManagerInitState.initialized = false;
 }
 
 /**
@@ -350,6 +357,11 @@ function getSubscriptions() {
  * Initialize state manager with default reactive properties
  */
 function initializeStateManager() {
+    if (stateManagerInitState.initialized) {
+        console.log("[StateManager] initializeStateManager invoked multiple times; ignoring subsequent calls");
+        return;
+    }
+
     // Create reactive properties for backward compatibility
     createReactiveProperty("globalData", "globalData");
     createReactiveProperty("isChartRendered", "charts.isRendered");
@@ -361,6 +373,8 @@ function initializeStateManager() {
     subscribe("ui", () => persistState(["ui"]));
     subscribe("charts.controlsVisible", () => persistState(["charts.controlsVisible"]));
     subscribe("map.baseLayer", () => persistState(["map.baseLayer"]));
+
+    stateManagerInitState.initialized = true;
 
     console.log("[StateManager] Initialized with reactive properties and persistence");
 }

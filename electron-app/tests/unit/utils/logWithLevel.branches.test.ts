@@ -1,5 +1,5 @@
 import { describe, it, vi, beforeEach, expect } from "vitest";
-import { logWithLevel } from "../../../utils/logging/logWithLevel.js";
+import { logWithLevel } from "../../../utils/logging/index.js";
 
 describe("logWithLevel.js - fallback branch coverage", () => {
     beforeEach(() => {

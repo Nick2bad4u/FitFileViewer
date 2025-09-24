@@ -1,4 +1,4 @@
-import { logWithLevel } from "../../logging/logWithLevel.js";
+import { logWithLevel } from "../../logging/index.js";
 import { updateSystemInfo } from "./updateSystemInfo.js";
 
 // Constants for better maintainability
