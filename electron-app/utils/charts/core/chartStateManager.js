@@ -7,7 +7,7 @@
 
 import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { renderChartJS } from "./renderChartJS.js";
+import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 
 /**
  * @typedef {Object} FitGlobalData
@@ -56,6 +56,7 @@ class ChartStateManager {
      * Clear chart state when new data is loaded or charts are unloaded
      */
     clearChartState() {
+        invalidateChartRenderCache("ChartStateManager.clearChartState");
         this.destroyExistingCharts();
 
         updateState(

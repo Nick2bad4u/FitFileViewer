@@ -18,9 +18,12 @@ import { getFieldColor } from "../theming/getFieldColor.js";
 export function createEnhancedChart(canvas, options) {
     const {
         animationStyle,
+        axisRanges,
         chartData,
         chartType,
         customColors,
+        decimation = { enabled: false },
+        enableSpanGaps = false,
         field,
         fieldLabels,
         interpolation,
@@ -30,6 +33,7 @@ export function createEnhancedChart(canvas, options) {
         showPoints,
         showTitle,
         smoothing,
+        tickSampleSize,
         theme,
         zoomPluginConfig,
     } = options;
@@ -48,12 +52,14 @@ export function createEnhancedChart(canvas, options) {
                 borderColor: fieldColor,
                 borderWidth: 2,
                 data: chartData,
+                parsing: false,
                 fill: showFill,
                 label: fieldLabels[field] || field,
                 pointBackgroundColor: fieldColor,
                 pointBorderColor: fieldColor,
                 pointHoverRadius: 5,
                 pointRadius: showPoints ? 3 : 0,
+                spanGaps: enableSpanGaps,
                 tension: smoothing / 100,
             };
 
@@ -77,10 +83,10 @@ export function createEnhancedChart(canvas, options) {
                         animationStyle === "none"
                             ? 0
                             : animationStyle === "fast"
-                              ? 500
-                              : animationStyle === "slow"
-                                ? 2000
-                                : 1000,
+                                ? 500
+                                : animationStyle === "slow"
+                                    ? 2000
+                                    : 1000,
                     easing: interpolation,
                 },
                 interaction: {
@@ -88,10 +94,14 @@ export function createEnhancedChart(canvas, options) {
                     mode: "index",
                 },
                 maintainAspectRatio: false,
+                normalized: true,
+                parsing: false,
+                spanGaps: enableSpanGaps,
                 plugins: {
                     chartBackgroundColorPlugin: {
                         backgroundColor: currentTheme === "dark" ? "#181c24" : "#ffffff",
                     },
+                    decimation,
                     legend: {
                         display: showLegend,
                         labels: {
@@ -201,6 +211,7 @@ export function createEnhancedChart(canvas, options) {
                                 return formatTime(value);
                             },
                             color: currentTheme === "dark" ? "#fff" : "#000",
+                            ...(tickSampleSize ? { sampleSize: tickSampleSize } : {}),
                         },
                         title: {
                             color: currentTheme === "dark" ? "#fff" : "#000",
@@ -212,6 +223,17 @@ export function createEnhancedChart(canvas, options) {
                             text: `Time (${getUnitSymbol("time", "time")})`,
                         },
                         type: "linear",
+                        ...(axisRanges && axisRanges.x && Number.isFinite(axisRanges.x.min) && Number.isFinite(axisRanges.x.max)
+                            ? axisRanges.x.min === axisRanges.x.max
+                                ? {
+                                    max: axisRanges.x.max + 1,
+                                    min: Math.max(axisRanges.x.min - 1, 0),
+                                }
+                                : {
+                                    max: axisRanges.x.max,
+                                    min: axisRanges.x.min,
+                                }
+                            : {}),
                     },
                     y: {
                         display: true,
@@ -231,6 +253,17 @@ export function createEnhancedChart(canvas, options) {
                             },
                             text: `${fieldLabels[field] || field} (${getUnitSymbol(field)})`,
                         },
+                        ...(axisRanges && axisRanges.y && Number.isFinite(axisRanges.y.min) && Number.isFinite(axisRanges.y.max)
+                            ? axisRanges.y.min === axisRanges.y.max
+                                ? {
+                                    max: axisRanges.y.max + 1,
+                                    min: axisRanges.y.min - 1,
+                                }
+                                : {
+                                    max: axisRanges.y.max,
+                                    min: axisRanges.y.min,
+                                }
+                            : {}),
                     },
                 },
             },

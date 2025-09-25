@@ -481,6 +481,32 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 expect.objectContaining({ silent: false, source: "chartSettingsManager.updateSettings" })
             );
         });
+
+        it("should skip cache invalidation for display-only changes", async () => {
+            const module = await import("../../../../../utils/charts/core/renderChartJS.js");
+
+            const listener = vi.fn();
+            const unsubscribe = module.addInvalidateChartRenderCacheListener(listener);
+
+            module.chartSettingsManager.updateSettings({ showLegend: false });
+
+            expect(listener).not.toHaveBeenCalled();
+
+            unsubscribe();
+        });
+
+        it("should invalidate render caches when unit settings change", async () => {
+            const module = await import("../../../../../utils/charts/core/renderChartJS.js");
+
+            const listener = vi.fn();
+            const unsubscribe = module.addInvalidateChartRenderCacheListener(listener);
+
+            module.chartSettingsManager.updateSettings({ distanceUnits: "miles" });
+
+            expect(listener).toHaveBeenCalledWith("settings-update:data-changing");
+
+            unsubscribe();
+        });
     });
 
     describe("Chart Plugin Registration", () => {
@@ -865,6 +891,79 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const result = await renderChartJS();
 
             expect(result).toBe(true);
+        });
+
+        it("should reuse cached chart series for display-only setting changes", async () => {
+            const sharedData = {
+                recordMesgs: [
+                    { timestamp: 1000, speed: 10, elevation: 100 },
+                    { timestamp: 2000, speed: 15, elevation: 105 },
+                ],
+            };
+
+            mocks.formatChartFields.formatChartFields = ["speed", "elevation"];
+            global.window.localStorage.getItem.mockImplementation((key) => {
+                if (key && key.startsWith("chartjs_field_")) {
+                    return "visible";
+                }
+                return "visible";
+            });
+
+            mocks.stateManager.getState.mockImplementation((path) => {
+                const stateMap = {
+                    globalData: sharedData,
+                    "charts.chartData": null,
+                    "charts.chartOptions": {},
+                    "charts.controlsVisible": true,
+                    "charts.isRendered": false,
+                    "charts.isRendering": false,
+                    "charts.selectedChart": "elevation",
+                    "settings.charts": {
+                        animation: "normal",
+                        chartType: "line",
+                        maxpoints: "all",
+                    },
+                    "settings.charts.fieldVisibility.speed": "visible",
+                    isLoading: false,
+                };
+                return stateMap[path];
+            });
+
+            const { chartSettingsManager, getChartSeriesCacheStats, renderChartJS } = await import(
+                "../../../../../utils/charts/core/renderChartJS.js"
+            );
+
+            await renderChartJS();
+
+            const firstRenderData = mocks.createEnhancedChart.createEnhancedChart.mock.calls.map(
+                ([, config]) => config.chartData
+            );
+
+            expect(firstRenderData.length).toBeGreaterThan(0);
+
+            const initialStats = getChartSeriesCacheStats();
+            expect(initialStats.misses).toBeGreaterThan(0);
+            expect(initialStats.hits).toBe(0);
+
+            chartSettingsManager.updateSettings({ showLegend: false });
+
+            mocks.createEnhancedChart.createEnhancedChart.mockClear();
+
+            await renderChartJS();
+
+            const secondRenderData = mocks.createEnhancedChart.createEnhancedChart.mock.calls.map(
+                ([, config]) => config.chartData
+            );
+
+            const afterStats = getChartSeriesCacheStats();
+
+            expect(secondRenderData.length).toBe(firstRenderData.length);
+            secondRenderData.forEach((data, index) => {
+                expect(data).toBe(firstRenderData[index]);
+            });
+
+            expect(afterStats.misses).toBe(initialStats.misses);
+            expect(afterStats.hits).toBeGreaterThan(initialStats.hits);
         });
     });
 

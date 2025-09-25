@@ -171,8 +171,12 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             console.log(`${LOG_PREFIX} Cleared cached chart settings from state`);
         }
 
-        // Clear existing chart instances first
-        if (globalThis._chartjsInstances && Array.isArray(globalThis._chartjsInstances)) {
+        const reason = `Setting change: ${settingName}`;
+        const actions = /** @type {any} */ (globalThis).chartActions;
+
+        if (actions && typeof actions.clearCharts === "function") {
+            actions.clearCharts();
+        } else if (globalThis._chartjsInstances && Array.isArray(globalThis._chartjsInstances)) {
             console.log(`${LOG_PREFIX} Destroying ${globalThis._chartjsInstances.length} existing chart instances`);
             for (const [index, chart] of globalThis._chartjsInstances.entries()) {
                 if (chart && typeof chart.destroy === "function") {
@@ -187,6 +191,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             globalThis._chartjsInstances = [];
         }
 
+        // Clear existing chart instances first
         // Also clear any existing chart canvases to ensure clean slate
         const existingCanvases = queryAll('canvas[id^="chart-"], canvas[id^="chartjs-canvas-"]');
         console.log(`${LOG_PREFIX} Removing ${existingCanvases.length} existing chart canvases`);
@@ -194,6 +199,22 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             if (canvas.parentNode) {
                 canvas.remove();
             }
+        }
+
+        const managerCandidate =
+            (chartStateManager && typeof chartStateManager.debouncedRender === "function")
+                ? chartStateManager
+                : /** @type {any} */ (globalThis).chartStateManager;
+        if (managerCandidate && typeof managerCandidate.debouncedRender === "function") {
+            managerCandidate.debouncedRender(reason);
+            console.log(`${LOG_PREFIX} Delegated re-render to chartStateManager`);
+            return;
+        }
+
+        if (actions && typeof actions.requestRerender === "function") {
+            actions.requestRerender(reason);
+            console.log(`${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`);
+            return;
         }
 
         // Force a complete re-render - try multiple container approaches
@@ -208,9 +229,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         console.log(`${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`);
 
         // Force re-render through modern state management
-        if (chartStateManager) {
-            chartStateManager.debouncedRender(`Setting change: ${settingName}`);
-        } else if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
+        if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
             // Fallback: direct rendering for compatibility if globally exposed
             const target = container || document.querySelector("#content-chart") || document.body;
             /** @type {any} */ (globalThis).renderChartJS(target);
@@ -222,7 +241,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             );
         }
 
-        console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change`);
+        console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`);
     } catch (error) {
         const err = /** @type {any} */ (error);
         console.error(`${LOG_PREFIX} Error re-rendering charts after ${settingName} change:`, err?.message || err);

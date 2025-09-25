@@ -91,7 +91,6 @@
 
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { setupZoneData } from "../../data/processing/setupZoneData.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import { fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
@@ -158,7 +157,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.showNotification === "function") {
             // Tests expect exactly (message, type)
-            return await g.showNotification(message, /** @type {any} */ (type));
+            return await g.showNotification(message, /** @type {any} */(type));
         }
 
         // Try module cache injection path used by tests
@@ -167,7 +166,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
                 const reqMod = g.require("../../ui/notifications/showNotification.js");
                 const fn = reqMod?.showNotification || reqMod?.default?.showNotification || reqMod?.default;
                 if (typeof fn === "function") {
-                    return await fn(message, /** @type {any} */ (type));
+                    return await fn(message, /** @type {any} */(type));
                 }
             } catch {
                 // ignore and fall through to dynamic import
@@ -177,7 +176,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         // Dynamically import to avoid static ESM cycles
         const mod = await import("../../ui/notifications/showNotification.js");
         if (mod && typeof mod.showNotification === "function") {
-            await mod.showNotification(message, /** @type {any} */ (type));
+            await mod.showNotification(message, /** @type {any} */(type));
         } else {
             console.warn("[ChartJS] Notification module missing showNotification export");
         }
@@ -206,6 +205,11 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 // tight coupling during SSR and module cache injection in tests
 import * as chartNotificationState from "./chartNotificationState.js";
 const _previousChartState = chartNotificationState.previousChartState;
+
+const DATA_SIGNATURE_SOURCES = [
+    { settingKey: "distanceUnits", storageKey: "chartjs_distanceUnits" },
+    { settingKey: "temperatureUnits", storageKey: "chartjs_temperatureUnits" },
+];
 
 // Test environment safety: ensure globalThis.process and process.nextTick exist (Vitest/jsdom)
 (() => {
@@ -572,7 +576,10 @@ export const chartSettingsManager = {
      */
     updateSettings(newSettings) {
         const currentSettings = this.getSettings(),
-            updatedSettings = { ...currentSettings, ...newSettings };
+            updatedSettings = { ...currentSettings, ...newSettings },
+            previousDataSignature = createDataSettingsSignature(currentSettings),
+            nextDataSignature = createDataSettingsSignature(updatedSettings),
+            dataSettingsChanged = DATA_SIGNATURE_SOURCES.some(({ settingKey }) => settingKey in newSettings);
 
         // Update through settings state manager for persistence
         {
@@ -586,6 +593,10 @@ export const chartSettingsManager = {
             silent: false,
             source: "chartSettingsManager.updateSettings",
         });
+
+        if (dataSettingsChanged || previousDataSignature !== nextDataSignature) {
+            invalidateChartRenderCache("settings-update:data-changing");
+        }
 
         // Trigger chart re-render if charts are currently displayed
         // eslint-disable-next-line no-use-before-define -- chartState is declared later in this module but accessed lazily at runtime
@@ -649,6 +660,388 @@ function safeAppend(parent, child) {
     }
 }
 
+const CACHE_LOG_PREFIX = "[ChartJS Cache]";
+const DECIMATION_THRESHOLD = 2500;
+const MAX_TICK_TARGET = 600;
+let fieldSeriesCache = new WeakMap();
+let labelsCache = new WeakMap();
+const performanceSettingsCache = new Map();
+let lastDataSettingsSignature = "";
+const invalidateChartRenderCacheListeners = new Set();
+const chartSeriesCacheStats = { hits: 0, misses: 0 };
+
+export function addInvalidateChartRenderCacheListener(listener) {
+    if (typeof listener !== "function") {
+        return () => { };
+    }
+
+    invalidateChartRenderCacheListeners.add(listener);
+
+    return () => {
+        invalidateChartRenderCacheListeners.delete(listener);
+    };
+}
+
+export function getChartSeriesCacheStats() {
+    return { ...chartSeriesCacheStats };
+}
+
+export function invalidateChartRenderCache(reason = "manual") {
+    if (typeof process !== "undefined" && process.env?.NODE_ENV === "development") {
+        console.log(`${CACHE_LOG_PREFIX} invalidated: ${reason}`);
+    }
+    fieldSeriesCache = new WeakMap();
+    labelsCache = new WeakMap();
+    performanceSettingsCache.clear();
+    lastDataSettingsSignature = "";
+    chartSeriesCacheStats.hits = 0;
+    chartSeriesCacheStats.misses = 0;
+
+    for (const listener of invalidateChartRenderCacheListeners) {
+        try {
+            listener(reason);
+        } catch (error) {
+            console.warn(`${CACHE_LOG_PREFIX} listener error`, error);
+        }
+    }
+}
+
+function calculateAxisRanges(points) {
+    if (!Array.isArray(points) || points.length === 0) {
+        return null;
+    }
+
+    let minX = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    for (const point of points) {
+        if (!point) {
+            continue;
+        }
+        const { x, y } = point;
+        if (typeof x === "number" && Number.isFinite(x)) {
+            if (x < minX) {
+                minX = x;
+            }
+            if (x > maxX) {
+                maxX = x;
+            }
+        }
+        if (typeof y === "number" && Number.isFinite(y)) {
+            if (y < minY) {
+                minY = y;
+            }
+            if (y > maxY) {
+                maxY = y;
+            }
+        }
+    }
+
+    if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
+        return null;
+    }
+
+    if (!Number.isFinite(minY) || !Number.isFinite(maxY)) {
+        minY = 0;
+        maxY = 0;
+    }
+
+    if (minX === maxX) {
+        maxX = minX + 1;
+    }
+
+    if (minY === maxY) {
+        const delta = Math.abs(minY) < 1 ? 1 : Math.abs(minY * 0.05) || 1;
+        minY -= delta;
+        maxY += delta;
+    }
+
+    return {
+        x: { min: minX, max: maxX },
+        y: { min: minY, max: maxY },
+    };
+}
+
+function createChartPoints(labels, values) {
+    const labelCount = Array.isArray(labels) ? labels.length : 0;
+    const valueCount = Array.isArray(values) ? values.length : 0;
+    const length = Math.min(labelCount, valueCount);
+    return Array.from({ length }, (_, index) => {
+        const labelValue = labels?.[index];
+        const yValue = values?.[index];
+        const x = typeof labelValue === "number" && Number.isFinite(labelValue) ? labelValue : index;
+        const y = typeof yValue === "number" && Number.isFinite(yValue) ? yValue : null;
+        return { x, y };
+    });
+}
+
+function createDataSettingsSignature(settings = {}) {
+    /** @type {Record<string, any>} */
+    const signature = {};
+    for (const { settingKey, storageKey } of DATA_SIGNATURE_SOURCES) {
+        const value = readSettingOrStorageValue(settingKey, storageKey, settings);
+        if (value != null) {
+            signature[settingKey] = value;
+        }
+    }
+    return JSON.stringify(signature);
+}
+
+function ensureDataSettingsSignature(settings) {
+    const signature = createDataSettingsSignature(settings);
+    if (signature && lastDataSettingsSignature && lastDataSettingsSignature !== signature) {
+        invalidateChartRenderCache("data-settings-changed");
+    }
+    lastDataSettingsSignature = signature;
+    return signature;
+}
+
+function ensureFieldSeriesCache(recordMesgs) {
+    let cache = fieldSeriesCache.get(recordMesgs);
+    if (!cache) {
+        cache = {
+            fields: new Map(),
+        };
+        fieldSeriesCache.set(recordMesgs, cache);
+    }
+    return cache;
+}
+
+function getCachedSeriesForSettings(entry, labels, maxPointsValue) {
+    if (!entry.pointCache) {
+        entry.pointCache = new WeakMap();
+    }
+
+    let labelCache = entry.pointCache.get(labels);
+    if (!labelCache) {
+        const basePoints = createChartPoints(labels, entry.values);
+        const baseAxisRange = calculateAxisRanges(basePoints);
+        const baseHasValidData = basePoints.some(({ y }) => typeof y === "number" && Number.isFinite(y));
+        labelCache = {
+            baseAxisRange,
+            baseHasValidData,
+            basePoints,
+            limits: new Map(),
+        };
+        entry.pointCache.set(labels, labelCache);
+    }
+
+    const key = getMaxPointCacheKey(maxPointsValue);
+    if (labelCache.limits.has(key)) {
+        chartSeriesCacheStats.hits += 1;
+        return labelCache.limits.get(key);
+    }
+
+    chartSeriesCacheStats.misses += 1;
+    const points =
+        maxPointsValue === "all" ? labelCache.basePoints : limitChartPoints(labelCache.basePoints, maxPointsValue);
+    const hasValidData =
+        maxPointsValue === "all"
+            ? labelCache.baseHasValidData
+            : points.some(({ y }) => typeof y === "number" && Number.isFinite(y));
+    const axisRanges =
+        maxPointsValue === "all"
+            ? labelCache.baseAxisRange
+            : calculateAxisRanges(points) || labelCache.baseAxisRange;
+
+    labelCache.limits.set(key, {
+        axisRanges,
+        hasValidData,
+        points,
+    });
+
+    return labelCache.limits.get(key);
+}
+
+function getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert) {
+    const cache = ensureFieldSeriesCache(recordMesgs);
+    let fieldMap = cache.fields.get(field);
+    if (!fieldMap) {
+        fieldMap = new Map();
+        cache.fields.set(field, fieldMap);
+    }
+
+    let entry = fieldMap.get(dataSettingsSignature);
+    if (!entry) {
+        const values = [];
+        let min = Number.POSITIVE_INFINITY;
+        let max = Number.NEGATIVE_INFINITY;
+        let hasNull = false;
+
+        for (const row of recordMesgs) {
+            const raw = row && typeof row === "object" ? /** @type {any} */ (row)[field] : null;
+            let numeric = Number(raw);
+            if (!Number.isFinite(numeric)) {
+                values.push(null);
+                hasNull = true;
+                continue;
+            }
+            try {
+                numeric = convert(numeric, field);
+            } catch {
+                // Use fallback numeric value if conversion fails
+            }
+            if (!Number.isFinite(numeric)) {
+                values.push(null);
+                hasNull = true;
+                continue;
+            }
+            if (numeric < min) {
+                min = numeric;
+            }
+            if (numeric > max) {
+                max = numeric;
+            }
+            values.push(numeric);
+        }
+
+        if (!Number.isFinite(min) || !Number.isFinite(max)) {
+            min = Number.NaN;
+            max = Number.NaN;
+        }
+
+        entry = {
+            hasNull,
+            max,
+            min,
+            pointCache: new WeakMap(),
+            values,
+        };
+        fieldMap.set(dataSettingsSignature, entry);
+    } else if (!entry.pointCache) {
+        entry.pointCache = new WeakMap();
+    }
+
+    return entry;
+}
+
+function getLabelsForRecords(recordMesgs, startTime) {
+    if (labelsCache.has(recordMesgs)) {
+        const cached = labelsCache.get(recordMesgs);
+        if (cached && cached.startTime === startTime) {
+            return cached.values;
+        }
+    }
+
+    const result = [];
+    let base = null;
+    if (typeof startTime === "number") {
+        base = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
+    } else if (startTime && typeof startTime === "object" && "getTime" in startTime) {
+        base = startTime.getTime() / 1000;
+    }
+
+    for (const [index, row] of recordMesgs.entries()) {
+        let labelValue = index;
+        if (row && typeof row === "object" && "timestamp" in row && row.timestamp != null) {
+            const { timestamp: rawTimestamp } = /** @type {any} */ (row);
+            let timestamp = rawTimestamp;
+            if (rawTimestamp instanceof Date) {
+                timestamp = rawTimestamp.getTime() / 1000;
+            } else if (typeof rawTimestamp === "number" && rawTimestamp > 1_000_000_000_000) {
+                timestamp = rawTimestamp / 1000;
+            }
+            if (typeof timestamp === "number" && Number.isFinite(timestamp)) {
+                labelValue = base != null && Number.isFinite(base) ? Math.max(0, Math.round(timestamp - base)) : Math.round(timestamp);
+            }
+        }
+        result.push(labelValue);
+    }
+
+    labelsCache.set(recordMesgs, { startTime, values: result });
+    return result;
+}
+
+function getMaxPointCacheKey(maxPointsValue) {
+    return maxPointsValue === "all" ? "all" : `n:${maxPointsValue}`;
+}
+
+function limitChartPoints(points, maxPoints) {
+    if (!Array.isArray(points) || points.length === 0) {
+        return [];
+    }
+
+    if (maxPoints === "all" || maxPoints === undefined || maxPoints === null) {
+        return points.slice();
+    }
+
+    const limit = typeof maxPoints === "number" ? maxPoints : Number.parseInt(String(maxPoints), 10);
+    if (!Number.isFinite(limit) || limit <= 0 || points.length <= limit) {
+        return points.slice();
+    }
+
+    const step = Math.max(1, Math.ceil(points.length / limit));
+    const limited = [];
+    for (let i = 0; i < points.length; i += step) {
+        limited.push(points[i]);
+    }
+    const lastPoint = points.at(-1);
+    if (lastPoint && limited.at(-1) !== lastPoint) {
+        limited.push(lastPoint);
+    }
+    return limited;
+}
+
+function normalizeMaxPointsValue(maxPoints) {
+    if (maxPoints === "all" || maxPoints === undefined || maxPoints === null) {
+        return "all";
+    }
+
+    const numeric = typeof maxPoints === "number" ? maxPoints : Number.parseInt(String(maxPoints), 10);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+        return "all";
+    }
+
+    return numeric;
+}
+
+function readSettingOrStorageValue(settingKey, storageKey, settings) {
+    if (settingKey in settings && settings[settingKey] != null) {
+        return settings[settingKey];
+    }
+    if (!storageKey) {
+        return null;
+    }
+    try {
+        const g = /** @type {any} */ (globalThis);
+        const storage = g?.localStorage || g?.window?.localStorage;
+        if (storage && typeof storage.getItem === "function") {
+            const value = storage.getItem(storageKey);
+            return value ?? null;
+        }
+    } catch {
+        /* ignore */
+    }
+    return null;
+}
+
+function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature) {
+    const key = `${totalPoints}|${settings?.chartType || "line"}|${dataSettingsSignature}`;
+    if (performanceSettingsCache.has(key)) {
+        return performanceSettingsCache.get(key);
+    }
+
+    const allowDecimation = (!settings?.chartType || ["area", "line", "radar"].includes(String(settings.chartType))) && totalPoints > DECIMATION_THRESHOLD;
+
+    const decimation = allowDecimation
+        ? {
+            algorithm: "min-max",
+            enabled: true,
+            samples: 4,
+            threshold: 1000,
+        }
+        : { enabled: false };
+
+    const tickSampleSize = totalPoints > MAX_TICK_TARGET ? Math.ceil(totalPoints / MAX_TICK_TARGET) : undefined;
+    const enableSpanGaps = totalPoints > DECIMATION_THRESHOLD;
+
+    const result = { decimation, enableSpanGaps, tickSampleSize };
+    performanceSettingsCache.set(key, result);
+    return result;
+}
+
 // Injectable dependency helpers for tests (module cache injection) with production fallbacks
 // (Note) The test harness overrides CommonJS require during Vitest SSR transform.
 // Our ESM imports are compiled to require calls, so the test's module cache injection
@@ -663,6 +1056,13 @@ function safeCompleteRendering(success) {
     } catch {
         /* ignore */
     }
+}
+
+function shouldUseSpanGaps(performanceSettings, seriesEntry) {
+    if (!performanceSettings?.enableSpanGaps) {
+        return false;
+    }
+    return Boolean(seriesEntry?.hasNull);
 }
 
 // Safe wrapper exports for compatibility with tests that import from renderChartJS
@@ -812,7 +1212,7 @@ if (!windowAny._fitFileViewerChartListener) {
                     document.body;
                 try {
                     // Call without awaiting to keep handler non-blocking
-                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */ (container)));
+                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */(container)));
                 } catch (error) {
                     console.warn("[ChartJS] Event-based render fallback failed:", error);
                 }
@@ -910,9 +1310,9 @@ export const chartState = {
             /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
         return Array.isArray(fields)
             ? fields.filter((field) => {
-                  const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
-                  return visibility !== "hidden";
-              })
+                const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+                return visibility !== "hidden";
+            })
             : [];
     },
 
@@ -1058,9 +1458,9 @@ try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
-            ChartRef.registry &&
-            ChartRef.registry.plugins &&
-            typeof ChartRef.registry.plugins.get === "function"
+        ChartRef.registry &&
+        ChartRef.registry.plugins &&
+        typeof ChartRef.registry.plugins.get === "function"
     );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
@@ -1474,7 +1874,7 @@ export async function renderChartJS(targetContainer) {
                     /* ignore */
                 }
                 try {
-                    modules.renderLapZoneCharts?.(tmp, /** @type {any} */ ({ visibilitySettings: {} }));
+                    modules.renderLapZoneCharts?.(tmp, /** @type {any} */({ visibilitySettings: {} }));
                 } catch {
                     /* ignore */
                 }
@@ -1496,7 +1896,7 @@ export async function renderChartJS(targetContainer) {
 
         let result = false;
         try {
-            result = await renderChartsWithData(/** @type {any} */ (targetContainer), recordMesgs, activityStartTime);
+            result = await renderChartsWithData(/** @type {any} */(targetContainer), recordMesgs, activityStartTime);
         } catch (innerError) {
             console.warn("[ChartJS] renderChartsWithData threw, continuing with graceful completion:", innerError);
             // If we have valid data, treat inner errors as non-fatal so that overall rendering
@@ -1514,10 +1914,10 @@ export async function renderChartJS(targetContainer) {
             if (ca && typeof ca.completeRendering === "function") {
                 ca.completeRendering(success, chartCount, renderTime);
             } else {
-                safeCompleteRendering(/** @type {any} */ (success));
+                safeCompleteRendering(/** @type {any} */(success));
             }
         } catch {
-            safeCompleteRendering(/** @type {any} */ (success));
+            safeCompleteRendering(/** @type {any} */(success));
         }
         // Ensure hover-effects dev helper is invoked even if inner renderer short-circuited,
         // so integration tests observing this spy still pass.
@@ -1575,16 +1975,16 @@ export async function renderChartJS(targetContainer) {
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
                         /** @type {any} */ (themeConfig).colors.text
-                    });">An error occurred while rendering the charts.</p>
+                });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                        });">Error Details</summary>
+                });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
                             /** @type {any} */ (themeConfig).colors.border
-                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
+                });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -1709,11 +2109,15 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             showPoints: String(showPoints) === "on" || showPoints === true,
             showTitle: String(showTitle) !== "off" && showTitle !== false,
         };
+    const normalizedMaxPoints = normalizeMaxPointsValue(maxPoints);
+    const dataSettingsSignature = ensureDataSettingsSignature(settings);
+    const performanceTuning = resolvePerformanceSettings(recordMesgs.length, settings, dataSettingsSignature);
     ss_rcwd(
         "charts.chartOptions",
         {
             ...settings,
             boolSettings,
+            performanceTuning,
             processedAt: Date.now(),
         },
         { silent: false, source: "renderChartsWithData" }
@@ -1754,43 +2158,11 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         };
     console.log("[renderChartsWithData] Detected theme:", currentTheme);
 
-    // Process data
-    const data = recordMesgs, // Use the record messages
-        labels = data.map((row, i) => {
-            // Convert timestamp to relative seconds from start time
-            if (row && typeof row === "object" && /** @type {any} */ (row).timestamp && startTime) {
-                let startTimestamp, timestamp;
+    // Process data using memoization helpers to avoid redundant conversions across renders
+    const data = recordMesgs;
+    const labels = getLabelsForRecords(recordMesgs, startTime);
 
-                // Handle different timestamp formats
-                if (/** @type {any} */ (row).timestamp instanceof Date) {
-                    timestamp = /** @type {any} */ (row).timestamp.getTime() / 1000; // Convert to seconds
-                } else if (typeof (/** @type {any} */ (row).timestamp) === "number") {
-                    // Check if timestamp is in milliseconds (very large number) or seconds
-                    timestamp =
-                        /** @type {any} */ (row).timestamp > 1_000_000_000_000
-                            ? /** @type {any} */ (row).timestamp / 1000
-                            : /** @type {any} */ (row).timestamp;
-                } else {
-                    return i; // Fallback to index if timestamp is invalid
-                }
-
-                if (typeof startTime === "number") {
-                    startTimestamp = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
-                } else if (startTime && typeof startTime === "object" && "getTime" in startTime) {
-                    startTimestamp = /** @type {Date} */ (startTime).getTime() / 1000;
-                } else {
-                    return i; // Fallback to index if startTime is invalid
-                }
-
-                return Math.round(timestamp - startTimestamp);
-            }
-            return i; // Fallback to index
-        }); // Define fields to process for charts - updated to match actual FIT file field names
-    // Use formatChartFields imported from formatChartFields.js for consistency
-    // (imported at the top: import { formatChartFields } from "../formatting/display/formatChartFields";)
-    // Process each field using state-managed visibility settings
     let visibleFieldCount = 0;
-    // Prefer configured renderable fields; if unavailable, infer from data to ensure charts render in tests
     const { renderableFields } = chartState;
     /** @type {string[]} */
     let fieldsToRender = Array.isArray(renderableFields) ? [...renderableFields] : [];
@@ -1798,113 +2170,70 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         try {
             const sample = Array.isArray(recordMesgs) ? recordMesgs.find((r) => r && typeof r === "object") || {} : {};
             fieldsToRender = Object.keys(sample)
-                .filter((k) => k !== "timestamp")
-                .filter((k) => typeof (/** @type {any} */ (sample)[k]) === "number");
-            // Provide a sane default if still empty
-            if (!fieldsToRender.length)
-                fieldsToRender = ["speed", "elevation", "heart_rate", "power"].filter(
-                    (f) => f in /** @type {any} */ (sample)
+                .filter((key) => key !== "timestamp")
+                .filter((key) => typeof (/** @type {any} */ (sample)[key]) === "number");
+            if (!fieldsToRender.length) {
+                fieldsToRender = ["speed", "elevation", "heart_rate", "power"].filter((field) =>
+                    field in /** @type {any} */ (sample)
                 );
+            }
         } catch {
             // ignore and proceed with empty, which will show no-data messages later
         }
     }
 
     console.log(
-        `[ChartJS] Processing ${renderableFields.length} visible fields out of ${Array.isArray(formatChartFields) ? formatChartFields.length : 0} total`
+        `[ChartJS] Processing ${fieldsToRender.length} candidate fields (visibility managed via settings state)`
     );
 
     for (const field of fieldsToRender) {
-        // Double-check field visibility through enhanced settings state manager
         const visibility = chartSettingsManager.getFieldVisibility(field);
         if (visibility === "hidden") {
             console.log(`[ChartJS] Skipping hidden field: ${field}`);
-            continue; // Skip this field
-        }
-
-        console.log(`[ChartJS] Processing field: ${field} (visibility: ${visibility})`);
-
-        // Extract numeric data with unit conversion and better debugging
-        const numericData = data.map((row, index) => {
-                if (
-                    row &&
-                    typeof row === "object" &&
-                    /** @type {any} */ (row)[field] !== undefined &&
-                    /** @type {any} */ (row)[field] !== null
-                ) {
-                    let value = Number.parseFloat(/** @type {any} */ (row)[field]);
-
-                    // Apply unit conversion based on user preferences
-                    if (!isNaN(value)) {
-                        value = convert(value, field);
-                    }
-
-                    if (index < 3) {
-                        // Debug first few rows
-                        console.log(
-                            `[ChartJS] Field ${field}, row ${index}: raw=${/** @type {any} */ (row)[field]}, converted=${value} ${getUnitSymbol(
-                                field
-                            )}`
-                        );
-                    }
-                    return isNaN(value) ? null : value;
-                }
-                return null;
-            }),
-            validDataCount = numericData.filter((val) => val !== null).length;
-        console.log(`[ChartJS] Field ${field}: ${validDataCount} valid data points out of ${numericData.length}`);
-
-        // Skip if no valid data
-        if (numericData.every((val) => val === null)) {
-            console.log(`[ChartJS] Skipping field ${field} - no valid data`);
             continue;
         }
 
-        visibleFieldCount++;
+        const seriesEntry = getFieldSeriesEntry(recordMesgs, field, dataSettingsSignature, convert);
+        const rawValueCount = seriesEntry.values.length;
+        const { axisRanges, hasValidData, points: limitedPoints } = getCachedSeriesForSettings(
+            seriesEntry,
+            labels,
+            normalizedMaxPoints
+        );
+
+        console.log(
+            `[ChartJS] Field ${field}: ${rawValueCount} values (${limitedPoints.length} after limiting); visibility=${visibility}`
+        );
+
+        if (!hasValidData) {
+            console.log(`[ChartJS] Skipping field ${field} - no valid data after memoization`);
+            continue;
+        }
+
+        visibleFieldCount += 1;
         const canvas = createChartCanvasSafe(field, visibleFieldCount);
         safeAppend(chartContainer, canvas);
 
-        // Prepare chart data for enhanced chart with comprehensive unit conversion
-        let chartData = data
-            .map((row, i) => {
-                let value = row && typeof row === "object" ? /** @type {any} */ ((row)[field] ?? null) : null;
-
-                // Apply unit conversion based on user preferences
-                if (value !== null && typeof value === "number") {
-                    value = convert(value, field);
-                }
-
-                return {
-                    x: labels[i],
-                    y: value,
-                };
-            })
-            .filter((point) => point.y !== null);
-
-        console.log(`[ChartJS] Field ${field}: prepared ${chartData.length} chart data points`);
-
-        // Apply data point limiting
-        if (maxPoints !== "all" && chartData.length > Number(maxPoints)) {
-            const step = Math.ceil(chartData.length / Number(maxPoints));
-            chartData = chartData.filter((_, i) => i % step === 0);
-            console.log(`[ChartJS] Field ${field}: limited to ${chartData.length} points (max: ${maxPoints})`);
-        }
-        // Create enhanced chart
         const chart = createEnhancedChartSafe(
             canvas,
-            /** @type {any} */ ({
+            /** @type {any} */({
                 animationStyle,
-                chartData,
+                axisRanges,
+                chartData: limitedPoints,
                 chartType,
                 customColors,
+                decimation: performanceTuning.decimation,
+                enableSpanGaps: shouldUseSpanGaps(performanceTuning, seriesEntry),
                 field,
                 fieldLabels,
                 interpolation,
                 showFill: boolSettings.showFill,
+                showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
                 showPoints: boolSettings.showPoints,
                 showTitle: boolSettings.showTitle,
                 smoothing,
+                tickSampleSize: performanceTuning.tickSampleSize,
                 zoomPluginConfig,
             })
         );
@@ -1948,7 +2277,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneChartsSafe(
             chartContainer,
-            /** @type {any} */ ({
+            /** @type {any} */({
                 // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
@@ -1959,7 +2288,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         );
     } // Render GPS track chart if position data is available
     renderGPSTrackChartSafe(chartContainer, data, {
-        maxPoints: typeof maxPoints === "number" || maxPoints === "all" ? maxPoints : Number(maxPoints) || "all",
+        maxPoints: normalizedMaxPoints,
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,
         showPoints: boolSettings.showPoints,
@@ -1972,7 +2301,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         chartType,
         customColors,
         interpolation,
-        maxPoints: typeof maxPoints === "number" || maxPoints === "all" ? maxPoints : Number(maxPoints) || "all",
+        maxPoints: normalizedMaxPoints,
         showFill: boolSettings.showFill,
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,
@@ -2087,9 +2416,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Compute directly to avoid relying on chartState in tests that import during init
     const hasValidData = Boolean(
         getState("globalData") &&
-            getState("globalData").recordMesgs &&
-            Array.isArray(getState("globalData").recordMesgs) &&
-            getState("globalData").recordMesgs.length > 0
+        getState("globalData").recordMesgs &&
+        Array.isArray(getState("globalData").recordMesgs) &&
+        getState("globalData").recordMesgs.length > 0
     );
     try {
         const CE = /** @type {any} */ (globalThis).CustomEvent;
@@ -2239,9 +2568,9 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */ (computedStateManager).list?.(),
+                get: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).invalidate?.(key),
+                list: () => /** @type {any} */(computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({

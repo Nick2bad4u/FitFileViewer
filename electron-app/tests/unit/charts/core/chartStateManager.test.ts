@@ -21,12 +21,13 @@ vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
 
 vi.mock("../../../../utils/charts/core/renderChartJS.js", () => ({
     renderChartJS: vi.fn(),
+    invalidateChartRenderCache: vi.fn(),
 }));
 
 // Import mocked functions for spying
 import { getState, setState, subscribe, updateState } from "../../../../utils/state/core/stateManager.js";
 import { showNotification } from "../../../../utils/ui/notifications/showNotification.js";
-import { renderChartJS } from "../../../../utils/charts/core/renderChartJS.js";
+import { invalidateChartRenderCache, renderChartJS } from "../../../../utils/charts/core/renderChartJS.js";
 
 // Import the module being tested
 import chartStateManager from "../../../../utils/charts/core/chartStateManager.js";
@@ -338,6 +339,7 @@ describe("ChartStateManager", () => {
 
             chartStateManager.clearChartState();
 
+            expect(invalidateChartRenderCache).toHaveBeenCalledWith("ChartStateManager.clearChartState");
             expect(destroyExistingChartsSpy).toHaveBeenCalled();
             expect(updateState).toHaveBeenCalledWith(
                 "charts",
@@ -498,7 +500,7 @@ describe("ChartStateManager", () => {
             const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
             const clearChartStateSpy = vi.spyOn(chartStateManager, "clearChartState").mockImplementation(() => {});
 
-            chartStateManager.renderTimeout = setTimeout(() => {}, 1000);
+            (chartStateManager as any).renderTimeout = setTimeout(() => {}, 1000);
             chartStateManager.destroy();
 
             expect(clearTimeoutSpy).toHaveBeenCalled();
