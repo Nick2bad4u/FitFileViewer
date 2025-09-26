@@ -147,7 +147,6 @@ export function createUserDeviceInfoBox(container) {
             left: -2px;
             right: -2px;
             bottom: -2px;
-            background: linear-gradient(45deg, ${colors.primary}, ${colors.accent}, ${colors.primary});
             border-radius: 18px;
             opacity: 0;
             z-index: -1;
@@ -254,7 +253,7 @@ export function createUserDeviceInfoBox(container) {
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-                deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
             sensors = deviceInfos.filter(
                 (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
             );

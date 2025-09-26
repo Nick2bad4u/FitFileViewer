@@ -19,9 +19,9 @@ export function createShownFilesList() {
     container.style.border = "1px solid #bbb";
     container.style.borderRadius = "6px";
     container.style.padding = "6px 10px";
-    container.style.maxWidth = "350px";
+    container.style.maxWidth = "fit-content";
     container.style.overflow = "auto";
-    container.style.maxHeight = "80px";
+    container.style.maxHeight = "fit-content";
     container.innerHTML =
         '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
 
@@ -53,7 +53,7 @@ export function createShownFilesList() {
             if (hex.length === 3) {
                 hex = hex
                     .split("")
-                    .map(/** @param {string} x */ (x) => x + x)
+                    .map(/** @param {string} x */(x) => x + x)
                     .join("");
             }
             const num = Number.parseInt(hex, 16);
