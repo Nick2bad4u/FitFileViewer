@@ -94,6 +94,23 @@ export function showFitData(data, filePath, options = {}) {
 
             // Use central state management for file information
             setState("currentFile", filePath, { source: "showFitData" });
+
+            try {
+                if (typeof globalThis.scrollTo === "function") {
+                    const prefersReducedMotion =
+                        typeof globalThis.matchMedia === "function" &&
+                        globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+                    (globalThis.requestAnimationFrame || globalThis.setTimeout)(() => {
+                        globalThis.scrollTo({
+                            top: 0,
+                            behavior: prefersReducedMotion ? "auto" : "smooth",
+                        });
+                    }, 0);
+                }
+            } catch {
+                /* no-op */
+            }
         }
 
         // Create global chart status indicator if available

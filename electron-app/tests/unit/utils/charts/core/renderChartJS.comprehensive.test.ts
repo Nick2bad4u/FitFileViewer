@@ -382,6 +382,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
     let mocks;
 
     beforeEach(() => {
+        vi.resetModules();
         vi.clearAllMocks();
         mocks = injectRenderChartJSMocks();
 

@@ -66,12 +66,61 @@
     <body>
         <!-- App Header -->
         <header class="app-header">
-            <h1>Fit File Viewer</h1>
+            <div class="app-header-brand">
+                <div class="app-header-logo" role="img" aria-label="Coach Kitty keeps your rides on track">
+                    <figure class="hero-mascot-frame">
+                        <img
+                            src="icons/mascot-kitty.png"
+                            class="hero-mascot-image"
+                            alt="FitFileViewer mascot Coach Kitty"
+                            loading="eager"
+                            decoding="async"
+                        />
+                    </figure>
+                    <div class="hero-floating-card hero-floating-card-left" aria-hidden="true">
+                        <span class="hero-floating-label">Heart Rate</span>
+                        <span class="hero-floating-value">148 bpm avg</span>
+                    </div>
+                    <div class="hero-floating-card hero-floating-card-right" aria-hidden="true">
+                        <span class="hero-floating-label">Climb</span>
+                        <span class="hero-floating-value">912 ft gain</span>
+                    </div>
+                    <span class="hero-constellation" aria-hidden="true"></span>
+                </div>
+                <div class="app-header-copy">
+                    <h1>
+                        Fit <span class="title-highlight">File</span> Viewer
+                    </h1>
+                </div>
+            </div>
+            <ul class="app-pill-group" aria-label="Key capabilities">
+                <li class="app-pill"><span class="pill-accent">Realtime</span> analytics</li>
+                <li class="app-pill"><span class="pill-accent">Interactive</span> maps</li>
+                <li class="app-pill"><span class="pill-accent">Adaptive</span> workout markers</li>
+                <li class="app-pill"><span class="pill-accent">Offline</span> ready</li>
+            </ul>
         </header>
         <!-- Header Bar for File Open and Filename -->
         <div class="header-bar">
+            <div class="header-brand">
+                <span class="header-brand-ambient" aria-hidden="true"></span>
+                <div class="brand-text">
+                    <span class="brand-name">Fit File Viewer</span>
+                    <span class="brand-subtitle">Dashboards &amp; analytics</span>
+                </div>
+            </div>
             <button id="openFileBtn" class="themed-btn" aria-label="Open FIT File" role="button" tabindex="0">
-                Open FIT File
+                <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 7h5l2 2h9v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+                        <path d="M4 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" />
+                    </svg>
+                </span>
+                <span class="btn-label">Open FIT File</span>
+                <span class="btn-kbd" aria-hidden="true">
+                    <kbd>Ctrl</kbd>
+                    <kbd>O</kbd>
+                </span>
             </button>
             <div id="activeFileNameContainer">
                 <span id="activeFileName"></span>
@@ -82,6 +131,13 @@
                         />
                     </svg>
                 </button>
+            </div>
+            <div class="header-hint" role="note">
+                <svg viewBox="0 0 24 36" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M16 16v-3m0 0-2 2m2-2 2 2" />
+                    <path d="M7 20a4 4 0 0 1 0-8 6 6 0 0 1 11.31-2.49A3.5 3.5 0 1 1 19 16" />
+                </svg>
+                <span>Drop a FIT file anywhere to open.</span>
             </div>
         </div>
         <!-- Centered Tab Bar -->

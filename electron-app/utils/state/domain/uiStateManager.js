@@ -392,9 +392,11 @@ export class UIStateManager {
      */
     updateFileDisplayUI(fileInfo) {
         const info = fileInfo || {},
-            hasFile = Boolean(info.hasFile),
+            requestedHasFile = Boolean(info.hasFile),
             displayName = typeof info.displayName === "string" ? info.displayName : "",
-            title = typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_DOCUMENT_TITLE;
+            title = typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_DOCUMENT_TITLE,
+            globalData = getState("globalData"),
+            hasRenderableFile = Boolean(requestedHasFile && displayName && globalData);
 
         const fileNameContainer = (() => {
             try {
@@ -404,7 +406,29 @@ export class UIStateManager {
             }
         })();
         if (fileNameContainer) {
-            fileNameContainer.classList.toggle("has-file", hasFile);
+            fileNameContainer.classList.toggle("has-file", hasRenderableFile);
+        }
+
+        if (typeof document !== "undefined" && document.body) {
+            const { body } = document,
+                { classList, dataset } = body,
+                hasToggle = Boolean(classList && typeof classList.toggle === "function");
+
+            if (hasToggle) {
+                classList.toggle("app-has-file", hasRenderableFile);
+            } else {
+                const { className = "" } = body,
+                    classes = typeof className === "string" ? className.split(/\s+/) : [],
+                    filtered = classes.filter((cls) => cls && cls !== "app-has-file");
+                if (hasRenderableFile) {
+                    filtered.push("app-has-file");
+                }
+                body.className = filtered.join(" ").trim();
+            }
+
+            if (dataset) {
+                dataset.hasFitFile = hasRenderableFile ? "true" : "false";
+            }
         }
 
         const fileSpan = (() => {
@@ -416,7 +440,7 @@ export class UIStateManager {
         })();
 
         if (fileSpan) {
-            if (hasFile && displayName) {
+            if (hasRenderableFile) {
                 fileSpan.innerHTML = `<span class="active-label">Active:</span> ${displayName}`;
                 fileSpan.title = displayName;
                 fileSpan.classList.remove("marquee");

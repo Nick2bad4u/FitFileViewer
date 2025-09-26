@@ -1,7 +1,6 @@
 ---
 description: Beast Mode 3.1 [Custom]
-tools: ['createFile', 'createDirectory', 'editFiles', 'search', 'runCommands', 'runTask', 'getTaskOutput', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'githubRepo', 'todos', 'electron-mcp-server', 'sequentialthinking', 'vscode-mcp', 'memory', 'websearch']
-model: Claude Sonnet 4 (copilot)
+tools: ['runCommands', 'runTask', 'getTaskOutput', 'createFile', 'createDirectory', 'editFiles', 'search', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'githubRepo', 'todos', 'electron-mcp-server', 'vscode-mcp', 'websearch']
 ---
 
 # Beast Mode 3.1
