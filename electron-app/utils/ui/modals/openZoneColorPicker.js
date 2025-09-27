@@ -2,6 +2,8 @@ import { chartStateManager } from "../../charts/core/chartStateManager.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
+    clearCachedChartZoneColor,
+    clearCachedZoneColor,
     DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS,
     getChartSpecificZoneColor,
@@ -406,8 +408,12 @@ export function openZoneColorPicker(field) {
                     globalThis.clearZoneColorData(field, zoneData.length);
                 } else {
                     // Fallback: remove per-zone color keys
+                    const fallbackZoneType = field.includes("hr") ? "hr" : "power";
                     for (let i = 0; i < zoneData.length; i++) {
                         localStorage.removeItem(`chartjs_${field}_zone_${i + 1}_color`);
+                        clearCachedChartZoneColor(field, i);
+                        localStorage.removeItem(`chartjs_${fallbackZoneType}_zone_${i + 1}_color`);
+                        clearCachedZoneColor(fallbackZoneType, i);
                     }
                 }
 

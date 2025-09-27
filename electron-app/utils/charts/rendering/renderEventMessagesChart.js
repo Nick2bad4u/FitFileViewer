@@ -21,15 +21,26 @@ export function renderEventMessagesChart(container, options, startTime) {
         // Get theme configuration
         /** @type {any} */
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("events", 0)),
-            // Get user-defined color for event messages
-            eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0", // Purple default
-            themeConfig = getThemeConfig();
+            eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0",
+            themeConfig = getThemeConfig(),
+            defaultThemeColors = {
+                backgroundAlt: "#ffffff",
+                chartBackground: "#ffffff",
+                chartBorder: "#dee2e6",
+                chartSurface: "#f8f9fa",
+                gridLines: "#e9ecef",
+                shadow: "0 2px 4px #00000020",
+                text: "#000000",
+                textPrimary: "#000000",
+            },
+            themeColors = { ...defaultThemeColors };
+        if (themeConfig && themeConfig.colors) {
+            Object.assign(themeColors, themeConfig.colors);
+        }
 
         // Apply theme-aware canvas styling (background handled by plugin)
         canvas.style.borderRadius = "12px";
-        if (themeConfig?.colors) {
-            canvas.style.boxShadow = themeConfig.colors.shadow || "";
-        }
+        canvas.style.boxShadow = themeColors.shadow || "0 2px 4px #00000020";
 
         container.append(canvas);
         // Prepare event data with relative timestamps
@@ -85,23 +96,24 @@ export function renderEventMessagesChart(container, options, startTime) {
                 options: {
                     maintainAspectRatio: false,
                     plugins: {
+                        ...(options.zoomPluginConfig ? { zoom: options.zoomPluginConfig } : {}),
                         chartBackgroundColorPlugin: {
-                            backgroundColor: themeConfig.colors.chartBackground,
+                            backgroundColor: themeColors.chartBackground,
                         },
                         legend: {
                             display: options.showLegend,
-                            labels: { color: themeConfig.colors.text },
+                            labels: { color: themeColors.text },
                         },
                         title: {
-                            color: themeConfig.colors.text,
+                            color: themeColors.text,
                             display: options.showTitle,
                             font: { size: 16, weight: "bold" },
                             text: "Event Messages",
                         },
                         tooltip: {
-                            backgroundColor: themeConfig.colors.chartSurface,
-                            bodyColor: themeConfig.colors.text,
-                            borderColor: themeConfig.colors.chartBorder,
+                            backgroundColor: themeColors.chartSurface || defaultThemeColors.chartSurface,
+                            bodyColor: themeColors.text || defaultThemeColors.text,
+                            borderColor: themeColors.chartBorder || defaultThemeColors.chartBorder,
                             borderWidth: 1,
                             callbacks: {
                                 /** @param {any} context */
@@ -110,46 +122,43 @@ export function renderEventMessagesChart(container, options, startTime) {
                                     return point.event || "Event";
                                 },
                             },
-                            titleColor: themeConfig.colors.textPrimary,
+                            titleColor: themeColors.text || defaultThemeColors.text,
                         },
-                        titleColor: themeConfig.colors.text,
                     },
                     responsive: true,
                     scales: {
                         x: {
                             display: true,
                             grid: {
-                                color: themeConfig.colors.gridLines,
+                                color: themeColors.gridLines || defaultThemeColors.gridLines,
                                 display: options.showGrid,
                             },
                             ticks: {
                                 /** @param {any} value */
                                 callback(value) {
-                                    // Format seconds according to user's preferred units
                                     return formatTime(value, true);
                                 },
-                                color: themeConfig.colors.textPrimary,
+                                color: themeColors.text || defaultThemeColors.text,
                             },
                             title: {
-                                color: themeConfig.colors.textPrimary,
+                                color: themeColors.text || defaultThemeColors.text,
                                 display: true,
                                 text: `Time (${getUnitSymbol("time", "time")})`,
                             },
                             type: "linear",
                         },
                         y: {
-                            display: true,
+                            display: false,
                             grid: {
-                                color: themeConfig.colors.gridLines,
-                                display: options.showGrid,
+                                color: themeColors.gridLines || defaultThemeColors.gridLines,
+                                display: false,
                             },
                             ticks: {
                                 /** @param {any} value */
                                 callback(value) {
-                                    // Format seconds according to user's preferred units
                                     return formatTime(value, true);
                                 },
-                                color: themeConfig.colors.textPrimary,
+                                color: themeColors.text || defaultThemeColors.text,
                             },
                         },
                     },

@@ -105,29 +105,83 @@ import { settingsStateManager } from "../../state/domain/settingsStateManager.js
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
 // Avoid direct usage in critical paths to prevent SSR init order issues
 import { showRenderNotification } from "../../ui/notifications/showRenderNotification.js";
+
+const FALLBACK_ZONE_COLORS = [
+    "#808080",
+    "#3b82f665",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#FF6600",
+    "#FF00FF",
+    "#00FFFF",
+    "#FF1493",
+    "#FF4500",
+    "#FFD700",
+    "#32CD32",
+    "#8A2BE2",
+    "#000000",
+];
+const FALLBACK_HEART_RATE_ZONE_COLORS = [...FALLBACK_ZONE_COLORS];
+const FALLBACK_POWER_ZONE_COLORS = [...FALLBACK_ZONE_COLORS];
+const FALLBACK_THEME_COLORS = {
+    background: "#f8fafc",
+    backgroundAlt: "#ffffff",
+    border: "#e5e7eb",
+    borderLight: "rgba(0, 0, 0, 0.05)",
+    chartBackground: "#ffffff",
+    chartBorder: "#dddddd",
+    chartGrid: "rgba(0,0,0,0.1)",
+    chartSurface: "#ffffff",
+    error: "#ef4444",
+    info: "#3b82f665",
+    primary: "#3b82f6",
+    primaryAlpha: "rgba(59, 130, 246, 0.2)",
+    primaryShadow: "rgba(59, 130, 246, 0.30)",
+    primaryShadowHeavy: "rgba(59, 130, 246, 0.50)",
+    primaryShadowLight: "rgba(59, 130, 246, 0.10)",
+    shadow: "rgba(0, 0, 0, 0.15)",
+    shadowHeavy: "rgba(0, 0, 0, 0.25)",
+    shadowLight: "rgba(0, 0, 0, 0.05)",
+    shadowMedium: "rgba(0, 0, 0, 0.15)",
+    success: "#10b981",
+    surface: "#f8f9fa",
+    surfaceSecondary: "#e9ecef",
+    text: "#1e293b",
+    textPrimary: "#0f172a",
+    textSecondary: "#6b7280",
+    warning: "#f59e0b",
+    accent: "#3b82f665",
+    accentHover: "#3b82f633",
+    zoneColors: FALLBACK_ZONE_COLORS,
+    heartRateZoneColors: FALLBACK_HEART_RATE_ZONE_COLORS,
+    powerZoneColors: FALLBACK_POWER_ZONE_COLORS,
+};
+
 // Safe theme config loader to avoid TDZ from circular imports during SSR/tests
 /**
  * @returns {Promise<ThemeConfig>}
  */
 async function getThemeConfigSafe() {
+    let themeConfig;
     try {
         // Prefer dynamic ESM import first so test spies (vi.mock) are observed
         const mod = await import("../../theming/core/theme.js");
-        if (mod && typeof mod.getThemeConfig === "function") {
-            return /** @type {any} */ (mod.getThemeConfig());
+        if (!themeConfig && mod && typeof mod.getThemeConfig === "function") {
+            themeConfig = /** @type {any} */ (mod.getThemeConfig());
         }
         // If a global shim was provided by tests, use it next
         const g = /** @type {any} */ (globalThis);
-        if (g && typeof g.getThemeConfig === "function") {
-            return g.getThemeConfig();
+        if (!themeConfig && g && typeof g.getThemeConfig === "function") {
+            themeConfig = g.getThemeConfig();
         }
         // Try module cache injection path used by tests as a final fallback
-        if (g && typeof g.require === "function") {
+        if (!themeConfig && g && typeof g.require === "function") {
             try {
                 const reqMod = g.require("../../theming/core/theme.js");
                 const fn = reqMod?.getThemeConfig || reqMod?.default?.getThemeConfig || reqMod?.default;
                 if (typeof fn === "function") {
-                    return /** @type {any} */ (fn());
+                    themeConfig = /** @type {any} */ (fn());
                 }
             } catch {
                 // ignore and fall through
@@ -136,19 +190,49 @@ async function getThemeConfigSafe() {
     } catch (error) {
         console.warn("[ChartJS] getThemeConfigSafe() fallback:", error);
     }
-    // Minimal fallback to keep UI functional
-    return /** @type {any} */ ({
-        colors: {
-            text: "#1e293b",
-            textPrimary: "#0f172a",
-            backgroundAlt: "#ffffff",
-            border: "#e5e7eb",
-            error: "#ef4444",
-        },
-        isDark: false,
-        isLight: true,
-        theme: "light",
-    });
+
+    return normalizeThemeConfig(themeConfig);
+}
+
+/**
+ * Normalizes a theme config object to ensure required color keys exist.
+ * @param {any} rawConfig
+ * @returns {ThemeConfig}
+ */
+function normalizeThemeConfig(rawConfig) {
+    const normalized = rawConfig && typeof rawConfig === "object" ? { ...rawConfig } : {};
+    const providedColors =
+        rawConfig && typeof rawConfig === "object" && rawConfig.colors && typeof rawConfig.colors === "object"
+            ? rawConfig.colors
+            : {};
+    const mergedColors = {
+        ...FALLBACK_THEME_COLORS,
+        ...providedColors,
+    };
+
+    if (!Array.isArray(mergedColors.zoneColors) || mergedColors.zoneColors.length === 0) {
+        mergedColors.zoneColors = [...FALLBACK_ZONE_COLORS];
+    }
+    if (!Array.isArray(mergedColors.heartRateZoneColors) || mergedColors.heartRateZoneColors.length === 0) {
+        mergedColors.heartRateZoneColors = [...FALLBACK_HEART_RATE_ZONE_COLORS];
+    }
+    if (!Array.isArray(mergedColors.powerZoneColors) || mergedColors.powerZoneColors.length === 0) {
+        mergedColors.powerZoneColors = [...FALLBACK_POWER_ZONE_COLORS];
+    }
+
+    normalized.colors = mergedColors;
+
+    if (typeof normalized.isDark !== "boolean") {
+        normalized.isDark = false;
+    }
+    if (typeof normalized.isLight !== "boolean") {
+        normalized.isLight = !normalized.isDark;
+    }
+    if (typeof normalized.theme !== "string") {
+        normalized.theme = normalized.isDark ? "dark" : "light";
+    }
+
+    return /** @type {ThemeConfig} */ (normalized);
 }
 // Safe, lazy notification caller to break potential import init cycles under SSR
 async function notify(message, type = "info", _duration = null, _options = {}) {

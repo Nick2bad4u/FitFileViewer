@@ -334,15 +334,45 @@ if (unloadBtn) {
 
 // Enhanced Drag and Drop UI and Global Handling with State Management
 class DragDropHandler {
+    /** @type {number} */
+    dragCounter = 0;
+    /** @type {number} */
+    dragCounterStateValue = 0;
+    /** @type {boolean} */
+    dragOverScheduled = false;
+    /** @type {boolean} */
+    overlayVisible = false;
+
     constructor() {
+        try {
+            const initialCounter = Number(getState("ui.dragCounter")) || 0;
+            if (Number.isFinite(initialCounter)) {
+                this.dragCounter = initialCounter;
+                this.dragCounterStateValue = initialCounter;
+            }
+            this.overlayVisible = Boolean(getState("ui.dropOverlay.visible"));
+        } catch {
+            /* Ignore state access issues during bootstrap */
+        }
         this.setupEventListeners();
-        // Initialize drag counter in state
-        setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
-        setState("ui.dropOverlay.visible", false, { silent: false, source: "DragDropHandler.initialize" });
+        // Initialize drag counter in state without redundant writes
+        this.dragCounter = 0;
+        this.syncDragCounter(0, "DragDropHandler.initialize");
+        this.hideDropOverlay();
     }
 
     hideDropOverlay() {
+        if (!this.overlayVisible) {
+            try {
+                if (!getState("ui.dropOverlay.visible")) {
+                    return;
+                }
+            } catch {
+                /* Ignore state sync errors */
+            }
+        }
         setState("ui.dropOverlay.visible", false, { silent: false, source: "DragDropHandler.hideDropOverlay" });
+        this.overlayVisible = false;
     }
 
     /** @param {File} file */
@@ -440,20 +470,26 @@ class DragDropHandler {
         // Show overlay on dragenter, hide on dragleave/drop
         addEventListenerWithCleanup(globalThis, "dragenter", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
-                const currentCounter = getState("ui.dragCounter") || 0;
-                setState("ui.dragCounter", currentCounter + 1, { silent: false, source: "DragDropHandler" });
+                const nextCounter = this.dragCounter + 1;
+                if (nextCounter !== this.dragCounter) {
+                    this.dragCounter = nextCounter;
+                    this.syncDragCounter(nextCounter, "DragDropHandler.dragenter");
+                }
                 this.showDropOverlay();
             }
         });
 
         addEventListenerWithCleanup(globalThis, "dragleave", (/** @type {Event} */ e) => {
             if (e.target === document || e.target === document.body) {
-                const currentCounter = getState("ui.dragCounter") || 0,
-                    newCounter = currentCounter - 1;
-                setState("ui.dragCounter", newCounter, { silent: false, source: "DragDropHandler" });
-                if (newCounter <= 0) {
+                const nextCounter = Math.max(this.dragCounter - 1, 0);
+                if (nextCounter !== this.dragCounter) {
+                    this.dragCounter = nextCounter;
+                    this.syncDragCounter(nextCounter, "DragDropHandler.dragleave");
+                }
+                if (nextCounter <= 0) {
                     this.hideDropOverlay();
-                    setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
+                    this.dragCounter = 0;
+                    this.syncDragCounter(0, "DragDropHandler.dragleave.reset");
                 }
             }
         });
@@ -464,11 +500,20 @@ class DragDropHandler {
             if (de.dataTransfer) {
                 de.dataTransfer.dropEffect = "copy";
             }
-            this.showDropOverlay();
+            if (this.dragOverScheduled) {
+                return;
+            }
+            this.dragOverScheduled = true;
+            requestAnimationFrame(() => {
+                this.dragOverScheduled = false;
+                this.showDropOverlay();
+            });
         });
 
         addEventListenerWithCleanup(globalThis, "drop", async (/** @type {Event} */ e) => {
-            setState("ui.dragCounter", 0, { silent: false, source: "DragDropHandler" });
+            this.dragCounter = 0;
+            this.syncDragCounter(0, "DragDropHandler.drop");
+            this.dragOverScheduled = false;
             this.hideDropOverlay();
             e.preventDefault();
             const de = /** @type {any} */ (e);
@@ -494,10 +539,20 @@ class DragDropHandler {
         if (iframe) {
             addEventListenerWithCleanup(iframe, "dragover", (e) => {
                 e.preventDefault();
-                this.showDropOverlay();
+                if (this.dragOverScheduled) {
+                    return;
+                }
+                this.dragOverScheduled = true;
+                requestAnimationFrame(() => {
+                    this.dragOverScheduled = false;
+                    this.showDropOverlay();
+                });
             });
             addEventListenerWithCleanup(iframe, "drop", (e) => {
                 e.preventDefault();
+                this.dragCounter = 0;
+                this.syncDragCounter(0, "DragDropHandler.iframe.drop");
+                this.dragOverScheduled = false;
                 this.hideDropOverlay();
                 showNotification("Please drop files outside the iframe to process them.", "info");
             });
@@ -507,10 +562,20 @@ class DragDropHandler {
         if (zwiftIframe) {
             addEventListenerWithCleanup(zwiftIframe, "dragover", (e) => {
                 e.preventDefault();
-                this.showDropOverlay();
+                if (this.dragOverScheduled) {
+                    return;
+                }
+                this.dragOverScheduled = true;
+                requestAnimationFrame(() => {
+                    this.dragOverScheduled = false;
+                    this.showDropOverlay();
+                });
             });
             addEventListenerWithCleanup(zwiftIframe, "drop", (e) => {
                 e.preventDefault();
+                this.dragCounter = 0;
+                this.syncDragCounter(0, "DragDropHandler.zwift.drop");
+                this.dragOverScheduled = false;
                 this.hideDropOverlay();
                 showNotification("Please drop files outside the ZwiftMap iframe to process them.", "info");
             });
@@ -518,7 +583,29 @@ class DragDropHandler {
     }
 
     showDropOverlay() {
+        if (this.overlayVisible) {
+            try {
+                if (getState("ui.dropOverlay.visible")) {
+                    return;
+                }
+            } catch {
+                /* Ignore state sync errors */
+            }
+        }
         setState("ui.dropOverlay.visible", true, { silent: false, source: "DragDropHandler.showDropOverlay" });
+        this.overlayVisible = true;
+    }
+
+    syncDragCounter(value, source) {
+        if (value === this.dragCounterStateValue) {
+            return;
+        }
+        try {
+            setState("ui.dragCounter", value, { silent: false, source });
+            this.dragCounterStateValue = value;
+        } catch {
+            /* Ignore drag counter sync errors */
+        }
     }
 }
 

@@ -23,17 +23,81 @@ import { getThemeConfig } from "../../theming/core/theme.js";
  * @typedef {Record<string, Record<string, string[]>>} ColorSchemes
  */
 
+const FALLBACK_HR_ZONE_COLORS = [
+    "#808080",
+    "#3b82f665",
+    "#10B981",
+    "#F59E0B",
+    "#FF6600",
+    "#EF4444",
+    "#FF00FF",
+    "#00FFFF",
+    "#FF1493",
+    "#FF4500",
+    "#FFD700",
+    "#32CD32",
+    "#8A2BE2",
+    "#000000",
+];
+const FALLBACK_POWER_ZONE_COLORS = [
+    "#808080",
+    "#3b82f665",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#FF6600",
+    "#FF00FF",
+    "#00FFFF",
+    "#FF1493",
+    "#FF4500",
+    "#FFD700",
+    "#32CD32",
+    "#8A2BE2",
+    "#000000",
+];
+
+const zoneColorCache = new Map();
+const chartSpecificZoneColorCache = new Map();
+
+export const clearCachedChartZoneColor = (chartField, zoneIndex) => {
+    chartSpecificZoneColorCache.delete(`${chartField}:${zoneIndex}`);
+};
+
+export const clearCachedZoneColor = (zoneType, zoneIndex) => {
+    zoneColorCache.delete(`${zoneType}:${zoneIndex}`);
+};
+
+export const clearCachedZoneColors = (field, zoneCount) => {
+    for (let i = 0; i < zoneCount; i++) {
+        chartSpecificZoneColorCache.delete(`${field}:${i}`);
+    }
+    const zoneType = getZoneTypeFromField(field);
+    if (zoneType) {
+        for (let i = 0; i < zoneCount; i++) {
+            zoneColorCache.delete(`${zoneType}:${i}`);
+        }
+    }
+};
+
 /**
  * Gets default zone colors from theme configuration
  * @param {string} zoneType - "hr" or "power"
  * @returns {string[]} Array of color strings
  */
 function getDefaultZoneColors(zoneType) {
-    const themeConfig = /** @type {ThemeConfig} */ (getThemeConfig());
-    if (zoneType === "power") {
-        return /** @type {string[]} */ (themeConfig.colors?.powerZoneColors || []);
+    let themeConfig;
+    try {
+        themeConfig = /** @type {ThemeConfig | undefined} */ (getThemeConfig());
+    } catch (error) {
+        console.warn("[ZoneColors] Failed to load theme config, using fallbacks", error);
     }
-    return /** @type {string[]} */ (themeConfig.colors?.heartRateZoneColors || []);
+    const colors = (themeConfig && typeof themeConfig === "object" ? themeConfig.colors : undefined) || {};
+    if (zoneType === "power") {
+        const powerColors = Array.isArray(colors.powerZoneColors) ? colors.powerZoneColors : null;
+        return /** @type {string[]} */ (powerColors && powerColors.length ? powerColors : FALLBACK_POWER_ZONE_COLORS);
+    }
+    const hrColors = Array.isArray(colors.heartRateZoneColors) ? colors.heartRateZoneColors : null;
+    return /** @type {string[]} */ (hrColors && hrColors.length ? hrColors : FALLBACK_HR_ZONE_COLORS);
 }
 
 /**
@@ -58,14 +122,15 @@ export function applyZoneColors(zoneData, zoneType) {
         return zoneData;
     }
 
+    const zoneColors = zoneData.length ? getZoneColors(zoneType, zoneData.length) : [];
+
     return zoneData.map((zone, index) => {
-        // Use the zone.zone property (1-based) if available, otherwise use array index
-        // Convert to 0-based index for color lookup
         const zoneIndex = zone.zone ? zone.zone - 1 : index;
+        const color = zoneColors[zoneIndex] ?? getZoneColor(zoneType, zoneIndex);
 
         return {
             ...zone,
-            color: getZoneColor(zoneType, zoneIndex),
+            color,
         };
     });
 }
@@ -77,15 +142,23 @@ export function applyZoneColors(zoneData, zoneType) {
  * @returns {string} Hex color code
  */
 export function getChartSpecificZoneColor(chartField, zoneIndex) {
+    const cacheKey = `${chartField}:${zoneIndex}`;
+    const cachedValue = chartSpecificZoneColorCache.get(cacheKey);
+    if (typeof cachedValue === "string") {
+        return cachedValue;
+    }
+
     const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`,
         savedColor = localStorage.getItem(storageKey);
 
     if (savedColor) {
+        chartSpecificZoneColorCache.set(cacheKey, savedColor);
         return savedColor;
     }
 
     // Fallback to generic zone color if chart-specific color doesn't exist
     const zoneType = chartField.includes("hr") ? "hr" : "power";
+    chartSpecificZoneColorCache.delete(cacheKey);
     return getZoneColor(zoneType, zoneIndex);
 }
 
@@ -157,16 +230,24 @@ export function getDisplayZoneColors(zoneType, zoneCount, colorScheme = "custom"
  * @returns {string} Hex color code
  */
 export function getZoneColor(zoneType, zoneIndex) {
+    const cacheKey = `${zoneType}:${zoneIndex}`;
+    if (zoneColorCache.has(cacheKey)) {
+        return /** @type {string} */ (zoneColorCache.get(cacheKey));
+    }
+
     const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`,
         savedColor = localStorage.getItem(storageKey);
 
     if (savedColor) {
+        zoneColorCache.set(cacheKey, savedColor);
         return savedColor;
     }
 
     // Return default color
     const defaultColors = zoneType === "hr" ? DEFAULT_HR_ZONE_COLORS : DEFAULT_POWER_ZONE_COLORS;
-    return defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length] || "#808080";
+    const fallbackColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length] || "#808080";
+    zoneColorCache.set(cacheKey, fallbackColor);
+    return fallbackColor;
 }
 
 /**
@@ -253,7 +334,11 @@ export function resetZoneColors(zoneType, zoneCount) {
  */
 export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
     const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
-    localStorage.setItem(storageKey, color);
+    const existing = localStorage.getItem(storageKey);
+    if (existing !== color) {
+        localStorage.setItem(storageKey, color);
+    }
+    chartSpecificZoneColorCache.set(`${chartField}:${zoneIndex}`, color);
 }
 
 /**
@@ -264,5 +349,9 @@ export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
  */
 export function saveZoneColor(zoneType, zoneIndex, color) {
     const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
-    localStorage.setItem(storageKey, color);
+    const existing = localStorage.getItem(storageKey);
+    if (existing !== color) {
+        localStorage.setItem(storageKey, color);
+    }
+    zoneColorCache.set(`${zoneType}:${zoneIndex}`, color);
 }
