@@ -7,9 +7,315 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[2d1bb63](https://github.com/Nick2bad4u/FitFileViewer/commit/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8)...
+[2d1bb63](https://github.com/Nick2bad4u/FitFileViewer/commit/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8...2d1bb6392beda3e4c9d9143e31c1851ac855bcc8))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 26.9.0 [`(2d1bb63)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8)
+
+
+
+
+
+
+## [26.9.0] - 2025-09-27
+
+
 [[3fd663c](https://github.com/Nick2bad4u/FitFileViewer/commit/3fd663c2bd0f4288fbf819cab0564c97cd051f23)...
-[3fd663c](https://github.com/Nick2bad4u/FitFileViewer/commit/3fd663c2bd0f4288fbf819cab0564c97cd051f23)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3fd663c2bd0f4288fbf819cab0564c97cd051f23...3fd663c2bd0f4288fbf819cab0564c97cd051f23))
+[354ee93](https://github.com/Nick2bad4u/FitFileViewer/commit/354ee93492fb7a037e66c88aa21eac15cfdc88cb)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3fd663c2bd0f4288fbf819cab0564c97cd051f23...354ee93492fb7a037e66c88aa21eac15cfdc88cb))
+
+
+### 💼 Other
+
+- 🧹 [chore] Remove obsolete docs and apply code formatting
+
+This commit cleans up artifacts from the recent `utils` folder reorganization and applies consistent code formatting.
+
+*   📝 [docs] Removes temporary planning and migration markdown files (`REORGANIZATION_COMPLETE.md`, `state-management-remediation-plan.md`, `utils-migration-action-plan.md`) as the described work is now complete.
+*   🧹 [chore] Deletes the `fix-remaining-imports.ps1` script, which is no longer needed.
+*   📝 [docs] Moves the Copilot instructions into the `.github` folder for better visibility and standard location.
+*   🎨 [style] Applies consistent formatting to JavaScript and HTML files, primarily adjusting spacing in type casts and around operators.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(354ee93)`](https://github.com/Nick2bad4u/FitFileViewer/commit/354ee93492fb7a037e66c88aa21eac15cfdc88cb)
+
+
+- 🎨 [style] Introduce comprehensive light theme redesign
+
+✨ [feat] Implements a complete visual overhaul of the light theme for improved aesthetics and readability.
+
+-   🎨 **Redesigned Light Theme**:
+    -   Introduces a fresh, bright background with subtle gradients, replacing the previous dark-derived background.
+    -   Adjusts numerous UI components including headers, tabs, and buttons with new colors, gradients, and shadows to create a cohesive and polished light mode experience.
+    -   Enhances text readability and contrast across the application through refined text shadows and color choices.
+-   🚜 **Refactored Header Layout**:
+    -   Updates the main header bar to use a more flexible `space-between` layout, allowing components to align cleanly.
+    -   Adjusts padding and gaps for better spacing and visual balance.
+-   ⚡️ **Improved Theming System**:
+    -   Enhances the theme change event to dispatch more broadly, ensuring all components receive theme updates reliably.
+    -   Adds a `data-theme` attribute to the `html` and `body` elements for easier CSS targeting and interoperability.
+-   🛠️ **Bug Fixes**:
+    -   Corrects a CSS specificity issue where some button hover effects were not applying correctly by adding `!important`.
+    -   Fixes an incorrect `maxHeight` value for the shown files list component, ensuring it displays as intended.
+-   🧪 **Test Updates**:
+    -   Aligns component tests with the updated styling properties of the shown files list.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(1faf828)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1faf8287555bfb27457573d2b275ae457a426168)
+
+
+- ⚡ [perf] Enhance drag-drop, chart rendering, and color management
+
+This commit introduces significant performance and robustness enhancements across the application, focusing on UI interactions, chart rendering, and state management.
+
+### Key Changes:
+
+-   ⚡ **Drag and Drop (`DragDropHandler`)**
+    -   Improves performance by replacing frequent global state reads (`getState`) with internal class state for drag counters and overlay visibility.
+    -   Throttles `dragover` event handling using `requestAnimationFrame` to reduce UI re-renders and prevent flickering of the drop overlay.
+    -   Introduces a `syncDragCounter` method to minimize redundant `setState` calls, only updating the global state when the value changes.
+    -   Increases resilience by wrapping state access in `try...catch` blocks, preventing crashes during initialization or if the state manager is unavailable.
+
+-   🎨 **Chart Rendering & Theming**
+    -   Fortifies the charting engine by introducing comprehensive fallback theme colors. This ensures charts render correctly even if the theme configuration fails to load or is incomplete.
+    -   Adds a `normalizeThemeConfig` utility to guarantee that essential color properties and theme flags are always present, preventing downstream errors.
+    -   Refactors the `renderEventMessagesChart` to use these robust theme fallbacks, ensuring consistent styling.
+
+-   ⚡ **Zone Color Management**
+    -   Implements caching for zone colors to reduce redundant lookups in `localStorage` and theme objects, improving performance in color-intensive UI components.
+    -   Adds functions to clear the new caches when colors are updated or reset, ensuring UI consistency.
+    -   Refactors the inline color selector to be more efficient, reducing redundant calculations and DOM updates.
+    -   Improves color persistence logic to handle missing data and ensure synchronization between chart-specific and generic zone colors.
+
+-   🎨 **Minor UI & Style Adjustments**
+    -   Removes the "Adaptive workout markers" pill from the main welcome screen.
+    -   Tweaks header and tab bar margins/widths for a cleaner layout after a file is loaded.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(95fe95c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/95fe95cc8064691eaef8ac9f1673dd2632d5cb66)
+
+
+- 🎨 [style] Unifies color usage, adds responsive layout, and improves chart appearance
+
+- Refactors CSS to use centralized custom properties for all color values, improving color consistency and enabling easier future updates and theming support.
+ - Refines chart rendering logic for GPS and event message charts to use improved theme color references, fixes grid visibility, and enhances tooltip/text contrast.
+ - Improves accessibility and high-contrast mode by switching color literals to variables.
+ - Removes obsolete documentation and test summary files, tidying up the project.
+ - Adds build/dev dependencies for color and postcss tools to enable color conversion and linting.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9e865de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9e865de001cf86ec1d98cdfae2eee00ef44dc304)
+
+
+- ✨ [feat] Revamps UI for vivid branding & adaptive file state
+
+- Overhauls app header, introducing a mascot image, animated brand effects, and floating stat cards for visual impact and clearer branding.
+ - Upgrades theme design with richer gradients, ambient effects, and new color variables for both dark and light modes.
+ - Adds responsive, animated pills to showcase core app features.
+ - Refines state-driven UI: hides header and adapts file bar and file name dynamically when a file is loaded, using global state and robust DOM toggling.
+ - Implements smooth scroll-to-top when new FIT files are displayed, respecting user motion preferences.
+ - Enhances button styling with gradients, iconography, and keyboard shortcut highlights.
+ - Applies detailed CSS animations for header, card, and background transitions for improved user experience.
+ - Updates test setup for proper module cache clearing.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(f6be4ab)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f6be4ab4f7ade30817572ad93ae1c8788ef989e4)
+
+
+- ⚡ [perf] Implement advanced caching and performance tuning for charts
+
+This commit introduces a significant performance overhaul for the charting system, focusing on intelligent caching, dynamic performance tuning, and optimized data processing. These changes dramatically reduce re-computation on re-renders, leading to a faster and more responsive user experience, especially with large datasets.
+
+*   **✨ [feat] Introduce a multi-layer caching system for chart data**
+    *   - Caches processed data series, labels, and performance settings to avoid redundant calculations.
+    *   - The cache is intelligently invalidated only when data-affecting settings (like distance or temperature units) change.
+    *   - Display-only changes (e.g., toggling the legend) now reuse cached data, resulting in near-instantaneous updates.
+
+*   **⚡ [perf] Add dynamic performance optimizations for large datasets**
+    *   - Automatically enables Chart.js's `decimation` plugin for datasets larger than 2,500 points to reduce the number of points drawn.
+    *   - Adjusts the number of x-axis ticks (`tickSampleSize`) on large charts to prevent label overlap and improve rendering speed.
+    *   - Enables `spanGaps` for decimated data to correctly draw lines over missing data points.
+
+*   **🚜 [refactor] Overhaul chart data processing and rendering logic**
+    *   - Refactors the core rendering loop to use the new caching and memoization helpers, simplifying the logic.
+    *   - Pre-parses data into `{x, y}` points and disables Chart.js's internal parsing for a performance boost.
+    *   - Improves the settings manager to distinguish between data-changing and display-only updates.
+    *   - Modernizes the re-rendering logic after a settings change to use the `chartStateManager` more reliably.
+
+*   **🧪 [test] Expand unit and comprehensive tests**
+    *   - Adds tests to verify that the cache is correctly used for display-only changes and invalidated for data-related changes.
+    *   - Includes a new comprehensive test to confirm that chart series data is reused across renders, checking cache hit/miss statistics.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ea43417)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ea434171e0d84899c9e45317ba005975b25267c6)
+
+
+- 🚜 [refactor] Improve module compatibility and add default namespace exports
+
+This commit refactors the utility modules to enhance compatibility between CommonJS (CJS) and ES Modules (ESM) environments, particularly between the Electron main and renderer processes.
+
+*   ✨ **Adds Default Namespace Exports:**
+    *   All top-level `utils` barrel files (`app`, `data`, `debug`, `files`, `formatting`, `maps`, `rendering`, `state`, `ui`) now provide a `default` export. This export is an object containing namespaced access to all sub-modules, allowing for cleaner imports like `import utils from '...'` and usage like `utils.core.function()`.
+
+*   🛠️ **Improves Module Resolution:**
+    *   Introduces compatibility shims for modules that use Node.js-specific features (`fs`, `path`) or are written in CJS.
+    *   These shims safely expose module exports on a `globalThis` property (e.g., `__FFV_...`), allowing ESM modules in the renderer process to access them without causing crashes from invalid `require()` calls.
+    *   `files/recent/index.js`: Refactored to lazily `require()` the `recentFiles.js` module, providing no-op fallbacks when used in an environment without Node's `fs` access (like the browser renderer).
+    *   `state/integration/index.js`: Now safely resolves `mainProcessState` using the global shim, preventing renderer-side import errors.
+    *   `app/menu/index.js`: Similarly updated to safely resolve `createAppMenu`.
+
+*   ✨ **Enhances Fullscreen Functionality:**
+    *   Adds a native fullscreen fallback for when the `screenfull` library is unavailable. This ensures the fullscreen button (and F11 shortcut) works even if the library fails to load.
+    *   The `screenfull` package is moved from `devDependencies` to `dependencies` to ensure it is included in the final application build.
+
+*   🎨 **Minor Code Style Updates:**
+    *   Adjusts code formatting and type casting in `mainProcessStateManager.js` and `theme.js` for consistency and to satisfy linter rules.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(5ecda5f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5ecda5f58acff7bb2481a9c47b84a19033b03ce6)
+
+
+- 🚜 [refactor] Centralize UI updates via a reactive state manager
+
+This commit refactors the application to manage UI elements and application state through a centralized, reactive state management system. Direct DOM manipulations are replaced with state updates, making the UI more predictable, declarative, and easier to debug.
+
+### Source Code Changes
+
+*   ✨ **[feat] Expanded UI State Management**
+    *   Introduces a `UIStateManager` class to subscribe to state changes and apply them to the DOM.
+    *   The central application state (`AppState`) is expanded to include properties for the drop overlay (`ui.dropOverlay`), file information (`ui.fileInfo`), loading progress (`ui.loadingIndicator`), and unload button visibility (`ui.unloadButtonVisible`).
+    *   This new manager now handles updating the document title, active file name display, loading progress bar, drop overlay, and unload button visibility based on state changes.
+
+*   🚜 **[refactor] Decouple UI from Business Logic**
+    *   Removes direct DOM manipulation from various parts of the application:
+        *   `main-ui.js`: Drag/drop overlay and file unloading logic now set state instead of modifying element styles directly. The `clearFileDisplay` function is removed.
+        *   `showFitData.js`: No longer updates the DOM for the active file name; instead, it updates the `ui.fileInfo` state.
+        *   `fitFileState.js`: The loading progress update logic now modifies the `ui.loadingIndicator` state instead of the progress bar's style.
+
+*   🛠️ **[fix] Improve IPC Handler Registration in Main Process**
+    *   Adds `registerIpcHandle` and `registerIpcListener` utility functions in `main.js`.
+    *   These helpers prevent crashes during development (e.g., with hot-reloading) by safely removing any existing IPC handlers before registering new ones, ensuring greater stability.
+
+*   🧹 **[chore] Enhance `preload.js` Stability**
+    *   Implements a more robust registration mechanism for the `beforeExit` process event.
+    *   This prevents duplicate listener errors in test environments where the script might be loaded multiple times.
+
+### Test and Utility Changes
+
+*   🧪 **[test] Adapt Tests for State-Driven UI**
+    *   Updates unit and integration tests (`main-ui.test.ts`, `showFitData.test.ts`, `fitFileState.test.ts`) to reflect the shift from direct DOM assertions to verifying `setState` calls and mocking the state-to-DOM update loop.
+*   🧹 **[chore] Clean Up Utility Imports**
+    *   Simplifies barrel file exports in `utils/index.js` and updates `utils.js` to use the new, cleaner import structure.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(fe99aeb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fe99aeb8d3772ed3dbedb99b73254dadb56ba127)
+
+
+- 🚜 [refactor] Scaffold utility barrels and add migration plans
+
+This commit introduces the initial scaffolding for a large-scale refactoring of the `utils` directory and adds comprehensive planning documents to guide future technical debt remediation.
+
+*   ✨ **[feat] Add Utility Barrel Files**
+    *   Creates new `index.js` barrel files for the `config`, `dom`, `errors`, and `logging` utility modules.
+    *   These barrels consolidate exports, allowing consumers to import from a central point for each category (e.g., `import { ... } from 'utils/config'`).
+    *   Each barrel provides both named exports for individual functions and a default namespace export (e.g., `import config from '...'`) to maintain backward compatibility with existing code.
+
+*   📝 **[docs] Add Remediation and Migration Plans**
+    *   Introduces `state-management-remediation-plan.md`, a detailed document outlining the strategy to fix inconsistencies in state initialization, FIT parser integration, and module exports (CJS/ESM).
+    *   Adds `utils-migration-action-plan.md`, which defines a phased roadmap for migrating the entire `utils` directory to a consistent, domain-driven structure using the new barrel files.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(cf2c5b2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf2c5b28a3fd0ab80eb75c836cf72df452872c39)
+
+
+- 🚜 [refactor] Consolidate utility modules and integrate FIT parser state
+
+This commit introduces a significant refactoring to improve module organization and integrates the FIT parser with the main process state management system.
+
+### ✨ [feat] FIT Parser State Integration
+*   Adds a comprehensive state management integration between the `fitParser` and the main process's `unifiedStateManager`.
+*   Introduces state adapters to bridge the two systems:
+    *   `fitFileStateManager`: Tracks the progress, success, and failure of file decoding operations, updating the global application state in real-time. 📈
+    *   `settingsStateManager`: Allows the `fitParser` to read and persist its settings within the main application's configuration and state. ⚙️
+    *   `performanceMonitor`: Implements performance timing for parser operations, recording metrics directly into the state for monitoring and debugging. ⏱️
+*   Updates IPC handlers (`fit:parse`, `fit:decode`) to ensure this state integration is initialized before processing files.
+
+### 🚜 [refactor] Module Organization with Barrel Exports
+*   Reorganizes several utility modules (`config`, `dom`, `errors`, `logging`) by introducing `index.js` barrel files.
+*   This change centralizes exports, simplifying import statements across the entire application and its test suites.
+    *   Instead of `from './utils/errors/errorHandling.js'`, imports are now cleaner: `from './utils/errors/index.js'`.
+*   Updates all documentation, application code, and tests to use these new, simplified module paths.
+
+### 🛠️ [fix] Idempotent State Initialization
+*   Refactors the state manager initialization logic in both the main process (`fitParser` integration) and renderer process (`initializeStateManager`).
+*   Adds guards to ensure that initialization routines run only once, preventing duplicate subscriptions and other potential side effects from multiple calls.
+
+### 🧪 [test] Test Infrastructure
+*   Adds helper functions (`__reset...ForTests`) to allow Vitest tests to reset the new idempotency guards, ensuring a clean state between test runs.
+*   Updates mock paths in numerous tests to align with the new barrel file structure.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e85d83d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e85d83d65f9dee79b573c6a6174fabc9ff3f8dee)
+
+
+- 🚜 [refactor] Centralize config and docs
+
+🛠️ [fix] Aligns measurement formatters and distance converters with shared constants plus unified error handling to keep outputs stable under bad input.
+ - 🚜 [refactor] Adds centralized configuration exports and a unified state facade to bridge legacy paths with new subscriptions, debug tooling, and sync controls.
+ - 📝 [docs] Ships comprehensive API, architecture, layout, development, and user guides to document the platform end to end.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c6c7eaf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c6c7eaf47cbb989a8e7060ab2c2a318aafeadb2c)
+
+
+- 🧹 [chore] Standardize AI prompt tools and formatting
+
+This commit refines and standardizes the configuration for AI prompts and chatmodes.
+
+- 🔧 Updates the `Generate-100%-Test-Coverage.prompt.md` to align its toolset with the `BeastMode` configuration.
+  - Removes `review`, `reviewStaged`, `reviewUnstaged`, and `runTasks`.
+  - Adds `runTask`, `getTaskOutput`, and `electron-mcp-server` for consistency.
+- 🎨 Converts the `tools` list in both `BeastMode.chatmode.md` and the test coverage prompt from a multi-line to a single-line array format for conciseness.
+- ⚙️ Adds the `.github/PROMPTS/` directory to `.prettierignore` to prevent the auto-formatter from altering the new single-line array format.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(fb19e3c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fb19e3c3e18eccb388075be3a344cb0c9a7aeb67)
+
+
+- 🧪 [test] Enhance menu creation tests and refactor logic
+
+This commit significantly improves the robustness and test coverage of the application menu creation logic.
+
+### Source Code Changes
+
+*   **`createAppMenu.js`**
+    *   🚜 [refactor] Refactors the `getElectron()` helper to more reliably use the latest mocked Electron APIs during testing by prioritizing `globalThis.__electronHoistedMock`. This prevents stale module caches from interfering with test assertions.
+    *   🚜 [refactor] Improves the logic for handling recent files by explicitly checking if a mock array was provided by tests, allowing for deterministic testing of the "No Recent Files" state.
+    *   🛠️ [fix] Corrects the default checked state for theme menu items. When no theme is explicitly passed, the UI now correctly defaults to 'Dark'.
+    *   🛠️ [fix] Strengthens window handling by re-fetching Electron APIs (`BrowserWindow`, `shell`) within click handlers. This ensures a fresh reference is used, preventing issues with stale objects, especially when calling `BrowserWindow.getFocusedWindow()`.
+    *   🛠️ [fix] Adds a fallback for the macOS app menu label to "App" if `app.name` is not available, preventing a potential crash.
+
+*   **`exportUtils.test.ts`**
+    *   🧪 [test] Improves DOM and `fetch` mocks to be more robust, using spies on native `document` methods and handling data URLs correctly. This makes tests less brittle and more accurately reflects browser behavior.
+
+*   **`handleOpenFile.test.ts`**
+    *   🧪 [test] Refactors test setup to use `beforeAll` for module imports and dynamically spy on an exposed state manager. This resolves issues with stale module state between test runs and ensures mocks are applied correctly.
+
+### Test and Build Changes
+
+*   **`createAppMenu.test.ts`**
+    *   🧪 [test] Massively expands test coverage by adding a new suite (`createAppMenu - additional robust branches`) that validates numerous edge cases and alternative code paths.
+    *   🧪 [test] Existing tests are enhanced to execute menu item `click` handlers and assert the expected side effects, such as IPC calls and `shell.openExternal` invocations, instead of just checking for function presence.
+    *   🧪 [test] Adds comprehensive tests for:
+        *   Window closing behavior (`File > Close Window`).
+        *   IPC message dispatch for accessibility settings, decoder options, and help items.
+        *   Fallback logic when `BrowserWindow.getFocusedWindow()` returns `null`.
+        *   Error handling for menu build failures.
+        *   Correct menu generation on macOS (`darwin`).
+
+*   **`package.json`**
+    *   🔧 [build] Adds `test:enhanced` and `test:coverage:enhanced` npm scripts to run a new, more comprehensive test suite configuration.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(17a6c3c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/17a6c3c71c5bf92b3bdc6d970de3f18f69535c4e)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v26.8.0 [skip ci] [`(4321c6b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/4321c6bd78781f9b45d5c280850522a39b29214d)
+
 
 
 ### 📦 Dependencies
