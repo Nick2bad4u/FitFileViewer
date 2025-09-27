@@ -21,7 +21,7 @@ export function createShownFilesList() {
     container.style.padding = "6px 10px";
     container.style.maxWidth = "fit-content";
     container.style.overflow = "auto";
-    container.style.maxHeight = "fit-content";
+    container.style.maxHeight = "80px";
     container.innerHTML =
         '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
 

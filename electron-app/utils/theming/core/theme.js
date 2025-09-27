@@ -40,8 +40,20 @@ export function applyTheme(theme, withTransition = true) {
     if (theme === THEME_MODES.AUTO) {
         const systemTheme = getSystemTheme();
         document.body.classList.add(`theme-${systemTheme}`);
+        try {
+            document.body.dataset.theme = systemTheme;
+            document.documentElement.dataset.theme = systemTheme;
+        } catch {
+            /* Ignore dataset errors */
+        }
     } else {
         document.body.classList.add(`theme-${theme}`);
+        try {
+            document.body.dataset.theme = theme;
+            document.documentElement.dataset.theme = theme;
+        } catch {
+            /* Ignore dataset errors */
+        }
     }
 
     // Persist theme preference
@@ -372,10 +384,32 @@ export function toggleTheme(withTransition = true) {
  * @param {string} theme - The new theme
  */
 function dispatchThemeChangeEvent(theme) {
-    const event = new CustomEvent("themechange", {
-        detail: { effectiveTheme: getEffectiveTheme(theme), theme },
-    });
-    document.dispatchEvent(event);
+    const detail = { effectiveTheme: getEffectiveTheme(theme), theme },
+        targets = [];
+
+    if (typeof document === "object" && document) {
+        targets.push(document);
+        if (document.body) {
+            targets.push(document.body);
+        }
+    }
+
+    if (typeof globalThis === "object" && globalThis && globalThis.window) {
+        targets.push(globalThis.window);
+    }
+
+    for (const target of targets) {
+        try {
+            const event = new CustomEvent("themechange", {
+                bubbles: true,
+                composed: true,
+                detail,
+            });
+            target.dispatchEvent(event);
+        } catch (error) {
+            console.warn("[Theme] Failed to dispatch themechange event", error);
+        }
+    }
 }
 
 /**
