@@ -1,6 +1,6 @@
 {
   "name": "fitfileviewer",
-  "packageManager": "npm@11.6.0",
+  "packageManager": "npm@11.6.1",
   "version": "26.9.0",
   "main": "main.js",
   "appid": "com.example.fitfileviewer",
@@ -366,7 +366,7 @@
   "devDependencies": {
     "@actions/artifact": "^2.3.2",
     "@actions/attest": "^1.6.0",
-    "@actions/cache": "^4.0.5",
+    "@actions/cache": "^4.1.0",
     "@actions/core": "^1.11.1",
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.1",

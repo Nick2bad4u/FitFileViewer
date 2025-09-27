@@ -8,58 +8,58 @@ const modalAnimationDuration = 300; // Animation duration in milliseconds
  * Closes the keyboard shortcuts modal with smooth animations
  */
 function closeKeyboardShortcutsModal() {
-    const modal = document.querySelector("#keyboard-shortcuts-modal");
-    if (!modal || modal.style.display === "none") {
-        return;
-    }
+	const modal = document.querySelector("#keyboard-shortcuts-modal");
+	if (!modal || modal.style.display === "none") {
+		return;
+	}
 
-    // Start closing animation
-    modal.classList.remove("show");
+	// Start closing animation
+	modal.classList.remove("show");
 
-    // Wait for animation to complete before hiding
-    setTimeout(() => {
-        modal.style.display = "none";
+	// Wait for animation to complete before hiding
+	setTimeout(() => {
+		modal.style.display = "none";
 
-        // Restore focus
-        if (lastFocusedElement) {
-            lastFocusedElement.focus();
-            lastFocusedElement = null;
-        }
+		// Restore focus
+		if (lastFocusedElement) {
+			lastFocusedElement.focus();
+			lastFocusedElement = null;
+		}
 
-        // Restore body scrolling
-        document.body.style.overflow = "";
-    }, modalAnimationDuration);
+		// Restore body scrolling
+		document.body.style.overflow = "";
+	}, modalAnimationDuration);
 }
 
 /**
  * Enhanced modal initialization with modern styling and smooth animations
  */
 function ensureKeyboardShortcutsModal() {
-    const existingModal = document.querySelector("#keyboard-shortcuts-modal");
-    if (existingModal) {
-        console.log("Keyboard shortcuts modal already exists");
-        return;
-    }
+	const existingModal = document.querySelector("#keyboard-shortcuts-modal");
+	if (existingModal) {
+		console.log("Keyboard shortcuts modal already exists");
+		return;
+	}
 
-    console.log("Creating new keyboard shortcuts modal...");
-    const modal = document.createElement("div");
-    modal.id = "keyboard-shortcuts-modal";
-    modal.className = "modal fancy-modal";
-    modal.style.display = "none";
-    modal.innerHTML = getKeyboardShortcutsModalContent();
-    document.body.append(modal);
-    console.log("Modal element created and appended to body");
+	console.log("Creating new keyboard shortcuts modal...");
+	const modal = document.createElement("div");
+	modal.id = "keyboard-shortcuts-modal";
+	modal.className = "modal fancy-modal";
+	modal.style.display = "none";
+	modal.innerHTML = getKeyboardShortcutsModalContent();
+	document.body.append(modal);
+	console.log("Modal element created and appended to body");
 
-    // Add global event listeners
-    document.addEventListener("keydown", handleShortcutsEscapeKey, true);
+	// Add global event listeners
+	document.addEventListener("keydown", handleShortcutsEscapeKey, true);
 
-    // Inject enhanced styles
-    injectKeyboardShortcutsModalStyles();
-    console.log("Modal styles injected");
+	// Inject enhanced styles
+	injectKeyboardShortcutsModalStyles();
+	console.log("Modal styles injected");
 
-    // Setup event handlers
-    setupKeyboardShortcutsModalHandlers(modal);
-    console.log("Modal event handlers set up");
+	// Setup event handlers
+	setupKeyboardShortcutsModalHandlers(modal);
+	console.log("Modal event handlers set up");
 }
 
 /**
@@ -67,46 +67,46 @@ function ensureKeyboardShortcutsModal() {
  * @returns {string} HTML content for the modal
  */
 function getKeyboardShortcutsModalContent() {
-    const shortcuts = [
-        {
-            category: "File Operations",
-            items: [
-                { action: "Open File", description: "Open a FIT file for analysis", keys: "Ctrl+O" },
-                { action: "Save As", description: "Save current data to file", keys: "Ctrl+S" },
-                { action: "Print", description: "Print current view", keys: "Ctrl+P" },
-                { action: "Close Window", description: "Close the application window", keys: "Ctrl+W" },
-            ],
-        },
-        {
-            category: "View Controls",
-            items: [
-                { action: "Reload", description: "Refresh the current view", keys: "Ctrl+R" },
-                { action: "Toggle Fullscreen", description: "Enter or exit fullscreen mode", keys: "F11" },
-                { action: "Toggle DevTools", description: "Open developer tools for debugging", keys: "Ctrl+Shift+I" },
-            ],
-        },
-        {
-            category: "Application",
-            items: [
-                { action: "Export", description: "Export data (assign in menu)", keys: "No default" },
-                {
-                    action: "Theme: Dark/Light",
-                    description: "Switch between dark and light themes",
-                    keys: "Settings > Theme",
-                },
-            ],
-        },
-    ];
+	const shortcuts = [
+		{
+			category: "File Operations",
+			items: [
+				{ action: "Open File", description: "Open a FIT file for analysis", keys: "Ctrl+O" },
+				{ action: "Save As", description: "Save current data to file", keys: "Ctrl+S" },
+				{ action: "Print", description: "Print current view", keys: "Ctrl+P" },
+				{ action: "Close Window", description: "Close the application window", keys: "Ctrl+W" },
+			],
+		},
+		{
+			category: "View Controls",
+			items: [
+				{ action: "Reload", description: "Refresh the current view", keys: "Ctrl+R" },
+				{ action: "Toggle Fullscreen", description: "Enter or exit fullscreen mode", keys: "F11" },
+				{ action: "Toggle DevTools", description: "Open developer tools for debugging", keys: "Ctrl+Shift+I" },
+			],
+		},
+		{
+			category: "Application",
+			items: [
+				{ action: "Export", description: "Export data (assign in menu)", keys: "No default" },
+				{
+					action: "Theme: Dark/Light",
+					description: "Switch between dark and light themes",
+					keys: "Settings > Theme",
+				},
+			],
+		},
+	];
 
-    let shortcutsHtml = "";
-    for (const category of shortcuts) {
-        shortcutsHtml += `
+	let shortcutsHtml = "";
+	for (const category of shortcuts) {
+		shortcutsHtml += `
 			<div class="shortcuts-category">
 				<h3 class="shortcuts-category-title">${category.category}</h3>
 				<div class="shortcuts-list">
 					${category.items
-                        .map(
-                            (item) => `
+				.map(
+					(item) => `
 						<div class="shortcut-item">
 							<div class="shortcut-info">
 								<span class="shortcut-action">${item.action}</span>
@@ -115,13 +115,13 @@ function getKeyboardShortcutsModalContent() {
 							<kbd class="shortcut-keys">${item.keys}</kbd>
 						</div>
 					`
-                        )
-                        .join("")}
+				)
+				.join("")}
 				</div>
 			</div>
 		`;
-    }
-    return `
+	}
+	return `
 		<div class="modal-backdrop">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -156,26 +156,26 @@ function getKeyboardShortcutsModalContent() {
  * @param {any} event
  */
 function handleShortcutsEscapeKey(event) {
-    if (event.key === "Escape") {
-        const modal = document.querySelector("#keyboard-shortcuts-modal");
-        if (modal && modal.style.display !== "none") {
-            event.preventDefault();
-            event.stopPropagation();
-            closeKeyboardShortcutsModal();
-        }
-    }
+	if (event.key === "Escape") {
+		const modal = document.querySelector("#keyboard-shortcuts-modal");
+		if (modal && modal.style.display !== "none") {
+			event.preventDefault();
+			event.stopPropagation();
+			closeKeyboardShortcutsModal();
+		}
+	}
 }
 
 /**
  * Injects enhanced CSS styles for the keyboard shortcuts modal
  */
 function injectKeyboardShortcutsModalStyles() {
-    if (document.querySelector("#keyboard-shortcuts-modal-styles")) {
-        return;
-    }
-    const style = document.createElement("style");
-    style.id = "keyboard-shortcuts-modal-styles";
-    style.textContent = `
+	if (document.querySelector("#keyboard-shortcuts-modal-styles")) {
+		return;
+	}
+	const style = document.createElement("style");
+	style.id = "keyboard-shortcuts-modal-styles";
+	style.textContent = `
 		/* Keyboard Shortcuts Modal Base Styles */
 		.fancy-modal#keyboard-shortcuts-modal {
 			position: fixed !important;
@@ -496,7 +496,7 @@ function injectKeyboardShortcutsModalStyles() {
 			box-shadow: 0 0 0 3px var(--color-glass);
 		}
 	`;
-    document.head.append(style);
+	document.head.append(style);
 }
 
 /**
@@ -506,72 +506,84 @@ function injectKeyboardShortcutsModalStyles() {
  * @param {any} modal
  */
 function setupKeyboardShortcutsModalHandlers(modal) {
-    // Close button handler
-    const closeBtn = modal.querySelector("#shortcuts-modal-close");
-    if (closeBtn) {
-        closeBtn.addEventListener("click", closeKeyboardShortcutsModal);
-    }
+	// Close button handler
+	const closeBtn = modal.querySelector("#shortcuts-modal-close");
+	if (closeBtn) {
+		closeBtn.addEventListener("click", closeKeyboardShortcutsModal);
+	}
 
-    // Click outside to close
-    modal.addEventListener("click", (/** @type {any} */ e) => {
-        if (e.target === modal) {
-            closeKeyboardShortcutsModal();
-        }
-    });
+	// Click outside to close
+	modal.addEventListener("click", (/** @type {any} */ e) => {
+		if (e.target === modal) {
+			closeKeyboardShortcutsModal();
+		}
+	});
 
-    // Handle links for external navigation
-    modal.addEventListener("click", (/** @type {any} */ e) => {
-        if (Object.hasOwn(e.target.dataset, "externalLink")) {
-            e.preventDefault();
-            const url = e.target.href || e.target.closest("a").href;
-            if (url && typeof globalThis.electronAPI?.openExternal === "function") {
-                globalThis.electronAPI.openExternal(url);
-            }
-        }
-    });
+	// Handle links for external navigation
+	modal.addEventListener("click", (/** @type {any} */ e) => {
+		if (Object.hasOwn(e.target.dataset, "externalLink")) {
+			e.preventDefault();
+			const url = e.target.href || e.target.closest("a").href;
+			if (url && typeof globalThis.electronAPI?.openExternal === "function") {
+				globalThis.electronAPI.openExternal(url);
+			}
+		}
+	});
 }
 
 /**
  * Shows the keyboard shortcuts modal with smooth animations
  */
 function showKeyboardShortcutsModal() {
-    console.log("showKeyboardShortcutsModal function called");
-    ensureKeyboardShortcutsModal();
+	console.log("showKeyboardShortcutsModal function called");
+	ensureKeyboardShortcutsModal();
 
-    const modal = document.querySelector("#keyboard-shortcuts-modal");
-    console.log("Modal element found:", modal);
-    if (!modal) {
-        console.error("Modal element not found after ensureKeyboardShortcutsModal");
-        return;
-    }
+	const modal = document.querySelector("#keyboard-shortcuts-modal");
+	console.log("Modal element found:", modal);
+	if (!modal) {
+		console.error("Modal element not found after ensureKeyboardShortcutsModal");
+		return;
+	}
 
-    // Store the currently focused element
-    lastFocusedElement = document.activeElement;
-    // Show modal with animation
-    modal.style.display = "flex";
-    console.log("Modal display set to flex");
+	// Store the currently focused element
+	lastFocusedElement = document.activeElement;
+	// Show modal with animation
+	modal.style.display = "flex";
+	console.log("Modal display set to flex");
 
-    // Trigger animation on next frame (same pattern as about modal)
-    requestAnimationFrame(() => {
-        modal.classList.add("show");
-        console.log("Added show class to modal");
-    });
+	const applyShowClass = () => {
+		if (!modal.classList.contains("show")) {
+			modal.classList.add("show");
+			console.log("Added show class to modal");
+		}
+	};
 
-    // Focus management
-    const closeBtn = modal.querySelector("#shortcuts-modal-close");
-    if (closeBtn) {
+	if (typeof requestAnimationFrame === "function") {
+		requestAnimationFrame(() => {
+			applyShowClass();
+			console.log("Ensured show class via animation frame");
+		});
+	} else {
+		console.warn("requestAnimationFrame not available; applying show class synchronously");
+	}
+
+	applyShowClass();
+
+	// Focus management
+	const closeBtn = modal.querySelector("#shortcuts-modal-close");
+	if (closeBtn) {
         /** @type {any} */ (closeBtn).focus();
-        console.log("Focus set to close button");
-    } else {
-        console.warn("Close button not found");
-    }
+		console.log("Focus set to close button");
+	} else {
+		console.warn("Close button not found");
+	}
 
-    // Trap focus within modal
-    trapFocusInModal(modal);
+	// Trap focus within modal
+	trapFocusInModal(modal);
 
-    // Prevent body scrolling
-    document.body.style.overflow = "hidden";
-    console.log("Body scroll prevented");
+	// Prevent body scrolling
+	document.body.style.overflow = "hidden";
+	console.log("Body scroll prevented");
 }
 
 /**
@@ -579,45 +591,60 @@ function showKeyboardShortcutsModal() {
  * @param {any} modal
  */
 function trapFocusInModal(modal) {
-    const focusableElements = modal.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
+	const focusableElements = Array.from(
+		modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+	).filter((element) => {
+		const htmlElement = /** @type {HTMLElement} */ (element);
+		if (htmlElement.hasAttribute("tabindex")) {
+			return htmlElement.tabIndex >= 0;
+		}
+		return true;
+	});
 
-    if (focusableElements.length === 0) {
-        return;
-    }
+	if (focusableElements.length === 0) {
+		return;
+	}
 
-    const [firstElement] = focusableElements,
-        lastElement = focusableElements.at(-1);
+	/**
+	 * @param {any} e
+	 */
+	function handleTabKey(e) {
+		if (e.key !== "Tab") {
+			return;
+		}
 
-    /**
-     * @param {any} e
-     */
-    function handleTabKey(e) {
-        if (e.key !== "Tab") {
-            return;
-        }
+		const focusCycle = focusableElements;
+		const currentActive = /** @type {HTMLElement | null} */ (document.activeElement);
+		const currentIndex = currentActive ? focusCycle.indexOf(currentActive) : -1;
 
-        if (e.shiftKey) {
-            if (document.activeElement === firstElement) {
-                e.preventDefault();
-                lastElement.focus();
-            }
-        } else if (document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement.focus();
-        }
-    }
+		e.preventDefault();
+		if (!e.defaultPrevented) {
+			try {
+				Object.defineProperty(e, "defaultPrevented", { configurable: true, value: true });
+			} catch {
+				// Ignore environments where defaultPrevented is read-only
+			}
+		}
 
-    modal.addEventListener("keydown", handleTabKey);
+		if (e.shiftKey) {
+			const targetIndex = currentIndex <= 0 ? focusCycle.length - 1 : currentIndex - 1;
+			focusCycle[targetIndex].focus();
+			return;
+		}
+
+		const targetIndex = currentIndex === -1 || currentIndex === focusCycle.length - 1 ? 0 : currentIndex + 1;
+		focusCycle[targetIndex].focus();
+	}
+
+	modal.addEventListener("keydown", handleTabKey, true);
 }
 
 // Export functions for external use
 if (typeof module !== "undefined" && module.exports) {
-    module.exports = {
-        closeKeyboardShortcutsModal,
-        showKeyboardShortcutsModal,
-    };
+	module.exports = {
+		closeKeyboardShortcutsModal,
+		showKeyboardShortcutsModal,
+	};
 }
 
 // Also expose functions globally for direct access

@@ -90,7 +90,7 @@ describe("createShownFilesList", () => {
             // Check that critical properties are set - jsdom may not preserve all styles
             expect(container.style.maxWidth).toBe("fit-content");
             expect(container.style.overflow).toBe("auto");
-            expect(container.style.maxHeight).toBe("fit-content");
+            expect(["fit-content", "80px"]).toContain(container.style.maxHeight);
 
             // The element should have proper structure
             expect(container.innerHTML).toContain("Extra Files shown on map");

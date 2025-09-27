@@ -170,9 +170,9 @@ export function movePowerZoneControlsToSection() {
         console.log(`[PowerZoneControls] Successfully moved ${movedControls.length} power zone controls`);
 
         // Add some spacing between the controls
-        const controls = powerZoneContent.children;
-        for (const [i, el] of controls.entries()) {
-            if (i > 0 && el && el.style) {
+        const controls = Array.from(powerZoneContent.children);
+        for (const [index, el] of controls.entries()) {
+            if (index > 0 && el && el.style) {
                 el.style.marginTop = "12px";
             }
         }

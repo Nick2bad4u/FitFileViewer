@@ -285,7 +285,7 @@ function handleFullscreenStateChange() {
         if (screenfull.isFullscreen) {
             // Entering fullscreen
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -302,7 +302,7 @@ function handleFullscreenStateChange() {
         } else {
             // Exiting fullscreen
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -365,14 +365,18 @@ function handleKeyboardShortcuts(event) {
             event.preventDefault();
 
             const activeContent = getActiveTabContent();
-            if (!activeContent) {
-                logWithContext("No active content for F11 fullscreen toggle", "warn");
+            const isScreenfullEnabled = Boolean(screenfull && screenfull.isEnabled);
+
+            if (!isScreenfullEnabled) {
+                if (!activeContent) {
+                    logWithContext("No active content for F11 fullscreen toggle; using document root", "warn");
+                }
+                nativeToggleFullscreen(activeContent ?? document.documentElement);
                 return;
             }
 
-            if (!screenfull || !screenfull.isEnabled) {
-                logWithContext("Screenfull not available for F11 toggle; using native fallback", "warn");
-                nativeToggleFullscreen();
+            if (!activeContent) {
+                logWithContext("No active tab content found for fullscreen toggle", "warn");
                 return;
             }
 
@@ -419,17 +423,18 @@ function logWithContext(message, level = "info") {
 /**
  * Native fullscreen fallback when screenfull is unavailable
  */
-function nativeToggleFullscreen() {
+function nativeToggleFullscreen(target) {
     try {
-        const activeContent = getActiveTabContent();
+        const overrideTarget = /** @type {HTMLElement | Document} */ (target);
+        const activeContent = overrideTarget instanceof HTMLElement ? overrideTarget : getActiveTabContent();
         const doc = /** @type {any} */ (document);
         const docEl = /** @type {any} */ (activeContent || document.documentElement);
 
         const isFs = Boolean(
             document.fullscreenElement ||
-                doc.webkitFullscreenElement ||
-                doc.mozFullScreenElement ||
-                doc.msFullscreenElement
+            doc.webkitFullscreenElement ||
+            doc.mozFullScreenElement ||
+            doc.msFullscreenElement
         );
         if (isFs) {
             const exit =

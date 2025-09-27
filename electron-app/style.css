@@ -1,6 +1,7 @@
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable selector-class-pattern */
 /* stylelint-disable selector-no-vendor-prefix -- electron app */
+/* stylelint-disable custom-property-pattern */
 
 /* =====================================================
    Theme Variables
@@ -148,36 +149,32 @@
     --c_hex4c1d95: #4c1d95;
     --c_hex0002: #0002;
     --c_rgb255255255_8p: rgb(255 255 255 / 8%);
-    --c_rgba255_255_255_0d1: rgba(255, 255, 255, 0.1);
-    --c_rgba0_0_0_0d05: rgba(0, 0, 0, 0.05);
+    --c_rgba255_255_255_0d1: rgb(255 255 255 / 10%);
+    --c_rgba0_0_0_0d05: rgb(0 0 0 / 5%);
     --c_hex23263a: #23263a;
     --c_hex33374d: #33374d;
     --c_hexccc: #ccc;
     --c_hex555: #555;
     --c_rgb303454_85p: rgb(30 34 54 / 85%);
     --c_rgb202444_90p: rgb(20 24 44 / 90%);
-
-    --font-sans: "Inter", "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-sans: "Inter", "Open Sans", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
     --font-display:
-        "Plus Jakarta Sans", "Inter", "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        "Plus Jakarta Sans", "Inter", "Open Sans", -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
 
     /* Dark Theme (Default) - Charcoal Blue (lighter, neutral, minimal purple) */
     --color-bg: linear-gradient(160deg, #0e1525 0%, #111827 60%, #0f172a 100%);
     --color-bg-solid: #111827;
     --color-bg-alt: linear-gradient(160deg, #0f172a 0%, #0e1828 100%);
     --color-bg-alt-solid: #0f172a;
-
     --color-fg: #e5e7eb;
-    --color-fg-alt: #ffffff;
+    --color-fg-alt: #fff;
 
     /* Primary accent is BLUE; purple is reserved only for the title gradient */
     --color-accent: #3b82f6; /* blue-500 */
     --color-accent-secondary: #2563eb; /* blue-600 */
     --color-accent-hover: rgb(59 130 246 / 20%);
-
     --color-shadow: rgb(2 6 23 / 35%);
     --color-header: linear-gradient(150deg, #0e1525 0%, #0f172a 100%);
-
     --color-table-header: #1f2937; /* slate-800 */
     --color-table-row-even: #162334; /* softened */
     --color-table-row-odd: #121d2c; /* softened */
@@ -185,41 +182,30 @@
 
     /* The ONE place we keep purple: the title gradient */
     --color-title: linear-gradient(45deg, #c084fc, #a855f7, #7e22ce);
-
     --color-border: rgb(255 255 255 / 8%);
     --color-border-light: rgb(255 255 255 / 12%);
-
     --color-btn-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     --color-btn-bg-solid: #3b82f6;
     --color-btn-hover: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     --color-svg-icon-stroke: #93c5fd; /* blue-300 */
-
     --color-modal-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     --color-modal-fg: #f8fafc;
-
     --color-credits: #94a3b8; /* slate-400/500 mix */
     --color-error: #ef4444;
     --color-success: #22c55e;
     --color-warning: #f59e0b;
     --color-info: rgb(59 130 246 / 35%); /* blue info */
-
     --color-overlay-bg: rgb(2 6 23 / 78%);
-
     --color-box-shadow: 0 18px 40px rgb(2 6 23 / 45%);
     --color-box-shadow-light: 0 10px 26px rgb(2 6 23 / 28%);
-
     --color-filename: #cbd5e1; /* slate-300 */
     --color-glass: rgb(10 16 26 / 70%);
     --color-glass-border: rgb(255 255 255 / 12%);
-
     --elev-bg: #0f172a;
-
     --color-hero-glow: rgb(59 130 246 / 28%); /* blue glow */
     --color-hero-glow-strong: rgb(37 99 235 / 42%); /* blue glow strong */
-
     --color-surface: linear-gradient(160deg, rgb(18 26 38 / 95%) 0%, rgb(12 19 31 / 98%) 100%);
     --color-surface-rgb: 18, 26, 38;
-
     --color-pill-bg: rgb(255 255 255 / 6%);
     --color-pill-border: rgb(255 255 255 / 12%);
 
@@ -232,8 +218,7 @@
     --color-success-rgb: 34, 197, 94;
 
     /* Leaflet control background */
-    --leaflet-control-bg: rgba(240, 244, 255, 0.71);
-
+    --leaflet-control-bg: rgb(240 244 255 / 71%);
     --backdrop-blur: blur(14px);
     --border-radius: 16px;
     --border-radius-small: 8px;
@@ -247,52 +232,41 @@ body.theme-light {
     /* Soft Gray Light Theme (neutral, minimal purple) */
     --color-bg: linear-gradient(160deg, #f8fafc 0%, #eef2f7 100%);
     --color-bg-solid: #f8fafc;
-    --color-bg-alt: linear-gradient(160deg, #ffffff 0%, #f1f5f9 100%);
-    --color-bg-alt-solid: #ffffff;
-
+    --color-bg-alt: linear-gradient(160deg, #fff 0%, #f1f5f9 100%);
+    --color-bg-alt-solid: #fff;
     --color-fg: #0f172a;
     --color-fg-alt: #111827;
-
     --color-accent: #2563eb; /* blue-600 */
     --color-accent-secondary: #0ea5e9; /* cyan-500 */
     --color-accent-hover: rgb(37 99 235 / 15%);
-
     --color-shadow: rgb(2 6 23 / 8%);
-    --color-header: linear-gradient(160deg, #ffffff 0%, #f1f5f9 100%);
-
+    --color-header: linear-gradient(160deg, #fff 0%, #f1f5f9 100%);
     --color-table-header: #e5e7eb;
     --color-table-row-even: #f3f4f6;
-    --color-table-row-odd: #ffffff;
+    --color-table-row-odd: #fff;
     --color-table-hover: #eaf2ff;
 
     /* Keep purple only for the title gradient, same as dark */
     --color-title: linear-gradient(45deg, #c084fc, #a855f7, #7e22ce);
-
     --color-border: rgb(2 6 23 / 8%);
     --color-border-light: rgb(2 6 23 / 12%);
-
     --color-btn-bg: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     --color-btn-bg-solid: #2563eb;
     --color-btn-hover: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
     --color-svg-icon-stroke: #2563eb;
 
     /* Prefer lighter modal in light theme */
-    --color-modal-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    --color-modal-bg: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
     --color-modal-fg: #0b1220;
-
     --color-credits: #475569; /* slate-600 */
     --color-filename: #334155; /* slate-700 */
     --color-glass: rgb(255 255 255 / 72%);
     --color-glass-border: rgb(2 6 23 / 10%);
-
     --color-overlay-bg: rgb(2 6 23 / 45%);
-
     --color-hero-glow: rgb(37 99 235 / 26%);
     --color-hero-glow-strong: rgb(29 78 216 / 32%);
-
     --color-surface: linear-gradient(160deg, rgb(255 255 255 / 92%) 0%, rgb(249 250 251 / 96%) 100%);
     --color-surface-rgb: 255, 255, 255;
-
     --color-pill-bg: rgb(2 6 23 / 4%);
     --color-pill-border: rgb(2 6 23 / 8%);
 
@@ -305,6 +279,17 @@ body.theme-light {
     --color-error-rgb: 239, 68, 68;
     --color-success-rgb: 34, 197, 94;
     --leaflet-control-bg: rgb(255 255 255 / 88%);
+
+    /* Light theme background styling */
+    background-color: #f8fafc;
+    background-image:
+        radial-gradient(140% 140% at 78% -20%, rgb(var(--color-accent-rgb) / 12%) 0%, transparent 58%),
+        radial-gradient(130% 140% at 20% 116%, rgb(var(--color-secondary-accent-rgb) / 14%) 0%, transparent 65%),
+        radial-gradient(150% 130% at 52% 34%, rgb(var(--color-tertiary-accent-rgb) / 14%) 0%, transparent 70%),
+        linear-gradient(200deg, #fff 0%, #eef2ff 50%, #e2e8f0 100%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 /* =====================================================
@@ -331,6 +316,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
 .font-xsmall table,
 .font-xsmall th,
 .font-xsmall td,
@@ -422,18 +408,6 @@ body {
     text-rendering: optimizespeed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
-
-body.theme-light {
-    background-color: #f8fafc;
-    background-image:
-        radial-gradient(140% 140% at 78% -20%, rgb(var(--color-accent-rgb) / 12%) 0%, transparent 58%),
-        radial-gradient(130% 140% at 20% 116%, rgb(var(--color-secondary-accent-rgb) / 14%) 0%, transparent 65%),
-        radial-gradient(150% 130% at 52% 34%, rgb(var(--color-tertiary-accent-rgb) / 14%) 0%, transparent 70%),
-        linear-gradient(200deg, #ffffff 0%, #eef2ff 50%, #e2e8f0 100%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-size: cover;
 }
 
 /* Add a subtle overlay pattern for depth */
@@ -657,6 +631,7 @@ h2 {
         opacity: 0.8;
         transform: scale(1);
     }
+
     50% {
         opacity: 1;
         transform: scale(1.1);
@@ -715,7 +690,7 @@ h2 {
 .app-header-logo::before {
     content: "";
     position: absolute;
-    inset: -30% -26% -32% -26%;
+    inset: -30% -26% -32%;
     background: conic-gradient(
         from 120deg at 50% 50%,
         rgb(var(--color-accent-rgb) / 10%) 0deg,
@@ -749,7 +724,7 @@ h2 {
 .hero-mascot-frame::after {
     content: "";
     position: absolute;
-    inset: 10% 12% 28% 12%;
+    inset: 10% 12% 28%;
     background: radial-gradient(circle at 60% 50%, rgb(var(--color-accent-rgb) / 32%) 0%, transparent 80%);
     filter: blur(18px);
     opacity: 0.65;
@@ -926,6 +901,7 @@ body.theme-light .header-bar {
     );
     border-color: var(--c_rgb214222245_78p);
     box-shadow: 0 18px 42px var(--c_rgb177198236_28p);
+    color: var(--color-fg);
 }
 
 body.theme-light .app-pill {
@@ -963,10 +939,6 @@ body.theme-light .app-header h1 .title-highlight {
     text-shadow:
         0 10px 24px rgb(var(--color-accent-rgb) / 28%),
         0 2px 6px rgb(var(--color-fg-rgb) / 12%);
-}
-
-body.theme-light .header-bar {
-    color: var(--color-fg);
 }
 
 body.theme-light .header-brand {
@@ -1076,6 +1048,7 @@ body.theme-light .tab-button.active::after {
     100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-10px);
     }
@@ -1087,6 +1060,7 @@ body.theme-light .tab-button.active::after {
         opacity: 0.3;
         transform: rotate(-4deg) scale(0.96);
     }
+
     50% {
         opacity: 0.75;
         transform: rotate(4deg) scale(1.05);
@@ -1169,6 +1143,7 @@ body.theme-light .tab-button.active::after {
     100% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
@@ -1223,7 +1198,7 @@ body.theme-light .tab-button.active::after {
 .app-header::after {
     content: "";
     position: absolute;
-    inset: auto 20% -12px 20%;
+    inset: auto 20% -12px;
     height: 3px;
     background: linear-gradient(
         90deg,
@@ -1781,6 +1756,7 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
             120% 180%;
     }
 }
+
 @keyframes float-glow {
     0% {
         transform: translate3d(-8px, -6px, 0) scale(0.92);
@@ -1906,6 +1882,7 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
         border-color: rgb(var(--color-accent-rgb) / 30%);
         transform: scale(1);
     }
+
     50% {
         border-color: rgb(var(--color-accent-rgb) / 50%);
         transform: scale(1.005);
@@ -1918,10 +1895,12 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
         transform: translateY(0) rotate(0deg);
         opacity: 0.3;
     }
+
     25% {
         transform: translateY(-8px) rotate(1deg);
         opacity: 0.5;
     }
+
     75% {
         transform: translateY(6px) rotate(-0.5deg);
         opacity: 0.4;
@@ -1934,10 +1913,12 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
         transform: translateX(0) translateY(0) rotate(0deg);
         opacity: 0.25;
     }
+
     33% {
         transform: translateX(12px) translateY(-6px) rotate(1deg);
         opacity: 0.4;
     }
+
     66% {
         transform: translateX(-8px) translateY(8px) rotate(-0.5deg);
         opacity: 0.35;
@@ -1950,14 +1931,17 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
         transform: translateY(0) scale(1) rotate(0deg);
         opacity: 0.4;
     }
+
     25% {
         transform: translateY(-12px) scale(1.05) rotate(0.5deg);
         opacity: 0.6;
     }
+
     50% {
         transform: translateY(0) scale(0.95) rotate(0deg);
         opacity: 0.5;
     }
+
     75% {
         transform: translateY(8px) scale(1.02) rotate(-0.3deg);
         opacity: 0.7;
@@ -1969,6 +1953,7 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
     100% {
         opacity: 0;
     }
+
     50% {
         opacity: 0.3;
     }
@@ -2065,7 +2050,7 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
 body.app-has-file .tab-bar,
 body[data-has-fit-file="true"] .tab-bar {
     margin-top: 0;
-    padding-top: 5;
+    padding-top: 5px;
     margin-bottom: 24px;
 }
 
@@ -2109,13 +2094,7 @@ body[data-has-fit-file="true"] .tab-bar {
     color: var(--color-fg);
     font-weight: 500;
     font-size: 0.9rem;
-    font-family:
-        inherit,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-sans);
     letter-spacing: 0.01em;
     white-space: nowrap;
     overflow: hidden;
@@ -2484,8 +2463,7 @@ tr:hover {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: clamp(12px, 2vw, 24px);
-    row-gap: clamp(16px, 3vw, 28px);
-    column-gap: clamp(18px, 3.5vw, 32px);
+    gap: clamp(16px, 3vw, 28px) clamp(18px, 3.5vw, 32px);
     margin: 0 auto clamp(18px, 3.5vw, 32px);
     padding: clamp(14px, 2.4vw, 22px) clamp(22px, 4vw, 34px);
     background: linear-gradient(
@@ -2751,11 +2729,6 @@ body[data-has-fit-file="true"] .header-brand {
     }
 }
 
-.themed-btn {
-    gap: 12px;
-    padding-inline: 20px;
-}
-
 .themed-btn .btn-icon {
     width: 36px;
     height: 36px;
@@ -2939,8 +2912,8 @@ body.theme-light .themed-btn .btn-kbd kbd {
 #activeFileNameContainer:not(.has-file) {
     max-width: 0;
     flex: 0 0 auto;
-    overflow: overlay;
-    visibility: overlay;
+    overflow: auto;
+    visibility: hidden;
     margin-left: 0;
 }
 
@@ -3536,13 +3509,7 @@ body .custom-maptype-btn {
 
 .vega-embed .vega-actions a {
     padding: 8px 16px;
-    font-family:
-        inherit,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
@@ -3998,13 +3965,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .marker-count-select option {
     background: var(--color-bg-solid);
     color: var(--color-fg);
-    font-family:
-        inherit,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-sans);
     padding: 6px 18px 6px 8px;
     display: inline-block;
     vertical-align: middle;
@@ -4431,7 +4392,6 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     justify-content: flex-start;
     gap: 8px;
     overflow-wrap: break-word;
-    overflow-wrap: break-word;
 }
 
 .notification.show {
@@ -4649,13 +4609,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     border-radius: 4px;
     padding: 6px 18px 6px 8px;
     font-size: 1rem;
-    font-family:
-        inherit,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-sans);
     outline: none;
     transition:
         border 0.2s,
@@ -4678,13 +4632,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     background: var(--color-bg-solid);
     color: var(--color-fg);
     font-size: 1rem;
-    font-family:
-        inherit,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-sans);
     padding: 6px 18px 6px 8px;
 }
 
@@ -5129,13 +5077,7 @@ select {
     border-radius: var(--border-radius-small);
     padding: 12px 16px;
     font-size: 1rem;
-    font-family:
-        inherit,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--font-sans);
     outline: none;
     transition: var(--transition-smooth);
     box-shadow: var(--color-box-shadow-light);
