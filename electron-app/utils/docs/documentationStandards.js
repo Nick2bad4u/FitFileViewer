@@ -23,7 +23,7 @@ export const DOCUMENTATION_STANDARDS = {
         fileoverview: "required - Brief and detailed description",
         author: "FitFileViewer Team",
         since: "required - Version when introduced",
-        version: "required for v2.0.0+ - Include change description"
+        version: "required for v2.0.0+ - Include change description",
     },
 
     /**
@@ -34,7 +34,7 @@ export const DOCUMENTATION_STANDARDS = {
         param: "required for all parameters - Include type and description",
         returns: "required unless void - Include type and description",
         example: "at least one required - Show basic usage",
-        throws: "required if function can throw - Include error types and conditions"
+        throws: "required if function can throw - Include error types and conditions",
     },
 
     /**
@@ -44,7 +44,7 @@ export const DOCUMENTATION_STANDARDS = {
         show_input: "required - Show parameter values",
         show_output: "required when applicable - Show expected results",
         show_edge_cases: "recommended - Cover boundary conditions",
-        show_error_handling: "required for functions that throw"
+        show_error_handling: "required for functions that throw",
     },
 
     /**
@@ -54,7 +54,7 @@ export const DOCUMENTATION_STANDARDS = {
         error_handling: "Document all error conditions and types",
         validation: "Explain input validation and constraints",
         return_formats: "Specify exact return value structure",
-        related_functions: "Cross-reference related functionality with @see"
+        related_functions: "Cross-reference related functionality with @see",
     },
 
     /**
@@ -68,7 +68,7 @@ export const DOCUMENTATION_STANDARDS = {
             "function descriptions",
             "@param for all parameters",
             "@returns unless void",
-            "@example"
+            "@example",
         ],
         best_practices: [
             "Use meaningful names",
@@ -76,7 +76,7 @@ export const DOCUMENTATION_STANDARDS = {
             "Document side effects",
             "Keep descriptions concise",
             "Use consistent terminology",
-            "Cross-reference related functions"
-        ]
-    }
+            "Cross-reference related functions",
+        ],
+    },
 };

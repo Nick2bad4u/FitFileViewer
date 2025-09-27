@@ -78,9 +78,7 @@ export function formatTime(seconds, useUserUnits = false) {
  */
 function formatAsTimeString(seconds) {
     const hours = Math.floor(seconds / CONVERSION_FACTORS.SECONDS_PER_HOUR);
-    const minutes = Math.floor(
-        (seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR) / CONVERSION_FACTORS.SECONDS_PER_MINUTE
-    );
+    const minutes = Math.floor((seconds % CONVERSION_FACTORS.SECONDS_PER_HOUR) / CONVERSION_FACTORS.SECONDS_PER_MINUTE);
     const secs = Math.floor(seconds % CONVERSION_FACTORS.SECONDS_PER_MINUTE);
 
     if (hours > 0) {
@@ -125,18 +123,18 @@ function formatWithUserUnits(seconds) {
         const storages = [];
         try {
             if (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).localStorage)
-                storages.push(/** @type {any} */(globalThis).localStorage);
+                storages.push(/** @type {any} */ (globalThis).localStorage);
         } catch {
             /* Ignore errors */
         }
         try {
             if (globalThis.window !== undefined && /** @type {any} */ (globalThis).localStorage)
-                storages.push(/** @type {any} */(globalThis).localStorage);
+                storages.push(/** @type {any} */ (globalThis).localStorage);
         } catch {
             /* Ignore errors */
         }
         try {
-            if (typeof localStorage !== "undefined") storages.push(/** @type {any} */(localStorage));
+            if (typeof localStorage !== "undefined") storages.push(/** @type {any} */ (localStorage));
         } catch {
             /* Ignore errors */
         }

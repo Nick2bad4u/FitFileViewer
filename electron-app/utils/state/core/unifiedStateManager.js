@@ -24,12 +24,7 @@ import { getState as getNewState, setState as setNewState, subscribe as subscrib
 /**
  * Legacy state paths that should be routed to old systems
  */
-const LEGACY_PATHS = new Set([
-    "autoUpdaterInitialized",
-    "globalData",
-    "loadedFitFilePath",
-    "mainWindow"
-]);
+const LEGACY_PATHS = new Set(["autoUpdaterInitialized", "globalData", "loadedFitFilePath", "mainWindow"]);
 
 /**
  * Unified State Manager - Single interface for all state systems
@@ -87,7 +82,9 @@ export class UnifiedStateManager {
     getLegacyState(path, defaultValue) {
         // Show deprecation warning once per path
         if (!this.legacyWarningsShown.has(path)) {
-            console.warn(`[UnifiedState] Accessing legacy state path "${path}". Consider migrating to new state system.`);
+            console.warn(
+                `[UnifiedState] Accessing legacy state path "${path}". Consider migrating to new state system.`
+            );
             this.legacyWarningsShown.add(path);
         }
 
@@ -114,7 +111,7 @@ export class UnifiedStateManager {
             legacyPaths: Array.from(LEGACY_PATHS),
             newState: getNewState(""),
             syncEnabled: this.syncEnabled,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
     }
 
@@ -124,7 +121,7 @@ export class UnifiedStateManager {
      * @returns {boolean} True if legacy path
      */
     isLegacyPath(path) {
-        const [rootPath] = path.split('.');
+        const [rootPath] = path.split(".");
         return LEGACY_PATHS.has(rootPath);
     }
 
@@ -139,7 +136,7 @@ export class UnifiedStateManager {
             silent: false,
             source: "unified",
             syncLegacy: true,
-            ...options
+            ...options,
         };
 
         try {
@@ -194,7 +191,7 @@ export class UnifiedStateManager {
     setSyncEnabled(enabled) {
         this.syncEnabled = enabled;
         if (this.debugMode) {
-            console.log(`[UnifiedState] Legacy sync ${enabled ? 'enabled' : 'disabled'}`);
+            console.log(`[UnifiedState] Legacy sync ${enabled ? "enabled" : "disabled"}`);
         }
     }
 
@@ -207,7 +204,7 @@ export class UnifiedStateManager {
     subscribe(path, callback) {
         if (this.isLegacyPath(path)) {
             console.warn(`[UnifiedState] Legacy path "${path}" subscriptions not fully supported`);
-            return () => { }; // Return no-op unsubscriber
+            return () => {}; // Return no-op unsubscriber
         }
 
         return subscribeNew(path, callback);
@@ -232,14 +229,14 @@ export class UnifiedStateManager {
                         legacyValue,
                         newValue,
                         path: legacyPath,
-                        type: "value_mismatch"
+                        type: "value_mismatch",
                     });
                 }
             } catch (error) {
                 warnings.push({
                     error: error.message,
                     path: legacyPath,
-                    type: "access_error"
+                    type: "access_error",
                 });
             }
         }
@@ -248,7 +245,7 @@ export class UnifiedStateManager {
             isValid: issues.length === 0,
             issues,
             timestamp: Date.now(),
-            warnings
+            warnings,
         };
     }
 }

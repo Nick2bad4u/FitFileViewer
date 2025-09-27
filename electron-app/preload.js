@@ -715,7 +715,9 @@ function registerBeforeExitHandler() {
                 for (const listener of currentListeners) {
                     if (
                         listener &&
-                        (listener === handleBeforeExit || listener.listener === handleBeforeExit || listener[BEFORE_EXIT_LISTENER_SYMBOL])
+                        (listener === handleBeforeExit ||
+                            listener.listener === handleBeforeExit ||
+                            listener[BEFORE_EXIT_LISTENER_SYMBOL])
                     ) {
                         process.removeListener("beforeExit", listener);
                     }

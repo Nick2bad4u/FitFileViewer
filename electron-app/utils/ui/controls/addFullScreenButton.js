@@ -161,17 +161,15 @@ export function setupFullscreenListeners() {
                 try {
                     handleFullscreenStateChange();
                 } catch (error) {
-                    logWithContext(`Error in native fullscreen change handler: ${/** @type {any} */ (error).message}`, "error");
+                    logWithContext(
+                        `Error in native fullscreen change handler: ${/** @type {any} */ (error).message}`,
+                        "error"
+                    );
                 }
             };
 
             // Vendor-prefixed event names for broader compatibility
-            const events = [
-                "fullscreenchange",
-                "webkitfullscreenchange",
-                "mozfullscreenchange",
-                "MSFullscreenChange",
-            ];
+            const events = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"];
             for (const evt of events) {
                 document.addEventListener(evt, onFsChange);
             }
@@ -287,7 +285,7 @@ function handleFullscreenStateChange() {
         if (screenfull.isFullscreen) {
             // Entering fullscreen
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -304,7 +302,7 @@ function handleFullscreenStateChange() {
         } else {
             // Exiting fullscreen
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -429,16 +427,21 @@ function nativeToggleFullscreen() {
 
         const isFs = Boolean(
             document.fullscreenElement ||
-            doc.webkitFullscreenElement ||
-            doc.mozFullScreenElement ||
-            doc.msFullscreenElement
+                doc.webkitFullscreenElement ||
+                doc.mozFullScreenElement ||
+                doc.msFullscreenElement
         );
         if (isFs) {
-            const exit = document.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+            const exit =
+                document.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
             if (typeof exit === "function") exit.call(document);
             logWithContext("Exiting fullscreen mode (native fallback)");
         } else {
-            const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+            const req =
+                docEl.requestFullscreen ||
+                docEl.webkitRequestFullscreen ||
+                docEl.mozRequestFullScreen ||
+                docEl.msRequestFullscreen;
             if (typeof req === "function") req.call(docEl);
             logWithContext("Entering fullscreen mode (native fallback)");
         }

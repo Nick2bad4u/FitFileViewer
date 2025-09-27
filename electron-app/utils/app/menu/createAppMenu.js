@@ -6,7 +6,8 @@ function getElectron() {
     // Prefer the latest hoisted mock in test environments to avoid stale caches
     try {
         // @ts-ignore
-        const hoisted = typeof globalThis === "undefined" ? null : /** @type {any} */ (globalThis).__electronHoistedMock;
+        const hoisted =
+            typeof globalThis === "undefined" ? null : /** @type {any} */ (globalThis).__electronHoistedMock;
         if (hoisted) {
             __electronCached = hoisted;
             return hoisted;
@@ -32,7 +33,8 @@ function getElectron() {
         try {
             // Fallback to hoisted mock if available
             // @ts-ignore
-            const hoisted2 = typeof globalThis === "undefined" ? null : /** @type {any} */ (globalThis).__electronHoistedMock;
+            const hoisted2 =
+                typeof globalThis === "undefined" ? null : /** @type {any} */ (globalThis).__electronHoistedMock;
             if (hoisted2) {
                 __electronCached = hoisted2;
                 return hoisted2;
@@ -149,26 +151,26 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     /** @type {any[]} */
     const decoderOptionEmojis = {
-        applyScaleAndOffset: "📏",
-        convertDateTimesToDates: "📅",
-        convertTypesToStrings: "🔤",
-        expandComponents: "🔗",
-        expandSubFields: "🧩",
-        includeUnknownData: "❓",
-        mergeHeartRates: "❤️",
-    },
+            applyScaleAndOffset: "📏",
+            convertDateTimesToDates: "📅",
+            convertTypesToStrings: "🔤",
+            expandComponents: "🔗",
+            expandSubFields: "🧩",
+            includeUnknownData: "❓",
+            mergeHeartRates: "❤️",
+        },
         decoderOptions = getDecoderOptions(),
         recentMenuItems =
             recentFiles.length > 0
                 ? recentFiles.map((/** @type {string} */ file) => ({
-                    click: () => {
-                        if (mainWindow && mainWindow.webContents) {
-                            mainWindow.webContents.send("open-recent-file", file);
-                        }
-                    },
-                    label: recentUtils.getShortRecentName(file),
-                    tooltip: file,
-                }))
+                      click: () => {
+                          if (mainWindow && mainWindow.webContents) {
+                              mainWindow.webContents.send("open-recent-file", file);
+                          }
+                      },
+                      label: recentUtils.getShortRecentName(file),
+                      tooltip: file,
+                  }))
                 : [{ enabled: false, label: "No Recent Files" }];
     /**
      * @param {*} _decoderOptions
@@ -195,9 +197,9 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     }
 
     const decoderOptionsMenu = {
-        label: "💿 Decoder Options",
-        submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
-    },
+            label: "💿 Decoder Options",
+            submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
+        },
         /**
          * Defines the application menu template for the Electron app.
          *
@@ -246,7 +248,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                                         win.webContents.send("show-notification", "Recent files cleared.", "info");
                                         win.webContents.send("unload-fit-file");
                                     }
-                                    createAppMenu(win, /** @type {string} */(getTheme()));
+                                    createAppMenu(win, /** @type {string} */ (getTheme()));
                                 },
                                 enabled: recentFiles.length > 0,
                                 label: "🧹 Clear Recent Files",
@@ -317,8 +319,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                         accelerator: "CmdOrCtrl+W",
                         click: () => {
                             const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                            const win =
-                                BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null;
+                            const win = BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null;
                             if (win && typeof win.close === "function") {
                                 win.close();
                             }
@@ -654,7 +655,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     if (!app || !app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item).label);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item).label);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
             console.log(

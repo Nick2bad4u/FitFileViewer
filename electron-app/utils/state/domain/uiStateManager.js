@@ -7,8 +7,7 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 
-const DEFAULT_DOCUMENT_TITLE =
-    typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer";
+const DEFAULT_DOCUMENT_TITLE = typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer";
 
 /**
  * UI State Manager - handles common UI state operations
@@ -394,7 +393,8 @@ export class UIStateManager {
         const info = fileInfo || {},
             requestedHasFile = Boolean(info.hasFile),
             displayName = typeof info.displayName === "string" ? info.displayName : "",
-            title = typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_DOCUMENT_TITLE,
+            title =
+                typeof info.title === "string" && info.title.trim().length > 0 ? info.title : DEFAULT_DOCUMENT_TITLE,
             globalData = getState("globalData"),
             hasRenderableFile = Boolean(requestedHasFile && displayName && globalData);
 

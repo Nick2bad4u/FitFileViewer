@@ -136,7 +136,7 @@ export function initializeTabVisibilityState() {
     // Subscribe to active tab changes to update content visibility
     getStateMgr().subscribe(
         "ui.activeTab",
-        /** @param {any} activeTab */(activeTab) => {
+        /** @param {any} activeTab */ (activeTab) => {
             const contentId = getContentIdFromTabName(activeTab);
             updateTabVisibility(contentId);
         }
@@ -145,7 +145,7 @@ export function initializeTabVisibilityState() {
     // Subscribe to data loading to show/hide appropriate content
     getStateMgr().subscribe(
         "globalData",
-        /** @param {any} data */(data) => {
+        /** @param {any} data */ (data) => {
             const currentTab = getStateMgr().getState("ui.activeTab") || "summary",
                 hasData = data !== null && data !== undefined;
 
@@ -188,7 +188,7 @@ export function updateTabVisibility(visibleTabId) {
             "content-zwift",
         ];
     for (const id of tabContentIds) {
-        const el = getDoc().getElementById(/** @type {string} */(id));
+        const el = getDoc().getElementById(/** @type {string} */ (id));
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {

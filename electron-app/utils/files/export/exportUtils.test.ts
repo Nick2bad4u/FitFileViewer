@@ -107,12 +107,14 @@ vi.spyOn(document, "createElement").mockImplementation((tagName: any): any => {
     el.id = el.id ?? "";
     el.className = el.className ?? "";
     if ((tagName as string).toLowerCase() === "canvas") {
-        el.getContext = el.getContext ?? vi.fn(() => ({
-            fillRect: vi.fn(),
-            drawImage: vi.fn(),
-            getImageData: vi.fn(),
-            putImageData: vi.fn(),
-        }));
+        el.getContext =
+            el.getContext ??
+            vi.fn(() => ({
+                fillRect: vi.fn(),
+                drawImage: vi.fn(),
+                getImageData: vi.fn(),
+                putImageData: vi.fn(),
+            }));
         el.toDataURL = el.toDataURL ?? vi.fn(() => "data:image/png;base64,test");
         el.width = el.width ?? 800;
         el.height = el.height ?? 600;
@@ -207,7 +209,7 @@ describe("exportUtils", () => {
     });
 
     describe("authenticateWithGyazo", () => {
-    it("should authenticate with Gyazo successfully", async () => {
+        it("should authenticate with Gyazo successfully", async () => {
             // Mock Gyazo config
             vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
                 if (key === "gyazo_client_id") return "test-client-id";
@@ -231,7 +233,9 @@ describe("exportUtils", () => {
 
         it("should throw error when credentials not configured", async () => {
             // Ensure getGyazoConfig returns missing creds
-            const cfgSpy = vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({ clientId: null, clientSecret: null } as any);
+            const cfgSpy = vi
+                .spyOn(exportUtils, "getGyazoConfig")
+                .mockReturnValue({ clientId: null, clientSecret: null } as any);
             const guideSpy = vi.spyOn(exportUtils, "showGyazoSetupGuide").mockImplementation(() => undefined);
 
             await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow("Gyazo credentials not configured");
@@ -403,7 +407,7 @@ describe("exportUtils", () => {
     });
 
     describe("getGyazoConfig", () => {
-    it("should return complete Gyazo configuration", () => {
+        it("should return complete Gyazo configuration", () => {
             vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
                 if (key === "gyazo_client_id") return "test-client-id";
                 if (key === "gyazo_client_secret") return "test-client-secret";
@@ -422,7 +426,7 @@ describe("exportUtils", () => {
             });
         });
 
-    it("should return null values when nothing stored", () => {
+        it("should return null values when nothing stored", () => {
             vi.mocked(globalThis.localStorage.getItem).mockReturnValue(null);
 
             const config = exportUtils.getGyazoConfig();
@@ -504,7 +508,9 @@ describe("exportUtils", () => {
 
             // Bypass auth by stubbing token and config
             vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
-            vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({ uploadUrl: "https://upload.gyazo.com/api/upload" } as any);
+            vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
+                uploadUrl: "https://upload.gyazo.com/api/upload",
+            } as any);
 
             // First call: data URL -> blob
             vi.mocked(globalThis.fetch)
@@ -541,7 +547,9 @@ describe("exportUtils", () => {
 
             // Bypass auth by stubbing token and config
             vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
-            vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({ uploadUrl: "https://upload.gyazo.com/api/upload" } as any);
+            vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
+                uploadUrl: "https://upload.gyazo.com/api/upload",
+            } as any);
 
             vi.mocked(globalThis.fetch).mockResolvedValueOnce({
                 ok: false,

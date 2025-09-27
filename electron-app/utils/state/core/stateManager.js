@@ -99,93 +99,93 @@
  * @type {AppStateShape}
  */
 const AppState = {
-    // Application lifecycle state
-    app: {
-        initialized: false,
-        isOpeningFile: false,
-        startTime: performance.now(),
-    },
-
-    // Chart state
-    charts: {
-        chartData: null,
-        chartOptions: {},
-        controlsVisible: true,
-        isRendered: false,
-        selectedChart: "elevation",
-        zoomLevel: 1,
-    },
-    currentFile: null,
-    // Core application data
-    globalData: null,
-
-    isLoading: false,
-
-    // Map state
-    map: {
-        baseLayer: "openstreetmap",
-        center: null,
-        isRendered: false,
-        measurementMode: false,
-        selectedLap: 0,
-        showElevationProfile: true,
-        trackVisible: true,
-        zoom: 13,
-    },
-
-    // Performance metrics
-    performance: {
-        lastLoadTime: null,
-        memoryUsage: null,
-        renderTimes: {},
-    },
-
-    // System information
-    system: {
-        initialized: false,
-        mode: "production",
-        startupTime: null,
-        version: null,
-    },
-    // Table state
-    tables: {
-        currentPage: 1,
-        filters: {},
-        isRendered: false,
-        pageSize: 50,
-        sortColumn: null,
-        sortDirection: "asc",
-    },
-
-    // UI state
-    ui: {
-        activeTab: "summary",
-        dragCounter: 0,
-        dropOverlay: {
-            visible: false,
+        // Application lifecycle state
+        app: {
+            initialized: false,
+            isOpeningFile: false,
+            startTime: performance.now(),
         },
-        fileInfo: {
-            displayName: "",
-            hasFile: false,
-            title: typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer",
+
+        // Chart state
+        charts: {
+            chartData: null,
+            chartOptions: {},
+            controlsVisible: true,
+            isRendered: false,
+            selectedChart: "elevation",
+            zoomLevel: 1,
         },
-        isFullscreen: false,
-        loadingIndicator: {
-            active: false,
-            progress: 0,
+        currentFile: null,
+        // Core application data
+        globalData: null,
+
+        isLoading: false,
+
+        // Map state
+        map: {
+            baseLayer: "openstreetmap",
+            center: null,
+            isRendered: false,
+            measurementMode: false,
+            selectedLap: 0,
+            showElevationProfile: true,
+            trackVisible: true,
+            zoom: 13,
         },
-        sidebarCollapsed: false,
-        theme: "system",
-        unloadButtonVisible: false,
-        windowState: {
-            height: 800,
-            maximized: false,
-            width: 1200,
-            x: null,
-            y: null,
+
+        // Performance metrics
+        performance: {
+            lastLoadTime: null,
+            memoryUsage: null,
+            renderTimes: {},
+        },
+
+        // System information
+        system: {
+            initialized: false,
+            mode: "production",
+            startupTime: null,
+            version: null,
+        },
+        // Table state
+        tables: {
+            currentPage: 1,
+            filters: {},
+            isRendered: false,
+            pageSize: 50,
+            sortColumn: null,
+            sortDirection: "asc",
+        },
+
+        // UI state
+        ui: {
+            activeTab: "summary",
+            dragCounter: 0,
+            dropOverlay: {
+                visible: false,
+            },
+            fileInfo: {
+                displayName: "",
+                hasFile: false,
+                title: typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer",
+            },
+            isFullscreen: false,
+            loadingIndicator: {
+                active: false,
+                progress: 0,
+            },
+            sidebarCollapsed: false,
+            theme: "system",
+            unloadButtonVisible: false,
+            windowState: {
+                height: 800,
+                maximized: false,
+                width: 1200,
+                x: null,
+                y: null,
+            },
         },
     },
-},
     /**
      * Maximum number of state changes to keep in history
      */

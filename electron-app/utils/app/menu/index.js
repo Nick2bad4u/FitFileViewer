@@ -8,13 +8,12 @@ import * as createAppMenuModule from "./createAppMenu.js";
 export * from "./createAppMenu.js";
 
 const noopCreateAppMenu = () => {
-    throw new Error("createAppMenu is not available in this environment.");
-},
+        throw new Error("createAppMenu is not available in this environment.");
+    },
     resolvedCreateAppMenu =
         createAppMenuModule?.createAppMenu ??
         createAppMenuModule?.default ??
-        (typeof globalThis !== "undefined" &&
-		/** @type {any} */ (globalThis).__FFV_createAppMenuExports?.createAppMenu
+        (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).__FFV_createAppMenuExports?.createAppMenu
             ? /** @type {any} */ (globalThis).__FFV_createAppMenuExports.createAppMenu
             : undefined) ??
         noopCreateAppMenu;

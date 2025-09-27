@@ -30,11 +30,11 @@ import { validateInput, validators } from "../../errors/index.js";
  */
 export function formatDistance(meters) {
     // Use unified validation
-    const validation = validateInput(meters, [
-        validators.isRequired,
-        validators.isFiniteNumber,
-        validators.isPositiveNumber
-    ], "distance");
+    const validation = validateInput(
+        meters,
+        [validators.isRequired, validators.isFiniteNumber, validators.isPositiveNumber],
+        "distance"
+    );
 
     if (!validation.isValid) {
         // Fail-safe: return empty string for backward compatibility

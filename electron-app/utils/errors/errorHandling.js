@@ -43,7 +43,7 @@ export const ERROR_CODES = {
     PERMISSION_DENIED: "PERMISSION_DENIED",
     STATE_ERROR: "STATE_ERROR",
     VALIDATION_ERROR: "VALIDATION_ERROR",
-    UNKNOWN_ERROR: "UNKNOWN_ERROR"
+    UNKNOWN_ERROR: "UNKNOWN_ERROR",
 };
 
 /**
@@ -60,8 +60,6 @@ export class AppError extends Error {
         this.name = "AppError";
         this.context = context;
         this.timestamp = Date.now();
-
-
     }
 
     /**
@@ -96,7 +94,7 @@ export class AppError extends Error {
             message: this.message,
             context: this.context,
             timestamp: this.timestamp,
-            stack: this.stack
+            stack: this.stack,
         };
     }
 }
@@ -115,7 +113,7 @@ export class ValidationError extends AppError {
     constructor(message, details) {
         super(message, {
             operation: "validation",
-            code: ERROR_CODES.VALIDATION_ERROR
+            code: ERROR_CODES.VALIDATION_ERROR,
         });
         this.name = "ValidationError";
         this.errors = details.errors || [];
@@ -135,7 +133,7 @@ export function createErrorHandler(options = {}) {
         logError: true,
         logLevel: "error",
         notify: false,
-        notificationType: "error"
+        notificationType: "error",
     };
 
     const config = { ...defaultOptions, ...options };
@@ -185,7 +183,7 @@ export function validateInput(value, validators, fieldName = "input") {
         isValid: true,
         errors: [],
         warnings: [],
-        validatedValue: value
+        validatedValue: value,
     };
 
     for (const validator of validators) {
@@ -236,17 +234,19 @@ export function withErrorHandling(fn, options = {}) {
 
             // Handle async functions
             if (result && typeof result.then === "function") {
-                return result.catch(error => handleError(error, {
-                    operation: functionName,
-                    input: args
-                }));
+                return result.catch((error) =>
+                    handleError(error, {
+                        operation: functionName,
+                        input: args,
+                    })
+                );
             }
 
             return result;
         } catch (error) {
             return handleError(error, {
                 operation: functionName,
-                input: args
+                input: args,
             });
         }
     };
@@ -264,10 +264,13 @@ export const validators = {
      */
     isFiniteNumber: (value, fieldName) => ({
         isValid: typeof value === "number" && Number.isFinite(value),
-        errors: typeof value === "number" ?
-            Number.isFinite(value) ? [] : [`${fieldName} must be a finite number`] :
-            [`${fieldName} must be a number`],
-        value: typeof value === "number" ? value : Number(value)
+        errors:
+            typeof value === "number"
+                ? Number.isFinite(value)
+                    ? []
+                    : [`${fieldName} must be a finite number`]
+                : [`${fieldName} must be a number`],
+        value: typeof value === "number" ? value : Number(value),
     }),
 
     /**
@@ -278,12 +281,15 @@ export const validators = {
      */
     isPositiveNumber: (value, fieldName) => ({
         isValid: typeof value === "number" && Number.isFinite(value) && value > 0,
-        errors: typeof value === "number" ?
-            Number.isFinite(value) ?
-                value > 0 ? [] : [`${fieldName} must be positive`] :
-                [`${fieldName} must be a finite number`] :
-            [`${fieldName} must be a number`],
-        value
+        errors:
+            typeof value === "number"
+                ? Number.isFinite(value)
+                    ? value > 0
+                        ? []
+                        : [`${fieldName} must be positive`]
+                    : [`${fieldName} must be a finite number`]
+                : [`${fieldName} must be a number`],
+        value,
     }),
 
     /**
@@ -294,10 +300,13 @@ export const validators = {
      */
     isNonEmptyString: (value, fieldName) => ({
         isValid: typeof value === "string" && value.trim().length > 0,
-        errors: typeof value === "string" ?
-            value.trim().length > 0 ? [] : [`${fieldName} cannot be empty`] :
-            [`${fieldName} must be a string`],
-        value: typeof value === "string" ? value.trim() : String(value).trim()
+        errors:
+            typeof value === "string"
+                ? value.trim().length > 0
+                    ? []
+                    : [`${fieldName} cannot be empty`]
+                : [`${fieldName} must be a string`],
+        value: typeof value === "string" ? value.trim() : String(value).trim(),
     }),
 
     /**
@@ -309,8 +318,8 @@ export const validators = {
     isRequired: (value, fieldName) => ({
         isValid: value !== null && value !== undefined,
         errors: value === null || value === undefined ? [`${fieldName} is required`] : [],
-        value
-    })
+        value,
+    }),
 };
 
 /**
@@ -325,13 +334,13 @@ export function initializeErrorHandling(_options = {}) {
                 operation: "global-error-handler",
                 filename: event.filename,
                 lineno: event.lineno,
-                colno: event.colno
+                colno: event.colno,
             });
         });
 
         globalThis.addEventListener("unhandledrejection", (event) => {
             logError(event.reason instanceof Error ? event.reason : new Error(String(event.reason)), {
-                operation: "unhandled-rejection"
+                operation: "unhandled-rejection",
             });
         });
     }
@@ -352,14 +361,13 @@ export function logError(error, context = {}, level = "error") {
         message: error.message,
         name: error.name,
         stack: error.stack,
-        context
+        context,
     };
 
     console[level](`[${timestamp}] Error:`, errorInfo);
 
     // Also log to performance monitor if available
-    if (globalThis.performanceMonitor !== undefined &&
-        globalThis.performanceMonitor.recordError) {
+    if (globalThis.performanceMonitor !== undefined && globalThis.performanceMonitor.recordError) {
         try {
             globalThis.performanceMonitor.recordError(error, context.operation || "unknown");
         } catch {
@@ -381,7 +389,7 @@ export function makeResilient(fn, fallback, options = {}) {
         fallback,
         logError: true,
         logLevel: "warn",
-        ...options
+        ...options,
     });
 }
 
@@ -399,6 +407,6 @@ export function makeSafe(fn, options = {}) {
         failSafe: true,
         fallback: null,
         logError: logErrors,
-        logLevel: "warn"
+        logLevel: "warn",
     });
 }

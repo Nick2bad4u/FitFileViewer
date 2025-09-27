@@ -202,7 +202,7 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         const managerCandidate =
-            (chartStateManager && typeof chartStateManager.debouncedRender === "function")
+            chartStateManager && typeof chartStateManager.debouncedRender === "function"
                 ? chartStateManager
                 : /** @type {any} */ (globalThis).chartStateManager;
         if (managerCandidate && typeof managerCandidate.debouncedRender === "function") {
@@ -579,7 +579,7 @@ function resetUIControlsToDefaults(wrapper) {
         for (const picker of colorPickers) {
             const fieldName = picker.id.replace("field-color-", "").replace("chartjs-", "");
             if (/** @type {any} */ (fieldColors)[fieldName]) {
-                setValue(picker, /** @type {any} */(fieldColors)[fieldName]);
+                setValue(picker, /** @type {any} */ (fieldColors)[fieldName]);
             }
         }
         if (colorPickers.length > 0) {

@@ -45,41 +45,41 @@ export function renderEventMessagesChart(container, options, startTime) {
         container.append(canvas);
         // Prepare event data with relative timestamps
         const eventData = eventMesgs.map((event) => {
-            let timestamp = event.timestamp || event.time || 0;
+                let timestamp = event.timestamp || event.time || 0;
 
-            // Convert to relative seconds from start time
-            if (timestamp && startTime) {
-                let eventTimestamp, startTimestamp;
+                // Convert to relative seconds from start time
+                if (timestamp && startTime) {
+                    let eventTimestamp, startTimestamp;
 
-                // Handle different timestamp formats
-                if (timestamp instanceof Date) {
-                    eventTimestamp = timestamp.getTime() / 1000; // Convert to seconds
-                } else if (typeof timestamp === "number") {
-                    // Check if timestamp is in milliseconds or seconds
-                    eventTimestamp = timestamp > 1_000_000_000_000 ? timestamp / 1000 : timestamp;
-                } else {
-                    return { event: event.event || event.message || event.eventType || "Event", x: 0, y: 1 };
+                    // Handle different timestamp formats
+                    if (timestamp instanceof Date) {
+                        eventTimestamp = timestamp.getTime() / 1000; // Convert to seconds
+                    } else if (typeof timestamp === "number") {
+                        // Check if timestamp is in milliseconds or seconds
+                        eventTimestamp = timestamp > 1_000_000_000_000 ? timestamp / 1000 : timestamp;
+                    } else {
+                        return { event: event.event || event.message || event.eventType || "Event", x: 0, y: 1 };
+                    }
+
+                    if (startTime instanceof Date) {
+                        startTimestamp = startTime.getTime() / 1000; // Convert to seconds
+                    } else if (typeof startTime === "number") {
+                        // Check if startTime is in milliseconds or seconds
+                        startTimestamp = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
+                    } else {
+                        return { event: event.event || event.message || event.eventType || "Event", x: 0, y: 1 };
+                    }
+
+                    // Convert to relative seconds
+                    timestamp = Math.round(eventTimestamp - startTimestamp);
                 }
 
-                if (startTime instanceof Date) {
-                    startTimestamp = startTime.getTime() / 1000; // Convert to seconds
-                } else if (typeof startTime === "number") {
-                    // Check if startTime is in milliseconds or seconds
-                    startTimestamp = startTime > 1_000_000_000_000 ? startTime / 1000 : startTime;
-                } else {
-                    return { event: event.event || event.message || event.eventType || "Event", x: 0, y: 1 };
-                }
-
-                // Convert to relative seconds
-                timestamp = Math.round(eventTimestamp - startTimestamp);
-            }
-
-            return {
-                event: event.event || event.message || event.eventType || "Event",
-                x: timestamp,
-                y: 1, // Events are just markers
-            };
-        }),
+                return {
+                    event: event.event || event.message || event.eventType || "Event",
+                    x: timestamp,
+                    y: 1, // Events are just markers
+                };
+            }),
             config = {
                 data: {
                     datasets: [

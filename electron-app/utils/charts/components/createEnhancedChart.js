@@ -83,10 +83,10 @@ export function createEnhancedChart(canvas, options) {
                         animationStyle === "none"
                             ? 0
                             : animationStyle === "fast"
-                                ? 500
-                                : animationStyle === "slow"
-                                    ? 2000
-                                    : 1000,
+                              ? 500
+                              : animationStyle === "slow"
+                                ? 2000
+                                : 1000,
                     easing: interpolation,
                 },
                 interaction: {
@@ -223,16 +223,19 @@ export function createEnhancedChart(canvas, options) {
                             text: `Time (${getUnitSymbol("time", "time")})`,
                         },
                         type: "linear",
-                        ...(axisRanges && axisRanges.x && Number.isFinite(axisRanges.x.min) && Number.isFinite(axisRanges.x.max)
+                        ...(axisRanges &&
+                        axisRanges.x &&
+                        Number.isFinite(axisRanges.x.min) &&
+                        Number.isFinite(axisRanges.x.max)
                             ? axisRanges.x.min === axisRanges.x.max
                                 ? {
-                                    max: axisRanges.x.max + 1,
-                                    min: Math.max(axisRanges.x.min - 1, 0),
-                                }
+                                      max: axisRanges.x.max + 1,
+                                      min: Math.max(axisRanges.x.min - 1, 0),
+                                  }
                                 : {
-                                    max: axisRanges.x.max,
-                                    min: axisRanges.x.min,
-                                }
+                                      max: axisRanges.x.max,
+                                      min: axisRanges.x.min,
+                                  }
                             : {}),
                     },
                     y: {
@@ -253,16 +256,19 @@ export function createEnhancedChart(canvas, options) {
                             },
                             text: `${fieldLabels[field] || field} (${getUnitSymbol(field)})`,
                         },
-                        ...(axisRanges && axisRanges.y && Number.isFinite(axisRanges.y.min) && Number.isFinite(axisRanges.y.max)
+                        ...(axisRanges &&
+                        axisRanges.y &&
+                        Number.isFinite(axisRanges.y.min) &&
+                        Number.isFinite(axisRanges.y.max)
                             ? axisRanges.y.min === axisRanges.y.max
                                 ? {
-                                    max: axisRanges.y.max + 1,
-                                    min: axisRanges.y.min - 1,
-                                }
+                                      max: axisRanges.y.max + 1,
+                                      min: axisRanges.y.min - 1,
+                                  }
                                 : {
-                                    max: axisRanges.y.max,
-                                    min: axisRanges.y.min,
-                                }
+                                      max: axisRanges.y.max,
+                                      min: axisRanges.y.min,
+                                  }
                             : {}),
                     },
                 },

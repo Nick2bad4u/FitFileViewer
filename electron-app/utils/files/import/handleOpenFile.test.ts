@@ -10,10 +10,7 @@ let handleOpenFileModule: any;
 let mockSetState: ReturnType<typeof vi.spyOn>;
 beforeAll(async () => {
     handleOpenFileModule = await import("./handleOpenFile.js");
-    mockSetState = vi.spyOn(
-        handleOpenFileModule.__TEST_ONLY_exposedStateManager,
-        "setState"
-    );
+    mockSetState = vi.spyOn(handleOpenFileModule.__TEST_ONLY_exposedStateManager, "setState");
 });
 
 // Mock console methods
@@ -59,8 +56,8 @@ beforeEach(() => {
     (globalThis as any).electronAPI = mockWindow.electronAPI;
 
     // Map display helpers used by handleOpenFile to globalThis as implementation checks globalThis
-    ;(globalThis as any).showFitData = mockWindow.showFitData;
-    ;(globalThis as any).sendFitFileToAltFitReader = mockWindow.sendFitFileToAltFitReader;
+    (globalThis as any).showFitData = mockWindow.showFitData;
+    (globalThis as any).sendFitFileToAltFitReader = mockWindow.sendFitFileToAltFitReader;
 
     // Setup mock functions
     mockShowNotification = vi.fn();
@@ -226,7 +223,7 @@ describe("handleOpenFile.js", () => {
             expect(uiElements.isOpeningFileRef.value).toBe(true);
         });
 
-    it.skip("should call setState for UI state management", () => {
+        it.skip("should call setState for UI state management", () => {
             // Mock setState for this test
             const setStateSpy = vi.fn();
             vi.doMock("../../state/core/stateManager.js", () => ({

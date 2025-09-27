@@ -70,6 +70,6 @@ export const convertDistanceUnits = withErrorHandling(
     {
         failSafe: false, // Throw errors for invalid conversions
         logError: true,
-        notify: false
+        notify: false,
     }
 );

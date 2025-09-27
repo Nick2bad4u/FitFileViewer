@@ -72,7 +72,7 @@ export const DISTANCE_UNITS = {
     FEET: "feet",
     KILOMETERS: "kilometers",
     METERS: "meters",
-    MILES: "miles"
+    MILES: "miles",
 };
 
 /**
@@ -82,7 +82,7 @@ export const TIME_UNITS = {
     HOURS: "hours",
     MILLISECONDS: "milliseconds",
     MINUTES: "minutes",
-    SECONDS: "seconds"
+    SECONDS: "seconds",
 };
 
 /**
@@ -91,7 +91,7 @@ export const TIME_UNITS = {
 export const TEMPERATURE_UNITS = {
     CELSIUS: "celsius",
     FAHRENHEIT: "fahrenheit",
-    KELVIN: "kelvin"
+    KELVIN: "kelvin",
 };
 
 /**
@@ -103,7 +103,7 @@ export const UI_CONSTANTS = {
     THEMES: {
         DARK: "dark",
         LIGHT: "light",
-        SYSTEM: "system"
+        SYSTEM: "system",
     },
 
     // Notification configurations
@@ -112,26 +112,26 @@ export const UI_CONSTANTS = {
             ariaLabel: "Error",
             duration: 6000,
             icon: "❌",
-            type: "error"
+            type: "error",
         },
         INFO: {
             ariaLabel: "Information",
             duration: 4000,
             icon: "ℹ️",
-            type: "info"
+            type: "info",
         },
         SUCCESS: {
             ariaLabel: "Success",
             duration: 3000,
             icon: "✅",
-            type: "success"
+            type: "success",
         },
         WARNING: {
             ariaLabel: "Warning",
             duration: 5000,
             icon: "⚠️",
-            type: "warning"
-        }
+            type: "warning",
+        },
     },
 
     // Common DOM element IDs
@@ -148,7 +148,7 @@ export const UI_CONSTANTS = {
         TAB_CHART: "tab-chart",
         TAB_SUMMARY: "tab-summary",
         UNLOAD_FILE_BTN: "unloadFileBtn",
-        ZWIFT_IFRAME: "zwift-iframe"
+        ZWIFT_IFRAME: "zwift-iframe",
     },
 
     // Common CSS classes
@@ -157,7 +157,7 @@ export const UI_CONSTANTS = {
         HIDDEN: "hidden",
         LOADING: "loading",
         SHOW: "show",
-        THEMED_BTN: "themed-btn"
+        THEMED_BTN: "themed-btn",
     },
 
     // Animation and timing
@@ -167,7 +167,7 @@ export const UI_CONSTANTS = {
 
     // Layout constants
     SIDEBAR_WIDTH: 250,
-    HEADER_HEIGHT: 60
+    HEADER_HEIGHT: 60,
 };
 
 /**
@@ -185,14 +185,14 @@ export const FILE_CONSTANTS = {
     EXPORT_FORMATS: {
         CSV: "csv",
         GPX: "gpx",
-        JSON: "json"
+        JSON: "json",
     },
     DEFAULT_EXPORT_FORMAT: "gpx",
 
     // File paths
     IFRAME_PATHS: {
-        ALT_FIT: "libs/ffv/index.html"
-    }
+        ALT_FIT: "libs/ffv/index.html",
+    },
 };
 
 /**
@@ -212,7 +212,7 @@ export const CHART_CONSTANTS = {
         HEART_RATE: "heart-rate",
         LAP_ZONE: "lap-zone",
         POWER: "power",
-        SPEED: "speed"
+        SPEED: "speed",
     },
 
     // Default selected chart
@@ -221,8 +221,8 @@ export const CHART_CONSTANTS = {
     // Chart colors (will be overridden by theme)
     DEFAULT_COLORS: {
         PRIMARY: "#667eea",
-        SECONDARY: "#764ba2"
-    }
+        SECONDARY: "#764ba2",
+    },
 };
 
 /**
@@ -236,11 +236,11 @@ export const MAP_CONSTANTS = {
     // Map providers
     PROVIDERS: {
         OPENSTREETMAP: "openstreetmap",
-        SATELLITE: "satellite"
+        SATELLITE: "satellite",
     },
 
     // Default provider
-    DEFAULT_PROVIDER: "openstreetmap"
+    DEFAULT_PROVIDER: "openstreetmap",
 };
 
 /**
@@ -259,8 +259,8 @@ export const PERFORMANCE_CONSTANTS = {
         DATA_PROCESSING: "data-processing",
         FILE_OPERATIONS: "file-operations",
         STATE_MANAGEMENT: "state-management",
-        UI_RENDERING: "ui-rendering"
-    }
+        UI_RENDERING: "ui-rendering",
+    },
 };
 
 /**
@@ -279,7 +279,7 @@ export const VALIDATION_CONSTANTS = {
 
     // String validation
     MAX_STRING_LENGTH: 1000,
-    MIN_STRING_LENGTH: 1
+    MIN_STRING_LENGTH: 1,
 };
 
 /**
@@ -295,7 +295,7 @@ export const ERROR_CONSTANTS = {
         PERMISSION_DENIED: "PERMISSION_DENIED",
         STATE_ERROR: "STATE_ERROR",
         UNKNOWN_ERROR: "UNKNOWN_ERROR",
-        VALIDATION_ERROR: "VALIDATION_ERROR"
+        VALIDATION_ERROR: "VALIDATION_ERROR",
     },
 
     // Default error messages
@@ -307,8 +307,8 @@ export const ERROR_CONSTANTS = {
         PERMISSION_DENIED: "Permission denied",
         STATE_ERROR: "Application state error",
         UNKNOWN_ERROR: "An unknown error occurred",
-        VALIDATION_ERROR: "Input validation failed"
-    }
+        VALIDATION_ERROR: "Input validation failed",
+    },
 };
 
 /**
@@ -321,7 +321,7 @@ export const DEBUG_CONSTANTS = {
         DEBUG: "debug",
         ERROR: "error",
         INFO: "info",
-        WARN: "warn"
+        WARN: "warn",
     },
 
     // Debug categories
@@ -330,8 +330,8 @@ export const DEBUG_CONSTANTS = {
         DATA: "data",
         FILES: "files",
         STATE: "state",
-        UI: "ui"
-    }
+        UI: "ui",
+    },
 };
 
 /**
@@ -354,7 +354,7 @@ export const APP_CONSTANTS = {
         NODE_VERSION: "getNodeVersion",
         PLATFORM_INFO: "getPlatformInfo",
         SHELL_OPEN_EXTERNAL: "shell:openExternal",
-        THEME_GET: "theme:get"
+        THEME_GET: "theme:get",
     },
 
     // Event names
@@ -363,8 +363,8 @@ export const APP_CONSTANTS = {
         MENU_OPEN_FILE: "menu-open-file",
         SET_FULLSCREEN: "set-fullscreen",
         SET_THEME: "set-theme",
-        THEME_CHANGED: "theme-changed"
-    }
+        THEME_CHANGED: "theme-changed",
+    },
 };
 
 /**
@@ -378,7 +378,7 @@ export const APP_CONSTANTS = {
  * getConfig('CONVERSION_FACTORS.METERS_PER_MILE') // returns 1609.344
  */
 export function getConfig(path, defaultValue) {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let current = globalThis;
 
     // Try to access the configuration from this module's exports
@@ -395,14 +395,14 @@ export function getConfig(path, defaultValue) {
         TEMPERATURE_UNITS,
         TIME_UNITS,
         UI_CONSTANTS,
-        VALIDATION_CONSTANTS
+        VALIDATION_CONSTANTS,
     };
 
     current = moduleExports;
 
     try {
         for (const part of parts) {
-            if (current && typeof current === 'object' && part in current) {
+            if (current && typeof current === "object" && part in current) {
                 current = current[part];
             } else {
                 return defaultValue;
@@ -421,15 +421,15 @@ export function initializeConfig() {
     const validation = validateConfig();
 
     if (!validation.isValid) {
-        console.error('[Config] Configuration validation failed:', validation.errors);
-        throw new Error(`Configuration validation failed: ${validation.errors.join(', ')}`);
+        console.error("[Config] Configuration validation failed:", validation.errors);
+        throw new Error(`Configuration validation failed: ${validation.errors.join(", ")}`);
     }
 
     if (validation.warnings.length > 0) {
-        console.warn('[Config] Configuration warnings:', validation.warnings);
+        console.warn("[Config] Configuration warnings:", validation.warnings);
     }
 
-    console.log('[Config] Configuration system initialized successfully');
+    console.log("[Config] Configuration system initialized successfully");
 }
 
 /**
@@ -442,9 +442,9 @@ export function validateConfig() {
 
     // Check for required constants
     const requiredConstants = [
-        'CONVERSION_FACTORS.METERS_PER_KILOMETER',
-        'UI_CONSTANTS.DEFAULT_THEME',
-        'FILE_CONSTANTS.SUPPORTED_EXTENSIONS'
+        "CONVERSION_FACTORS.METERS_PER_KILOMETER",
+        "UI_CONSTANTS.DEFAULT_THEME",
+        "FILE_CONSTANTS.SUPPORTED_EXTENSIONS",
     ];
 
     for (const path of requiredConstants) {
@@ -456,7 +456,7 @@ export function validateConfig() {
 
     // Check for reasonable values
     if (CONVERSION_FACTORS.METERS_PER_KILOMETER !== 1000) {
-        errors.push('METERS_PER_KILOMETER should be 1000');
+        errors.push("METERS_PER_KILOMETER should be 1000");
     }
 
     if (!UI_CONSTANTS.THEMES[UI_CONSTANTS.DEFAULT_THEME.toUpperCase()]) {
@@ -466,7 +466,7 @@ export function validateConfig() {
     return {
         errors,
         isValid: errors.length === 0,
-        warnings
+        warnings,
     };
 }
 
@@ -484,5 +484,5 @@ export const CONFIG = {
     TEMPERATURE_UNITS,
     TIME_UNITS,
     UI: UI_CONSTANTS,
-    VALIDATION: VALIDATION_CONSTANTS
+    VALIDATION: VALIDATION_CONSTANTS,
 };

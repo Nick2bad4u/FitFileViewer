@@ -274,9 +274,7 @@ describe("createAppMenu", () => {
         about.click();
         shortcuts.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([["menu-about"], ["menu-keyboard-shortcuts"]])
-        );
+        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-about"], ["menu-keyboard-shortcuts"]]));
     });
 
     it("file > Close Window item is present and clickable", () => {
@@ -638,7 +636,11 @@ describe("createAppMenu - additional robust branches", () => {
     function importCreateAppMenu() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const mod = require("../../../utils/app/menu/createAppMenu.js");
-        return mod.createAppMenu as (mainWindow?: any, currentTheme?: string, loadedFitFilePath?: string | null) => void;
+        return mod.createAppMenu as (
+            mainWindow?: any,
+            currentTheme?: string,
+            loadedFitFilePath?: string | null
+        ) => void;
     }
 
     it("invokes BrowserWindow.close() from File > Close Window", () => {
@@ -688,7 +690,9 @@ describe("createAppMenu - additional robust branches", () => {
         const includeUnknown = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
         includeUnknown.click({ checked: false });
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        const found = ipcCalls.some((c) => c[0] === "decoder-options-changed" && c[1] && c[1].includeUnknownData === false);
+        const found = ipcCalls.some(
+            (c) => c[0] === "decoder-options-changed" && c[1] && c[1].includeUnknownData === false
+        );
         expect(found).toBe(true);
     });
 
@@ -786,12 +790,7 @@ describe("createAppMenu - additional robust branches", () => {
         about.click();
         prefs.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([
-                ["menu-about"],
-                ["menu-preferences"],
-            ])
-        );
+        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-about"], ["menu-preferences"]]));
         // restore
         if (desc) Object.defineProperty(process, "platform", desc);
         (globalThis as any).__electronHoistedMock = original;
@@ -818,9 +817,7 @@ describe("createAppMenu - additional robust branches", () => {
         about.click();
         prefs.click();
         const ipcCalls: any[][] = (globalThis as any).__ipcCalls || [];
-        expect(ipcCalls).toEqual(
-            expect.arrayContaining([["menu-about"], ["menu-preferences"]])
-        );
+        expect(ipcCalls).toEqual(expect.arrayContaining([["menu-about"], ["menu-preferences"]]));
         if (desc) Object.defineProperty(process, "platform", desc);
         (globalThis as any).__electronHoistedMock = original;
     });
@@ -837,7 +834,7 @@ describe("createAppMenu - additional robust branches", () => {
         (globalThis as any).__electronHoistedMock = {
             ...original,
             Menu: {
-                buildFromTemplate: (template: any[]) => ({ items: template } as any),
+                buildFromTemplate: (template: any[]) => ({ items: template }) as any,
                 setApplicationMenu: setAppMenuSpy,
             },
         };

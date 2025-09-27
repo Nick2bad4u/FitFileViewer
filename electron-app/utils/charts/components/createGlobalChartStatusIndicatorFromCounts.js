@@ -176,13 +176,14 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
                     🗺️ GPS: ${counts.categories.gps.visible}/${counts.categories.gps.available}
                 </div>
             </div>
-            ${hasHiddenCharts
-                ? `
+            ${
+                hasHiddenCharts
+                    ? `
                 <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border); font-size: 11px; color: var(--color-warning);">
                     💡 Use settings panel below to enable more charts
                 </div>
             `
-                : ""
+                    : ""
             }
         `;
 

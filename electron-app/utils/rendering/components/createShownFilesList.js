@@ -53,7 +53,7 @@ export function createShownFilesList() {
             if (hex.length === 3) {
                 hex = hex
                     .split("")
-                    .map(/** @param {string} x */(x) => x + x)
+                    .map(/** @param {string} x */ (x) => x + x)
                     .join("");
             }
             const num = Number.parseInt(hex, 16);

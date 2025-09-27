@@ -173,9 +173,7 @@ export function createInlineZoneColorSelector(field, container) {
                 }
                 const normalizedIndex = normalizeZoneIndex(zoneIndex);
                 return (
-                    defaultColors[normalizedIndex] ||
-                    defaultColors[normalizedIndex % defaultColors.length] ||
-                    "#000000"
+                    defaultColors[normalizedIndex] || defaultColors[normalizedIndex % defaultColors.length] || "#000000"
                 );
             };
 
@@ -183,15 +181,15 @@ export function createInlineZoneColorSelector(field, container) {
             let zoneItemIndex = 0;
             for (const child of zoneItems) {
                 const item = /** @type {HTMLElement} */ (child);
-                const zoneIndex = ((typedZoneData[zoneItemIndex] && typedZoneData[zoneItemIndex].zone) || zoneItemIndex + 1) - 1;
+                const zoneIndex =
+                    ((typedZoneData[zoneItemIndex] && typedZoneData[zoneItemIndex].zone) || zoneItemIndex + 1) - 1;
                 const activeZoneIndex = normalizeZoneIndex(zoneIndex);
 
                 let colorToShow;
                 if (activeSchemeColors) {
                     colorToShow = activeSchemeColors[activeZoneIndex] || getDefaultColor(activeZoneIndex);
                 } else {
-                    colorToShow =
-                        getChartSpecificZoneColor(field, activeZoneIndex) || getDefaultColor(activeZoneIndex);
+                    colorToShow = getChartSpecificZoneColor(field, activeZoneIndex) || getDefaultColor(activeZoneIndex);
                 }
 
                 if (!colorToShow) {
@@ -348,13 +346,12 @@ export function createInlineZoneColorSelector(field, container) {
 
             // If a non-custom scheme is loaded, apply its colors if they haven't been customized
             if (currentScheme !== "custom") {
-                const hasCustomColors =
-                    zoneArray.some((zone, index) => {
-                        const zoneIndex = ((zone && zone.zone) || index + 1) - 1,
-                            chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
-                            defaultColor = resolveDefaultColor(zoneIndex);
-                        return chartSpecificColor !== defaultColor;
-                    });
+                const hasCustomColors = zoneArray.some((zone, index) => {
+                    const zoneIndex = ((zone && zone.zone) || index + 1) - 1,
+                        chartSpecificColor = getChartSpecificZoneColor(field, zoneIndex),
+                        defaultColor = resolveDefaultColor(zoneIndex);
+                    return chartSpecificColor !== defaultColor;
+                });
 
                 // If no custom colors are saved, apply the scheme colors
                 if (!hasCustomColors) {
@@ -708,7 +705,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
     `;
 
     const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
-        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */(zone).time, true) : "";
+        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
     label.innerHTML = `
         <div>${zoneName}</div>
         ${zoneTime ? `<div style="font-size: 10px; color: var(--color-fg-alt); margin-top: 2px;">${zoneTime}</div>` : ""}
@@ -868,14 +865,14 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
 
                 // Check if this chart contains zone data that matches our field
                 const isHRZoneChart =
-                    field.includes("hr_zone") &&
-                    chart.data.datasets.some(
-                        (/** @type {any} */ dataset) =>
-                            dataset.label &&
-                            (dataset.label.includes("Heart Rate") ||
-                                dataset.label.includes("HR Zone") ||
-                                dataset.label.toLowerCase().includes("heart"))
-                    ),
+                        field.includes("hr_zone") &&
+                        chart.data.datasets.some(
+                            (/** @type {any} */ dataset) =>
+                                dataset.label &&
+                                (dataset.label.includes("Heart Rate") ||
+                                    dataset.label.includes("HR Zone") ||
+                                    dataset.label.toLowerCase().includes("heart"))
+                        ),
                     isPowerZoneChart =
                         field.includes("power_zone") &&
                         chart.data.datasets.some(
