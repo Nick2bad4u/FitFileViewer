@@ -1,3 +1,5 @@
+import { openFileSelector } from "../../files/import/openFileSelector.js";
+
 // Utility to set up all event listeners for the app
 /**
  * Sets up all event listeners for the FitFileViewer application UI and IPC.
@@ -564,16 +566,35 @@ export function setupListeners({
                 globalThis.electronAPI.send("menu-check-for-updates");
             }
         });
-        globalThis.electronAPI.onIpc("menu-save-as", () => {
-            if (globalThis.electronAPI.send) {
-                globalThis.electronAPI.send("menu-save-as");
+        globalThis.electronAPI.onIpc("menu-open-overlay", () => {
+            try {
+                openFileSelector();
+            } catch (error) {
+                console.error("[Listeners] Failed to open overlay selector:", error);
+                showNotification("Failed to open overlay selector.", "error", 3000);
             }
         });
-        globalThis.electronAPI.onIpc("menu-export", () => {
-            if (globalThis.electronAPI.send) {
-                globalThis.electronAPI.send("menu-export");
+        const ensureMenuForwarder = (channel) => {
+            if (!globalThis.electronAPI || typeof globalThis.electronAPI.onIpc !== "function") {
+                return;
             }
-        });
+            const registry = /** @type {Set<string>} */ (
+                (globalThis.__ffvMenuForwardRegistry instanceof Set
+                    ? globalThis.__ffvMenuForwardRegistry
+                    : (globalThis.__ffvMenuForwardRegistry = new Set()))
+            );
+            if (registry.has(channel)) {
+                return;
+            }
+            registry.add(channel);
+            globalThis.electronAPI.onIpc(channel, () => {
+                if (globalThis.electronAPI && typeof globalThis.electronAPI.send === "function") {
+                    globalThis.electronAPI.send(channel);
+                }
+            });
+        };
+        ensureMenuForwarder("menu-save-as");
+        ensureMenuForwarder("menu-export");
         globalThis.electronAPI.onIpc("menu-about", async () => {
             // Show the about modal without any content since the styled system info
             // Section will automatically load and display all the version information

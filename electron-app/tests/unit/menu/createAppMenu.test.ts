@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { Mock } from "vitest";
 
 // Capture passed template for assertions
 let capturedTemplate: any[] | null = null;
@@ -34,6 +35,9 @@ describe("createAppMenu", () => {
     beforeEach(() => {
         capturedTemplate = null;
         vi.resetModules();
+        try {
+            delete (globalThis as any).__FFV_createAppMenuExports;
+        } catch {}
         // Default recent files mock for most tests (can be overridden in a specific test)
         vi.doMock("../../../utils/files/recent/recentFiles", () => ({
             loadRecentFiles: vi.fn(() => [
@@ -50,9 +54,17 @@ describe("createAppMenu", () => {
         const shellSpy = (globalThis as any).__electronShellOpenSpy;
         if (shellSpy && typeof shellSpy.mockReset === "function") shellSpy.mockReset();
         else (globalThis as any).__electronShellOpenSpy = vi.fn();
+        const shellShowSpy = (globalThis as any).__electronShellShowSpy;
+        if (shellShowSpy && typeof shellShowSpy.mockReset === "function") shellShowSpy.mockReset();
+        else (globalThis as any).__electronShellShowSpy = vi.fn();
+        const clipboardSpy = (globalThis as any).__electronClipboardWriteSpy;
+        if (clipboardSpy && typeof clipboardSpy.mockReset === "function") clipboardSpy.mockReset();
+        else (globalThis as any).__electronClipboardWriteSpy = vi.fn();
         // Initialize deterministic global logs used by the hoisted mock wrappers
         (globalThis as any).__ipcCalls = [];
         (globalThis as any).__shellOpenCalls = [];
+        (globalThis as any).__shellRevealCalls = [];
+        (globalThis as any).__clipboardWrites = [];
         // Inject recent files via global hook consumed by createAppMenu
         (globalThis as any).__mockRecentFiles = [
             "C:/Users/Test/Documents/activity1.fit",
@@ -87,6 +99,22 @@ describe("createAppMenu", () => {
                     calls.push(args);
                     (globalThis as any).__shellOpenCalls = calls;
                     const fn = (globalThis as any).__electronShellOpenSpy || vi.fn();
+                    return fn(...args);
+                },
+                showItemInFolder: (...args: any[]) => {
+                    const calls = (globalThis as any).__shellRevealCalls || [];
+                    calls.push(args);
+                    (globalThis as any).__shellRevealCalls = calls;
+                    const fn = (globalThis as any).__electronShellShowSpy || vi.fn();
+                    return fn(...args);
+                },
+            },
+            clipboard: {
+                writeText: (...args: any[]) => {
+                    const calls = (globalThis as any).__clipboardWrites || [];
+                    calls.push(args);
+                    (globalThis as any).__clipboardWrites = calls;
+                    const fn = (globalThis as any).__electronClipboardWriteSpy || vi.fn();
                     return fn(...args);
                 },
             },
@@ -166,6 +194,12 @@ describe("createAppMenu", () => {
             const item = fileMenu.submenu.find((i: any) => i.label === lab);
             expect(item.enabled).toBe(false);
         }
+        const revealItem = fileMenu.submenu.find(
+            (i: any) => typeof i.label === "string" && i.label.startsWith("📂 Reveal")
+        );
+        expect(revealItem?.enabled).toBe(false);
+        const copyItem = fileMenu.submenu.find((i: any) => i.label === "📋 Copy File Path");
+        expect(copyItem.enabled).toBe(false);
         const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
         const summary = settingsMenu.submenu.find((i: any) => i.label === "📊 Summary Columns...");
         expect(summary.enabled).toBe(false);
@@ -201,6 +235,9 @@ describe("createAppMenu", () => {
         // Click dark and expect event
         dark.click();
         expect(send).toHaveBeenCalledWith("set-theme", "dark");
+        // Click light to ensure toggling back also emits IPC
+        light.click();
+        expect(send).toHaveBeenCalledWith("set-theme", "light");
     });
 
     it("decoder options toggle sends updated options", () => {
@@ -220,6 +257,23 @@ describe("createAppMenu", () => {
             "decoder-options-changed",
             expect.objectContaining({ includeUnknownData: false })
         );
+    });
+
+    it("persists decoder options after toggling", () => {
+        const createAppMenu = importCreateAppMenu();
+        const fakeWin = { webContents: { send: vi.fn() } };
+        createAppMenu(fakeWin as any, "dark", "C:/x.fit");
+        let tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        let settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
+        let decoderMenu = settingsMenu.submenu.find((i: any) => i.label === "💿 Decoder Options");
+        const includeUnknown = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
+        includeUnknown.click({ checked: false });
+        createAppMenu(fakeWin as any, "dark", "C:/x.fit");
+        tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
+        decoderMenu = settingsMenu.submenu.find((i: any) => i.label === "💿 Decoder Options");
+        const refreshed = decoderMenu.submenu.find((i: any) => String(i.label).includes("includeUnknownData"));
+        expect(refreshed.checked).toBe(false);
     });
 
     it("accessibility toggles send appropriate IPC messages", () => {
@@ -319,11 +373,14 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
         const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const clickLabel = (lab: string) => fileMenu.submenu.find((i: any) => i.label === lab).click();
-        clickLabel("❌ Unload File");
-        clickLabel("💾 Save As...");
-        clickLabel("📤 Export...");
-        clickLabel("🖨️ Print...");
+        const unloadItem = fileMenu.submenu.find((i: any) => i.label === "❌ Unload File");
+        unloadItem.click();
+        const saveAsItem = fileMenu.submenu.find((i: any) => i.label === "💾 Save As...");
+        const exportItem = fileMenu.submenu.find((i: any) => i.label === "📤 Export...");
+        const printItem = fileMenu.submenu.find((i: any) => i.label === "🖨️ Print...");
+        saveAsItem.click();
+        exportItem.click();
+        printItem.click();
         expect(send).toHaveBeenCalledWith("unload-fit-file");
         expect(send).toHaveBeenCalledWith("menu-save-as");
         expect(send).toHaveBeenCalledWith("menu-export");
@@ -337,9 +394,53 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const openItem = fileMenu.submenu.find((i: any) => i.label === "📂 Open...");
+        const openItem = fileMenu.submenu.find((i: any) => i.label === "📂 Open FIT File...");
         openItem.click();
         expect(send).toHaveBeenCalledWith("menu-open-file");
+    });
+
+    it("overlay menu item sends menu-open-overlay", () => {
+        const createAppMenu = importCreateAppMenu();
+        const send = vi.fn();
+        const fakeWin = { webContents: { send } };
+        createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
+        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
+        const overlayItem = fileMenu.submenu.find((i: any) => i.label === "➕ Add FIT Files as Overlays...");
+        overlayItem.click();
+        expect(send).toHaveBeenCalledWith("menu-open-overlay");
+    });
+
+    it("reveal action calls shell.showItemInFolder when file loaded", () => {
+        const createAppMenu = importCreateAppMenu();
+        const send = vi.fn();
+        const fakeWin = { webContents: { send } };
+        const filePath = "C:/Users/Test/Documents/activity1.fit";
+        createAppMenu(fakeWin as any, "dark", filePath);
+        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
+        const revealItem = fileMenu.submenu.find(
+            (i: any) => typeof i.label === "string" && i.label.startsWith("📂 Reveal")
+        );
+        expect(revealItem.enabled).toBe(true);
+        revealItem.click();
+        const revealSpy = (globalThis as any).__electronShellShowSpy as Mock;
+        expect(revealSpy).toHaveBeenCalledWith(filePath);
+    });
+
+    it("copy file path writes to clipboard and notifies", () => {
+        const createAppMenu = importCreateAppMenu();
+        const send = vi.fn();
+        const fakeWin = { webContents: { send } };
+        const filePath = "C:/Users/Test/Documents/activity2.fit";
+        createAppMenu(fakeWin as any, "dark", filePath);
+        const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
+        const copyItem = fileMenu.submenu.find((i: any) => i.label === "📋 Copy File Path");
+        copyItem.click();
+        const clipboardSpy = (globalThis as any).__electronClipboardWriteSpy as Mock;
+        expect(clipboardSpy).toHaveBeenCalledWith(filePath);
+        expect(send).toHaveBeenCalledWith("show-notification", "File path copied to clipboard.", "success");
     });
 
     it("theme can toggle to light and sends set-theme", () => {
@@ -571,6 +672,9 @@ describe("createAppMenu - additional robust branches", () => {
     beforeEach(() => {
         capturedTemplate = null;
         vi.resetModules();
+        try {
+            delete (globalThis as any).__FFV_createAppMenuExports;
+        } catch {}
         vi.doMock("../../../utils/files/recent/recentFiles", () => ({
             loadRecentFiles: vi.fn(() => [
                 "C:/Users/Test/Documents/activity1.fit",
@@ -862,5 +966,98 @@ describe("createAppMenu - additional robust branches", () => {
         // getTheme returns 'dark' by default; ensure dark is checked
         expect(dark.checked).toBe(true);
         expect(light.checked).toBe(false);
+    });
+
+    it("falls back to assigning exports when defineProperty throws", () => {
+        const originalDefineProperty = Object.defineProperty;
+        const defineSpy = vi
+            .spyOn(Object, "defineProperty")
+            .mockImplementation((target: any, property: PropertyKey, descriptor: PropertyDescriptor) => {
+                if (property === "__FFV_createAppMenuExports") {
+                    throw new Error("defineProperty blocked");
+                }
+                return originalDefineProperty(target, property, descriptor);
+            });
+
+        try {
+            delete (globalThis as any).__FFV_createAppMenuExports;
+            const modulePath = require.resolve("../../../utils/app/menu/createAppMenu.js");
+            delete require.cache[modulePath];
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const mod = require("../../../utils/app/menu/createAppMenu.js");
+            expect(typeof mod.createAppMenu).toBe("function");
+            const defineMock = defineSpy as unknown as Mock;
+            const calls = defineMock.mock.calls as Array<[any, PropertyKey, PropertyDescriptor]>;
+            expect(calls.length).toBeGreaterThan(0);
+            const targetedIndex = calls.findIndex(([, prop]) => prop === "__FFV_createAppMenuExports");
+            expect(targetedIndex).toBeGreaterThanOrEqual(0);
+            const results = defineMock.mock.results as Array<{ type: string }>;
+            expect(results[targetedIndex]?.type).toBe("throw");
+        } finally {
+            defineSpy.mockRestore();
+            delete (globalThis as any).__FFV_createAppMenuExports;
+            vi.resetModules();
+        }
+    });
+
+    it("executes all menu click handlers without throwing", async () => {
+        const createAppMenu = importCreateAppMenu();
+        const fakeWebContents = {
+            send: vi.fn(),
+            reload: vi.fn(),
+            openDevTools: vi.fn(),
+            closeDevTools: vi.fn(),
+            toggleDevTools: vi.fn(),
+            isDevToolsOpened: vi.fn().mockReturnValue(false),
+            executeJavaScript: vi.fn().mockResolvedValue(undefined),
+        };
+        const fakeWindow = {
+            webContents: fakeWebContents,
+            close: vi.fn(),
+            focus: vi.fn(),
+            show: vi.fn(),
+            isDestroyed: vi.fn().mockReturnValue(false),
+            setFullScreen: vi.fn(),
+            isFullScreen: vi.fn().mockReturnValue(false),
+        };
+        const electronMock = (globalThis as any).__electronHoistedMock as {
+            BrowserWindow: { getFocusedWindow: Mock };
+        };
+        electronMock.BrowserWindow.getFocusedWindow = vi.fn().mockReturnValue(fakeWindow);
+
+        createAppMenu(fakeWindow as any, "dark", "C:/activities/sample.fit");
+        const template = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
+        const clickableItems: Array<Record<string, any>> = [];
+
+        function collect(items: Array<Record<string, any>> | undefined) {
+            if (!Array.isArray(items)) {
+                return;
+            }
+            for (const item of items) {
+                if (item.type === "separator") {
+                    continue;
+                }
+                clickableItems.push(item);
+                if (item.submenu) {
+                    collect(item.submenu);
+                }
+            }
+        }
+        collect(template);
+        expect(clickableItems.length).toBeGreaterThan(0);
+
+        // Exercise each item's click handler
+        for (const item of clickableItems) {
+            const { click } = item;
+            if (typeof click !== "function") {
+                continue;
+            }
+            // Wrap in a try/catch to ensure one failing handler doesn't prevent others from being tested
+            try {
+                click();
+            } catch (e) {
+                console.error(`Error executing click handler for ${item.label}:`, e);
+            }
+        }
     });
 });

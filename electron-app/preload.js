@@ -33,6 +33,7 @@ const // Constants for better maintainability
             INSTALL_UPDATE: "install-update",
             MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
             MENU_OPEN_FILE: "menu-open-file",
+            MENU_OPEN_OVERLAY: "menu-open-overlay",
             OPEN_RECENT_FILE: "open-recent-file",
             OPEN_SUMMARY_COLUMN_SELECTOR: "open-summary-column-selector",
             SET_FULLSCREEN: "set-fullscreen",
@@ -84,6 +85,7 @@ const // Constants for better maintainability
      * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
      * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
      * @property {(callback: Function) => void} onMenuOpenFile
+    * @property {(callback: Function) => void} onMenuOpenOverlay
      * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
      * @property {(callback: (theme: string) => void) => void} onSetTheme
      * @property {(callback: Function) => void} onOpenSummaryColumnSelector
@@ -390,6 +392,12 @@ const electronAPI = {
      * @param {Function} callback
      */
     onMenuOpenFile: createSafeEventHandler(CONSTANTS.EVENTS.MENU_OPEN_FILE, "onMenuOpenFile"),
+
+    /**
+     * Registers a handler for the 'menu-open-overlay' event.
+     * @param {Function} callback
+     */
+    onMenuOpenOverlay: createSafeEventHandler(CONSTANTS.EVENTS.MENU_OPEN_OVERLAY, "onMenuOpenOverlay"),
 
     /**
      * Registers a handler for the 'open-recent-file' event.

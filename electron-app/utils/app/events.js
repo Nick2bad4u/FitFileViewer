@@ -20,6 +20,26 @@ export function setupListeners({
     showUpdateNotification,
     showAboutModal,
 }) {
+    const ensureMenuForwarder = (channel) => {
+        if (!globalThis.electronAPI || typeof globalThis.electronAPI.onIpc !== "function") {
+            return;
+        }
+        const registry = /** @type {Set<string>} */ (
+            (globalThis.__ffvMenuForwardRegistry instanceof Set
+                ? globalThis.__ffvMenuForwardRegistry
+                : (globalThis.__ffvMenuForwardRegistry = new Set()))
+        );
+        if (registry.has(channel)) {
+            return;
+        }
+        registry.add(channel);
+        globalThis.electronAPI.onIpc(channel, () => {
+            if (globalThis.electronAPI && typeof globalThis.electronAPI.send === "function") {
+                globalThis.electronAPI.send(channel);
+            }
+        });
+    };
+
     // Open File button click
     openFileBtn.addEventListener("click", () =>
         handleOpenFile({
@@ -319,12 +339,8 @@ export function setupListeners({
         globalThis.electronAPI.onIpc("menu-check-for-updates", () => {
             if (globalThis.electronAPI.send) globalThis.electronAPI.send("menu-check-for-updates");
         });
-        globalThis.electronAPI.onIpc("menu-save-as", () => {
-            if (globalThis.electronAPI.send) globalThis.electronAPI.send("menu-save-as");
-        });
-        globalThis.electronAPI.onIpc("menu-export", () => {
-            if (globalThis.electronAPI.send) globalThis.electronAPI.send("menu-export");
-        });
+        ensureMenuForwarder("menu-save-as");
+        ensureMenuForwarder("menu-export");
         globalThis.electronAPI.onIpc("menu-about", async () => {
             // Show the about modal without any content since the styled system info
             // section will automatically load and display all the version information

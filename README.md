@@ -53,6 +53,8 @@
   <a href="https://fitfileviewer.typpi.online/" title="GitHub Pages Status">
     <img alt="Badge: GitHub Pages Status (dynamic, flat-square style)" src="https://img.shields.io/website?url=https://fitfileviewer.typpi.online&up_message=Online&down_message=Offline&style=flat-square&logo=github&label=Github%20Pages&cacheSeconds=6000&link=https://fitfileviewer.typpi.online/" title="GitHub Pages Status">
   </a>
+  <a href="https://deepwiki.com/Nick2bad4u/FitFileViewer">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </p>
 
 <!--

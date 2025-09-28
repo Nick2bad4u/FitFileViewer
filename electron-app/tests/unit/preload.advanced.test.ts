@@ -319,6 +319,15 @@ describe("preload.js - Advanced Test Coverage", () => {
             expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-file", expect.any(Function));
         });
 
+        test("should provide onMenuOpenOverlay method", () => {
+            const { exposedAPI } = createPreloadEnvironment();
+            const callback = vi.fn();
+
+            exposedAPI.onMenuOpenOverlay(callback);
+
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-overlay", expect.any(Function));
+        });
+
         test("should provide onOpenRecentFile method", () => {
             const { exposedAPI } = createPreloadEnvironment();
             const callback = vi.fn();
@@ -344,6 +353,12 @@ describe("preload.js - Advanced Test Coverage", () => {
             exposedAPI.onMenuOpenFile("not-a-function");
 
             expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] onMenuOpenFile: callback must be a function");
+
+            exposedAPI.onMenuOpenOverlay("not-a-function");
+
+            expect(mockConsole.error).toHaveBeenCalledWith(
+                "[preload.js] onMenuOpenOverlay: callback must be a function"
+            );
         });
     });
 

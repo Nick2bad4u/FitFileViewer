@@ -225,6 +225,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             electronAPI.onMenuOpenFile(mockCallback);
 
             expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-file", expect.any(Function));
+
+            const overlayCallback = vi.fn();
+            electronAPI.onMenuOpenOverlay(overlayCallback);
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-overlay", expect.any(Function));
         });
 
         it("should test development tools API", () => {

@@ -1,6 +1,15 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
+
+vi.mock("../../../utils/files/import/openFileSelector.js", () => ({
+    openFileSelector: vi.fn(),
+}));
+
+import { openFileSelector } from "../../../utils/files/import/openFileSelector.js";
 import { setupListeners } from "../../../utils/app/lifecycle/listeners.js";
+
+const openFileSelectorMock = vi.mocked(openFileSelector);
 
 describe("utils/app/lifecycle/listeners.js", () => {
     beforeEach(() => {
@@ -8,6 +17,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
       <button id="openFileBtn">Open</button>
       <div id="content-summary"></div>
     `;
+    openFileSelectorMock.mockReset();
+    openFileSelectorMock.mockImplementation(() => {});
         // Clean any previous window properties
         Object.assign(window, {
             electronAPI: undefined,
@@ -33,6 +44,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
             readFile: vi.fn(),
             parseFitFile: vi.fn(),
             addRecentFile: vi.fn(),
+            onIpc: vi.fn(),
+            send: vi.fn(),
         } as any;
         setupListeners({
             openFileBtn,
@@ -85,5 +98,28 @@ describe("utils/app/lifecycle/listeners.js", () => {
         vi.advanceTimersByTime(210);
         expect(updateCharts).toHaveBeenCalledWith("window-resize");
         vi.useRealTimers();
+    });
+
+    it("menu-open-overlay IPC triggers openFileSelector", () => {
+        const { showNotification } = mount([]);
+        const onIpcMock = (window as any).electronAPI.onIpc as Mock;
+        const entry = onIpcMock.mock.calls.find((args: any[]) => args[0] === "menu-open-overlay");
+        expect(entry).toBeDefined();
+        const handler = entry ? (entry[1] as () => void) : undefined;
+        handler?.();
+    expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
+        expect(showNotification).not.toHaveBeenCalled();
+    });
+
+    it("menu-open-overlay handler reports errors", () => {
+        openFileSelectorMock.mockImplementationOnce(() => {
+            throw new Error("fail");
+        });
+        const { showNotification } = mount([]);
+        const onIpcMock = (window as any).electronAPI.onIpc as Mock;
+        const entry = onIpcMock.mock.calls.find((args: any[]) => args[0] === "menu-open-overlay");
+        const handler = entry ? (entry[1] as () => void) : undefined;
+        handler?.();
+        expect(showNotification).toHaveBeenCalledWith("Failed to open overlay selector.", "error", 3000);
     });
 });

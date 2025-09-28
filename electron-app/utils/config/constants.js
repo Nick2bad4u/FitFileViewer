@@ -361,6 +361,7 @@ export const APP_CONSTANTS = {
     EVENTS: {
         INSTALL_UPDATE: "install-update",
         MENU_OPEN_FILE: "menu-open-file",
+        MENU_OPEN_OVERLAY: "menu-open-overlay",
         SET_FULLSCREEN: "set-fullscreen",
         SET_THEME: "set-theme",
         THEME_CHANGED: "theme-changed",

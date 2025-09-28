@@ -173,6 +173,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             // Test menu operations
             expect(electronAPI).toHaveProperty("injectMenu");
             expect(electronAPI).toHaveProperty("onMenuOpenFile");
+            expect(electronAPI).toHaveProperty("onMenuOpenOverlay");
             expect(electronAPI).toHaveProperty("onOpenRecentFile");
             expect(electronAPI).toHaveProperty("onOpenSummaryColumnSelector");
 
@@ -335,6 +336,12 @@ describe("preload.js - Comprehensive API Testing", () => {
             const callback = vi.fn();
             electronAPI.onMenuOpenFile(callback);
             expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith("menu-open-file", expect.any(Function));
+        });
+
+        it("should register onMenuOpenOverlay handler", () => {
+            const callback = vi.fn();
+            electronAPI.onMenuOpenOverlay(callback);
+            expect(electronMock.ipcRenderer.on).toHaveBeenCalledWith("menu-open-overlay", expect.any(Function));
         });
 
         it("should register onOpenRecentFile handler", () => {

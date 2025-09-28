@@ -435,6 +435,13 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-file", expect.any(Function));
         });
 
+        test("onMenuOpenOverlay should register event handler", () => {
+            const callback = vi.fn();
+            exposedAPI.onMenuOpenOverlay(callback);
+
+            expect(mockIpcRenderer.on).toHaveBeenCalledWith("menu-open-overlay", expect.any(Function));
+        });
+
         test("onOpenRecentFile should register event handler", () => {
             const callback = vi.fn();
             exposedAPI.onOpenRecentFile(callback);
@@ -709,6 +716,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
 
             // Verify expected events exist
             expect(channelInfo.events.MENU_OPEN_FILE).toBe("menu-open-file");
+            expect(channelInfo.events.MENU_OPEN_OVERLAY).toBe("menu-open-overlay");
             expect(channelInfo.events.SET_THEME).toBe("set-theme");
             expect(channelInfo.events.THEME_CHANGED).toBe("theme-changed");
         });

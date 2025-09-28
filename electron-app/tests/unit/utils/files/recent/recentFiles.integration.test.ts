@@ -26,7 +26,7 @@ describe("recentFiles integration coverage", () => {
             } as NodeModule;
         } catch {
             // If resolution fails, fall back to vitest mocking as a safeguard
-            vi.doMock("electron", () => exports);
+            vi.doMock("electron", () => exports as never);
         }
     }
 

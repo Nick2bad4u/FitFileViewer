@@ -1,6 +1,6 @@
 ---
 description: Beast Mode 3.1 [Custom]
-tools: ['runCommands', 'runTask', 'getTaskOutput', 'createFile', 'createDirectory', 'editFiles', 'search', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'githubRepo', 'todos', 'electron-mcp-server', 'vscode-mcp', 'websearch']
+tools: ['createFile', 'createDirectory', 'editFiles', 'search', 'runCommands', 'runTask', 'getTaskOutput', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'githubRepo', 'todos', 'electron-mcp-server', 'vscode-mcp', 'deepwiki', 'websearch']
 ---
 
 # Beast Mode 3.1

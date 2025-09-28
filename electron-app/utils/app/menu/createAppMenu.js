@@ -106,7 +106,36 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     } catch {
         /* Ignore errors */
     }
-    const { app, BrowserWindow, Menu } = /** @type {any} */ (el);
+    const { app, BrowserWindow, Menu, shell, clipboard } = /** @type {any} */ (el);
+    const isUsableWindow = (candidate) => {
+        if (!candidate) {
+            return false;
+        }
+        if (typeof candidate.isDestroyed === "function" && candidate.isDestroyed()) {
+            return false;
+        }
+        return true;
+    };
+    const resolveTargetWindow = () => {
+        if (isUsableWindow(mainWindow)) {
+            return mainWindow;
+        }
+        if (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function") {
+            const focused = BrowserWindow.getFocusedWindow();
+            if (isUsableWindow(focused)) {
+                return focused;
+            }
+        }
+        return null;
+    };
+    const sendToRenderer = (channel, ...args) => {
+        const win = resolveTargetWindow();
+        if (win && win.webContents) {
+            win.webContents.send(channel, ...args);
+            return true;
+        }
+        return false;
+    };
     const usingPassedTheme = typeof currentTheme === "string";
     const theme = usingPassedTheme ? currentTheme : getTheme();
     // Allow tests to inject recent files deterministically via a global hook
@@ -151,27 +180,57 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     /** @type {any[]} */
     const decoderOptionEmojis = {
-            applyScaleAndOffset: "📏",
-            convertDateTimesToDates: "📅",
-            convertTypesToStrings: "🔤",
-            expandComponents: "🔗",
-            expandSubFields: "🧩",
-            includeUnknownData: "❓",
-            mergeHeartRates: "❤️",
-        },
+        applyScaleAndOffset: "📏",
+        convertDateTimesToDates: "📅",
+        convertTypesToStrings: "🔤",
+        expandComponents: "🔗",
+        expandSubFields: "🧩",
+        includeUnknownData: "❓",
+        mergeHeartRates: "❤️",
+    },
         decoderOptions = getDecoderOptions(),
         recentMenuItems =
             recentFiles.length > 0
                 ? recentFiles.map((/** @type {string} */ file) => ({
-                      click: () => {
-                          if (mainWindow && mainWindow.webContents) {
-                              mainWindow.webContents.send("open-recent-file", file);
-                          }
-                      },
-                      label: recentUtils.getShortRecentName(file),
-                      tooltip: file,
-                  }))
+                    click: () => {
+                        if (!sendToRenderer("open-recent-file", file)) {
+                            console.warn("[createAppMenu] No active window available to open recent file.");
+                        }
+                    },
+                    label: recentUtils.getShortRecentName(file),
+                    tooltip: file,
+                }))
                 : [{ enabled: false, label: "No Recent Files" }];
+    const clearRecentMenuItem = {
+        click: () => {
+            const win = resolveTargetWindow();
+            getConf().set("recentFiles", []);
+            try {
+                if (app && typeof app.clearRecentDocuments === "function") {
+                    app.clearRecentDocuments();
+                }
+            } catch (error) {
+                console.warn("[createAppMenu] Failed to clear native recent documents:", error);
+            }
+            if (win && win.webContents) {
+                win.webContents.send("show-notification", "Recent files cleared.", "info");
+                win.webContents.send("unload-fit-file");
+            }
+            createAppMenu(win, /** @type {string} */(getTheme()));
+        },
+        enabled: recentFiles.length > 0,
+        label: "🧹 Clear Recent Files",
+    };
+    const recentSubmenuItems =
+        recentFiles.length > 0
+            ? [...recentMenuItems, { type: "separator" }, clearRecentMenuItem]
+            : [...recentMenuItems, clearRecentMenuItem];
+    const revealLabel =
+        process.platform === "darwin"
+            ? "Reveal in Finder"
+            : process.platform === "linux"
+                ? "Reveal in File Manager"
+                : "Reveal in File Explorer";
     /**
      * @param {*} _decoderOptions
      * @param {*} _decoderOptionEmojis
@@ -197,465 +256,476 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     }
 
     const decoderOptionsMenu = {
-            label: "💿 Decoder Options",
-            submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
+        label: "💿 Decoder Options",
+        submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
+    };
+    const isMac = process.platform === "darwin";
+    const fileMenuItems = [
+        {
+            accelerator: "CmdOrCtrl+O",
+            click: () => {
+                sendToRenderer("menu-open-file");
+            },
+            label: "📂 Open FIT File...",
         },
-        /**
-         * Defines the application menu template for the Electron app.
-         *
-         * The template includes the following menus:
-         * - File: Contains options to open files, view recent files, and quit the application.
-         * - Edit: Standard edit menu (cut, copy, paste, etc.).
-         * - View: Standard view menu (reload, toggle dev tools, etc.).
-         * - Window: Standard window menu (minimize, close, etc.).
-         * - Settings: Contains options to configure application settings, such as theme.
-         *
-         * @type {Array<Object>}
-         * @property {string} label - The display label for the menu item.
-         * @property {Array<Object>} [submenu] - Submenu items for the menu.
-         * @property {string} [accelerator] - Keyboard shortcut for the menu item.
-         * @property {Function} [click] - Click handler for the menu item.
-         * @property {string} [role] - Built-in role for standard menu items.
-         */
-        template = [
-            ...getPlatformAppMenu(mainWindow),
-            {
-                label: "📁 File",
-                submenu: [
-                    {
-                        accelerator: "CmdOrCtrl+O",
-                        click: () => {
-                            if (mainWindow && mainWindow.webContents) {
-                                mainWindow.webContents.send("menu-open-file");
-                            }
-                        },
-                        label: "📂 Open...",
-                    },
-                    { type: "separator" },
-                    {
-                        label: "🕑 Open Recent",
-                        submenu: [
-                            ...recentMenuItems,
-                            {
-                                click: () => {
-                                    const win =
-                                        mainWindow ||
-                                        (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                            ? BrowserWindow.getFocusedWindow()
-                                            : null);
-                                    getConf().set("recentFiles", []);
-                                    if (win && win.webContents) {
-                                        win.webContents.send("show-notification", "Recent files cleared.", "info");
-                                        win.webContents.send("unload-fit-file");
-                                    }
-                                    createAppMenu(win, /** @type {string} */ (getTheme()));
+        {
+            accelerator: "CmdOrCtrl+Shift+O",
+            click: () => {
+                sendToRenderer("menu-open-overlay");
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: "➕ Add FIT Files as Overlays...",
+        },
+        { type: "separator" },
+        {
+            label: "🕑 Open Recent",
+            submenu: recentSubmenuItems,
+        },
+        { type: "separator" },
+        {
+            click: () => {
+                sendToRenderer("unload-fit-file");
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: "❌ Unload File",
+        },
+        {
+            accelerator: "CmdOrCtrl+Alt+R",
+            click: () => {
+                if (!loadedFitFilePath) {
+                    return;
+                }
+                try {
+                    if (shell && typeof shell.showItemInFolder === "function") {
+                        shell.showItemInFolder(loadedFitFilePath);
+                    } else {
+                        console.warn("[createAppMenu] shell.showItemInFolder unavailable.");
+                        sendToRenderer(
+                            "show-notification",
+                            "Unable to reveal file location on this platform.",
+                            "warning"
+                        );
+                    }
+                } catch (error) {
+                    console.error("[createAppMenu] Failed to reveal file in folder:", error);
+                    sendToRenderer("show-notification", "Failed to reveal file in folder.", "error");
+                }
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: `📂 ${revealLabel}`,
+        },
+        {
+            accelerator: "CmdOrCtrl+Alt+C",
+            click: () => {
+                if (!loadedFitFilePath) {
+                    return;
+                }
+                try {
+                    if (clipboard && typeof clipboard.writeText === "function") {
+                        clipboard.writeText(loadedFitFilePath);
+                        sendToRenderer("show-notification", "File path copied to clipboard.", "success");
+                    } else {
+                        console.warn("[createAppMenu] clipboard.writeText unavailable.");
+                        sendToRenderer("show-notification", loadedFitFilePath, "info");
+                    }
+                } catch (error) {
+                    console.error("[createAppMenu] Failed to copy file path:", error);
+                    sendToRenderer("show-notification", "Failed to copy file path.", "error");
+                }
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: "📋 Copy File Path",
+        },
+        { type: "separator" },
+        {
+            accelerator: "CmdOrCtrl+S",
+            click: () => {
+                sendToRenderer("menu-save-as");
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: "💾 Save As...",
+        },
+        {
+            click: () => {
+                sendToRenderer("menu-export");
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: "📤 Export...",
+        },
+        {
+            accelerator: "CmdOrCtrl+P",
+            click: () => {
+                sendToRenderer("menu-print");
+            },
+            enabled: Boolean(loadedFitFilePath),
+            label: "🖨️ Print...",
+        },
+        { type: "separator" },
+        {
+            accelerator: "CmdOrCtrl+W",
+            click: () => {
+                const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                const win = BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null;
+                if (win && typeof win.close === "function") {
+                    win.close();
+                }
+            },
+            label: "🚪 Close Window",
+        },
+    ];
+    if (!isMac) {
+        const quitLabel = process.platform === "win32" ? "❎ Exit" : "❎ Quit";
+        fileMenuItems.push({ type: "separator" }, { label: quitLabel, role: "quit" });
+    }
+    /**
+     * Defines the application menu template for the Electron app.
+     *
+     * The template includes the following menus:
+     * - File: Contains options to open files, view recent files, and quit the application.
+     * - Edit: Standard edit menu (cut, copy, paste, etc.).
+     * - View: Standard view menu (reload, toggle dev tools, etc.).
+     * - Window: Standard window menu (minimize, close, etc.).
+     * - Settings: Contains options to configure application settings, such as theme.
+     *
+     * @type {Array<Object>}
+     * @property {string} label - The display label for the menu item.
+     * @property {Array<Object>} [submenu] - Submenu items for the menu.
+     * @property {string} [accelerator] - Keyboard shortcut for the menu item.
+     * @property {Function} [click] - Click handler for the menu item.
+     * @property {string} [role] - Built-in role for standard menu items.
+     */
+    const template = [
+        ...getPlatformAppMenu(mainWindow),
+        {
+            label: "📁 File",
+            submenu: fileMenuItems,
+        },
+        {
+            label: "👁️ View",
+            submenu: [
+                { label: "🔄 Reload", role: "reload" },
+                { label: "🔁 Force Reload", role: "forcereload" },
+                { label: "🛠️ Toggle DevTools", role: "toggledevtools" },
+                { type: "separator" },
+                { label: "🔎 Reset Zoom", role: "resetzoom" },
+                { label: "➕ Zoom In", role: "zoomin" },
+                { label: "➖ Zoom Out", role: "zoomout" },
+                { type: "separator" },
+                {
+                    accelerator: "F11",
+                    label: "🖥️ Toggle Fullscreen",
+                    role: "togglefullscreen",
+                },
+                { type: "separator" },
+                {
+                    label: "♿ Accessibility",
+                    submenu: [
+                        {
+                            label: "🔡 Font Size",
+                            submenu: [
+                                {
+                                    checked: getConf().get("fontSize", "medium") === "xsmall",
+                                    click: () => {
+                                        getConf().set("fontSize", "xsmall");
+                                        const win =
+                                            mainWindow ||
+                                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                                ? BrowserWindow.getFocusedWindow()
+                                                : null);
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-font-size", "xsmall");
+                                        }
+                                    },
+                                    label: "🅰️ Extra Small",
+                                    type: "radio",
                                 },
-                                enabled: recentFiles.length > 0,
-                                label: "🧹 Clear Recent Files",
-                            },
-                        ],
-                    },
-                    { type: "separator" },
-                    {
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("unload-fit-file");
-                            }
-                        },
-                        enabled: Boolean(loadedFitFilePath),
-                        label: "❌ Unload File",
-                    },
-                    {
-                        accelerator: "CmdOrCtrl+S",
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-save-as");
-                            }
-                        },
-                        enabled: Boolean(loadedFitFilePath),
-                        label: "💾 Save As...",
-                    },
-                    {
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-export");
-                            }
-                        },
-                        enabled: Boolean(loadedFitFilePath),
-                        label: "📤 Export...",
-                    },
-                    {
-                        accelerator: "CmdOrCtrl+P",
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-print");
-                            }
-                        },
-                        enabled: Boolean(loadedFitFilePath),
-                        label: "🖨️ Print...",
-                    },
-                    { type: "separator" },
-                    {
-                        accelerator: "CmdOrCtrl+W",
-                        click: () => {
-                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                            const win = BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null;
-                            if (win && typeof win.close === "function") {
-                                win.close();
-                            }
-                        },
-                        label: "🚪 Close Window",
-                    },
-                    { type: "separator" },
-                    { label: "❎ Quit", role: "quit" },
-                ],
-            },
-            {
-                label: "👁️ View",
-                submenu: [
-                    { label: "🔄 Reload", role: "reload" },
-                    { label: "🔁 Force Reload", role: "forcereload" },
-                    { label: "🛠️ Toggle DevTools", role: "toggledevtools" },
-                    { type: "separator" },
-                    { label: "🔎 Reset Zoom", role: "resetzoom" },
-                    { label: "➕ Zoom In", role: "zoomin" },
-                    { label: "➖ Zoom Out", role: "zoomout" },
-                    { type: "separator" },
-                    {
-                        accelerator: "F11",
-                        label: "🖥️ Toggle Fullscreen",
-                        role: "togglefullscreen",
-                    },
-                    { type: "separator" },
-                    {
-                        label: "♿ Accessibility",
-                        submenu: [
-                            {
-                                label: "🔡 Font Size",
-                                submenu: [
-                                    {
-                                        checked: getConf().get("fontSize", "medium") === "xsmall",
-                                        click: () => {
-                                            getConf().set("fontSize", "xsmall");
-                                            const win =
-                                                mainWindow ||
-                                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                                    ? BrowserWindow.getFocusedWindow()
-                                                    : null);
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-font-size", "xsmall");
-                                            }
-                                        },
-                                        label: "🅰️ Extra Small",
-                                        type: "radio",
+                                {
+                                    checked: getConf().get("fontSize", "medium") === "small",
+                                    click: () => {
+                                        getConf().set("fontSize", "small");
+                                        const win =
+                                            mainWindow ||
+                                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                                ? BrowserWindow.getFocusedWindow()
+                                                : null);
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-font-size", "small");
+                                        }
                                     },
-                                    {
-                                        checked: getConf().get("fontSize", "medium") === "small",
-                                        click: () => {
-                                            getConf().set("fontSize", "small");
-                                            const win =
-                                                mainWindow ||
-                                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                                    ? BrowserWindow.getFocusedWindow()
-                                                    : null);
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-font-size", "small");
-                                            }
-                                        },
-                                        label: "🔠 Small",
-                                        type: "radio",
-                                    },
-                                    {
-                                        checked: getConf().get("fontSize", "medium") === "medium",
-                                        click: () => {
-                                            getConf().set("fontSize", "medium");
-                                            const win =
-                                                mainWindow ||
-                                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                                    ? BrowserWindow.getFocusedWindow()
-                                                    : null);
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-font-size", "medium");
-                                            }
-                                        },
-                                        label: "🔤 Medium",
-                                        type: "radio",
-                                    },
-                                    {
-                                        checked: getConf().get("fontSize", "medium") === "large",
-                                        click: () => {
-                                            getConf().set("fontSize", "large");
-                                            const win =
-                                                mainWindow ||
-                                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                                    ? BrowserWindow.getFocusedWindow()
-                                                    : null);
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-font-size", "large");
-                                            }
-                                        },
-                                        label: "🔡 Large",
-                                        type: "radio",
-                                    },
-                                    {
-                                        checked: getConf().get("fontSize", "medium") === "xlarge",
-                                        click: () => {
-                                            getConf().set("fontSize", "xlarge");
-                                            const win =
-                                                mainWindow ||
-                                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                                    ? BrowserWindow.getFocusedWindow()
-                                                    : null);
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-font-size", "xlarge");
-                                            }
-                                        },
-                                        label: "🅰️ Extra Large",
-                                        type: "radio",
-                                    },
-                                ],
-                            },
-                            {
-                                label: "🎨 High Contrast Mode",
-                                submenu: [
-                                    {
-                                        checked: getConf().get("highContrast", "black") === "black",
-                                        click: () => {
-                                            getConf().set("highContrast", "black");
-                                            const win =
-                                                mainWindow ||
-                                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                                    ? BrowserWindow.getFocusedWindow()
-                                                    : null);
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-high-contrast", "black");
-                                            }
-                                        },
-                                        label: "⬛ Black (Default)",
-                                        type: "radio",
-                                    },
-                                    {
-                                        checked: getConf().get("highContrast", "black") === "white",
-                                        click: () => {
-                                            getConf().set("highContrast", "white");
-                                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                                            const win =
-                                                (BW && typeof BW.getFocusedWindow === "function"
-                                                    ? BW.getFocusedWindow()
-                                                    : null) || mainWindow;
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-high-contrast", "white");
-                                            }
-                                        },
-                                        label: "⬜ White",
-                                        type: "radio",
-                                    },
-                                    {
-                                        checked: getConf().get("highContrast", "black") === "yellow",
-                                        click: () => {
-                                            getConf().set("highContrast", "yellow");
-                                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                                            const win =
-                                                (BW && typeof BW.getFocusedWindow === "function"
-                                                    ? BW.getFocusedWindow()
-                                                    : null) || mainWindow;
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-high-contrast", "yellow");
-                                            }
-                                        },
-                                        label: "🟨 Yellow",
-                                        type: "radio",
-                                    },
-                                    {
-                                        checked: getConf().get("highContrast", "off") === "off",
-                                        click: () => {
-                                            getConf().set("highContrast", "off");
-                                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                                            const win =
-                                                (BW && typeof BW.getFocusedWindow === "function"
-                                                    ? BW.getFocusedWindow()
-                                                    : null) || mainWindow;
-                                            if (win && win.webContents) {
-                                                win.webContents.send("set-high-contrast", "off");
-                                            }
-                                        },
-                                        label: "🚫 Off",
-                                        type: "radio",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                label: "⚙️ Settings",
-                submenu: [
-                    {
-                        label: "🎨 Theme",
-                        submenu: [
-                            {
-                                // If no theme was passed in, default UI selection to dark
-                                checked: usingPassedTheme ? theme === "dark" : true,
-                                click: () => {
-                                    setTheme("dark");
-                                    const win =
-                                        mainWindow ||
-                                        (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                            ? BrowserWindow.getFocusedWindow()
-                                            : null);
-                                    if (win && win.webContents) {
-                                        win.webContents.send("set-theme", "dark");
-                                    }
+                                    label: "🔠 Small",
+                                    type: "radio",
                                 },
-                                label: "🌑 Dark",
-                                type: "radio",
-                            },
-                            {
-                                checked: usingPassedTheme ? theme === "light" : false,
-                                click: () => {
-                                    setTheme("light");
-                                    const win =
-                                        mainWindow ||
-                                        (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                            ? BrowserWindow.getFocusedWindow()
-                                            : null);
-                                    if (win && win.webContents) {
-                                        win.webContents.send("set-theme", "light");
-                                    }
+                                {
+                                    checked: getConf().get("fontSize", "medium") === "medium",
+                                    click: () => {
+                                        getConf().set("fontSize", "medium");
+                                        const win =
+                                            mainWindow ||
+                                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                                ? BrowserWindow.getFocusedWindow()
+                                                : null);
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-font-size", "medium");
+                                        }
+                                    },
+                                    label: "🔤 Medium",
+                                    type: "radio",
                                 },
-                                label: "🌕 Light",
-                                type: "radio",
+                                {
+                                    checked: getConf().get("fontSize", "medium") === "large",
+                                    click: () => {
+                                        getConf().set("fontSize", "large");
+                                        const win =
+                                            mainWindow ||
+                                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                                ? BrowserWindow.getFocusedWindow()
+                                                : null);
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-font-size", "large");
+                                        }
+                                    },
+                                    label: "🔡 Large",
+                                    type: "radio",
+                                },
+                                {
+                                    checked: getConf().get("fontSize", "medium") === "xlarge",
+                                    click: () => {
+                                        getConf().set("fontSize", "xlarge");
+                                        const win =
+                                            mainWindow ||
+                                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                                ? BrowserWindow.getFocusedWindow()
+                                                : null);
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-font-size", "xlarge");
+                                        }
+                                    },
+                                    label: "🅰️ Extra Large",
+                                    type: "radio",
+                                },
+                            ],
+                        },
+                        {
+                            label: "🎨 High Contrast Mode",
+                            submenu: [
+                                {
+                                    checked: getConf().get("highContrast", "black") === "black",
+                                    click: () => {
+                                        getConf().set("highContrast", "black");
+                                        const win =
+                                            mainWindow ||
+                                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                                ? BrowserWindow.getFocusedWindow()
+                                                : null);
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-high-contrast", "black");
+                                        }
+                                    },
+                                    label: "⬛ Black (Default)",
+                                    type: "radio",
+                                },
+                                {
+                                    checked: getConf().get("highContrast", "black") === "white",
+                                    click: () => {
+                                        getConf().set("highContrast", "white");
+                                        const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                                        const win =
+                                            (BW && typeof BW.getFocusedWindow === "function"
+                                                ? BW.getFocusedWindow()
+                                                : null) || mainWindow;
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-high-contrast", "white");
+                                        }
+                                    },
+                                    label: "⬜ White",
+                                    type: "radio",
+                                },
+                                {
+                                    checked: getConf().get("highContrast", "black") === "yellow",
+                                    click: () => {
+                                        getConf().set("highContrast", "yellow");
+                                        const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                                        const win =
+                                            (BW && typeof BW.getFocusedWindow === "function"
+                                                ? BW.getFocusedWindow()
+                                                : null) || mainWindow;
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-high-contrast", "yellow");
+                                        }
+                                    },
+                                    label: "🟨 Yellow",
+                                    type: "radio",
+                                },
+                                {
+                                    checked: getConf().get("highContrast", "off") === "off",
+                                    click: () => {
+                                        getConf().set("highContrast", "off");
+                                        const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                                        const win =
+                                            (BW && typeof BW.getFocusedWindow === "function"
+                                                ? BW.getFocusedWindow()
+                                                : null) || mainWindow;
+                                        if (win && win.webContents) {
+                                            win.webContents.send("set-high-contrast", "off");
+                                        }
+                                    },
+                                    label: "🚫 Off",
+                                    type: "radio",
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+        {
+            label: "⚙️ Settings",
+            submenu: [
+                {
+                    label: "🎨 Theme",
+                    submenu: [
+                        {
+                            // If no theme was passed in, default UI selection to dark
+                            checked: usingPassedTheme ? theme === "dark" : true,
+                            click: () => {
+                                setTheme("dark");
+                                const win =
+                                    mainWindow ||
+                                    (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                        ? BrowserWindow.getFocusedWindow()
+                                        : null);
+                                if (win && win.webContents) {
+                                    win.webContents.send("set-theme", "dark");
+                                }
                             },
-                        ],
-                    },
-                    {
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("open-summary-column-selector");
-                            }
+                            label: "🌑 Dark",
+                            type: "radio",
                         },
-                        enabled: Boolean(loadedFitFilePath),
-                        label: "📊 Summary Columns...",
-                    },
-                    decoderOptionsMenu,
-                    {
-                        click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-check-for-updates");
-                            }
+                        {
+                            checked: usingPassedTheme ? theme === "light" : false,
+                            click: () => {
+                                setTheme("light");
+                                const win =
+                                    mainWindow ||
+                                    (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                        ? BrowserWindow.getFocusedWindow()
+                                        : null);
+                                if (win && win.webContents) {
+                                    win.webContents.send("set-theme", "light");
+                                }
+                            },
+                            label: "🌕 Light",
+                            type: "radio",
                         },
-                        label: "🔄 Check for Updates...",
+                    ],
+                },
+                {
+                    click: () => {
+                        const win =
+                            mainWindow ||
+                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                ? BrowserWindow.getFocusedWindow()
+                                : null);
+                        if (win && win.webContents) {
+                            win.webContents.send("open-summary-column-selector");
+                        }
                     },
-                ],
-            },
-            {
-                label: "❓ Help",
-                submenu: [
-                    {
-                        click: () => {
-                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                            const win =
-                                (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
-                                mainWindow;
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-about");
-                            }
-                        },
-                        label: "ℹ️ About",
+                    enabled: Boolean(loadedFitFilePath),
+                    label: "📊 Summary Columns...",
+                },
+                decoderOptionsMenu,
+                {
+                    click: () => {
+                        const win =
+                            mainWindow ||
+                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                ? BrowserWindow.getFocusedWindow()
+                                : null);
+                        if (win && win.webContents) {
+                            win.webContents.send("menu-check-for-updates");
+                        }
                     },
-                    { type: "separator" },
-                    {
-                        click: () => {
-                            const { shell: sh } = /** @type {any} */ (getElectron());
-                            if (sh && typeof sh.openExternal === "function") {
-                                sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer#readme");
-                            }
-                        },
-                        label: "📖 Documentation",
+                    label: "🔄 Check for Updates...",
+                },
+            ],
+        },
+        {
+            label: "❓ Help",
+            submenu: [
+                {
+                    click: () => {
+                        const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                        const win =
+                            (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
+                            mainWindow;
+                        if (win && win.webContents) {
+                            win.webContents.send("menu-about");
+                        }
                     },
-                    {
-                        click: () => {
-                            const { shell: sh } = /** @type {any} */ (getElectron());
-                            if (sh && typeof sh.openExternal === "function") {
-                                sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer");
-                            }
-                        },
-                        label: "🌐 GitHub Repository",
+                    label: "ℹ️ About",
+                },
+                { type: "separator" },
+                {
+                    click: () => {
+                        const { shell: sh } = /** @type {any} */ (getElectron());
+                        if (sh && typeof sh.openExternal === "function") {
+                            sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer#readme");
+                        }
                     },
-                    {
-                        click: () => {
-                            const { shell: sh } = /** @type {any} */ (getElectron());
-                            if (sh && typeof sh.openExternal === "function") {
-                                sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer/issues");
-                            }
-                        },
-                        label: "❗Report an Issue",
+                    label: "📖 Documentation",
+                },
+                {
+                    click: () => {
+                        const { shell: sh } = /** @type {any} */ (getElectron());
+                        if (sh && typeof sh.openExternal === "function") {
+                            sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer");
+                        }
                     },
-                    { type: "separator" },
-                    {
-                        click: () => {
-                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                            const win =
-                                (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
-                                mainWindow;
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-keyboard-shortcuts");
-                            }
-                        },
-                        label: "⌨️ Keyboard Shortcuts",
+                    label: "🌐 GitHub Repository",
+                },
+                {
+                    click: () => {
+                        const { shell: sh } = /** @type {any} */ (getElectron());
+                        if (sh && typeof sh.openExternal === "function") {
+                            sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer/issues");
+                        }
                     },
-                    {
-                        click: () => {
-                            const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
-                            const win =
-                                (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
-                                mainWindow;
-                            if (win && win.webContents) {
-                                win.webContents.send("menu-restart-update");
-                            }
-                        },
-                        enabled: false, // Will be enabled via IPC when update is downloaded
-                        id: "restart-update",
-                        label: "🔄 Restart and Update",
+                    label: "❗Report an Issue",
+                },
+                { type: "separator" },
+                {
+                    click: () => {
+                        const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                        const win =
+                            (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
+                            mainWindow;
+                        if (win && win.webContents) {
+                            win.webContents.send("menu-keyboard-shortcuts");
+                        }
                     },
-                ],
-            },
-        ];
+                    label: "⌨️ Keyboard Shortcuts",
+                },
+                {
+                    click: () => {
+                        const { BrowserWindow: BW } = /** @type {any} */ (getElectron());
+                        const win =
+                            (BW && typeof BW.getFocusedWindow === "function" ? BW.getFocusedWindow() : null) ||
+                            mainWindow;
+                        if (win && win.webContents) {
+                            win.webContents.send("menu-restart-update");
+                        }
+                    },
+                    enabled: false, // Will be enabled via IPC when update is downloaded
+                    id: "restart-update",
+                    label: "🔄 Restart and Update",
+                },
+            ],
+        },
+    ];
 
     if (!app || !app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item).label);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item).label);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
             console.log(

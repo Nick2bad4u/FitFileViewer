@@ -2460,7 +2460,7 @@ tr:hover {
 .header-bar {
     display: flex;
     align-items: stretch;
-    justify-content: space-between;
+    justify-content: center;
     flex-wrap: wrap;
     gap: clamp(12px, 2vw, 24px);
     gap: clamp(16px, 3vw, 28px) clamp(18px, 3.5vw, 32px);
@@ -2517,7 +2517,7 @@ tr:hover {
         0 12px 24px rgb(var(--color-accent-rgb) / 22%),
         0 0 22px var(--c_rgb101218_65p);
     backdrop-filter: blur(18px);
-    flex: 1 1 280px;
+    flex: 0 1 280px;
     min-width: clamp(220px, 32vw, 340px);
 }
 

@@ -58,6 +58,7 @@ interface ElectronAPI {
 
     // Events (registration functions return void)
     onMenuOpenFile(callback: Function): void;
+    onMenuOpenOverlay(callback: Function): void;
     onOpenRecentFile(callback: (filePath: string) => void): void;
     onSetTheme(callback: (theme: string) => void): void;
     onOpenSummaryColumnSelector(callback: Function): void;

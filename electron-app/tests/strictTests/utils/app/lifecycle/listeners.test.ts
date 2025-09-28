@@ -1,4 +1,13 @@
+// @ts-nocheck
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../../../../../utils/files/import/openFileSelector.js", () => ({
+    openFileSelector: vi.fn(),
+}));
+
+import { openFileSelector } from "../../../../../utils/files/import/openFileSelector.js";
+
+const openFileSelectorMock = vi.mocked(openFileSelector);
 
 // Import the module under test
 import { setupListeners } from "../../../../../utils/app/lifecycle/listeners.js";
@@ -95,6 +104,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     let showAboutModal: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
+    openFileSelectorMock.mockReset();
+    openFileSelectorMock.mockImplementation(() => {});
         document.body.innerHTML = "";
         openFileBtn = createButton();
         electronAPI = createElectronAPIMock();
@@ -503,6 +514,41 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-check-for-updates");
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-save-as");
         expect(window.electronAPI.send).toHaveBeenCalledWith("menu-export");
+    });
+
+    it("IPC: menu-open-overlay triggers openFileSelector", () => {
+        setupListeners({
+            openFileBtn,
+            isOpeningFileRef: { current: false },
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        window.electronAPI.emit("menu-open-overlay");
+        expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
+        expect(showNotification).not.toHaveBeenCalled();
+    });
+
+    it("IPC: menu-open-overlay surfaces errors", () => {
+        openFileSelectorMock.mockImplementationOnce(() => {
+            throw new Error("fail");
+        });
+
+        setupListeners({
+            openFileBtn,
+            isOpeningFileRef: { current: false },
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        window.electronAPI.emit("menu-open-overlay");
+        expect(showNotification).toHaveBeenCalledWith("Failed to open overlay selector.", "error", 3000);
     });
 
     it("IPC: menu-about and keyboard-shortcuts flows", async () => {

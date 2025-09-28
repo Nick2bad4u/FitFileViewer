@@ -43,6 +43,7 @@
         "allowUnusedLabels": false,
         "alwaysStrict": true,
         "declaration": true,
+        "declarationDir": "./types",
         "declarationMap": true,
         "disableSizeLimit": true,
         "downlevelIteration": true,
