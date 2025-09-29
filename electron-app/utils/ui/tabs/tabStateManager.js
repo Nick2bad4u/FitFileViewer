@@ -309,8 +309,8 @@ class TabStateManager {
             /** @type {any} */ (el).tagName.toUpperCase() === "IFRAME"
         ) {
             const iframe = /** @type {any} */ (el);
-            if (typeof iframe.src === "string" && !iframe.src.includes("libs/ffv/index.html")) {
-                iframe.src = "libs/ffv/index.html";
+            if (typeof iframe.src === "string" && !iframe.src.includes("ffv/index.html")) {
+                iframe.src = "ffv/index.html";
             }
         }
     }

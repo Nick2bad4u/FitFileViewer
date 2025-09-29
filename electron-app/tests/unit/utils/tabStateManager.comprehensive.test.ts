@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @vitest-environment jsdom
  * @file tabStateManager.comprehensive.test.js
@@ -590,9 +591,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
 
             // Test handleAltFitTab logic
             const handleAltFitTab = () => {
-                if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("libs/ffv/index.html")) {
+                if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("ffv/index.html")) {
                     // BUG: Direct src manipulation without validation
-                    iframe.src = "libs/ffv/index.html";
+                    iframe.src = "ffv/index.html";
                 }
             };
 
@@ -602,14 +603,14 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
             handleAltFitTab();
 
             // Src should be changed
-            expect(iframe.src).toContain("libs/ffv/index.html");
+            expect(iframe.src).toContain("ffv/index.html");
 
             // Test with malicious input (if somehow injected)
             iframe.src = 'javascript:alert("xss")';
             handleAltFitTab();
 
             // Should still change to safe URL
-            expect(iframe.src).toContain("libs/ffv/index.html");
+            expect(iframe.src).toContain("ffv/index.html");
         });
     });
 

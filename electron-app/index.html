@@ -23,33 +23,43 @@
         <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="FitFileViewer" />
         <link rel="manifest" href="icons/site.webmanifest" />
-        <!-- Use local copies of JS/CSS libraries from libs/ -->
-        <script src="libs/jquery-3.7.1.min.js" defer></script>
-        <script src="libs/dataTables-2.2.1.min.js" defer></script>
-        <script src="libs/arquero-latest.js" defer></script>
-        <script src="libs/chartjs-latest.js"></script>
-        <script src="libs/date-fns.js"></script>
+        <!-- Load third-party libraries directly from node_modules -->
+        <link rel="stylesheet" href="node_modules/datatables.net-dt/css/dataTables.dataTables.min.css" />
+        <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css" />
+        <link rel="stylesheet" href="node_modules/leaflet-draw/dist/leaflet.draw.css" />
+        <link rel="stylesheet" href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+        <link rel="stylesheet" href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css" />
+        <link rel="stylesheet" href="node_modules/maplibre-gl/dist/maplibre-gl.css" />
+        <link rel="stylesheet" href="node_modules/leaflet.fullscreen/Control.FullScreen.css" />
+        <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+        <link rel="stylesheet" href="node_modules/leaflet-measure/dist/leaflet-measure.css" />
+        <script src="node_modules/jquery/dist/jquery.min.js" defer></script>
+        <script src="node_modules/datatables.net/js/jquery.dataTables.min.js" defer></script>
+        <script src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js" defer></script>
+        <script src="node_modules/arquero/dist/arquero.min.js" defer></script>
+        <script src="node_modules/chart.js/dist/chart.umd.js"></script>
+        <script src="node_modules/date-fns/dist/date-fns.min.js"></script>
         <!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
-        <script src="libs/hammer.min.js"></script>
-        <script src="libs/chartjs-plugin-zoom.js"></script>
-        <script src="libs/chartjs-adapter-date-fns.js"></script>
+        <script src="node_modules/hammerjs/hammer.min.js"></script>
+        <script src="node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.umd.js"></script>
+        <script src="node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
         <!-- JSZip for ZIP file creation -->
-        <script src="libs/jszip.min.js"></script>
-        <link rel="stylesheet" href="libs/dataTables-2.2.1.min.css" />
-        <link rel="stylesheet" href="libs/leaflet.css" />
-        <link rel="stylesheet" href="libs/leaflet.locatecontrol.css" />
-        <link rel="stylesheet" href="libs/Control.MiniMap.css" />
-        <script src="libs/leaflet.js" defer></script>
-        <script src="libs/leaflet.locatecontrol.js" defer></script>
-        <script src="libs/Control.MiniMap.js" defer></script>
-        <link rel="stylesheet" href="libs/maplibre-gl.css" />
-        <script src="libs/maplibre-gl.js" defer></script>
-        <script src="libs/maplibre-gl-leaflet.js" defer></script>
+        <script src="node_modules/jszip/dist/jszip.min.js"></script>
+        <script src="node_modules/leaflet/dist/leaflet.js" defer></script>
+        <script src="node_modules/leaflet-draw/dist/leaflet.draw.js" defer></script>
+        <script src="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js" defer></script>
+        <script src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js" defer></script>
+        <script src="node_modules/leaflet.fullscreen/Control.FullScreen.js" defer></script>
+        <script src="node_modules/leaflet.markercluster/dist/leaflet.markercluster.js" defer></script>
+        <script src="node_modules/leaflet-measure/dist/leaflet-measure.js" defer></script>
+        <script src="node_modules/maplibre-gl/dist/maplibre-gl.js" defer></script>
+        <script src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js" defer></script>
         <link rel="stylesheet" href="style.css" />
         <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
         <script src="utils.js" type="module" defer></script>
         <!-- Load screenfull before main-ui.js -->
-        <script src="libs/screenfull.min.js" defer></script>
+        <script type="module" src="vendor/screenfull-global.js"></script>
         <script src="main-ui.js" type="module" defer></script>
         <style>
             /* Move inline styles to CSS */

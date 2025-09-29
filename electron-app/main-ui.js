@@ -41,28 +41,28 @@ import { showNotification } from "./utils/ui/notifications/showNotification.js";
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
-        DOM_IDS: {
-            ACTIVE_FILE_NAME: "activeFileName",
-            ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-            ALT_FIT_IFRAME: "altfit-iframe",
-            CONTENT_CHART: "content-chart",
-            CONTENT_DATA: "content-data",
-            CONTENT_MAP: "content-map",
-            CONTENT_SUMMARY: "content-summary",
-            DROP_OVERLAY: "drop-overlay",
-            TAB_CHART: "tab-chart",
-            TAB_SUMMARY: "tab-summary",
-            UNLOAD_FILE_BTN: "unloadFileBtn",
-            ZWIFT_IFRAME: "zwift-iframe",
-        },
-        IFRAME_PATHS: {
-            ALT_FIT: "libs/ffv/index.html",
-        },
-        SELECTORS: {
-            SUMMARY_GEAR_BTN: ".summary-gear-btn",
-        },
-        SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+    DOM_IDS: {
+        ACTIVE_FILE_NAME: "activeFileName",
+        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
+        ALT_FIT_IFRAME: "altfit-iframe",
+        CONTENT_CHART: "content-chart",
+        CONTENT_DATA: "content-data",
+        CONTENT_MAP: "content-map",
+        CONTENT_SUMMARY: "content-summary",
+        DROP_OVERLAY: "drop-overlay",
+        TAB_CHART: "tab-chart",
+        TAB_SUMMARY: "tab-summary",
+        UNLOAD_FILE_BTN: "unloadFileBtn",
+        ZWIFT_IFRAME: "zwift-iframe",
     },
+    IFRAME_PATHS: {
+        ALT_FIT: "ffv/index.html",
+    },
+    SELECTORS: {
+        SUMMARY_GEAR_BTN: ".summary-gear-btn",
+    },
+    SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+},
     // Event listener management with state integration
     eventListeners = new Map();
 
@@ -157,7 +157,7 @@ function unloadFitFile() {
 
         // Update file state
         if (fitFileStateManager) {
-            fitFileStateManager.handleFileLoaded(/** @type {any} */ (null));
+            fitFileStateManager.handleFileLoaded(/** @type {any} */(null));
         }
 
         setState(
@@ -436,7 +436,7 @@ class DragDropHandler {
             // Handle error in state manager
             if (fitFileStateManager) {
                 fitFileStateManager.handleFileLoadingError(
-                    /** @type {Error} */ (error instanceof Error ? error : new Error(String(error)))
+                    /** @type {Error} */(error instanceof Error ? error : new Error(String(error)))
                 );
             }
         } finally {
@@ -459,7 +459,7 @@ class DragDropHandler {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.addEventListener("load", (event) => {
-                resolve(/** @type {any} */ (event).target?.result || null);
+                resolve(/** @type {any} */(event).target?.result || null);
             });
             reader.onerror = (error) => reject(error);
             reader.readAsArrayBuffer(file);
@@ -633,7 +633,7 @@ function setupExternalLinkHandlers() {
         const target = e.target instanceof HTMLElement ? e.target : null,
             link = target?.closest('[data-external-link="true"]');
         if (link) {
-            handleExternalLink(e, /** @type {HTMLElement} */ (link));
+            handleExternalLink(e, /** @type {HTMLElement} */(link));
         }
     });
 
@@ -643,8 +643,8 @@ function setupExternalLinkHandlers() {
                 link = target?.closest('[data-external-link="true"]');
             if (link) {
                 handleExternalLink(
-                    /** @type {MouseEvent} */ (/** @type {any} */ (e)),
-                    /** @type {HTMLElement} */ (link)
+                    /** @type {MouseEvent} */(/** @type {any} */ (e)),
+                    /** @type {HTMLElement} */(link)
                 );
             }
         }

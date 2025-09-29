@@ -10,7 +10,7 @@
  * @version 1.0.0
  */
 
-// screenfull is loaded globally from index.html (libs/screenfull.min.js)
+// screenfull is loaded globally from index.html via vendor/screenfull-global.js
 // Avoid bare module imports to satisfy CSP and runtime module resolution in Electron
 
 import { getActiveTabContent } from "../../rendering/helpers/getActiveTabContent.js";
@@ -30,7 +30,7 @@ const getScreenfullInstance = () => {
     return /** @type {import('screenfull').Screenfull | undefined} */ (screenfull);
 };
 
-const getStoredHandler = (key) => /** @type {(event: any) => void | null | undefined} */ (/** @type {any} */ (globalThis)[key]);
+const getStoredHandler = (key) => /** @type {(event: any) => void | null | undefined} */(/** @type {any} */ (globalThis)[key]);
 
 const setStoredHandler = (key, handler) => {
     Object.defineProperty(globalThis, key, {
@@ -50,9 +50,9 @@ const isFullscreenActive = () => {
     const doc = /** @type {any} */ (document);
     return Boolean(
         document.fullscreenElement ||
-            doc.webkitFullscreenElement ||
-            doc.mozFullScreenElement ||
-            doc.msFullscreenElement
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
     );
 };
 
@@ -328,7 +328,7 @@ function handleFullscreenStateChange() {
 
         if (isFullscreen) {
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -342,7 +342,7 @@ function handleFullscreenStateChange() {
             }
         } else {
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -472,9 +472,9 @@ function nativeToggleFullscreen(target) {
 
         const isFs = Boolean(
             document.fullscreenElement ||
-                doc.webkitFullscreenElement ||
-                doc.mozFullScreenElement ||
-                doc.msFullscreenElement
+            doc.webkitFullscreenElement ||
+            doc.mozFullScreenElement ||
+            doc.msFullscreenElement
         );
         if (isFs) {
             const exit =

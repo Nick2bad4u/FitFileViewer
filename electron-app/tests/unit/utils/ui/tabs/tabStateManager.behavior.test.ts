@@ -252,14 +252,14 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(iframe);
 
         tabStateManager.handleAltFitTab();
-        expect(iframe.src).toContain("libs/ffv/index.html");
+        expect(iframe.src).toContain("ffv/index.html");
     });
 
     it("handleAltFitTab is idempotent when src already set", () => {
         const iframe = document.createElement("iframe");
         iframe.id = "altfit-iframe";
         // Pre-set to expected value
-        iframe.src = "libs/ffv/index.html";
+        iframe.src = "ffv/index.html";
         root.appendChild(iframe);
         const before = iframe.src;
 

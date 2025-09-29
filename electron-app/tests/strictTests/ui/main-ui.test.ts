@@ -245,7 +245,7 @@ describe("main-ui.js core flows", () => {
         const fn = (window as any).sendFitFileToAltFitReader as (ab: ArrayBuffer) => Promise<void>;
         await fn(buf);
         // First call sets src and waits for onload; simulate load event
-        expect(iframe.src).toContain("libs/ffv/index.html");
+        expect(iframe.src).toContain("ffv/index.html");
         // Dispatch load event to trigger the addEventListener callback
         iframe.dispatchEvent(new Event("load"));
         // Accept actual converter output under instrumentation

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <title>FIT File Viewer</title>
+    <meta name="description" content="View and download all the content of a .FIT file, fix corrupted files so you can import them into Garmin Connect, Strava, etc.">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+    <link rel="shortcut icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="mask-icon" href="./safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="apple-mobile-web-app-title" content="FIT File Viewer">
+    <meta name="application-name" content="FIT File Viewer">
+    <meta name="msapplication-TileColor" content="#b91d47">
+    <meta name="theme-color" content="#ffffff">
+    <script type="module" crossorigin src="./assets/index-LvWRIhnC.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-mfP-sHfH.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.handleFitFileBase64 = function(base64) {
+        // Convert base64 to ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+          var binary_string = window.atob(base64);
+          var len = binary_string.length;
+          var bytes = new Uint8Array(len);
+          for (var i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+          }
+          return bytes.buffer;
+        }
+        var arrayBuffer = base64ToArrayBuffer(base64);
+        // Try to find a file loader in the ffv app
+        // Try React root global, or dispatch a custom event
+        if (window.loadFitFileFromArrayBuffer) {
+          window.loadFitFileFromArrayBuffer(arrayBuffer);
+        } else {
+          // Try dispatching a custom event for React/ffv app to pick up
+          const event = new CustomEvent('fitfile-received', { detail: arrayBuffer });
+          window.dispatchEvent(event);
+          // fallback: show a message
+          const root = document.getElementById('root');
+          if (root) {
+            root.innerHTML = '<div style="color:green">Received FIT file from parent (base64, ' + (base64 ? base64.length : 0) + ' bytes)</div>';
+          }
+        }
+      };
+
+      window.addEventListener('message', (event) => {
+        // Accept only messages from the parent Electron window
+        if (event.data && event.data.type === 'fit-file') {
+          // You may need to adapt this depending on how your ffv app loads files
+          // Here, we assume the data is a base64 string of the FIT file
+          const fitFileBase64 = event.data.base64;
+          if (fitFileBase64 && window.handleFitFileBase64) {
+            window.handleFitFileBase64(fitFileBase64);
+          } else {
+            // fallback: show a message
+            const root = document.getElementById('root');
+            if (root) {
+              root.innerHTML = '<div style="color:green">Received FIT file from parent (base64, ' + (fitFileBase64 ? fitFileBase64.length : 0) + ' bytes)</div>';
+            }
+          }
+        }
+      });
+
+      // Helper: create a File from ArrayBuffer and trigger file input
+      function triggerFileInputFromArrayBuffer(arrayBuffer, fileName = 'electron-fit-file.fit') {
+        // Find the file input (should be type="file")
+        const fileInput = document.querySelector('input[type="file"]');
+        if (!fileInput) return false;
+        // Create a File object
+        const file = new File([arrayBuffer], fileName, { type: 'application/octet-stream' });
+        // Create a DataTransfer to simulate user file selection
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        // Trigger change event
+        const event = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(event);
+        return true;
+      }
+
+      window.addEventListener('fitfile-received', function(event) {
+        // Try global loader first
+        if (window.loadFitFileFromArrayBuffer) {
+          window.loadFitFileFromArrayBuffer(event.detail);
+          return;
+        }
+        // Try to call ffv React loader directly if available
+        if (window.ffvApp && typeof window.ffvApp.loadFitFileFromArrayBuffer === 'function') {
+          window.ffvApp.loadFitFileFromArrayBuffer(event.detail);
+          return;
+        }
+        // Try to simulate file input (wait for input to exist if needed)
+        function trySimulateInput() {
+          const ok = triggerFileInputFromArrayBuffer(event.detail);
+          if (!ok) {
+            setTimeout(trySimulateInput, 200);
+          }
+        }
+        trySimulateInput();
+      });
+
+      // Patch: If window.electronAPI.openFileDialog is missing, fake it for Alt FIT Reader
+      if (!window.electronAPI) window.electronAPI = {};
+      if (typeof window.electronAPI.openFileDialog !== 'function') {
+        window.electronAPI.openFileDialog = async function() {
+          // Show a message in the UI if called from Alt FIT Reader
+          alert('Open File is only available in the main app. Use the main Open button to load files.');
+          throw new Error('openFileDialog is not available in this context. Use the main app to open files.');
+        };
+      }
+
+      // Patch: Expose ffv React loader globally if possible
+      (function exposeFFVLoader() {
+        // Try to find the main React loader and expose it as window.loadFitFileFromArrayBuffer
+        // This works if the loader is attached to a global or root React object
+        if (!window.loadFitFileFromArrayBuffer && window.ffvApp && typeof window.ffvApp.loadFitFileFromArrayBuffer === 'function') {
+          window.loadFitFileFromArrayBuffer = window.ffvApp.loadFitFileFromArrayBuffer;
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -49,7 +49,7 @@ describe("mapIcons", () => {
 
         expect(iconSpy).toHaveBeenCalledTimes(1);
         const args = iconSpy.mock.calls[0][0];
-        expect(args.iconUrl).toContain("libs/assets/icons/start-icon.png");
+        expect(args.iconUrl).toContain("assets/map-icons/start-icon.png");
         expect(args.iconAnchor).toEqual([16, 32]);
         expect(args.iconSize).toEqual([32, 32]);
         expect(args.popupAnchor).toEqual([0, -32]);
@@ -67,7 +67,7 @@ describe("mapIcons", () => {
 
         expect(iconSpy).toHaveBeenCalledTimes(1);
         const args = iconSpy.mock.calls[0][0];
-        expect(args.iconUrl).toContain("libs/assets/icons/end-icon.png");
+        expect(args.iconUrl).toContain("assets/map-icons/end-icon.png");
         expect(args.iconAnchor).toEqual([16, 32]);
         expect(args.iconSize).toEqual([32, 32]);
         expect(args.popupAnchor).toEqual([0, -32]);

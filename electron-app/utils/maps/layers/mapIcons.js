@@ -8,7 +8,7 @@
 
 /** @type {PointTuple} */
 const // Base path for asset URLs (ensure single trailing slash)
-    ASSET_BASE_PATH = "libs/assets/icons/",
+    ASSET_BASE_PATH = "assets/map-icons/",
     /** @type {PointTuple} */
     ICON_ANCHOR = [16, 32],
     ICON_SIZE = [32, 32],

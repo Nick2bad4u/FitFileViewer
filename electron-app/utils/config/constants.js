@@ -191,7 +191,7 @@ export const FILE_CONSTANTS = {
 
     // File paths
     IFRAME_PATHS: {
-        ALT_FIT: "libs/ffv/index.html",
+        ALT_FIT: "ffv/index.html",
     },
 };
 

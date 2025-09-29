@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * @file tabStateManager.focused.test.js
  * @description Focused bug detection test suite for critical tabStateManager issues
@@ -215,14 +216,14 @@ describe("tabStateManager - Critical Bug Detection", () => {
 
             // Test the iframe manipulation logic
             const handleIframe = () => {
-                if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("libs/ffv/index.html")) {
-                    iframe.src = "libs/ffv/index.html"; // Direct assignment without validation
+                if (iframe instanceof HTMLIFrameElement && !iframe.src.includes("ffv/index.html")) {
+                    iframe.src = "ffv/index.html"; // Direct assignment without validation
                 }
             };
 
             expect(iframe.src).toBe("about:blank");
             handleIframe();
-            expect(iframe.src).toContain("libs/ffv/index.html");
+            expect(iframe.src).toContain("ffv/index.html");
         });
 
         it("BUG MEDIUM: should expose content moving race conditions", () => {
