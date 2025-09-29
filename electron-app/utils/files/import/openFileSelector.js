@@ -155,47 +155,6 @@ async function handleFilesFromInput(input) {
  * @param {HTMLInputElement} input - File input element to configure
  * @private
  */
-function setupFileInputHandler(input) {
-    const controller = createInputProcessingController(input);
-
-    input.addEventListener("change", () => {
-        controller.run("change").catch(() => {
-            // Errors are surfaced via showNotification; suppress unhandled rejection
-        });
-    });
-
-    return controller;
-}
-
-/**
- * Triggers the file selection dialog and cleans up the input element
- * @param {HTMLInputElement} input - File input element to trigger
- * @private
- */
-async function triggerFileSelection(input, controller) {
-    // Temporarily add to DOM to enable click trigger
-    document.body.append(input);
-
-    try {
-        input.click();
-    } finally {
-        queueMicrotask(() => {
-            controller.run("microtask").catch(() => {
-                /* handled in controller */
-            });
-        });
-        if (typeof globalThis.setTimeout === "function") {
-            globalThis.setTimeout(() => {
-                controller.run("timeout").catch(() => {
-                    /* handled in controller */
-                });
-            }, 0);
-        }
-    }
-
-    await controller.done;
-}
-
 /**
  * Creates a single-run processor for an input element.
  * Ensures that handleFilesFromInput executes at most once per element and
@@ -244,6 +203,47 @@ function createInputProcessingController(input) {
     };
 
     return { run, done };
+}
+
+function setupFileInputHandler(input) {
+    const controller = createInputProcessingController(input);
+
+    input.addEventListener("change", () => {
+        controller.run("change").catch(() => {
+            // Errors are surfaced via showNotification; suppress unhandled rejection
+        });
+    });
+
+    return controller;
+}
+
+/**
+ * Triggers the file selection dialog and cleans up the input element
+ * @param {HTMLInputElement} input - File input element to trigger
+ * @private
+ */
+async function triggerFileSelection(input, controller) {
+    // Temporarily add to DOM to enable click trigger
+    document.body.append(input);
+
+    try {
+        input.click();
+    } finally {
+        queueMicrotask(() => {
+            controller.run("microtask").catch(() => {
+                /* handled in controller */
+            });
+        });
+        if (typeof globalThis.setTimeout === "function") {
+            globalThis.setTimeout(() => {
+                controller.run("timeout").catch(() => {
+                    /* handled in controller */
+                });
+            }, 0);
+        }
+    }
+
+    await controller.done;
 }
 
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;

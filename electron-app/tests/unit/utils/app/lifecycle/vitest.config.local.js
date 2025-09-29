@@ -17,7 +17,7 @@ export default defineConfig({
             provider: "v8",
             all: false,
             include: ["**/*.js", "**/*.ts"],
-            exclude: ["tests/**", "**/*.d.ts", "libs/**", "coverage/**", "node_modules/**"],
+            exclude: ["tests/**", "**/*.d.ts", "coverage/**", "node_modules/**"],
             reporter: ["text", "json", "html", "lcov"],
             clean: true,
             cleanOnRerun: true,

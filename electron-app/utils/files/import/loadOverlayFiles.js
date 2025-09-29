@@ -25,8 +25,7 @@ export async function loadOverlayFiles(files) {
     const duplicateFiles = [];
 
     try {
-        for (let index = 0; index < files.length; index++) {
-            const file = files[index];
+        for (const [index, file] of files.entries()) {
             const displayName = getFileDisplayName(file);
             LoadingOverlay.show(`Loading ${index + 1} / ${totalFiles} files...`, displayName);
 

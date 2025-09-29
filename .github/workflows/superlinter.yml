@@ -83,5 +83,4 @@ jobs:
                   DEFAULT_BRANCH: "main"
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DISABLE_ERRORS: true
-                  FILTER_REGEX_EXCLUDE: ^electron-app/libs/
                   MARKDOWN_LINT_DISABLE: true

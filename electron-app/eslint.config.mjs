@@ -248,9 +248,7 @@ export default defineConfig([
     {
         // Ignore third-party and generated output directories
         ignores: [
-            "libs/**",
             "tests/**",
-            "electron-app/libs/**",
             // Generated/minified HTML assets and bundles
             "html/**",
             "**/node_modules/**",
@@ -261,6 +259,7 @@ export default defineConfig([
             "coverage/**",
             "**/coverage/**",
             "**/lcov-report/**",
+            "ffv/**",
             "coverage-*/**",
             "coverage-report.json",
             // Jest/Vitest/Electron mocks

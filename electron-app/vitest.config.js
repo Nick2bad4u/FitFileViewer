@@ -31,7 +31,6 @@ export default defineConfig({
             cleanOnRerun: true, // Clean on rerun in watch mode
             exclude: [
                 "node_modules/**",
-                "libs/**",
                 // Exclude built artifacts and generated output
                 "dist/**",
                 "tests/**",
@@ -100,9 +99,6 @@ export default defineConfig({
             },
         },
         exclude: [
-            "libs/**",
-            "../libs/**",
-            "**/libs/**",
             "**/node_modules/**",
             // Exclude any compiled artifacts accidentally picked up
             "dist/**",

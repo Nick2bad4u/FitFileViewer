@@ -414,7 +414,8 @@ electron-app/
 │
 ├── screenshots/                     # Application screenshots
 ├── html/                           # Static HTML assets
-└── libs/                           # Third-party libraries
+├── ffv/                            # Alternative FIT viewer web app
+└── node_modules/                   # Third-party libraries managed via npm
 ```
 
 ## CI/CD & Automation

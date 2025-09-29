@@ -212,7 +212,6 @@ jobs:
                       ~\electron-app
                       ~\.cache
                       ~\icons
-                      ~\libs
                   key: ${{ runner.os }}-node-${{ hashFiles('electron-app/package-lock.json') }}
                   restore-keys: |
                       ${{ runner.os }}-node-
@@ -822,10 +821,6 @@ jobs:
                   cd electron-app/icons && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
                   echo "icons CHANGELOG.md generated, size: $(stat -c%s electron-app/icons/CHANGELOG.md 2>/dev/null || echo 'file not found')"
 
-                  echo "Generating electron-app/libs CHANGELOG.md..."
-                  cd electron-app/libs && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
-                  echo "libs CHANGELOG.md generated, size: $(stat -c%s electron-app/libs/CHANGELOG.md 2>/dev/null || echo 'file not found')"
-
                   echo "Generating electron-app/screenshots CHANGELOG.md..."
                   cd electron-app/screenshots && npx git-cliff --config ../../cliff.toml --output CHANGELOG.md --verbose && cd ../..
                   echo "screenshots CHANGELOG.md generated, size: $(stat -c%s electron-app/screenshots/CHANGELOG.md 2>/dev/null || echo 'file not found')"
@@ -906,7 +901,6 @@ jobs:
                     echo "- \`/CHANGELOG.md\`"
                     echo "- \`/electron-app/CHANGELOG.md\`"
                     echo "- \`/electron-app/icons/CHANGELOG.md\`"
-                    echo "- \`/electron-app/libs/CHANGELOG.md\`"
                     echo "- \`/electron-app/screenshots/CHANGELOG.md\`"
                     echo "- \`/electron-app/tests/CHANGELOG.md\`"
                     echo "- \`/electron-app/utils/CHANGELOG.md\`"

@@ -3001,9 +3001,6 @@ table.dataTable.display > tbody > tr:hover td {
     z-index: 999999 !important;
 }
 
-    z-index: 999999 !important;
-}
-
 /* Ensure tooltips appear above all chart controls and other elements */
 .settings-header .chart-status-indicator .status-breakdown {
     z-index: 999999 !important;

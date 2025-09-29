@@ -69,10 +69,6 @@ jobs:
                   npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
                   Get-ChildItem -Name
                   Pop-Location
-                  Push-Location electron-app/libs
-                  npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
-                  Get-ChildItem -Name
-                  Pop-Location
                   Push-Location electron-app/screenshots
                   npx git-cliff --config ../../cliff.toml --verbose --output CHANGELOG.md
                   Get-ChildItem -Name

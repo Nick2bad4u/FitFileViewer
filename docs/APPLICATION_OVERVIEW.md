@@ -22,7 +22,8 @@ This document provides a high-level tour of the FitFileViewer codebase, covering
 | `electron-app/tests/`       | Vitest- and Jest-based unit, integration, and “strict” regression suites                         |
 | `electron-app/scripts/`     | Maintenance utilities (e.g. converting legacy tests to TS)                                       |
 | `docs/`                     | Product and engineering guides                                                                   |
-| `libs/`                     | Vendored third-party scripts/styles (Chart.js, Leaflet, MapLibre, DataTables, etc.)              |
+| `electron-app/ffv/`         | Embedded alternative FIT viewer assets (kept in-sync with primary viewer feature set)            |
+| `node_modules/`             | Third-party libraries managed via npm (Chart.js, Leaflet, MapLibre, DataTables, etc.)            |
 
 ## Runtime Architecture
 

@@ -140,7 +140,6 @@ coverage:
         - "fit-test-files/**/*"
         - "vscode-extension/**/*"
         - "vis/**/*"
-        - "libs/**/*"
 
         # Generated files
         - "**/*.generated.*"

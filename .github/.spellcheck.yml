@@ -19,9 +19,7 @@ matrix:
               - "**/*.md"
           default_encoding: utf-8
           exclude:
-              - "libs/**"
               - "node_modules/**"
-              - "**/libs/**"
               - "**/node_modules/**"
               - "**/changelog.md"
               - "**/CHANGELOG.md"
