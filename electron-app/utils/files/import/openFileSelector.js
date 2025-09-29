@@ -79,6 +79,8 @@ export async function openFileSelector() {
     }
 }
 
+const PATH_SEPARATOR_REGEX = /[/\\]+/g;
+
 /**
  * Creates and configures the file input element
  * @returns {HTMLInputElement} Configured file input element
@@ -99,62 +101,6 @@ function createFileInput() {
     return input;
 }
 
-/**
- * Extracts files from the provided input element and dispatches to loader
- * @param {HTMLInputElement} input
- */
-async function handleFilesFromInput(input) {
-    /** @type {File[]} */
-    const merged = [];
-    const nativeList = /** @type {any} */ (input).files;
-    if (nativeList && typeof nativeList.length === "number" && nativeList.length > 0) {
-        merged.push(...nativeList);
-    }
-    const selected = /** @type {any} */ (input).selectedFiles;
-    if (selected && typeof selected.length === "number" && selected.length > 0) {
-        merged.push(...selected);
-    }
-    const injected = /** @type {any} */ (input).__files;
-    if (injected && typeof injected.length === "number" && injected.length > 0) {
-        merged.push(...injected);
-    }
-
-    // Deduplicate while preserving insertion order — tests may populate multiple sources
-    const unique = [];
-    const seen = new Set();
-    for (const f of merged) {
-        if (!seen.has(f)) {
-            seen.add(f);
-            unique.push(f);
-        }
-    }
-
-    if (unique.length === 0) {
-        console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`);
-        return;
-    }
-
-    const fileArray = unique;
-    console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`);
-    // Support test-time injection via window.loadOverlayFiles
-    const injectedLoader =
-        /** @type {any} */ (globalThis)?.loadOverlayFiles ?? /** @type {any} */ (globalThis)?.loadOverlayFiles;
-    const loader = typeof injectedLoader === "function" ? injectedLoader : loadOverlayFiles;
-    await loader(fileArray);
-}
-
-/**
- * Handles the file selection event and processes selected files
- * @param {Event} event - Change event from file input
- * @private
- */
-// Note: legacy handleFileSelection removed; tests and code use the input-driven handler.
-
-/**
- * Sets up the change event handler for the file input
- * @param {HTMLInputElement} input - File input element to configure
- * @private
- */
 /**
  * Creates a single-run processor for an input element.
  * Ensures that handleFilesFromInput executes at most once per element and
@@ -205,6 +151,74 @@ function createInputProcessingController(input) {
     return { run, done };
 }
 
+function createNativeFileFacade(filePath) {
+    const name = getFileNameFromPath(filePath);
+    return {
+        arrayBuffer: async () => {
+            const api = /** @type {any} */ (globalThis).electronAPI;
+            if (!api || typeof api.readFile !== "function") {
+                throw new Error("readFile bridge unavailable");
+            }
+            return api.readFile(filePath);
+        },
+        name,
+        originalPath: filePath,
+        path: filePath,
+    };
+}
+
+function getFileNameFromPath(filePath) {
+    if (typeof filePath !== "string") {
+        return "";
+    }
+    const segments = filePath.split(PATH_SEPARATOR_REGEX).filter(Boolean);
+    return segments.length ? segments.at(-1) || "" : filePath;
+}
+
+/**
+ * Extracts files from the provided input element and dispatches to loader
+ * @param {HTMLInputElement} input
+ */
+async function handleFilesFromInput(input) {
+    /** @type {File[]} */
+    const merged = [];
+    const nativeList = /** @type {any} */ (input).files;
+    if (nativeList && typeof nativeList.length === "number" && nativeList.length > 0) {
+        merged.push(...nativeList);
+    }
+    const selected = /** @type {any} */ (input).selectedFiles;
+    if (selected && typeof selected.length === "number" && selected.length > 0) {
+        merged.push(...selected);
+    }
+    const injected = /** @type {any} */ (input).__files;
+    if (injected && typeof injected.length === "number" && injected.length > 0) {
+        merged.push(...injected);
+    }
+
+    // Deduplicate while preserving insertion order — tests may populate multiple sources
+    const unique = [];
+    const seen = new Set();
+    for (const f of merged) {
+        if (!seen.has(f)) {
+            seen.add(f);
+            unique.push(f);
+        }
+    }
+
+    if (unique.length === 0) {
+        console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.NO_FILES_SELECTED}`);
+        return;
+    }
+
+    const fileArray = unique;
+    console.debug(`${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`);
+    // Support test-time injection via window.loadOverlayFiles
+    const injectedLoader =
+        /** @type {any} */ (globalThis)?.loadOverlayFiles ?? /** @type {any} */ (globalThis)?.loadOverlayFiles;
+    const loader = typeof injectedLoader === "function" ? injectedLoader : loadOverlayFiles;
+    await loader(fileArray);
+}
+
 function setupFileInputHandler(input) {
     const controller = createInputProcessingController(input);
 
@@ -244,30 +258,4 @@ async function triggerFileSelection(input, controller) {
     }
 
     await controller.done;
-}
-
-const PATH_SEPARATOR_REGEX = /[/\\]+/g;
-
-function createNativeFileFacade(filePath) {
-    const name = getFileNameFromPath(filePath);
-    return {
-        arrayBuffer: async () => {
-            const api = /** @type {any} */ (globalThis).electronAPI;
-            if (!api || typeof api.readFile !== "function") {
-                throw new Error("readFile bridge unavailable");
-            }
-            return api.readFile(filePath);
-        },
-        name,
-        originalPath: filePath,
-        path: filePath,
-    };
-}
-
-function getFileNameFromPath(filePath) {
-    if (typeof filePath !== "string") {
-        return "";
-    }
-    const segments = filePath.split(PATH_SEPARATOR_REGEX).filter(Boolean);
-    return segments.length ? segments.at(-1) || "" : filePath;
 }

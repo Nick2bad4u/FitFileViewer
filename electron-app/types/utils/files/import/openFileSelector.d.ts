@@ -8,7 +8,7 @@
  * @returns {void}
  * @example
  * // Open file selector for overlay files
- * await openFileSelector();
+ * openFileSelector();
  */
-export function openFileSelector(): Promise<void>;
+export function openFileSelector(): void;
 //# sourceMappingURL=openFileSelector.d.ts.map

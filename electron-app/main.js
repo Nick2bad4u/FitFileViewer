@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* eslint-disable no-console */
 // Allow tests to supply a hoisted mock object for the 'electron' module via globalThis.__electronHoistedMock
 /** @type {any|null} */
 let __electronOverride =
@@ -318,10 +317,10 @@ try {
 }
 
 const { registerDialogHandlers } = require("./main/ipc/registerDialogHandlers");
-const { registerExternalHandlers } = require("./main/ipc/registerExternalHandlers");
-const { registerFileSystemHandlers } = require("./main/ipc/registerFileSystemHandlers");
-const { registerFitFileHandlers } = require("./main/ipc/registerFitFileHandlers");
-const { registerInfoHandlers } = require("./main/ipc/registerInfoHandlers");
+const { registerExternalHandlers: _registerExternalHandlers } = require("./main/ipc/registerExternalHandlers");
+const { registerFileSystemHandlers: _registerFileSystemHandlers } = require("./main/ipc/registerFileSystemHandlers");
+const { registerFitFileHandlers: _registerFitFileHandlers } = require("./main/ipc/registerFitFileHandlers");
+const { registerInfoHandlers: _registerInfoHandlers } = require("./main/ipc/registerInfoHandlers");
 const { registerRecentFileHandlers } = require("./main/ipc/registerRecentFileHandlers");
 const { bootstrapMainWindow } = require("./main/window/bootstrapMainWindow");
 const { addRecentFile, loadRecentFiles } = require("./utils/files/recent/recentFiles");

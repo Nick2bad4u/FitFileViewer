@@ -551,6 +551,134 @@ const electronAPI = {
      * @returns {Promise<{success: boolean, message?: string}>}
      */
     stopGyazoServer: createSafeInvokeHandler(CONSTANTS.CHANNELS.GYAZO_SERVER_STOP, "stopGyazoServer"),
+
+    // Main Process State Management Functions
+    /**
+     * Gets a value from the main process state.
+     * @param {string} [path] - Optional path to a specific state property (e.g., 'loadedFitFilePath')
+     * @returns {Promise<any>} The requested state value or entire state if no path provided
+     */
+    getMainState: async (path) => {
+        try {
+            return await ipcRenderer.invoke("main-state:get", path);
+        } catch (error) {
+            console.error(`[preload.js] Error in getMainState(${path || "all"}):`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Sets a value in the main process state (restricted to allowed paths).
+     * @param {string} path - Path to the state property to set (e.g., 'loadedFitFilePath')
+     * @param {any} value - The value to set
+     * @param {Object} [options] - Optional metadata for the state change
+     * @returns {Promise<boolean>} True if successful, false if path is restricted
+     */
+    setMainState: async (path, value, options = {}) => {
+        if (!validateString(path, "path", "setMainState")) {
+            return false;
+        }
+
+        try {
+            return await ipcRenderer.invoke("main-state:set", path, value, options);
+        } catch (error) {
+            console.error(`[preload.js] Error in setMainState(${path}):`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Listens for changes to a specific path in the main process state.
+     * @param {string} path - Path to listen to (e.g., 'loadedFitFilePath')
+     * @param {Function} callback - Callback function to handle state changes
+     * @returns {Promise<boolean>} True if listener was registered successfully
+     */
+    listenToMainState: async (path, callback) => {
+        if (!validateString(path, "path", "listenToMainState")) {
+            return false;
+        }
+        if (!validateCallback(callback, "listenToMainState")) {
+            return false;
+        }
+
+        try {
+            // Set up listener for state change events
+            ipcRenderer.on("main-state-change", (_event, change) => {
+                try {
+                    if (change && change.path === path) {
+                        callback(change);
+                    }
+                } catch (error) {
+                    console.error(`[preload.js] Error in listenToMainState callback for ${path}:`, error);
+                }
+            });
+
+            // Register the listener with the main process
+            return await ipcRenderer.invoke("main-state:listen", path);
+        } catch (error) {
+            console.error(`[preload.js] Error in listenToMainState(${path}):`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Gets the status of a specific operation from the main process.
+     * @param {string} operationId - The unique identifier for the operation
+     * @returns {Promise<any>} The operation status object
+     */
+    getOperation: async (operationId) => {
+        if (!validateString(operationId, "operationId", "getOperation")) {
+            return null;
+        }
+
+        try {
+            return await ipcRenderer.invoke("main-state:operation", operationId);
+        } catch (error) {
+            console.error(`[preload.js] Error in getOperation(${operationId}):`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Gets all operations from the main process.
+     * @returns {Promise<Object>} Object containing all operations
+     */
+    getOperations: async () => {
+        try {
+            return await ipcRenderer.invoke("main-state:operations");
+        } catch (error) {
+            console.error("[preload.js] Error in getOperations:", error);
+            throw error;
+        }
+    },
+
+    /**
+     * Gets recent errors from the main process.
+     * @param {number} [limit=50] - Maximum number of errors to retrieve
+     * @returns {Promise<Array>} Array of recent errors
+     */
+    getErrors: async (limit = 50) => {
+        try {
+            return await ipcRenderer.invoke("main-state:errors", limit);
+        } catch (error) {
+            console.error("[preload.js] Error in getErrors:", error);
+            throw error;
+        }
+    },
+
+    /**
+     * Gets performance metrics from the main process.
+     * @returns {Promise<Object>} Object containing performance metrics
+     */
+    getMetrics: async () => {
+        try {
+            return await ipcRenderer.invoke("main-state:metrics");
+        } catch (error) {
+            console.error("[preload.js] Error in getMetrics:", error);
+            throw error;
+        }
+    },
+
     /**
      * Validate the preload API is working correctly.
      * @returns {boolean} True if API is functional

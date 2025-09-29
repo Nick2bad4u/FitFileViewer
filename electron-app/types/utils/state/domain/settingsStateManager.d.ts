@@ -72,6 +72,8 @@ export type ExportedSettings = {
  */
 declare class SettingsStateManager {
     initialized: boolean;
+    /** @type {Promise<void>|null} */
+    initializePromise: Promise<void> | null;
     subscribers: Map<any, any>;
     migrationVersion: string;
     /**

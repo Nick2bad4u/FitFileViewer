@@ -16,5 +16,6 @@ export const mainProcessState =
     /** @type {any} */ (globalThis)?.__FFV_mainProcessStateManagerExports?.mainProcessState;
 
 // Export in deterministic sorted order to satisfy lint rules
+export * from "./mainProcessStateClient.js";
 export * from "./rendererStateIntegration.js";
 export * from "./stateIntegration.js";

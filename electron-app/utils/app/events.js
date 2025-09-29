@@ -86,6 +86,12 @@ export function setupListeners({
         menu.setAttribute("aria-label", "Recent files");
         let focusedIndex = 0;
         const items = [];
+
+        const createMouseLeaveHandler = (itemElement, itemIndex) => () => {
+            itemElement.style.background = focusedIndex === itemIndex ? "var(--color-glass-border)" : "transparent";
+            itemElement.style.color = "var(--color-fg)";
+        };
+
         for (const [idx, file] of recentFiles.entries()) {
             const parts = file.split(/\\|\//g);
             const shortName = parts.length >= 2 ? `${parts.at(-2)}\\${parts.at(-1)}` : parts.at(-1);
@@ -103,10 +109,7 @@ export function setupListeners({
                 item.style.background = "var(--color-glass-border)";
                 item.style.color = "var(--color-fg-alt";
             };
-            item.onmouseleave = () => {
-                item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";
-                item.style.color = "var(--color-fg)";
-            };
+            item.onmouseleave = createMouseLeaveHandler(item, idx);
             item.onclick = async () => {
                 menu.remove();
                 openFileBtn.disabled = true;

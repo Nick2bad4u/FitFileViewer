@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self' file: data: blob:; script-src 'self' 'unsafe-inline' file: data: blob:; style-src 'self' 'unsafe-inline' file: data: blob: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: blob: https://fonts.gstatic.com; connect-src 'self' file: data: blob: https: wss:; frame-src 'self' file: data: blob: https:; worker-src 'self' file: data: blob:; child-src 'self' file: data: blob:; object-src 'none'; base-uri 'self';"
+            content="default-src 'self' file: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file: data: blob:; style-src 'self' 'unsafe-inline' file: data: blob: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: blob: https://fonts.gstatic.com; connect-src 'self' file: data: blob: https: wss:; frame-src 'self' file: data: blob: https:; worker-src 'self' file: data: blob:; child-src 'self' file: data: blob:; object-src 'none'; base-uri 'self';"
         />
         <meta
             name="description"
@@ -35,14 +35,14 @@
         <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" />
         <link rel="stylesheet" href="node_modules/leaflet-measure/dist/leaflet-measure.css" />
         <script src="node_modules/jquery/dist/jquery.min.js" defer></script>
-        <script src="node_modules/datatables.net/js/jquery.dataTables.min.js" defer></script>
+        <script src="node_modules/datatables.net/js/dataTables.min.js" defer></script>
         <script src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js" defer></script>
         <script src="node_modules/arquero/dist/arquero.min.js" defer></script>
         <script src="node_modules/chart.js/dist/chart.umd.js"></script>
-        <script src="node_modules/date-fns/dist/date-fns.min.js"></script>
+        <script src="node_modules/date-fns/cdn.min.js"></script>
         <!-- Add Hammer.js for chartjs-plugin-zoom touch/pinch support -->
         <script src="node_modules/hammerjs/hammer.min.js"></script>
-        <script src="node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.umd.js"></script>
+        <script src="node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
         <script src="node_modules/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
         <!-- JSZip for ZIP file creation -->
         <script src="node_modules/jszip/dist/jszip.min.js"></script>
