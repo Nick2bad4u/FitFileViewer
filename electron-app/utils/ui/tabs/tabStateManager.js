@@ -7,6 +7,7 @@
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { tabRenderingManager } from "./tabRenderingManager.js";
 
 // Resolve document by preferring the canonical test-provided document
 // (`__vitest_effective_document__`) first, then falling back to the
@@ -326,18 +327,40 @@ class TabStateManager {
             return;
         }
 
-        // Let the chart state manager handle the rendering with proper state integration
-        const chartState = getStateMgr().getState("charts");
+        // Use tab rendering manager to handle chart rendering with cancellation support
+        await tabRenderingManager.executeRenderOperation(
+            "chart",
+            async (token) => {
+                // Check if cancelled before starting
+                if (token.isCancelled) {
+                    return null;
+                }
 
-        if (chartState?.isRendered) {
-            console.log("[TabStateManager] Chart tab activated - charts already rendered");
-            getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
-        } else {
-            console.log("[TabStateManager] Chart tab activated - triggering initial render through state system");
-            // The chartStateManager will handle rendering through its subscriptions
-            // We just need to ensure the tab is marked as active in state
-            getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
-        }
+                // Let the chart state manager handle the rendering with proper state integration
+                const chartState = getStateMgr().getState("charts");
+
+                if (chartState?.isRendered) {
+                    console.log("[TabStateManager] Chart tab activated - charts already rendered");
+                    getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
+                } else {
+                    console.log(
+                        "[TabStateManager] Chart tab activated - triggering initial render through state system"
+                    );
+                    // The chartStateManager will handle rendering through its subscriptions
+                    // We just need to ensure the tab is marked as active in state
+                    getStateMgr().setState("charts.tabActive", true, { source: "TabStateManager.handleChartTab" });
+                }
+
+                // Check if cancelled after state updates
+                if (token.isCancelled) {
+                    console.log("[TabStateManager] Chart tab rendering cancelled");
+                    return null;
+                }
+
+                return true;
+            },
+            { debounce: true, skipIfRecent: true }
+        );
     }
 
     /**
@@ -465,6 +488,9 @@ class TabStateManager {
         console.log(`[TabStateManager] Tab change: ${oldTab} -> ${newTab}`);
 
         this.previousTab = oldTab;
+
+        // Notify tab rendering manager of the switch to cancel old operations
+        tabRenderingManager.notifyTabSwitch(oldTab, newTab);
 
         // Update tab button states
         this.updateTabButtonStates(newTab);

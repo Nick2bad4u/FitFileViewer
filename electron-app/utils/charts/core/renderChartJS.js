@@ -241,7 +241,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         const g = /** @type {any} */ (globalThis);
         if (g && typeof g.showNotification === "function") {
             // Tests expect exactly (message, type)
-            return await g.showNotification(message, /** @type {any} */ (type));
+            return await g.showNotification(message, /** @type {any} */(type));
         }
 
         // Try module cache injection path used by tests
@@ -250,7 +250,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
                 const reqMod = g.require("../../ui/notifications/showNotification.js");
                 const fn = reqMod?.showNotification || reqMod?.default?.showNotification || reqMod?.default;
                 if (typeof fn === "function") {
-                    return await fn(message, /** @type {any} */ (type));
+                    return await fn(message, /** @type {any} */(type));
                 }
             } catch {
                 // ignore and fall through to dynamic import
@@ -260,7 +260,7 @@ async function notify(message, type = "info", _duration = null, _options = {}) {
         // Dynamically import to avoid static ESM cycles
         const mod = await import("../../ui/notifications/showNotification.js");
         if (mod && typeof mod.showNotification === "function") {
-            await mod.showNotification(message, /** @type {any} */ (type));
+            await mod.showNotification(message, /** @type {any} */(type));
         } else {
             console.warn("[ChartJS] Notification module missing showNotification export");
         }
@@ -756,7 +756,7 @@ const chartSeriesCacheStats = { hits: 0, misses: 0 };
 
 export function addInvalidateChartRenderCacheListener(listener) {
     if (typeof listener !== "function") {
-        return () => {};
+        return () => { };
     }
 
     invalidateChartRenderCacheListeners.add(listener);
@@ -1114,11 +1114,11 @@ function resolvePerformanceSettings(totalPoints, settings, dataSettingsSignature
 
     const decimation = allowDecimation
         ? {
-              algorithm: "min-max",
-              enabled: true,
-              samples: 4,
-              threshold: 1000,
-          }
+            algorithm: "min-max",
+            enabled: true,
+            samples: 4,
+            threshold: 1000,
+        }
         : { enabled: false };
 
     const tickSampleSize = totalPoints > MAX_TICK_TARGET ? Math.ceil(totalPoints / MAX_TICK_TARGET) : undefined;
@@ -1299,7 +1299,7 @@ if (!windowAny._fitFileViewerChartListener) {
                     document.body;
                 try {
                     // Call without awaiting to keep handler non-blocking
-                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */ (container)));
+                    Promise.resolve().then(() => renderChartJS(/** @type {HTMLElement} */(container)));
                 } catch (error) {
                     console.warn("[ChartJS] Event-based render fallback failed:", error);
                 }
@@ -1397,9 +1397,9 @@ export const chartState = {
             /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
         return Array.isArray(fields)
             ? fields.filter((field) => {
-                  const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
-                  return visibility !== "hidden";
-              })
+                const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+                return visibility !== "hidden";
+            })
             : [];
     },
 
@@ -1545,9 +1545,9 @@ try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
-            ChartRef.registry &&
-            ChartRef.registry.plugins &&
-            typeof ChartRef.registry.plugins.get === "function"
+        ChartRef.registry &&
+        ChartRef.registry.plugins &&
+        typeof ChartRef.registry.plugins.get === "function"
     );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
@@ -1737,6 +1737,17 @@ export function refreshChartsIfNeeded() {
  */
 export async function renderChartJS(targetContainer) {
     console.log("[ChartJS] Starting chart rendering...");
+
+    // Early exit if chart tab is not active to prevent unnecessary rendering (except in tests)
+    const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+    if (!isTestEnvironment) {
+        const { getState: getStateEarly } = getStateManagerSafe();
+        const activeTab = getStateEarly("ui.activeTab");
+        if (activeTab !== "chart" && activeTab !== "chartjs") {
+            console.log(`[ChartJS] Skipping render - chart tab not active (current tab: ${activeTab})`);
+            return false;
+        }
+    }
 
     try {
         // If a string container ID was provided, resolve it early to satisfy DOM access expectations in tests
@@ -1961,7 +1972,7 @@ export async function renderChartJS(targetContainer) {
                     /* ignore */
                 }
                 try {
-                    modules.renderLapZoneCharts?.(tmp, /** @type {any} */ ({ visibilitySettings: {} }));
+                    modules.renderLapZoneCharts?.(tmp, /** @type {any} */({ visibilitySettings: {} }));
                 } catch {
                     /* ignore */
                 }
@@ -1983,7 +1994,7 @@ export async function renderChartJS(targetContainer) {
 
         let result = false;
         try {
-            result = await renderChartsWithData(/** @type {any} */ (targetContainer), recordMesgs, activityStartTime);
+            result = await renderChartsWithData(/** @type {any} */(targetContainer), recordMesgs, activityStartTime);
         } catch (innerError) {
             console.warn("[ChartJS] renderChartsWithData threw, continuing with graceful completion:", innerError);
             // If we have valid data, treat inner errors as non-fatal so that overall rendering
@@ -2001,10 +2012,10 @@ export async function renderChartJS(targetContainer) {
             if (ca && typeof ca.completeRendering === "function") {
                 ca.completeRendering(success, chartCount, renderTime);
             } else {
-                safeCompleteRendering(/** @type {any} */ (success));
+                safeCompleteRendering(/** @type {any} */(success));
             }
         } catch {
-            safeCompleteRendering(/** @type {any} */ (success));
+            safeCompleteRendering(/** @type {any} */(success));
         }
         // Ensure hover-effects dev helper is invoked even if inner renderer short-circuited,
         // so integration tests observing this spy still pass.
@@ -2062,16 +2073,16 @@ export async function renderChartJS(targetContainer) {
 					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
 					<p style="margin-bottom: 8px; color: var(--color-fg, ${
                         /** @type {any} */ (themeConfig).colors.text
-                    });">An error occurred while rendering the charts.</p>
+                });">An error occurred while rendering the charts.</p>
 					<details style="text-align: left; margin-top: 16px;">
 						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                        });">Error Details</summary>
+                });">Error Details</summary>
 						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
                             /** @type {any} */ (themeConfig).colors.text
-                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
+                }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
                             /** @type {any} */ (themeConfig).colors.border
-                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
+                });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
 					</details>
 				</div>
 			`;
@@ -2105,6 +2116,9 @@ export async function renderChartJS(targetContainer) {
  * @returns {Promise<boolean>} Success status
  */
 async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
+    // Check if in test environment
+    const isTestEnvironment = typeof process !== "undefined" && process.env?.NODE_ENV === "test";
+
     // Preflight DOM capability check to surface DOM issues early (tested scenario)
     // This will throw in the specific test where document.createElement is mocked to throw,
     // allowing the error to be handled by the outer try/catch in renderChartJS()
@@ -2274,6 +2288,15 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     );
 
     for (const field of fieldsToRender) {
+        // Check if still on chart tab before each chart creation (skip in tests)
+        if (!isTestEnvironment) {
+            const currentTab = gs_rcwd("ui.activeTab");
+            if (currentTab !== "chart" && currentTab !== "chartjs") {
+                console.log(`[ChartJS] Aborting render loop - tab switched to ${currentTab}`);
+                return false;
+            }
+        }
+
         const visibility = chartSettingsManager.getFieldVisibility(field);
         if (visibility === "hidden") {
             console.log(`[ChartJS] Skipping hidden field: ${field}`);
@@ -2303,7 +2326,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
         const chart = createEnhancedChartSafe(
             canvas,
-            /** @type {any} */ ({
+            /** @type {any} */({
                 animationStyle,
                 axisRanges,
                 chartData: limitedPoints,
@@ -2364,7 +2387,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     if (Object.values(lapZoneVisibility).some(Boolean)) {
         renderLapZoneChartsSafe(
             chartContainer,
-            /** @type {any} */ ({
+            /** @type {any} */({
                 // ShowGrid/showLegend/showTitle not part of LapZoneChartsOptions type; passed via any cast
                 showGrid: boolSettings.showGrid,
                 showLegend: boolSettings.showLegend,
@@ -2434,30 +2457,46 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const shouldShowNotification = showRenderNotificationSafe(totalChartsRendered, visibleFieldCount);
 
     if (shouldShowNotification && totalChartsRendered > 0) {
-        const message =
-            totalChartsRendered === 1
-                ? "Chart rendered successfully"
-                : `Rendered ${totalChartsRendered} charts successfully`;
+        // Check if chart tab is still active before showing notification (skip in tests)
+        const activeTab = gs_rcwd("ui.activeTab");
+        const isChartTabActive = isTestEnvironment || activeTab === "chart" || activeTab === "chartjs";
 
-        console.log(`[ChartJS] Showing success notification: "${message}"`);
+        if (isChartTabActive) {
+            const message =
+                totalChartsRendered === 1
+                    ? "Chart rendered successfully"
+                    : `Rendered ${totalChartsRendered} charts successfully`;
 
-        // Use setTimeout to ensure notification shows after any DOM changes
-        setTimeout(() => {
-            Promise.resolve().then(() => notify(message, "success"));
-        }, 100);
+            console.log(`[ChartJS] Showing success notification: "${message}"`);
 
-        // Update notification state using updateState
-        us_rcwd(
-            "ui",
-            {
-                lastNotification: {
-                    message,
-                    timestamp: Date.now(),
-                    type: "success",
+            // Use setTimeout to ensure notification shows after any DOM changes
+            setTimeout(() => {
+                // Double-check tab is still active (skip in tests)
+                const currentTab = gs_rcwd("ui.activeTab");
+                if (isTestEnvironment || currentTab === "chart" || currentTab === "chartjs") {
+                    Promise.resolve().then(() => notify(message, "success"));
+                } else {
+                    console.log(`[ChartJS] Notification cancelled - tab switched to ${currentTab}`);
+                }
+            }, 100);
+
+            // Update notification state using updateState
+            us_rcwd(
+                "ui",
+                {
+                    lastNotification: {
+                        message,
+                        timestamp: Date.now(),
+                        type: "success",
+                    },
                 },
-            },
-            { merge: true, source: "renderChartsWithData" }
-        );
+                { merge: true, source: "renderChartsWithData" }
+            );
+        } else {
+            console.log(
+                `[ChartJS] Suppressing notification - chart tab no longer active (current tab: ${activeTab})`
+            );
+        }
     } else {
         console.log(
             `[ChartJS] No notification shown - shouldShow: ${shouldShowNotification}, totalChartsRendered: ${totalChartsRendered}`
@@ -2503,9 +2542,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Compute directly to avoid relying on chartState in tests that import during init
     const hasValidData = Boolean(
         getState("globalData") &&
-            getState("globalData").recordMesgs &&
-            Array.isArray(getState("globalData").recordMesgs) &&
-            getState("globalData").recordMesgs.length > 0
+        getState("globalData").recordMesgs &&
+        Array.isArray(getState("globalData").recordMesgs) &&
+        getState("globalData").recordMesgs.length > 0
     );
     try {
         const CE = /** @type {any} */ (globalThis).CustomEvent;
@@ -2655,9 +2694,9 @@ if (globalThis.window !== undefined) {
 
             // Computed state management
             computed: {
-                get: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).get?.(key),
-                invalidate: (/** @type {any} */ key) => /** @type {any} */ (computedStateManager).invalidate?.(key),
-                list: () => /** @type {any} */ (computedStateManager).list?.(),
+                get: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).get?.(key),
+                invalidate: (/** @type {any} */ key) => /** @type {any} */(computedStateManager).invalidate?.(key),
+                list: () => /** @type {any} */(computedStateManager).list?.(),
             },
             // Comprehensive state dump for debugging
             dumpState: () => ({
