@@ -48,22 +48,75 @@ export function showLoadingOverlay(progressText, fileName = "") {
  */
 function _centerMapOnMainFile() {
     try {
-        const idx = 0; // Main file is always index 0
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
         const w = /** @type {any} */ (globalThis);
 
-        if (!w._overlayPolylines || !w._overlayPolylines[idx]) {
-            console.warn("[mapActionButtons] No main polyline found");
-            showNotification("No main track to center on", "info");
+        const MAX_ATTEMPTS = 8;
+
+        const clearRetryTimer = () => {
+            if (w.__centerRetryHandle && typeof globalThis.clearTimeout === "function") {
+                globalThis.clearTimeout(w.__centerRetryHandle);
+            }
+            w.__centerRetryHandle = null;
+        };
+
+        const scheduleRetry = () => {
+            if (typeof globalThis.setTimeout === "function") {
+                clearRetryTimer();
+                w.__centerRetryHandle = globalThis.setTimeout(() => {
+                    w.__centerRetryHandle = null;
+                    _centerMapOnMainFile();
+                }, 150);
+            } else {
+                queueMicrotask(() => {
+                    _centerMapOnMainFile();
+                });
+            }
+        };
+
+        const attempts = Number.isInteger(w.__centerMainAttempts) ? w.__centerMainAttempts : 0;
+
+        let mainPolyline = /** @type {any} */ (w._mainPolyline);
+        if (!mainPolyline && w._overlayPolylines) {
+            const overlayCollection = /** @type {any} */ (w._overlayPolylines);
+            mainPolyline = overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
+        }
+        const hasValidBounds = Boolean(
+            w._mainPolylineOriginalBounds &&
+            typeof w._mainPolylineOriginalBounds.isValid === "function" &&
+            w._mainPolylineOriginalBounds.isValid()
+        );
+
+        if (!mainPolyline) {
+            if (attempts === 0) {
+                w.__centerStatusNotified = Date.now();
+                showNotification("Centering map on main track…", "info");
+            }
+
+            if (w._leafletMapInstance && attempts < MAX_ATTEMPTS) {
+                w.__centerMainAttempts = attempts + 1;
+                scheduleRetry();
+                return;
+            }
+
+            clearRetryTimer();
+            w.__centerMainAttempts = 0;
+            w.__centerStatusNotified = 0;
+
+            const noMap = !w._leafletMapInstance;
+            const logFn = noMap ? console.info : console.warn;
+            const message = noMap ? "Map not ready for centering" : "No main track to center on";
+            logFn(`[mapActionButtons] ${message}`);
+            showNotification(message, "warning");
             return;
         }
 
-        const polyline = /** @type {any} */ (w._overlayPolylines[idx]);
-        w._highlightedOverlayIdx = idx;
+        clearRetryTimer();
+        w.__centerMainAttempts = 0;
+        const statusPending = Boolean(w.__centerStatusNotified);
+        w.__centerStatusNotified = 0;
 
-        if (w.updateOverlayHighlights) {
-            w.updateOverlayHighlights();
-        }
+        const polyline = mainPolyline;
 
         // Bring polyline to front
         if (polyline.bringToFront) {
@@ -84,7 +137,7 @@ function _centerMapOnMainFile() {
                         layer.bringToFront();
                     }
                 } catch {
-                    // Ignore best-effort bringToFront issues
+                    // Ignore bringToFront issues
                 }
             }
         }
@@ -95,9 +148,12 @@ function _centerMapOnMainFile() {
             polyElem.style.transition = "filter 0.2s";
             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
 
+            const highlightToken = Date.now();
+            w.__mainPolylineHighlightToken = highlightToken;
+
             setTimeout(() => {
                 const w2 = /** @type {any} */ (globalThis);
-                if (w2._highlightedOverlayIdx === idx) {
+                if (w2.__mainPolylineHighlightToken === highlightToken) {
                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                 }
             }, 250);
@@ -107,11 +163,7 @@ function _centerMapOnMainFile() {
         if (w._leafletMapInstance) {
             let bounds = null;
 
-            if (
-                w._mainPolylineOriginalBounds &&
-                w._mainPolylineOriginalBounds.isValid &&
-                w._mainPolylineOriginalBounds.isValid()
-            ) {
+            if (hasValidBounds) {
                 bounds = w._mainPolylineOriginalBounds;
                 console.log("[mapActionButtons] Using stored main polyline bounds");
             } else if (polyline.getBounds) {
@@ -139,6 +191,10 @@ function _centerMapOnMainFile() {
         } else {
             console.warn("[mapActionButtons] Leaflet map instance not available");
             showNotification("Map not ready for centering", "warning");
+        }
+
+        if (statusPending) {
+            showNotification("Centered on main track.", "success");
         }
     } catch (error) {
         console.error("[mapActionButtons] Error centering map on main file:", error);

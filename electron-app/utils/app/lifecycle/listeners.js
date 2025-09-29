@@ -566,9 +566,9 @@ export function setupListeners({
                 globalThis.electronAPI.send("menu-check-for-updates");
             }
         });
-        globalThis.electronAPI.onIpc("menu-open-overlay", () => {
+        globalThis.electronAPI.onIpc("menu-open-overlay", async () => {
             try {
-                openFileSelector();
+                await openFileSelector();
             } catch (error) {
                 console.error("[Listeners] Failed to open overlay selector:", error);
                 showNotification("Failed to open overlay selector.", "error", 3000);
@@ -578,11 +578,13 @@ export function setupListeners({
             if (!globalThis.electronAPI || typeof globalThis.electronAPI.onIpc !== "function") {
                 return;
             }
-            const registry = /** @type {Set<string>} */ (
-                (globalThis.__ffvMenuForwardRegistry instanceof Set
-                    ? globalThis.__ffvMenuForwardRegistry
-                    : (globalThis.__ffvMenuForwardRegistry = new Set()))
-            );
+            /** @type {Record<string, any>} */
+            const holder = /** @type {any} */ (globalThis);
+            if (!(holder.__ffvMenuForwardRegistry instanceof Set)) {
+                holder.__ffvMenuForwardRegistry = new Set();
+            }
+            /** @type {Set<string>} */
+            const registry = holder.__ffvMenuForwardRegistry;
             if (registry.has(channel)) {
                 return;
             }

@@ -34,11 +34,41 @@ const PROCESSED_INPUTS = new WeakSet();
  * // Open file selector for overlay files
  * openFileSelector();
  */
-export function openFileSelector() {
+export async function openFileSelector() {
+    const { electronAPI } = /** @type {any} */ (globalThis);
+
+    if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
+        try {
+            const selectedPaths = await electronAPI.openOverlayDialog();
+            if (!Array.isArray(selectedPaths) || selectedPaths.length === 0) {
+                return;
+            }
+
+            const facadeFiles = selectedPaths
+                .filter((filePath) => typeof filePath === "string" && filePath.trim().length > 0)
+                .map((filePath) => createNativeFileFacade(filePath));
+
+            if (facadeFiles.length === 0) {
+                return;
+            }
+
+            await loadOverlayFiles(facadeFiles);
+            return;
+        } catch (error) {
+            console.error(
+                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                error
+            );
+            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+            LoadingOverlay.hide();
+            return;
+        }
+    }
+
     try {
         const input = createFileInput();
-        setupFileInputHandler(input);
-        triggerFileSelection(input);
+        const controller = setupFileInputHandler(input);
+        await triggerFileSelection(input, controller);
     } catch (error) {
         console.error(
             `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
@@ -126,21 +156,15 @@ async function handleFilesFromInput(input) {
  * @private
  */
 function setupFileInputHandler(input) {
-    input.addEventListener("change", async () => {
-        try {
-            // Mark this input as processed so our fallback doesn't double-run
-            PROCESSED_INPUTS.add(input);
-            await handleFilesFromInput(input);
-        } catch (error) {
-            console.error(
-                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
-                error
-            );
-            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-        } finally {
-            LoadingOverlay.hide();
-        }
+    const controller = createInputProcessingController(input);
+
+    input.addEventListener("change", () => {
+        controller.run("change").catch(() => {
+            // Errors are surfaced via showNotification; suppress unhandled rejection
+        });
     });
+
+    return controller;
 }
 
 /**
@@ -148,61 +172,102 @@ function setupFileInputHandler(input) {
  * @param {HTMLInputElement} input - File input element to trigger
  * @private
  */
-async function triggerFileSelection(input) {
+async function triggerFileSelection(input, controller) {
     // Temporarily add to DOM to enable click trigger
     document.body.append(input);
 
     try {
         input.click();
-        // Microtask fallback: try as soon as possible after click
-        queueMicrotask(async () => {
-            if (!PROCESSED_INPUTS.has(input)) {
-                try {
-                    await handleFilesFromInput(input);
-                } catch (error) {
-                    console.error(
-                        `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
-                        error
-                    );
-                    showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-                } finally {
-                    LoadingOverlay.hide();
-                }
-            }
-        });
-        // If the change handler didn't run synchronously during click(), try to process immediately.
-        if (!PROCESSED_INPUTS.has(input)) {
-            try {
-                await handleFilesFromInput(input);
-            } catch (error) {
-                console.error(
-                    `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
-                    error
-                );
-                showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-            } finally {
-                LoadingOverlay.hide();
-            }
-        }
-        // Fallback: In some test environments the change event may not be observed.
-        // Defer a processing pass that only runs if the change handler didn't.
-        setTimeout(async () => {
-            if (!PROCESSED_INPUTS.has(input)) {
-                try {
-                    await handleFilesFromInput(input);
-                } catch (error) {
-                    console.error(
-                        `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
-                        error
-                    );
-                    showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-                } finally {
-                    LoadingOverlay.hide();
-                }
-            }
-        }, 0);
     } finally {
-        // Clean up immediately after triggering
-        input.remove();
+        queueMicrotask(() => {
+            controller.run("microtask").catch(() => {
+                /* handled in controller */
+            });
+        });
+        if (typeof globalThis.setTimeout === "function") {
+            globalThis.setTimeout(() => {
+                controller.run("timeout").catch(() => {
+                    /* handled in controller */
+                });
+            }, 0);
+        }
     }
+
+    await controller.done;
+}
+
+/**
+ * Creates a single-run processor for an input element.
+ * Ensures that handleFilesFromInput executes at most once per element and
+ * provides a promise that resolves when processing completes.
+ *
+ * @param {HTMLInputElement} input
+ * @returns {{ run: (origin?: string) => Promise<void>, done: Promise<void> }}
+ */
+function createInputProcessingController(input) {
+    let handled = false;
+    /** @type {(value: void | PromiseLike<void>) => void} */
+    let resolveDone;
+    const done = new Promise((resolve) => {
+        resolveDone = resolve;
+    });
+
+    const finalize = () => {
+        if (input.isConnected) {
+            input.remove();
+        }
+        resolveDone();
+    };
+
+    const run = async (origin = "unknown") => {
+        if (handled) {
+            return done;
+        }
+        handled = true;
+        PROCESSED_INPUTS.add(input);
+
+        try {
+            await handleFilesFromInput(input);
+        } catch (error) {
+            console.error(
+                `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                error,
+                `(source: ${origin})`
+            );
+            showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+        } finally {
+            LoadingOverlay.hide();
+            finalize();
+        }
+
+        return done;
+    };
+
+    return { run, done };
+}
+
+const PATH_SEPARATOR_REGEX = /[/\\]+/g;
+
+function createNativeFileFacade(filePath) {
+    const name = getFileNameFromPath(filePath);
+    return {
+        arrayBuffer: async () => {
+            const api = /** @type {any} */ (globalThis).electronAPI;
+            if (!api || typeof api.readFile !== "function") {
+                throw new Error("readFile bridge unavailable");
+            }
+            return api.readFile(filePath);
+        },
+        name,
+        originalPath: filePath,
+        path: filePath,
+    };
+}
+
+function getFileNameFromPath(filePath) {
+    if (typeof filePath !== "string") {
+        return "";
+    }
+    const segments = filePath.split(PATH_SEPARATOR_REGEX).filter(Boolean);
+    return segments.length ? segments.at(-1) || "" : filePath;
 }

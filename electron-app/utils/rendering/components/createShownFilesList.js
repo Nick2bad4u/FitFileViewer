@@ -1,5 +1,6 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { setState } from "../../state/core/stateManager.js";
 
 /**
  * @typedef {Object} LoadedFitFile
@@ -21,9 +22,18 @@ export function createShownFilesList() {
     container.style.padding = "6px 10px";
     container.style.maxWidth = "fit-content";
     container.style.overflow = "auto";
-    container.style.maxHeight = "80px";
+    container.style.maxHeight = "fit-content";
+    container.style.minHeight = "40px";
+    container.tabIndex = 0;
+    container.setAttribute("role", "region");
+    container.setAttribute("aria-label", "Map overlay files");
+    container.setAttribute("aria-disabled", "true");
     container.innerHTML =
         '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
+    const listElement = container.querySelector("#shown-files-ul");
+    if (listElement) {
+        listElement.setAttribute("role", "listbox");
+    }
 
     function applyTheme() {
         const themeColors = getThemeColors();
@@ -33,6 +43,131 @@ export function createShownFilesList() {
     }
     applyTheme();
     document.body.addEventListener("themechange", applyTheme);
+
+    let pendingStateSync = false;
+    const syncOverlayState = () => {
+        try {
+            const files = Array.isArray(globalThis.loadedFitFiles) ? [...globalThis.loadedFitFiles] : [];
+            setState("globalData.loadedFitFiles", files, { source: "createShownFilesList" });
+        } catch (error) {
+            console.error("[createShownFilesList] Failed to sync overlay state:", error);
+        }
+    };
+
+    const scheduleOverlayStateSync = () => {
+        if (pendingStateSync) {
+            return;
+        }
+        pendingStateSync = true;
+        queueMicrotask(() => {
+            pendingStateSync = false;
+            syncOverlayState();
+        });
+    };
+
+    let keyboardFocusIndex = -1;
+    const assignKeyboardFocus = (value) => {
+        keyboardFocusIndex = value;
+    };
+    const getOverlayItems = () =>
+        Array.from(container.querySelectorAll("li[data-overlay-index]"));
+
+    const focusOverlayItem = (index, options) => {
+        const opts = options ?? { scrollIntoView: true };
+        const items = getOverlayItems();
+        if (index < 0 || index >= items.length) {
+            return;
+        }
+        keyboardFocusIndex = index;
+        for (const [idx, item] of items.entries()) {
+            if (idx === index) {
+                item.classList.add("overlay-item-focused");
+                item.focus({ preventScroll: !opts.scrollIntoView });
+                item.setAttribute("aria-selected", "true");
+            } else {
+                item.classList.remove("overlay-item-focused");
+                item.setAttribute("aria-selected", "false");
+            }
+        }
+    };
+
+    container.addEventListener("focus", (event) => {
+        if (event.target === container) {
+            const items = getOverlayItems();
+            if (items.length === 0) {
+                return;
+            }
+            const targetIndex = keyboardFocusIndex >= 0 && keyboardFocusIndex < items.length ? keyboardFocusIndex : 0;
+            focusOverlayItem(targetIndex, { scrollIntoView: false });
+        }
+    });
+
+    container.addEventListener("keydown", (event) => {
+        const items = getOverlayItems();
+        if (items.length === 0) {
+            return;
+        }
+
+        const clampIndex = (value) => {
+            if (value < 0) {
+                return items.length - 1;
+            }
+            if (value >= items.length) {
+                return 0;
+            }
+            return value;
+        };
+
+        const { key } = event;
+
+        if (key === "ArrowDown" || key === "ArrowRight") {
+            event.preventDefault();
+            keyboardFocusIndex = clampIndex(keyboardFocusIndex + 1);
+            focusOverlayItem(keyboardFocusIndex);
+            return;
+        }
+
+        if (key === "ArrowUp" || key === "ArrowLeft") {
+            event.preventDefault();
+            keyboardFocusIndex = clampIndex(keyboardFocusIndex - 1);
+            focusOverlayItem(keyboardFocusIndex);
+            return;
+        }
+
+        if (key === "Home") {
+            event.preventDefault();
+            keyboardFocusIndex = 0;
+            focusOverlayItem(keyboardFocusIndex);
+            return;
+        }
+
+        if (key === "End") {
+            event.preventDefault();
+            keyboardFocusIndex = items.length - 1;
+            focusOverlayItem(keyboardFocusIndex);
+            return;
+        }
+
+        if (key === "Enter" || key === " ") {
+            if (keyboardFocusIndex >= 0 && keyboardFocusIndex < items.length) {
+                event.preventDefault();
+                items[keyboardFocusIndex].click();
+            }
+            return;
+        }
+
+        if (
+            (key === "Backspace" || key === "Delete") &&
+            keyboardFocusIndex >= 0 &&
+            keyboardFocusIndex < items.length
+        ) {
+            event.preventDefault();
+            const removeButton = items[keyboardFocusIndex].querySelector(".overlay-remove-btn");
+            if (removeButton instanceof HTMLElement) {
+                removeButton.click();
+            }
+        }
+    });
 
     // Helper: Check color contrast (returns true if color is accessible on the given background)
     /**
@@ -53,7 +188,7 @@ export function createShownFilesList() {
             if (hex.length === 3) {
                 hex = hex
                     .split("")
-                    .map(/** @param {string} x */ (x) => x + x)
+                    .map(/** @param {string} x */(x) => x + x)
                     .join("");
             }
             const num = Number.parseInt(hex, 16);
@@ -124,8 +259,13 @@ export function createShownFilesList() {
                 anyOverlays = true;
                 const li = document.createElement("li");
                 li.style.position = "relative";
-                li.textContent = `File: ${f.filePath || "(unknown)"}`;
-                const colorIdx = idx % chartOverlayColorPalette.length,
+                const displayLabel = f.filePath || "(unknown)";
+                li.textContent = `File: ${displayLabel}`;
+                const overlayIndex = idx;
+                li.dataset.overlayIndex = String(overlayIndex);
+                li.setAttribute("role", "option");
+                li.tabIndex = -1;
+                const colorIdx = overlayIndex % chartOverlayColorPalette.length,
                     color = chartOverlayColorPalette[colorIdx] || "#1976d2",
                     isDark = document.body.classList.contains("theme-dark");
                 let filter = "";
@@ -150,12 +290,15 @@ export function createShownFilesList() {
                     filteredColor = getComputedStyle(temp).color;
                     temp.remove();
                 }
-                const fullPath = f.filePath || "(unknown)",
+                const fullPath = f.originalPath || displayLabel,
                     showWarning = !isColorAccessible(filteredColor || color, bg);
                 li.style.cursor = "pointer";
+                li.setAttribute("aria-label", `Overlay ${fullPath}`);
+                li.setAttribute("aria-selected", "false");
 
                 // Add remove (X) button, only visible on hover
                 const removeBtn = document.createElement("span");
+                removeBtn.className = "overlay-remove-btn";
                 removeBtn.textContent = "×";
                 removeBtn.title = "Remove this overlay";
                 removeBtn.style.position = "absolute";
@@ -169,6 +312,11 @@ export function createShownFilesList() {
                 removeBtn.style.cursor = "pointer";
                 removeBtn.style.opacity = "0";
                 removeBtn.style.transition = "opacity 0.15s";
+                removeBtn.setAttribute("aria-label", `Remove overlay ${fullPath}`);
+                removeBtn.style.display = "inline-block";
+                removeBtn.style.lineHeight = "1";
+                removeBtn.setAttribute("role", "button");
+                removeBtn.setAttribute("tabindex", "-1");
                 removeBtn.addEventListener("mouseenter", (ev) => {
                     removeBtn.style.opacity = "1";
                     ev.stopPropagation();
@@ -180,14 +328,16 @@ export function createShownFilesList() {
                 removeBtn.addEventListener("click", (ev) => {
                     ev.stopPropagation();
                     if (globalThis.loadedFitFiles) {
-                        globalThis.loadedFitFiles.splice(idx, 1);
+                        globalThis.loadedFitFiles.splice(overlayIndex, 1);
+                        scheduleOverlayStateSync();
+                        const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
+                        assignKeyboardFocus(nextFocusIndex);
                         if (globalThis.renderMap) {
                             globalThis.renderMap();
                         }
                         if (/** @type {any} */ (globalThis).updateShownFilesList) {
                             /** @type {any} */ globalThis.updateShownFilesList();
                         }
-                        // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(() => {
                             const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
                             for (const t of tooltips) t.parentNode && t.parentNode.removeChild(t);
@@ -197,8 +347,9 @@ export function createShownFilesList() {
                 li.append(removeBtn);
 
                 li.addEventListener("click", () => {
+                    assignKeyboardFocus(overlayIndex);
                     // @ts-expect-error - _highlightedOverlayIdx exists on window
-                    globalThis._highlightedOverlayIdx = idx;
+                    globalThis._highlightedOverlayIdx = overlayIndex;
                     // @ts-expect-error - updateOverlayHighlights exists on window
                     if (globalThis.updateOverlayHighlights) {
                         globalThis.updateOverlayHighlights();
@@ -209,9 +360,9 @@ export function createShownFilesList() {
                     }
                     // Bring the overlay polyline to front and flash highlight
                     // @ts-expect-error - _overlayPolylines exists on window
-                    if (globalThis._overlayPolylines && globalThis._overlayPolylines[idx]) {
+                    if (globalThis._overlayPolylines && globalThis._overlayPolylines[overlayIndex]) {
                         // @ts-expect-error - _overlayPolylines exists on window
-                        const polyline = globalThis._overlayPolylines[idx];
+                        const polyline = globalThis._overlayPolylines[overlayIndex];
                         if (polyline.bringToFront) {
                             polyline.bringToFront();
                         }
@@ -235,7 +386,7 @@ export function createShownFilesList() {
                             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
                             setTimeout(() => {
                                 // @ts-expect-error - _highlightedOverlayIdx exists on window
-                                if (globalThis._highlightedOverlayIdx === idx) {
+                                if (globalThis._highlightedOverlayIdx === overlayIndex) {
                                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                                 }
                             }, 250);
@@ -251,6 +402,10 @@ export function createShownFilesList() {
                     }
                 });
 
+                li.addEventListener("focus", () => {
+                    assignKeyboardFocus(overlayIndex);
+                });
+
                 // @ts-expect-error - Custom property on HTMLElement
                 li._tooltipTimeout = null;
                 // @ts-expect-error - Custom property on HTMLElement
@@ -258,7 +413,7 @@ export function createShownFilesList() {
                 /** @param {MouseEvent} e */
                 li.addEventListener("mouseenter", (e) => {
                     // @ts-expect-error - _highlightedOverlayIdx exists on window
-                    globalThis._highlightedOverlayIdx = idx;
+                    globalThis._highlightedOverlayIdx = overlayIndex;
                     // @ts-expect-error - updateOverlayHighlights exists on window
                     if (globalThis.updateOverlayHighlights) {
                         globalThis.updateOverlayHighlights();
@@ -282,7 +437,7 @@ export function createShownFilesList() {
                     globalThis._overlayTooltipTimeout = setTimeout(() => {
                         // Only show if still hovered
                         // @ts-expect-error - _highlightedOverlayIdx exists on window
-                        if (globalThis._highlightedOverlayIdx !== idx) {
+                        if (globalThis._highlightedOverlayIdx !== overlayIndex) {
                             return;
                         }
                         const tooltip = document.createElement("div");
@@ -357,9 +512,22 @@ export function createShownFilesList() {
                 ul.append(li);
             }
 
+            const overlayItems = getOverlayItems();
+            container.setAttribute("aria-disabled", overlayItems.length === 0 ? "true" : "false");
+            if (container.matches(":focus-within") && overlayItems.length > 0) {
+                const targetIndex =
+                    keyboardFocusIndex >= 0 && keyboardFocusIndex < overlayItems.length ? keyboardFocusIndex : 0;
+                focusOverlayItem(targetIndex, { scrollIntoView: false });
+            } else if (overlayItems.length === 0) {
+                assignKeyboardFocus(-1);
+            } else if (keyboardFocusIndex >= overlayItems.length) {
+                assignKeyboardFocus(overlayItems.length - 1);
+            }
+
             // Add Clear All button if overlays exist
             if (anyOverlays && ul.parentNode && !ul.parentNode.querySelector(".overlay-clear-all-btn")) {
                 const clearAll = document.createElement("button");
+                clearAll.type = "button";
                 clearAll.textContent = "Clear All";
                 clearAll.className = "overlay-clear-all-btn";
                 clearAll.style.margin = "8px 0 0 0";
@@ -372,11 +540,14 @@ export function createShownFilesList() {
                 clearAll.style.cursor = "pointer";
                 clearAll.style.float = "right";
                 clearAll.title = "Remove all overlays from the map";
+                clearAll.setAttribute("aria-label", "Remove all overlays from the map");
                 /** @param {MouseEvent} ev */
                 clearAll.addEventListener("click", (ev) => {
                     ev.stopPropagation();
                     if (globalThis.loadedFitFiles) {
                         globalThis.loadedFitFiles.splice(1);
+                        assignKeyboardFocus(-1);
+                        scheduleOverlayStateSync();
                         if (globalThis.renderMap) {
                             globalThis.renderMap();
                         }

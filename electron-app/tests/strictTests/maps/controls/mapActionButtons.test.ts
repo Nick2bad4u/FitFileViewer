@@ -23,7 +23,7 @@ describe("mapActionButtons", () => {
         const { showNotification } = await import("../../../../utils/ui/notifications/showNotification.js");
         name.dispatchEvent(new Event("click"));
         // Click handler defers center operation via setTimeout; advance timers
-        await new Promise((r) => setTimeout(r, 120));
+    await new Promise((r) => setTimeout(r, 600));
         // No map instance or main polyline, should notify (either missing track or map not ready)
         expect((showNotification as any).mock.calls.length).toBeGreaterThan(0);
     });

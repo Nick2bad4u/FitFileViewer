@@ -10,21 +10,28 @@ describe("createAddFitFileToMapButton", () => {
         const notifSpy = vi.spyOn(notif, "showNotification").mockResolvedValue(void 0 as any);
 
         const files = await import("../../../../utils/files/import/openFileSelector.js");
-        const openSpy = vi.spyOn(files, "openFileSelector").mockImplementation(() => {});
+        const openSpy = vi.spyOn(files, "openFileSelector").mockResolvedValue(undefined);
+
+        const state = await import("../../../../utils/state/core/stateManager.js");
 
         const { createAddFitFileToMapButton } = await import(
             "../../../../utils/ui/controls/createAddFitFileToMapButton.js"
         );
         const btn = createAddFitFileToMapButton();
         expect(btn.tagName).toBe("BUTTON");
+        expect(btn.disabled).toBe(true);
+
+        state.setState("globalData", { recordMesgs: [{}] });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
         btn.click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
         expect(openSpy).toHaveBeenCalled();
 
         // Error path
-        openSpy.mockImplementation(() => {
-            throw new Error("fail");
-        });
+        openSpy.mockRejectedValue(new Error("fail"));
         btn.click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
         expect(notifSpy).toHaveBeenCalled();
     });
 });

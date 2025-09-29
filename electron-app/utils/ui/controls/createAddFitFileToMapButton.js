@@ -1,5 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
+import { getState, subscribe } from "../../state/core/stateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -11,6 +12,8 @@ export function createAddFitFileToMapButton() {
     try {
         const addOverlayBtn = document.createElement("button");
         addOverlayBtn.className = "map-action-btn";
+        addOverlayBtn.disabled = true;
+        addOverlayBtn.setAttribute("aria-disabled", "true");
 
         const themeColors = getThemeColors();
         addOverlayBtn.innerHTML = `
@@ -23,9 +26,34 @@ export function createAddFitFileToMapButton() {
         addOverlayBtn.title = "Overlay one or more FIT files on the map (points and tooltips will be shown)";
         addOverlayBtn.setAttribute("aria-label", "Add FIT files as map overlays");
 
-        addOverlayBtn.addEventListener("click", () => {
+        const updateAvailability = () => {
             try {
-                openFileSelector();
+                const data = getState("globalData");
+                const hasMainFile = Boolean(
+                    data &&
+                    typeof data === "object" &&
+                    Array.isArray(/** @type {any} */(data).recordMesgs) &&
+                        /** @type {any} */ (data).recordMesgs.length > 0
+                );
+                addOverlayBtn.disabled = !hasMainFile;
+                addOverlayBtn.setAttribute("aria-disabled", String(!hasMainFile));
+            } catch (error) {
+                console.warn("[MapActions] Unable to determine overlay availability:", error);
+                addOverlayBtn.disabled = true;
+                addOverlayBtn.setAttribute("aria-disabled", "true");
+            }
+        };
+
+        updateAvailability();
+        subscribe("globalData", updateAvailability);
+
+        addOverlayBtn.addEventListener("click", async () => {
+            try {
+                if (addOverlayBtn.disabled) {
+                    showNotification("Open a primary FIT file before adding overlays.", "info");
+                    return;
+                }
+                await openFileSelector();
             } catch (error) {
                 console.error("[MapActions] Failed to open file selector:", error);
                 showNotification("Failed to open file selector", "error");

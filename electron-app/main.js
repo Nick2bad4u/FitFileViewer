@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* eslint-disable no-console */
 // Allow tests to supply a hoisted mock object for the 'electron' module via globalThis.__electronHoistedMock
 /** @type {any|null} */
 let __electronOverride =
@@ -23,12 +24,12 @@ function getElectron() {
         return /** @type {any} */ ({});
     }
 }
-const appRef = () => /** @type {any} */ (getElectron().app);
-const browserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
-const dialogRef = () => /** @type {any} */ (getElectron().dialog);
-const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
-const menuRef = () => /** @type {any} */ (getElectron().Menu);
-const shellRef = () => /** @type {any} */ (getElectron().shell);
+const appRef = () => /** @type {any} */(getElectron().app);
+const browserWindowRef = () => /** @type {any} */(getElectron().BrowserWindow);
+const dialogRef = () => /** @type {any} */(getElectron().dialog);
+const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
+const menuRef = () => /** @type {any} */(getElectron().Menu);
+const shellRef = () => /** @type {any} */(getElectron().shell);
 
 const IPC_HANDLE_REGISTRY = new Map();
 const IPC_EVENT_LISTENER_REGISTRY = new Map();
@@ -316,6 +317,13 @@ try {
     /* ignore */
 }
 
+const { registerDialogHandlers } = require("./main/ipc/registerDialogHandlers");
+const { registerExternalHandlers } = require("./main/ipc/registerExternalHandlers");
+const { registerFileSystemHandlers } = require("./main/ipc/registerFileSystemHandlers");
+const { registerFitFileHandlers } = require("./main/ipc/registerFitFileHandlers");
+const { registerInfoHandlers } = require("./main/ipc/registerInfoHandlers");
+const { registerRecentFileHandlers } = require("./main/ipc/registerRecentFileHandlers");
+const { bootstrapMainWindow } = require("./main/window/bootstrapMainWindow");
 const { addRecentFile, loadRecentFiles } = require("./utils/files/recent/recentFiles");
 const // Constants
     CONSTANTS = {
@@ -665,7 +673,7 @@ function exposeDevHelpers() {
             const win = browserWindowRef().getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */ (win),
+                    /** @type {any} */(win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );
@@ -708,8 +716,8 @@ try {
         __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
             ? __prime_mod
             : __prime_mod && __prime_mod.default
-              ? __prime_mod.default
-              : __prime_mod;
+                ? __prime_mod.default
+                : __prime_mod;
     const __prime_app = __prime && __prime.app;
     const __prime_BW = __prime && __prime.BrowserWindow;
     let __prime_app_val = __prime_app;
@@ -785,116 +793,18 @@ try {
 
 // Enhanced application initialization
 async function initializeApplication() {
-    // In tests, proactively invoke whenReady via direct require to satisfy spy expectations
-    if (/** @type {any} */ (process.env).NODE_ENV === "test") {
-        try {
-            const { app: __wa } = require("electron");
-            if (__wa && typeof __wa.whenReady === "function") {
-                try {
-                    __wa.whenReady();
-                } catch {
-                    /* Ignore errors */
-                }
-            }
-        } catch {
-            /* Ignore errors */
-        }
-    }
-    // In test or when BrowserWindow is not a constructor (mocked object), avoid requiring
-    // WindowStateUtils (which destructures electron at import-time) and instead use an
-    // Existing window from BrowserWindow.getAllWindows(). This prevents "BrowserWindow is not a constructor"
-    // Errors under hoisted getter-based mocks.
-    const BW = browserWindowRef();
-    const isConstructor = typeof BW === "function";
-
-    /** @type {any} */
-    let mainWindow;
-    if (/** @type {any} */ (process.env).NODE_ENV === "test" || !isConstructor) {
-        // Best-effort: use existing mock window if available
-        try {
-            // Prefer direct require to ensure we access hoisted getter-based mocks
-            let list;
-            try {
-                const { BrowserWindow: __tBW } = require("electron");
-                if (__tBW && typeof __tBW.getAllWindows === "function") {
-                    try {
-                        list = __tBW.getAllWindows();
-                    } catch {
-                        /* Ignore errors */
-                    }
-                }
-            } catch {
-                /* Ignore errors */
-            }
-            if ((!list || list.length === 0) && BW && typeof BW.getAllWindows === "function") {
-                try {
-                    list = BW.getAllWindows();
-                } catch {
-                    /* Ignore errors */
-                }
-            }
-            mainWindow = Array.isArray(list) && list.length > 0 ? list[0] : undefined;
-        } catch {
-            /* Ignore errors */
-        }
-
-        if (!mainWindow) {
-            // Fallback minimal mock-compatible shape
-            mainWindow = {
-                isDestroyed: () => false,
-                webContents: {
-                    executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
-                    isDestroyed: () => false,
-                    on: () => {},
-                    send: () => {},
-                },
-            };
-        }
-    } else {
-        // Normal runtime path: lazily require to honor test-time mocks when possible
-        const { createWindow } = require("./windowStateUtils");
-        mainWindow = createWindow();
-    }
-
-    setAppState("mainWindow", mainWindow);
-
-    // Set the custom menu immediately after window creation to avoid menu flash/disappearance
-    logWithContext("info", "Calling createAppMenu after window selection/creation");
-    safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
-
-    // Enhanced theme synchronization
-    mainWindow.webContents.on("did-finish-load", async () => {
-        logWithContext("info", "did-finish-load event fired, syncing theme");
-
-        // Setup auto-updater after window is fully loaded to avoid "window not usable" warning
-        if (!getAppState("autoUpdaterInitialized")) {
-            try {
-                const autoUpdater = await __resolveAutoUpdaterAsync();
-                setupAutoUpdater(mainWindow, autoUpdater);
-                await autoUpdater.checkForUpdatesAndNotify();
-                setAppState("autoUpdaterInitialized", true);
-            } catch (error) {
-                logWithContext("error", "Failed to setup auto-updater:", {
-                    error: /** @type {Error} */ (error).message,
-                });
-            }
-        }
-
-        try {
-            const theme = await getThemeFromRenderer(mainWindow);
-            logWithContext("info", "Retrieved theme from renderer", { theme });
-            safeCreateAppMenu(mainWindow, theme, getAppState("loadedFitFilePath"));
-            sendToRenderer(mainWindow, "set-theme", theme);
-        } catch (error) {
-            logWithContext("warn", "Failed to get theme from renderer, using fallback", {
-                error: /** @type {Error} */ (error).message,
-            });
-            safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
-            sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
-        }
+    return bootstrapMainWindow({
+        browserWindowRef,
+        CONSTANTS,
+        getAppState,
+        getThemeFromRenderer,
+        logWithContext,
+        resolveAutoUpdaterAsync: __resolveAutoUpdaterAsync,
+        safeCreateAppMenu,
+        sendToRenderer,
+        setAppState,
+        setupAutoUpdater,
     });
-
-    return mainWindow;
 }
 
 // Utility functions
@@ -1014,7 +924,7 @@ try {
                 i0.handle("__test_init_handle__", () => true);
             }
             if (i0 && typeof i0.on === "function") {
-                i0.on("__test_init_on__", () => {});
+                i0.on("__test_init_on__", () => { });
             }
         } catch {
             /* ignore */
@@ -1040,7 +950,7 @@ try {
             const http0 = httpRef();
             if (http0 && typeof http0.createServer === "function") {
                 // No listen call – harmless creation to satisfy spy expectations only
-                http0.createServer(() => {});
+                http0.createServer(() => { });
             }
         } catch {
             /* ignore */
@@ -1205,12 +1115,12 @@ try {
                             /* ignore */
                         }
                         try {
-                            i.on("menu-export", () => {});
+                            i.on("menu-export", () => { });
                         } catch {
                             /* ignore */
                         }
                         try {
-                            i.on("set-fullscreen", () => {});
+                            i.on("set-fullscreen", () => { });
                         } catch {
                             /* ignore */
                         }
@@ -1223,7 +1133,7 @@ try {
                     const http = httpRef();
                     if (http && typeof http.createServer === "function") {
                         try {
-                            http.createServer(() => {});
+                            http.createServer(() => { });
                         } catch {
                             /* ignore */
                         }
@@ -1245,9 +1155,9 @@ try {
                     try {
                         const hasEnv = Boolean(
                             typeof process !== "undefined" &&
-                                process.env &&
-                                process.env.GYAZO_CLIENT_ID &&
-                                process.env.GYAZO_CLIENT_SECRET
+                            process.env &&
+                            process.env.GYAZO_CLIENT_ID &&
+                            process.env.GYAZO_CLIENT_SECRET
                         );
                         const hasServer = Boolean(getAppState("gyazoServer"));
                         if (hasEnv && !hasServer) {
@@ -1262,7 +1172,7 @@ try {
                                 const http = httpRef();
                                 if (http && typeof http.createServer === "function") {
                                     try {
-                                        http.createServer(() => {});
+                                        http.createServer(() => { });
                                     } catch {
                                         /* ignore */
                                     }
@@ -1525,85 +1435,41 @@ function setupIPCHandlers(mainWindow) {
         });
     });
 
-    // File dialog handler
-    registerIpcHandle("dialog:openFile", async (/** @type {any} */ _event) => {
-        try {
-            const { canceled, filePaths } = await dialogRef().showOpenDialog({
-                filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
-                properties: ["openFile"],
-            });
-            if (canceled || filePaths.length === 0) {
-                return null;
-            }
-
-            if (filePaths[0]) {
-                addRecentFile(filePaths[0]);
-                setAppState("loadedFitFilePath", filePaths[0]);
-
-                // Fetch current theme from renderer before rebuilding menu
-                const win =
-                    (browserWindowRef() && browserWindowRef().getFocusedWindow
-                        ? browserWindowRef().getFocusedWindow()
-                        : null) || mainWindow;
-                if (win) {
-                    const theme = await getThemeFromRenderer(win);
-                    safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
-                }
-
-                return filePaths[0];
-            }
-            return null;
-        } catch (error) {
-            logWithContext("error", "Error in dialog:openFile:", {
-                error: /** @type {Error} */ (error).message,
-                stack: /** @type {Error} */ (error).stack,
-            });
-            throw error;
-        }
+    registerDialogHandlers({
+        addRecentFile,
+        browserWindowRef,
+        CONSTANTS,
+        dialogRef,
+        getThemeFromRenderer,
+        logWithContext,
+        mainWindow,
+        registerIpcHandle,
+        safeCreateAppMenu,
+        setAppState,
+    });
+    registerRecentFileHandlers({
+        registerIpcHandle,
+        addRecentFile,
+        loadRecentFiles,
+        browserWindowRef,
+        mainWindow,
+        getThemeFromRenderer,
+        safeCreateAppMenu,
+        getAppState,
+        logWithContext,
     });
     registerIpcListener("fit-file-loaded", async (/** @type {any} */ event, /** @type {string} */ filePath) => {
         setAppState("loadedFitFilePath", filePath);
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "fit-file-loaded event")) {
             try {
-                const theme = await getThemeFromRenderer(/** @type {any} */ (win));
-                safeCreateAppMenu(/** @type {any} */ (win), theme, getAppState("loadedFitFilePath"));
+                const theme = await getThemeFromRenderer(/** @type {any} */(win));
+                safeCreateAppMenu(/** @type {any} */(win), theme, getAppState("loadedFitFilePath"));
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", {
                     error: /** @type {Error} */ (error).message,
                 });
             }
-        }
-    });
-
-    // Recent files handlers
-    registerIpcHandle("recentFiles:get", async (/** @type {any} */ _event) => {
-        try {
-            return loadRecentFiles();
-        } catch (error) {
-            logWithContext("error", "Error in recentFiles:get:", {
-                error: /** @type {Error} */ (error).message,
-            });
-            throw error;
-        }
-    });
-    registerIpcHandle("recentFiles:add", async (/** @type {any} */ _event, /** @type {string} */ filePath) => {
-        try {
-            addRecentFile(filePath);
-            const win =
-                (browserWindowRef() && browserWindowRef().getFocusedWindow
-                    ? browserWindowRef().getFocusedWindow()
-                    : null) || mainWindow;
-            if (win) {
-                const theme = await getThemeFromRenderer(win);
-                safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
-            }
-            return loadRecentFiles();
-        } catch (error) {
-            logWithContext("error", "Error in recentFiles:add:", {
-                error: /** @type {Error} */ (error).message,
-            });
-            throw error;
         }
     });
 
@@ -1772,7 +1638,7 @@ function setupMenuAndEventHandlers() {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
             safeCreateAppMenu(
-                /** @type {any} */ (win),
+                /** @type {any} */(win),
                 theme || CONSTANTS.DEFAULT_THEME,
                 getAppState("loadedFitFilePath")
             );
@@ -1842,7 +1708,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
                     filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                     title: "Export As",
@@ -1865,7 +1731,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                     title: "Save As",
@@ -1904,7 +1770,7 @@ function setupMenuAndEventHandlers() {
                 win = browserWindowRef().fromWebContents(event.sender);
             logWithContext("info", "Manual menu injection requested", { fitFilePath: f, theme: t });
             if (win) {
-                safeCreateAppMenu(/** @type {any} */ (win), t, f);
+                safeCreateAppMenu(/** @type {any} */(win), t, f);
             }
             return true;
         }
@@ -2192,7 +2058,7 @@ async function startGyazoOAuthServer(port = 3000) {
                 throw new Error("HTTP module unavailable");
             }
             const server = _http.createServer((req, res) => {
-                const parsedUrl = new URL(/** @type {string} */ (req.url), `http://localhost:${port}`);
+                const parsedUrl = new URL(/** @type {string} */(req.url), `http://localhost:${port}`);
 
                 // Handle CORS and preflight requests
                 res.setHeader("Access-Control-Allow-Origin", "*");
@@ -2215,12 +2081,6 @@ async function startGyazoOAuthServer(port = 3000) {
                         res.writeHead(200, { "Content-Type": "text/html" });
                         /* c8 ignore start: large static HTML template (not executable logic) */
                         res.end(`
-                            <!DOCTYPE html>
-                            <html>
-                                <head>
-                                    <title>Gyazo OAuth - Error</title>
-                                        body {
-                                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                             // Removed unused createErrorHandler placeholder to satisfy lint no-unused-vars
                                 <body>

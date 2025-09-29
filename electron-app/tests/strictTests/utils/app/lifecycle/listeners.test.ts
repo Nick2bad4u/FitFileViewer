@@ -104,8 +104,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     let showAboutModal: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-    openFileSelectorMock.mockReset();
-    openFileSelectorMock.mockImplementation(() => {});
+        openFileSelectorMock.mockReset();
+        openFileSelectorMock.mockImplementation(() => {});
+        Reflect.deleteProperty(globalThis, "__ffvMenuForwardRegistry");
+        Reflect.deleteProperty(window, "__ffvMenuForwardRegistry");
         document.body.innerHTML = "";
         openFileBtn = createButton();
         electronAPI = createElectronAPIMock();
@@ -1591,16 +1593,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     });
 
     it("export-file: csv without copyTableAsCSV function (lines 317-318)", async () => {
-        // Setup #content-summary container (correct querySelector)
-        const summaryContainer = document.createElement("div");
-        summaryContainer.id = "content-summary";
-        document.body.appendChild(summaryContainer);
-
-        window.globalData = { data: "test" };
-
-        // Explicitly don't mock copyTableAsCSV function so it's undefined
-        delete (window as any).copyTableAsCSV;
-
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1611,9 +1603,20 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        electronAPI.emit("export-file", "test.csv");
+        // Mock global state
+        (globalThis as any).globalData = { data: "test" };
 
-        await Promise.resolve();
+        // Setup #content-summary container (correct querySelector)
+        const summaryContainer = document.createElement("div");
+        summaryContainer.id = "content-summary";
+        document.body.appendChild(summaryContainer);
+
+        // Explicitly don't mock copyTableAsCSV function so it's undefined
+        delete (window as any).copyTableAsCSV;
+
+    electronAPI.emit("export-file", "test.csv");
+
+    await Promise.resolve();
 
         // The function should complete without error - no else clause means no notification
         expect(showNotification).not.toHaveBeenCalled();
@@ -1961,7 +1964,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
     });
 
-    it("export CSV: missing copyTableAsCSV function (lines 317-318)", () => {
+    it("export CSV: missing copyTableAsCSV function (lines 317-318)", async () => {
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1975,14 +1978,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Mock global state
         (globalThis as any).globalData = { data: "test" };
 
-        // Add content-summary container
-        document.body.innerHTML = '<div id="content-summary">test</div>';
+        // Setup #content-summary container (correct querySelector)
+        const summaryContainer = document.createElement("div");
+        summaryContainer.id = "content-summary";
+        document.body.appendChild(summaryContainer);
 
         // Remove copyTableAsCSV function to trigger fallback
         delete (globalThis as any).copyTableAsCSV;
 
-        // Trigger CSV export - should silently do nothing when copyTableAsCSV missing
-        electronAPI.emit("export-file", {} as any, "test-file.csv");
+    electronAPI.emit("export-file", {} as any, "test-file.csv");
+
+    await Promise.resolve();
 
         // Since there's no error message in the actual code for missing copyTableAsCSV,
         // we verify that nothing happens (no download link created)

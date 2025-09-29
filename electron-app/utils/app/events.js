@@ -24,11 +24,13 @@ export function setupListeners({
         if (!globalThis.electronAPI || typeof globalThis.electronAPI.onIpc !== "function") {
             return;
         }
-        const registry = /** @type {Set<string>} */ (
-            (globalThis.__ffvMenuForwardRegistry instanceof Set
-                ? globalThis.__ffvMenuForwardRegistry
-                : (globalThis.__ffvMenuForwardRegistry = new Set()))
-        );
+        /** @type {Record<string, any>} */
+        const holder = /** @type {any} */ (globalThis);
+        if (!(holder.__ffvMenuForwardRegistry instanceof Set)) {
+            holder.__ffvMenuForwardRegistry = new Set();
+        }
+        /** @type {Set<string>} */
+        const registry = holder.__ffvMenuForwardRegistry;
         if (registry.has(channel)) {
             return;
         }
@@ -99,7 +101,7 @@ export function setupListeners({
             item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";
             item.onmouseenter = () => {
                 item.style.background = "var(--color-glass-border)";
-                item.style.color = "var(--color-fg-alt)";
+                item.style.color = "var(--color-fg-alt";
             };
             item.onmouseleave = () => {
                 item.style.background = focusedIndex === idx ? "var(--color-glass-border)" : "transparent";

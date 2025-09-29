@@ -189,7 +189,7 @@ describe("createAppMenu", () => {
         createAppMenu(fakeWin as any, "dark", null);
         const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
-        const labels = ["❌ Unload File", "💾 Save As...", "📤 Export...", "🖨️ Print..."];
+        const labels = ["➕ Add FIT Files as Overlays...", "❌ Unload File", "💾 Save As...", "📤 Export...", "🖨️ Print..."];
         for (const lab of labels) {
             const item = fileMenu.submenu.find((i: any) => i.label === lab);
             expect(item.enabled).toBe(false);
@@ -407,6 +407,7 @@ describe("createAppMenu", () => {
         const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const overlayItem = fileMenu.submenu.find((i: any) => i.label === "➕ Add FIT Files as Overlays...");
+        expect(overlayItem.enabled).toBe(true);
         overlayItem.click();
         expect(send).toHaveBeenCalledWith("menu-open-overlay");
     });

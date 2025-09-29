@@ -83,6 +83,8 @@ const SETTINGS_SCHEMA = {
  */
 class SettingsStateManager {
     initialized = false;
+    /** @type {Promise<void>|null} */
+    initializePromise = null;
 
     constructor() {
         this.subscribers = new Map();
@@ -272,42 +274,50 @@ class SettingsStateManager {
      */
     async initialize() {
         if (this.initialized) {
-            console.warn("[SettingsState] Already initialized");
             return;
         }
-
-        console.log("[SettingsState] Initializing settings state manager...");
-
-        try {
-            // Initialize settings state in the main state manager
-            setState(
-                "settings",
-                {
-                    chart: this.getChartSettings(),
-                    export: this.getSetting("export"),
-                    isLoading: false,
-                    lastModified: Date.now(),
-                    mapTheme: this.getSetting("mapTheme"),
-                    migrationVersion: this.migrationVersion,
-                    theme: this.getSetting("theme"),
-                    ui: this.getSetting("ui"),
-                    units: this.getSetting("units"),
-                },
-                { source: "SettingsStateManager.initialize" }
-            );
-
-            // Migrate old settings if needed
-            await this.migrateSettings();
-
-            // Set up settings synchronization with localStorage
-            this.setupLocalStorageSync();
-
-            this.initialized = true;
-            console.log("[SettingsState] Settings state manager initialized successfully");
-        } catch (error) {
-            console.error("[SettingsState] Failed to initialize settings state manager:", error);
-            throw error;
+        if (this.initializePromise) {
+            return this.initializePromise;
         }
+
+        this.initializePromise = (async () => {
+            console.log("[SettingsState] Initializing settings state manager...");
+
+            try {
+                // Initialize settings state in the main state manager
+                setState(
+                    "settings",
+                    {
+                        chart: this.getChartSettings(),
+                        export: this.getSetting("export"),
+                        isLoading: false,
+                        lastModified: Date.now(),
+                        mapTheme: this.getSetting("mapTheme"),
+                        migrationVersion: this.migrationVersion,
+                        theme: this.getSetting("theme"),
+                        ui: this.getSetting("ui"),
+                        units: this.getSetting("units"),
+                    },
+                    { source: "SettingsStateManager.initialize" }
+                );
+
+                // Migrate old settings if needed
+                await this.migrateSettings();
+
+                // Set up settings synchronization with localStorage
+                this.setupLocalStorageSync();
+
+                this.initialized = true;
+                console.log("[SettingsState] Settings state manager initialized successfully");
+            } catch (error) {
+                console.error("[SettingsState] Failed to initialize settings state manager:", error);
+                throw error;
+            } finally {
+                this.initializePromise = null;
+            }
+        })();
+
+        return this.initializePromise;
     }
 
     /**
@@ -401,7 +411,7 @@ class SettingsStateManager {
             } else {
                 // Reset all settings
                 for (const cat of Object.keys(SETTINGS_SCHEMA)) {
-                    this.resetSettings(/** @type {SettingCategory} */ (cat));
+                    this.resetSettings(/** @type {SettingCategory} */(cat));
                 }
             }
 
