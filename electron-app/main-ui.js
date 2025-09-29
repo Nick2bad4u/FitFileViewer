@@ -7,6 +7,7 @@
 
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
+import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
@@ -626,6 +627,15 @@ setupDOMContentLoaded();
 // Initialize the application window with modern state management
 setupWindow();
 
+// Register cleanup hooks with resource manager
+resourceManager.addShutdownHook(() => {
+    console.log("[ResourceManager] Executing main-ui cleanup...");
+    cleanupEventListeners();
+    if (AppActions.clearData) {
+        AppActions.clearData();
+    }
+});
+
 // External link handler for opening links in default browser
 function setupExternalLinkHandlers() {
     // Use event delegation to handle both existing and dynamically added external links
@@ -709,6 +719,9 @@ globalThis.devCleanup = function () {
         // @ts-ignore legacy
         globalThis.chartTabIntegration.destroy();
     }
+
+    // Cleanup all resources via resource manager
+    resourceManager.cleanupAll();
 
     console.log("[devCleanup] Application state and event listeners cleaned up");
 };

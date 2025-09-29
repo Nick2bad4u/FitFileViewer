@@ -1,5 +1,6 @@
 // Prefer dynamic access to state manager to avoid cross-suite stale imports
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 // Resolve the current document by preferring the canonical test-provided
 // `__vitest_effective_document__` first, then falling back to the
@@ -195,7 +196,7 @@ export function initializeActiveTabState() {
                         // Prevent unhandled exception propagation in test environment
                     }
                 };
-                button.addEventListener("click", onClick);
+                addEventListenerWithCleanup(button, "click", onClick);
             }
         }
 

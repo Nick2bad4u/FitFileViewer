@@ -1,5 +1,7 @@
 // Enhanced notification utility with modern animations, icons, and queue management
 
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+
 /**
  * @typedef {Object} NotificationTypeConfig
  * @property {string} icon
@@ -123,7 +125,7 @@ export async function showNotification(message, type = "info", duration = null, 
 
     // Promise that resolves when THIS notification becomes visible
     /** @type {(value?: void) => void} */
-    let resolveShown = () => {};
+    let resolveShown = () => { };
     const shownPromise = new Promise((resolve) => {
         resolveShown = /** @type {(value?: void) => void} */ (resolve);
     });
@@ -206,7 +208,7 @@ async function buildNotificationContent(element, notification) {
             button.textContent = action.text;
             button.className = action.className || "themed-btn";
             button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
-            button.addEventListener("click", (e) => {
+            addEventListenerWithCleanup(button, "click", (e) => {
                 e.stopPropagation();
                 if (action.onClick) {
                     action.onClick();
@@ -222,7 +224,7 @@ async function buildNotificationContent(element, notification) {
     // Add click handler for main notification
     if (notification.onClick) {
         element.style.cursor = "pointer";
-        element.addEventListener("click", (e) => {
+        addEventListenerWithCleanup(element, "click", (e) => {
             const tgt = /** @type {HTMLElement|null} */ (e.target instanceof HTMLElement ? e.target : null);
             if (tgt && !tgt.closest(".notification-actions") && notification.onClick) {
                 notification.onClick();
@@ -247,9 +249,9 @@ async function buildNotificationContent(element, notification) {
 			opacity: 0.7;
 			transition: opacity 0.2s ease;
 		`;
-        closeButton.addEventListener("mouseover", () => (closeButton.style.opacity = "1"));
-        closeButton.addEventListener("mouseout", () => (closeButton.style.opacity = "0.7"));
-        closeButton.addEventListener("click", (e) => {
+        addEventListenerWithCleanup(closeButton, "mouseover", () => (closeButton.style.opacity = "1"));
+        addEventListenerWithCleanup(closeButton, "mouseout", () => (closeButton.style.opacity = "0.7"));
+        addEventListenerWithCleanup(closeButton, "click", (e) => {
             e.stopPropagation();
             hideNotification(element);
         });
@@ -438,7 +440,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     persistent: (message, type = "info", options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
             ...options,
             persistent: true,
         }),
@@ -467,7 +469,7 @@ export const notify = {
      * @param {Object} [options] - Additional options
      */
     withActions: (message, type = "info", actions = [], options = {}) =>
-        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */ (type), undefined, {
+        showNotification(message, /** @type {keyof typeof NOTIFICATION_TYPES} */(type), undefined, {
             ...options,
             actions,
             persistent: true,

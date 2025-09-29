@@ -10,6 +10,7 @@ import {
     saveChartSpecificZoneColor,
 } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -170,15 +171,15 @@ export function openZoneColorPicker(field) {
 						transition: all 0.3s ease;
 					`;
 
-        closeButton.addEventListener("mouseenter", () => {
+        addEventListenerWithCleanup(closeButton, "mouseenter", () => {
             closeButton.style.background = "rgba(255, 255, 255, 0.2)";
         });
 
-        closeButton.addEventListener("mouseleave", () => {
+        addEventListenerWithCleanup(closeButton, "mouseleave", () => {
             closeButton.style.background = "rgba(255, 255, 255, 0.1)";
         });
 
-        closeButton.addEventListener("click", () => {
+        addEventListenerWithCleanup(closeButton, "click", () => {
             if (document.body.contains(overlay)) {
                 overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
@@ -264,7 +265,7 @@ export function openZoneColorPicker(field) {
 						`;
 
             // Color picker change handler
-            colorPicker.addEventListener("change", (e) => {
+            addEventListenerWithCleanup(colorPicker, "change", (e) => {
                 const { value: newColor } = /** @type {HTMLInputElement} */ (e.target);
                 colorPreview.style.background = newColor;
 
@@ -283,16 +284,16 @@ export function openZoneColorPicker(field) {
             });
 
             // Click handler for color preview
-            colorPreview.addEventListener("click", () => {
+            addEventListenerWithCleanup(colorPreview, "click", () => {
                 colorPicker.click();
             });
 
-            colorPreview.addEventListener("mouseenter", () => {
+            addEventListenerWithCleanup(colorPreview, "mouseenter", () => {
                 colorPreview.style.transform = "scale(1.1)";
                 colorPreview.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.3)";
             });
 
-            colorPreview.addEventListener("mouseleave", () => {
+            addEventListenerWithCleanup(colorPreview, "mouseleave", () => {
                 colorPreview.style.transform = "scale(1)";
                 colorPreview.style.boxShadow = "none";
             });
@@ -316,7 +317,7 @@ export function openZoneColorPicker(field) {
 							transition: all 0.3s ease;
 						`;
 
-            resetButton.addEventListener("click", () => {
+            addEventListenerWithCleanup(resetButton, "click", () => {
                 const defaultColor = defaultColors[zoneIndex] || defaultColors[zoneIndex % defaultColors.length];
                 if (defaultColor) {
                     colorPicker.value = defaultColor;
@@ -335,11 +336,11 @@ export function openZoneColorPicker(field) {
                 }
             });
 
-            resetButton.addEventListener("mouseenter", () => {
+            addEventListenerWithCleanup(resetButton, "mouseenter", () => {
                 resetButton.style.background = "rgba(255, 255, 255, 0.2)";
             });
 
-            resetButton.addEventListener("mouseleave", () => {
+            addEventListenerWithCleanup(resetButton, "mouseleave", () => {
                 resetButton.style.background = "rgba(255, 255, 255, 0.1)";
             });
 
@@ -376,13 +377,13 @@ export function openZoneColorPicker(field) {
             cursor: pointer;
             transition: background 0.2s;
         `;
-        resetAllButton.addEventListener("mouseenter", () => {
+        addEventListenerWithCleanup(resetAllButton, "mouseenter", () => {
             resetAllButton.style.background = "#2563eb";
         });
-        resetAllButton.addEventListener("mouseleave", () => {
+        addEventListenerWithCleanup(resetAllButton, "mouseleave", () => {
             resetAllButton.style.background = "var(--accent-color, #3b82f6)";
         });
-        resetAllButton.addEventListener("click", () => {
+        addEventListenerWithCleanup(resetAllButton, "click", () => {
             try {
                 // Set color scheme to custom for all relevant zone fields
                 const zoneFields = [
@@ -473,17 +474,17 @@ export function openZoneColorPicker(field) {
 						transition: all 0.3s ease;
 					`;
 
-        applyButton.addEventListener("mouseenter", () => {
+        addEventListenerWithCleanup(applyButton, "mouseenter", () => {
             applyButton.style.transform = "translateY(-2px)";
             applyButton.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.4)";
         });
 
-        applyButton.addEventListener("mouseleave", () => {
+        addEventListenerWithCleanup(applyButton, "mouseleave", () => {
             applyButton.style.transform = "translateY(0)";
             applyButton.style.boxShadow = "none";
         });
 
-        applyButton.addEventListener("click", () => {
+        addEventListenerWithCleanup(applyButton, "click", () => {
             if (document.body.contains(overlay)) {
                 overlay.remove();
                 document.removeEventListener("keydown", handleEscape);
@@ -512,10 +513,10 @@ export function openZoneColorPicker(field) {
         modal.append(actions);
         overlay.append(modal);
 
-        document.addEventListener("keydown", handleEscape);
+        addEventListenerWithCleanup(document, "keydown", handleEscape);
 
         // Click outside to close
-        overlay.addEventListener("click", (e) => {
+        addEventListenerWithCleanup(overlay, "click", (e) => {
             if (e.target === overlay && document.body.contains(overlay)) {
                 overlay.remove();
                 document.removeEventListener("keydown", handleEscape);

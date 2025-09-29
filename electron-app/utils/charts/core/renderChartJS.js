@@ -91,6 +91,7 @@
 
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
+import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { setupZoneData } from "../../data/processing/setupZoneData.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import { fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
@@ -2349,6 +2350,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         );
         if (chart) {
             windowAny._chartjsInstances.push(chart);
+            // Register chart with resource manager for automatic cleanup
+            resourceManager.registerChart(chart, { owner: "renderChartJS" });
         }
     }
 

@@ -7,6 +7,7 @@
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 
 // Resolve document by preferring the canonical test-provided document
@@ -619,15 +620,9 @@ class TabStateManager {
             const tabButtons = getDoc().querySelectorAll(".tab-button");
 
             for (const button of tabButtons) {
-                // Remove existing stable listener (if any) to prevent duplicates
+                // Add stable listener with automatic cleanup tracking
                 try {
-                    button.removeEventListener("click", this._buttonClickHandler);
-                } catch {
-                    /* Ignore errors */
-                }
-                // Add stable listener
-                try {
-                    button.addEventListener("click", this._buttonClickHandler);
+                    addEventListenerWithCleanup(button, "click", this._buttonClickHandler);
                 } catch {
                     /* Ignore errors */
                 }
@@ -636,11 +631,12 @@ class TabStateManager {
             console.log(`[TabStateManager] Set up handlers for ${tabButtons.length} tab buttons`);
         };
 
-        if (document.readyState === "loading") {
+        const doc = getDoc();
+        if (doc.readyState === "loading") {
             // Store reference so we can remove it during cleanup
             this._setupHandlersFn = setupHandlers;
             try {
-                getDoc().addEventListener("DOMContentLoaded", this._setupHandlersFn);
+                addEventListenerWithCleanup(doc, "DOMContentLoaded", this._setupHandlersFn);
             } catch {
                 /* Ignore errors */
             }

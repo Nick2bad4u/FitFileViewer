@@ -3,11 +3,13 @@
  * Specialized utility for showing update-related notifications with actions
  */
 
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+
 // Constants for better maintainability
 const BUTTON_TEXTS = {
-        LATER: "Later",
-        RESTART_UPDATE: "Restart & Update",
-    },
+    LATER: "Later",
+    RESTART_UPDATE: "Restart & Update",
+},
     LOG_PREFIX = "[ShowUpdateNotification]",
     NOTIFICATION_CONSTANTS = {
         BUTTON_CLASS: "themed-btn",
@@ -123,7 +125,7 @@ function createThemedButton(text, clickHandler, styles = {}) {
         const button = document.createElement("button");
         button.textContent = text;
         button.className = NOTIFICATION_CONSTANTS.BUTTON_CLASS;
-        button.addEventListener("click", clickHandler);
+        addEventListenerWithCleanup(button, "click", clickHandler);
 
         // Apply additional styles
         Object.assign(button.style, styles);

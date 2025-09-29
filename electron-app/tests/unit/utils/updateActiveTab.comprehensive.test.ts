@@ -279,9 +279,9 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             initializeActiveTabState();
 
-            // Verify each button got a click listener
+            // Verify each button got a click listener (with options parameter for cleanup)
             addEventListenerSpies.forEach((spy) => {
-                expect(spy).toHaveBeenCalledWith("click", expect.any(Function));
+                expect(spy).toHaveBeenCalledWith("click", expect.any(Function), expect.anything());
             });
         });
 

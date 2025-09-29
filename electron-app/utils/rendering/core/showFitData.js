@@ -15,6 +15,7 @@
  * @property {boolean} [updateUI=true] - Whether to update UI elements
  */
 
+import { deferUntilIdle } from "../../app/performance/lazyRenderingUtils.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
 import { setState } from "../../state/core/stateManager.js";
 
@@ -149,6 +150,10 @@ export function showFitData(data, filePath, options = {}) {
         globalThis.renderSummary(globalThis.globalData);
     }
 
+    // Pre-render charts in the background during idle time
+    // This ensures charts are ready when user clicks the chart tab
+    preRenderChartsInBackground(data);
+
     // Switch to map tab as default when file is loaded
     // Use setTimeout to ensure this happens after DOM updates and tab handlers are ready
     setTimeout(() => {
@@ -270,6 +275,54 @@ function logWithContext(message, level = "info") {
         }
     } catch {
         // Silently fail if logging encounters an error
+    }
+}
+
+/**
+ * Pre-renders charts in the background during browser idle time
+ * This ensures charts are ready when the user clicks the chart tab
+ * @param {Object} data - FIT file data to render
+ * @private
+ */
+function preRenderChartsInBackground(data) {
+    try {
+        // Only pre-render if we have valid data and the renderChartsWithData function exists
+        if (!data || !globalThis.renderChartsWithData) {
+            return;
+        }
+
+        logWithContext("Scheduling background chart pre-rendering");
+
+        // Use deferUntilIdle to render during browser idle time
+        // This ensures it doesn't interfere with UI rendering or user interactions
+        deferUntilIdle(
+            async () => {
+                try {
+                    logWithContext("Starting background chart pre-rendering");
+
+                    // Set a flag to indicate this is background pre-rendering
+                    // This can be used by the rendering logic to skip certain operations
+                    const isBackgroundRender = true;
+
+                    // Trigger chart rendering in the background
+                    // The state system will cache the results
+                    await globalThis.renderChartsWithData(data, isBackgroundRender);
+
+                    logWithContext("Background chart pre-rendering completed");
+                } catch (error) {
+                    // Silently fail - this is a performance optimization, not critical
+                    logWithContext(`Background chart pre-rendering failed: ${error}`, "warn");
+                }
+            },
+            {
+                // Give the UI some time to settle before starting
+                // This ensures map rendering and other initial UI updates complete first
+                timeout: 3000,
+            }
+        );
+    } catch (error) {
+        // Silently fail - this is a performance optimization
+        logWithContext(`Error scheduling background chart pre-rendering: ${error}`, "warn");
     }
 }
 

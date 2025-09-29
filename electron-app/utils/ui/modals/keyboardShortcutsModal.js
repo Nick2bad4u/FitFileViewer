@@ -1,5 +1,7 @@
 // Enhanced Keyboard Shortcuts modal dialog utility with modern design and animations
 
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+
 /** @type {any} */
 let lastFocusedElement = null;
 const modalAnimationDuration = 300; // Animation duration in milliseconds
@@ -51,9 +53,7 @@ function ensureKeyboardShortcutsModal() {
 	console.log("Modal element created and appended to body");
 
 	// Add global event listeners
-	document.addEventListener("keydown", handleShortcutsEscapeKey, true);
-
-	// Inject enhanced styles
+	addEventListenerWithCleanup(document, "keydown", handleShortcutsEscapeKey, true);	// Inject enhanced styles
 	injectKeyboardShortcutsModalStyles();
 	console.log("Modal styles injected");
 
@@ -509,18 +509,18 @@ function setupKeyboardShortcutsModalHandlers(modal) {
 	// Close button handler
 	const closeBtn = modal.querySelector("#shortcuts-modal-close");
 	if (closeBtn) {
-		closeBtn.addEventListener("click", closeKeyboardShortcutsModal);
+		addEventListenerWithCleanup(closeBtn, "click", closeKeyboardShortcutsModal);
 	}
 
 	// Click outside to close
-	modal.addEventListener("click", (/** @type {any} */ e) => {
+	addEventListenerWithCleanup(modal, "click", (/** @type {any} */ e) => {
 		if (e.target === modal) {
 			closeKeyboardShortcutsModal();
 		}
 	});
 
 	// Handle links for external navigation
-	modal.addEventListener("click", (/** @type {any} */ e) => {
+	addEventListenerWithCleanup(modal, "click", (/** @type {any} */ e) => {
 		if (Object.hasOwn(e.target.dataset, "externalLink")) {
 			e.preventDefault();
 			const url = e.target.href || e.target.closest("a").href;
@@ -636,7 +636,7 @@ function trapFocusInModal(modal) {
 		focusCycle[targetIndex].focus();
 	}
 
-	modal.addEventListener("keydown", handleTabKey, true);
+	addEventListenerWithCleanup(modal, "keydown", handleTabKey, true);
 }
 
 // Export functions for external use

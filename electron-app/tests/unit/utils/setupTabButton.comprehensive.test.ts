@@ -230,7 +230,7 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             // Verify new handler is set correctly
             button.click();
             expect(newHandler).toHaveBeenCalled();
-            expect(button._setupTabButtonHandler).toBe(newHandler);
+            // Note: _setupTabButtonHandler is no longer used with centralized event manager
         });
 
         it("should replace existing handler to prevent multiple handlers", () => {
@@ -274,14 +274,16 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
             expect(handlers[4]).toHaveBeenCalled();
         });
 
-        it("should store handler reference on element for cleanup", () => {
+        it("should register event listener for cleanup", () => {
             testContainer.innerHTML = '<button id="reference-test">Test</button>';
             const handler = vi.fn();
 
             setupTabButton("reference-test", handler);
 
+            // Verify handler works
             const button = document.getElementById("reference-test");
-            expect(button._setupTabButtonHandler).toBe(handler);
+            button?.click();
+            expect(handler).toHaveBeenCalled();
         });
     });
 
@@ -323,11 +325,12 @@ describe("setupTabButton.js - Comprehensive Bug Detection Test Suite", () => {
 
             // Handler should still be attached even to disabled elements
             const button = document.getElementById("disabled-test");
-            expect(button._setupTabButtonHandler).toBe(handler);
+            expect(button).toBeDefined();
 
             // Disabled button clicks might not trigger handler (browser behavior)
             button?.click();
-            // Note: This reveals potential bug - should we handle disabled elements differently?
+            // Note: Handler is attached but disabled buttons don't trigger click events in most browsers
+            // This is expected browser behavior, not a bug
         });
     });
 

@@ -397,12 +397,16 @@ describe("tabStateManager.behavior", () => {
         Object.defineProperty(document, "readyState", { configurable: true, get: () => "loading" });
         const addSpy = vi.spyOn(document, "addEventListener");
         tabStateManager.setupTabButtonHandlers();
-        expect(addSpy).toHaveBeenCalledWith("DOMContentLoaded", expect.any(Function));
+        expect(addSpy).toHaveBeenCalled();
+        expect(addSpy.mock.calls[0][0]).toBe("DOMContentLoaded");
+        expect(addSpy.mock.calls[0][1]).toBeInstanceOf(Function);
 
         // Cleanup should remove it
         const removeSpy = vi.spyOn(document, "removeEventListener");
         tabStateManager.cleanup();
-        expect(removeSpy).toHaveBeenCalledWith("DOMContentLoaded", expect.any(Function));
+        expect(removeSpy).toHaveBeenCalled();
+        expect(removeSpy.mock.calls[0][0]).toBe("DOMContentLoaded");
+        expect(removeSpy.mock.calls[0][1]).toBeInstanceOf(Function);
 
         // Restore readyState
         if (origDesc) Object.defineProperty(document, "readyState", origDesc);
@@ -418,21 +422,23 @@ describe("tabStateManager.behavior", () => {
         b.className = "tab-button";
         root.append(a, b);
 
-        const spyAddA = vi.spyOn(a, "addEventListener");
-        const spyAddB = vi.spyOn(b, "addEventListener");
-
-        // Document is already ready by default in jsdom
+        // Setup handlers
         tabStateManager.setupTabButtonHandlers();
 
-        expect(spyAddA).toHaveBeenCalledWith("click", expect.any(Function));
-        expect(spyAddB).toHaveBeenCalledWith("click", expect.any(Function));
-
-        // Dispatch a click to ensure handler leads to state change
+        // Verify handlers work by clicking buttons and checking state changes
         const evt = new window.Event("click", { bubbles: true });
         a.dispatchEvent(evt);
         expect(mockSetState).toHaveBeenCalledWith(
             "ui.activeTab",
             "summary",
+            expect.objectContaining({ source: expect.stringContaining("TabStateManager.buttonClick") })
+        );
+
+        mockSetState.mockClear();
+        b.dispatchEvent(evt);
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.activeTab",
+            "map",
             expect.objectContaining({ source: expect.stringContaining("TabStateManager.buttonClick") })
         );
     });

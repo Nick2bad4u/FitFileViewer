@@ -4,6 +4,7 @@
  */
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 
@@ -184,12 +185,12 @@ export function showAboutModal(html = "") {
             });
 
             // Set up event listeners
-            closeBtn.addEventListener("click", (e) => {
+            addEventListenerWithCleanup(closeBtn, "click", (e) => {
                 e.preventDefault();
                 hideAboutModal();
             });
 
-            closeBtn.addEventListener("keydown", (e) => {
+            addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     hideAboutModal();
@@ -197,12 +198,12 @@ export function showAboutModal(html = "") {
             });
             // Toggle button functionality
             if (toggleBtn) {
-                toggleBtn.addEventListener("click", (e) => {
+                addEventListenerWithCleanup(toggleBtn, "click", (e) => {
                     e.preventDefault();
                     toggleInfoSection();
                 });
 
-                toggleBtn.addEventListener("keydown", (e) => {
+                addEventListenerWithCleanup(toggleBtn, "keydown", (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         toggleInfoSection();
@@ -213,7 +214,8 @@ export function showAboutModal(html = "") {
             // Handle external links to open in user's default browser
             const externalLinks = modal.querySelectorAll("[data-external-link]");
             for (const link of externalLinks) {
-                /** @type {HTMLElement} */ (link).addEventListener("click", (e) => {
+                /** @type {HTMLElement} */ (link);
+                addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "click", (e) => {
                     e.preventDefault();
                     const url = link.getAttribute("href");
                     if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
@@ -224,7 +226,7 @@ export function showAboutModal(html = "") {
                     }
                 });
 
-                /** @type {HTMLElement} */ (link).addEventListener("keydown", (e) => {
+                addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "keydown", (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         const url = link.getAttribute("href");
@@ -239,7 +241,7 @@ export function showAboutModal(html = "") {
             }
 
             // Close on backdrop click
-            modal.addEventListener("click", (e) => {
+            addEventListenerWithCleanup(modal, "click", (e) => {
                 if (e.target === modal) {
                     hideAboutModal();
                 }
@@ -248,7 +250,7 @@ export function showAboutModal(html = "") {
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                /** @type {HTMLElement} */ (modalContent).addEventListener("click", (e) => {
+                addEventListenerWithCleanup(/** @type {HTMLElement} */(modalContent), "click", (e) => {
                     e.stopPropagation();
                 });
             }
@@ -475,8 +477,8 @@ const devHelpers = {
     /**
      * Show modal with sample content for testing
      */ /**
-     * Reset all styles and recreate modal
-     */
+    * Reset all styles and recreate modal
+    */
     reset: () => {
         const existingModal = document.querySelector("#about-modal"),
             existingStyles = document.querySelector("#about-modal-styles");
@@ -530,7 +532,7 @@ if (typeof process !== "undefined" && process.env && process.env.NODE_ENV === "d
 
 // Initialize modal styles when module loads
 if (typeof document !== "undefined" && document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
+    addEventListenerWithCleanup(document, "DOMContentLoaded", () => {
         // Pre-initialize styles for better performance
         injectModalStyles();
     });

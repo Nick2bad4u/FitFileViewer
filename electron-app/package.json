@@ -213,6 +213,7 @@
     "clean-releases:all": "powershell -ExecutionPolicy Bypass -File ../.github/Clean-Releases.ps1 -deleteTags -keepLast 1000",
     "package": "electron-builder --dir",
     "typecheck": "tsc --project .\\tsconfig.json",
+    "types:build": "tsc --project .\\tsconfig.json --declaration --emitDeclarationOnly --outDir ./types",
     "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
     "lint:all": "npm run lint && npm run prettier",
     "lint:fix": "npm run lint -- --fix",

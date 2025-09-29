@@ -1,8 +1,11 @@
+import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+
 /**
  * Sets up a tab button by assigning a click event handler to it.
  *
  * @param {string} id - The ID of the button element.
  * @param {Function} handler - The event handler function to be executed on click.
+ * @returns {Function|void} Cleanup function to remove the event listener, or void if setup failed
  * @throws {void} Logs a warning if the button with the given `id` is not found.
  */
 export function setupTabButton(id, handler) {
@@ -45,14 +48,17 @@ export function setupTabButton(id, handler) {
     }
 
     // Clean up any existing handlers to prevent memory leaks
-    // Store the handler reference for potential cleanup
-    if (/** @type {any} */ (btn)._setupTabButtonHandler) {
-        btn.removeEventListener("click", /** @type {any} */ (btn)._setupTabButtonHandler);
+    if (/** @type {any} */ (btn)._setupTabButtonCleanup) {
+        /** @type {any} */ (btn)._setupTabButtonCleanup();
     }
 
-    // Store handler reference for cleanup and add new listener
-    /** @type {any} */ (btn)._setupTabButtonHandler = handler;
-    btn.addEventListener("click", handler);
+    // Use centralized event listener manager for automatic cleanup tracking
+    const cleanup = addEventListenerWithCleanup(btn, "click", handler);
+
+    // Store cleanup function for potential manual cleanup
+    /** @type {any} */ (btn)._setupTabButtonCleanup = cleanup;
+
+    return cleanup;
 }
 
 /**
@@ -74,9 +80,9 @@ export function clearTabButtonCache() {
         // Clean up event handlers before clearing cache
         for (const btn of cache.values()) {
             const anyBtn = /** @type {any} */ (btn);
-            if (anyBtn._setupTabButtonHandler) {
-                btn.removeEventListener("click", anyBtn._setupTabButtonHandler);
-                delete anyBtn._setupTabButtonHandler;
+            if (anyBtn._setupTabButtonCleanup) {
+                anyBtn._setupTabButtonCleanup();
+                delete anyBtn._setupTabButtonCleanup;
             }
         }
         cache.clear();

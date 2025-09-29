@@ -1,1 +1,1 @@
-{"version":3,"file":"updateActiveTab.d.ts","sourceRoot":"","sources":["../../../../utils/ui/tabs/updateActiveTab.js"],"names":[],"mappings":"AAyHA;;;GAGG;AACH,gCAFa,MAAM,CAIlB;AAID;;GAEG;AACH,iDAuEC;AAED;;;;GAIG;AACH,uCAHW,MAAM,GACJ,OAAO,CA2CnB"}
+{"version":3,"file":"updateActiveTab.d.ts","sourceRoot":"","sources":["../../../../utils/ui/tabs/updateActiveTab.js"],"names":[],"mappings":"AA0HA;;;GAGG;AACH,gCAFa,MAAM,CAIlB;AAID;;GAEG;AACH,iDAuEC;AAED;;;;GAIG;AACH,uCAHW,MAAM,GACJ,OAAO,CA2CnB"}
