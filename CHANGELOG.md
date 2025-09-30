@@ -7,12 +7,38 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[aeacc15](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)...
-[aeacc15](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aeacc15eac5208f5fbb4f0ae394648b690f819c7...aeacc15eac5208f5fbb4f0ae394648b690f819c7))
+[[112400b](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)...
+[112400b](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/112400b5aafca6f7d9f52c240060b74f69be6988...112400b5aafca6f7d9f52c240060b74f69be6988))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 27.1.0 [`(112400b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)
+
+
+
+
+
+
+## [27.1.0] - 2025-09-30
+
+
+[[aeacc15](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)...
+[21c4d9a](https://github.com/Nick2bad4u/FitFileViewer/commit/21c4d9a005d7c6a2bfe5c78dfa3f5ce72d889b3c)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aeacc15eac5208f5fbb4f0ae394648b690f819c7...21c4d9a005d7c6a2bfe5c78dfa3f5ce72d889b3c))
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.0.0 [skip ci] [`(c94c386)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c94c386e059a490897220f29dca461a7ab9d4aa1)
+
+
+
+### 📦 Dependencies
+
+- *(deps)* [dependency] Update vite (#152) [`(21c4d9a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/21c4d9a005d7c6a2bfe5c78dfa3f5ce72d889b3c)
+
 
 - [dependency] Update version 27.0.0 [`(aeacc15)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)
 
@@ -1546,9 +1572,9 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(65ed
 ## [26.0.0] - 2025-08-28
 
 
-[[8a0f03c](https://github.com/Nick2bad4u/FitFileViewer/commit/8a0f03cf3a0042f9921e4bdebc099df6bd64c755)...
+[[b66df28](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)...
 [375a256](https://github.com/Nick2bad4u/FitFileViewer/commit/375a256b221561caa8b1cb53212fe7c8aeaf3afa)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/8a0f03cf3a0042f9921e4bdebc099df6bd64c755...375a256b221561caa8b1cb53212fe7c8aeaf3afa))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/b66df283fb26e5370017f20bd7cfd27b11f4318d...375a256b221561caa8b1cb53212fe7c8aeaf3afa))
 
 
 ### 💼 Other
@@ -1623,10 +1649,18 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(bb2d
 - Update metrics.repository.svg - [Skip GitHub Action] [`(2bf65d8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2bf65d8659c3f8796e3bdf53ff96ddc6110d5f0a)
 
 
+- Merge PR #140
+
+[dev-dependency](deps-dev): [dependency] Update form-data 2.5.5 in /electron-app in the npm_and_yarn group [`(e5106a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e5106a2107ed186928da741dc72569e6c1641c86)
+
+
 
 ### ⚙️ Miscellaneous Tasks
 
 - Update changelogs for v25.9.0 [skip ci] [`(875ab59)`](https://github.com/Nick2bad4u/FitFileViewer/commit/875ab596b8e40aef84d0c8475ebd376e8c40cc39)
+
+
+- Update changelogs for v25.8.0 [skip ci] [`(aeea72d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aeea72d606ef085484bf668a5061f794d6a5057e)
 
 
 
@@ -1645,34 +1679,6 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 94 updat
 
 - [dependency] Update version 25.9.0 [`(8a0f03c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8a0f03cf3a0042f9921e4bdebc099df6bd64c755)
 
-
-
-
-
-
-## [25.9.0] - 2025-07-22
-
-
-[[b66df28](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)...
-[e5106a2](https://github.com/Nick2bad4u/FitFileViewer/commit/e5106a2107ed186928da741dc72569e6c1641c86)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/b66df283fb26e5370017f20bd7cfd27b11f4318d...e5106a2107ed186928da741dc72569e6c1641c86))
-
-
-### 💼 Other
-
-- Merge PR #140
-
-[dev-dependency](deps-dev): [dependency] Update form-data 2.5.5 in /electron-app in the npm_and_yarn group [`(e5106a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e5106a2107ed186928da741dc72569e6c1641c86)
-
-
-
-### ⚙️ Miscellaneous Tasks
-
-- Update changelogs for v25.8.0 [skip ci] [`(aeea72d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aeea72d606ef085484bf668a5061f794d6a5057e)
-
-
-
-### 📦 Dependencies
 
 - *(deps-dev)* [dependency] Update form-data [`(a264ee8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a264ee83b9ab33d9b73cbe3b0c5b3af601dbae42)
 
