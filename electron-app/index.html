@@ -60,6 +60,18 @@
         <script src="utils.js" type="module" defer></script>
         <!-- Load screenfull before main-ui.js -->
         <script type="module" src="vendor/screenfull-global.js"></script>
+        <script src="ui/modals/accentColorPicker.js" type="module" defer></script>
+        <script type="module">
+            // Initialize Quick Color Switcher and Unified Control Bar
+            import { initQuickColorSwitcher } from './utils/ui/quickColorSwitcher.js';
+            import { initUnifiedControlBar, initFilenameAutoScroll } from './utils/ui/unifiedControlBar.js';
+
+            document.addEventListener('DOMContentLoaded', () => {
+                initQuickColorSwitcher();
+                initUnifiedControlBar();
+                initFilenameAutoScroll();
+            });
+        </script>
         <script src="main-ui.js" type="module" defer></script>
         <style>
             /* Move inline styles to CSS */
@@ -131,10 +143,6 @@
                     </svg>
                 </span>
                 <span class="btn-label">Open FIT File</span>
-                <span class="btn-kbd" aria-hidden="true">
-                    <kbd>Ctrl</kbd>
-                    <kbd>O</kbd>
-                </span>
             </button>
             <div id="activeFileNameContainer">
                 <span id="activeFileName"></span>

@@ -627,6 +627,19 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                                 ? BrowserWindow.getFocusedWindow()
                                 : null);
                         if (win && win.webContents) {
+                            win.webContents.send("open-accent-color-picker");
+                        }
+                    },
+                    label: "🎨 Accent Color...",
+                },
+                {
+                    click: () => {
+                        const win =
+                            mainWindow ||
+                            (BrowserWindow && typeof BrowserWindow.getFocusedWindow === "function"
+                                ? BrowserWindow.getFocusedWindow()
+                                : null);
+                        if (win && win.webContents) {
                             win.webContents.send("open-summary-column-selector");
                         }
                     },

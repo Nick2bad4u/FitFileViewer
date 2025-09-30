@@ -602,6 +602,14 @@ export function setupListeners({
             // Section will automatically load and display all the version information
             showAboutModal();
         });
+        globalThis.electronAPI.onIpc("open-accent-color-picker", () => {
+            console.log("Opening accent color picker");
+            if (typeof globalThis.showAccentColorPicker === "function") {
+                globalThis.showAccentColorPicker();
+            } else {
+                console.error("showAccentColorPicker function not available");
+            }
+        });
         globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
             console.log("Keyboard shortcuts menu clicked - starting handler");
             // Check if the keyboard shortcuts modal script is already loaded

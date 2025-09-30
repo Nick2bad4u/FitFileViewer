@@ -718,7 +718,7 @@ h2 {
     box-shadow:
         inset 0 14px 42px var(--c_rgb255255255_12p),
         inset 0 -16px 48px rgb(var(--color-accent-rgb) / 26%);
-    z-index: 2;
+    z-index: 5;
 }
 
 .hero-mascot-frame::after {
@@ -794,7 +794,7 @@ h2 {
         0 18px 32px var(--c_rgb000_42p),
         inset 0 1px 0 var(--c_rgb255255255_18p);
     backdrop-filter: blur(12px);
-    z-index: 3;
+    z-index: 10;
     animation: hero-card-float 8s ease-in-out infinite;
 }
 
@@ -2255,11 +2255,17 @@ body[data-has-fit-file="true"] .tab-bar {
    Card & Section Containers
    ===================================================== */
 .tab-card {
-    background: var(--color-surface);
+    background: linear-gradient(
+        135deg,
+        var(--color-surface) 0%,
+        rgb(var(--color-accent-rgb) / 3%) 100%
+    );
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--border-radius);
-    box-shadow: 0 32px 60px var(--c_rgb000_28p);
+    box-shadow:
+        0 32px 60px var(--c_rgb000_28p),
+        inset 0 1px 0 rgb(var(--color-accent-rgb) / 8%);
     padding: clamp(24px, 3.5vw, 36px) clamp(18px, 3vw, 32px) clamp(20px, 3vw, 30px);
     margin: 0 auto clamp(24px, 4vw, 40px);
     width: 98%;
@@ -2814,14 +2820,51 @@ body[data-has-fit-file="true"] .header-brand {
     font-style: italic;
     min-width: 0;
     white-space: nowrap;
-    overflow: scroll;
+    overflow: hidden;
     text-overflow: clip;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     vertical-align: middle;
     position: relative;
     flex: 0 1 auto;
     max-width: 100%;
     transition: color 0.2s ease;
+}
+
+#activeFileName::-webkit-scrollbar {
+    display: none;
+}
+
+#activeFileName {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* Keep Active: label fixed */
+#activeFileName .active-label {
+    flex-shrink: 0;
+    margin-right: 0.5ch;
+}
+
+/* Scrollable filename text */
+#activeFileName .filename-text {
+    display: inline-block;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* Auto-scroll animation for long filenames - scrolls LEFT to reveal more */
+@keyframes filename-scroll {
+    0%, 15% {
+        transform: translateX(0);
+    }
+    85%, 100% {
+        transform: translateX(calc(-1 * var(--scroll-distance, 0px)));
+    }
+}
+
+#activeFileName.scrolling .filename-text {
+    animation: filename-scroll 8s linear infinite;
 }
 
 body.app-has-file #activeFileName,
@@ -3234,6 +3277,51 @@ body.theme-light .zone-color-preview:hover {
     align-items: center;
     gap: 0;
     margin-top: 8px;
+}
+
+/* Make map control SVG elements use accent color */
+#map-controls button svg text,
+#map-controls svg text {
+    fill: var(--color-accent) !important;
+    font-weight: 600;
+}
+
+/* Override inline fill and stroke attributes on all SVG elements */
+#map-controls button svg rect,
+#map-controls button svg path,
+#map-controls button svg circle,
+#map-controls button svg line,
+#map-controls button svg polyline,
+#map-controls button svg polygon {
+    stroke: var(--color-accent) !important;
+}
+
+#map-controls button svg rect[fill],
+#map-controls button svg path[fill],
+#map-controls button svg circle[fill],
+#map-controls button svg polygon[fill] {
+    fill: rgb(var(--color-accent-rgb) / 15%) !important;
+}
+
+/* Hover states */
+#map-controls button:hover svg text {
+    fill: var(--color-accent-secondary) !important;
+}
+
+#map-controls button:hover svg rect,
+#map-controls button:hover svg path,
+#map-controls button:hover svg circle,
+#map-controls button:hover svg line,
+#map-controls button:hover svg polyline,
+#map-controls button:hover svg polygon {
+    stroke: var(--color-accent-secondary) !important;
+}
+
+#map-controls button:hover svg rect[fill],
+#map-controls button:hover svg path[fill],
+#map-controls button:hover svg circle[fill],
+#map-controls button:hover svg polygon[fill] {
+    fill: rgb(var(--color-accent-rgb) / 25%) !important;
 }
 
 body.theme-light #leaflet-map {
@@ -3691,37 +3779,128 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 /* Improved Fullscreen Button */
-.fullscreen-btn-wrapper {
-    pointer-events: none;
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    z-index: 2001;
-}
-
-.fullscreen-btn.improved {
-    pointer-events: auto;
-    background: var(--c_rgb303454_92p);
-    border: none;
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    box-shadow: 0 2px 12px var(--c_rgb000_18p);
-    color: var(--c_hexfff);
-    font-size: 1.6rem;
+/* Unified Control Bar */
+.app-control-bar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition:
-        background 0.2s,
-        box-shadow 0.2s,
-        transform 0.2s;
-    cursor: pointer;
-    outline: none;
+    gap: 6px;
+    background: var(--color-bg-alt-solid);
+    border: 1px solid var(--color-border);
+    border-radius: 21px;
+    padding: 4px;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    z-index: 2001;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.app-control-bar:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.fullscreen-btn-wrapper {
+    pointer-events: none;
+    position: relative;
+}
+
+/* Only the button itself should receive pointer events */
+.fullscreen-btn-wrapper .fullscreen-btn {
+    pointer-events: auto;
+}
+
+/* Ensure icon and its children never block pointer events */
+.fullscreen-btn .fullscreen-icon,
+.fullscreen-btn .fullscreen-icon *,
+.fullscreen-btn .fullscreen-icon svg,
+.fullscreen-btn .fullscreen-icon svg * {
+    pointer-events: none !important;
+}
+
+/* Override themed-btn styles for fullscreen button */
+.fullscreen-btn.improved.themed-btn,
+.fullscreen-btn.improved {
+    pointer-events: auto;
+    background: var(--color-bg-alt-solid) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 18px !important;
+    width: 50px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    color: var(--color-fg) !important;
+    font-size: 1.05rem;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(10px);
+    overflow: visible !important;
+    isolation: auto !important;
+    transform: none !important;
+}
+
+/* Remove themed-btn pseudo-elements but NOT tooltip ones */
+.fullscreen-btn.improved.themed-btn:not([data-tooltip])::before,
+.fullscreen-btn.improved.themed-btn:not([data-tooltip])::after {
+    display: none !important;
+    content: none !important;
+}
+
+.fullscreen-btn.improved.themed-btn:hover,
+.fullscreen-btn.improved.themed-btn:focus,
+.fullscreen-icon:hover,
+.fullscreen-btn .fullscreen-icon:hover,
 .fullscreen-btn.improved:hover,
 .fullscreen-btn.improved:focus,
+.fullscreen-btn.improved:hover,
+.fullscreen-btn.improved:focus {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+    transform: scale(1.08) !important;
+}
+
+.fullscreen-btn.improved.themed-btn:active,
+.fullscreen-btn.improved:active {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: scale(0.98) !important;
+}
+
+/* Disabled state for fullscreen button */
+.fullscreen-btn.improved:disabled,
+.fullscreen-btn.improved.themed-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background: var(--color-bg-alt-solid) !important;
+    border-color: var(--color-border) !important;
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fullscreen-btn.improved:disabled:hover,
+.fullscreen-btn.improved:disabled:focus,
+.fullscreen-btn.improved.themed-btn:disabled:hover,
+.fullscreen-btn.improved.themed-btn:disabled:focus {
+    background: var(--color-bg-alt-solid) !important;
+    border-color: var(--color-border) !important;
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fullscreen-btn.improved:disabled .fullscreen-icon svg,
+.fullscreen-btn.improved.themed-btn:disabled .fullscreen-icon svg {
+    color: var(--color-fg) !important;
+    opacity: 0.4 !important;
+}
+
 .exit-fullscreen-overlay:hover,
 .exit-fullscreen-overlay:focus {
     background: var(--c_hex1976d2) !important;
@@ -3730,7 +3909,6 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     transform: scale(1.08);
 }
 
-.fullscreen-btn.improved:active,
 .exit-fullscreen-overlay:active {
     background: var(--c_hex1565c0);
     transform: scale(0.98);
@@ -3738,8 +3916,113 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 .fullscreen-btn .fullscreen-icon {
     pointer-events: none;
-    font-size: 1.4em;
+    font-size: 1em;
     transition: color 0.2s;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-btn .fullscreen-icon svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-accent);
+}
+
+/* Tooltips for control bar buttons - positioned below */
+.app-control-bar [data-tooltip],
+.fullscreen-btn-wrapper [data-tooltip],
+.fullscreen-btn.improved[data-tooltip] {
+    position: relative;
+}
+
+.app-control-bar [data-tooltip]::after,
+.fullscreen-btn-wrapper [data-tooltip]::after,
+.fullscreen-btn.improved[data-tooltip]::after,
+.fullscreen-btn.improved.themed-btn[data-tooltip]::after {
+    content: attr(data-tooltip) !important;
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: var(--color-bg-alt-solid) !important;
+    color: var(--color-fg) !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    pointer-events: none !important;
+    z-index: 10000 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--color-border) !important;
+    display: block !important;
+    width: max-content !important;
+    max-width: 200px !important;
+    min-width: fit-content !important;
+}
+
+/* Adjust tooltip position when it would go off-screen to the right */
+.app-control-bar [data-tooltip]:last-child::after,
+.fullscreen-btn-wrapper [data-tooltip]::after,
+.fullscreen-btn.improved[data-tooltip]::after,
+.fullscreen-btn.improved.themed-btn[data-tooltip]::after {
+    left: auto !important;
+    right: 0 !important;
+        height: 28px;
+    transform: translateX(0) !important;
+}
+
+/* Adjust arrow position for right-aligned tooltips */
+.app-control-bar [data-tooltip]:last-child::before,
+.fullscreen-btn-wrapper [data-tooltip]::before,
+.fullscreen-btn.improved[data-tooltip]::before,
+.fullscreen-btn.improved.themed-btn[data-tooltip]::before {
+    left: auto !important;
+    right: 10px !important;
+    transform: translateX(0) !important;
+}
+
+.app-control-bar [data-tooltip]::before,
+.fullscreen-btn-wrapper [data-tooltip]::before,
+.fullscreen-btn.improved[data-tooltip]::before,
+.fullscreen-btn.improved.themed-btn[data-tooltip]::before {
+    content: '' !important;
+    position: absolute !important;
+    top: calc(100% + 2px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    border: 6px solid transparent !important;
+    border-bottom-color: var(--color-border) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    pointer-events: none !important;
+    z-index: 10000 !important;
+    display: block !important;
+}
+
+.app-control-bar [data-tooltip]:hover::after,
+.app-control-bar [data-tooltip]:hover::before,
+.fullscreen-btn-wrapper [data-tooltip]:hover::after,
+.fullscreen-btn-wrapper [data-tooltip]:hover::before,
+.fullscreen-btn.improved[data-tooltip]:hover::after,
+.fullscreen-btn.improved[data-tooltip]:hover::before,
+.fullscreen-btn.improved.themed-btn[data-tooltip]:hover::after,
+.fullscreen-btn.improved.themed-btn[data-tooltip]:hover::before {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.fullscreen-btn .fullscreen-icon svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-accent);
 }
 
 .tab-content:fullscreen,
@@ -4124,6 +4407,23 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 #openFileBtn {
     margin-bottom: 0 !important;
+}
+
+#openFileBtn .btn-label {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.85) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+#openFileBtn svg {
+    color: rgba(255, 255, 255, 0.9);
+    filter: drop-shadow(0 0 8px rgb(var(--color-accent-rgb) / 30%));
 }
 
 .themed-btn {

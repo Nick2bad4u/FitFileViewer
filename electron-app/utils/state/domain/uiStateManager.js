@@ -441,7 +441,7 @@ export class UIStateManager {
 
         if (fileSpan) {
             if (hasRenderableFile) {
-                fileSpan.innerHTML = `<span class="active-label">Active:</span> ${displayName}`;
+                fileSpan.innerHTML = `<span class="active-label">Active:</span> <span class="filename-text">${displayName}</span>`;
                 fileSpan.title = displayName;
                 fileSpan.classList.remove("marquee");
                 fileSpan.scrollLeft = 0;

@@ -1,5 +1,7 @@
 // Theme utility functions for theme switching and persistence
 
+import { initializeAccentColor } from "./accentColor.js";
+
 /**
  * @typedef {Object} ThemeConfig
  * @property {string} theme - The effective theme name
@@ -59,6 +61,10 @@ export function applyTheme(theme, withTransition = true) {
     // Persist theme preference
     try {
         localStorage.setItem("ffv-theme", theme);
+
+        // Apply accent color for the current theme
+        const effectiveTheme = getEffectiveTheme(theme);
+        initializeAccentColor(effectiveTheme);
 
         // Notify other components of theme change
         dispatchThemeChangeEvent(theme);
@@ -304,11 +310,11 @@ export function initializeTheme() {
 export function listenForSystemThemeChange() {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
         const handleSystemThemeChange = () => {
-                const currentTheme = loadTheme();
-                if (currentTheme === THEME_MODES.AUTO) {
-                    applyTheme(THEME_MODES.AUTO, true);
-                }
-            },
+            const currentTheme = loadTheme();
+            if (currentTheme === THEME_MODES.AUTO) {
+                applyTheme(THEME_MODES.AUTO, true);
+            }
+        },
             mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
 
         // Use the newer addEventListener if available, fallback to addListener
@@ -343,13 +349,13 @@ export function listenForThemeChange(onThemeChange) {
     ) {
         // The callback receives a 'theme' parameter, which is expected to be a string ('dark' or 'light').
         /** @type {any} */ (globalThis).electronAPI.onSetTheme((/** @type {string} */ theme) => {
-            onThemeChange(theme);
-            if (typeof (/** @type {any} */ (globalThis).electronAPI.sendThemeChanged) === "function") {
+        onThemeChange(theme);
+        if (typeof (/** @type {any} */ (globalThis).electronAPI.sendThemeChanged) === "function") {
                 /** @type {any} */ (globalThis).electronAPI.sendThemeChanged(theme);
-            } else {
-                console.warn("sendThemeChanged method is not available on electronAPI.");
-            }
-        });
+        } else {
+            console.warn("sendThemeChanged method is not available on electronAPI.");
+        }
+    });
     } else {
         console.warn("Electron API is not available. Theme change listener is not active.");
     }

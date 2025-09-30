@@ -87,10 +87,11 @@ export function addFullScreenButton() {
             const btn = document.createElement("button");
             btn.id = FULLSCREEN_BUTTON_ID;
             btn.className = "fullscreen-btn improved themed-btn";
-            btn.title = "Toggle Full Screen (F11)";
+            btn.dataset.tooltip = "Load a file first";
             btn.setAttribute("aria-label", "Toggle full screen mode");
             btn.setAttribute("role", "button");
-            btn.setAttribute("tabindex", "0");
+            btn.setAttribute("tabindex", "-1");
+            btn.disabled = true;
             btn.style.pointerEvents = "auto";
             btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
             btn.addEventListener("click", () => nativeToggleFullscreen());
@@ -109,10 +110,11 @@ export function addFullScreenButton() {
         const btn = document.createElement("button");
         btn.id = FULLSCREEN_BUTTON_ID;
         btn.className = "fullscreen-btn improved themed-btn";
-        btn.title = "Toggle Full Screen (F11)";
+        btn.dataset.tooltip = "Load a file first";
         btn.setAttribute("aria-label", "Toggle full screen mode");
         btn.setAttribute("role", "button");
-        btn.setAttribute("tabindex", "0");
+        btn.setAttribute("tabindex", "-1");
+        btn.disabled = true;
         btn.style.pointerEvents = "auto";
         btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
         btn.addEventListener("click", handleFullscreenToggle);
@@ -290,27 +292,22 @@ function createExitFullscreenIcon() {
  */
 function handleDOMContentLoaded() {
     try {
-        const { electronAPI } = globalThis;
-        if (electronAPI && typeof electronAPI.setFullScreen === "function") {
-            const { setFullScreen } = electronAPI;
-            setFullScreen(false);
-        }
+        addFullScreenButton();
 
-        const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
+        // Watch for file load state changes
+        const observer = new MutationObserver(() => {
+            updateFullscreenButtonState();
+        });
 
-        if (hasRequiredElements) {
-            addFullScreenButton();
-            logWithContext("DOM ready: Fullscreen button initialized");
-        } else {
-            logWithContext("DOM ready: No required content elements found", "warn");
-            for (const id of REQUIRED_CONTENT_IDS) {
-                if (!document.getElementById(id)) {
-                    logWithContext(`Missing element: ${id}`, "warn");
-                }
-            }
-        }
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+
+        // Initial state check
+        updateFullscreenButtonState();
     } catch (error) {
-        logWithContext(`Error during DOM content loaded: ${/** @type {any} */ (error).message}`, "error");
+        logWithContext(`Error in DOMContentLoaded handler: ${/** @type {any} */ (error).message}`, "error");
     }
 }
 
@@ -495,8 +492,6 @@ function nativeToggleFullscreen(target) {
     }
 }
 
-// logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
-
 /**
  * Updates the fullscreen button icon and title based on current state
  * @param {HTMLElement} button - The fullscreen button element
@@ -528,4 +523,21 @@ function updateButtonState(button, isFullscreen) {
     } catch (error) {
         logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
     }
+}
+
+// logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
+
+/**
+ * Updates fullscreen button state based on whether a file is loaded
+ * @private
+ */
+function updateFullscreenButtonState() {
+    const btn = document.getElementById(FULLSCREEN_BUTTON_ID);
+    if (!btn) return;
+
+    const hasFile = document.body.classList.contains("app-has-file");
+
+    btn.disabled = !hasFile;
+    btn.setAttribute("tabindex", hasFile ? "0" : "-1");
+    btn.dataset.tooltip = hasFile ? "Fullscreen (F11)" : "Load a file first";
 }

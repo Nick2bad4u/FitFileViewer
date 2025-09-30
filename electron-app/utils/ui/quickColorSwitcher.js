@@ -1,0 +1,400 @@
+/**
+ * @fileoverview Quick Accent Color Switcher
+ * @description A sleek floating button for instant accent color switching
+ * @author FitFileViewer Development Team
+ * @version 1.0.0
+ */
+
+import { getEffectiveAccentColor, setAccentColor } from "../theming/core/accentColor.js";
+import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
+
+/**
+ * Preset color palettes with witty names
+ * @private
+ */
+const COLOR_PRESETS = [
+    { color: "#3b82f6", name: "Blue-tiful" },
+    { color: "#8b5cf6", name: "Purple Rain" },
+    { color: "#ec4899", name: "Pink Panther" },
+    { color: "#10b981", name: "Green Machine" },
+    { color: "#f59e0b", name: "Golden Hour" },
+    { color: "#ef4444", name: "Red Hot" },
+    { color: "#06b6d4", name: "Cyan-tific" },
+    { color: "#f97316", name: "Orange Crush" },
+];
+
+/**
+ * ID for the color switcher element
+ * @private
+ */
+const SWITCHER_ID = "quick-color-switcher";
+
+/**
+ * Initializes the quick color switcher
+ */
+export function initQuickColorSwitcher() {
+    // Check if already initialized
+    if (document.getElementById(SWITCHER_ID)) {
+        return;
+    }
+
+    // Create and inject the switcher
+    const switcher = createSwitcherElement();
+    document.body.append(switcher);
+
+    // Inject styles
+    injectSwitcherStyles();
+
+    // Setup event listeners
+    setupSwitcherListeners(switcher);
+}
+
+/**
+ * Updates the active color in the switcher
+ * @param {string} color - The new active color
+ */
+export function updateSwitcherActiveColor(color) {
+    const switcher = document.getElementById(SWITCHER_ID);
+    if (!switcher) return;
+
+    const colorOptions = switcher.querySelectorAll(".color-option");
+    for (const option of colorOptions) {
+        option.classList.toggle("active", option.dataset.color === color);
+    }
+}
+
+/**
+ * Creates the switcher DOM element
+ * @returns {HTMLElement} The switcher element
+ * @private
+ */
+function createSwitcherElement() {
+    const switcher = document.createElement("div");
+    switcher.id = SWITCHER_ID;
+    switcher.className = "quick-color-switcher";
+
+    const currentTheme = loadTheme();
+    const effectiveTheme = getEffectiveTheme(currentTheme);
+    const currentColor = getEffectiveAccentColor(effectiveTheme);
+
+    switcher.innerHTML = `
+		<button class="switcher-toggle" id="color-switcher-toggle" data-tooltip="Quick Colors" aria-label="Open color switcher">
+			<svg class="switcher-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="currentColor"/>
+				<circle cx="12" cy="12" r="5" fill="currentColor" opacity="0.7"/>
+			</svg>
+			<span class="switcher-label">Colors</span>
+		</button>
+		<div class="switcher-dropdown" id="color-switcher-dropdown">
+			<div class="switcher-header">
+				<span class="witty-title">🎨 Pick Your Vibe</span>
+			</div>
+			<div class="color-grid">
+				${COLOR_PRESETS.map(
+        (preset) => `
+					<button
+						class="color-option ${preset.color === currentColor ? "active" : ""}"
+						data-color="${preset.color}"
+						title="${preset.name}"
+						style="background: ${preset.color};"
+						aria-label="Switch to ${preset.name}"
+					>
+						<span class="color-name">${preset.name}</span>
+						<span class="color-check">✓</span>
+					</button>
+				`,
+    ).join("")}
+			</div>
+			<div class="switcher-footer">
+				<button class="open-settings-btn" id="open-full-settings" title="Advanced color settings">
+					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+						<path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+						<path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+					More Options
+				</button>
+			</div>
+		</div>
+	`;
+
+    return switcher;
+}
+
+/**
+ * Injects CSS styles for the switcher
+ * @private
+ */
+function injectSwitcherStyles() {
+    if (document.getElementById("quick-color-switcher-styles")) {
+        return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "quick-color-switcher-styles";
+    style.textContent = `
+	.quick-color-switcher {
+		position: static;
+		top: 20px;
+		right: 20px;
+		z-index: 999;
+		font-family: var(--font-sans);
+	}		.switcher-toggle {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 10px 16px;
+			background: var(--color-bg-alt-solid);
+			border: 1px solid var(--color-border);
+			border-radius: 24px;
+			color: var(--color-fg);
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			backdrop-filter: blur(10px);
+		}
+
+	.switcher-toggle:hover {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: var(--color-accent);
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+		transform: scale(1.08);
+	}
+
+	.switcher-toggle:active {
+		transform: scale(0.98);
+	}
+
+	.switcher-icon {
+		width: 16px;
+		height: 16px;
+		color: var(--color-accent);
+		flex-shrink: 0;
+	}
+
+	.switcher-label {
+		display: none;
+	}	.switcher-dropdown {
+		position: absolute;
+		top: calc(100% + 12px);
+		right: 0;
+		width: 320px;
+		background: var(--color-bg-alt-solid);
+		border: 1px solid var(--color-border);
+		border-radius: 12px;
+		box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-10px);
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		backdrop-filter: blur(10px);
+		z-index: 100;
+	}		.switcher-dropdown.open {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+		}
+
+		.switcher-header {
+			padding: 16px;
+			border-bottom: 1px solid var(--color-border);
+		}
+
+		.witty-title {
+			font-size: 1.1rem;
+			font-weight: 700;
+			background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-secondary) 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.color-grid {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 10px;
+			padding: 16px;
+		}
+
+		.color-option {
+			position: relative;
+			padding: 16px 12px;
+			border: 2px solid transparent;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.color-option::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: inherit;
+			opacity: 0.9;
+			transition: opacity 0.2s;
+		}
+
+		.color-option:hover::before {
+			opacity: 1;
+		}
+
+		.color-option:hover {
+			border-color: var(--color-fg);
+			transform: scale(1.05);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		}
+
+		.color-option:active {
+			transform: scale(0.98);
+		}
+
+		.color-option.active {
+			border-color: var(--color-fg);
+			box-shadow: 0 0 0 3px var(--color-accent-hover);
+		}
+
+		.color-name {
+			position: relative;
+			z-index: 1;
+			font-size: 0.85rem;
+			font-weight: 600;
+			color: white;
+			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+		}
+
+		.color-check {
+			position: absolute;
+			top: 6px;
+			right: 6px;
+			font-size: 14px;
+			opacity: 0;
+			color: white;
+			transform: scale(0.5);
+			transition: all 0.2s;
+			z-index: 1;
+			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+		}
+
+		.color-option.active .color-check {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		.switcher-footer {
+			padding: 12px 16px;
+			border-top: 1px solid var(--color-border);
+		}
+
+		.open-settings-btn {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			padding: 8px 12px;
+			background: var(--color-glass);
+			border: 1px solid var(--color-border);
+			border-radius: 6px;
+			color: var(--color-fg);
+			font-size: 0.85rem;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.open-settings-btn:hover {
+			background: var(--color-accent-hover);
+			border-color: var(--color-accent);
+			color: var(--color-accent);
+		}
+
+		.open-settings-btn svg {
+			color: var(--color-accent);
+		}
+
+		/* Mobile responsive */
+		@media (max-width: 768px) {
+			.quick-color-switcher {
+				top: 10px;
+				right: 10px;
+			}
+
+			.switcher-toggle {
+				padding: 8px 12px;
+			}
+
+			.switcher-label {
+				font-size: 0.85rem;
+			}
+
+			.switcher-dropdown {
+				width: 280px;
+			}
+
+			.color-grid {
+				grid-template-columns: repeat(2, 1fr);
+				gap: 8px;
+			}
+		}
+	`;
+
+    document.head.append(style);
+}
+
+/**
+ * Sets up event listeners for the switcher
+ * @param {HTMLElement} switcher - The switcher element
+ * @private
+ */
+function setupSwitcherListeners(switcher) {
+    const toggle = switcher.querySelector("#color-switcher-toggle");
+    const dropdown = switcher.querySelector("#color-switcher-dropdown");
+    const colorOptions = switcher.querySelectorAll(".color-option");
+    const settingsBtn = switcher.querySelector("#open-full-settings");
+
+    // Toggle dropdown
+    toggle?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown?.classList.toggle("open");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!switcher.contains(e.target)) {
+            dropdown?.classList.remove("open");
+        }
+    });
+
+    // Color option click
+    for (const option of colorOptions) {
+        option.addEventListener("click", () => {
+            const { color } = option.dataset;
+            if (color) {
+                const currentTheme = loadTheme();
+                const effectiveTheme = getEffectiveTheme(currentTheme);
+                setAccentColor(color, effectiveTheme);
+
+                // Update active state
+                for (const opt of colorOptions) {
+                    opt.classList.remove("active");
+                }
+                option.classList.add("active");
+
+                // Close dropdown after short delay
+                setTimeout(() => {
+                    dropdown?.classList.remove("open");
+                }, 500);
+            }
+        });
+    }
+
+    // Open full settings modal
+    settingsBtn?.addEventListener("click", async () => {
+        dropdown?.classList.remove("open");
+        const { showSettingsModal } = await import("./settingsModal.js");
+        showSettingsModal();
+    });
+}

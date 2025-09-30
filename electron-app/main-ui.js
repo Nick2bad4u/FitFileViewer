@@ -21,6 +21,7 @@ import { UIActions } from "./utils/state/domain/uiStateManager.js";
 import { applyTheme, listenForThemeChange, loadTheme } from "./utils/theming/core/theme.js";
 import { setupDOMContentLoaded, setupFullscreenListeners } from "./utils/ui/controls/addFullScreenButton.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
+import "./utils/ui/settingsModal.js";
 
 /**
  * @typedef {Object} FitFileData Placeholder for decoded FIT file structure
