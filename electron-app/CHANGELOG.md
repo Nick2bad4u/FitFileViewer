@@ -7,14 +7,341 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[aeacc15](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)...
+[aeacc15](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aeacc15eac5208f5fbb4f0ae394648b690f819c7...aeacc15eac5208f5fbb4f0ae394648b690f819c7))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.0.0 [`(aeacc15)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aeacc15eac5208f5fbb4f0ae394648b690f819c7)
+
+
+
+
+
+
+## [27.0.0] - 2025-09-30
+
+
 [[2d1bb63](https://github.com/Nick2bad4u/FitFileViewer/commit/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8)...
-[2d1bb63](https://github.com/Nick2bad4u/FitFileViewer/commit/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8...2d1bb6392beda3e4c9d9143e31c1851ac855bcc8))
+[40dbc7d](https://github.com/Nick2bad4u/FitFileViewer/commit/40dbc7d15639656add92ca04644214ba77e61bed)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8...40dbc7d15639656add92ca04644214ba77e61bed))
+
+
+### 🛠️ GitHub Actions
+
+- 🚜 [refactor] Remove vendored `libs` directory
+
+Removes the `electron-app/libs` directory, which previously contained manually vendored third-party libraries. This change streamlines the project's dependency management by relying on `npm` for all third-party packages.
+
+### ✨ Features & Refactoring
+*   Removes all files from the `electron-app/libs` folder, including assets for `Leaflet.MiniMap`, `Leaflet.markercluster`, and `arquero`.
+*   Updates all configuration files to remove ignore patterns and exclusions related to the `libs` directory.
+    - This affects DevSkim (`.devskim.json`), spell checking (`.spellcheck.yml`), code duplication detection (`.jscpd.json`), code coverage (`codecov.yml`), Prettier (`.prettierignore`), and ESLint (`eslint.config.mjs`).
+
+### 📝 Documentation
+*   Updates `APPLICATION_LAYOUT.md` and `APPLICATION_OVERVIEW.md` to reflect the removal of the `libs` directory and clarify that third-party libraries are managed via `npm`.
+
+### 👷 CI/CD
+*   Updates GitHub Actions workflows (`Build.yml`, `superlinter.yml`, `updateChangeLogs.yml`) to remove all steps and configurations related to the `libs` directory.
+    - No longer caches the `libs` folder.
+    - Ceases generation of changelogs for the `libs` directory.
+    - Removes `libs` from linting and scanning exclusion filters.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(41562e4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/41562e4d5c288cab12143a3a316ba2465b69838c)
+
+
+
+### 💼 Other
+
+- 🎨 [style] Apply consistent code formatting across the project
+
+This commit introduces a wide-ranging set of stylistic updates to enforce a consistent code format across multiple files.
+
+- 🎨 Standardizes quote usage from single (`'`) to double (`"`) quotes in JavaScript, HTML, and CSS files for uniformity.
+- 🎨 Improves readability by adding consistent spacing, notably within JSDoc type casts (e.g., `/** @type {any} */(val)` becomes `/** @type {any} */ (val)`).
+- 🎨 Refactors empty arrow function bodies from `() => { }` to the more compact `() => {}`.
+- 🎨 Normalizes whitespace, indentation, and line breaks in CSS, including within `@keyframes` blocks and property declarations.
+- 🎨 Cleans up minor formatting inconsistencies in object literals, function calls, and ternary expressions.
+
+These changes are purely cosmetic and do not alter the application's runtime behavior or logic.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(40dbc7d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/40dbc7d15639656add92ca04644214ba77e61bed)
+
+
+- ✨ [feat] Implement dynamic accent color theming system
+
+This commit introduces a comprehensive and customizable accent color system, allowing users to personalize the application's appearance. It includes a core theming engine, multiple UI components for color selection, and style updates across the application to adopt the new system.
+
+### ✨ Features
+-   **Accent Color Engine**:
+    -   Adds a new core module (`accentColor.js`) to manage setting, getting, resetting, and persisting custom accent colors in `localStorage`.
+    -   Dynamically generates a full palette of color variations (e.g., secondary, hover, glows, gradients) from a single base color.
+    -   Applies colors via CSS custom properties, allowing for real-time updates without a page reload.
+-   **Unified Control Bar**:
+    -   Introduces a new floating control bar in the top-right corner to group application-level UI controls.
+    -   Moves the existing fullscreen button and the new quick color switcher into this unified bar for a cleaner interface.
+    -   Includes a new, robust tooltip system for all control bar buttons.
+-   **Color Selection UIs**:
+    -   Adds a "Quick Color Switcher" dropdown to the new control bar, offering a palette of curated preset colors for fast changes.
+    -   Implements a full "Settings" modal with advanced appearance options.
+        -   Provides controls for theme selection (Auto, Dark, Light).
+        -   Includes a detailed accent color picker with a color wheel, hex input, and a live preview of UI components.
+    -   Integrates a new "Accent Color..." option in the main application menu to open the settings modal.
+-   **Auto-Scrolling Filename**:
+    -   Implements an auto-scrolling animation for the active filename in the header when it's too long to fit, ensuring full visibility.
+
+### 🎨 Style & Refactor
+-   Updates UI components across the application to use the new accent color CSS variables, including:
+    -   Buttons and gradients.
+    -   Map controls (zoom buttons, etc.).
+    -   Tab cards and hero section glow effects.
+-   Refactors the fullscreen button, disabling it until a file is loaded and improving its visual style to match the new control bar.
+-   Enhances the main "Open FIT File" button with a gradient text effect.
+-   Centralizes the initialization of UI components (`quickColorSwitcher`, `unifiedControlBar`) in `index.html`.
+
+### 📝 Docs
+-   Adds a new detailed documentation file (`ACCENT_COLOR_CODE_EXAMPLES.js`) with usage examples, best practices, and a quick reference for the new accent color system.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(f016c0f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f016c0fa3913cf387ea252e05b6a53522441454d)
+
+
+- ✨ [feat] Introduce centralized resource and event listener management
+
+This commit introduces a comprehensive `ResourceManager` and a new `EventListenerManager` to centralize and automate the cleanup of application resources, preventing memory leaks and improving application stability.
+
+### ✨ Source Code Changes:
+- **New `ResourceManager`**:
+    - Adds a new singleton `ResourceManager` to track and manage the lifecycle of various resources like charts, maps, timers, intervals, observers, and workers.
+    - Provides a unified API (`register`, `unregister`, `cleanupAll`) for consistent resource handling.
+    - Integrates with the application lifecycle, automatically cleaning up all registered resources on window unload or during a manual shutdown sequence.
+- **New `EventListenerManager`**:
+    - Introduces `addEventListenerWithCleanup` to register event listeners that are automatically tracked.
+    - All tracked listeners can be removed with a single call to `cleanupEventListeners`, which is now hooked into the `ResourceManager`.
+- **Refactored UI Components**:
+    - Updates modals (`about`, `keyboardShortcuts`, `zoneColorPicker`), notifications, and tab button setup logic to use `addEventListenerWithCleanup` instead of `element.addEventListener`. This ensures all listeners are properly managed and cleaned up.
+- **Chart Management**:
+    - Integrates `renderChartJS` with the `ResourceManager`. New charts are now automatically registered for cleanup when they are created.
+- **Performance Optimization**:
+    - Implements background pre-rendering for charts in `showFitData.js`. Charts are now rendered during browser idle time after a file is loaded, making the "Charts" tab appear to load instantly.
+
+### 🧪 Test & Build Changes:
+- **Unit Tests**:
+    - Updates numerous unit tests for tab management and UI components to align with the new event listener management system. Tests now verify functionality rather than implementation details like manually attached event handlers.
+- **TypeScript Declarations**:
+    - Adds a `types:build` npm script to `package.json` to generate `.d.ts` declaration files for better type checking and IntelliSense.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a80883e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a80883e0694d4ea75d8baa9bafe23b9405f11204)
+
+
+- ⚡ [perf] Introduce cancellation tokens and optimize UI responsiveness
+
+This commit introduces a comprehensive set of performance optimizations to address UI lag, particularly during chart rendering and tab switching.
+
+### Key Changes:
+
+✨ **[feat] Cancellation Token System**
+- Adds a robust `CancellationToken` and `CancellationTokenSource` system to manage and cancel long-running asynchronous operations. This prevents wasted CPU cycles on tasks that are no longer needed, such as rendering a chart after the user has already navigated to a different tab.
+
+⚡ **[perf] Tab Switching and Rendering**
+- Integrates a new `TabRenderingManager` to orchestrate tab-specific operations.
+- When switching tabs, any in-progress rendering for the old tab is now immediately cancelled.
+- Chart rendering on the 'chart' tab is now wrapped in a cancellable operation, making tab switches feel instantaneous.
+- Defers non-critical rendering operations using `requestIdleCallback` to keep the main thread free.
+
+🛠️ **[fix] Delayed Chart Notifications**
+- Eliminates a bug where "Charts rendered" notifications would appear after switching away from the chart tab.
+- Adds multiple checks to ensure the chart tab is still active before initializing rendering, creating individual charts, and displaying the final success notification.
+
+✨ **[feat] Performance Utilities**
+- Introduces a new suite of reusable performance utilities to aid in current and future optimizations:
+  - **Async Helpers**: `debounce`, `throttle`, and `memoize` for controlling function execution frequency.
+  - **Lazy Rendering**: `createLazyRenderer` (using `IntersectionObserver`) and `deferUntilIdle` to postpone work until needed or when the browser is idle.
+  - **DOM Batching**: `batchDOMReads` and `batchDOMWrites` to prevent layout thrashing by coordinating DOM access.
+
+📝 **[docs] Performance Optimization Summary**
+- Adds a detailed document outlining the problems addressed, the solutions implemented, performance benchmarks, and future optimization opportunities.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(844ba96)`](https://github.com/Nick2bad4u/FitFileViewer/commit/844ba96bef52353de8c941d42d9e4096602ad592)
+
+
+- ✨ [feat] Introduce main process state management API
+
+This commit introduces a new IPC-based API for managing application state within the main process, accessible from the renderer process. This centralizes state logic and provides a structured way for different parts of the application to interact with and react to state changes.
+
+✨ **Features**
+-   Adds a new state management API to the preload script, exposing functions to get, set, and listen for changes in the main process state.
+-   Exposes endpoints for retrieving the status of operations, recent errors, and performance metrics.
+-   Adds `'unsafe-eval'` to the Content Security Policy to support development tooling and libraries.
+
+🧹 **Chore**
+-   Updates various frontend library script paths in `index.html`.
+-   Updates the `@types/jsdom` development dependency.
+-   Aliases unused IPC handler imports in `main.js` to satisfy linter rules.
+-   Adds generated TypeScript declaration files from the build process.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7e03b86)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7e03b863a8299a1641732fc46451aa1f8ca6d38f)
+
+
+- ✨ [feat] Overhaul frontend with Vite, React, and TypeScript
+
+This commit marks a major migration of the frontend application to a modern stack, replacing the previous implementation with a new one built using Vite, React, and TypeScript.
+
+✨ **[feat] New Frontend Architecture**
+- Introduces a React-based component architecture for a more modular and maintainable UI.
+- Adopts Vite for a significantly faster development server and optimized production builds.
+- Leverages TypeScript for improved type safety and developer experience.
+
+✨ **[feat] Enhanced User Interface**
+- Implements a redesigned results view with sortable and filterable data tables.
+- Adds interactive tooltips, popovers, and improved error/issue reporting for better usability.
+- Integrates `lucide-react` for clean and modern iconography.
+
+🎨 **[style] UI and Asset Updates**
+- Adds new icons and image assets for maps and UI elements.
+- Includes Leaflet CSS for map styling.
+
+📝 **[docs] Simplified AI Instructions**
+- Refactors and simplifies the Copilot instructions to be more concise and focused on the new technology stack.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(58667fd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/58667fd4106b0938eb0a1f29295d5bdddff6c708)
+
+
+- 🚜 [refactor] Overhaul main process logic and enhance overlay file handling
+
+This commit introduces a major refactoring of the Electron main process and significantly improves the functionality and user experience for handling FIT file overlays.
+
+### Source Code Changes
+
+*   **Main Process Refactoring**
+    *   🚜 [refactor] Extracts large portions of logic from `main.js` into smaller, single-responsibility modules under `electron-app/main/`.
+        *   IPC handlers are now organized into `registerDialogHandlers.js`, `registerRecentFileHandlers.js`, `registerFileSystemHandlers.js`, etc.
+        *   Main window creation and initialization logic is moved into `main/window/bootstrapMainWindow.js`.
+    *   ⚡ [perf] This modularization cleans up `main.js`, reduces its complexity, and improves maintainability and testability.
+
+*   **Overlay File Handling**
+    *   ✨ [feat] Implements the use of the native Electron file dialog for selecting multiple overlay files, replacing the web-based file input.
+        *   - This is enabled by a new `dialog:openOverlayFiles` IPC channel.
+    *   🛠️ [fix] Overhauls the overlay loading logic in `loadOverlayFiles.js` for improved robustness.
+        *   - Adds duplicate file detection based on file path or name to prevent loading the same overlay multiple times.
+        *   - Improves progress notifications and provides clearer user feedback for successful loads, failures, and duplicates.
+    *   🎨 [style] Enhances the "Shown Files" list UI for better accessibility and usability.
+        *   - Adds full keyboard navigation (arrow keys, home, end, enter, delete).
+        *   - Improves ARIA roles and attributes for screen readers.
+    *   💾 [chore] Integrates overlay file state (`loadedFitFiles`) with the central state management system, ensuring UI and data consistency across the app.
+
+*   **Map & UI Controls**
+    *   🛠️ [fix] Improves the "center map on main file" action with a retry mechanism to handle cases where the map or track data isn't immediately available.
+    *   🎨 [style] Disables the "Add FIT Files as Overlays" button until a primary FIT file is loaded, preventing user confusion.
+    *   🛠️ [fix] Refactors the global fullscreen button logic for better reliability, cleaner event listener management, and improved handling of both native and library-based fullscreen APIs.
+
+### Test & Build Changes
+
+*   🧪 [test] Updates numerous tests to align with the refactored code, new features, and improved asynchronous behavior.
+*   🔧 [build] Updates the `BeastMode.chatmode.md` configuration with a revised list of available tools.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(27d82bd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/27d82bd8e5c14ed000502f044585d635a06d88ac)
+
+
+- 🔧 [build] Add TypeScript declaration files for codebase
+
+This commit introduces TypeScript declaration files (`.d.ts`) for the entire JavaScript codebase, generated from existing JSDoc annotations.
+
+- 📝 [docs] Adds comprehensive type definitions for all modules, including application logic, utilities, UI components, and state management. This provides a clear contract for how different parts of the application interact.
+- ✨ [feat] Enhances the developer experience by enabling robust static analysis, autocompletion, and type-checking in IDEs like Visual Studio Code. This helps catch potential errors during development rather than at runtime.
+- 🔧 [build] Establishes a foundation for improved code quality and maintainability, making future refactoring and feature development safer and more efficient.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ce23d36)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ce23d3623dfaed40e8107d1d2cc7791fb038ac3d)
+
+
+- ✨ [feat] Add overlay file loading and enhance file menu functionality
+
+This commit introduces several new features and enhancements, primarily focused on improving file handling and menu interactions within the Electron application.
+
+✨ **[feat] File Overlay Support**
+*   Adds a new menu option, "➕ Add FIT Files as Overlays...", allowing users to load additional FIT files on top of the primary one.
+*   Introduces a `menu-open-overlay` IPC channel to trigger the file selector from the renderer process.
+*   The `onMenuOpenOverlay` event handler is now exposed through the preload script and typed in `global.d.ts`.
+
+🚜 **[refactor] Menu Creation and IPC Handling**
+*   Refactors `createAppMenu.js` to be more robust and context-aware.
+    -   It now reliably finds the target window for sending IPC messages, even if the initial `mainWindow` reference is lost.
+    -   Centralizes IPC sending logic into a `sendToRenderer` helper function.
+    -   Improves the logic for clearing recent files, which now also triggers a UI update and unloads the current file.
+*   Refactors IPC listener setup in `listeners.js` using a `ensureMenuForwarder` utility to avoid redundant listener registration.
+
+✨ **[feat] Enhanced File Menu Actions**
+*   Adds "📂 Reveal in File Explorer" to the file menu, using `shell.showItemInFolder` to open the file's location.
+*   Adds "📋 Copy File Path" to the file menu, which copies the current file's path to the clipboard and shows a success notification.
+*   These new menu items are context-aware and are enabled only when a file is loaded.
+
+🎨 **[style] Minor UI Adjustments**
+*   Centers the content of the header bar for a more balanced layout.
+*   Adjusts the flex properties of card elements to prevent them from growing, maintaining a consistent size.
+
+📝 **[docs] Project Documentation**
+*   Adds a DeepWiki badge to the `README.md` to provide AI-powered assistance for the repository.
+
+🧪 **[test] Comprehensive Test Suite Improvements**
+*   Adds extensive tests for the new menu functionality, including overlay loading, file path copying, and revealing files.
+*   Significantly improves the robustness of `createAppMenu.test.ts` by:
+    -   Adding a test that programmatically clicks every menu item to ensure no handlers crash.
+    -   Refactoring mocks for `shell` and `clipboard` to be more reliable.
+    -   Testing that decoder option states persist correctly after being changed.
+*   Adds test coverage for the new `onMenuOpenOverlay` preload API and its corresponding listener logic.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(10095df)`](https://github.com/Nick2bad4u/FitFileViewer/commit/10095dfc71de3d0bd2b119b35ee83402c9db8b16)
+
+
+- 🧪 [test] Add integration tests for file and UI utilities
+
+Adds a suite of integration tests to improve coverage and ensure the reliability of several core utility modules.
+
+*   **🧪 FIT Parser IPC:**
+    *   Verifies that IPC handlers for decoding FIT files and managing decoder options are correctly registered in the main process.
+    *   Ensures the preload script properly exposes the `fitParser` API to the renderer process and that its methods correctly invoke the corresponding IPC channels.
+
+*   **🧪 Recent Files:**
+    *   Tests that the recent files list is correctly saved to the `userData` path provided by Electron.
+    *   Validates the fallback behavior, where a temporary file is used and cleaned up on process exit if the Electron app context is unavailable.
+    *   Confirms that file loading and saving works as expected when a path is explicitly configured.
+
+*   **🧪 Theme Setup:**
+    *   Ensures the application theme is correctly initialized from the main process, with a fallback to `localStorage`.
+    *   Tests that the UI theme updates correctly in response to both external events (from the main process) and internal state changes.
+    *   Adds checks for graceful error handling when `localStorage` is inaccessible.
+
+*   **🧪 HR Zone & Fullscreen Controls:**
+    *   Improves test coverage for the HR Zone controls, including state persistence, hover effects, and visibility updates.
+    *   Adds tests for moving HR zone toggles into a unified section.
+    *   Introduces tests for the `removeExitFullscreenOverlay` utility, covering successful removal, error handling, and cache/fallback logic.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7b3788e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7b3788eb8bdff39bd91e52b80d3705e5207ff51f)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v26.9.0 [skip ci] [`(abb3437)`](https://github.com/Nick2bad4u/FitFileViewer/commit/abb3437da62a40105dc04927901323512550c50c)
+
 
 
 ### 📦 Dependencies
 
 - [dependency] Update version 26.9.0 [`(2d1bb63)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2d1bb6392beda3e4c9d9143e31c1851ac855bcc8)
+
+
+
+### 🛡️ Security
+
+- 🔧 [build] Update npm dependencies
+
+🧹 [chore] [dependency] Updates numerous project dependencies to their latest versions.
+ - This routine update ensures the project benefits from the latest features, bug fixes, and security patches from the wider ecosystem. 🛡️
+ - The changes are consolidated within the `package-lock.json` file.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(5259d10)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5259d10818db3ef1ccc296eb46d372276b2ad369)
 
 
 
