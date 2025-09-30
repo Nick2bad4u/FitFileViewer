@@ -1671,7 +1671,7 @@ body[data-has-fit-file="true"] #activeFileNameContainer {
             20% 80%,
             48% 56%,
             0 0,
-                                 0 0,
+            0 0,
             0 0,
             52% 62%;
     }
@@ -2255,11 +2255,7 @@ body[data-has-fit-file="true"] .tab-bar {
    Card & Section Containers
    ===================================================== */
 .tab-card {
-    background: linear-gradient(
-        135deg,
-        var(--color-surface) 0%,
-        rgb(var(--color-accent-rgb) / 3%) 100%
-    );
+    background: linear-gradient(135deg, var(--color-surface) 0%, rgb(var(--color-accent-rgb) / 3%) 100%);
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--border-radius);
@@ -2855,10 +2851,12 @@ body[data-has-fit-file="true"] .header-brand {
 
 /* Auto-scroll animation for long filenames - scrolls LEFT to reveal more */
 @keyframes filename-scroll {
-    0%, 15% {
+    0%,
+    15% {
         transform: translateX(0);
     }
-    85%, 100% {
+    85%,
+    100% {
         transform: translateX(calc(-1 * var(--scroll-distance, 0px)));
     }
 }
@@ -3974,7 +3972,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .fullscreen-btn.improved.themed-btn[data-tooltip]::after {
     left: auto !important;
     right: 0 !important;
-        height: 28px;
+    height: 28px;
     transform: translateX(0) !important;
 }
 
@@ -3992,7 +3990,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .fullscreen-btn-wrapper [data-tooltip]::before,
 .fullscreen-btn.improved[data-tooltip]::before,
 .fullscreen-btn.improved.themed-btn[data-tooltip]::before {
-    content: '' !important;
+    content: "" !important;
     position: absolute !important;
     top: calc(100% + 2px) !important;
     left: 50% !important;
@@ -4294,7 +4292,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     background: var(--color-btn-bg);
     color: var(--color-modal-fg);
     border: 1px solid var(--color-border-light);
-       border-radius: var(--border-radius-small);
+    border-radius: var(--border-radius-small);
     padding: 8px 16px;
     transition: var(--transition-smooth);
 }
@@ -4410,11 +4408,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 #openFileBtn .btn-label {
-    background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(255, 255, 255, 0.85) 100%
-    );
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

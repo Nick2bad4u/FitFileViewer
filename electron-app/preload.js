@@ -67,9 +67,9 @@ const // Constants for better maintainability
      */
     /**
      * @typedef {Object} ElectronAPI
-    * @property {() => Promise<string[]>} openFile
-    * @property {() => Promise<string[]>} openFileDialog
-    * @property {() => Promise<string[]>} openOverlayDialog
+     * @property {() => Promise<string[]>} openFile
+     * @property {() => Promise<string[]>} openFileDialog
+     * @property {() => Promise<string[]>} openOverlayDialog
      * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} parseFitFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} decodeFitFile
@@ -86,8 +86,8 @@ const // Constants for better maintainability
      * @property {(url: string) => Promise<boolean>} openExternal
      * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
      * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
-    * @property {(callback: Function) => void} onMenuOpenFile
-    * @property {(callback: Function) => void} onMenuOpenOverlay
+     * @property {(callback: Function) => void} onMenuOpenFile
+     * @property {(callback: Function) => void} onMenuOpenOverlay
      * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
      * @property {(callback: (theme: string) => void) => void} onSetTheme
      * @property {(callback: Function) => void} onOpenSummaryColumnSelector
@@ -482,10 +482,7 @@ const electronAPI = {
      * Opens the overlay file dialog with multi-selection support.
      * @returns {Promise<string[]>}
      */
-    openOverlayDialog: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
-        "openOverlayDialog"
-    ),
+    openOverlayDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES, "openOverlayDialog"),
 
     // FIT File Operations
     /**
