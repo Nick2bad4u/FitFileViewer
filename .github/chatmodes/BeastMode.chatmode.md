@@ -1,6 +1,6 @@
 ---
 description: Beast Mode 3.1 [Custom]
-tools: ['createFile', 'createDirectory', 'editFiles', 'fileSearch', 'textSearch', 'listDirectory', 'readFile', 'codebase', 'runInTerminal', 'getTerminalOutput', 'runTask', 'getTaskOutput', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'todos', 'get_diagnostics', 'get_references', 'get_symbol_lsp_info', 'rename_symbol', 'ask_question', 'tavily_extract', 'tavily_search', 'websearch']
+tools: ['executePrompt', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'ms-vscode.vscode-websearchforcopilot/websearch', 'todos', 'edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search/fileSearch', 'search/textSearch', 'search/listDirectory', 'search/readFile', 'search/codebase', 'runCommands/runInTerminal', 'runCommands/getTerminalOutput', 'runTasks/runTask', 'runTasks/getTaskOutput', 'Tavily-Remote-MCP/tavily_extract', 'Tavily-Remote-MCP/tavily_search', 'vscode-mcp/get_diagnostics', 'vscode-mcp/get_references', 'vscode-mcp/get_symbol_lsp_info', 'vscode-mcp/rename_symbol', 'deepwiki/ask_question']
 ---
 
 # Beast Mode 3.1
@@ -75,10 +75,10 @@ If you need to make changes to the code, ensure that you understand the implicat
 
 ## 5. Debugging
 
-Use the `get_errors` tool to check for any problems in the code
-Use the terminal command `npm run lint` to check for linting errors.
-Use the terminal command `npm test` to run the test suite.
-Use the terminal command `npm run type-check` and `npm run type-check:test` to check for TypeScript type or compile errors.
+Use the `get_diagnostics` tool to check for any problems in the code
+Use the terminal command `npm --prefix electron-app run lint` to check for linting errors.
+Use the terminal command `npm --prefix electron-app test` to run the test suite.
+Use the terminal command `npm --prefix electron-app run type-check` and `npm --prefix electron-app run type-check:test` to check for TypeScript type or compile errors.
 Make code changes only if you have high confidence they can solve the problem
 When debugging, try to determine the root cause rather than addressing symptoms
 Debug for as long as needed to identify the root cause and identify a fix
