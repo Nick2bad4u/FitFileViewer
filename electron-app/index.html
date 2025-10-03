@@ -16,6 +16,11 @@
             content="FIT file viewer, fitness data, GPS tracks, cycling, running, sports analytics, data visualization"
         />
         <title>Fit File Viewer</title>
+
+        <!-- Preload critical CSS for better performance -->
+        <link rel="preload" href="style.css" as="style" />
+        <link rel="preload" href="ui-enhancements.css" as="style" />
+
         <!-- App/Website Icons -->
         <link rel="icon" type="image/png" href="icons/favicon-96x96.png" sizes="96x96" />
         <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
@@ -56,6 +61,8 @@
         <script src="node_modules/maplibre-gl/dist/maplibre-gl.js" defer></script>
         <script src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js" defer></script>
         <link rel="stylesheet" href="style.css" />
+        <!-- UI Enhancements - Modern component styles -->
+        <link rel="stylesheet" href="ui-enhancements.css" />
         <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
         <script src="utils.js" type="module" defer></script>
         <!-- Load screenfull before main-ui.js -->

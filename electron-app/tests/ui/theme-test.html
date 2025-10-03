@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme System Test - FitFileViewer</title>
+    <link rel="stylesheet" href="../../style.css" />
+    <link rel="stylesheet" href="../../ui-enhancements.css" />
+    <style>
+        body {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--color-glass);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+        }
+        .test-section h2 {
+            color: var(--color-fg);
+            margin-top: 0;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .theme-controls {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--color-modal-bg);
+            padding: 16px;
+            border-bottom: 2px solid var(--color-border);
+            box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+            margin: -20px -20px 20px -20px;
+        }
+        .theme-controls h1 {
+            margin: 0 0 16px 0;
+            color: var(--color-fg);
+        }
+    </style>
+</head>
+<body class="theme-dark">
+
+    <!-- Theme Controls -->
+    <div class="theme-controls">
+        <h1>🎨 FitFileViewer Theme System Test</h1>
+        <div class="flex gap-3">
+            <button class="themed-btn" onclick="setTheme('dark')">🌙 Dark Theme</button>
+            <button class="themed-btn btn-secondary" onclick="setTheme('light')">☀️ Light Theme</button>
+            <button class="themed-btn btn-secondary" onclick="setTheme('auto')">🔄 Auto Theme</button>
+        </div>
+    </div>
+
+    <!-- Buttons Test -->
+    <div class="test-section">
+        <h2>Buttons</h2>
+        <div class="component-grid">
+            <div>
+                <h3>Primary</h3>
+                <button class="themed-btn">Primary Button</button>
+            </div>
+            <div>
+                <h3>Secondary</h3>
+                <button class="themed-btn btn-secondary">Secondary</button>
+            </div>
+            <div>
+                <h3>Danger</h3>
+                <button class="themed-btn btn-danger">Delete</button>
+            </div>
+            <div>
+                <h3>Success</h3>
+                <button class="themed-btn btn-success">Save</button>
+            </div>
+            <div>
+                <h3>Small</h3>
+                <button class="themed-btn btn-small">Small</button>
+            </div>
+            <div>
+                <h3>Large</h3>
+                <button class="themed-btn btn-large">Large</button>
+            </div>
+            <div>
+                <h3>Disabled</h3>
+                <button class="themed-btn" disabled>Disabled</button>
+            </div>
+            <div>
+                <h3>Loading</h3>
+                <button class="themed-btn btn-loading">Loading...</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forms Test -->
+    <div class="test-section">
+        <h2>Form Elements</h2>
+        <div class="component-grid">
+            <div class="form-group">
+                <label for="test-text">Text Input</label>
+                <input type="text" id="test-text" placeholder="Enter text...">
+            </div>
+            <div class="form-group">
+                <label for="test-email">Email Input</label>
+                <input type="email" id="test-email" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label for="test-select">Select Dropdown</label>
+                <select id="test-select">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="test-color">Color Picker</label>
+                <input type="color" id="test-color" value="#3b82f6">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="test-textarea">Textarea</label>
+            <textarea id="test-textarea" placeholder="Enter notes..."></textarea>
+        </div>
+        <div class="flex gap-2">
+            <label class="flex items-center gap-2">
+                <input type="checkbox" id="test-checkbox">
+                <span>Checkbox option</span>
+            </label>
+            <label class="flex items-center gap-2">
+                <input type="radio" name="test-radio" value="1">
+                <span>Radio 1</span>
+            </label>
+            <label class="flex items-center gap-2">
+                <input type="radio" name="test-radio" value="2">
+                <span>Radio 2</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Notifications Test -->
+    <div class="test-section">
+        <h2>Notifications</h2>
+        <div class="flex flex-wrap gap-2">
+            <button class="themed-btn btn-secondary" onclick="showTestNotification('success')">
+                Show Success
+            </button>
+            <button class="themed-btn btn-secondary" onclick="showTestNotification('error')">
+                Show Error
+            </button>
+            <button class="themed-btn btn-secondary" onclick="showTestNotification('warning')">
+                Show Warning
+            </button>
+            <button class="themed-btn btn-secondary" onclick="showTestNotification('info')">
+                Show Info
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading States Test -->
+    <div class="test-section">
+        <h2>Loading States</h2>
+        <div class="component-grid">
+            <div>
+                <h3>Spinners</h3>
+                <div class="flex items-center gap-3">
+                    <span class="spinner spinner-small"></span>
+                    <span class="spinner"></span>
+                    <span class="spinner spinner-large"></span>
+                </div>
+            </div>
+            <div>
+                <h3>Skeleton Loaders</h3>
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Utility Classes Test -->
+    <div class="test-section">
+        <h2>Utility Classes</h2>
+        <div class="flex justify-between items-center gap-3 p-3 rounded shadow">
+            <span>Flexbox with utilities</span>
+            <span>→</span>
+            <button class="themed-btn btn-small">Action</button>
+        </div>
+    </div>
+
+    <!-- Color Palette Display -->
+    <div class="test-section">
+        <h2>Color Palette (CSS Variables)</h2>
+        <div class="component-grid">
+            <div class="p-3 rounded" style="background: var(--color-accent);">
+                <span style="color: white; font-weight: 600;">Accent</span>
+            </div>
+            <div class="p-3 rounded" style="background: var(--color-success);">
+                <span style="color: white; font-weight: 600;">Success</span>
+            </div>
+            <div class="p-3 rounded" style="background: var(--color-error);">
+                <span style="color: white; font-weight: 600;">Error</span>
+            </div>
+            <div class="p-3 rounded" style="background: var(--color-warning);">
+                <span style="color: black; font-weight: 600;">Warning</span>
+            </div>
+            <div class="p-3 rounded" style="background: var(--color-glass); border: 1px solid var(--color-border);">
+                <span style="color: var(--color-fg); font-weight: 600;">Glass</span>
+            </div>
+            <div class="p-3 rounded" style="background: var(--color-bg-alt-solid);">
+                <span style="color: var(--color-fg); font-weight: 600;">BG Alt</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test notification container -->
+    <div id="notification-container" class="notification" style="display: none;">
+        <span class="notification-icon"></span>
+        <span class="notification-message"></span>
+        <button class="notification-close" onclick="hideNotification()">✕</button>
+    </div>
+
+    <script>
+        // Theme switching
+        function setTheme(theme) {
+            document.body.classList.remove('theme-dark', 'theme-light');
+
+            if (theme === 'auto') {
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.body.classList.add(`theme-${systemTheme}`);
+            } else {
+                document.body.classList.add(`theme-${theme}`);
+            }
+
+            console.log('Theme set to:', theme);
+        }
+
+        // Test notification system
+        function showTestNotification(type) {
+            const notification = document.getElementById('notification-container');
+            const icon = notification.querySelector('.notification-icon');
+            const message = notification.querySelector('.notification-message');
+
+            // Remove existing type classes
+            notification.classList.remove('success', 'error', 'warning', 'info');
+
+            // Set type-specific content
+            const notifications = {
+                success: { icon: '✅', text: 'Operation completed successfully!' },
+                error: { icon: '❌', text: 'An error occurred during the operation.' },
+                warning: { icon: '⚠️', text: 'Please review your input before continuing.' },
+                info: { icon: 'ℹ️', text: 'Processing your request...' }
+            };
+
+            const config = notifications[type];
+            icon.textContent = config.icon;
+            message.textContent = config.text;
+            notification.classList.add(type);
+
+            // Show notification
+            notification.style.display = 'flex';
+            requestAnimationFrame(() => {
+                notification.classList.add('show');
+            });
+
+            // Auto-hide after 4 seconds
+            setTimeout(hideNotification, 4000);
+        }
+
+        function hideNotification() {
+            const notification = document.getElementById('notification-container');
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 300);
+        }
+
+        // Initialize with dark theme
+        console.log('Theme test page loaded');
+    </script>
+</body>
+</html>
