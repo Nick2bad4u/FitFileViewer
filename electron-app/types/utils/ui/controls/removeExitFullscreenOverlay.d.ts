@@ -1,14 +1,17 @@
 /**
- * Removes the exit fullscreen overlay button from the specified container
+ * Removes the fullscreen exit overlay element if it exists
  *
- * Uses caching for improved performance and supports both modern and legacy removal methods.
- * Automatically cleans up cache entries when overlays are removed.
+ * This function provides a safe and performant way to remove the fullscreen exit overlay
+ * element from the DOM. It includes caching for improved performance.
  *
- * @param {HTMLElement} container - The DOM element from which to remove the overlay button
- * @throws {TypeError} If container is not a valid DOM element
+ * @returns {void}
+ *
  * @example
- * // Remove exit fullscreen overlay from a chart container
- * removeExitFullscreenOverlay(document.getElementById('chart-container'));
+ * // Remove the fullscreen exit overlay
+ * removeExitFullscreenOverlay();
+ *
+ * @public
+ * @since 1.0.0
  */
-export function removeExitFullscreenOverlay(container: HTMLElement): void;
+export function removeExitFullscreenOverlay(container: any): void;
 //# sourceMappingURL=removeExitFullscreenOverlay.d.ts.map

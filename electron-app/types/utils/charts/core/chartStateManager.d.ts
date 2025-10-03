@@ -1,5 +1,4 @@
 export const chartStateManager: ChartStateManager;
-export default chartStateManager;
 export type FitGlobalData = {
     recordMesgs?: Array<Object>;
 };
@@ -96,4 +95,5 @@ declare class ChartStateManager {
      */
     updateControlsVisibility(visible: boolean): void;
 }
+export {};
 //# sourceMappingURL=chartStateManager.d.ts.map

@@ -71,6 +71,9 @@ describe("addFullScreenButton", () => {
         expect(button).toBeInstanceOf(HTMLButtonElement);
         expect(button?.classList.contains("fullscreen-btn")).toBe(true);
 
+        // Enable the button before clicking (buttons are created disabled by default)
+        (button as HTMLButtonElement).disabled = false;
+
         (button as HTMLButtonElement).click();
         expect(requestFullscreen).toHaveBeenCalledTimes(1);
     });
@@ -102,6 +105,9 @@ describe("addFullScreenButton", () => {
 
         const button = document.getElementById("global-fullscreen-btn");
         expect(button).toBeInstanceOf(HTMLButtonElement);
+
+        // Enable the button before clicking (buttons are created disabled by default)
+        (button as HTMLButtonElement).disabled = false;
 
         (button as HTMLButtonElement).click();
         expect(screenfullMock.request).toHaveBeenCalledWith(activeContent);

@@ -18,8 +18,7 @@ vi.mock("../utils/formatting/converters/convertArrayBufferToBase64.js", () => ({
     convertArrayBufferToBase64: vi.fn(),
 }));
 
-vi.mock("../utils/ui/controls/addFullScreenButton.js", () => ({
-    setupDOMContentLoaded: vi.fn(),
+vi.mock("./utils/ui/controls/addFullScreenButton.js", () => ({
     setupFullscreenListeners: vi.fn(),
 }));
 

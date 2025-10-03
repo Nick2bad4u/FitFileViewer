@@ -105,7 +105,6 @@ export function set(path: string, value: any, options?: UnifiedStateOptions): vo
  * @returns {Function} Unsubscribe function
  */
 export function subscribe(path: string, callback: Function): Function;
-export default unifiedState;
 export type StateSystemRouter = {
     /**
      * - Check if path belongs to legacy system

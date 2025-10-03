@@ -1,5 +1,4 @@
 export const tabStateManager: TabStateManager;
-export default tabStateManager;
 export type TabDef = {
     id: string;
     contentId: string;
@@ -134,4 +133,5 @@ declare class TabStateManager {
  * @typedef {{id:string; contentId:string; label:string; requiresData:boolean; handler:string|null}} TabDef
  */
 export const TAB_CONFIG: Record<string, TabDef>;
+export {};
 //# sourceMappingURL=tabStateManager.d.ts.map

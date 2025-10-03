@@ -1,7 +1,8 @@
 /**
- * Shared lightweight chart-related types to cut down on repeated 'property does not exist on type Object' errors
- * while legacy JS migrates. These are intentionally partial; extend gradually.
- */
+ * Shared Chart.js type declarations for use across the application.
+ * These are intentionally partial; extend gradually.
+ *
+ * @module sharedChartTypes
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

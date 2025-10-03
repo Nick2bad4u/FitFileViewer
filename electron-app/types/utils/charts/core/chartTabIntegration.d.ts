@@ -1,5 +1,4 @@
 export const chartTabIntegration: ChartTabIntegration;
-export default chartTabIntegration;
 /**
  * Chart Tab Integration - manages the interaction between chart rendering and tab system
  */
@@ -64,4 +63,5 @@ declare class ChartTabIntegration {
      */
     switchToChartTab(): boolean;
 }
+export {};
 //# sourceMappingURL=chartTabIntegration.d.ts.map

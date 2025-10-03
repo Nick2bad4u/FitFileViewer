@@ -49,18 +49,6 @@ export namespace THEME_MODES {
     let DARK: string;
     let LIGHT: string;
 }
-export namespace theme {
-    export { THEME_MODES };
-    export { applyTheme };
-    export { getEffectiveTheme };
-    export { getSystemTheme };
-    export { getThemeConfig };
-    export { initializeTheme };
-    export { listenForSystemThemeChange };
-    export { listenForThemeChange };
-    export { loadTheme };
-    export { toggleTheme };
-}
 export type ThemeConfig = {
     /**
      * - The effective theme name

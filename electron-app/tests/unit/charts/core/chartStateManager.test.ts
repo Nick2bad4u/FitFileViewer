@@ -30,7 +30,7 @@ import { showNotification } from "../../../../utils/ui/notifications/showNotific
 import { invalidateChartRenderCache, renderChartJS } from "../../../../utils/charts/core/renderChartJS.js";
 
 // Import the module being tested
-import chartStateManager from "../../../../utils/charts/core/chartStateManager.js";
+import { chartStateManager } from "../../../../utils/charts/core/chartStateManager.js";
 
 describe("ChartStateManager", () => {
     beforeEach(() => {

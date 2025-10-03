@@ -19,16 +19,16 @@ describe("renderSummary helpers + renderSummary", () => {
     it("getStorageKey prefers window.globalData.cachedFilePath then data.cachedFilePath then activeFitFileName", async () => {
         const { getStorageKey } = await importHelpers();
         // No hints
-        expect(getStorageKey({}, [])).toBe("summaryColSel_default");
+        expect(getStorageKey({})).toBe("summaryColSel_default");
         // globalData
         (window as any).globalData = { cachedFilePath: "C:/tmp/foo.fit" };
-        expect(getStorageKey({}, [])).toContain("summaryColSel_");
+        expect(getStorageKey({})).toContain("summaryColSel_");
         // data fallback
         delete (window as any).globalData;
-        expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" } as any, [])).toContain("summaryColSel_");
+        expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" } as any)).toContain("summaryColSel_");
         // activeFitFileName fallback
-        (window as any).activeFitFileName = "bar.fit";
-        expect(getStorageKey({}, [])).toContain("summaryColSel_");
+                (global as any).window = { activeFitFileName: "another.fit" };
+        expect(getStorageKey({})).toContain("summaryColSel_");
     });
 
     it("save/load column preferences roundtrip", async () => {
@@ -36,10 +36,10 @@ describe("renderSummary helpers + renderSummary", () => {
         const key = "summaryColSel_test";
         const cols = ["a", "b", "c"];
         saveColPrefs(key, cols, undefined);
-        expect(loadColPrefs(key, undefined)).toEqual(cols);
+        expect(loadColPrefs(key)).toEqual(cols);
         // Invalid stored value returns null
         localStorage.setItem(key, "not-an-array");
-        expect(loadColPrefs(key, undefined)).toBeNull();
+        expect(loadColPrefs(key)).toBeNull();
     });
 
     it("renderSummary renders header, gear button opens modal, and table rows filter", async () => {

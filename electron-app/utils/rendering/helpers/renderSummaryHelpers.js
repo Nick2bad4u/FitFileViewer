@@ -32,13 +32,6 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
  */
 
 /**
- * Column selection localStorage key prefix constant
- * @type {string}
- */
-// (legacy prefix documented for clarity)
-// Const SUMMARY_COL_KEY_PREFIX = "summaryColSel_"; // not directly used; retained in comment
-
-/**
  * Augment window types (runtime only, JSDoc helps TS inference)
  * @typedef {Window & { globalData?: any; activeFitFileName?: string; aq?: any }} AugmentedWindow
  */
@@ -57,13 +50,10 @@ export function getRowLabel(rowIdx, isLap) {
 
 /**
  * Build a stable storage key for column visibility preferences for a given file path.
- * Accepts an unused second parameter to remain backwards compatible with older callers
- * passing (data, allKeys).
  * @param {FitSummaryData|GenericRecord|null|undefined} data
- * @param {string[]|undefined} [_allKeys] - Ignored (legacy compatibility)
  * @returns {string}
  */
-export function getStorageKey(data, _allKeys) {
+export function getStorageKey(data) {
     let fpath = "";
     try {
         const w = /** @type {AugmentedWindow} */ (globalThis);
@@ -85,12 +75,10 @@ export function getStorageKey(data, _allKeys) {
 
 /**
  * Load persisted visible column preferences.
- * Accepts unused second parameter allKeys for legacy compatibility (old signature loadColPrefs(key, allKeys)).
  * @param {string} key
- * @param {string[]|undefined} [_allKeys]
  * @returns {string[]|null}
  */
-export function loadColPrefs(key, _allKeys) {
+export function loadColPrefs(key) {
     try {
         const v = localStorage.getItem(key);
         if (v) {
@@ -382,7 +370,7 @@ export function showColModal({
                 updateVisibleColumns(newCols);
                 updateColList();
                 reRenderTable();
-                saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+                saveColPrefs(getStorageKey(globalThis.globalData || {}), newCols);
             }
         };
     }
@@ -413,7 +401,7 @@ export function showColModal({
             selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
             updateColList();
             reRenderTable();
-            saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+            saveColPrefs(getStorageKey(globalThis.globalData || {}), newCols);
         };
     }
     /**
@@ -453,7 +441,7 @@ export function showColModal({
         updateVisibleColumns(newCols);
         updateColList();
         reRenderTable();
-        saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+        saveColPrefs(getStorageKey(globalThis.globalData || {}), newCols);
     });
     modal.append(selectAllBtn);
     updateColList();
@@ -470,7 +458,7 @@ export function showColModal({
     okBtn.addEventListener("click", () => {
         overlay.remove();
         reRenderTable();
-        saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), visibleColumns);
+        saveColPrefs(getStorageKey(globalThis.globalData || {}), visibleColumns);
     });
     actions.append(cancelBtn);
     actions.append(okBtn);

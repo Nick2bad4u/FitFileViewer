@@ -5,7 +5,7 @@
             "type": "node",
             "request": "attach",
             "name": "Attach to Electron Main",
-            "port": 9229
+            "port": 9230
         },
         {
             "name": "Run Extension",

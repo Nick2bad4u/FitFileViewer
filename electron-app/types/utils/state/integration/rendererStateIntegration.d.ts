@@ -12,7 +12,6 @@ export function initializeRendererWithNewStateSystem(): void;
  * Replace your existing initialization with this pattern
  */
 export function migrateExistingRenderer(): void;
-export default initializeRendererWithNewStateSystem;
 export type StateMeta = {
     silent: boolean;
     source: string;

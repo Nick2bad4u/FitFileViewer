@@ -145,5 +145,3 @@ if (globalThis.window !== undefined) {
     globalThis.ChartUpdater = ChartUpdater;
     globalThis.chartUpdater = ChartUpdater; // Lowercase alias for consistency
 }
-
-export default ChartUpdater;

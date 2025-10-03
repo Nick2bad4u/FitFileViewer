@@ -347,6 +347,3 @@ function updateSummaryTab(data) {
     // Your existing summary update logic here
     console.log("[Renderer] Summary updated with new data", data);
 }
-
-// Export for use in renderer.js
-export default initializeRendererWithNewStateSystem;

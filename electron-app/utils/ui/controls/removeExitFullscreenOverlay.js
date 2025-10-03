@@ -3,13 +3,13 @@
  * @readonly
  */
 const OVERLAY_CONFIG = {
-        CSS_CLASS: "exit-fullscreen-overlay",
-        MESSAGES: {
-            INVALID_CONTAINER: "Container must be a valid DOM element",
-            OVERLAY_NOT_FOUND: "No exit fullscreen overlay found in container",
-            REMOVAL_FAILED: "Failed to remove exit fullscreen overlay:",
-        },
+    CSS_CLASS: "exit-fullscreen-overlay",
+    MESSAGES: {
+        INVALID_CONTAINER: "Container must be a valid DOM element",
+        OVERLAY_NOT_FOUND: "No exit fullscreen overlay found in container",
+        REMOVAL_FAILED: "Failed to remove exit fullscreen overlay:",
     },
+},
     /**
      * Cache for storing overlay references to improve performance
      * Uses WeakMap for automatic garbage collection when containers are removed
@@ -18,16 +18,19 @@ const OVERLAY_CONFIG = {
     overlayCache = new WeakMap();
 
 /**
- * Removes the exit fullscreen overlay button from the specified container
+ * Removes the fullscreen exit overlay element if it exists
  *
- * Uses caching for improved performance and supports both modern and legacy removal methods.
- * Automatically cleans up cache entries when overlays are removed.
+ * This function provides a safe and performant way to remove the fullscreen exit overlay
+ * element from the DOM. It includes caching for improved performance.
  *
- * @param {HTMLElement} container - The DOM element from which to remove the overlay button
- * @throws {TypeError} If container is not a valid DOM element
+ * @returns {void}
+ *
  * @example
- * // Remove exit fullscreen overlay from a chart container
- * removeExitFullscreenOverlay(document.getElementById('chart-container'));
+ * // Remove the fullscreen exit overlay
+ * removeExitFullscreenOverlay();
+ *
+ * @public
+ * @since 1.0.0
  */
 export function removeExitFullscreenOverlay(container) {
     // Input validation
@@ -73,18 +76,10 @@ function findOverlay(container) {
 }
 
 /**
- * Removes the overlay element using the appropriate method
+ * Removes the overlay element using the modern remove() method
  * @param {HTMLElement} overlay - The overlay element to remove
  * @private
  */
 function removeOverlayElement(overlay) {
-    // Use modern remove() method if available
-    if (typeof overlay.remove === "function") {
-        overlay.remove();
-    } else if (overlay.parentNode) {
-        // Fallback to legacy removeChild for older browsers
-        overlay.remove();
-    } else {
-        throw new Error("Unable to remove overlay: no removal method available");
-    }
+    overlay.remove();
 }

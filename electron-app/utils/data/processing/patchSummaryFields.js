@@ -6,6 +6,7 @@
 
 import { formatDistance } from "../../formatting/formatters/formatDistance.js";
 import { formatDuration } from "../../formatting/formatters/formatDuration.js";
+import { safeToNumber } from "../../formatting/helpers/numberHelpers.js";
 
 /**
  * @typedef {Object} PatchSummaryFieldsOptions
@@ -153,7 +154,6 @@ export function patchSummaryFields(obj, options = {}) {
     }
 }
 
-// (Legacy doc removed; replaced by typed version below.)
 /**
  * @param {any[] | string} val
  * @param {number} [digits]
@@ -266,7 +266,7 @@ function patchDecimalFields(obj, fieldNames, decimalPlaces) {
     patchFieldsWithFormatter(
         obj,
         fieldNames,
-        /** @param {number} value */ (value) => Number(value.toFixed(decimalPlaces)),
+        /** @param {number} value */(value) => Number(value.toFixed(decimalPlaces)),
         `decimal (${decimalPlaces} places)`
     );
 }
@@ -366,7 +366,6 @@ function patchTime(obj) {
     patchFieldsWithFormatter(obj, PATCH_CONSTANTS.FIELD_MAPPINGS.TIME, formatDuration, "time");
 }
 
-// Legacy aliases removed to avoid no-use-before-define under lint; callers use Modern names directly
 
 // Stub implementations for missing functions that aren't in FIELD_MAPPINGS
 /** @param {SummaryRecord} obj */
@@ -386,19 +385,7 @@ function patchDecimals(obj) {
     }
 }
 
-function safeToNumber(value, fieldName = "value") {
-    if (value == null) {
-        return null;
-    }
 
-    const num = Number(value);
-    if (!Number.isFinite(num)) {
-        logWithContext(`Invalid ${fieldName}: ${value}`, "warn");
-        return null;
-    }
-
-    return num;
-}
 
 /** @param {SummaryRecord} obj */
 function patchFractionalCadence(obj) {

@@ -53,5 +53,6 @@
     "typescript.preferences.includePackageJsonAutoImports": "on",
     "typescript.suggest.autoImports": true,
     "typescript.tsc.autoDetect": "off",
-    "vitest.rootConfig": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\vitest.config.js"
+    "vitest.rootConfig": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\vitest.config.js",
+    "vitest.vitestPackagePath": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\electron-app\\node_modules\\vitest\\package.json",
 }

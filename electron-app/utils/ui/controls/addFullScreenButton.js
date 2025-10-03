@@ -20,7 +20,6 @@ import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
 // Constants for better maintainability
 const FULLSCREEN_BUTTON_ID = "global-fullscreen-btn";
 const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
-const REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"];
 const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
 const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";
 const NATIVE_FULLSCREEN_EVENTS = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"];
@@ -128,43 +127,7 @@ export function addFullScreenButton() {
     }
 }
 
-/**
- * Alternative DOM setup function for backward compatibility
- * Sets up fullscreen functionality when DOM content is loaded
- *
- * @returns {void}
- *
- * @example
- * // Alternative setup method
- * setupDOMContentLoaded();
- *
- * @public
- * @since 1.0.0
- * @deprecated Use setupFullscreenListeners() instead
- */
-export function setupDOMContentLoaded() {
-    try {
-        if (document.readyState === "loading") {
-            globalThis.addEventListener("DOMContentLoaded", () => {
-                const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
 
-                if (hasRequiredElements) {
-                    addFullScreenButton();
-                    logWithContext("Legacy DOM setup: Fullscreen button initialized");
-                }
-            });
-        } else {
-            const hasRequiredElements = REQUIRED_CONTENT_IDS.some((id) => document.getElementById(id) !== null);
-
-            if (hasRequiredElements) {
-                addFullScreenButton();
-                logWithContext("Legacy DOM setup: Fullscreen button initialized (immediate)");
-            }
-        }
-    } catch (error) {
-        logWithContext(`Error in legacy DOM setup: ${/** @type {any} */ (error).message}`, "error");
-    }
-}
 
 /**
  * Sets up fullscreen event listeners for state changes and keyboard shortcuts

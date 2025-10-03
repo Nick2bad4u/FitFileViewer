@@ -3,6 +3,8 @@
  * Provides consistent formatting patterns across the application
  */
 
+import { isValidNumber } from "../helpers/numberHelpers.js";
+
 // Constants for better maintainability
 const FORMATTING_CONSTANTS = {
     DEFAULT_DECIMAL_DIGITS: 2,
@@ -87,16 +89,7 @@ export function formatArray(val, digits = FORMATTING_CONSTANTS.DEFAULT_DECIMAL_D
     }
 }
 
-/**
- * Validates if a value can be converted to a number
- * @param {any} value - Value to validate
- * @returns {boolean} True if value is a valid number
- * @private
- */
-function isValidNumber(value) {
-    const num = Number(value);
-    return !Number.isNaN(num) && Number.isFinite(num);
-}
+
 
 /**
  * Logs messages with context for formatting operations

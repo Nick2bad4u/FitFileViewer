@@ -19,7 +19,6 @@ vi.mock("../../utils/formatting/converters/convertArrayBufferToBase64.js", () =>
 }));
 
 vi.mock("../../utils/ui/controls/addFullScreenButton.js", () => ({
-    setupDOMContentLoaded: vi.fn(),
     setupFullscreenListeners: vi.fn(),
 }));
 
@@ -104,7 +103,7 @@ describe("main-ui.js import smoke", () => {
         } as any;
     });
 
-    it("imports without throwing and defines legacy globals", async () => {
+    it("imports without throwing and defines exposed globals", async () => {
         const mod = await import("../../main-ui.js");
         expect(mod).toBeDefined();
         // Legacy globals exposed by main-ui

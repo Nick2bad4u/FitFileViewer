@@ -297,5 +297,3 @@ export const chartStateManager = new ChartStateManager();
 if (globalThis.window !== undefined) {
     globalThis.chartStateManager = chartStateManager;
 }
-
-export default chartStateManager;

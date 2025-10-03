@@ -29,7 +29,6 @@ export { default as maps } from "./maps/index.js";
 export { default as rendering } from "./rendering/index.js";
 export { unifiedState } from "./state/core/unifiedStateManager.js";
 export { default as state } from "./state/index.js";
-export { theme } from "./theming/core/theme.js";
 export { default as theming } from "./theming/index.js";
 export { default as ui } from "./ui/index.js";
 export { showNotification } from "./ui/notifications/showNotification.js";

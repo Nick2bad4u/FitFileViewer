@@ -65,7 +65,7 @@ describe("showColModal interactions", () => {
         const overlay2 = document.querySelector(".summary-col-modal-overlay") as HTMLElement;
         const cancelBtn = overlay2.querySelector(".modal-actions .themed-btn") as HTMLButtonElement; // first is Cancel
         cancelBtn.click();
-        const storedAfterCancel = loadColPrefs(key, allKeys);
+        const storedAfterCancel = loadColPrefs(key);
         expect(storedAfterCancel).toEqual(allKeys); // unchanged
     });
 

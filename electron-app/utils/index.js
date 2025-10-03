@@ -42,7 +42,6 @@ export * from "./rendering/index.js";
 export { unifiedState } from "./state/core/unifiedStateManager.js";
 export * from "./state/index.js";
 export { default as state } from "./state/index.js";
-export { theme } from "./theming/core/theme.js";
 export * from "./theming/index.js";
 export { default as theming } from "./theming/index.js";
 export * from "./ui/index.js";

@@ -62,7 +62,7 @@ export function createMarkerCountSelector(onChange) {
         /** @type {string} */
         let initial;
         /** @type {any} */
-        const g = globalThis, // Legacy global usage wrapper
+        const g = globalThis,
             current = g.mapMarkerCount;
         if (typeof current !== "number") {
             g.mapMarkerCount = 50;

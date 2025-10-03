@@ -7,21 +7,16 @@
 export function getRowLabel(rowIdx: number, isLap: boolean): string;
 /**
  * Build a stable storage key for column visibility preferences for a given file path.
- * Accepts an unused second parameter to remain backwards compatible with older callers
- * passing (data, allKeys).
  * @param {FitSummaryData|GenericRecord|null|undefined} data
- * @param {string[]|undefined} [_allKeys] - Ignored (legacy compatibility)
  * @returns {string}
  */
-export function getStorageKey(data: FitSummaryData | GenericRecord | null | undefined, _allKeys?: string[] | undefined): string;
+export function getStorageKey(data: FitSummaryData | GenericRecord | null | undefined): string;
 /**
  * Load persisted visible column preferences.
- * Accepts unused second parameter allKeys for legacy compatibility (old signature loadColPrefs(key, allKeys)).
  * @param {string} key
- * @param {string[]|undefined} [_allKeys]
  * @returns {string[]|null}
  */
-export function loadColPrefs(key: string, _allKeys?: string[] | undefined): string[] | null;
+export function loadColPrefs(key: string): string[] | null;
 /**
  * Render the summary / laps table into the provided container.
  * @param {{
@@ -92,10 +87,6 @@ export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleCo
  * @property {string} [total_ascent_ft]
  * @property {string} [total_descent_ft]
  * @property {any} [startTime]
- */
-/**
- * Column selection localStorage key prefix constant
- * @type {string}
  */
 /**
  * Augment window types (runtime only, JSDoc helps TS inference)

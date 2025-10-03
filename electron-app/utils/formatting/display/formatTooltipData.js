@@ -4,6 +4,8 @@
  */
 
 import { getState } from "../../state/core/stateManager.js";
+import { formatDistance as formatDistanceCentralized } from "../formatters/formatDistance.js";
+import { safeToNumber } from "../helpers/numberHelpers.js";
 
 /**
  * @typedef {Object} RecordMessage
@@ -21,9 +23,7 @@ import { getState } from "../../state/core/stateManager.js";
 // Constants for better maintainability
 const FORMATTING_CONSTANTS = {
     CONVERSION_FACTORS: {
-        KM_TO_MILES: 0.621_371,
         METERS_TO_FEET: 3.280_84,
-        METERS_TO_KM: 1000,
         MPS_TO_KMH: 3.6,
         MPS_TO_MPH: 2.236_94,
     },
@@ -31,8 +31,6 @@ const FORMATTING_CONSTANTS = {
         ALTITUDE_FEET: 0,
         ALTITUDE_METERS: 1,
         CADENCE: 1,
-        DISTANCE_KM: 2,
-        DISTANCE_MI: 2,
         HEART_RATE: 1,
         POWER: 1,
         SPEED: 1,
@@ -157,6 +155,8 @@ function formatCadence(cadence) {
 
 /**
  * Formats distance value with metric and imperial units
+ * Uses centralized formatDistance and adds HTML line break for tooltips
+ * Special handling for zero distance (allowed in tooltips)
  * @param {number|null} distance - Distance in meters
  * @returns {string} Formatted distance string with HTML line break or empty string
  * @private
@@ -167,12 +167,14 @@ function formatDistance(distance) {
         return "";
     }
 
-    const { DISTANCE_KM, DISTANCE_MI } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
-        { KM_TO_MILES, METERS_TO_KM } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
-        km = meters / METERS_TO_KM,
-        mi = km * KM_TO_MILES;
+    // Allow zero distance for tooltips (start position)
+    if (meters === 0) {
+        return "0.00 km / 0.00 mi<br>";
+    }
 
-    return `${km.toFixed(DISTANCE_KM)} km / ${mi.toFixed(DISTANCE_MI)} mi<br>`;
+    // Use centralized format for non-zero distances and add line break for tooltip display
+    const formatted = formatDistanceCentralized(meters);
+    return formatted ? `${formatted}<br>` : "";
 }
 
 /**
@@ -300,25 +302,4 @@ function logWithContext(message, level = "info") {
     } catch {
         // Silently fail if logging encounters an error
     }
-}
-
-/**
- * Safely converts a value to a number with validation
- * @param {any} value - Value to convert
- * @param {string} fieldName - Name of the field for error reporting
- * @returns {number|null} Converted number or null if invalid
- * @private
- */
-function safeToNumber(value, fieldName = "value") {
-    if (value == null) {
-        return null;
-    }
-
-    const num = Number(value);
-    if (!Number.isFinite(num)) {
-        logWithContext(`Invalid ${fieldName}: ${value}`, "warn");
-        return null;
-    }
-
-    return num;
 }

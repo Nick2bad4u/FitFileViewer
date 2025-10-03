@@ -204,7 +204,7 @@ export class UnifiedStateManager {
     subscribe(path, callback) {
         if (this.isLegacyPath(path)) {
             console.warn(`[UnifiedState] Legacy path "${path}" subscriptions not fully supported`);
-            return () => {}; // Return no-op unsubscriber
+            return () => { }; // Return no-op unsubscriber
         }
 
         return subscribeNew(path, callback);
@@ -284,5 +284,3 @@ export function initializeUnifiedState(options = {}) {
     console.log("[UnifiedState] Unified state management initialized");
     return unifiedState;
 }
-
-export default unifiedState;

@@ -43,7 +43,7 @@ export function renderSummary(data) {
         for (const row of data.recordMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
     }
     const allKeys = [...keySet];
-    let visibleColumns = loadColPrefs(getStorageKey(data, allKeys), allKeys) || [...allKeys];
+    let visibleColumns = loadColPrefs(getStorageKey(data)) || [...allKeys];
 
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";

@@ -749,5 +749,3 @@ export { TAB_CONFIG };
 if (globalThis.window !== undefined) {
     /** @type {any} */ (globalThis).tabStateManager = tabStateManager;
 }
-
-export default tabStateManager;

@@ -441,7 +441,7 @@ export function openZoneColorPicker(field) {
                 if (chartStateManager) {
                     chartStateManager.debouncedRender("Zone colors reset");
                 } else if (typeof globalThis.renderChartJS === "function") {
-                    globalThis.renderChartJS(); // Fallback for compatibility
+                    globalThis.renderChartJS();
                 }
 
                 if (typeof globalThis.showNotification === "function") {

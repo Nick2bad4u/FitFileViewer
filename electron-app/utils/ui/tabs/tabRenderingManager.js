@@ -169,5 +169,3 @@ class TabRenderingManager {
 
 // Create and export singleton
 export const tabRenderingManager = new TabRenderingManager();
-
-export default tabRenderingManager;

@@ -1,5 +1,4 @@
 export const tabRenderingManager: TabRenderingManager;
-export default tabRenderingManager;
 /**
  * Tab rendering manager with performance optimizations
  */
@@ -68,4 +67,5 @@ declare class TabRenderingManager {
     setCurrentTab(tabName: string): void;
 }
 import { CancellationTokenSource } from "../../app/async/cancellationToken.js";
+export {};
 //# sourceMappingURL=tabRenderingManager.d.ts.map

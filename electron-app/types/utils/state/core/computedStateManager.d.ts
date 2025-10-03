@@ -19,14 +19,6 @@ export function cleanupCommonComputedValues(): void;
  */
 export function createReactiveComputed(key: string, computeFn: Function, deps?: Array<string>): Object;
 /**
- * Alias for addComputed (convenience function for backward compatibility)
- * @param {string} key - Unique key for the computed value
- * @param {Function} computeFn - Function that computes the value
- * @param {Array<string>} deps - Array of state paths this computed value depends on
- * @returns {Function} Cleanup function
- */
-export function define(key: string, computeFn: Function, deps?: Array<string>): Function;
-/**
  * Predefined computed values for FitFileViewer
  */
 /**
@@ -70,14 +62,6 @@ declare class ComputedStateManager {
      * @param {string} key - Key of computed value
      */
     computeValue(key: string): void;
-    /**
-     * Alias for addComputed (for backward compatibility)
-     * @param {string} key - Unique key for the computed value
-     * @param {Function} computeFn - Function that computes the value
-     * @param {Array<string>} deps - Array of state paths this computed value depends on
-     * @returns {Function} Cleanup function
-     */
-    define(key: string, computeFn: Function, deps?: Array<string>): Function;
     /**
      * Get all computed values with their metadata
      * @returns {Object} All computed values and metadata

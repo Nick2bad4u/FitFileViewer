@@ -571,7 +571,7 @@ function safeQueryTabButtons() {
     return [];
 }
 
-// Expose function globally for debugging and compatibility (only when window exists)
+// Expose function globally for debugging (only when window exists)
 try {
     if (globalThis.window !== undefined) {
         /** @type {any} */ (globalThis).setTabButtonsEnabled = setTabButtonsEnabled;
@@ -581,7 +581,7 @@ try {
         /** @type {any} */ (globalThis).testTabButtonClicks = testTabButtonClicks;
         /** @type {any} */ (globalThis).debugTabState = debugTabState;
         /** @type {any} */ (globalThis).forceFixTabButtons = forceFixTabButtons;
-        console.log("[TabButtons] Functions exposed globally for compatibility");
+        console.log("[TabButtons] Functions exposed globally for debugging");
     }
 } catch {
     // Ignore if window is not available or assignment fails (e.g., strict mocks)

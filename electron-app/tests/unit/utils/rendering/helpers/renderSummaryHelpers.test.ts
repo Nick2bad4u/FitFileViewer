@@ -37,7 +37,7 @@ describe("renderSummaryHelpers core functions", () => {
     it("getStorageKey prefers window.globalData.cachedFilePath and encodes it", async () => {
         const { getStorageKey } = await import(SUT);
         (global.window as any).globalData = { cachedFilePath: "C:/Users/Me/My Activity.fit" };
-        const key = getStorageKey({}, [] as any);
+        const key = getStorageKey({});
         expect(key.startsWith("summaryColSel_")).toBe(true);
         expect(key).toContain(encodeURIComponent("C:/Users/Me/My Activity.fit"));
     });
@@ -47,7 +47,7 @@ describe("renderSummaryHelpers core functions", () => {
         // ensure no globalData
         (global.window as any).globalData = undefined;
         const data: any = { cachedFilePath: "/tmp/äctivity file.fit" };
-        const key = getStorageKey(data, undefined as any);
+        const key = getStorageKey(data);
         expect(key).toBe("summaryColSel_" + encodeURIComponent("/tmp/äctivity file.fit"));
     });
 
@@ -55,11 +55,11 @@ describe("renderSummaryHelpers core functions", () => {
         const { getStorageKey } = await import(SUT);
         // Remove others
         (global.window as any).globalData = undefined;
-        const keyDefault = getStorageKey(undefined as any, undefined as any);
+        const keyDefault = getStorageKey(undefined as any);
         expect(keyDefault).toBe("summaryColSel_default");
         // Now set activeFitFileName
         (global.window as any).activeFitFileName = "JustAName.fit";
-        const keyActive = getStorageKey(undefined as any, undefined as any);
+        const keyActive = getStorageKey(undefined as any);
         expect(keyActive).toBe("summaryColSel_" + encodeURIComponent("JustAName.fit"));
     });
 
@@ -68,19 +68,19 @@ describe("renderSummaryHelpers core functions", () => {
         const key = "summaryColSel_test";
         // Valid array
         localStorage.setItem(key, JSON.stringify(["a", "b", "c"]));
-        expect(loadColPrefs(key, undefined as any)).toEqual(["a", "b", "c"]);
+        expect(loadColPrefs(key)).toEqual(["a", "b", "c"]);
         // Not an array -> null
         localStorage.setItem(key, JSON.stringify({ a: 1 }));
-        expect(loadColPrefs(key, undefined as any)).toBeNull();
+        expect(loadColPrefs(key)).toBeNull();
         // Invalid JSON -> null
         localStorage.setItem(key, "not-json");
-        expect(loadColPrefs(key, undefined as any)).toBeNull();
+        expect(loadColPrefs(key)).toBeNull();
         // getItem throwing -> null (caught)
         const origGet = localStorage.getItem;
         (localStorage as any).getItem = vi.fn(() => {
             throw new Error("boom");
         });
-        expect(loadColPrefs(key, undefined as any)).toBeNull();
+        expect(loadColPrefs(key)).toBeNull();
         // restore
         (localStorage as any).getItem = origGet;
     });

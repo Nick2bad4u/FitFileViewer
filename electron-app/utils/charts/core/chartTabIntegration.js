@@ -211,5 +211,3 @@ export const chartTabIntegration = new ChartTabIntegration();
 if (globalThis.window !== undefined) {
     /** @type {any} */ (globalThis).chartTabIntegration = chartTabIntegration;
 }
-
-export default chartTabIntegration;

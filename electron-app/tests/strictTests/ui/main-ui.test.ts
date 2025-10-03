@@ -21,10 +21,8 @@ vi.mock("../../../utils/formatting/converters/convertArrayBufferToBase64.js", ()
     convertArrayBufferToBase64,
 }));
 
-const setupDOMContentLoaded = vi.fn();
 const setupFullscreenListeners = vi.fn();
 vi.mock("../../../utils/ui/controls/addFullScreenButton.js", () => ({
-    setupDOMContentLoaded,
     setupFullscreenListeners,
 }));
 

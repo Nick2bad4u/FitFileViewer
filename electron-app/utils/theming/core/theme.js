@@ -244,7 +244,7 @@ export function getThemeConfig() {
                 "#8A2BE2", // Zone 13 - Blue Violet (maximal effort)
                 "#000000", // Zone 14 - Black (ultimate effort)
             ],
-            // Legacy/explicit keys for compatibility
+            // Explicit keys for specific theming
             primary: effectiveTheme === "dark" ? "#667eea" : "#3b82f665",
             primaryAlpha: effectiveTheme === "dark" ? "#667eea80" : "#3b82f665",
             primaryShadow: effectiveTheme === "dark" ? "#3b82f64d" : "#2563eb4d",
@@ -465,20 +465,3 @@ function updateMetaThemeColor(theme) {
     }
     /** @type {HTMLMetaElement} */ (metaThemeColor).content = themeColor;
 }
-
-/**
- * Legacy aggregated theme API for compatibility with modules expecting a namespace export.
- * Provides direct access to the primary theme helpers via an object reference.
- */
-export const theme = {
-    THEME_MODES,
-    applyTheme,
-    getEffectiveTheme,
-    getSystemTheme,
-    getThemeConfig,
-    initializeTheme,
-    listenForSystemThemeChange,
-    listenForThemeChange,
-    loadTheme,
-    toggleTheme,
-};
