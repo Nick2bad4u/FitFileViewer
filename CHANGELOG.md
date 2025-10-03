@@ -7,12 +7,47 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[112400b](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)...
-[112400b](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/112400b5aafca6f7d9f52c240060b74f69be6988...112400b5aafca6f7d9f52c240060b74f69be6988))
+[[5ca8a61](https://github.com/Nick2bad4u/FitFileViewer/commit/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5)...
+[5ca8a61](https://github.com/Nick2bad4u/FitFileViewer/commit/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5...5ca8a612b83bb90cb547c721f6b0e2ad87b757b5))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 27.2.0 [`(5ca8a61)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5)
+
+
+
+
+
+
+## [27.2.0] - 2025-10-03
+
+
+[[112400b](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)...
+[9a04206](https://github.com/Nick2bad4u/FitFileViewer/commit/9a04206044f664957033a525e9b845a715e78301)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/112400b5aafca6f7d9f52c240060b74f69be6988...9a04206044f664957033a525e9b845a715e78301))
+
+
+### 💼 Other
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(82c237e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/82c237edc21694676465545a9b3333ce5c4102ec)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.1.0 [skip ci] [`(31ca9d8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/31ca9d88013aa486fe589c54b44d7dcd65be5ef7)
+
+
+
+### 📦 Dependencies
+
+- *(deps)* [dependency] Update the npm-all group (#154) [`(9a04206)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9a04206044f664957033a525e9b845a715e78301)
+
+
+- *(deps)* [dependency] Update dependency group (#153) [`(f6c9932)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f6c993233e5c61b737df52ee8248d8c0e0af6af9)
+
 
 - [dependency] Update version 27.1.0 [`(112400b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/112400b5aafca6f7d9f52c240060b74f69be6988)
 
