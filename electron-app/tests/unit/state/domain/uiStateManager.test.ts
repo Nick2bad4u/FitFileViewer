@@ -432,7 +432,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 manager.updateChartControlsUI(true);
 
                 expect(chartControls.style.display).toBe("block");
-                expect(toggleBtn.textContent).toBe("▼ Hide Controls");
+                expect(toggleBtn.innerHTML).toBe(
+                    '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon> Hide Controls'
+                );
                 expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
             });
 
@@ -444,7 +446,9 @@ describe("UIStateManager - comprehensive coverage", () => {
                 manager.updateChartControlsUI(false);
 
                 expect(chartControls.style.display).toBe("none");
-                expect(toggleBtn.textContent).toBe("▶ Show Controls");
+                expect(toggleBtn.innerHTML).toBe(
+                    '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon> Show Controls'
+                );
                 expect(toggleBtn.getAttribute("aria-expanded")).toBe("false");
             });
 

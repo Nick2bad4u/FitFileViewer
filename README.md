@@ -77,7 +77,7 @@
 [![ActionLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/ActionLint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/ActionLint.yml) 🧹
 [![Build and Release Electron App](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml) 🏗️
 [![Build Flatpak](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/flatpak-build.yml) 📦
-[![Show Release Stats](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml) 📊
+[![Show Release Stats](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/release-stats.yml) <img src="https://api.iconify.design/mdi/chart-line.svg" alt="Chart icon" width="16" height="16" />
 [![Print Release Asset Sizes](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/print-release-asset-sizes.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/print-release-asset-sizes.yml) 📋
 [![Analyze Repo with git-sizer](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/git-sizer-dispatch.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/git-sizer-dispatch.yml)
 [![Clean Old Releases](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml) 🧹
@@ -94,7 +94,7 @@
 [![Mark stale issues and pull requests](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale.yml) 💤
 [![OSV-Scanner](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/osv-scanner.yml) 🔎
 [![Prettier](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/prettier.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/prettier.yml) 🎨
-[![Scorecard supply-chain security](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/scorecards.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/scorecards.yml) 📊
+[![Scorecard supply-chain security](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/scorecards.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/scorecards.yml) <img src="https://api.iconify.design/mdi/chart-line.svg" alt="Chart icon" width="16" height="16" />
 [![StyleLint](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stylelint.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stylelint.yml) 🎨
 [![Summarize new issues](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/summary.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/summary.yml) 📋
 [![TruffleHog Secret Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml) 🔑
@@ -375,7 +375,7 @@ This project uses the following libraries and tools:
 - [**HarryOnline**](https://www.harryonline.net/) [![HarryOnline logo](electron-app/icons/harry.png)](https://www.harryonline.net/)
 - [Garmin FIT JavaScript SDK](https://github.com/garmin/fit-javascript-sdk) ([FIT Protocol License Agreement](https://developer.garmin.com/fit/download/)) ⌚
 - [Leaflet.js](https://leafletjs.com) ([BSD-2-Clause License](https://github.com/Leaflet/Leaflet/blob/main/LICENSE)) 🗺️
-- [Vega-Lite](https://vega.github.io/vega-lite/) ([BSD-3-Clause License](https://github.com/vega/vega-lite/blob/main/LICENSE)) 📊
+- [Vega-Lite](https://vega.github.io/vega-lite/) ([BSD-3-Clause License](https://github.com/vega/vega-lite/blob/main/LICENSE)) <img src="https://api.iconify.design/mdi/chart-line.svg" alt="Chart icon" width="16" height="16" />
 - [Vega-Embed](https://github.com/vega/vega-embed) ([BSD-3-Clause License](https://github.com/vega/vega-embed/blob/main/LICENSE)) 📈
 - [Chart.js](https://www.chartjs.org/) ([MIT License](https://github.com/chartjs/Chart.js/blob/master/LICENSE.md)) 📉
 - [jQuery](https://jquery.com/) ([MIT License](https://jquery.org/license/)) 🧑‍💻

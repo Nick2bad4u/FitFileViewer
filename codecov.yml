@@ -72,8 +72,8 @@ component_management:
                 threshold: 5%
                 type: patch
         # === FIT PARSING (Core Business Logic) ===
-        - component_id: fit_parsing
-          name: "📊 FIT Parsing"
+                - component_id: fit_parsing
+                    name: "[Charts] FIT Parsing"
           paths:
               - electron-app/fitParser.js
           statuses:

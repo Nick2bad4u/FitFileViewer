@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 const HELPERS = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
-const ICONS = "../../../../utils/ui/icons/iconMappings.js";
+const ICONS = "../../../../../utils/ui/icons/iconMappings.js";
 
 let getHumanizedLabel: (key: string | null | undefined) => string;
 let getSummaryEmoji: (key: string | null | undefined) => string;

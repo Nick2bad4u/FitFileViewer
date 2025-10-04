@@ -126,12 +126,14 @@ describe("addFullScreenButton", () => {
         changeHandler();
         expect(addOverlayMock).toHaveBeenCalledWith(activeContent);
         expect(button?.title).toBe("Exit Full Screen (F11)");
-        expect(button?.querySelector(".fullscreen-icon")?.innerHTML).toContain("Exit Fullscreen");
+    const fullscreenIcon = button?.querySelector(".fullscreen-icon iconify-icon");
+    expect(fullscreenIcon?.getAttribute("icon")).toBe("flat-color-icons:collapse");
 
         screenfullMock.isFullscreen = false;
         changeHandler();
         expect(removeOverlayMock).toHaveBeenCalledWith(activeContent);
         expect(button?.title).toBe("Toggle Full Screen (F11)");
+    expect(fullscreenIcon?.getAttribute("icon")).toBe("flat-color-icons:expand");
     });
 
     it("handles F11 keyboard shortcut with screenfull and native fallback", async () => {

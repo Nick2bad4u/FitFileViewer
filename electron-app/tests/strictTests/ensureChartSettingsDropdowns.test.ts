@@ -377,7 +377,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const overlay = document.querySelector('div[style*="position: fixed"]');
         expect(overlay).toBeTruthy();
         const chartButtons = Array.from(overlay!.querySelectorAll("button")).filter((b) =>
-            b.textContent?.startsWith("📊")
+            Boolean(b.querySelector("iconify-icon[icon='flat-color-icons:line-chart']"))
         );
         expect(chartButtons.length).toBeGreaterThanOrEqual(2);
 
@@ -388,7 +388,8 @@ describe("ensureChartSettingsDropdowns integration", () => {
         // Reopen and click combined
         savePngBtn.click();
         const combinedBtn = Array.from(document.querySelectorAll("button")).find((b) =>
-            b.textContent?.startsWith("🔗 All Charts Combined")
+            Boolean(b.querySelector("iconify-icon[icon='flat-color-icons:link']")) &&
+            b.textContent?.includes("All Charts Combined")
         ) as HTMLButtonElement;
         expect(combinedBtn).toBeTruthy();
         combinedBtn.click();

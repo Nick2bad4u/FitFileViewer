@@ -2,6 +2,8 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { getChartIcon, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
+import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 /**
@@ -75,9 +77,9 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
             }
 
             const data = lapZoneData.map((lap) => {
-                    const zone = Array.isArray(lap.zones) ? lap.zones.find((z) => z.label === zoneLabel) : undefined;
-                    return zone ? zone.value : 0;
-                }),
+                const zone = Array.isArray(lap.zones) ? lap.zones.find((z) => z.label === zoneLabel) : undefined;
+                return zone ? zone.value : 0;
+            }),
                 originalColor = zoneInfo?.color,
                 zoneIdx = typeof zoneInfo?.zoneIndex === "number" ? zoneInfo.zoneIndex : zoneIndex,
                 savedColor = getZoneColor(zoneType, zoneIdx),
@@ -95,149 +97,178 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
 
         // Labels are lap names
         const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap")),
-            /** @type {any} */
-            chart = new globalThis.Chart(canvas, {
-                data: {
-                    datasets,
-                    labels: lapLabels,
+            titleText = options.title || "Zone Distribution by Lap",
+            xLabel = "Lap",
+            yLabel = `Time (${getUnitSymbol("time", "time")})`,
+            accentColor = themeConfig?.colors?.primary || "#3b82f6";
+
+        let zoneIcon = getZoneChartIcon(options.title);
+        if (!zoneIcon && typeof options.title === "string") {
+            const lowerTitle = options.title.toLowerCase();
+            if (lowerTitle.includes("power")) {
+                zoneIcon = getChartIcon("power");
+            } else if (lowerTitle.includes("heart")) {
+                zoneIcon = getChartIcon("heartRate");
+            }
+        }
+        if (!zoneIcon) {
+            zoneIcon = getChartIcon("zone");
+        }
+
+        attachChartLabelMetadata(canvas, {
+            titleIcon: zoneIcon,
+            titleText,
+            titleColor: accentColor,
+            xIcon: zoneIcon,
+            xText: xLabel,
+            xColor: accentColor,
+            yIcon: getChartIcon("time"),
+            yText: yLabel,
+            yColor: accentColor,
+        });
+
+        const chart = new globalThis.Chart(canvas, {
+            data: {
+                datasets,
+                labels: lapLabels,
+            },
+            options: {
+                interaction: {
+                    intersect: false,
+                    mode: "index",
                 },
-                options: {
-                    interaction: {
+                maintainAspectRatio: false,
+                plugins: {
+                    chartBackgroundColorPlugin: {
+                        backgroundColor: themeConfig?.colors?.chartBackground || "#fff",
+                    },
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: themeConfig?.colors?.textPrimary || "#000",
+                            font: { size: 12 },
+                        },
+                        position: "top",
+                    },
+                    title: {
+                        color: "rgba(0,0,0,0)",
+                        display: Boolean(options.title),
+                        font: { size: 16, weight: "bold" },
+                        text: titleText,
+                    },
+                    tooltip: {
+                        backgroundColor: themeConfig?.colors?.chartSurface || "rgba(0,0,0,0.8)",
+                        bodyColor: themeConfig?.colors?.textPrimary || "#fff",
+                        borderColor: themeConfig?.colors?.chartBorder || "#333",
+                        borderWidth: 1,
+                        callbacks: {
+                            /** @param {any[]} tooltipItems */
+                            footer(tooltipItems) {
+                                let total = 0;
+                                for (const item of tooltipItems) {
+                                    total += item.parsed?.y || 0;
+                                }
+                                const totalFormatted = formatTime(total, true);
+                                return `Total: ${totalFormatted}`;
+                            },
+                            /** @param {any} context */
+                            label(context) {
+                                let lapTotal = 0;
+                                const datasetsArr = context.chart?.data?.datasets || [];
+                                for (const dataset of datasetsArr) {
+                                    const dsData = /** @type {number[]} */ (dataset.data || []),
+                                        v = dsData[context.dataIndex];
+                                    if (typeof v === "number") {
+                                        lapTotal += v;
+                                    }
+                                }
+                                const value = context.parsed?.y || 0,
+                                    percentage = lapTotal > 0 ? ((value / lapTotal) * 100).toFixed(1) : "0.0",
+                                    timeFormatted = formatTime(value, true);
+                                return `${context.dataset?.label || "Zone"}: ${timeFormatted} (${percentage}%)`;
+                            },
+                        },
                         intersect: false,
                         mode: "index",
+                        titleColor: themeConfig?.colors?.textPrimary || "#fff",
                     },
-                    maintainAspectRatio: false,
-                    plugins: {
-                        chartBackgroundColorPlugin: {
-                            backgroundColor: themeConfig?.colors?.chartBackground || "#fff",
-                        },
-                        legend: {
-                            display: true,
-                            labels: {
-                                color: themeConfig?.colors?.textPrimary || "#000",
-                                font: { size: 12 },
+                    zoom: {
+                        limits: {
+                            x: {
+                                max: "original",
+                                min: "original",
                             },
-                            position: "top",
                         },
-                        title: {
-                            color: themeConfig?.colors?.textPrimary || "#000",
-                            display: Boolean(options.title),
-                            font: { size: 16, weight: "bold" },
-                            text: options.title || "Zone Distribution by Lap",
-                        },
-                        tooltip: {
-                            backgroundColor: themeConfig?.colors?.chartSurface || "rgba(0,0,0,0.8)",
-                            bodyColor: themeConfig?.colors?.textPrimary || "#fff",
-                            borderColor: themeConfig?.colors?.chartBorder || "#333",
-                            borderWidth: 1,
-                            callbacks: {
-                                /** @param {any[]} tooltipItems */
-                                footer(tooltipItems) {
-                                    let total = 0;
-                                    for (const item of tooltipItems) {
-                                        total += item.parsed?.y || 0;
-                                    }
-                                    const totalFormatted = formatTime(total, true);
-                                    return `Total: ${totalFormatted}`;
-                                },
-                                /** @param {any} context */
-                                label(context) {
-                                    let lapTotal = 0;
-                                    const datasetsArr = context.chart?.data?.datasets || [];
-                                    for (const dataset of datasetsArr) {
-                                        const dsData = /** @type {number[]} */ (dataset.data || []),
-                                            v = dsData[context.dataIndex];
-                                        if (typeof v === "number") {
-                                            lapTotal += v;
-                                        }
-                                    }
-                                    const value = context.parsed?.y || 0,
-                                        percentage = lapTotal > 0 ? ((value / lapTotal) * 100).toFixed(1) : "0.0",
-                                        timeFormatted = formatTime(value, true);
-                                    return `${context.dataset?.label || "Zone"}: ${timeFormatted} (${percentage}%)`;
-                                },
-                            },
-                            intersect: false,
-                            mode: "index",
-                            titleColor: themeConfig?.colors?.textPrimary || "#fff",
+                        pan: {
+                            enabled: true,
+                            mode: "xy",
+                            modifierKey: null,
                         },
                         zoom: {
-                            limits: {
-                                x: {
-                                    max: "original",
-                                    min: "original",
-                                },
-                            },
-                            pan: {
+                            drag: {
+                                backgroundColor: themeConfig?.colors?.primaryAlpha || "rgba(59,130,246,0.2)",
+                                borderColor: themeConfig?.colors?.primary || "rgba(59,130,246,0.8)",
+                                borderWidth: 2,
                                 enabled: true,
-                                mode: "xy",
-                                modifierKey: null,
+                                modifierKey: "shift",
                             },
-                            zoom: {
-                                drag: {
-                                    backgroundColor: themeConfig?.colors?.primaryAlpha || "rgba(59,130,246,0.2)",
-                                    borderColor: themeConfig?.colors?.primary || "rgba(59,130,246,0.8)",
-                                    borderWidth: 2,
-                                    enabled: true,
-                                    modifierKey: "shift",
-                                },
-                                mode: "xy",
-                                pinch: {
-                                    enabled: true,
-                                },
-                                wheel: {
-                                    enabled: true,
-                                    speed: 0.1,
-                                },
+                            mode: "xy",
+                            pinch: {
+                                enabled: true,
                             },
-                        },
-                    },
-                    responsive: true,
-                    scales: {
-                        x: {
-                            grid: {
-                                color: themeConfig?.colors?.chartGrid || "rgba(0,0,0,0.1)",
-                            },
-                            ticks: {
-                                color: themeConfig?.colors?.textPrimary || "#000",
-                            },
-                            title: {
-                                color: themeConfig?.colors?.textPrimary || "#000",
-                                display: true,
-                                text: "Lap",
-                            },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: themeConfig?.colors?.chartGrid || "rgba(0,0,0,0.1)",
-                            },
-                            stacked: true,
-                            ticks: {
-                                /** @param {number|string} value */
-                                callback(value) {
-                                    const num = typeof value === "number" ? value : Number(value);
-                                    return formatTime(Number.isFinite(num) ? num : 0, true);
-                                },
-                                color: themeConfig?.colors?.textPrimary || "#000",
-                            },
-                            title: {
-                                color: themeConfig?.colors?.textPrimary || "#000",
-                                display: true,
-                                text: `Time (${getUnitSymbol("time", "time")})`,
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
                             },
                         },
                     },
                 },
-                plugins: [
-                    chartZoomResetPlugin,
-                    {
-                        backgroundColor: themeConfig?.colors?.chartBackground || "#fff",
-                        id: "chartBackgroundColorPlugin",
+                responsive: true,
+                scales: {
+                    x: {
+                        grid: {
+                            color: themeConfig?.colors?.chartGrid || "rgba(0,0,0,0.1)",
+                        },
+                        ticks: {
+                            color: themeConfig?.colors?.textPrimary || "#000",
+                        },
+                        title: {
+                            color: "rgba(0,0,0,0)",
+                            display: true,
+                            text: xLabel,
+                        },
                     },
-                ],
-                type: "bar",
-            });
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: themeConfig?.colors?.chartGrid || "rgba(0,0,0,0.1)",
+                        },
+                        stacked: true,
+                        ticks: {
+                            /** @param {number|string} value */
+                            callback(value) {
+                                const num = typeof value === "number" ? value : Number(value);
+                                return formatTime(Number.isFinite(num) ? num : 0, true);
+                            },
+                            color: themeConfig?.colors?.textPrimary || "#000",
+                        },
+                        title: {
+                            color: "rgba(0,0,0,0)",
+                            display: true,
+                            text: yLabel,
+                        },
+                    },
+                },
+            },
+            plugins: [
+                chartZoomResetPlugin,
+                {
+                    backgroundColor: themeConfig?.colors?.chartBackground || "#fff",
+                    id: "chartBackgroundColorPlugin",
+                },
+            ],
+            type: "bar",
+        });
         return chart;
     } catch (error) {
         if (globalThis.showNotification) {

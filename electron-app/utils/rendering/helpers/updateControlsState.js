@@ -1,5 +1,8 @@
 import { getState, setState, subscribe } from "../../state/core/stateManager.js";
 
+const ICON_DOWN = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+const ICON_RIGHT = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
+
 /**
  * Initialize chart controls state management
  */
@@ -11,7 +14,7 @@ export function initializeControlsState() {
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = isVisible ? "block" : "none";
-            toggleBtn.textContent = isVisible ? "▼ Hide Controls" : "▶ Show Controls";
+            setToggleButtonContent(toggleBtn, isVisible);
             toggleBtn.setAttribute("aria-expanded", isVisible.toString());
         }
     });
@@ -53,11 +56,20 @@ export function updateControlsState() {
     });
 
     // Update toggle button to reflect actual state
-    toggleBtn.textContent = isActuallyVisible ? "▼ Hide Controls" : "▶ Show Controls";
+    setToggleButtonContent(toggleBtn, isActuallyVisible);
     toggleBtn.setAttribute("aria-expanded", isActuallyVisible.toString());
 
     // Ensure wrapper display matches internal state
     wrapper.style.display = isActuallyVisible ? "block" : "none";
 
     console.log(`[ChartJS] State synchronized - controls are ${isActuallyVisible ? "visible" : "hidden"}`);
+}
+
+/**
+ * Applies the Iconify-enhanced label to the chart controls toggle button.
+ * @param {HTMLElement} toggleBtn
+ * @param {boolean} isVisible
+ */
+function setToggleButtonContent(toggleBtn, isVisible) {
+    toggleBtn.innerHTML = isVisible ? `${ICON_DOWN} Hide Controls` : `${ICON_RIGHT} Show Controls`;
 }

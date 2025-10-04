@@ -593,8 +593,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             const config = Chart.mock.calls[0][1];
             expect(config.options.scales.x.ticks.color).toBe("#000000");
             expect(config.options.scales.y.ticks.color).toBe("#000000");
-            expect(config.options.scales.x.title.color).toBe("#000000");
-            expect(config.options.scales.y.title.color).toBe("#000000");
+            expect(config.options.scales.x.title.color).toBe("rgba(0,0,0,0)");
+            expect(config.options.scales.y.title.color).toBe("rgba(0,0,0,0)");
         });
     });
 

@@ -64,7 +64,7 @@ jobs:
                     echo "- Asset count: $asset_count"
                     echo "- Asset total size: $asset_total_mb MB"
                     echo ""
-                    echo "#### 📊 **Totals**"
+                    echo "#### **Totals**"
                     echo "- Total releases: **$total_releases**"
                     echo "- Total release asset size: **$all_asset_total_mb MB**"
                   } >> "$GITHUB_STEP_SUMMARY"

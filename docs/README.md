@@ -74,7 +74,7 @@ Welcome to the comprehensive documentation for FitFileViewer, a cross-platform d
 
 ### Data Visualization
 - **Interactive Maps** 🗺️ - GPS route visualization with Leaflet.js
-- **Dynamic Charts** 📊 - Performance data using Chart.js and Vega-Lite
+- **Dynamic Charts** <img src="https://api.iconify.design/mdi/chart-line.svg" alt="Dynamic charts icon" width="16" height="16" /> - Performance data using Chart.js and Vega-Lite
 - **Data Tables** 📋 - Detailed record views with filtering and export
 - **Summary Views** 📄 - Activity statistics and performance metrics
 

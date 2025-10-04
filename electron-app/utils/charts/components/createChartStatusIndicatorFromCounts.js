@@ -2,6 +2,16 @@
  * Creates chart status indicator from pre-calculated counts
  * @param {import('../core/getChartCounts.js').ChartCounts} counts - Pre-calculated chart counts
  */
+const ICONS = {
+    ALL_VISIBLE: '<iconify-icon icon="flat-color-icons:ok" width="18" height="18"></iconify-icon>',
+    SOME_HIDDEN: '<iconify-icon icon="flat-color-icons:high-priority" width="18" height="18"></iconify-icon>',
+    NONE_VISIBLE: '<iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon>',
+    METRICS: '<iconify-icon icon="flat-color-icons:grid" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
+    ANALYSIS: '<iconify-icon icon="flat-color-icons:line-chart" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
+    ZONES: '<iconify-icon icon="flat-color-icons:bullish" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
+    GPS: '<iconify-icon icon="flat-color-icons:globe" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
+};
+
 export function createChartStatusIndicatorFromCounts(counts) {
     try {
         const indicator = document.createElement("div");
@@ -29,13 +39,13 @@ export function createChartStatusIndicatorFromCounts(counts) {
         const statusIcon = document.createElement("span");
         statusIcon.className = "status-icon";
         if (isAllVisible) {
-            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:ok" width="18" height="18"></iconify-icon>';
+            statusIcon.innerHTML = ICONS.ALL_VISIBLE;
             statusIcon.title = "All available charts are visible";
         } else if (hasHiddenCharts) {
-            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:high-priority" width="18" height="18"></iconify-icon>';
+            statusIcon.innerHTML = ICONS.SOME_HIDDEN;
             statusIcon.title = "Some charts are hidden";
         } else {
-            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon>';
+            statusIcon.innerHTML = ICONS.NONE_VISIBLE;
             statusIcon.title = "No charts are visible";
         }
 
@@ -89,16 +99,16 @@ export function createChartStatusIndicatorFromCounts(counts) {
             </div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 11px;">
                 <div style="color: var(--color-fg);">
-                    📊 Metrics: ${counts.categories.metrics.visible}/${counts.categories.metrics.available}
+                    ${ICONS.METRICS} Metrics: ${counts.categories.metrics.visible}/${counts.categories.metrics.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    📈 Analysis: ${counts.categories.analysis.visible}/${counts.categories.analysis.available}
+                    ${ICONS.ANALYSIS} Analysis: ${counts.categories.analysis.visible}/${counts.categories.analysis.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    🎯 Zones: ${counts.categories.zones.visible}/${counts.categories.zones.available}
+                    ${ICONS.ZONES} Zones: ${counts.categories.zones.visible}/${counts.categories.zones.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    🗺️ GPS: ${counts.categories.gps.visible}/${counts.categories.gps.available}
+                    ${ICONS.GPS} GPS: ${counts.categories.gps.visible}/${counts.categories.gps.available}
                 </div>
             </div>
             ${hasHiddenCharts

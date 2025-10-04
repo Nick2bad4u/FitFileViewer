@@ -58,8 +58,9 @@ describe("createElevationProfileButton", () => {
         expect(button).toBeInstanceOf(HTMLButtonElement);
         expect(button.className).toBe("map-action-btn");
         expect(button.title).toBe("Show Elevation Profile");
-        expect(button.innerHTML).toContain('<svg class="icon"');
-        expect(button.innerHTML).toContain("<span>Elevation</span>");
+    const iconElement = button.querySelector("iconify-icon");
+    expect(iconElement?.getAttribute("icon")).toBe("flat-color-icons:area-chart");
+    expect(button.innerHTML).toContain("<span>Elevation</span>");
     });
 
     it("should open a window with no files when clicked and no fit files are loaded", () => {

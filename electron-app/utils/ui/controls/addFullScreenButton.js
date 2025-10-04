@@ -23,6 +23,10 @@ const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
 const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
 const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";
 const NATIVE_FULLSCREEN_EVENTS = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"];
+const FULLSCREEN_ENTER_ICON = "flat-color-icons:expand";
+const FULLSCREEN_EXIT_ICON = "flat-color-icons:collapse";
+const FULLSCREEN_ICON_SIZE = "28";
+const FULLSCREEN_ENTER_ICON_MARKUP = `<iconify-icon icon="${FULLSCREEN_ENTER_ICON}" width="${FULLSCREEN_ICON_SIZE}" height="${FULLSCREEN_ICON_SIZE}"></iconify-icon>`;
 
 const getScreenfullInstance = () => {
     const { screenfull } = /** @type {any} */ (globalThis);
@@ -54,6 +58,7 @@ const isFullscreenActive = () => {
         doc.msFullscreenElement
     );
 };
+
 
 /**
  * Adds a global fullscreen toggle button to the application
@@ -92,7 +97,7 @@ export function addFullScreenButton() {
             btn.setAttribute("tabindex", "-1");
             btn.disabled = true;
             btn.style.pointerEvents = "auto";
-            btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
+            btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${FULLSCREEN_ENTER_ICON_MARKUP}</span>`;
             btn.addEventListener("click", () => nativeToggleFullscreen());
 
             wrapper.append(btn);
@@ -115,7 +120,7 @@ export function addFullScreenButton() {
         btn.setAttribute("tabindex", "-1");
         btn.disabled = true;
         btn.style.pointerEvents = "auto";
-        btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
+        btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${FULLSCREEN_ENTER_ICON_MARKUP}</span>`;
         btn.addEventListener("click", handleFullscreenToggle);
 
         wrapper.append(btn);
@@ -213,24 +218,6 @@ export function setupFullscreenListeners() {
     } catch (error) {
         logWithContext(`Failed to setup fullscreen listeners: ${/** @type {any} */ (error).message}`, "error");
     }
-}
-
-/**
- * Creates SVG icon for fullscreen enter state
- * @returns {string} SVG markup for enter fullscreen icon
- * @private
- */
-function createEnterFullscreenIcon() {
-    return '<iconify-icon icon="flat-color-icons:expand" width="28" height="28"></iconify-icon>';
-}
-
-/**
- * Creates SVG icon for fullscreen exit state
- * @returns {string} SVG markup for exit fullscreen icon
- * @private
- */
-function createExitFullscreenIcon() {
-    return '<iconify-icon icon="flat-color-icons:collapse" width="28" height="28"></iconify-icon>';
 }
 
 /**
@@ -458,15 +445,29 @@ function updateButtonState(button, isFullscreen) {
             return;
         }
 
+        let iconElement = icon.querySelector("iconify-icon");
+        if (!iconElement) {
+            icon.innerHTML = FULLSCREEN_ENTER_ICON_MARKUP;
+            iconElement = icon.querySelector("iconify-icon");
+        }
+
+        if (!iconElement) {
+            logWithContext("Iconify icon element not found", "warn");
+            return;
+        }
+
         if (isFullscreen) {
             button.title = "Exit Full Screen (F11)";
             button.setAttribute("aria-label", "Exit full screen mode");
-            icon.innerHTML = createExitFullscreenIcon();
+            iconElement.setAttribute("icon", FULLSCREEN_EXIT_ICON);
         } else {
             button.title = "Toggle Full Screen (F11)";
             button.setAttribute("aria-label", "Enter full screen mode");
-            icon.innerHTML = createEnterFullscreenIcon();
+            iconElement.setAttribute("icon", FULLSCREEN_ENTER_ICON);
         }
+
+        iconElement.setAttribute("width", FULLSCREEN_ICON_SIZE);
+        iconElement.setAttribute("height", FULLSCREEN_ICON_SIZE);
     } catch (error) {
         logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
     }

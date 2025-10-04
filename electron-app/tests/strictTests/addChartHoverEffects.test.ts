@@ -247,9 +247,7 @@ describe("addChartHoverEffects", () => {
 
             wrapper.dispatchEvent(clickEvent);
 
-            const ripple = wrapper.querySelector(
-                "div:not(.chart-glow-overlay):not(.chart-title-overlay)"
-            ) as HTMLElement;
+            const ripple = wrapper.querySelector(".chart-ripple") as HTMLElement;
             expect(ripple).toBeTruthy();
             expect(ripple.style.cssText).toContain("animation: ripple-effect 0.6s ease-out");
         });

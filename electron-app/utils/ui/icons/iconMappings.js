@@ -72,7 +72,6 @@ const chartEmojiMap = {
     positionLat: "📍",
     positionLong: "📍",
     power: "⚡",
-    "power-vs-hr": "📊",
     power_lap_zone_individual: "⚡",
     power_lap_zone_stacked: "⚡",
     power_zone_doughnut: "⚡",
@@ -287,7 +286,7 @@ export function getAxisLabelWithEmoji(keyword, label) {
  * @returns {string}
  */
 export function getChartEmoji(identifier) {
-    return resolveFromLookup(chartEmojiLookup, identifier, "📊");
+    return resolveFromLookup(chartEmojiLookup, identifier, "");
 }
 
 /**
@@ -365,7 +364,7 @@ export function getZoneChartEmoji(chartId) {
     if (emoji) {
         return emoji;
     }
-    return findByKeyword(zoneKeywordEmoji, chartId) ?? "📊";
+    return findByKeyword(zoneKeywordEmoji, chartId) ?? "";
 }
 
 /**

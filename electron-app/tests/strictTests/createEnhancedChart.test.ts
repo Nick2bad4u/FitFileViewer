@@ -393,7 +393,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             const config = Chart.mock.calls[0][1];
             expect(config.options.plugins.legend.labels.color).toBe("#000");
-            expect(config.options.plugins.title.color).toBe("#000");
+            expect(config.options.plugins.title.color).toBe("rgba(0,0,0,0)");
             expect(config.options.plugins.tooltip.backgroundColor).toBe("#fff");
             expect(config.options.plugins.tooltip.titleColor).toBe("#000");
             expect(config.options.plugins.tooltip.bodyColor).toBe("#000");

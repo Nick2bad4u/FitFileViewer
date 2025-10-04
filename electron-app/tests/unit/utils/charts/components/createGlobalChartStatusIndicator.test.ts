@@ -13,16 +13,11 @@ vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
 import { createGlobalChartStatusIndicator } from "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js";
 
 describe("createGlobalChartStatusIndicator", () => {
-    /** @type {HTMLDivElement} */
-    let root;
-    /** @type {any} */
-    let origLog;
-    /** @type {any} */
-    let origInfo;
-    /** @type {any} */
-    let origWarn;
-    /** @type {any} */
-    let origError;
+    let root: HTMLDivElement;
+    let origLog: typeof console.log;
+    let origInfo: typeof console.info;
+    let origWarn: typeof console.warn;
+    let origError: typeof console.error;
 
     beforeEach(() => {
         // DOM reset
@@ -54,10 +49,10 @@ describe("createGlobalChartStatusIndicator", () => {
     afterEach(() => {
         document.body.innerHTML = "";
         // Restore logs
-        console.log = /** @type {any} */ origLog;
-        console.info = /** @type {any} */ origInfo;
-        console.warn = /** @type {any} */ origWarn;
-        console.error = /** @type {any} */ origError;
+        console.log = origLog;
+        console.info = origInfo;
+        console.warn = origWarn;
+        console.error = origError;
         vi.resetAllMocks();
     });
 
@@ -75,13 +70,15 @@ describe("createGlobalChartStatusIndicator", () => {
         const indicator = createGlobalChartStatusIndicator();
         expect(indicator).toBeTruthy();
 
-        // Icon should be the ALL_VISIBLE emoji
-        const icon = /** @type {HTMLElement|null} */ indicator && indicator.querySelector("span");
-        expect(icon?.textContent).toBe("✅");
+        // Icon should be the ALL_VISIBLE Iconify glyph
+        const icon = indicator?.querySelector("span iconify-icon");
+        expect(icon?.getAttribute("icon")).toBe("flat-color-icons:ok");
 
         // Quick action should indicate all set
-        const quickAction = /** @type {HTMLElement|null} */ indicator && indicator.querySelector("button");
-        expect(quickAction?.textContent).toContain("All Set");
+        const quickAction = indicator?.querySelector("button");
+        const quickActionIcon = quickAction?.querySelector("iconify-icon");
+        expect(quickActionIcon?.getAttribute("icon")).toBe("flat-color-icons:ok");
+        expect(quickAction?.textContent?.trim()).toBe("All Set");
     });
 
     it("creates indicator for some-hidden charts and opens settings on click", async () => {
@@ -91,18 +88,23 @@ describe("createGlobalChartStatusIndicator", () => {
         settingsWrapper.style.display = "none";
         const toggleBtn = document.createElement("button");
         toggleBtn.id = "chart-controls-toggle";
+        toggleBtn.innerHTML = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon> Show Controls';
         root.append(settingsWrapper, toggleBtn);
 
         mockGetChartCounts.mockReturnValue({ available: 6, visible: 3 });
         const indicator = createGlobalChartStatusIndicator();
         const quickAction = indicator?.querySelector("button");
-        expect(quickAction?.textContent).toContain("Show Settings");
+        const quickActionIcon = quickAction?.querySelector("iconify-icon");
+        expect(quickActionIcon?.getAttribute("icon")).toBe("flat-color-icons:settings");
+        expect(quickAction?.textContent?.trim()).toBe("Show Settings");
 
         // Click to trigger handleSettingsToggle side effects
         quickAction?.dispatchEvent(new Event("click"));
         // display should be set to block and toggle text changed
         expect(settingsWrapper.style.display).toBe("block");
-        expect(toggleBtn.textContent).toContain("Hide Controls");
+        expect(toggleBtn.innerHTML).toBe(
+            '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon> Hide Controls'
+        );
         expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
     });
 
@@ -113,7 +115,9 @@ describe("createGlobalChartStatusIndicator", () => {
         expect(statusText?.textContent).toContain("No chart data available");
 
         const quickAction = indicator?.querySelector("button");
-        expect(quickAction?.textContent).toContain("Load FIT");
+        const quickActionIcon = quickAction?.querySelector("iconify-icon");
+        expect(quickActionIcon?.getAttribute("icon")).toBe("flat-color-icons:folder");
+        expect(quickAction?.textContent?.trim()).toBe("Load FIT");
     });
 
     it("reuses existing indicator when already present", () => {

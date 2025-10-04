@@ -13,10 +13,8 @@ vi.mock("../../../../../utils/charts/core/getChartCounts.js", () => ({
 import { createChartStatusIndicator } from "../../../../../utils/charts/components/createChartStatusIndicator.js";
 
 describe("createChartStatusIndicator", () => {
-    /** @type {any} */
-    let origError;
-    /** @type {any} */
-    let origWarn;
+    let origError: typeof console.error;
+    let origWarn: typeof console.warn;
 
     beforeEach(() => {
         document.body.innerHTML = "";
@@ -48,13 +46,15 @@ describe("createChartStatusIndicator", () => {
         vi.restoreAllMocks();
     });
 
-    it("creates an indicator for all-visible charts (✅) and appends breakdown to body", () => {
+    it("creates an indicator for all-visible charts and appends breakdown to body", () => {
         const indicator = createChartStatusIndicator();
         expect(indicator).toBeInstanceOf(HTMLElement);
         expect(indicator.id).toBe("chart-status-indicator");
 
         const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("✅");
+        const iconify = icon?.querySelector("iconify-icon");
+        expect(iconify).toBeTruthy();
+        expect(iconify?.getAttribute("icon")).toBe("flat-color-icons:ok");
         expect(icon?.getAttribute("title")).toContain("All available charts are visible");
 
         const statusText = indicator.querySelector(".status-text");
@@ -68,7 +68,7 @@ describe("createChartStatusIndicator", () => {
         expect(breakdown?.innerHTML).not.toContain("Enable more charts");
     });
 
-    it("shows warning (⚠️) when some charts are hidden and reveals breakdown on hover", () => {
+    it("shows warning icon when some charts are hidden and reveals breakdown on hover", () => {
         mockGetChartCounts.mockReturnValue({
             available: 6,
             visible: 3,
@@ -82,9 +82,10 @@ describe("createChartStatusIndicator", () => {
 
         const indicator = createChartStatusIndicator();
         const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("⚠️");
+        const iconify = icon?.querySelector("iconify-icon");
+        expect(iconify?.getAttribute("icon")).toBe("flat-color-icons:high-priority");
 
-        const breakdown = /** @type {HTMLElement|null} */ document.querySelector(".status-breakdown");
+    const breakdown = document.querySelector(".status-breakdown") as HTMLElement | null;
 
         // Hover in
         indicator.dispatchEvent(new Event("mouseenter"));
@@ -151,16 +152,16 @@ describe("createChartStatusIndicator", () => {
         });
 
         const indicator = createChartStatusIndicator();
-        const icon = indicator.querySelector(".status-icon");
-        // Note: logic sets ✅ icon even when 0/0, but text is overwritten below
-        expect(icon?.textContent).toBe("✅");
+        const icon = indicator.querySelector(".status-icon iconify-icon");
+        // Note: logic sets OK icon even when 0/0, but text is overwritten below
+        expect(icon?.getAttribute("icon")).toBe("flat-color-icons:ok");
 
-        const statusText = /** @type {HTMLElement|null} */ indicator.querySelector(".status-text");
+    const statusText = indicator.querySelector(".status-text") as HTMLElement | null;
         expect(statusText?.textContent).toBe("No charts available");
         expect(statusText?.style.color).toBe("var(--color-fg-muted)");
     });
 
-    it("uses error state (❌) when visible > available (invalid input)", () => {
+    it("uses error state icon when visible > available (invalid input)", () => {
         mockGetChartCounts.mockReturnValue({
             available: 1,
             visible: 2,
@@ -172,8 +173,8 @@ describe("createChartStatusIndicator", () => {
             },
         });
         const indicator = createChartStatusIndicator();
-        const icon = indicator.querySelector(".status-icon");
-        expect(icon?.textContent).toBe("❌");
+        const icon = indicator.querySelector(".status-icon iconify-icon");
+        expect(icon?.getAttribute("icon")).toBe("flat-color-icons:cancel");
 
         const statusText = indicator.querySelector(".status-text");
         expect(statusText?.innerHTML).toContain("var(--color-error)");

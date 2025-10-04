@@ -44,7 +44,7 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
                 <body>
                     <div id="content-chartjs"></div>
                     <div id="chartjs-settings-wrapper" style="display: none;"></div>
-                    <button id="chart-controls-toggle" aria-expanded="false">▶ Show Controls</button>
+                    <button id="chart-controls-toggle" aria-expanded="false"><iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon> Show Controls</button>
                     <div class="fields-section"></div>
                 </body>
             </html>
@@ -153,8 +153,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
 
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const statusIcon = indicator?.querySelector("span");
+            const iconElement = statusIcon?.querySelector("iconify-icon");
 
-            expect(statusIcon?.textContent).toBe("✅");
+            expect(iconElement?.getAttribute("icon")).toBe("flat-color-icons:ok");
             expect(statusIcon?.title).toBe("All available charts are visible");
         });
 
@@ -173,8 +174,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
 
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const statusIcon = indicator?.querySelector("span");
+            const iconElement = statusIcon?.querySelector("iconify-icon");
 
-            expect(statusIcon?.textContent).toBe("⚠️");
+            expect(iconElement?.getAttribute("icon")).toBe("flat-color-icons:high-priority");
             expect(statusIcon?.title).toBe("Some charts are hidden");
         });
 
@@ -193,8 +195,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
 
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const statusIcon = indicator?.querySelector("span");
+            const iconElement = statusIcon?.querySelector("iconify-icon");
 
-            expect(statusIcon?.textContent).toBe("⚠️");
+            expect(iconElement?.getAttribute("icon")).toBe("flat-color-icons:high-priority");
             expect(statusIcon?.title).toBe("Some charts are hidden");
         });
     });
@@ -298,7 +301,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
-            expect(quickAction?.textContent).toBe("⚙️ Show Settings");
+            const icon = quickAction?.querySelector("iconify-icon");
+            expect(icon?.getAttribute("icon")).toBe("flat-color-icons:settings");
+            expect(quickAction?.textContent?.trim()).toBe("Show Settings");
             expect(quickAction?.title).toBe("Open chart settings to enable more charts");
         });
 
@@ -318,7 +323,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
-            expect(quickAction?.textContent).toBe("✨ All Set");
+            const icon = quickAction?.querySelector("iconify-icon");
+            expect(icon?.getAttribute("icon")).toBe("flat-color-icons:ok");
+            expect(quickAction?.textContent?.trim()).toBe("All Set");
             expect(quickAction?.title).toBe("All available charts are visible");
             expect(quickAction?.style.opacity).toBe("0.7");
             expect(quickAction?.style.cursor).toBe("default");
@@ -340,7 +347,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const quickAction = indicator?.querySelector("button");
 
-            expect(quickAction?.textContent).toBe("📂 Load FIT");
+            const icon = quickAction?.querySelector("iconify-icon");
+            expect(icon?.getAttribute("icon")).toBe("flat-color-icons:folder");
+            expect(quickAction?.textContent?.trim()).toBe("Load FIT");
             expect(quickAction?.title).toBe("Load a FIT file to see charts");
             expect(quickAction?.style.opacity).toBe("0.7");
             expect(quickAction?.style.cursor).toBe("default");
@@ -375,7 +384,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const toggleBtn = document.getElementById("chart-controls-toggle");
 
             expect(wrapper?.style.display).toBe("block");
-            expect(toggleBtn?.textContent).toBe("▼ Hide Controls");
+            expect(toggleBtn?.innerHTML).toBe(
+                '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon> Hide Controls'
+            );
             expect(toggleBtn?.getAttribute("aria-expanded")).toBe("true");
         });
 
@@ -527,10 +538,14 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
-            expect(breakdown?.innerHTML).toContain("📊 Metrics: 2/3");
-            expect(breakdown?.innerHTML).toContain("📈 Analysis: 2/2");
-            expect(breakdown?.innerHTML).toContain("🎯 Zones: 1/1");
-            expect(breakdown?.innerHTML).toContain("🗺️ GPS: 0/1");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:grid"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("Metrics: 2/3");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:line-chart"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("Analysis: 2/2");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:bullish"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("Zones: 1/1");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:globe"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("GPS: 0/1");
         });
 
         it("should show tip when charts are hidden", () => {
@@ -679,8 +694,9 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
 
             expect(indicator).not.toBeNull();
-            // The code logic shows ✅ when visible === available, even if both are 0
-            expect(indicator?.querySelector("span")?.textContent).toBe("✅");
+            // The code logic shows a success icon when visible === available, even if both are 0
+            const statusIcon = indicator?.querySelector("span iconify-icon");
+            expect(statusIcon?.getAttribute("icon")).toBe("flat-color-icons:ok");
         });
 
         it("should handle very large numbers", () => {
@@ -740,9 +756,12 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
             const indicator = createGlobalChartStatusIndicatorFromCounts(counts);
             const breakdown = indicator?.querySelector(".global-breakdown");
 
-            expect(breakdown?.innerHTML).toContain("📊 Metrics: 1/2");
-            expect(breakdown?.innerHTML).toContain("📈 Analysis: undefined/1");
-            expect(breakdown?.innerHTML).toContain("🎯 Zones: 1/undefined");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:grid"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("Metrics: 1/2");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:line-chart"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("Analysis: undefined/1");
+            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:bullish"]')).toBeTruthy();
+            expect(breakdown?.innerHTML).toContain("Zones: 1/undefined");
         });
     });
 

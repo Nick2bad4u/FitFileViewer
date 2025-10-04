@@ -644,7 +644,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                         }
                     },
                     enabled: Boolean(loadedFitFilePath),
-                    label: "📊 Summary Columns...",
+                    label: "Summary Columns...",
                 },
                 decoderOptionsMenu,
                 {

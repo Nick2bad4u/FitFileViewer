@@ -586,7 +586,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConfig = (window.Chart as any).mock.calls[0][1];
 
             expect(chartConfig.options.scales.x.ticks.color).toBe("#000000");
-            expect(chartConfig.options.scales.x.title.color).toBe("#000000");
+            expect(chartConfig.options.scales.x.title.color).toBe("rgba(0,0,0,0)");
             expect(chartConfig.options.scales.x.grid.color).toBe("#e9ecef");
         });
     });

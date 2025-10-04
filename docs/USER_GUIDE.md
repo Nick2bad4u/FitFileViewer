@@ -98,7 +98,7 @@
 The application uses a tabbed interface with four main sections:
 
 1. **Map Tab** 🗺️ - Interactive GPS route visualization
-2. **Charts Tab** 📊 - Data charts and graphs
+2. **Charts Tab** <img src="https://api.iconify.design/mdi/chart-line.svg" alt="Charts tab icon" width="16" height="16" /> - Data charts and graphs
 3. **Tables Tab** 📋 - Detailed data tables
 4. **Summary Tab** 📄 - Activity summary and statistics
 
@@ -135,7 +135,7 @@ The application uses a tabbed interface with four main sections:
 - **Terrain**: Topographical map with elevation
 - **Dark Mode**: Dark-themed map (automatically matches app theme)
 
-### Charts View (📊 Tab)
+### Charts View (<img src="https://api.iconify.design/mdi/chart-line.svg" alt="Charts tab icon" width="16" height="16" /> Tab)
 
 #### Available Chart Types
 

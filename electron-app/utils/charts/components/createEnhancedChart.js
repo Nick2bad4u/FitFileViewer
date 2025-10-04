@@ -2,6 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { convertTimeUnits } from "../../formatting/converters/convertTimeUnits.js";
 import { formatTooltipWithUnits } from "../../formatting/display/formatTooltipWithUnits.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getChartIcon } from "../../ui/icons/iconMappings.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { hexToRgba } from "../core/renderChartJS.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
@@ -9,6 +10,7 @@ import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugi
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 import { getFieldColor } from "../theming/getFieldColor.js";
+import { attachChartLabelMetadata } from "./attachChartLabelMetadata.js";
 
 // Enhanced chart creation function
 /**
@@ -46,6 +48,12 @@ export function createEnhancedChart(canvas, options) {
 
         // Get field color
         const fieldColor = customColors[field] || getFieldColor(field),
+            fieldLabel = fieldLabels[field] || field,
+            unitSymbol = getUnitSymbol(field),
+            unitSuffix = unitSymbol ? ` (${unitSymbol})` : "",
+            titleLabel = `${fieldLabel}${unitSuffix}`.trim(),
+            xUnitSymbol = getUnitSymbol("time", "time"),
+            xLabel = `Time${xUnitSymbol ? ` (${xUnitSymbol})` : ""}`,
             // Configure dataset based on chart type
             dataset = {
                 backgroundColor: showFill ? hexToRgba(fieldColor, 0.2) : "transparent",
@@ -83,10 +91,10 @@ export function createEnhancedChart(canvas, options) {
                         animationStyle === "none"
                             ? 0
                             : animationStyle === "fast"
-                              ? 500
-                              : animationStyle === "slow"
-                                ? 2000
-                                : 1000,
+                                ? 500
+                                : animationStyle === "slow"
+                                    ? 2000
+                                    : 1000,
                     easing: interpolation,
                 },
                 interaction: {
@@ -114,14 +122,14 @@ export function createEnhancedChart(canvas, options) {
                         position: "top",
                     },
                     title: {
-                        color: currentTheme === "dark" ? "#fff" : "#000",
+                        color: "rgba(0,0,0,0)",
                         display: showTitle,
                         font: {
                             size: 16,
                             weight: "bold",
                         },
                         padding: 20,
-                        text: `${fieldLabels[field] || field} (${getUnitSymbol(field)})`,
+                        text: titleLabel,
                     },
                     tooltip: {
                         backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
@@ -214,28 +222,28 @@ export function createEnhancedChart(canvas, options) {
                             ...(tickSampleSize ? { sampleSize: tickSampleSize } : {}),
                         },
                         title: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: "rgba(0,0,0,0)",
                             display: true,
                             font: {
                                 size: 12,
                                 weight: "bold",
                             },
-                            text: `Time (${getUnitSymbol("time", "time")})`,
+                            text: xLabel,
                         },
                         type: "linear",
                         ...(axisRanges &&
-                        axisRanges.x &&
-                        Number.isFinite(axisRanges.x.min) &&
-                        Number.isFinite(axisRanges.x.max)
+                            axisRanges.x &&
+                            Number.isFinite(axisRanges.x.min) &&
+                            Number.isFinite(axisRanges.x.max)
                             ? axisRanges.x.min === axisRanges.x.max
                                 ? {
-                                      max: axisRanges.x.max + 1,
-                                      min: Math.max(axisRanges.x.min - 1, 0),
-                                  }
+                                    max: axisRanges.x.max + 1,
+                                    min: Math.max(axisRanges.x.min - 1, 0),
+                                }
                                 : {
-                                      max: axisRanges.x.max,
-                                      min: axisRanges.x.min,
-                                  }
+                                    max: axisRanges.x.max,
+                                    min: axisRanges.x.min,
+                                }
                             : {}),
                     },
                     y: {
@@ -248,27 +256,27 @@ export function createEnhancedChart(canvas, options) {
                             color: currentTheme === "dark" ? "#fff" : "#000",
                         },
                         title: {
-                            color: currentTheme === "dark" ? "#fff" : "#000",
+                            color: "rgba(0,0,0,0)",
                             display: true,
                             font: {
                                 size: 12,
                                 weight: "bold",
                             },
-                            text: `${fieldLabels[field] || field} (${getUnitSymbol(field)})`,
+                            text: titleLabel,
                         },
                         ...(axisRanges &&
-                        axisRanges.y &&
-                        Number.isFinite(axisRanges.y.min) &&
-                        Number.isFinite(axisRanges.y.max)
+                            axisRanges.y &&
+                            Number.isFinite(axisRanges.y.min) &&
+                            Number.isFinite(axisRanges.y.max)
                             ? axisRanges.y.min === axisRanges.y.max
                                 ? {
-                                      max: axisRanges.y.max + 1,
-                                      min: axisRanges.y.min - 1,
-                                  }
+                                    max: axisRanges.y.max + 1,
+                                    min: axisRanges.y.min - 1,
+                                }
                                 : {
-                                      max: axisRanges.y.max,
-                                      min: axisRanges.y.min,
-                                  }
+                                    max: axisRanges.y.max,
+                                    min: axisRanges.y.min,
+                                }
                             : {}),
                     },
                 },
@@ -280,6 +288,16 @@ export function createEnhancedChart(canvas, options) {
         // Apply theme-aware canvas styling (background handled by plugin)
         canvas.style.borderRadius = "12px";
         canvas.style.boxShadow = "0 2px 16px 0 rgba(0,0,0,0.18)";
+
+        attachChartLabelMetadata(canvas, {
+            titleIcon: getChartIcon(field),
+            titleText: titleLabel,
+            titleColor: fieldColor,
+            xIcon: getChartIcon("time"),
+            xText: xLabel,
+            yIcon: getChartIcon(field),
+            yText: titleLabel,
+        });
 
         // Create and return chart
         const chart = new globalThis.Chart(canvas, config);

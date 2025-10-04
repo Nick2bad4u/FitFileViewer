@@ -65,7 +65,7 @@ export function debugSensorInfo() {
         console.log(`📱 Found ${data.deviceInfoMesgs.length} deviceInfoMesgs entries`);
         sensors.push(
             ...data.deviceInfoMesgs.map(
-                /** @param {*} device */ (device) => ({
+                /** @param {*} device */(device) => ({
                     ...device,
                     source: "deviceInfoMesgs",
                 })
@@ -78,7 +78,7 @@ export function debugSensorInfo() {
         console.log(`⚙️  Found ${data.deviceSettingsMesgs.length} deviceSettingsMesgs entries`);
         sensors.push(
             ...data.deviceSettingsMesgs.map(
-                /** @param {*} device */ (device) => ({
+                /** @param {*} device */(device) => ({
                     ...device,
                     source: "deviceSettingsMesgs",
                 })
@@ -91,7 +91,7 @@ export function debugSensorInfo() {
         console.log(`📱 Found ${data.device_info.length} device_info entries`);
         sensors.push(
             ...data.device_info.map(
-                /** @param {*} device */ (device) => ({
+                /** @param {*} device */(device) => ({
                     ...device,
                     source: "device_info",
                 })
@@ -102,7 +102,7 @@ export function debugSensorInfo() {
     // Check sessionMesgs messages for sensor info
     if (data.sessionMesgs && data.sessionMesgs.length > 0) {
         const [session] = data.sessionMesgs;
-        console.log("📊 Session data available");
+        console.log("[Charts] Session data available");
         if (session.manufacturer || session.manufacturerId || session.manufacturer_id) {
             sensors.push({
                 ...session,
@@ -114,7 +114,7 @@ export function debugSensorInfo() {
     // Check legacy session format
     if (data.session && data.session.length > 0) {
         const [session] = data.session;
-        console.log("📊 Legacy session data available");
+        console.log("[Charts] Legacy session data available");
         if (session.manufacturer || session.manufacturer_id) {
             sensors.push({
                 ...session,
@@ -222,7 +222,7 @@ export function debugSensorInfo() {
     }
 
     // Summary
-    console.log(`\n📊 SUMMARY:`);
+    console.log(`\n[Charts] SUMMARY:`);
     console.log(`    Total sensors: ${analysis.totalSensors}`);
     console.log(`    Product field issues: ${analysis.productIssues.length}`);
 
@@ -268,15 +268,15 @@ export function showSensorNames() {
         sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
-        sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceInfoMesgs" })));
+        sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */(d) => ({ ...d, source: "deviceInfoMesgs" })));
     }
     if (data.deviceSettingsMesgs) {
         sensors.push(
-            ...data.deviceSettingsMesgs.map(/** @param {*} d */ (d) => ({ ...d, source: "deviceSettingsMesgs" }))
+            ...data.deviceSettingsMesgs.map(/** @param {*} d */(d) => ({ ...d, source: "deviceSettingsMesgs" }))
         );
     }
     if (data.device_info) {
-        sensors.push(...data.device_info.map(/** @param {*} d */ (d) => ({ ...d, source: "device_info" })));
+        sensors.push(...data.device_info.map(/** @param {*} d */(d) => ({ ...d, source: "device_info" })));
     }
     if (data.sessionMesgs && data.sessionMesgs[0]) {
         sensors.push({ ...data.sessionMesgs[0], source: "sessionMesgs" });

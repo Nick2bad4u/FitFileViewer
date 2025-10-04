@@ -40,15 +40,16 @@ describe("renderTable", () => {
 
         const section = root.querySelector(".table-section") as HTMLElement;
         expect(section).toBeTruthy();
-        const header = section.querySelector(".table-header") as HTMLElement;
-        const icon = header.querySelector("span:last-child") as HTMLSpanElement;
+    const header = section.querySelector(".table-header") as HTMLElement;
+    const toggleIcon = header.querySelector(".table-toggle-icon") as HTMLElement;
         const content = section.querySelector(".table-content") as HTMLElement;
         expect(content.style.display).toBe("none");
+    expect(toggleIcon.getAttribute("icon")).toBe("mdi:chevron-right");
 
         // Toggle open
         header.click();
         expect(content.style.display).toBe("block");
-        expect(icon.textContent).toBe("➖");
+    expect(toggleIcon.getAttribute("icon")).toBe("mdi:chevron-down");
 
         // Copy button
         const copyBtn = header.querySelector(".copy-btn") as HTMLButtonElement;

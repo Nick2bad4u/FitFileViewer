@@ -1,6 +1,9 @@
+import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { getChartIcon, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
+import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
@@ -72,6 +75,19 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         }
 
         // Create chart configuration based on type
+        const primaryColor = Array.isArray(colors) && colors.length > 0 ? colors[0] : themeConfig?.colors?.primary,
+            yLabel = `Time (${getUnitSymbol("time", "time")})`;
+
+        attachChartLabelMetadata(canvas, {
+            titleIcon: getZoneChartIcon(chartId) || getChartIcon(chartId),
+            titleText: title,
+            titleColor: primaryColor,
+            xIcon: getZoneChartIcon(chartId) || getChartIcon(chartId),
+            xText: "Zone",
+            yIcon: getChartIcon("time"),
+            yText: yLabel,
+        });
+
         const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
         console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
@@ -146,7 +162,7 @@ function createBarChartConfig(
                     display: false, // Single dataset, no need for legend
                 },
                 title: {
-                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    color: "rgba(0,0,0,0)",
                     display: true,
                     font: {
                         size: 16,
@@ -198,7 +214,7 @@ function createBarChartConfig(
                         },
                     },
                     title: {
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        color: "rgba(0,0,0,0)",
                         display: true,
                         font: {
                             size: 14,
@@ -217,7 +233,7 @@ function createBarChartConfig(
                         callback(/** @type {number} */ value) {
                             return formatTime(typeof value === "number" ? value : 0, true);
                         },
-                        color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                        color: "rgba(0,0,0,0)",
                         font: {
                             size: 12,
                         },
@@ -229,7 +245,7 @@ function createBarChartConfig(
                             size: 14,
                             weight: "bold",
                         },
-                        text: "Time",
+                        text: `Time (${getUnitSymbol("time", "time")})`,
                     },
                 },
             },
@@ -360,9 +376,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                 const [dataset] = data.datasets,
                                     total = Array.isArray(dataset.data)
                                         ? dataset.data.reduce(
-                                              (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                              0
-                                          )
+                                            (/** @type {number} */ a, /** @type {number} */ b) => a + b,
+                                            0
+                                        )
                                         : 0;
                                 return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
                                     const meta = chart.getDatasetMeta ? chart.getDatasetMeta(0) : { data: [] },
@@ -389,7 +405,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     position: "right",
                 },
                 title: {
-                    color: currentTheme === "dark" ? "#ffffff" : "#333333",
+                    color: "rgba(0,0,0,0)",
                     display: true,
                     font: {
                         size: 16,

@@ -27,7 +27,17 @@ const mockSubscribe = vi.mocked(subscribe);
 const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 
 // Mock DOM elements
+const ICON_DOWN = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+const ICON_RIGHT = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
+
+let toggleHtml = "";
 const mockToggleButton = {
+    get innerHTML() {
+        return toggleHtml;
+    },
+    set innerHTML(value: string) {
+        toggleHtml = value;
+    },
     textContent: "",
     setAttribute: vi.fn(),
     getAttribute: vi.fn(),
@@ -53,7 +63,8 @@ describe("updateControlsState", () => {
         vi.clearAllMocks();
 
         // Reset mock objects
-        mockToggleButton.textContent = "";
+    toggleHtml = "";
+    mockToggleButton.textContent = "";
         mockToggleButton.setAttribute.mockClear();
         mockToggleButton.getAttribute.mockClear();
         mockWrapper.style.display = "";
@@ -108,7 +119,7 @@ describe("updateControlsState", () => {
 
             // Verify DOM updates for visible state
             expect(mockWrapper.style.display).toBe("block");
-            expect(mockToggleButton.textContent).toBe("▼ Hide Controls");
+            expect(mockToggleButton.innerHTML).toBe(`${ICON_DOWN} Hide Controls`);
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "true");
         });
 
@@ -131,7 +142,7 @@ describe("updateControlsState", () => {
 
             // Verify DOM updates for hidden state
             expect(mockWrapper.style.display).toBe("none");
-            expect(mockToggleButton.textContent).toBe("▶ Show Controls");
+            expect(mockToggleButton.innerHTML).toBe(`${ICON_RIGHT} Show Controls`);
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
         });
 
@@ -242,7 +253,7 @@ describe("updateControlsState", () => {
                 silent: true,
                 source: "updateControlsState",
             });
-            expect(mockToggleButton.textContent).toBe("▼ Hide Controls");
+            expect(mockToggleButton.innerHTML).toBe(`${ICON_DOWN} Hide Controls`);
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "true");
             expect(mockWrapper.style.display).toBe("block");
         });
@@ -268,7 +279,7 @@ describe("updateControlsState", () => {
                 silent: true,
                 source: "updateControlsState",
             });
-            expect(mockToggleButton.textContent).toBe("▶ Show Controls");
+            expect(mockToggleButton.innerHTML).toBe(`${ICON_RIGHT} Show Controls`);
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
             expect(mockWrapper.style.display).toBe("none");
         });
@@ -294,7 +305,7 @@ describe("updateControlsState", () => {
                 silent: true,
                 source: "updateControlsState",
             });
-            expect(mockToggleButton.textContent).toBe("▶ Show Controls");
+            expect(mockToggleButton.innerHTML).toBe(`${ICON_RIGHT} Show Controls`);
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
             expect(mockWrapper.style.display).toBe("none");
         });
@@ -320,7 +331,7 @@ describe("updateControlsState", () => {
                 silent: true,
                 source: "updateControlsState",
             });
-            expect(mockToggleButton.textContent).toBe("▶ Show Controls");
+            expect(mockToggleButton.innerHTML).toBe(`${ICON_RIGHT} Show Controls`);
             expect(mockToggleButton.setAttribute).toHaveBeenCalledWith("aria-expanded", "false");
             expect(mockWrapper.style.display).toBe("none");
         });

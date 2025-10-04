@@ -162,7 +162,7 @@ describe("createAppMenu", () => {
         const tpl = capturedTemplate || (globalThis as any).__lastBuiltMenuTemplate;
         expect(tpl).toBeTruthy();
         const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const summary = settingsMenu.submenu.find((i: any) => i.label === "📊 Summary Columns...");
+    const summary = settingsMenu.submenu.find((i: any) => i.label === "Summary Columns...");
         expect(summary.enabled).toBe(true);
         summary.click();
         expect(send).toHaveBeenCalledWith("open-summary-column-selector");
@@ -201,7 +201,7 @@ describe("createAppMenu", () => {
         const copyItem = fileMenu.submenu.find((i: any) => i.label === "📋 Copy File Path");
         expect(copyItem.enabled).toBe(false);
         const settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
-        const summary = settingsMenu.submenu.find((i: any) => i.label === "📊 Summary Columns...");
+    const summary = settingsMenu.submenu.find((i: any) => i.label === "Summary Columns...");
         expect(summary.enabled).toBe(false);
     });
 

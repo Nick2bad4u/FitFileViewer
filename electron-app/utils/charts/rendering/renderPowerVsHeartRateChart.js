@@ -1,4 +1,6 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
@@ -59,121 +61,139 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
         }
         canvas.style.borderRadius = "12px";
+
+        const titleText = "Power vs Heart Rate",
+            xLabel = "Heart Rate (bpm)",
+            yLabel = "Power (W)",
+            accentColor = themeConfig?.colors?.warning || themeConfig?.colors?.primary || "#f97316";
+
+        attachChartLabelMetadata(canvas, {
+            titleIcon: getChartIcon("power-vs-hr"),
+            titleText,
+            titleColor: accentColor,
+            xIcon: getChartIcon("heartRate"),
+            xText: xLabel,
+            xColor: accentColor,
+            yIcon: getChartIcon("power"),
+            yText: yLabel,
+            yColor: themeConfig?.colors?.primary || accentColor,
+        });
+
         container.append(canvas);
 
         const config = {
-                data: {
-                    datasets: [
-                        {
-                            backgroundColor: `${themeConfig.colors.warning}99`, // Orange with alpha
-                            borderColor: themeConfig.colors.warning,
-                            data: chartData,
-                            label: "Power vs Heart Rate",
-                            pointHoverRadius: 4,
-                            pointRadius: options.showPoints ? 2 : 1,
-                        },
-                    ],
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: {
-                        chartBackgroundColorPlugin: {
-                            backgroundColor: themeConfig.colors.chartBackground,
-                        },
-                        legend: {
-                            display: options.showLegend,
-                            labels: { color: themeConfig.colors.text },
-                        },
-                        title: {
-                            color: themeConfig.colors.text,
-                            display: options.showTitle,
-                            font: { size: 16, weight: "bold" },
-                            text: "Power vs Heart Rate",
-                        },
-                        tooltip: {
-                            backgroundColor: themeConfig.colors.chartSurface,
-                            bodyColor: themeConfig.colors.text,
-                            borderColor: themeConfig.colors.chartBorder,
-                            borderWidth: 1,
-                            callbacks: {
-                                /** @param {any} context */
-                                label(context) {
-                                    return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
-                                },
+            data: {
+                datasets: [
+                    {
+                        backgroundColor: `${themeConfig.colors.warning}99`, // Orange with alpha
+                        borderColor: themeConfig.colors.warning,
+                        data: chartData,
+                        label: "Power vs Heart Rate",
+                        pointHoverRadius: 4,
+                        pointRadius: options.showPoints ? 2 : 1,
+                    },
+                ],
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    chartBackgroundColorPlugin: {
+                        backgroundColor: themeConfig.colors.chartBackground,
+                    },
+                    legend: {
+                        display: options.showLegend,
+                        labels: { color: themeConfig.colors.text },
+                    },
+                    title: {
+                        color: "rgba(0,0,0,0)",
+                        display: options.showTitle,
+                        font: { size: 16, weight: "bold" },
+                        text: titleText,
+                    },
+                    tooltip: {
+                        backgroundColor: themeConfig.colors.chartSurface,
+                        bodyColor: themeConfig.colors.text,
+                        borderColor: themeConfig.colors.chartBorder,
+                        borderWidth: 1,
+                        callbacks: {
+                            /** @param {any} context */
+                            label(context) {
+                                return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
                             },
-                            titleColor: themeConfig.colors.text,
+                        },
+                        titleColor: themeConfig.colors.text,
+                    },
+                    zoom: {
+                        limits: {
+                            x: {
+                                max: "original",
+                                min: "original",
+                            },
+                            y: {
+                                max: "original",
+                                min: "original",
+                            },
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: "xy",
+                            modifierKey: null,
                         },
                         zoom: {
-                            limits: {
-                                x: {
-                                    max: "original",
-                                    min: "original",
-                                },
-                                y: {
-                                    max: "original",
-                                    min: "original",
-                                },
-                            },
-                            pan: {
+                            drag: {
+                                backgroundColor: themeConfig.colors.primaryAlpha,
+                                borderColor: `${themeConfig.colors.primary}CC`, // Primary with more opacity
+                                borderWidth: 2,
                                 enabled: true,
-                                mode: "xy",
-                                modifierKey: null,
+                                modifierKey: "shift",
                             },
-                            zoom: {
-                                drag: {
-                                    backgroundColor: themeConfig.colors.primaryAlpha,
-                                    borderColor: `${themeConfig.colors.primary}CC`, // Primary with more opacity
-                                    borderWidth: 2,
-                                    enabled: true,
-                                    modifierKey: "shift",
-                                },
-                                mode: "xy",
-                                pinch: {
-                                    enabled: true,
-                                },
-                                wheel: {
-                                    enabled: true,
-                                    speed: 0.1,
-                                },
+                            mode: "xy",
+                            pinch: {
+                                enabled: true,
                             },
-                        },
-                    },
-                    responsive: true,
-                    scales: {
-                        x: {
-                            display: true,
-                            grid: {
-                                color: themeConfig.colors.chartGrid,
-                                display: options.showGrid,
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
                             },
-                            ticks: { color: themeConfig.colors.text },
-                            title: {
-                                color: themeConfig.colors.text,
-                                display: true,
-                                text: "Heart Rate (bpm)",
-                            },
-                            type: "linear",
-                        },
-                        y: {
-                            display: true,
-                            grid: {
-                                color: themeConfig.colors.chartGrid,
-                                display: options.showGrid,
-                            },
-                            ticks: { color: themeConfig.colors.text },
-                            title: {
-                                color: themeConfig.colors.text,
-                                display: true,
-                                text: "Power (W)",
-                            },
-                            type: "linear",
                         },
                     },
                 },
-                plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-                type: "scatter",
+                responsive: true,
+                scales: {
+                    x: {
+                        display: true,
+                        grid: {
+                            color: themeConfig.colors.chartGrid,
+                            display: options.showGrid,
+                        },
+                        ticks: { color: themeConfig.colors.text },
+                        title: {
+                            color: "rgba(0,0,0,0)",
+                            display: true,
+                            text: xLabel,
+                        },
+                        type: "linear",
+                    },
+                    y: {
+                        display: true,
+                        grid: {
+                            color: themeConfig.colors.chartGrid,
+                            display: options.showGrid,
+                        },
+                        ticks: { color: themeConfig.colors.text },
+                        title: {
+                            color: "rgba(0,0,0,0)",
+                            display: true,
+                            text: yLabel,
+                        },
+                        type: "linear",
+                    },
+                },
             },
-            chart = new /** @type {any} */ (globalThis).Chart(canvas, config);
+            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
+            type: "scatter",
+        },
+            chart = new /** @type {any} */(globalThis).Chart(canvas, config);
         if (chart) {
             if (!(/** @type {any} */ (globalThis)._chartjsInstances)) {
                 /** @type {any} */ globalThis._chartjsInstances = [];

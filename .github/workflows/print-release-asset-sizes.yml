@@ -70,7 +70,7 @@ jobs:
                     total_size_gb=$(grep -oP '(?<=, )[0-9.]+ GB' sizes.md | head -1)
                     total_downloads=$(grep -oP '(?<=Total downloads across all releases:\*\*)[0-9]+' sizes.md | head -1)
                     echo "---"
-                    echo "### 📊 Totals"
+                    echo "### Totals"
                     echo "- **Total asset size:** $total_size bytes ($total_size_mb, $total_size_gb)"
                     echo "- **Total downloads:** $total_downloads"
                   } >> "$GITHUB_STEP_SUMMARY"

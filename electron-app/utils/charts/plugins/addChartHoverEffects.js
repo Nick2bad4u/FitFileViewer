@@ -1,4 +1,5 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { createIconElement } from "../../ui/icons/iconMappings.js";
 
 /**
  * Adds fancy hover effects to chart canvases to match the info box styling
@@ -15,44 +16,44 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         return;
     }
 
-    // Find all chart canvases in the container
     const chartCanvases = chartContainer.querySelectorAll(".chart-canvas");
+    let processedCount = 0;
 
     for (const canvas of chartCanvases) {
         if (!(canvas instanceof HTMLElement)) {
             continue;
         }
-        // Skip if hover effects already added
-        if (canvas.dataset && canvas.dataset.hoverEffectsAdded) {
+
+        if (canvas.dataset?.hoverEffectsAdded) {
             continue;
         }
 
-        // Mark as having hover effects
         if (canvas.dataset) {
             canvas.dataset.hoverEffectsAdded = "true";
-        } // Create a wrapper div for the chart to handle hover effects properly
+        }
+
         const wrapper = document.createElement("div");
         wrapper.className = "chart-wrapper";
         const colors = /** @type {any} */ (themeConfig.colors || {});
         wrapper.style.cssText = `
             position: relative;
-            margin-bottom: 24px;
-            border-radius: 12px;
+            margin-bottom: 32px;
+            border-radius: 16px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
+            overflow: visible;
             border: 2px solid ${colors.border || "#444"};
             background: ${colors.surface || "#222"};
-            padding: 16px;
+            padding: 32px 32px 72px 72px;
             box-shadow: 0 4px 20px ${colors.shadowLight || "#00000055"},
                         0 2px 8px ${colors.primaryShadowLight || "#00000033"};
             box-sizing: border-box;
         `;
 
-        // Insert wrapper before canvas and move canvas into wrapper
         if (canvas.parentNode instanceof HTMLElement) {
             canvas.parentNode.insertBefore(wrapper, canvas);
         }
-        wrapper.append(canvas); // Update canvas styles to work with wrapper - ensure it stays inside
+        wrapper.append(canvas);
+
         if (canvas.style) {
             canvas.style.border = "none";
             canvas.style.boxShadow = "none";
@@ -68,7 +69,22 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             canvas.style.boxSizing = "border-box";
         }
 
-        // Add animated border glow overlay
+        const datasetAttrs = canvas.dataset || {};
+        const rawTitle = (canvas.getAttribute("aria-label") || "Chart").trim();
+        const fallbackTitle =
+            datasetAttrs.chartTitleText || rawTitle.replace(/chart for /i, "").trim() || rawTitle.trim() || "Chart";
+        const normalizedTitle = fallbackTitle.trim() || "Chart";
+        const displayTitle = normalizedTitle.toUpperCase();
+        const titleIconName = datasetAttrs.chartTitleIcon;
+        const titleAccent = datasetAttrs.chartTitleColor || colors.accent || colors.primary || "#3b82f6";
+        const axisTextColor = colors.textPrimary || "#fff";
+        const xLabelText = datasetAttrs.chartXAxisText || "";
+        const xIconName = datasetAttrs.chartXAxisIcon;
+        const xAccent = datasetAttrs.chartXAxisColor || titleAccent;
+        const yLabelText = datasetAttrs.chartYAxisText || "";
+        const yIconName = datasetAttrs.chartYAxisIcon;
+        const yAccent = datasetAttrs.chartYAxisColor || titleAccent;
+
         const glowOverlay = document.createElement("div");
         glowOverlay.className = "chart-glow-overlay";
         glowOverlay.style.cssText = `
@@ -77,7 +93,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             left: -2px;
             right: -2px;
             bottom: -2px;
-            background: linear-gradient(45deg, ${colors.primary || "#888"}, ${colors.accent || "#555"}, ${colors.primary || "#888"});
+            background: linear-gradient(45deg, ${titleAccent}, ${colors.accent || titleAccent}, ${titleAccent});
             border-radius: 14px;
             opacity: 0;
             z-index: -1;
@@ -86,74 +102,155 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         `;
         wrapper.append(glowOverlay);
 
-        // Add chart title overlay for better visual hierarchy
-        const chartTitle = canvas.getAttribute("aria-label") || "Chart",
-            titleOverlay = document.createElement("div");
+        const titleOverlay = document.createElement("div");
         titleOverlay.className = "chart-title-overlay";
         titleOverlay.style.cssText = `
             position: absolute;
-            top: 8px;
-            left: 16px;
-            background: ${colors.primary || "#555"};
-            color: ${colors.textPrimary || "#fff"};
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            top: 16px;
+            left: 32px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: ${colors.surfaceSecondary || colors.surface || "#333"};
+            color: ${axisTextColor};
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 14px;
             font-weight: 600;
             opacity: 0;
-            transform: translateY(-8px);
+            transform: translateY(0);
             transition: all 0.3s ease;
-            z-index: 10;
+            z-index: 12;
             pointer-events: none;
-            box-shadow: 0 2px 8px ${themeConfig.colors.shadowLight};
+            box-shadow: 0 4px 12px ${colors.shadowLight || "#00000055"};
         `;
-        titleOverlay.textContent = chartTitle.replace("Chart for ", "").toUpperCase();
+        titleOverlay.setAttribute("aria-hidden", "true");
+        const titleContent = document.createElement("div");
+        titleContent.style.cssText = "display:flex; align-items:center; gap:8px;";
+        if (titleIconName) {
+            const titleIcon = createIconElement(titleIconName, 22);
+            titleIcon.style.color = titleAccent;
+            titleContent.append(titleIcon);
+        }
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = displayTitle;
+        titleContent.append(titleSpan);
+        titleOverlay.append(titleContent);
         wrapper.append(titleOverlay);
 
-        // Add hover event listeners to wrapper
+        let axisXLabel;
+        if (xLabelText) {
+            axisXLabel = document.createElement("div");
+            axisXLabel.className = "chart-axis-label chart-axis-label-x";
+            axisXLabel.setAttribute("aria-hidden", "true");
+            axisXLabel.style.cssText = `
+                position: absolute;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                color: ${axisTextColor};
+                pointer-events: none;
+                opacity: 0.85;
+                z-index: 6;
+                text-shadow: 0 1px 2px ${colors.shadowLight || "#00000055"};
+            `;
+            if (xIconName) {
+                const xIcon = createIconElement(xIconName, 20);
+                xIcon.style.color = xAccent;
+                axisXLabel.append(xIcon);
+            }
+            const xText = document.createElement("span");
+            xText.textContent = xLabelText;
+            axisXLabel.append(xText);
+            wrapper.append(axisXLabel);
+        }
+
+        let axisYLabel;
+        if (yLabelText) {
+            axisYLabel = document.createElement("div");
+            axisYLabel.className = "chart-axis-label chart-axis-label-y";
+            axisYLabel.setAttribute("aria-hidden", "true");
+            axisYLabel.style.cssText = `
+                position: absolute;
+                left: 32px;
+                top: 50%;
+                transform: translateY(-50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                font-size: 13px;
+                font-weight: 600;
+                color: ${axisTextColor};
+                pointer-events: none;
+                opacity: 0.85;
+                z-index: 6;
+                text-shadow: 0 1px 2px ${colors.shadowLight || "#00000055"};
+            `;
+            if (yIconName) {
+                const yIcon = createIconElement(yIconName, 20);
+                yIcon.style.color = yAccent;
+                axisYLabel.append(yIcon);
+            }
+            const yText = document.createElement("span");
+            yText.textContent = yLabelText;
+            yText.style.writingMode = "vertical-rl";
+            yText.style.textOrientation = "mixed";
+            yText.style.letterSpacing = "0.1em";
+            axisYLabel.append(yText);
+            wrapper.append(axisYLabel);
+        }
+
         wrapper.addEventListener("mouseenter", () => {
-            // Main transform and shadow effects
             wrapper.style.transform = "translateY(-6px) scale(1.02)";
             wrapper.style.boxShadow = `0 12px 40px ${colors.shadow || "#00000088"},
                                        0 8px 20px ${colors.primaryShadowHeavy || "#00000055"}`;
-            wrapper.style.borderColor = colors.primary || "";
+            wrapper.style.borderColor = titleAccent;
 
-            // Glow effect
-            glowOverlay.style.opacity = "0.3";
-
-            // Title overlay effect
+            glowOverlay.style.opacity = "0.35";
             titleOverlay.style.opacity = "1";
             titleOverlay.style.transform = "translateY(0)";
+            if (axisXLabel) {
+                axisXLabel.style.opacity = "1";
+            }
+            if (axisYLabel) {
+                axisYLabel.style.opacity = "1";
+            }
 
-            // Add subtle background gradient shift
             wrapper.style.background = `linear-gradient(135deg, ${colors.surface || "#222"} 0%, ${colors.surfaceSecondary || colors.surface || "#222"} 100%)`;
         });
 
         wrapper.addEventListener("mouseleave", () => {
-            // Reset all effects
             wrapper.style.transform = "translateY(0) scale(1)";
             wrapper.style.boxShadow = `0 4px 20px ${colors.shadowLight || "#00000055"},
                                        0 2px 8px ${colors.primaryShadowLight || "#00000033"}`;
             wrapper.style.borderColor = colors.border || "";
 
-            // Reset glow
             glowOverlay.style.opacity = "0";
-
-            // Reset title overlay
             titleOverlay.style.opacity = "0";
-            titleOverlay.style.transform = "translateY(-8px)";
+            titleOverlay.style.transform = "translateY(0)";
+            if (axisXLabel) {
+                axisXLabel.style.opacity = "0.85";
+            }
+            if (axisYLabel) {
+                axisYLabel.style.opacity = "0.85";
+            }
 
-            // Reset background
             wrapper.style.background = colors.surface || "#222";
         });
 
-        // Add click ripple effect
         wrapper.addEventListener("click", (e) => {
-            const rect = wrapper.getBoundingClientRect(),
-                ripple = document.createElement("div"),
-                size = Math.max(rect.width, rect.height),
-                x = e.clientX - rect.left - size / 2,
-                y = e.clientY - rect.top - size / 2;
+            const rect = wrapper.getBoundingClientRect();
+            const ripple = document.createElement("div");
+            ripple.className = "chart-ripple";
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
 
             ripple.style.cssText = `
                 position: absolute;
@@ -161,7 +258,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 height: ${size}px;
                 left: ${x}px;
                 top: ${y}px;
-                background: radial-gradient(circle, ${themeConfig.colors.primary}40, transparent);
+                background: radial-gradient(circle, ${titleAccent}40, transparent);
                 border-radius: 50%;
                 transform: scale(0);
                 animation: ripple-effect 0.6s ease-out;
@@ -171,18 +268,15 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
 
             wrapper.append(ripple);
 
-            // Remove ripple after animation
             setTimeout(() => {
-                if (ripple.parentNode) {
-                    ripple.remove();
-                }
+                ripple.remove();
             }, 600);
         });
 
-        console.log(`[ChartHoverEffects] Added hover effects to chart: ${chartTitle}`);
+        processedCount += 1;
+        console.log(`[ChartHoverEffects] Added hover effects to chart: ${rawTitle}`);
     }
 
-    // Inject CSS keyframes for ripple effect if not already added
     if (!document.querySelector("#chart-hover-effects-styles")) {
         const style = document.createElement("style");
         style.id = "chart-hover-effects-styles";
@@ -220,7 +314,7 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         document.head.append(style);
     }
 
-    console.log(`[ChartHoverEffects] Added hover effects to ${chartCanvases.length} chart(s)`);
+    console.log(`[ChartHoverEffects] Added hover effects to ${processedCount} chart(s)`);
 }
 
 export function addHoverEffectsToExistingCharts() {
