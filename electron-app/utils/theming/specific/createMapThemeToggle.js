@@ -14,13 +14,12 @@
  * @since 1.0.0
  */
 
-import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Constants for map theme management
 const MAP_THEME_EVENTS = {
-        CHANGED: "mapThemeChanged",
-    },
+    CHANGED: "mapThemeChanged",
+},
     MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted"; // Note: "inverted" now means "dark map theme"
 
 /**
@@ -49,34 +48,16 @@ export function createMapThemeToggle() {
         const updateButtonState = () => {
             try {
                 const isDarkMode = document.body.classList.contains("theme-dark"),
-                    isInverted = getMapThemeInverted(),
-                    // Apply theme colors for button styling
-                    themeColors = getThemeColors();
+                    isInverted = getMapThemeInverted();
                 // Update icon and tooltip based on current map theme state
                 if (isInverted) {
                     // Map is inverted/dark - show moon icon
-                    iconContainer.innerHTML = `
-                        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentcolor" stroke-width="2">
-                            <path d="M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-                        </svg>
-                    `;
+                    iconContainer.innerHTML = '<iconify-icon icon="twemoji:crescent-moon" width="18" height="18"></iconify-icon>';
                     button.title = "Map: Dark theme (click for light theme)";
                     button.classList.add("active");
                 } else {
                     // Map is standard/light - show sun icon
-                    iconContainer.innerHTML = `
-                        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentcolor" stroke-width="2">
-                            <circle cx="10" cy="10" r="5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="10" y1="2" x2="10" y2="4" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="10" y1="16" x2="10" y2="18" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="14.36" y1="14.36" x2="15.78" y2="15.78" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="2" y1="10" x2="4" y2="10" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="16" y1="10" x2="18" y2="10" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="4.22" y1="15.78" x2="5.64" y2="14.36" stroke="${themeColors.primary}" stroke-width="2"/>
-                            <line x1="14.36" y1="5.64" x2="15.78" y2="4.22" stroke="${themeColors.primary}" stroke-width="2"/>
-                        </svg>
-                    `;
+                    iconContainer.innerHTML = '<iconify-icon icon="twemoji:sun" width="18" height="18"></iconify-icon>';
                     button.title = "Map: Light theme (click for dark theme)";
                     button.classList.remove("active");
                 }

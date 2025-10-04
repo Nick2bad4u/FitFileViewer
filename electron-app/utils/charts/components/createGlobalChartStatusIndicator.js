@@ -21,12 +21,12 @@ const CONSTANTS = {
         GLOBAL_CHART_STATUS: "global-chart-status",
     },
     ICONS: {
-        ALL_SET: "✨",
-        ALL_VISIBLE: "✅",
-        LOAD_FILE: "📂",
-        NONE_VISIBLE: "❌",
-        SETTINGS: "⚙️",
-        SOME_HIDDEN: "⚠️",
+        ALL_SET: '<iconify-icon icon="flat-color-icons:ok" width="16" height="16"></iconify-icon>',
+        ALL_VISIBLE: '<iconify-icon icon="flat-color-icons:ok" width="20" height="20"></iconify-icon>',
+        LOAD_FILE: '<iconify-icon icon="flat-color-icons:folder" width="16" height="16"></iconify-icon>',
+        NONE_VISIBLE: '<iconify-icon icon="flat-color-icons:cancel" width="20" height="20"></iconify-icon>',
+        SETTINGS: '<iconify-icon icon="flat-color-icons:settings" width="16" height="16"></iconify-icon>',
+        SOME_HIDDEN: '<iconify-icon icon="flat-color-icons:high-priority" width="20" height="20"></iconify-icon>',
     },
     IDS: {
         CHART_CONTAINER: "chartjs-chart-container",
@@ -38,7 +38,7 @@ const CONSTANTS = {
     LOG_PREFIX: "[GlobalChartStatus]",
     TEXTS: {
         ALL_SET: "All Set",
-        HIDE_CONTROLS: "▼ Hide Controls",
+        HIDE_CONTROLS: '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon> Hide Controls',
         LOAD_FIT: "Load FIT",
         SHOW_SETTINGS: "Show Settings",
     },
@@ -201,7 +201,7 @@ function createQuickActionButton(status) {
     `;
 
     if (status.hasHiddenCharts) {
-        quickAction.textContent = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;
+        quickAction.innerHTML = `${CONSTANTS.ICONS.SETTINGS} ${CONSTANTS.TEXTS.SHOW_SETTINGS}`;
         quickAction.title = CONSTANTS.TOOLTIPS.SHOW_SETTINGS;
         quickAction.addEventListener("click", handleSettingsToggle);
 
@@ -216,12 +216,12 @@ function createQuickActionButton(status) {
             quickAction.style.transform = "translateY(0)";
         });
     } else if (status.isAllVisible && status.counts.available > 0) {
-        quickAction.textContent = `${CONSTANTS.ICONS.ALL_SET} ${CONSTANTS.TEXTS.ALL_SET}`;
+        quickAction.innerHTML = `${CONSTANTS.ICONS.ALL_SET} ${CONSTANTS.TEXTS.ALL_SET}`;
         quickAction.title = CONSTANTS.TOOLTIPS.ALL_SET;
         quickAction.style.opacity = "0.7";
         quickAction.style.cursor = "default";
     } else {
-        quickAction.textContent = `${CONSTANTS.ICONS.LOAD_FILE} ${CONSTANTS.TEXTS.LOAD_FIT}`;
+        quickAction.innerHTML = `${CONSTANTS.ICONS.LOAD_FILE} ${CONSTANTS.TEXTS.LOAD_FIT}`;
         quickAction.title = CONSTANTS.TOOLTIPS.LOAD_FIT;
         quickAction.style.opacity = "0.7";
         quickAction.style.cursor = "default";
@@ -240,13 +240,13 @@ function createStatusIcon(status) {
     statusIcon.style.fontSize = "18px";
 
     if (status.isAllVisible) {
-        statusIcon.textContent = CONSTANTS.ICONS.ALL_VISIBLE;
+        statusIcon.innerHTML = CONSTANTS.ICONS.ALL_VISIBLE;
         statusIcon.title = CONSTANTS.TOOLTIPS.ALL_VISIBLE;
     } else if (status.hasHiddenCharts) {
-        statusIcon.textContent = CONSTANTS.ICONS.SOME_HIDDEN;
+        statusIcon.innerHTML = CONSTANTS.ICONS.SOME_HIDDEN;
         statusIcon.title = CONSTANTS.TOOLTIPS.SOME_HIDDEN;
     } else {
-        statusIcon.textContent = CONSTANTS.ICONS.NONE_VISIBLE;
+        statusIcon.innerHTML = CONSTANTS.ICONS.NONE_VISIBLE;
         statusIcon.title = CONSTANTS.TOOLTIPS.NONE_VISIBLE;
     }
 
@@ -272,8 +272,8 @@ function createStatusText(status) {
         const colorClass = status.isAllVisible
             ? "var(--color-success)"
             : status.hasHiddenCharts
-              ? "var(--color-warning)"
-              : "var(--color-error)";
+                ? "var(--color-warning)"
+                : "var(--color-error)";
 
         statusText.innerHTML = `
             Showing
@@ -312,7 +312,7 @@ function handleSettingsToggle() {
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = "block";
-            toggleBtn.textContent = CONSTANTS.TEXTS.HIDE_CONTROLS;
+            toggleBtn.innerHTML = CONSTANTS.TEXTS.HIDE_CONTROLS;
             toggleBtn.setAttribute("aria-expanded", "true");
 
             // Scroll to field toggles with delay for smooth animation

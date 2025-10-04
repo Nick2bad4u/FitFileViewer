@@ -1,6 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 const HELPERS = "../../../../../utils/rendering/helpers/renderSummaryHelpers.js";
+const ICONS = "../../../../utils/ui/icons/iconMappings.js";
+
+let getHumanizedLabel: (key: string | null | undefined) => string;
+let getSummaryEmoji: (key: string | null | undefined) => string;
+
+beforeAll(async () => {
+    const icons = await import(ICONS);
+    getHumanizedLabel = icons.getHumanizedLabel;
+    getSummaryEmoji = icons.getSummaryEmoji;
+});
 
 describe("renderTable behavior", () => {
     beforeEach(() => {
@@ -48,8 +58,18 @@ describe("renderTable behavior", () => {
         const section = container.querySelector(".summary-section") as HTMLElement;
         expect(section).toBeTruthy();
         // Header should include Type + visible columns
-        const headers = Array.from(section.querySelectorAll("thead th")).map((th) => th.textContent);
-        expect(headers).toEqual(["Type", ...visibleColumns]);
+        const normalize = (value: string | null | undefined) => (value ? value.replace(/\s+/g, " ").trim() : "");
+        const headers = Array.from(section.querySelectorAll("thead th")).map((th) => normalize(th.textContent));
+        const headerLabelFor = (key: string) => {
+            const label = getHumanizedLabel(key) || key;
+            const emoji = getSummaryEmoji(key);
+            return normalize(emoji ? `${emoji} ${label}` : label);
+        };
+        const expectedHeaders = [
+            "Type",
+            ...visibleColumns.map((column) => headerLabelFor(column)),
+        ];
+        expect(headers).toEqual(expectedHeaders);
 
         // Summary row exists and has "Summary" as first cell label
         const firstRow = section.querySelector("tbody tr");
@@ -62,7 +82,8 @@ describe("renderTable behavior", () => {
         const lap1Cells = Array.from(lap1.querySelectorAll("td")).map((td) => td.textContent);
         expect(lap1Cells[0]).toBe("Lap 1");
         // timestamp column should show startTime per implementation
-        const tsIdx = headers.indexOf("timestamp");
+    const timestampHeader = headerLabelFor("timestamp");
+    const tsIdx = headers.indexOf(timestampHeader);
         expect(tsIdx).toBeGreaterThanOrEqual(0);
         expect(lap1Cells[tsIdx]).toBe("T0");
     });

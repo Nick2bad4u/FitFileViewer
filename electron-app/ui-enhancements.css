@@ -5,6 +5,55 @@
    ===================================================== */
 
 /* =====================================================
+   Accessibility - Skip Navigation
+   ===================================================== */
+
+.skip-to-main {
+	position: fixed;
+	top: 4px;
+	left: 4px;
+	z-index: 10001;
+	padding: 12px 24px;
+	background: var(--color-accent);
+	color: white;
+	border-radius: var(--border-radius-small);
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 0.95rem;
+	transform: translateY(-150%);
+	transition: transform 0.2s ease;
+	box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
+}
+
+.skip-to-main:focus {
+	transform: translateY(0);
+	outline: 2px solid var(--color-white);
+	outline-offset: 2px;
+}
+
+/* =====================================================
+   Layout - Moved from inline styles
+   ===================================================== */
+
+#unloadFileBtn {
+	display: none;
+}
+
+body.app-has-file #unloadFileBtn,
+body[data-has-fit-file="true"] #unloadFileBtn {
+	display: flex;
+}
+
+#drop-overlay {
+	display: none;
+}
+
+#drop-overlay.show,
+#drop-overlay.visible {
+	display: flex;
+}
+
+/* =====================================================
    Enhanced Button System
    ===================================================== */
 

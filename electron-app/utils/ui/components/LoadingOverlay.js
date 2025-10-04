@@ -51,15 +51,12 @@ export const LoadingOverlay = {
                             display: inline-block;
                             position: relative;
                         }
-                        .modern-spinner svg {
+                        .modern-spinner iconify-icon {
                             animation: fitfile-spin 1.1s linear infinite;
                             display: block;
                         }
                         </style>
-                        <svg viewBox="0 0 50 50" width="54" height="54">
-                            <circle cx="25" cy="25" r="20" fill="none" stroke="${themeColors.border}" stroke-width="5" opacity="0.18"/>
-                            <circle cx="25" cy="25" r="20" fill="none" stroke="${themeColors.primary}" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.4 94.2"/>
-                        </svg>
+                        <iconify-icon icon="flat-color-icons:synchronize" width="54" height="54"></iconify-icon>
                     </div>
                     <div id="fitfile-loading-text" style="font-size:1.15em;font-weight:500;margin-bottom:6px;">Loading...</div>
                     <div id="fitfile-loading-filename" style="font-size:0.98em;color:${themeColors.textSecondary};max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>

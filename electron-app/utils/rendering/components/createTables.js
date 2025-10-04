@@ -36,6 +36,10 @@ export function createTables(dataFrames, containerOverride) {
     while (container.firstChild) {
         container.firstChild.remove();
     }
+
+    // Density preference will be applied by individual renderTable calls
+    // No need for separate control bar - density toggle is now in each table header
+
     const keys = Object.keys(dataFrames).filter((key) => {
         const rows = /** @type {any} */ (dataFrames)[key];
         return Array.isArray(rows) && rows.every((row) => row && typeof row === "object" && !Array.isArray(row));
@@ -78,7 +82,7 @@ export function createTables(dataFrames, containerOverride) {
         } catch (error) {
             console.error(
                 `[ERROR] Failed to render table for key: ${key}. Error message: ${/** @type {any} */ (error).message}. Stack trace:`,
-                /** @type {any} */ (error).stack
+                /** @type {any} */(error).stack
             );
         }
     }

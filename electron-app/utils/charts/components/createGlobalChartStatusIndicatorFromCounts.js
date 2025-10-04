@@ -46,13 +46,13 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
         const statusIcon = document.createElement("span");
         statusIcon.style.fontSize = "18px";
         if (isAllVisible) {
-            statusIcon.textContent = "✅";
+            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:ok" width="20" height="20"></iconify-icon>';
             statusIcon.title = "All available charts are visible";
         } else if (hasHiddenCharts) {
-            statusIcon.textContent = "⚠️";
+            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:high-priority" width="20" height="20"></iconify-icon>';
             statusIcon.title = "Some charts are hidden";
         } else {
-            statusIcon.textContent = "❌";
+            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:cancel" width="20" height="20"></iconify-icon>';
             statusIcon.title = "No charts are visible";
         }
 
@@ -91,14 +91,15 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
         `;
 
         if (hasHiddenCharts) {
-            quickAction.textContent = "⚙️ Show Settings";
+            quickAction.innerHTML = '<iconify-icon icon="flat-color-icons:settings" width="16" height="16"></iconify-icon> Show Settings';
             quickAction.title = "Open chart settings to enable more charts";
             quickAction.addEventListener("click", () => {
                 const toggleBtn = document.querySelector("#chart-controls-toggle"),
                     wrapper = document.querySelector("#chartjs-settings-wrapper");
                 if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
                     wrapper.style.display = "block";
-                    toggleBtn.textContent = "▼ Hide Controls";
+                    const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+                    toggleBtn.innerHTML = `${downIcon} Hide Controls`;
                     toggleBtn.setAttribute("aria-expanded", "true");
                     const fieldsSection = document.querySelector(".fields-section");
                     if (fieldsSection instanceof HTMLElement) {
@@ -109,12 +110,12 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
                 }
             });
         } else if (isAllVisible && counts.available > 0) {
-            quickAction.textContent = "✨ All Set";
+            quickAction.innerHTML = '<iconify-icon icon="flat-color-icons:ok" width="16" height="16"></iconify-icon> All Set';
             quickAction.title = "All available charts are visible";
             quickAction.style.opacity = "0.7";
             quickAction.style.cursor = "default";
         } else {
-            quickAction.textContent = "📂 Load FIT";
+            quickAction.innerHTML = '<iconify-icon icon="flat-color-icons:folder" width="16" height="16"></iconify-icon> Load FIT';
             quickAction.title = "Load a FIT file to see charts";
             quickAction.style.opacity = "0.7";
             quickAction.style.cursor = "default";
@@ -164,26 +165,25 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             </div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 11px;">
                 <div style="color: var(--color-fg);">
-                    📊 Metrics: ${counts.categories.metrics.visible}/${counts.categories.metrics.available}
+                    <iconify-icon icon="flat-color-icons:grid" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Metrics: ${counts.categories.metrics.visible}/${counts.categories.metrics.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    📈 Analysis: ${counts.categories.analysis.visible}/${counts.categories.analysis.available}
+                    <iconify-icon icon="flat-color-icons:line-chart" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Analysis: ${counts.categories.analysis.visible}/${counts.categories.analysis.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    🎯 Zones: ${counts.categories.zones.visible}/${counts.categories.zones.available}
+                    <iconify-icon icon="flat-color-icons:bullish" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Zones: ${counts.categories.zones.visible}/${counts.categories.zones.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    🗺️ GPS: ${counts.categories.gps.visible}/${counts.categories.gps.available}
+                    <iconify-icon icon="flat-color-icons:globe" width="14" height="14" style="vertical-align: middle;"></iconify-icon> GPS: ${counts.categories.gps.visible}/${counts.categories.gps.available}
                 </div>
             </div>
-            ${
-                hasHiddenCharts
-                    ? `
+            ${hasHiddenCharts
+                ? `
                 <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border); font-size: 11px; color: var(--color-warning);">
                     💡 Use settings panel below to enable more charts
                 </div>
             `
-                    : ""
+                : ""
             }
         `;
 

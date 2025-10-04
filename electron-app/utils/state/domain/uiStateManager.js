@@ -442,13 +442,35 @@ export class UIStateManager {
         if (fileSpan) {
             if (hasRenderableFile) {
                 fileSpan.innerHTML = `<span class="active-label">Active:</span> <span class="filename-text">${displayName}</span>`;
-                fileSpan.title = displayName;
+                fileSpan.title = `Click to return to map - ${displayName}`;
                 fileSpan.classList.remove("marquee");
                 fileSpan.scrollLeft = 0;
+
+                // Add click handler to return to map tab with centered route
+                fileSpan.style.cursor = "pointer";
+                fileSpan.onclick = () => {
+                    try {
+                        // Switch to map tab
+                        setState("ui.activeTab", "map", { source: "filename-click" });
+
+                        // Center the route on the map if possible
+                        setTimeout(() => {
+                            if (typeof globalThis.centerMapOnRoute === "function") {
+                                globalThis.centerMapOnRoute();
+                            } else if (typeof globalThis.fitBounds === "function") {
+                                globalThis.fitBounds();
+                            }
+                        }, 100);
+                    } catch (error) {
+                        console.error("[UIStateManager] Error handling filename click:", error);
+                    }
+                };
             } else {
                 fileSpan.textContent = "";
                 fileSpan.title = "";
                 fileSpan.classList.remove("marquee");
+                fileSpan.style.cursor = "";
+                fileSpan.onclick = null;
             }
         }
 

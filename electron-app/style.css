@@ -558,6 +558,35 @@ h2 {
 }
 
 /* =====================================================
+   Iconify Icon Styles
+   ===================================================== */
+/* Global alignment fix for all iconify-icon elements */
+iconify-icon {
+    vertical-align: middle;
+    display: inline-block;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Fix Open FIT file button icon */
+#openFileBtn iconify-icon {
+    color: rgba(255, 255, 255, 0.9);
+    filter: drop-shadow(0 0 8px rgb(var(--color-accent-rgb) / 30%));
+}
+
+/* Summary gear button icon alignment */
+.summary-gear-btn iconify-icon {
+    vertical-align: middle;
+}
+
+/* Tab icon styling */
+.tab-icon {
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+/* =====================================================
    App Header
    ===================================================== */
 .app-header {
@@ -2141,9 +2170,9 @@ body[data-has-fit-file="true"] .tab-bar {
     inset: -40% -10%;
     background: linear-gradient(
         120deg,
-        var(--c_rgb255255255_0p) 0%,
-        var(--c_rgb255255255_25p) 45%,
-        var(--c_rgb255255255_0p) 100%
+        var(--color-btn-bg-solid) 0%,
+        #101010 45%,
+        var(--color-btn-bg-solid) 100%
     );
     opacity: 0;
     transform: translateX(-30%);
@@ -2212,38 +2241,23 @@ body[data-has-fit-file="true"] .tab-bar {
     display: none;
     margin: 0;
     width: 100%;
-}
-
-/* Ensure tab content fills the screen in fullscreen mode */
-.tab-content:fullscreen:not(.tab-content:-webkit-full-screen),
-.tab-content:-webkit-full-screen:not(.tab-content:-webkit-full-screen) {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    background: var(--color-bg-alt);
-    overflow: auto;
-    z-index: 9999;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: block !important;
-}
-
-/* Make all direct children of tab-content also fill fullscreen */
-.tab-content:fullscreen > *:not([id^="content"] > button),
-.tab-content:-webkit-full-screen > *:not([id^="content"] > button) {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    box-sizing: border-box;
+    min-height: 100%;
+    flex: 1;
+    background: linear-gradient(120deg, #8b5cf626 0%, #101010 45%, #8b5cf60a 100%) !important;
 }
 
 .tab-content.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
     animation: tab-content-fade 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
     will-change: opacity, transform;
+}
+
+/* Ensure data tab content can expand fully */
+#content-data {
+    height: auto;
+    min-height: 100%;
+    display: block;
 }
 
 .tab-content.active .tab-card {
@@ -2255,6 +2269,7 @@ body[data-has-fit-file="true"] .tab-bar {
    Card & Section Containers
    ===================================================== */
 .tab-card {
+    padding-top: 15px !important;
     background: linear-gradient(135deg, var(--color-surface) 0%, rgb(var(--color-accent-rgb) / 3%) 100%);
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
@@ -2266,8 +2281,11 @@ body[data-has-fit-file="true"] .tab-bar {
     margin: 0 auto clamp(24px, 4vw, 40px);
     width: 98%;
     min-height: clamp(420px, 60vh, 900px);
+    height: auto;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
     transition:
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 0.6s ease;
@@ -2341,11 +2359,11 @@ body[data-has-fit-file="false"] .tab-card::after {
    Table Styles
    ===================================================== */
 .table-header {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     background: var(--color-bg-alt);
-    padding: 10px 15px;
+    padding: 8px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2373,6 +2391,17 @@ body[data-has-fit-file="false"] .tab-card::after {
 .copy-btn:hover {
     background: var(--color-accent);
     color: var(--color-fg-alt);
+}
+
+#content-altfit {
+    border-radius: 20px;
+    padding: 15px;
+    background: linear-gradient(
+        120deg,
+        var(--color-btn-bg-solid) 0%,
+        #101010 45%,
+        var(--color-btn-bg-solid) 100%
+    );
 }
 
 #content-summary {
@@ -2453,6 +2482,92 @@ tr:hover {
     background: var(--color-glass) !important;
     backdrop-filter: var(--backdrop-blur);
     transition: var(--transition-smooth);
+}
+
+/* =====================================================
+   Table Density Controls
+   ===================================================== */
+
+/* Density toggle button */
+.density-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 8px;
+    background: var(--color-glass);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-fg);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+.density-toggle-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgb(var(--color-accent-rgb) / 0.3);
+}
+
+.density-toggle-btn:active {
+    transform: translateY(0);
+}
+
+.density-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Density toggle with label container */
+.density-toggle-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.density-toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-fg);
+    white-space: nowrap;
+}
+
+/* Dense mode - reduced padding */
+.density-dense th,
+.density-dense td {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+}
+
+.density-dense th {
+    font-size: 14px !important;
+}
+
+.density-dense .table-header {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+}
+
+/* Spacious mode - default/increased padding */
+.density-spacious th,
+.density-spacious td {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+.density-spacious th {
+    font-size: 15px !important;
+}
+
+.density-spacious .table-header {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
 }
 
 /* =====================================================
@@ -2824,7 +2939,12 @@ body[data-has-fit-file="true"] .header-brand {
     position: relative;
     flex: 0 1 auto;
     max-width: 100%;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+#activeFileName:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
 }
 
 #activeFileName::-webkit-scrollbar {
@@ -2840,6 +2960,10 @@ body[data-has-fit-file="true"] .header-brand {
 #activeFileName .active-label {
     flex-shrink: 0;
     margin-right: 0.5ch;
+    position: relative;
+    z-index: 2;
+    background: var(--color-bg);
+    padding-right: 4px;
 }
 
 /* Scrollable filename text */
@@ -2847,6 +2971,8 @@ body[data-has-fit-file="true"] .header-brand {
     display: inline-block;
     white-space: nowrap;
     min-width: 0;
+    position: relative;
+    z-index: 1;
 }
 
 /* Auto-scroll animation for long filenames - scrolls LEFT to reveal more */
@@ -3374,6 +3500,12 @@ body .custom-maptype-btn {
 #background-chart-container,
 #background-data-container {
     display: none;
+}
+
+/* Hide redundant global chart status header - Chart Controls section provides same info */
+#global-chart-status,
+.global-chart-status {
+    display: none !important;
 }
 
 #vg-tooltip-element {
@@ -4084,19 +4216,23 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     display: flex;
     align-items: center;
     gap: 6px;
-    justify-content: center;
-    height: 32px;
+    justify-content: flex-start;
+    min-height: 32px;
     cursor: default !important;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 
 .marker-count-label {
-    display: inline-block;
-    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     line-height: 1.2;
     font-size: 15px;
     font-weight: 600;
     margin-bottom: 0;
     cursor: default !important;
+    white-space: nowrap;
 }
 
 .marker-count-select {
@@ -4111,6 +4247,17 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     line-height: 1.2;
     font-size: 15px;
     font-weight: 600;
+}
+
+/* Apply accent colors to marker-count-container SVG icons */
+.marker-count-container svg rect {
+    fill: rgb(var(--color-accent-rgb) / 15%);
+    stroke: var(--color-accent);
+}
+
+.marker-count-container:hover svg rect {
+    fill: rgb(var(--color-accent-rgb) / 25%);
+    stroke: var(--color-accent-secondary);
 }
 
 /* =====================================================
@@ -4405,6 +4552,17 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 #openFileBtn {
     margin-bottom: 0 !important;
+        position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        120deg,
+        var(--color-btn-bg-solid) 0%,
+        #101010 45%,
+        var(--color-btn-bg-solid) 100%
+    );
+    border-radius: 20px;
+    padding-inline-start: 20px;
+    padding-inline-end: 20px;
 }
 
 #openFileBtn .btn-label {
@@ -4741,26 +4899,62 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 /* =====================================================
    Summary Filter Dropdown
    ===================================================== */
+.summary-surface {
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--color-box-shadow-light);
+    padding: 16px 20px 20px;
+    backdrop-filter: var(--backdrop-blur);
+}
+
 .summary-filter-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
-.summary-filter-bar label {
+.summary-filter-left,
+.summary-filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.summary-density-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.summary-filter-label {
     font-size: 1rem;
     color: var(--color-fg);
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.summary-filter-bar select {
+.summary-filter-icon {
+    color: var(--color-accent);
+}
+
+.summary-filter-text {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.85rem;
+}
+
+.summary-filter-select {
     background: var(--color-bg-alt);
     color: var(--color-fg);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 6px 18px 6px 8px;
-    font-size: 1rem;
+    border-radius: 6px;
+    padding: 6px 28px 6px 10px;
+    font-size: 0.95rem;
     font-family: var(--font-sans);
     outline: none;
     transition:
@@ -4771,7 +4965,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     cursor: pointer;
 }
 
-.summary-filter-bar select:focus {
+.summary-filter-select:focus {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb), 0.33);
     transition:
@@ -4780,12 +4974,62 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     outline: none;
 }
 
-.summary-filter-bar option {
+.summary-filter-select option {
     background: var(--color-bg-solid);
     color: var(--color-fg);
     font-size: 1rem;
     font-family: var(--font-sans);
     padding: 6px 18px 6px 8px;
+}
+
+.summary-header-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.summary-header-icon {
+    color: var(--color-accent);
+    flex: 0 0 auto;
+}
+
+.summary-header-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-fg);
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .summary-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .summary-filter-left,
+    .summary-filter-controls {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .summary-filter-select {
+        width: 100%;
+    }
+}
+
+/* Data control bar (for Raw Data tab) */
+.data-control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--color-glass);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    backdrop-filter: var(--backdrop-blur);
 }
 
 /* =====================================================
@@ -5063,9 +5307,10 @@ body.theme-dark .map-action-btn.disabled {
 .fullsize-container {
     width: 100%;
     height: 100%;
+    min-height: 600px;
     max-width: 100%;
-    max-height: 100%;
     box-sizing: border-box;
+    flex: 1;
 }
 
 .no-border {

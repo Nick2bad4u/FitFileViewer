@@ -149,7 +149,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     },
                     (/** @type {any} */ charts) => exportUtils.createCombinedChartsImage(charts, "combined-charts.png")
                 ),
-            icon: "📷",
+            icon: '<iconify-icon icon="flat-color-icons:camera" width="20" height="20"></iconify-icon>',
             text: "Save PNG",
         },
         {
@@ -159,7 +159,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     (/** @type {any} */ chart) => exportUtils.copyChartToClipboard(chart),
                     (/** @type {any} */ charts) => exportUtils.copyCombinedChartsToClipboard(charts)
                 ),
-            icon: "📋",
+            icon: '<iconify-icon icon="flat-color-icons:file" width="20" height="20"></iconify-icon>',
             text: "Copy Image",
         },
         {
@@ -177,7 +177,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     (/** @type {any} */ charts) =>
                         exportUtils.exportCombinedChartsDataAsCSV(charts, "combined-charts-data.csv")
                 ),
-            icon: "📊",
+            icon: '<iconify-icon icon="flat-color-icons:grid" width="20" height="20"></iconify-icon>',
             text: "Export CSV",
         },
         {
@@ -194,17 +194,17 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     },
                     (/** @type {any} */ charts) => {
                         const allChartsData = {
-                                charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
-                                    const [dataset] = chart.data.datasets;
-                                    return {
-                                        data: dataset?.data || [],
-                                        field: dataset?.label || `chart-${index}`,
-                                        totalPoints: dataset?.data ? dataset.data.length : 0,
-                                        type: chart.config.type,
-                                    };
-                                }),
-                                exportedAt: new Date().toISOString(),
-                            },
+                            charts: charts.map((/** @type {any} */ chart, /** @type {number} */ index) => {
+                                const [dataset] = chart.data.datasets;
+                                return {
+                                    data: dataset?.data || [],
+                                    field: dataset?.label || `chart-${index}`,
+                                    totalPoints: dataset?.data ? dataset.data.length : 0,
+                                    type: chart.config.type,
+                                };
+                            }),
+                            exportedAt: new Date().toISOString(),
+                        },
                             blob = new Blob([JSON.stringify(allChartsData, null, 2)], {
                                 type: "application/json;charset=utf-8;",
                             }),
@@ -217,7 +217,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                         showNotification("Combined chart data exported as JSON", "success");
                     }
                 ),
-            icon: "📄",
+            icon: '<iconify-icon icon="flat-color-icons:file" width="20" height="20"></iconify-icon>',
             text: "Export JSON",
         },
         {
@@ -227,7 +227,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                     (/** @type {any} */ chart) => exportUtils.printChart(chart),
                     (/** @type {any} */ charts) => exportUtils.printCombinedCharts(charts)
                 ),
-            icon: "🖨️",
+            icon: '<iconify-icon icon="flat-color-icons:print" width="20" height="20"></iconify-icon>',
             text: "Print",
         },
         {
@@ -239,12 +239,12 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 }
                 exportUtils.exportAllAsZip(charts);
             },
-            icon: "�",
+            icon: '<iconify-icon icon="flat-color-icons:multiple-inputs" width="20" height="20"></iconify-icon>',
             text: "Export ZIP",
         },
         {
             action: () => exportUtils.shareChartsAsURL(),
-            icon: "🔗",
+            icon: '<iconify-icon icon="flat-color-icons:link" width="20" height="20"></iconify-icon>',
             text: "Share URL",
         },
         {
@@ -256,17 +256,17 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 }
                 exportUtils.shareChartsToGyazo();
             },
-            icon: "📸",
+            icon: '<iconify-icon icon="flat-color-icons:camera" width="20" height="20"></iconify-icon>',
             text: "Share Gyazo",
         },
         {
             action: () => exportUtils.showGyazoAccountManager(),
-            icon: "⚙️",
+            icon: '<iconify-icon icon="flat-color-icons:services" width="20" height="20"></iconify-icon>',
             text: "Gyazo Settings",
         },
         {
             action: () => exportUtils.showImgurAccountManager(),
-            icon: "🔧",
+            icon: '<iconify-icon icon="flat-color-icons:settings" width="20" height="20"></iconify-icon>',
             text: "Imgur Settings",
         },
     ];
@@ -278,6 +278,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
             btn.action,
             "export-btn"
         );
+        button.innerHTML = `${btn.icon} ${btn.text}`;
         exportGrid.append(button);
     }
 
@@ -445,7 +446,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     // Add event messages toggle if data exists
     if (
         /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
+        Array.isArray(/** @type {WindowExtensions} */(globalThis).globalData.eventMesgs) &&
         /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
@@ -458,7 +459,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
         /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
     ) {
         const devFields = extractDeveloperFieldsList(
-            /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
+            /** @type {WindowExtensions} */(globalThis).globalData.recordMesgs
         );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field);
@@ -624,7 +625,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
         const chartItem = document.createElement("button"),
             [dataset] = chart.data.datasets,
             fieldName = dataset?.label || `Chart ${index + 1}`;
-        chartItem.textContent = `📊 ${fieldName}`;
+        chartItem.innerHTML = '<iconify-icon icon="flat-color-icons:line-chart" width="18" height="18"></iconify-icon> ' + fieldName;
         chartItem.style.cssText = `
 			display: block;
 			width: 100%;
@@ -658,7 +659,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
     // Combined option
     const combinedItem = document.createElement("button");
-    combinedItem.textContent = `🔗 All Charts Combined (${validCharts.length} charts)`;
+    combinedItem.innerHTML = `<iconify-icon icon="flat-color-icons:link" width="18" height="18"></iconify-icon> All Charts Combined (${validCharts.length} charts)`;
     combinedItem.style.cssText = `
 		display: block;
 		width: 100%;
@@ -881,8 +882,8 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             case "event_messages": {
                 hasValidData = Boolean(
-                    /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-                        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
+                    /** @type {WindowExtensions} */(globalThis).globalData?.eventMesgs &&
+                    Array.isArray(/** @type {WindowExtensions} */(globalThis).globalData.eventMesgs) &&
                         /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
                 );
 
@@ -926,9 +927,9 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             case "power_vs_hr": {
                 const hasHeartRate = data.some((row) => {
-                        const hr = row.heartRate;
-                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
-                    }),
+                    const hr = row.heartRate;
+                    return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                }),
                     hasPower = data.some((row) => {
                         const { power } = row;
                         return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
@@ -939,9 +940,9 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             case "speed_vs_distance": {
                 const hasDistance = data.some((row) => {
-                        const { distance } = row;
-                        return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
-                    }),
+                    const { distance } = row;
+                    return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                }),
                     hasSpeed = data.some((row) => {
                         const speed = row.enhancedSpeed || row.speed;
                         return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
@@ -1240,10 +1241,10 @@ function createSelectControl(/** @type {ChartOption} */ option) {
                 val === "all"
                     ? "All Points"
                     : val === "on"
-                      ? "Enabled"
-                      : val === "off"
-                        ? "Disabled"
-                        : String(val).charAt(0).toUpperCase() + String(val).slice(1);
+                        ? "Enabled"
+                        : val === "off"
+                            ? "Disabled"
+                            : String(val).charAt(0).toUpperCase() + String(val).slice(1);
             optionEl.style.background = "var(--color-bg-solid)";
             optionEl.style.color = "var(--color-fg)";
             select.append(optionEl);
@@ -1418,7 +1419,7 @@ function toggleAllFields(enable) {
             /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
         ) {
             const devFields = extractDeveloperFieldsList(
-                /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs
+                /** @type {WindowExtensions} */(globalThis).globalData.recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields

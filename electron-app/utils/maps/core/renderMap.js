@@ -124,7 +124,7 @@ export function renderMap() {
     mapTypeBtn.style.top = "16px";
     mapTypeBtn.style.right = "60px";
     mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
-    mapTypeBtn.innerHTML = "🗺️ Change Map Type";
+    mapTypeBtn.innerHTML = '<iconify-icon icon="flat-color-icons:globe" width="20" height="20"></iconify-icon> Change Map Type';
     mapTypeBtn.title = "Click to change the map type";
     mapTypeBtn.addEventListener("click", handleMapTypeButtonClick);
     const leafletMapDiv2 = document.querySelector("#leaflet-map");
@@ -216,9 +216,9 @@ export function renderMap() {
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            /** @type {EventListener} */ (
+            /** @type {EventListener} */(
                 debounce(
-                    /** @param {Event} e */ (e) => {
+                    /** @param {Event} e */(e) => {
                         isDragging = true;
                         const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
@@ -389,8 +389,8 @@ export function renderMap() {
             }
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
-                    chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
-                ),
+                chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
+            ),
                 fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
                 bounds = drawOverlayForFitFile({
                     color,
@@ -478,7 +478,7 @@ export function renderMap() {
         updateMapTheme();
         if (!windowExt._mapThemeListener) {
             windowExt._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
+            document.body.addEventListener("themechange", /** @type {EventListener} */(windowExt._mapThemeListener));
         }
     }
 }

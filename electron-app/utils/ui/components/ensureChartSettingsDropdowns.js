@@ -35,7 +35,7 @@ export function ensureChartSettingsDropdowns(targetContainer) {
 
     // Create toggle button if it doesn't exist
     createControlsToggleButton(
-        /** @type {HTMLElement} */ (
+        /** @type {HTMLElement} */(
             chartContainer.parentNode instanceof HTMLElement ? chartContainer.parentNode : document.body
         )
     );
@@ -110,7 +110,9 @@ function createControlsToggleButton(container) {
 
     // Set initial text based on current state
     const controlsVisible = getState("charts.controlsVisible") !== false; // Default to true
-    toggleBtn.textContent = controlsVisible ? "▼ Hide Controls" : "▶ Show Controls";
+    const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+    const rightIcon = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
+    toggleBtn.innerHTML = controlsVisible ? `${downIcon} Hide Controls` : `${rightIcon} Show Controls`;
     toggleBtn.setAttribute("aria-expanded", controlsVisible.toString());
     toggleBtn.setAttribute("aria-controls", "chartjs-settings-wrapper");
     toggleBtn.style.cssText = `
@@ -176,7 +178,9 @@ function toggleChartControls() {
     // Update toggle button text if it exists
     const toggleBtn = document.querySelector("#chart-controls-toggle");
     if (toggleBtn) {
-        toggleBtn.textContent = newVisibility ? "▼ Hide Controls" : "▶ Show Controls";
+        const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+        const rightIcon = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
+        toggleBtn.innerHTML = newVisibility ? `${downIcon} Hide Controls` : `${rightIcon} Show Controls`;
         toggleBtn.setAttribute("aria-expanded", newVisibility.toString());
     }
 

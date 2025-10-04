@@ -29,13 +29,13 @@ export function createChartStatusIndicatorFromCounts(counts) {
         const statusIcon = document.createElement("span");
         statusIcon.className = "status-icon";
         if (isAllVisible) {
-            statusIcon.textContent = "✅";
+            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:ok" width="18" height="18"></iconify-icon>';
             statusIcon.title = "All available charts are visible";
         } else if (hasHiddenCharts) {
-            statusIcon.textContent = "⚠️";
+            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:high-priority" width="18" height="18"></iconify-icon>';
             statusIcon.title = "Some charts are hidden";
         } else {
-            statusIcon.textContent = "❌";
+            statusIcon.innerHTML = '<iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon>';
             statusIcon.title = "No charts are visible";
         }
 
@@ -101,14 +101,13 @@ export function createChartStatusIndicatorFromCounts(counts) {
                     🗺️ GPS: ${counts.categories.gps.visible}/${counts.categories.gps.available}
                 </div>
             </div>
-            ${
-                hasHiddenCharts
-                    ? `
+            ${hasHiddenCharts
+                ? `
                 <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--color-border); font-size: 11px; color: var(--color-warning);">
                     💡 Enable more charts in "Visible Metrics" below
                 </div>
             `
-                    : ""
+                : ""
             }
         `;
 

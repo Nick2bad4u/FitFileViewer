@@ -1,7 +1,4 @@
 /**
- * @typedef {ReturnType<typeof getThemeColors>} ThemeColors
- */
-/**
  * Creates a marker count selector for controlling data point density on the map
  * @param {Function} onChange - Callback function when marker count changes
  * @returns {HTMLElement} The configured marker count selector container
@@ -19,6 +16,4 @@
  * @returns {HTMLDivElement} container element
  */
 export function createMarkerCountSelector(onChange?: (count: number) => void): HTMLDivElement;
-export type ThemeColors = ReturnType<typeof getThemeColors>;
-import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 //# sourceMappingURL=createMarkerCountSelector.d.ts.map

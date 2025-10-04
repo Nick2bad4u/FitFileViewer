@@ -59,34 +59,11 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     lapControl.innerHTML = `
         <div class="custom-lap-control leaflet-bar">
             <button id="multi-lap-toggle" class="multi-lap-toggle" type="button" title="Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.">
-                <!-- Lap icon: stylized stopwatch/lap circle (matches single-lap icon above) -->
-                <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-                    <circle cx="10" cy="11" r="6" fill="${themeColors.surface}" stroke="${
-                        themeColors.primary
-                    }" stroke-width="1.5"/>
-                    <rect x="8.5" y="3" width="3" height="2.5" rx="1" fill="${themeColors.primary}" />
-                    <line x1="10" y1="11" x2="10" y2="7.5" stroke="${
-                        themeColors.primary
-                    }" stroke-width="1.3" stroke-linecap="round"/>
-                    <line x1="10" y1="11" x2="13" y2="11" stroke="${
-                        themeColors.accent || themeColors.primary
-                    }" stroke-width="1.3" stroke-linecap="round"/>
-                    <circle cx="10" cy="11" r="1.2" fill="${themeColors.accent || themeColors.primary}" />
-                </svg>
+                <iconify-icon icon="flat-color-icons:clock" width="18" height="18"></iconify-icon>
                 <span style="color:${themeColors.text};margin-left:4px;">Laps:</span>
             </button>
             <button id="deselect-all-btn" class="deselect-all-btn" title="Deselect all laps (Esc)">
-                <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-                    <circle cx="8" cy="8" r="7" fill="none" stroke="${
-                        themeColors.textSecondary || "#888"
-                    }" stroke-width="2"/>
-                    <line x1="5" y1="5" x2="11" y2="11" stroke="${
-                        themeColors.textSecondary || "#888"
-                    }" stroke-width="2"/>
-                    <line x1="11" y1="5" x2="5" y2="11" stroke="${
-                        themeColors.textSecondary || "#888"
-                    }" stroke-width="2"/>
-                </svg>
+                <iconify-icon icon="twemoji:cross-mark" width="16" height="16"></iconify-icon>
             </button>
             <label for="lap-select" class="lap-label" style="color:${themeColors.text};">Lap:</label>
             <select id="lap-select">
@@ -113,35 +90,10 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         // Bar chart style icon for lap selectors, theme-aware
         if (on) {
             // Active: multi-lap mode icon (bar chart style, accent color)
-            return `<svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <rect x="2" y="11" width="2.5" height="5" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            <rect x="6" y="7" width="2.5" height="9" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            <rect x="10" y="4" width="2.5" height="12" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            <rect x="14" y="9" width="2.5" height="7" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            </svg>`;
+            return '<iconify-icon icon="flat-color-icons:bar-chart" width="18" height="18"></iconify-icon>';
         }
         // Inactive: single-lap mode icon (stopwatch/lap circle, primary color)
-        return `<svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <circle cx="10" cy="11" r="6" fill="${themeColors.surface}" stroke="${
-                themeColors.primary
-            }" stroke-width="1.5"/>
-            <rect x="8.5" y="3" width="3" height="2.5" rx="1" fill="${themeColors.primary}" />
-            <line x1="10" y1="11" x2="10" y2="7.5" stroke="${
-                themeColors.primary
-            }" stroke-width="1.3" stroke-linecap="round"/>
-            <line x1="10" y1="11" x2="13" y2="11" stroke="${
-                themeColors.accent || themeColors.primary
-            }" stroke-width="1.3" stroke-linecap="round"/>
-            <circle cx="10" cy="11" r="1.2" fill="${themeColors.accent || themeColors.primary}" />
-            </svg>`;
+        return '<iconify-icon icon="flat-color-icons:clock" width="18" height="18"></iconify-icon>';
     }
 
     /**

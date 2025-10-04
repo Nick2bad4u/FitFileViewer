@@ -170,8 +170,14 @@ class ChartStateManager {
         // Set chart tab as active in state
         setState("charts.tabActive", true, { source: "ChartStateManager.handleTabActivation" });
 
+        // Early return if charts are already rendered - no need to re-render
+        if (chartState?.isRendered) {
+            console.log("[ChartStateManager] Charts already rendered, skipping re-render");
+            return;
+        }
+
         // Render charts if we have data but charts aren't rendered yet
-        if (globalData && !chartState?.isRendered) {
+        if (globalData) {
             this.debouncedRender("Tab activation with data available");
         }
     }

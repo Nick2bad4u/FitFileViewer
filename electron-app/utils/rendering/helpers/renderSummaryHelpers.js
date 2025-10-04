@@ -1,4 +1,11 @@
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
+import { createDensityToggle, getDensityPreference } from "../../ui/controls/createDensityToggle.js";
+import {
+    createIconElement,
+    getHumanizedLabel,
+    getSummaryEmoji,
+    getSummaryIcon,
+} from "../../ui/icons/iconMappings.js";
 
 /**
  * Generic dictionary record
@@ -109,19 +116,46 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     let section = container.querySelector(".summary-section");
     if (!section) {
         section = document.createElement("div");
-        section.classList.add("summary-section");
+        section.classList.add("summary-section", "summary-surface");
+        section.setAttribute("role", "region");
+        section.setAttribute("aria-label", "Activity summary data");
         container.append(section);
     }
     section.innerHTML = "";
-    // Filter bar with gear button and filter dropdown side by side
+
+    // Apply saved density preference
+    const densityPref = getDensityPreference("summaryTableDensity", "spacious");
+    section.classList.remove("density-spacious", "density-dense");
+    section.classList.add(`density-${densityPref}`);
+
+    // Filter bar with gear button, density toggle, and filter dropdown
     const filterBar = document.createElement("div");
-    filterBar.className = "summary-filter-bar";
-    // Gear button (column selector)
-    filterBar.append(gearBtn);
-    // Filter dropdown
-    const filterLabel = document.createElement("label");
-    filterLabel.textContent = "Show: ";
+    filterBar.classList.add("summary-filter-bar");
+
+    const filterBarLeft = document.createElement("div");
+    filterBarLeft.classList.add("summary-filter-left");
+    filterBarLeft.append(gearBtn);
+
+    // Density toggle with label
+    const densityToggle = createDensityToggle({
+        onChange: (density) => {
+            section?.classList.remove("density-spacious", "density-dense");
+            section?.classList.add(`density-${density}`);
+        },
+        showLabel: true,
+        storageKey: "summaryTableDensity",
+    });
+    densityToggle.classList.add("summary-density-toggle");
+    filterBarLeft.append(densityToggle);
+
+    const filterControls = document.createElement("div");
+    filterControls.classList.add("summary-filter-controls");
+
     const filterSelect = document.createElement("select");
+    filterSelect.classList.add("summary-filter-select");
+    const filterSelectId = "summary-filter-select";
+    filterSelect.id = filterSelectId;
+    filterSelect.setAttribute("aria-label", "Filter summary rows");
     filterSelect.innerHTML = '<option value="All">All</option><option value="Summary">Summary</option>';
     if (data.lapMesgs && data.lapMesgs.length > 0) {
         for (let i = 0; i < data.lapMesgs.length; ++i) {
@@ -159,8 +193,21 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         },
         { passive: false }
     );
-    filterLabel.append(filterSelect);
-    filterBar.append(filterLabel);
+    const filterLabel = document.createElement("label");
+    filterLabel.classList.add("summary-filter-label");
+    filterLabel.setAttribute("for", filterSelectId);
+    const filterLabelIcon = createIconElement("mdi:filter-variant", 18);
+    filterLabelIcon.classList.add("summary-filter-icon");
+    const filterLabelText = document.createElement("span");
+    filterLabelText.classList.add("summary-filter-text");
+    filterLabelText.textContent = "Show";
+    filterLabel.append(filterLabelIcon);
+    filterLabel.append(filterLabelText);
+    filterControls.append(filterLabel);
+    filterControls.append(filterSelect);
+
+    filterBar.append(filterBarLeft);
+    filterBar.append(filterControls);
     section.append(filterBar);
 
     const headerBar = document.createElement("div");
@@ -225,7 +272,33 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         thead = document.createElement("thead");
     for (const key of sortedVisible) {
         const th = document.createElement("th");
-        th.textContent = key === LABEL_COL ? "Type" : key;
+        const headerContent = document.createElement("div");
+        headerContent.classList.add("summary-header-cell");
+
+        if (key === LABEL_COL) {
+            const typeIcon = createIconElement("mdi:view-list-outline", 18);
+            typeIcon.classList.add("summary-header-icon");
+            headerContent.append(typeIcon);
+            const typeLabel = document.createElement("span");
+            typeLabel.classList.add("summary-header-label");
+            typeLabel.textContent = "Type";
+            headerContent.append(typeLabel);
+        } else {
+            const iconName = getSummaryIcon(key);
+            if (iconName) {
+                const icon = createIconElement(iconName, 18);
+                icon.classList.add("summary-header-icon");
+                headerContent.append(icon);
+            }
+            const label = document.createElement("span");
+            label.classList.add("summary-header-label");
+            const metricLabel = getHumanizedLabel(key) || key;
+            const emoji = getSummaryEmoji(key);
+            label.textContent = emoji ? `${emoji} ${metricLabel}` : metricLabel;
+            headerContent.append(label);
+        }
+
+        th.append(headerContent);
         headerRow.append(th);
     }
     thead.append(headerRow);

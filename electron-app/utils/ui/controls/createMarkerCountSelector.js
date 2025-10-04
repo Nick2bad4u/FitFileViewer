@@ -1,8 +1,5 @@
-import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { showNotification } from "../notifications/showNotification.js";
-/**
- * @typedef {ReturnType<typeof getThemeColors>} ThemeColors
- */
+
 /**
  * Creates a marker count selector for controlling data point density on the map
  * @param {Function} onChange - Callback function when marker count changes
@@ -23,21 +20,14 @@ import { showNotification } from "../notifications/showNotification.js";
  */
 export function createMarkerCountSelector(onChange) {
     try {
-        /** @type {ThemeColors} */
-        const /** @type {HTMLDivElement} */
-            container = document.createElement("div"),
-            themeColors = getThemeColors(); // Theming values (index signature access is fine at runtime)
+        /** @type {HTMLDivElement} */
+        const container = document.createElement("div");
         container.className = "map-action-btn marker-count-container";
 
         /** @type {HTMLLabelElement} */
         const label = document.createElement("label");
         label.innerHTML = `
-        <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <rect x="1.5" y="8" width="2" height="7" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-            <rect x="5" y="5" width="2" height="11" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-            <rect x="8.5" y="2.5" width="2" height="14" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-            <rect x="12" y="11" width="2" height="5" rx="1" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="1.5"/>
-        </svg>
+        <iconify-icon icon="flat-color-icons:bar-chart" width="18" height="18"></iconify-icon>
         <span>Data Points:</span>
         `;
         label.setAttribute("for", "marker-count-select");

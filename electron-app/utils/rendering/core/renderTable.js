@@ -1,4 +1,10 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
+import { createDensityToggle, getDensityPreference } from "../../ui/controls/createDensityToggle.js";
+import {
+    createIconElement,
+    getDataTableIcon,
+    getHumanizedLabel,
+} from "../../ui/icons/iconMappings.js";
 /**
  * Renders a collapsible table section with a header, copy-to-CSV button, and optional DataTables integration.
  *
@@ -14,39 +20,84 @@ export function renderTable(container, title, table, index) {
     const section = document.createElement("div"),
         tableId = `datatable_${index}`;
     section.classList.add("table-section");
+
+    // Apply saved density preference to section
+    const densityPref = getDensityPreference("rawDataTableDensity", "spacious");
+    section.classList.add(`density-${densityPref}`);
     const header = document.createElement("div");
     header.classList.add("table-header");
-    const leftSpan = document.createElement("span");
-    leftSpan.textContent = title;
+    header.setAttribute("role", "button");
+    header.setAttribute("tabindex", "0");
+    header.setAttribute("aria-expanded", "false");
+    const headerTitle = document.createElement("div");
+    headerTitle.classList.add("table-header-title");
+    const headerIcon = createIconElement(getDataTableIcon(title), 20);
+    headerIcon.classList.add("table-header-icon");
+    const headerLabel = document.createElement("span");
+    headerLabel.classList.add("table-header-label");
+    headerLabel.textContent = getHumanizedLabel(title);
+    headerTitle.append(headerIcon);
+    headerTitle.append(headerLabel);
     const rightContainer = document.createElement("div");
-    rightContainer.style.display = "flex";
-    rightContainer.style.alignItems = "center";
-    rightContainer.style.gap = "10px";
+    rightContainer.classList.add("table-header-actions");
+
+    // Add density toggle (only on first table to avoid duplicates)
+    if (index === 0) {
+        const densityToggle = createDensityToggle({
+            onChange: (density) => {
+                // Apply to all table sections in this container
+                const sections = container.querySelectorAll(".table-section");
+                for (const sec of sections) {
+                    sec.classList.remove("density-spacious", "density-dense");
+                    sec.classList.add(`density-${density}`);
+                }
+            },
+            showLabel: true,
+            storageKey: "rawDataTableDensity",
+        });
+        rightContainer.append(densityToggle);
+    }
+
     const copyButton = document.createElement("button");
-    copyButton.textContent = "Copy as CSV";
-    copyButton.classList.add("copy-btn");
+    copyButton.type = "button";
+    copyButton.classList.add("copy-btn", "table-copy-btn");
+    copyButton.innerHTML =
+        '<iconify-icon icon="mdi:content-copy" width="16" height="16" aria-hidden="true"></iconify-icon><span>Copy CSV</span>';
     copyButton.addEventListener("click", (event) => {
         event.stopPropagation();
-        copyTableAsCSV(/** @type {any} */ (table));
+        copyTableAsCSV(/** @type {any} */(table));
     });
-    const icon = document.createElement("span");
-    icon.textContent = "➕";
+    const toggleIcon = document.createElement("iconify-icon");
+    toggleIcon.setAttribute("aria-hidden", "true");
+    toggleIcon.setAttribute("width", "20");
+    toggleIcon.setAttribute("height", "20");
+    toggleIcon.setAttribute("icon", "mdi:chevron-right");
+    toggleIcon.classList.add("table-toggle-icon");
     rightContainer.append(copyButton);
-    rightContainer.append(icon);
-    header.append(leftSpan);
+    rightContainer.append(toggleIcon);
+    header.append(headerTitle);
     header.append(rightContainer);
-    header.addEventListener("click", () => {
+    const toggleSection = () => {
         const content = document.getElementById(`${tableId}_content`),
-            currentDisplay = globalThis.getComputedStyle(/** @type {Element} */ (content)).display,
+            currentDisplay = globalThis.getComputedStyle(/** @type {Element} */(content)).display,
             isVisible = currentDisplay === "block";
         if (content) {
             content.style.display = isVisible ? "none" : "block";
         }
-        icon.textContent = isVisible ? "➕" : "➖";
+        toggleIcon.setAttribute("icon", isVisible ? "mdi:chevron-right" : "mdi:chevron-down");
+        header.setAttribute("aria-expanded", String(!isVisible));
+    };
+    header.addEventListener("click", toggleSection);
+    header.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleSection();
+        }
     });
     const content = document.createElement("div");
     content.classList.add("table-content");
     content.id = `${tableId}_content`;
+    header.setAttribute("aria-controls", content.id);
     content.style.display = "none";
     const tableElement = document.createElement("table");
     tableElement.id = tableId;
