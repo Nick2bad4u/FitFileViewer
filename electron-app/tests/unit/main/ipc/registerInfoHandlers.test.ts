@@ -3,7 +3,19 @@
  * Comprehensive test coverage for platform and application metadata IPC handlers
  */
 
+import { createRequire } from "node:module";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const requireModule = createRequire(import.meta.url);
+const modulePath = "../../../../main/ipc/registerInfoHandlers.js";
+
+const loadModule = async () => {
+    const resolved = requireModule.resolve(modulePath);
+    if (requireModule.cache?.[resolved]) {
+        delete requireModule.cache[resolved];
+    }
+    return requireModule(modulePath);
+};
 
 // Mock electron-conf before any imports
 vi.mock("electron-conf", () => {
@@ -34,10 +46,11 @@ describe("registerInfoHandlers", () => {
         // Get the mocked Conf from electron-conf
         const electronConf = await import("electron-conf");
         mockConfConstructor = electronConf.Conf as any;
-        mockConf = mockConfConstructor.mock.results[0]?.value || {
+        mockConf = {
             get: vi.fn((key: string, defaultValue: any) => defaultValue),
             set: vi.fn(),
         };
+        mockConfConstructor.mockImplementation(() => mockConf);
 
         // Mock app
         mockApp = {
@@ -95,22 +108,21 @@ describe("registerInfoHandlers", () => {
         });
     });
 
-    const loadModule = async () => {
-        const mod = await import("../../../../main/ipc/registerInfoHandlers.js");
-        return mod;
-    };
+    const buildArgs = (overrides: Record<string, unknown> = {}) => ({
+        registerIpcHandle: mockRegisterIpcHandle,
+        appRef: mockAppRef,
+        fs: mockFs,
+        path: mockPath,
+        CONSTANTS,
+        logWithContext: mockLogWithContext,
+        loadConf: () => ({ Conf: mockConfConstructor }),
+        ...overrides,
+    });
 
     it("should register all IPC handlers", async () => {
         const { registerInfoHandlers } = await loadModule();
 
-        registerInfoHandlers({
-            registerIpcHandle: mockRegisterIpcHandle,
-            appRef: mockAppRef,
-            fs: mockFs,
-            path: mockPath,
-            CONSTANTS,
-            logWithContext: mockLogWithContext,
-        });
+        registerInfoHandlers(buildArgs());
 
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("getAppVersion", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("getChromeVersion", expect.any(Function));
@@ -122,17 +134,20 @@ describe("registerInfoHandlers", () => {
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("theme:get", expect.any(Function));
     });
 
+    it("wires handlers directly through the helper for instrumentation", async () => {
+        const { wireInfoHandlers } = await loadModule();
+
+        wireInfoHandlers(buildArgs());
+
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("getAppVersion", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("map-tab:get", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("theme:get", expect.any(Function));
+    });
+
     it("should not register handlers if registerIpcHandle is not a function", async () => {
         const { registerInfoHandlers } = await loadModule();
 
-        registerInfoHandlers({
-            registerIpcHandle: null as any,
-            appRef: mockAppRef,
-            fs: mockFs,
-            path: mockPath,
-            CONSTANTS,
-            logWithContext: mockLogWithContext,
-        });
+        registerInfoHandlers(buildArgs({ registerIpcHandle: null as any }));
 
         expect(mockRegisterIpcHandle).not.toHaveBeenCalled();
     });
@@ -141,14 +156,7 @@ describe("registerInfoHandlers", () => {
         it("should return app version", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getAppVersion"
@@ -163,14 +171,7 @@ describe("registerInfoHandlers", () => {
         it("should return empty string if app is unavailable", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: vi.fn().mockReturnValue(null),
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs({ appRef: vi.fn().mockReturnValue(null) }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getAppVersion"
@@ -184,14 +185,7 @@ describe("registerInfoHandlers", () => {
         it("should return empty string if getVersion is not a function", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: vi.fn().mockReturnValue({}),
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs({ appRef: vi.fn().mockReturnValue({}) }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getAppVersion"
@@ -207,14 +201,7 @@ describe("registerInfoHandlers", () => {
         it("should return Chrome version", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getChromeVersion"
@@ -230,14 +217,7 @@ describe("registerInfoHandlers", () => {
         it("should return Electron version", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getElectronVersion"
@@ -253,14 +233,7 @@ describe("registerInfoHandlers", () => {
         it("should return Node version", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getNodeVersion"
@@ -276,14 +249,7 @@ describe("registerInfoHandlers", () => {
         it("should return platform info", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getPlatformInfo"
@@ -302,14 +268,7 @@ describe("registerInfoHandlers", () => {
         it("should read and return license from package.json", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -327,14 +286,7 @@ describe("registerInfoHandlers", () => {
 
             mockFs.readFileSync.mockReturnValue(Buffer.from(JSON.stringify({})));
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -350,14 +302,7 @@ describe("registerInfoHandlers", () => {
 
             const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/cwd/path");
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: vi.fn().mockReturnValue({}),
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs({ appRef: vi.fn().mockReturnValue({}) }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -376,14 +321,7 @@ describe("registerInfoHandlers", () => {
 
             const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/cwd/path");
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: vi.fn().mockReturnValue(null),
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs({ appRef: vi.fn().mockReturnValue(null) }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -399,14 +337,7 @@ describe("registerInfoHandlers", () => {
         it("should return Unknown if fs is unavailable", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: null as any,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs({ fs: null as any }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -425,14 +356,7 @@ describe("registerInfoHandlers", () => {
         it("should return Unknown if readFileSync is not a function", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: {} as any,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs({ fs: {} as any }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -450,14 +374,7 @@ describe("registerInfoHandlers", () => {
                 throw new Error("File not found");
             });
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -480,14 +397,7 @@ describe("registerInfoHandlers", () => {
 
             mockFs.readFileSync.mockReturnValue(Buffer.from("invalid json"));
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -510,14 +420,7 @@ describe("registerInfoHandlers", () => {
                 throw new Error("Error");
             });
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: undefined as any,
-            });
+            registerInfoHandlers(buildArgs({ logWithContext: undefined as any }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getLicenseInfo"
@@ -530,53 +433,47 @@ describe("registerInfoHandlers", () => {
     });
 
     describe("map-tab:get handler", () => {
-        it("should register the handler", async () => {
+        it("returns the selected map tab from persisted configuration", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            mockConf.get.mockImplementation((key: string, defaultValue: any) =>
+                key === "selectedMapTab" ? "satellite" : defaultValue
+            );
+
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "map-tab:get"
             )?.[1];
 
-            expect(handler).toBeDefined();
-            expect(typeof handler).toBe("function");
-        });
+            const result = await handler({}, {});
 
-        // Note: Full testing of map-tab:get requires Electron integration tests
-        // as it dynamically requires electron-conf which needs app.getPath()
+            expect(mockConfConstructor).toHaveBeenCalledWith({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            expect(mockConf.get).toHaveBeenCalledWith("selectedMapTab", "map");
+            expect(result).toBe("satellite");
+        });
     });
 
     describe("theme:get handler", () => {
-        it("should register the handler", async () => {
+        it("returns the stored theme preference with a default fallback", async () => {
             const { registerInfoHandlers } = await loadModule();
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            mockConf.get.mockImplementation((key: string, defaultValue: any) =>
+                key === "theme" ? "light" : defaultValue
+            );
+
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "theme:get"
             )?.[1];
 
-            expect(handler).toBeDefined();
-            expect(typeof handler).toBe("function");
-        });
+            const result = await handler({}, {});
 
-        // Note: Full testing of theme:get requires Electron integration tests
-        // as it dynamically requires electron-conf which needs app.getPath()
+            expect(mockConfConstructor).toHaveBeenCalledWith({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            expect(mockConf.get).toHaveBeenCalledWith("theme", CONSTANTS.DEFAULT_THEME);
+            expect(result).toBe("light");
+        });
     });
 
     describe("error handling in wrapper", () => {
@@ -588,14 +485,7 @@ describe("registerInfoHandlers", () => {
                 throw error;
             });
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: mockLogWithContext,
-            });
+            registerInfoHandlers(buildArgs());
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getAppVersion"
@@ -614,20 +504,75 @@ describe("registerInfoHandlers", () => {
                 throw new Error("Error");
             });
 
-            registerInfoHandlers({
-                registerIpcHandle: mockRegisterIpcHandle,
-                appRef: mockAppRef,
-                fs: mockFs,
-                path: mockPath,
-                CONSTANTS,
-                logWithContext: undefined as any,
-            });
+            registerInfoHandlers(buildArgs({ logWithContext: undefined as any }));
 
             const handler = mockRegisterIpcHandle.mock.calls.find(
                 (call: any) => call[0] === "getAppVersion"
             )?.[1];
 
             await expect(handler({})).rejects.toThrow();
+        });
+    });
+
+    describe("createInfoHandlers helper", () => {
+        it("exposes runtime metadata accessors", async () => {
+            const { createInfoHandlers } = await loadModule();
+
+            const handlers = createInfoHandlers(buildArgs());
+
+            await expect(handlers.getAppVersion()).resolves.toBe("1.0.0");
+            await expect(handlers.getChromeVersion()).resolves.toBe(process.versions.chrome);
+            await expect(handlers.getElectronVersion()).resolves.toBe(process.versions.electron);
+            await expect(handlers.getNodeVersion()).resolves.toBe(process.versions.node);
+            await expect(handlers.getPlatformInfo()).resolves.toEqual({
+                arch: process.arch,
+                platform: process.platform,
+            });
+        });
+
+        it("returns license information when package.json is readable", async () => {
+            const { createInfoHandlers } = await loadModule();
+
+            const handlers = createInfoHandlers(buildArgs());
+
+            await expect(handlers.getLicenseInfo()).resolves.toBe("MIT");
+            expect(mockFs.readFileSync).toHaveBeenCalled();
+            expect(mockPath.join).toHaveBeenCalledWith("/app/path", "package.json");
+        });
+
+        it("logs and returns Unknown when filesystem access fails", async () => {
+            const { createInfoHandlers } = await loadModule();
+
+            const handlers = createInfoHandlers(buildArgs({ fs: null as any }));
+
+            await expect(handlers.getLicenseInfo()).resolves.toBe("Unknown");
+            expect(mockLogWithContext).toHaveBeenCalledWith(
+                "error",
+                "Failed to read license from package.json:",
+                expect.objectContaining({ error: "Filesystem module unavailable" })
+            );
+        });
+
+        it("reads persisted configuration for map tab and theme", async () => {
+            const { createInfoHandlers } = await loadModule();
+
+            mockConf.get.mockImplementation((key: string, defaultValue: any) => {
+                if (key === "selectedMapTab") {
+                    return "satellite";
+                }
+
+                if (key === "theme") {
+                    return "dark";
+                }
+
+                return defaultValue;
+            });
+
+            const handlers = createInfoHandlers(buildArgs());
+
+            await expect(handlers["map-tab:get"]()).resolves.toBe("satellite");
+            await expect(handlers["theme:get"]()).resolves.toBe("dark");
+            expect(mockConfConstructor).toHaveBeenCalledWith({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
         });
     });
 });

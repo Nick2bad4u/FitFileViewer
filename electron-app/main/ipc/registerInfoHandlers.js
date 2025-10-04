@@ -7,22 +7,30 @@
  * @param {{ join: Function }} options.path
  * @param {{ DEFAULT_THEME: string, SETTINGS_CONFIG_NAME: string }} options.CONSTANTS
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {() => { Conf: new (options: { name: string }) => { get: (key: string, fallback: any) => any } }} [options.loadConf]
  */
-function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, logWithContext }) {
-    if (typeof registerIpcHandle !== 'function') {
-        return;
-    }
+function createInfoHandlers({ appRef, fs, path, CONSTANTS, logWithContext, loadConf }) {
+    const resolveConfModule = typeof loadConf === 'function'
+        ? loadConf
+        : /* c8 ignore next */ function loadElectronConf() {
+            // The real electron-conf pulls electron.app paths which are inaccessible in unit tests.
+            return require('electron-conf');
+        };
 
-    const handlers = {
-        getAppVersion: async () => {
-            const app = appRef();
+    return {
+        getAppVersion: async function getAppVersion() {
+            const app = appRef?.();
             return app && typeof app.getVersion === 'function' ? app.getVersion() : '';
         },
-        getChromeVersion: async () => process.versions.chrome,
-        getElectronVersion: async () => process.versions.electron,
+        getChromeVersion: async function getChromeVersion() {
+            return process.versions.chrome;
+        },
+        getElectronVersion: async function getElectronVersion() {
+            return process.versions.electron;
+        },
         getLicenseInfo: async () => {
             try {
-                const app = appRef();
+                const app = appRef?.();
                 const basePath = app && typeof app.getAppPath === 'function' ? app.getAppPath() : process.cwd();
                 if (!fs || typeof fs.readFileSync !== 'function') {
                     throw new Error('Filesystem module unavailable');
@@ -38,27 +46,51 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
                 return 'Unknown';
             }
         },
-        getNodeVersion: async () => process.versions.node,
+        getNodeVersion: async function getNodeVersion() {
+            return process.versions.node;
+        },
         getPlatformInfo: async () => ({
             arch: process.arch,
             platform: process.platform,
         }),
-        'map-tab:get': async () => {
-            const { Conf } = require('electron-conf');
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+        'map-tab:get': async function getMapTab() {
+            const { Conf } = resolveConfModule();
+            const conf = new Conf({ name: CONSTANTS?.SETTINGS_CONFIG_NAME });
             return conf.get('selectedMapTab', 'map');
         },
-        'theme:get': async () => {
-            const { Conf } = require('electron-conf');
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get('theme', CONSTANTS.DEFAULT_THEME);
+        'theme:get': async function getTheme() {
+            const { Conf } = resolveConfModule();
+            const conf = new Conf({ name: CONSTANTS?.SETTINGS_CONFIG_NAME });
+            return conf.get('theme', CONSTANTS?.DEFAULT_THEME);
         },
     };
+}
+
+function registerInfoHandlers(options) {
+    wireInfoHandlers(options ?? {});
+}
+
+function wireInfoHandlers(options = {}) {
+    const registerIpcHandle = options?.registerIpcHandle;
+    const logWithContext = options?.logWithContext;
+
+    if (typeof registerIpcHandle !== 'function') {
+        return;
+    }
+
+    const handlers = createInfoHandlers({
+        appRef: options?.appRef,
+        fs: options?.fs,
+        path: options?.path,
+        CONSTANTS: options?.CONSTANTS,
+        logWithContext,
+        loadConf: options?.loadConf,
+    });
 
     for (const [channel, handler] of Object.entries(handlers)) {
         registerIpcHandle(channel, async (...args) => {
             try {
-                return await /** @type {(event: any, ...rest: any[]) => Promise<any>} */ (handler)(...args);
+                return await handler(...args);
             } catch (error) {
                 logWithContext?.('error', `Error in ${channel}:`, {
                     error: /** @type {Error} */ (error)?.message,
@@ -69,4 +101,4 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
     }
 }
 
-module.exports = { registerInfoHandlers };
+module.exports = { registerInfoHandlers, wireInfoHandlers, createInfoHandlers };

@@ -1,4 +1,23 @@
 /**
+ * Ensures a valid dialog module is available and exposes showOpenDialog.
+ * @param {unknown} dialogRef
+ * @returns {{ showOpenDialog: Function }}
+ */
+function ensureDialogModule(dialogRef) {
+    const dialog = typeof dialogRef === 'function' ? dialogRef() : null;
+    if (!dialog || typeof dialog.showOpenDialog !== 'function') {
+        throw new Error('Dialog module unavailable');
+    }
+
+    return dialog;
+}
+
+/**
+ * Resolves a sensible target window for menu updates.
+ * @param {() => any} browserWindowRef
+ * @param {any} fallback
+ */
+/**
  * Registers dialog IPC handlers for opening FIT files and overlay selections.
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
@@ -30,10 +49,7 @@ function registerDialogHandlers({
 
     registerIpcHandle('dialog:openFile', async () => {
         try {
-            const dialog = typeof dialogRef === 'function' ? dialogRef() : null;
-            if (!dialog || typeof dialog.showOpenDialog !== 'function') {
-                throw new Error('Dialog module unavailable');
-            }
+            const dialog = ensureDialogModule(dialogRef);
 
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS?.DIALOG_FILTERS?.FIT_FILES,
@@ -80,10 +96,7 @@ function registerDialogHandlers({
 
     registerIpcHandle('dialog:openOverlayFiles', async () => {
         try {
-            const dialog = typeof dialogRef === 'function' ? dialogRef() : null;
-            if (!dialog || typeof dialog.showOpenDialog !== 'function') {
-                throw new Error('Dialog module unavailable');
-            }
+            const dialog = ensureDialogModule(dialogRef);
 
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS?.DIALOG_FILTERS?.FIT_FILES,
@@ -125,4 +138,4 @@ function resolveTargetWindow(browserWindowRef, fallback) {
     return fallback || null;
 }
 
-module.exports = { registerDialogHandlers };
+module.exports = { registerDialogHandlers, ensureDialogModule, resolveTargetWindow };

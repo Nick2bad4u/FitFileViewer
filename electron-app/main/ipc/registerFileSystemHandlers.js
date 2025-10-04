@@ -5,7 +5,12 @@
  * @param {{ readFile?: Function }} options.fs
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
-function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
+function registerFileSystemHandlers(options) {
+    wireFileSystemHandlers(options ?? {});
+}
+
+function wireFileSystemHandlers(options = {}) {
+    const { registerIpcHandle, fs, logWithContext } = options;
     if (typeof registerIpcHandle !== 'function') {
         return;
     }
@@ -40,4 +45,4 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
     });
 }
 
-module.exports = { registerFileSystemHandlers };
+module.exports = { registerFileSystemHandlers, wireFileSystemHandlers };

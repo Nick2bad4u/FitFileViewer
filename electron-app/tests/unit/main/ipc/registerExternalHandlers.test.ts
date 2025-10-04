@@ -3,7 +3,20 @@
  * Comprehensive test coverage for shell and Gyazo OAuth server IPC handlers
  */
 
+import { createRequire } from "node:module";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const requireModule = createRequire(import.meta.url);
+const modulePath = "../../../../main/ipc/registerExternalHandlers.js";
+
+const loadModule = async () => {
+    vi.resetModules();
+    const resolved = requireModule.resolve(modulePath);
+    if (requireModule.cache?.[resolved]) {
+        delete requireModule.cache[resolved];
+    }
+    return requireModule(modulePath);
+};
 
 describe("registerExternalHandlers", () => {
     let mockRegisterIpcHandle: ReturnType<typeof vi.fn>;
@@ -14,7 +27,6 @@ describe("registerExternalHandlers", () => {
     let mockShell: { openExternal: ReturnType<typeof vi.fn> };
 
     beforeEach(() => {
-        vi.resetModules();
         mockShell = { openExternal: vi.fn().mockResolvedValue(undefined) };
         mockRegisterIpcHandle = vi.fn();
         mockShellRef = vi.fn().mockReturnValue(mockShell);
@@ -22,11 +34,6 @@ describe("registerExternalHandlers", () => {
         mockStopGyazoOAuthServer = vi.fn().mockResolvedValue({ stopped: true });
         mockLogWithContext = vi.fn();
     });
-
-    const loadModule = async () => {
-        const mod = await import("../../../../main/ipc/registerExternalHandlers.js");
-        return mod;
-    };
 
     it("should register all IPC handlers", async () => {
         const { registerExternalHandlers } = await loadModule();
@@ -39,6 +46,23 @@ describe("registerExternalHandlers", () => {
             logWithContext: mockLogWithContext,
         });
 
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:start", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:stop", expect.any(Function));
+    });
+
+    it("should wire handlers via the helper to ensure internal coverage", async () => {
+        const { wireExternalHandlers } = await loadModule();
+
+        wireExternalHandlers({
+            registerIpcHandle: mockRegisterIpcHandle,
+            shellRef: mockShellRef,
+            startGyazoOAuthServer: mockStartGyazoOAuthServer,
+            stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+            logWithContext: mockLogWithContext,
+        });
+
+        expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(3);
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:start", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:stop", expect.any(Function));

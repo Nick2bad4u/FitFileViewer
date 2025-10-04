@@ -905,18 +905,18 @@ canvas {
 
 /* Chart controls toggle button */
 #chart-controls-toggle {
-	padding: 10px 20px;
-	background: var(--color-btn-bg);
-	color: var(--color-modal-fg);
-	border: 1px solid transparent;
-	border-radius: var(--border-radius-small);
-	font-size: 0.9rem;
-	font-weight: 600;
-	cursor: pointer;
-	transition: var(--transition-smooth);
-	display: flex;
-	align-items: center;
-	gap: 8px;
+	padding: 10px 20px !important;
+	background: none !important;
+	color: var(--color-modal-fg) !important;
+	border: 1px solid transparent !important;
+	border-radius: var(--border-radius-small) !important;
+	font-size: 0.9rem !important;
+	font-weight: 600 !important;
+	cursor: pointer !important;
+	transition: var(--transition-smooth) !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 8px !important;
 }
 
 #chart-controls-toggle:hover {
@@ -1045,9 +1045,9 @@ canvas {
 
 /* Map container */
 #content-map {
-	background: var(--color-bg-alt);
 	border-radius: var(--border-radius);
 	padding: 16px;
+	background: unset;
 }
 
 #leaflet-map {

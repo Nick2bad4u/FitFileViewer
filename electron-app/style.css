@@ -2243,7 +2243,12 @@ body[data-has-fit-file="true"] .tab-bar {
     width: 100%;
     min-height: 100%;
     flex: 1;
-    background: linear-gradient(120deg, #8b5cf626 0%, #101010 45%, #8b5cf60a 100%) !important;
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(120% 120% at 85% 15%, rgb(var(--color-accent-rgb) / 14%) 0%, rgb(var(--color-accent-rgb) / 0%) 70%),
+        radial-gradient(140% 140% at 12% 88%, rgb(var(--color-secondary-accent-rgb) / 12%) 0%, rgb(var(--color-secondary-accent-rgb) / 0%) 68%),
+        var(--color-bg);
 }
 
 .tab-content.active {
@@ -2332,6 +2337,7 @@ body[data-has-fit-file="false"] .tab-card {
     );
     backdrop-filter: blur(8px);
     animation: empty-state-pulse 3s ease-in-out infinite;
+    display: none !important;
 }
 
 body[data-has-fit-file="false"] .tab-card::before {
@@ -2524,7 +2530,7 @@ tr:hover {
 
 /* Density toggle with label container */
 .density-toggle-container {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 8px;
 }
@@ -2819,7 +2825,7 @@ body[data-has-fit-file="true"] .header-brand {
     gap: 10px;
     padding: 6px 14px;
     border-radius: var(--border-radius-small);
-    background: var(--color-pill-bg);
+    background: none;
     border: 1px solid var(--color-pill-border);
     color: rgb(var(--color-fg-rgb) / 70%);
     font-size: 0.9rem;
@@ -3401,6 +3407,40 @@ body.theme-light .zone-color-preview:hover {
     align-items: center;
     gap: 0;
     margin-top: 8px;
+    background: none !important;
+}
+
+body.map-fullscreen-active {
+    overflow: hidden;
+}
+
+#map-controls.map-controls-overlay {
+    position: fixed;
+    bottom: clamp(16px, 4vh, 32px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    border-radius: calc(var(--border-radius) + 8px);
+    padding: 14px 18px;
+    box-shadow: var(--color-box-shadow);
+    gap: 10px;
+    margin-top: 0;
+    width: min(92vw, 960px);
+    justify-content: center;
+    flex-wrap: wrap;
+    backdrop-filter: var(--backdrop-blur);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#map-controls.map-controls-overlay .map-action-btn {
+    min-width: clamp(120px, 18vw, 180px);
+    justify-content: center;
+}
+
+#map-controls.map-controls-overlay .map-action-btn span {
+    white-space: nowrap;
 }
 
 /* Make map control SVG elements use accent color */
@@ -4908,6 +4948,40 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     backdrop-filter: var(--backdrop-blur);
 }
 
+.summary-section .header-bar {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 12px;
+}
+
+.summary-table-container {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 0 -4px;
+    padding: 4px 4px 12px;
+    border-radius: calc(var(--border-radius) - 6px);
+    backdrop-filter: inherit;
+    scrollbar-color: rgb(var(--color-accent-rgb) / 45%) transparent;
+    scrollbar-width: thin;
+}
+
+.summary-table-container::after {
+    content: "";
+    position: sticky;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(270deg, rgb(var(--color-bg-rgb, 18 26 38) / 0.15) 0%, transparent 70%);
+    display: block;
+}
+
+.summary-table-container table {
+    min-width: 720px;
+}
+
 .summary-filter-bar {
     display: flex;
     align-items: center;
@@ -5048,7 +5122,7 @@ footer {
 .credits-section {
     margin: 32px 20px 20px;
     padding: 20px 24px;
-    background: var(--color-glass);
+    background: none;
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
     border-radius: var(--border-radius);
@@ -5270,7 +5344,7 @@ body.theme-light .multi-lap-toggle:hover {
 }
 
 body.theme-dark .map-action-btn {
-    background: var(--c_hex23263a);
+    background: linear-gradient(120deg, var(--color-btn-bg-solid) 0%, #101010 10%, #101010 45%, #101010 90%, var(--color-btn-bg-solid) 100%) !important;
     color: var(--c_hexe0e0e0);
     border: 1px solid var(--c_hex33374d);
 }
@@ -5307,7 +5381,7 @@ body.theme-dark .map-action-btn.disabled {
 .fullsize-container {
     width: 100%;
     height: 100%;
-    min-height: 600px;
+    min-height: 2000px;
     max-width: 100%;
     box-sizing: border-box;
     flex: 1;

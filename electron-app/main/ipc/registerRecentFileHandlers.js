@@ -11,7 +11,7 @@
  * @param {(key: string) => any} options.getAppState
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
-function registerRecentFileHandlers({
+const wireRecentFileHandlers = ({
     registerIpcHandle,
     addRecentFile,
     loadRecentFiles,
@@ -21,7 +21,7 @@ function registerRecentFileHandlers({
     safeCreateAppMenu,
     getAppState,
     logWithContext,
-}) {
+} = {}) => {
     if (typeof registerIpcHandle !== 'function') {
         return;
     }
@@ -62,7 +62,7 @@ function registerRecentFileHandlers({
             throw error;
         }
     });
-}
+};
 
 /**
  * Resolves a BrowserWindow instance suitable for menu updates.
@@ -85,4 +85,8 @@ function resolveTargetWindow(browserWindowRef, fallback) {
     return fallback || null;
 }
 
-module.exports = { registerRecentFileHandlers };
+const registerRecentFileHandlers = (options) => {
+    wireRecentFileHandlers(options ?? {});
+};
+
+module.exports = { registerRecentFileHandlers, wireRecentFileHandlers };

@@ -264,6 +264,9 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     headerBar.append(copyBtn);
     section.append(headerBar);
 
+    const tableScrollContainer = document.createElement("div");
+    tableScrollContainer.className = "summary-table-container";
+
     const table = document.createElement("table");
     table.classList.add("display");
     const headerRow = document.createElement("tr"),
@@ -344,7 +347,8 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     }
     table.append(thead);
     table.append(tbody);
-    section.append(table);
+    tableScrollContainer.append(table);
+    section.append(tableScrollContainer);
 }
 
 /**

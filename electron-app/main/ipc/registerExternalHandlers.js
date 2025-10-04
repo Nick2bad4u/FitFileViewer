@@ -7,13 +7,18 @@
  * @param {() => Promise<any>} options.stopGyazoOAuthServer
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
-function registerExternalHandlers({
-    registerIpcHandle,
-    shellRef,
-    startGyazoOAuthServer,
-    stopGyazoOAuthServer,
-    logWithContext,
-}) {
+function registerExternalHandlers(options) {
+    wireExternalHandlers(options ?? {});
+}
+
+function wireExternalHandlers(options = {}) {
+    const {
+        registerIpcHandle,
+        shellRef,
+        startGyazoOAuthServer,
+        stopGyazoOAuthServer,
+        logWithContext,
+    } = options;
     if (typeof registerIpcHandle !== 'function') {
         return;
     }
@@ -65,4 +70,4 @@ function registerExternalHandlers({
     });
 }
 
-module.exports = { registerExternalHandlers };
+module.exports = { registerExternalHandlers, wireExternalHandlers };

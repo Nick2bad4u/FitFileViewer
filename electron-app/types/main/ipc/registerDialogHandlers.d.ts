@@ -1,4 +1,9 @@
 /**
+ * Resolves a sensible target window for menu updates.
+ * @param {() => any} browserWindowRef
+ * @param {any} fallback
+ */
+/**
  * Registers dialog IPC handlers for opening FIT files and overlay selections.
  * @param {object} options
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
@@ -28,4 +33,18 @@ export function registerDialogHandlers({ registerIpcHandle, dialogRef, CONSTANTS
     logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
     mainWindow: any;
 }): void;
+/**
+ * Ensures a valid dialog module is available and exposes showOpenDialog.
+ * @param {unknown} dialogRef
+ * @returns {{ showOpenDialog: Function }}
+ */
+export function ensureDialogModule(dialogRef: unknown): {
+    showOpenDialog: Function;
+};
+/**
+ * Resolves a sensible target window for menu updates.
+ * @param {() => any} browserWindowRef
+ * @param {any} fallback
+ */
+export function resolveTargetWindow(browserWindowRef: () => any, fallback: any): any;
 //# sourceMappingURL=registerDialogHandlers.d.ts.map

@@ -32,6 +32,22 @@ export function addFullscreenControl(map) {
     }
 
     const button = /** @type {HTMLButtonElement} */ (fullscreenBtn);
+    const mapControls = document.querySelector("#map-controls");
+    const root = document.body instanceof HTMLBodyElement ? document.body : null;
+
+    /**
+     * Applies fullscreen UI state for overlays and scroll locking.
+     * @param {boolean} active
+     */
+    const applyFullscreenUiState = (active) => {
+        if (mapControls instanceof HTMLElement) {
+            mapControls.classList.toggle("map-controls-overlay", active);
+        }
+        if (root) {
+            root.classList.toggle("map-fullscreen-active", active);
+        }
+    };
+
     button.addEventListener("click", () => {
         if (!mapDiv) {
             return;
@@ -39,10 +55,24 @@ export function addFullscreenControl(map) {
         const isFullscreen = mapDiv.classList.toggle("fullscreen");
         button.title = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
         button.innerHTML = isFullscreen ? fullscreenExitSVG : fullscreenEnterSVG;
+        applyFullscreenUiState(isFullscreen);
         if (isFullscreen) {
-            mapDiv.requestFullscreen && mapDiv.requestFullscreen();
-        } else {
-            document.exitFullscreen && document.exitFullscreen();
+            if (mapDiv.requestFullscreen) {
+                const request = mapDiv.requestFullscreen();
+                if (request && typeof request.catch === "function") {
+                    request.catch(() => {
+                        mapDiv.classList.remove("fullscreen");
+                        applyFullscreenUiState(false);
+                        button.title = "Enter Fullscreen";
+                        button.innerHTML = fullscreenEnterSVG;
+                    });
+                }
+            }
+        } else if (document.exitFullscreen) {
+            const exitResult = document.exitFullscreen();
+            exitResult && typeof exitResult.catch === "function" && exitResult.catch(() => {
+                /* Ignore exit failures */
+            });
         }
         setTimeout(() => map.invalidateSize(), 300);
     });
@@ -51,6 +81,7 @@ export function addFullscreenControl(map) {
         const isNowFullscreen = document.fullscreenElement === mapDiv;
         if (!isNowFullscreen) {
             mapDiv.classList.remove("fullscreen");
+            applyFullscreenUiState(false);
             button.title = "Enter Fullscreen";
             button.innerHTML = fullscreenEnterSVG;
             // Only call invalidateSize if map is still valid and map container is in the DOM
