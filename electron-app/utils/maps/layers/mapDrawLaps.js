@@ -39,6 +39,7 @@ export function drawOverlayForFitFile({
     map,
     markerClusterGroup,
     overlayIdx,
+    markerSummary,
     startIcon,
 }) {
     const L = getLeaflet();
@@ -48,8 +49,6 @@ export function drawOverlayForFitFile({
     }
     const lapMesgs = /** @type {Array<LapMesg>} */ (fitData.lapMesgs || []);
     const recordMesgs = /** @type {Array<RecordMesg>} */ (fitData.recordMesgs || []);
-
-    patchLapIndices(lapMesgs, recordMesgs);
 
     const coords = recordMesgs
         .map((row, idx) => {
@@ -124,6 +123,10 @@ export function drawOverlayForFitFile({
         }
 
         const overlaySampler = createMarkerSampler(coords.length, getMarkerPreference());
+        if (markerSummary) {
+            markerSummary.record(coords.length, overlaySampler.sampledCount);
+            markerSummary.flush();
+        }
         for (const [coordinateIdx, coordinate] of coords.entries()) {
             if (!coordinate || !overlaySampler.shouldInclude(coordinateIdx)) {
                 continue;
@@ -218,11 +221,14 @@ export function mapDrawLaps(
     }
 
     const markerSummary = createMarkerSummary();
+    markerSummary.reset();
+
     const recordMarkerSummary = (totalPoints, renderedPoints) => {
         markerSummary.record(totalPoints, renderedPoints);
+        markerSummary.flush();
     };
     const exitEarly = () => {
-        markerSummary.flush();
+        markerSummary.reset();
     };
 
     // --- Always reset overlay polylines and main polyline at the start of a redraw ---
@@ -386,7 +392,6 @@ export function mapDrawLaps(
         coords = /** @type {Array<CoordTuple>} */ (coords.filter(Boolean));
 
         if (coords.length === 0) {
-            mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
             return exitEarly();
         }
 
@@ -486,24 +491,25 @@ export function mapDrawLaps(
                 if (!overlay || !overlay.data) {
                     continue;
                 }
-                const color = colorPalette[overlayIdx % colorPalette.length],
-                    fileName =
-                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
-                    bounds = drawOverlayForFitFile({
-                        color: color || "#1976d2",
-                        endIcon,
-                        fileName,
-                        fitData: {
-                            lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
-                            recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
-                        },
-                        formatTooltipData,
-                        getLapNumForIdx,
-                        map,
-                        markerClusterGroup,
-                        overlayIdx: i,
-                        startIcon,
-                    });
+                const color = colorPalette[overlayIdx % colorPalette.length];
+                const fileName =
+                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
+                const bounds = drawOverlayForFitFile({
+                    color: color || "#1976d2",
+                    endIcon,
+                    fileName,
+                    fitData: {
+                        lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
+                        recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
+                    },
+                    formatTooltipData,
+                    getLapNumForIdx,
+                    map,
+                    markerClusterGroup,
+                    markerSummary,
+                    overlayIdx: i,
+                    startIcon,
+                });
                 if (bounds) {
                     let safeBounds = bounds;
                     if (
@@ -683,6 +689,7 @@ export function mapDrawLaps(
                             getLapNumForIdx,
                             map,
                             markerClusterGroup,
+                            markerSummary,
                             overlayIdx: i,
                             startIcon,
                         });
@@ -850,6 +857,7 @@ export function mapDrawLaps(
                     getLapNumForIdx,
                     map,
                     markerClusterGroup,
+                    markerSummary,
                     overlayIdx: i,
                     startIcon,
                 });
@@ -1055,6 +1063,7 @@ export function mapDrawLaps(
                         getLapNumForIdx,
                         map,
                         markerClusterGroup,
+                        markerSummary,
                         overlayIdx: i,
                         startIcon,
                     });

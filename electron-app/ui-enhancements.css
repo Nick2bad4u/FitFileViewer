@@ -7,7 +7,7 @@
 /* =====================================================
    Accessibility - Skip Navigation
    ===================================================== */
-/* stylelint-disable selector-class-pattern */
+/* stylelint-disable selector-class-pattern, selector-max-id, selector-id-pattern, declaration-no-important, selector-max-universal */
 
 .skip-to-main {
     position: fixed;
@@ -334,6 +334,318 @@ textarea:invalid:not(:placeholder-shown) {
 input:invalid:not(:placeholder-shown):focus,
 textarea:invalid:not(:placeholder-shown):focus {
     box-shadow: 0 0 0 3px rgb(var(--color-error-rgb) / 20%);
+}
+
+/* =====================================================
+   User Device Info Box
+   ===================================================== */
+
+.user-device-info-box {
+    --info-box-bg: var(--color-bg-alt-solid, #1f2937);
+    --info-box-bg-soft: var(--color-glass, rgba(148, 163, 184, 0.08));
+    --info-box-border: var(--color-border-strong, rgba(148, 163, 184, 0.28));
+    --info-box-text: var(--color-fg, #f8fafc);
+    --info-box-text-subtle: var(--color-fg-subtle, rgba(226, 232, 240, 0.82));
+    --info-box-accent: var(--color-accent, #3b82f6);
+    --info-box-shadow: 0 22px 50px rgb(15 23 42 / 38%);
+    display: grid;
+    gap: clamp(16px, 2.5vw, 28px);
+    padding: clamp(20px, 2.8vw, 36px);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), transparent) var(--info-box-bg);
+    border: 1px solid var(--info-box-border);
+    color: var(--info-box-text);
+    box-shadow: var(--info-box-shadow);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+}
+
+.user-device-info-box--empty {
+    align-items: center;
+    justify-items: center;
+    text-align: center;
+}
+
+.user-device-info-box__section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: clamp(18px, 2.4vw, 26px);
+    border-radius: 20px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01))
+        var(--info-box-bg-soft);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 4%),
+        0 12px 30px rgb(15 23 42 / 28%);
+}
+
+.user-device-info-box__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--info-box-text-subtle);
+}
+
+.user-device-info-box__header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    background: rgb(var(--color-accent-rgb, 59 130 246) / 12%);
+    color: var(--info-box-accent);
+    font-size: 1.1rem;
+    box-shadow: inset 0 0 0 1px rgb(var(--color-accent-rgb, 59 130 246) / 18%);
+}
+
+.user-device-info-box__title {
+    margin: 0;
+    font-size: clamp(1.05rem, 1.3vw, 1.2rem);
+    font-weight: 600;
+    color: var(--info-box-text);
+}
+
+.user-device-info-box__card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: clamp(16px, 2vw, 22px);
+    border-radius: 18px;
+    background: rgb(15 23 42 / 12%);
+    border: 1px solid rgb(148 163 184 / 18%);
+    backdrop-filter: blur(8px);
+}
+
+.user-device-info-box__card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--info-box-text);
+}
+
+.user-device-info-box__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px 18px;
+    margin: 0;
+}
+
+.user-device-info-box__field {
+    display: grid;
+    gap: 4px;
+}
+
+.user-device-info-box__field-label {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--info-box-text-subtle);
+}
+
+.user-device-info-box__field-value {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--info-box-text);
+}
+
+.user-device-info-box__card--sensors {
+    gap: 16px;
+}
+
+.sensor-pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sensor-pill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    background: rgb(var(--color-accent-rgb, 59 130 246) / 12%);
+    color: var(--info-box-accent);
+    border: 1px solid rgb(var(--color-accent-rgb, 59 130 246) / 18%);
+}
+
+.user-device-info-box__empty {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--info-box-text-subtle);
+}
+
+@media (max-width: 720px) {
+    .user-device-info-box {
+        padding: 20px;
+        gap: 18px;
+    }
+
+    .user-device-info-box__fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+.map-marker-summary {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgb(15 23 42 / 30%);
+    border: 1px solid rgb(148 163 184 / 26%);
+    color: var(--color-fg, #f8fafc);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.map-marker-summary::before {
+    content: "•";
+    color: var(--color-accent, #3b82f6);
+    font-size: 1.2em;
+    line-height: 1;
+}
+
+/* =====================================================
+   Chart Fullscreen Overlay
+   ===================================================== */
+
+body.chart-fullscreen-active {
+    overflow: hidden;
+}
+
+.chart-fullscreen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 14000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    isolation: isolate;
+}
+
+.chart-fullscreen-overlay__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(15 23 42 / 78%);
+    backdrop-filter: blur(18px) saturate(130%);
+}
+
+.chart-fullscreen-overlay__panel {
+    position: relative;
+    width: min(1280px, 94vw);
+    height: min(92vh, 860px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 28px;
+    border: 1px solid rgb(148 163 184 / 28%);
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(15, 23, 42, 0.6))
+        var(--color-bg-alt-solid, #0f172a);
+    box-shadow:
+        0 40px 80px rgb(15 23 42 / 65%),
+        inset 0 1px 0 rgb(255 255 255 / 8%);
+    overflow: hidden;
+}
+
+.chart-fullscreen-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: clamp(18px, 2.4vw, 28px);
+    background: rgb(15 23 42 / 35%);
+    border-bottom: 1px solid rgb(148 163 184 / 18%);
+    color: var(--color-fg, #f8fafc);
+}
+
+.chart-fullscreen-overlay__title {
+    font-size: clamp(1.1rem, 1.6vw, 1.45rem);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.chart-fullscreen-overlay__close {
+    width: 42px;
+    height: 42px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: rgb(var(--color-accent-rgb, 59 130 246) / 12%);
+    color: var(--color-accent, #3b82f6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.chart-fullscreen-overlay__close:hover {
+    transform: translateY(-1px);
+    border-color: rgb(var(--color-accent-rgb, 59 130 246) / 35%);
+}
+
+.chart-fullscreen-overlay__close iconify-icon {
+    color: currentColor;
+}
+
+.chart-fullscreen-overlay__content {
+    position: relative;
+    flex: 1;
+    padding: clamp(18px, 2vw, 28px);
+    overflow: hidden;
+    display: flex;
+}
+
+.chart-wrapper--fullscreen {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: clamp(24px, 2.6vw, 40px);
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.chart-wrapper--fullscreen .chart-action-toolbar {
+    top: clamp(20px, 2vw, 28px);
+    right: clamp(20px, 2.4vw, 36px);
+}
+
+.chart-fullscreen-overlay .chart-wrapper--fullscreen .chart-canvas {
+    height: 100%;
+    max-height: none;
+}
+
+.chart-wrapper--fullscreen .chart-title-overlay {
+    top: clamp(16px, 1.8vw, 28px);
+    left: clamp(16px, 1.8vw, 28px);
+}
+
+@media (max-width: 960px) {
+    .chart-fullscreen-overlay__panel {
+        width: min(100vw, 640px);
+        height: min(88vh, 720px);
+        border-radius: 22px;
+    }
+
+    .chart-fullscreen-overlay__header {
+        padding: 18px;
+    }
+
+    .chart-fullscreen-overlay__content {
+        padding: 18px;
+    }
 }
 
 body.theme-light select {

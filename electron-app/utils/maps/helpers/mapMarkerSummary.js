@@ -6,29 +6,51 @@
  * Create a tracker that records the number of available and rendered markers,
  * then notifies the UI via the global `updateMapMarkerSummary` helper.
  *
- * @returns {{record(total:number, rendered:number):void, flush():void}}
+ * @returns {{record(total:number, rendered:number):void, reset():void, flush():void}}
  */
 export function createMarkerSummary() {
     let totalPoints = 0;
     let renderedPoints = 0;
 
+    const clampCount = (value) => (Number.isFinite(value) && value > 0 ? Math.floor(value) : 0);
+    const notify = () => {
+        try {
+            const updater = getWindow()?.updateMapMarkerSummary;
+            if (typeof updater === "function") {
+                updater({
+                    rendered: renderedPoints,
+                    total: totalPoints,
+                });
+            }
+        } catch {
+            /* Ignore summary update errors */
+        }
+    };
+
     return {
         record(total, rendered) {
-            totalPoints = Number.isFinite(total) && total > 0 ? Math.floor(total) : 0;
-            renderedPoints = Number.isFinite(rendered) && rendered > 0 ? Math.floor(rendered) : 0;
+            const sanitizedTotal = clampCount(total);
+            const sanitizedRendered = clampCount(rendered);
+            totalPoints += sanitizedTotal;
+            renderedPoints += sanitizedRendered;
+
+            if (sanitizedRendered === 0 && sanitizedTotal > 0 && rendered === 0) {
+                renderedPoints += sanitizedTotal;
+            }
+
+            if (renderedPoints > totalPoints) {
+                renderedPoints = totalPoints;
+            }
+
+            notify();
+        },
+        reset() {
+            totalPoints = 0;
+            renderedPoints = 0;
+            notify();
         },
         flush() {
-            try {
-                const updater = getWindow()?.updateMapMarkerSummary;
-                if (typeof updater === "function") {
-                    updater({
-                        rendered: renderedPoints,
-                        total: totalPoints,
-                    });
-                }
-            } catch {
-                /* Ignore summary update errors */
-            }
+            notify();
         },
     };
 }

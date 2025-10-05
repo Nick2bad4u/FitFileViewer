@@ -77,9 +77,9 @@ describe("createUserDeviceInfoBox", () => {
         const infoBox = container.firstElementChild;
         expect(infoBox?.classList.contains("user-device-info-box")).toBe(true);
 
-        // Contains some expected text fragments
-        expect(container.innerHTML).toMatch(/User Profile/);
-        expect(container.innerHTML).toMatch(/Device Information/);
+    // Contains some expected text fragments
+    expect(container.innerHTML).toMatch(/Profile/);
+    expect(container.innerHTML).toMatch(/Device/);
         expect(container.innerHTML).toMatch(/Connected Sensors/);
     });
 
@@ -89,7 +89,7 @@ describe("createUserDeviceInfoBox", () => {
         window.globalData = { userProfileMesgs: [{}], deviceInfoMesgs: [] };
         createUserDeviceInfoBox(container);
 
-        expect(container.innerHTML).toMatch(/No device information available/);
+    expect(container.innerHTML).toMatch(/No profile or device metadata detected in this FIT file/);
     });
 
     it("renders most user profile fields when provided", () => {
@@ -137,34 +137,34 @@ describe("createUserDeviceInfoBox", () => {
 
         // Spot-check a variety of labels produced by optional fields
         const html = container.innerHTML;
-        expect(html).toMatch(/Device or Name:/);
-        expect(html).toMatch(/Gender:/);
-        expect(html).toMatch(/Age:/);
-        expect(html).toMatch(/Height:/);
-        expect(html).toMatch(/Weight:/);
-        expect(html).toMatch(/Language:/);
-        expect(html).toMatch(/Elevation Setting:/);
-        expect(html).toMatch(/Weight Setting:/);
-        expect(html).toMatch(/Resting HR:/);
-        expect(html).toMatch(/Max HR:/);
-        expect(html).toMatch(/Max Running HR:/);
-        expect(html).toMatch(/Max Biking HR:/);
-        expect(html).toMatch(/HR Setting:/);
-        expect(html).toMatch(/Speed Setting:/);
-        expect(html).toMatch(/Distance Setting:/);
-        expect(html).toMatch(/Power Setting:/);
-        expect(html).toMatch(/Activity Class:/);
-        expect(html).toMatch(/Position Setting:/);
-        expect(html).toMatch(/Temperature Setting:/);
-        expect(html).toMatch(/Local ID:/);
-        expect(html).toMatch(/Global ID:/);
-        expect(html).toMatch(/Wake Time:/);
-        expect(html).toMatch(/Sleep Time:/);
-        expect(html).toMatch(/Height Setting:/);
-        expect(html).toMatch(/Running Step Length:/);
-        expect(html).toMatch(/Walking Step Length:/);
-        expect(html).toMatch(/Depth Setting:/);
-        expect(html).toMatch(/Dive Count:/);
+    expect(html).toMatch(/Device or Name/);
+    expect(html).toMatch(/Gender/);
+    expect(html).toMatch(/Age/);
+    expect(html).toMatch(/Height/);
+    expect(html).toMatch(/Weight/);
+    expect(html).toMatch(/Language/);
+    expect(html).toMatch(/Elevation Setting/);
+    expect(html).toMatch(/Weight Setting/);
+    expect(html).toMatch(/Resting HR/);
+    expect(html).toMatch(/Max HR/);
+    expect(html).toMatch(/Max Running HR/);
+    expect(html).toMatch(/Max Biking HR/);
+    expect(html).toMatch(/HR Setting/);
+    expect(html).toMatch(/Speed Setting/);
+    expect(html).toMatch(/Distance Setting/);
+    expect(html).toMatch(/Power Setting/);
+    expect(html).toMatch(/Activity Class/);
+    expect(html).toMatch(/Position Setting/);
+    expect(html).toMatch(/Temperature Setting/);
+    expect(html).toMatch(/Local ID/);
+    expect(html).toMatch(/Global ID/);
+    expect(html).toMatch(/Wake Time/);
+    expect(html).toMatch(/Sleep Time/);
+    expect(html).toMatch(/Height Setting/);
+    expect(html).toMatch(/Running Step Length/);
+    expect(html).toMatch(/Walking Step Length/);
+    expect(html).toMatch(/Depth Setting/);
+    expect(html).toMatch(/Dive Count/);
     });
 
     it("selects first device as primary when no creator entry exists and renders serial suffix", () => {
@@ -189,8 +189,9 @@ describe("createUserDeviceInfoBox", () => {
 
         const html = container.innerHTML;
         expect(html).toMatch(/Primary Device/);
-        // Serial should show only the last 6 characters; in markup it's within the same div after the strong label
-        expect(html).toMatch(/<strong[^>]*>Serial:<\/strong>\s*123456/);
+    // Serial should be truncated with ellipsis for long values
+    expect(html).toMatch(/Serial Number/);
+    expect(html).toMatch(/SN-XYZ-1234…/);
         // Connected Sensors section should be present and include a pill for the second sensor too
         expect(html).toMatch(/Connected Sensors/);
     });
@@ -217,7 +218,7 @@ describe("createUserDeviceInfoBox", () => {
         expect(html).toMatch(/(Garmin Foo|Garmin|Edge|Hrm)/);
     });
 
-    it("applies hover effects and logs theme on creation", () => {
+    it("exposes theme metadata without inline overrides and logs theme on creation", () => {
         const container = makeContainer();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         // @ts-ignore
@@ -230,18 +231,12 @@ describe("createUserDeviceInfoBox", () => {
 
         const infoBox = container.querySelector<HTMLDivElement>(".user-device-info-box");
         expect(infoBox).toBeTruthy();
+        expect(infoBox?.style.length).toBe(0);
+        expect(infoBox?.dataset.themeName).toBe("test-theme");
 
-        // Simulate hover events on the infoBox to exercise event listeners
-        infoBox!.dispatchEvent(new Event("mouseenter"));
-        expect(infoBox!.style.transform).toContain("translateY(-4px)");
-        infoBox!.dispatchEvent(new Event("mouseleave"));
-        // After leave, transform should reset to baseline
-        expect(infoBox!.style.transform).toContain("translateY(0)");
-
-        // Ensure theme name is logged (accept any theme name)
         expect(logSpy).toHaveBeenCalledWith(
-            "[ChartJS] User and device info box created with theme:",
-            expect.any(String)
+            "[ChartJS] User and device info box rendered with theme:",
+            "test-theme"
         );
 
         logSpy.mockRestore();

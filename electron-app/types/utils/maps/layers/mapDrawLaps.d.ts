@@ -21,7 +21,7 @@
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
  */
-export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatTooltipData, getLapNumForIdx, map, markerClusterGroup, overlayIdx, startIcon, }: {
+export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatTooltipData, getLapNumForIdx, map, markerClusterGroup, overlayIdx, markerSummary, startIcon, }: {
     endIcon: any;
     fileName: any;
     fitData: any;
@@ -30,6 +30,7 @@ export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatToolti
     map: any;
     markerClusterGroup: any;
     overlayIdx: any;
+    markerSummary: any;
     startIcon: any;
 }): any;
 /**

@@ -45,11 +45,11 @@ const FORMATTING_CONSTANTS = {
 const FIELD_ALIASES = {
     altitude: ["altitude", "altitudeMeters", "altitude_m", "enhancedAltitude", "enhanced_altitude"],
     cadence: ["cadence", "cadence_rpm"],
-    distance: ["distance", "total_distance"],
-    heartRate: ["heartRate", "heart_rate"],
+    distance: ["distance", "total_distance", "cum_distance"],
+    heartRate: ["heartRate", "heart_rate", "hr"],
     power: ["power", "power_watts"],
-    speed: ["speed", "enhancedSpeed", "enhanced_speed"],
-    timestamp: ["timestamp", "time_stamp", "time", "date_time"],
+    speed: ["speed", "enhancedSpeed", "enhanced_speed", "speed_mps"],
+    timestamp: ["timestamp", "time_stamp", "time", "date_time", "timestamp_ms"],
 };
 
 /**
@@ -86,23 +86,25 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
 
         const fallbackRow = Array.isArray(recordMesgs) ? recordMesgs[idx] : undefined;
         const resolvedRow = mergeRecordSources(row, fallbackRow);
+        const normalizedRow = createNormalizedLookup(resolvedRow);
 
-        const altitudeValue = pickFieldValue(resolvedRow, FIELD_ALIASES.altitude);
-        const cadenceValue = pickFieldValue(resolvedRow, FIELD_ALIASES.cadence);
-        const distanceValue = pickFieldValue(resolvedRow, FIELD_ALIASES.distance);
-        const heartRateValue = pickFieldValue(resolvedRow, FIELD_ALIASES.heartRate);
-        const powerValue = pickFieldValue(resolvedRow, FIELD_ALIASES.power);
-        const speedValue = pickFieldValue(resolvedRow, FIELD_ALIASES.speed);
-        const timestampValue = pickFieldValue(resolvedRow, FIELD_ALIASES.timestamp);
+        const altitudeValue = pickFieldValue(resolvedRow, FIELD_ALIASES.altitude, normalizedRow);
+        const cadenceValue = pickFieldValue(resolvedRow, FIELD_ALIASES.cadence, normalizedRow);
+        const distanceValue = pickFieldValue(resolvedRow, FIELD_ALIASES.distance, normalizedRow);
+        const heartRateValue = pickFieldValue(resolvedRow, FIELD_ALIASES.heartRate, normalizedRow);
+        const powerValue = pickFieldValue(resolvedRow, FIELD_ALIASES.power, normalizedRow);
+        const speedValue = pickFieldValue(resolvedRow, FIELD_ALIASES.speed, normalizedRow);
+        const timestampValue = pickFieldValue(resolvedRow, FIELD_ALIASES.timestamp, normalizedRow);
 
         const altitude = formatAltitude(altitudeValue ?? null);
         const cadence = formatCadence(cadenceValue ?? null);
-        const dateStr = timestampValue ? new Date(timestampValue).toLocaleString() : "";
+        const timestampDate = parseTimestamp(timestampValue);
+        const dateStr = timestampDate ? timestampDate.toLocaleString() : "";
         const distance = formatDistance(distanceValue ?? null);
         const heartRate = formatHeartRate(heartRateValue ?? null);
         const power = formatPower(powerValue ?? null);
         const speed = formatSpeed(speedValue ?? null);
-        const rideTime = formatRideTime(timestampValue || "", recordMesgs);
+        const rideTime = formatRideTime(timestampValue ?? null, recordMesgs);
 
         // Build the tooltip HTML
         const tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
@@ -143,6 +145,52 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         logWithContext(`Error formatting tooltip data: ${errorMsg}`, "error");
         return `Error loading data (Index: ${idx || "unknown"})`;
     }
+}
+
+/**
+ * Build a lookup map of normalized keys for the provided source object.
+ * @param {Record<string, any>} source
+ * @returns {Map<string, any>}
+ */
+function createNormalizedLookup(source) {
+    const map = new Map();
+    if (!source || typeof source !== "object") {
+        return map;
+    }
+    for (const [key, value] of Object.entries(source)) {
+        if (value == null) {
+            continue;
+        }
+        const normalized = normalizeFieldKey(key);
+        if (!normalized || map.has(normalized)) {
+            continue;
+        }
+        map.set(normalized, value);
+    }
+    return map;
+}
+
+/**
+ * Locate the earliest valid timestamp across record messages.
+ * @param {RecordMessage[]=} recordMesgs
+ * @returns {Date|null}
+ */
+function findFirstTimestamp(recordMesgs) {
+    if (!Array.isArray(recordMesgs)) {
+        return null;
+    }
+    for (const entry of recordMesgs) {
+        if (!entry || typeof entry !== "object") {
+            continue;
+        }
+        const normalized = createNormalizedLookup(entry);
+        const candidate = pickFieldValue(entry, FIELD_ALIASES.timestamp, normalized);
+        const parsed = parseTimestamp(candidate);
+        if (parsed) {
+            return parsed;
+        }
+    }
+    return null;
 }
 
 /**
@@ -240,20 +288,25 @@ function formatPower(power) {
  * @private
  */
 function formatRideTime(timestamp, recordMesgs) {
-    if (!timestamp || !recordMesgs || recordMesgs.length === 0) {
+    if (!recordMesgs || recordMesgs.length === 0) {
         return "";
     }
 
     try {
-        const first = recordMesgs.find((r) => r.timestamp != null);
-        if (!first || !first.timestamp) {
+        const current = parseTimestamp(timestamp);
+        if (!current) {
             return "";
         }
 
-        const currTime = new Date(timestamp).getTime(),
-            firstTime = new Date(first.timestamp).getTime();
+        const first = findFirstTimestamp(recordMesgs);
+        if (!first) {
+            return "";
+        }
 
-        if (isNaN(firstTime) || isNaN(currTime)) {
+        const currTime = current.getTime();
+        const firstTime = first.getTime();
+
+        if (!Number.isFinite(firstTime) || !Number.isFinite(currTime)) {
             logWithContext("Invalid timestamp in ride time calculation", "warn");
             return "";
         }
@@ -303,10 +356,9 @@ function formatSpeed(speed) {
 }
 
 /**
- * Logs messages with context for tooltip operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
+ * Logs messages with context for tooltip operations.
+ * @param {string} message
+ * @param {"info"|"warn"|"error"} [level="info"]
  */
 function logWithContext(message, level = "info") {
     try {
@@ -327,4 +379,83 @@ function logWithContext(message, level = "info") {
     } catch {
         // Silently fail if logging encounters an error
     }
+}
+
+/**
+ * Merge primary and fallback record data, preferring properties from the primary row.
+ * @param {Record<string, any>} primary
+ * @param {Record<string, any>|undefined} fallback
+ * @returns {Record<string, any>}
+ */
+function mergeRecordSources(primary, fallback) {
+    if (fallback && typeof fallback === "object") {
+        return { ...fallback, ...primary };
+    }
+    return { ...primary };
+}
+
+/**
+ * Normalize a field key for relaxed alias matching.
+ * @param {string} key
+ * @returns {string}
+ */
+function normalizeFieldKey(key) {
+    return typeof key === "string" ? key.replaceAll(/[^a-z0-9]+/giu, "").toLowerCase() : "";
+}
+
+/**
+ * Attempt to coerce various timestamp representations into a Date instance.
+ * @param {unknown} value
+ * @returns {Date|null}
+ */
+function parseTimestamp(value) {
+    if (!value) {
+        return null;
+    }
+    if (value instanceof Date) {
+        return Number.isFinite(value.getTime()) ? value : null;
+    }
+    if (typeof value === "number") {
+        const millis = value > 1_000_000_000_000 ? value : value * 1000;
+        const date = new Date(millis);
+        return Number.isFinite(date.getTime()) ? date : null;
+    }
+    if (typeof value === "string") {
+        const parsed = Date.parse(value);
+        if (!Number.isNaN(parsed)) {
+            return new Date(parsed);
+        }
+    }
+    return null;
+}
+
+/**
+ * Retrieve the first available value for the provided aliases.
+ * @param {Record<string, any>} source
+ * @param {string[]} aliases
+ * @param {Map<string, any>} [normalizedSource]
+ * @returns {*}
+ */
+function pickFieldValue(source, aliases, normalizedSource) {
+    if (!source || typeof source !== "object") {
+        return null;
+    }
+    for (const key of aliases) {
+        if (Object.hasOwn(source, key) && source[key] != null) {
+            return source[key];
+        }
+    }
+
+    const lookup = normalizedSource || createNormalizedLookup(source);
+    for (const alias of aliases) {
+        const normalizedAlias = normalizeFieldKey(alias);
+        if (!normalizedAlias || !lookup.has(normalizedAlias)) {
+            continue;
+        }
+        const value = lookup.get(normalizedAlias);
+        if (value != null) {
+            return value;
+        }
+    }
+    return null;
 }

@@ -645,7 +645,9 @@ function ensureMapMarkerSummaryElement(container, anchor) {
     const summary = document.createElement("div");
     summary.id = "map-marker-summary";
     summary.className = "map-marker-summary";
-    summary.textContent = "Data Points: --";
+    summary.textContent = "Data Points: 0 / 0";
+    summary.dataset.rendered = "0";
+    summary.dataset.total = "0";
     if (anchor && anchor.parentElement === container) {
         container.insertBefore(summary, anchor.nextSibling);
     } else {
