@@ -120,6 +120,19 @@ function createSettingsModalContent(currentTheme, currentAccent) {
 							</select>
 						</div>
 
+						<!-- Max Recent Files -->
+						<div class="setting-item">
+							<label for="max-recent-files" class="setting-label">Maximum Recent Files</label>
+							<select id="max-recent-files" class="setting-select">
+								<option value="5" ${(localStorage.getItem('maxRecentFiles') || '10') === '5' ? 'selected' : ''}>5 files</option>
+								<option value="10" ${(localStorage.getItem('maxRecentFiles') || '10') === '10' ? 'selected' : ''}>10 files</option>
+								<option value="15" ${(localStorage.getItem('maxRecentFiles') || '10') === '15' ? 'selected' : ''}>15 files</option>
+								<option value="20" ${(localStorage.getItem('maxRecentFiles') || '10') === '20' ? 'selected' : ''}>20 files</option>
+								<option value="25" ${(localStorage.getItem('maxRecentFiles') || '10') === '25' ? 'selected' : ''}>25 files</option>
+							</select>
+							<p style="font-size: 0.85rem; color: var(--color-fg-muted); margin-top: 4px;">Number of recent files to show in right-click menu</p>
+						</div>
+
 						<!-- Accent Color Picker -->
 						<div class="setting-item">
 							<label for="accent-color-picker" class="setting-label">Accent Color</label>
@@ -444,6 +457,15 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 					setAccentColor(currentColor, effectiveTheme);
 				}
 			}
+		});
+	}
+
+	// Max Recent Files selector
+	const maxRecentFilesSelect = modal.querySelector("#max-recent-files");
+	if (maxRecentFilesSelect) {
+		addEventListenerWithCleanup(maxRecentFilesSelect, "change", (/** @type {Event} */ e) => {
+			const { value } = /** @type {HTMLSelectElement} */ (e.target);
+			localStorage.setItem('maxRecentFiles', value);
 		});
 	}
 

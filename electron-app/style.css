@@ -562,11 +562,15 @@ h2 {
    ===================================================== */
 /* Global alignment fix for all iconify-icon elements */
 iconify-icon {
-    vertical-align: middle;
+    vertical-align: sub;
     display: inline-block;
     align-content: center;
     justify-content: center;
     align-items: center;
+}
+
+div.table-header-title iconify-icon {
+    padding-inline-end: 20px;
 }
 
 /* Fix Open FIT file button icon */
@@ -1270,7 +1274,7 @@ body.theme-light .tab-button.active::after {
     margin: 0;
     flex-wrap: wrap;
     max-height: 180px;
-    overflow: hidden;
+    overflow: visible;
     transform: translateY(0);
     transition:
         max-height 0.6s cubic-bezier(0.23, 1, 0.32, 1),
@@ -1278,7 +1282,7 @@ body.theme-light .tab-button.active::after {
         transform 0.5s ease,
         margin 0.5s ease;
     position: relative;
-    z-index: 5;
+    z-index: 20;
 }
 
 .app-pill {
@@ -1339,6 +1343,7 @@ body.theme-light .tab-button.active::after {
     box-shadow: 0 18px 46px rgb(var(--color-accent-rgb) / 26%);
     border-color: rgb(var(--color-accent-rgb) / 45%);
     background: var(--c_rgb242848_92p);
+    z-index: 10;
 }
 
 .app-pill:hover::after,
@@ -2168,12 +2173,7 @@ body[data-has-fit-file="true"] .tab-bar {
     content: "";
     position: absolute;
     inset: -40% -10%;
-    background: linear-gradient(
-        120deg,
-        var(--color-btn-bg-solid) 0%,
-        #101010 45%,
-        var(--color-btn-bg-solid) 100%
-    );
+    background: linear-gradient(120deg, var(--color-btn-bg-solid) 0%, #101010 45%, var(--color-btn-bg-solid) 100%);
     opacity: 0;
     transform: translateX(-30%);
     transition:
@@ -2246,8 +2246,16 @@ body[data-has-fit-file="true"] .tab-bar {
     position: relative;
     isolation: isolate;
     background:
-        radial-gradient(120% 120% at 85% 15%, rgb(var(--color-accent-rgb) / 14%) 0%, rgb(var(--color-accent-rgb) / 0%) 70%),
-        radial-gradient(140% 140% at 12% 88%, rgb(var(--color-secondary-accent-rgb) / 12%) 0%, rgb(var(--color-secondary-accent-rgb) / 0%) 68%),
+        radial-gradient(
+            120% 120% at 85% 15%,
+            rgb(var(--color-accent-rgb) / 14%) 0%,
+            rgb(var(--color-accent-rgb) / 0%) 70%
+        ),
+        radial-gradient(
+            140% 140% at 12% 88%,
+            rgb(var(--color-secondary-accent-rgb) / 12%) 0%,
+            rgb(var(--color-secondary-accent-rgb) / 0%) 68%
+        ),
         var(--color-bg);
 }
 
@@ -2402,12 +2410,7 @@ body[data-has-fit-file="false"] .tab-card::after {
 #content-altfit {
     border-radius: 20px;
     padding: 15px;
-    background: linear-gradient(
-        120deg,
-        var(--color-btn-bg-solid) 0%,
-        #101010 45%,
-        var(--color-btn-bg-solid) 100%
-    );
+    background: linear-gradient(120deg, var(--color-btn-bg-solid) 0%, #101010 45%, var(--color-btn-bg-solid) 100%);
 }
 
 #content-summary {
@@ -2945,7 +2948,9 @@ body[data-has-fit-file="true"] .header-brand {
     position: relative;
     flex: 0 1 auto;
     max-width: 100%;
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
 }
 
 #activeFileName:hover {
@@ -3431,7 +3436,9 @@ body.map-fullscreen-active {
     justify-content: center;
     flex-wrap: wrap;
     backdrop-filter: var(--backdrop-blur);
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
 }
 
 #map-controls.map-controls-overlay .map-action-btn {
@@ -4592,14 +4599,9 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 #openFileBtn {
     margin-bottom: 0 !important;
-        position: relative;
+    position: relative;
     overflow: hidden;
-    background: linear-gradient(
-        120deg,
-        var(--color-btn-bg-solid) 0%,
-        #101010 45%,
-        var(--color-btn-bg-solid) 100%
-    );
+    background: linear-gradient(120deg, var(--color-btn-bg-solid) 0%, #101010 45%, var(--color-btn-bg-solid) 100%);
     border-radius: 20px;
     padding-inline-start: 20px;
     padding-inline-end: 20px;
@@ -5131,6 +5133,7 @@ footer {
     font-size: 13px;
     color: var(--color-credits);
     position: relative;
+    overflow: hidden;
 }
 
 .credits-section::before {
@@ -5151,6 +5154,30 @@ footer {
     background: none;
     color: inherit;
     font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+    position: relative;
+}
+
+.credits-section footer::-webkit-scrollbar {
+    display: none;
+}
+
+/* Auto-scroll animation for credits footer */
+@keyframes credits-scroll {
+    0%,
+    15% {
+        transform: translateX(0);
+    }
+    85%,
+    100% {
+        transform: translateX(calc(-1 * var(--credits-scroll-distance, 0px)));
+    }
+}
+
+.credits-section footer.scrolling {
+    animation: credits-scroll 12s linear infinite;
 }
 
 .credits-section a {
@@ -5344,7 +5371,14 @@ body.theme-light .multi-lap-toggle:hover {
 }
 
 body.theme-dark .map-action-btn {
-    background: linear-gradient(120deg, var(--color-btn-bg-solid) 0%, #101010 10%, #101010 45%, #101010 90%, var(--color-btn-bg-solid) 100%) !important;
+    background: linear-gradient(
+        120deg,
+        var(--color-btn-bg-solid) 0%,
+        #101010 10%,
+        #101010 45%,
+        #101010 90%,
+        var(--color-btn-bg-solid) 100%
+    ) !important;
     color: var(--c_hexe0e0e0);
     border: 1px solid var(--c_hex33374d);
 }
@@ -6100,4 +6134,30 @@ a:focus-visible {
 .map-theme-toggle:disabled .icon svg {
     stroke: currentcolor;
     opacity: 0.5;
+}
+
+/* =====================================================
+   Recent Files Menu
+   ===================================================== */
+#recent-files-menu {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-accent) var(--color-glass-border);
+}
+
+#recent-files-menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+#recent-files-menu::-webkit-scrollbar-track {
+    background: var(--color-glass-border);
+    border-radius: 4px;
+}
+
+#recent-files-menu::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
+    border-radius: 4px;
+}
+
+#recent-files-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-hover);
 }

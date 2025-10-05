@@ -79,7 +79,7 @@ function createSwitcherElement() {
 
 	switcher.innerHTML = `
 		<button class="switcher-toggle" id="color-switcher-toggle" data-tooltip="Quick Colors" aria-label="Open color switcher">
-			<iconify-icon icon="flat-color-icons:services" width="24" height="24" style="vertical-align: middle;"></iconify-icon>
+			<iconify-icon icon="unjs:theme-colors" width="24" height="24" style="vertical-align: middle;"></iconify-icon>
 			<span class="switcher-label">Colors</span>
 		</button>
 		<div class="switcher-dropdown" id="color-switcher-dropdown">

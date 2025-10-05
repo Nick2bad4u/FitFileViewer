@@ -1,6 +1,8 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createIconElement } from "../../ui/icons/iconMappings.js";
 
+const wrapperCleanupRegistry = new WeakMap();
+
 /**
  * Adds fancy hover effects to chart canvases to match the info box styling
  * @param {HTMLElement} chartContainer - Container with chart canvases
@@ -35,6 +37,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
         const wrapper = document.createElement("div");
         wrapper.className = "chart-wrapper";
         const colors = /** @type {any} */ (themeConfig.colors || {});
+        const cleanupFns = [];
+        wrapperCleanupRegistry.set(wrapper, cleanupFns);
         wrapper.style.cssText = `
             position: relative;
             margin-bottom: 32px;
@@ -53,6 +57,115 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             canvas.parentNode.insertBefore(wrapper, canvas);
         }
         wrapper.append(canvas);
+
+        const toolbar = document.createElement("div");
+        toolbar.className = "chart-action-toolbar";
+        toolbar.style.background = colors.surfaceSecondary || colors.surface || "#2d3240";
+        toolbar.style.borderColor = colors.border || "#3b3f4a";
+        toolbar.style.color = colors.text || colors.textPrimary || "#f8fafc";
+        wrapper.append(toolbar);
+
+        const legendBtn = createToolbarButton("mdi:format-list-bulleted", "Toggle legend visibility", colors);
+        const legendIcon = legendBtn.querySelector("iconify-icon");
+        legendBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const chart = getChartInstance(/** @type {HTMLCanvasElement} */(canvas));
+            if (!chart?.options?.plugins?.legend) {
+                return;
+            }
+            const legendOptions = chart.options.plugins.legend;
+            legendOptions.display = !legendOptions.display;
+            legendBtn.classList.toggle("is-active", Boolean(legendOptions.display));
+            chart.update();
+        });
+        const syncLegendState = () => {
+            const chart = getChartInstance(/** @type {HTMLCanvasElement} */(canvas));
+            if (!chart?.options?.plugins?.legend) {
+                return;
+            }
+            const legendOptions = /** @type {any} */ (chart.options.plugins.legend);
+            if (!legendOptions.__ffvToolbarHooked) {
+                const originalOnClick = legendOptions.onClick;
+                legendOptions.onClick = function (...args) {
+                    if (typeof originalOnClick === "function") {
+                        originalOnClick.apply(this, args);
+                    } else {
+                        const [, legendItem] = args;
+                        if (legendItem && typeof legendItem.datasetIndex === "number") {
+                            chart.toggleDatasetVisibility(legendItem.datasetIndex);
+                            chart.update();
+                        }
+                    }
+                    requestAnimationFrame(syncLegendState);
+                };
+                legendOptions.__ffvToolbarHooked = true;
+            }
+            const legendVisible = legendOptions.display !== false;
+            legendBtn.classList.toggle("is-active", legendVisible);
+            if (legendIcon) {
+                const fallbackColor = colors?.textSecondary || colors?.text || "";
+                const activeColor = colors?.accent || fallbackColor;
+                legendIcon.style.color = legendVisible ? activeColor : fallbackColor;
+            }
+        };
+        requestAnimationFrame(syncLegendState);
+
+        const resetZoomBtn = createToolbarButton("mdi:magnify-remove-outline", "Reset zoom", colors);
+        resetZoomBtn.title = "Reset zoom (Shift + drag to zoom)";
+        resetZoomBtn.setAttribute("aria-label", resetZoomBtn.title);
+        resetZoomBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const chart = getChartInstance(/** @type {HTMLCanvasElement} */(canvas));
+            if (chart?.resetZoom) {
+                chart.resetZoom();
+            }
+        });
+
+        const fullscreenBtn = createToolbarButton("mdi:fullscreen", "View chart fullscreen", colors);
+        const fullscreenIcon = fullscreenBtn.querySelector("iconify-icon");
+        const updateFullscreenState = () => {
+            const isActive = document.fullscreenElement === wrapper;
+            fullscreenBtn.classList.toggle("is-active", isActive);
+            if (fullscreenIcon) {
+                fullscreenIcon.setAttribute("icon", isActive ? "mdi:fullscreen-exit" : "mdi:fullscreen");
+                const fallbackColor = colors?.textSecondary || colors?.text || "";
+                const activeColor = colors?.accent || fallbackColor;
+                fullscreenIcon.style.color = isActive ? activeColor : fallbackColor;
+            }
+            fullscreenBtn.title = isActive ? "Exit fullscreen" : "View chart fullscreen";
+            fullscreenBtn.setAttribute("aria-label", fullscreenBtn.title);
+        };
+
+        fullscreenBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (document.fullscreenElement === wrapper) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {
+                        /* ignore */
+                    });
+                }
+                return;
+            }
+            const target = /** @type {any} */ (wrapper);
+            const requestFullscreen =
+                target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+            if (typeof requestFullscreen === "function") {
+                Promise.resolve()
+                    .then(() => requestFullscreen.call(target))
+                    .catch(() => {
+                        /* ignore */
+                    });
+            }
+        });
+
+        const fullscreenListener = () => updateFullscreenState();
+        document.addEventListener("fullscreenchange", fullscreenListener);
+        cleanupFns.push(() => document.removeEventListener("fullscreenchange", fullscreenListener));
+        updateFullscreenState();
+
+        toolbar.append(legendBtn);
+        toolbar.append(resetZoomBtn);
+        toolbar.append(fullscreenBtn);
 
         if (canvas.style) {
             canvas.style.border = "none";
@@ -294,6 +407,53 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
                 width: 100%;
             }
 
+            .chart-wrapper .chart-action-toolbar {
+                position: absolute;
+                top: 20px;
+                right: 24px;
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                padding: 6px 10px;
+                border-radius: 999px;
+                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+                backdrop-filter: blur(8px);
+                z-index: 12;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .chart-action-btn {
+                border: 0;
+                background: transparent;
+                color: inherit;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                border-radius: 999px;
+                cursor: pointer;
+                transition: background-color 0.2s ease, transform 0.2s ease;
+            }
+
+            .chart-action-btn:hover {
+                background-color: rgba(255, 255, 255, 0.12);
+                transform: translateY(-1px);
+            }
+
+            .chart-action-btn:active {
+                transform: translateY(0);
+            }
+
+            .chart-action-btn.is-active {
+                background-color: rgba(59, 130, 246, 0.18);
+                box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.45) inset;
+            }
+
+            .chart-action-btn__icon {
+                pointer-events: none;
+            }
+
             .chart-wrapper:hover .chart-canvas {
                 filter: brightness(1.05) contrast(1.02);
             }
@@ -354,6 +514,17 @@ export function removeChartHoverEffects(chartContainer) {
         colors = /** @type {any} */ (themeConfig && themeConfig.colors ? themeConfig.colors : {});
     for (const wrapper of chartWrappers) {
         const canvas = wrapper.querySelector(".chart-canvas");
+        const cleanupFns = wrapperCleanupRegistry.get(wrapper);
+        if (cleanupFns && Array.isArray(cleanupFns)) {
+            for (const fn of cleanupFns) {
+                try {
+                    fn();
+                } catch (error) {
+                    console.warn("[ChartHoverEffects] cleanup error", error);
+                }
+            }
+            wrapperCleanupRegistry.delete(wrapper);
+        }
         if (canvas instanceof HTMLElement && wrapper.parentNode instanceof HTMLElement) {
             // Move canvas back to original parent and remove wrapper
             wrapper.parentNode.insertBefore(canvas, wrapper);
@@ -380,4 +551,44 @@ export function removeChartHoverEffects(chartContainer) {
     }
 
     console.log(`[ChartHoverEffects] Removed hover effects from ${chartWrappers.length} chart(s)`);
+}
+
+/**
+ * @param {string} icon
+ * @param {string} title
+ * @param {any} colors
+ * @returns {HTMLButtonElement}
+ */
+function createToolbarButton(icon, title, colors) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "chart-action-btn";
+    button.title = title;
+    button.setAttribute("aria-label", title);
+
+    const iconEl = document.createElement("iconify-icon");
+    iconEl.setAttribute("icon", icon);
+    iconEl.setAttribute("width", "18");
+    iconEl.setAttribute("height", "18");
+    iconEl.setAttribute("aria-hidden", "true");
+    iconEl.classList.add("chart-action-btn__icon");
+    const baseColor = colors?.text || colors?.textPrimary || "#f8fafc";
+    iconEl.style.color = baseColor;
+
+    button.append(iconEl);
+    return button;
+}
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ */
+function getChartInstance(canvas) {
+    const chartGlobal = /** @type {any} */ (globalThis).Chart;
+    if (!chartGlobal) {
+        return null;
+    }
+    if (typeof chartGlobal.getChart === "function") {
+        return chartGlobal.getChart(canvas) || null;
+    }
+    return /** @type {any} */ (canvas)?.chart || null;
 }

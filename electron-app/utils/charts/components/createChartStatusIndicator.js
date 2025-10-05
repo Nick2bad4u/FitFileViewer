@@ -5,7 +5,7 @@ const ICONS = {
     NONE_VISIBLE: '<iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon>',
     SOME_HIDDEN: '<iconify-icon icon="flat-color-icons:high-priority" width="18" height="18"></iconify-icon>',
     METRICS: '<iconify-icon icon="flat-color-icons:grid" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
-    ANALYSIS: '<iconify-icon icon="flat-color-icons:line-chart" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
+    ANALYSIS: '<iconify-icon icon="fluent-color:chart-multiple-32" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
     ZONES: '<iconify-icon icon="flat-color-icons:bullish" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
     GPS: '<iconify-icon icon="flat-color-icons:globe" width="14" height="14" style="vertical-align: middle;"></iconify-icon>',
 };

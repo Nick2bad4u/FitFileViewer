@@ -625,7 +625,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
         const chartItem = document.createElement("button"),
             [dataset] = chart.data.datasets,
             fieldName = dataset?.label || `Chart ${index + 1}`;
-        chartItem.innerHTML = '<iconify-icon icon="flat-color-icons:line-chart" width="18" height="18"></iconify-icon> ' + fieldName;
+        chartItem.innerHTML = '<iconify-icon icon="fluent-color:chart-multiple-32" width="18" height="18"></iconify-icon> ' + fieldName;
         chartItem.style.cssText = `
 			display: block;
 			width: 100%;
@@ -824,6 +824,9 @@ function createControlGroup(option) {
 		font-size: 14px;
 	`;
 
+    // Add label first for consistent order
+    group.append(label);
+
     if (option.description) {
         const description = document.createElement("div");
         description.textContent = option.description;
@@ -846,7 +849,6 @@ function createControlGroup(option) {
         control = createSelectControl(option);
     }
 
-    group.append(label);
     group.append(control);
     return group;
 }

@@ -62,9 +62,18 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         return false;
     }
 
+    // Set the flag immediately to prevent race conditions
+    if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
+        isOpeningFileRef.value = true;
+    }
+
     // Validate required parameters
     if (typeof showNotification !== "function") {
         logWithContext("showNotification function is required", "error");
+        // Reset flag before returning
+        if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
+            isOpeningFileRef.value = false;
+        }
         return false;
     }
 
@@ -73,7 +82,7 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
     let arrayBuffer, filePath, result;
 
     try {
-        // Set opening state
+        // Set opening state (this will set isOpeningFileRef.value again, but that's okay for consistency)
         updateUIState(uiElements, true, true);
 
         // Validate Electron API availability
@@ -254,7 +263,7 @@ function validateElectronAPI() {
     }
 
     const missingMethods = Object.values(ELECTRON_API_METHODS).filter(
-        /** @param {string} method */ (method) =>
+        /** @param {string} method */(method) =>
             typeof (/** @type {*} */ (globalThis.electronAPI)[method]) !== "function"
     );
 

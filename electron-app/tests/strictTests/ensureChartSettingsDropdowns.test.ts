@@ -377,7 +377,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const overlay = document.querySelector('div[style*="position: fixed"]');
         expect(overlay).toBeTruthy();
         const chartButtons = Array.from(overlay!.querySelectorAll("button")).filter((b) =>
-            Boolean(b.querySelector("iconify-icon[icon='flat-color-icons:line-chart']"))
+            Boolean(b.querySelector("iconify-icon[icon='fluent-color:chart-multiple-32']"))
         );
         expect(chartButtons.length).toBeGreaterThanOrEqual(2);
 

@@ -22,6 +22,9 @@ const FILE_SELECTOR_CONFIG = {
 // Track whether a given input has already been handled by the change listener
 const PROCESSED_INPUTS = new WeakSet();
 
+// Prevent multiple native dialogs from stacking
+let overlaySelectionInProgress = false;
+
 /**
  * Opens a file selector dialog for choosing FIT files as overlays
  *
@@ -35,25 +38,47 @@ const PROCESSED_INPUTS = new WeakSet();
  * openFileSelector();
  */
 export async function openFileSelector() {
+    if (overlaySelectionInProgress) {
+        showNotification("Finish selecting overlay files before opening another dialog.", "info");
+        return;
+    }
+
+    overlaySelectionInProgress = true;
     const { electronAPI } = /** @type {any} */ (globalThis);
 
-    if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
+    try {
+        if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
+            try {
+                const selectedPaths = await electronAPI.openOverlayDialog();
+                if (!Array.isArray(selectedPaths) || selectedPaths.length === 0) {
+                    return;
+                }
+
+                const facadeFiles = selectedPaths
+                    .filter((filePath) => typeof filePath === "string" && filePath.trim().length > 0)
+                    .map((filePath) => createNativeFileFacade(filePath));
+
+                if (facadeFiles.length === 0) {
+                    return;
+                }
+
+                await loadOverlayFiles(facadeFiles);
+                return;
+            } catch (error) {
+                console.error(
+                    `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
+                    error
+                );
+                showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
+                LoadingOverlay.hide();
+                return;
+            }
+        }
+
         try {
-            const selectedPaths = await electronAPI.openOverlayDialog();
-            if (!Array.isArray(selectedPaths) || selectedPaths.length === 0) {
-                return;
-            }
-
-            const facadeFiles = selectedPaths
-                .filter((filePath) => typeof filePath === "string" && filePath.trim().length > 0)
-                .map((filePath) => createNativeFileFacade(filePath));
-
-            if (facadeFiles.length === 0) {
-                return;
-            }
-
-            await loadOverlayFiles(facadeFiles);
-            return;
+            const input = createFileInput();
+            const controller = setupFileInputHandler(input);
+            await triggerFileSelection(input, controller);
         } catch (error) {
             console.error(
                 `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
@@ -61,21 +86,9 @@ export async function openFileSelector() {
             );
             showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
             LoadingOverlay.hide();
-            return;
         }
-    }
-
-    try {
-        const input = createFileInput();
-        const controller = setupFileInputHandler(input);
-        await triggerFileSelection(input, controller);
-    } catch (error) {
-        console.error(
-            `${FILE_SELECTOR_CONFIG.LOG_PREFIX} ${FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_SELECTION_ERROR}`,
-            error
-        );
-        showNotification(FILE_SELECTOR_CONFIG.ERROR_MESSAGES.FILE_LOADING_FAILED, "error");
-        LoadingOverlay.hide();
+    } finally {
+        overlaySelectionInProgress = false;
     }
 }
 

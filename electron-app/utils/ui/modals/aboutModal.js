@@ -64,7 +64,7 @@ export function getAboutModalContent() {
 					<div class="feature-highlights">
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <iconify-icon icon="flat-color-icons:line-chart" width="24" height="24" aria-hidden="true"></iconify-icon>
+                                <iconify-icon icon="fluent-color:chart-multiple-32" width="24" height="24" aria-hidden="true"></iconify-icon>
                             </div>
                             <span>Data Analysis</span>
                         </div>
@@ -128,7 +128,7 @@ export function getAboutModalContent() {
                             <a href="https://github.com/chartjs/Chart.js" class="tech-badge-link" data-external-link>
                                 <span class="tech-badge">
                                     <span class="tech-icon">
-                                        <iconify-icon icon="flat-color-icons:line-chart" width="18" height="18" aria-hidden="true"></iconify-icon>
+                                        <iconify-icon icon="fluent-color:chart-multiple-32" width="18" height="18" aria-hidden="true"></iconify-icon>
                                     </span>
                                     <span>Chart.js</span>
                                 </span>
@@ -285,7 +285,7 @@ function createFeaturesContent() {
 			<ul class="features-list">
                 <li class="features-item">
                     <span class="features-icon" style="color: #4ade80;">
-                        <iconify-icon icon="flat-color-icons:line-chart" width="20" height="20" aria-hidden="true"></iconify-icon>
+                        <iconify-icon icon="fluent-color:chart-multiple-32" width="20" height="20" aria-hidden="true"></iconify-icon>
                     </span>
                     <div class="features-content-item">
 						<h4 class="features-item-title">Data Analysis</h4>
@@ -481,8 +481,8 @@ const devHelpers = {
     /**
      * Show modal with sample content for testing
      */ /**
-  * Reset all styles and recreate modal
-  */
+ * Reset all styles and recreate modal
+ */
     reset: () => {
         const existingModal = document.querySelector("#about-modal"),
             existingStyles = document.querySelector("#about-modal-styles");

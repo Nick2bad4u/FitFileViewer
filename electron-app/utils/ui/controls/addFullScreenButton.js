@@ -23,10 +23,10 @@ const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
 const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
 const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";
 const NATIVE_FULLSCREEN_EVENTS = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"];
-const FULLSCREEN_ENTER_ICON = "flat-color-icons:expand";
-const FULLSCREEN_EXIT_ICON = "flat-color-icons:collapse";
-const FULLSCREEN_ICON_SIZE = "28";
-const FULLSCREEN_ENTER_ICON_MARKUP = `<iconify-icon icon="${FULLSCREEN_ENTER_ICON}" width="${FULLSCREEN_ICON_SIZE}" height="${FULLSCREEN_ICON_SIZE}"></iconify-icon>`;
+const FULLSCREEN_ENTER_ICON = "mdi:fullscreen";
+const FULLSCREEN_EXIT_ICON = "mdi:fullscreen-exit";
+const FULLSCREEN_ICON_SIZE = "26";
+const FULLSCREEN_ENTER_ICON_MARKUP = `<iconify-icon icon="${FULLSCREEN_ENTER_ICON}" width="${FULLSCREEN_ICON_SIZE}" height="${FULLSCREEN_ICON_SIZE}" aria-hidden="true"></iconify-icon>`;
 
 const getScreenfullInstance = () => {
     const { screenfull } = /** @type {any} */ (globalThis);
@@ -285,6 +285,16 @@ function handleFullscreenStateChange() {
             if (contentBtn) {
                 updateButtonState(contentBtn, false);
             }
+
+            // Prevent automatic focus that might trigger tab re-renders
+            // Use a small delay to ensure the fullscreen exit is complete
+            setTimeout(() => {
+                // Ensure we don't accidentally trigger tab switches
+                if (activeContent && document.activeElement !== activeContent) {
+                    // Keep focus on the current content to prevent tab switching
+                    activeContent.focus();
+                }
+            }, 50);
         }
     } catch (error) {
         logWithContext(`Error handling fullscreen state change: ${/** @type {any} */ (error).message}`, "error");
@@ -468,6 +478,7 @@ function updateButtonState(button, isFullscreen) {
 
         iconElement.setAttribute("width", FULLSCREEN_ICON_SIZE);
         iconElement.setAttribute("height", FULLSCREEN_ICON_SIZE);
+        iconElement.setAttribute("aria-hidden", "true");
     } catch (error) {
         logWithContext(`Failed to update button state: ${/** @type {any} */ (error).message}`, "error");
     }

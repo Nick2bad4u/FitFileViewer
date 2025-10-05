@@ -253,7 +253,7 @@ export function createUserDeviceInfoBox(container) {
 
         // Process device info to get primary device and sensors
         const primaryDevice =
-                deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
+            deviceInfos.find((d) => d.sourceType === "local" && d.deviceIndex === "creator") || deviceInfos[0],
             sensors = deviceInfos.filter(
                 (d) => d.sourceType === "antplus" || (d.sourceType === "local" && d.deviceIndex !== "creator")
             );
@@ -286,57 +286,7 @@ export function createUserDeviceInfoBox(container) {
                         <span style="background: ${colors.accent}; color: ${colors.textPrimary}; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">🔗</span>
                         Connected Sensors
                     </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-            `;
-
-            for (const sensor of sensors) {
-                if (sensor.manufacturer || sensor.garminProduct) {
-                    deviceHtml += `
-                        <div style="
-                            background: linear-gradient(135deg, ${colors.primary}, ${colors.accent});
-                            color: ${colors.textPrimary};
-                            padding: 10px 16px;
-                            border-radius: 25px;
-                            font-size: 13px;
-                            font-weight: 600;
-                            white-space: nowrap;
-                            border: 2px solid transparent;
-                            box-shadow: 0 4px 15px ${colors.primaryShadow};
-                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                            position: relative;
-                            overflow: hidden;
-                            transform: translateY(0);
-                        "
-                        onmouseenter="
-                            this.style.transform='translateY(-3px) scale(1.05)';
-                            this.style.boxShadow='0 8px 25px ${colors.primaryShadowHeavy}';
-                            this.style.background='linear-gradient(135deg, ${colors.accent}, ${colors.primary})';
-                        "
-                        onmouseleave="
-                            this.style.transform='translateY(0) scale(1)';
-                            this.style.boxShadow='0 4px 15px ${colors.primaryShadow}';
-                            this.style.background='linear-gradient(135deg, ${colors.primary}, ${colors.accent})';
-                        ">
-                            <span style="position: relative; z-index: 2;">
-                                ${formatSensorName(sensor)}
-                            </span>
-                            <div style="
-                                position: absolute;
-                                top: 0;
-                                left: -100%;
-                                width: 100%;
-                                height: 100%;
-                                background: linear-gradient(90deg, transparent, ${colors.borderLight}, transparent);
-                                transition: left 0.6s ease;
-                                pointer-events: none;
-                            "></div>
-                        </div>
-                    `;
-                }
-            }
-
-            deviceHtml += `
-                    </div>
+                    <div class="sensor-pill-container" data-role="sensor-chip-container"></div>
                 </div>
             `;
         }
@@ -360,6 +310,54 @@ export function createUserDeviceInfoBox(container) {
 
         deviceSection.innerHTML = deviceHtml;
 
+        const sensorContainer = deviceSection.querySelector('[data-role="sensor-chip-container"]');
+        /** @type {{ element: HTMLElement; sensor: DeviceInfo }[]} */
+        const sensorChipRegistry = [];
+        if (sensorContainer instanceof HTMLElement) {
+            sensorContainer.textContent = "";
+            sensorContainer.style.display = "flex";
+            sensorContainer.style.flexWrap = "wrap";
+            sensorContainer.style.gap = "12px";
+            for (const sensor of sensors) {
+                if (!sensor || (!sensor.manufacturer && !sensor.garminProduct)) {
+                    continue;
+                }
+                const chip = createSensorChip(sensor, colors);
+                sensorContainer.append(chip);
+                sensorChipRegistry.push({ element: chip, sensor });
+            }
+        }
+
+        const repaintSensorChips = () => {
+            if (sensorChipRegistry.length === 0) {
+                return;
+            }
+            const nextTheme = /** @type {ThemeConfig} */ (getThemeConfig());
+            const palette = /** @type {ThemeColors} */ (nextTheme?.colors || colors);
+            for (const entry of sensorChipRegistry) {
+                applySensorChipTheme(entry.element, palette);
+                const label = entry.element.querySelector(".sensor-pill__label");
+                if (label) {
+                    label.textContent = formatSensorName(entry.sensor);
+                }
+            }
+        };
+
+        if (sensorChipRegistry.length > 0) {
+            repaintSensorChips();
+            const handleThemeChange = () => repaintSensorChips();
+            document.body.addEventListener("themechange", handleThemeChange);
+            if (typeof MutationObserver === "function") {
+                const observer = new MutationObserver(() => {
+                    if (!document.body.contains(infoBox)) {
+                        document.body.removeEventListener("themechange", handleThemeChange);
+                        observer.disconnect();
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+        }
+
         // Add sections to info box
         infoBox.append(userSection);
         infoBox.append(deviceSection);
@@ -370,5 +368,107 @@ export function createUserDeviceInfoBox(container) {
         console.log("[ChartJS] User and device info box created with theme:", themeConfig.name || "default");
     } catch (error) {
         console.error("[ChartJS] Error creating user/device info box:", error);
+    }
+}
+
+/**
+ * @param {HTMLElement} chip
+ * @param {ThemeColors} colors
+ */
+function applySensorChipTheme(chip, colors) {
+    const primary = colors?.primary || "#3b82f6";
+    const accent = colors?.accent || primary;
+    const shadow = colors?.primaryShadow || "rgba(59, 130, 246, 0.35)";
+    const heavyShadow = colors?.primaryShadowHeavy || "rgba(59, 130, 246, 0.55)";
+    const textColor = colors?.textPrimary || "#f8fafc";
+    const borderLight = colors?.borderLight || "rgba(255, 255, 255, 0.45)";
+
+    chip.dataset.primaryColor = primary;
+    chip.dataset.accentColor = accent;
+    chip.dataset.shadowColor = shadow;
+    chip.dataset.shadowHeavyColor = heavyShadow;
+    chip.dataset.borderLightColor = borderLight;
+    chip.dataset.textPrimary = textColor;
+    chip.style.color = textColor;
+
+    const shine = chip.querySelector(".sensor-pill__shine");
+    if (shine instanceof HTMLElement) {
+        shine.style.position = "absolute";
+        shine.style.top = "0";
+        shine.style.left = "-100%";
+        shine.style.width = "100%";
+        shine.style.height = "100%";
+        shine.style.background = `linear-gradient(90deg, transparent, ${borderLight}, transparent)`;
+        shine.style.transition = "left 0.6s ease";
+        shine.style.pointerEvents = "none";
+    }
+
+    setSensorChipHoverState(chip, chip.matches(":hover"));
+}
+
+/**
+ * @param {DeviceInfo} sensor
+ * @param {ThemeColors} colors
+ * @returns {HTMLElement}
+ */
+function createSensorChip(sensor, colors) {
+    const chip = document.createElement("div");
+    chip.className = "sensor-pill";
+    chip.style.position = "relative";
+    chip.style.overflow = "hidden";
+    chip.style.padding = "10px 16px";
+    chip.style.borderRadius = "25px";
+    chip.style.fontSize = "13px";
+    chip.style.fontWeight = "600";
+    chip.style.whiteSpace = "nowrap";
+    chip.style.border = "2px solid transparent";
+    chip.style.display = "inline-flex";
+    chip.style.alignItems = "center";
+    chip.style.justifyContent = "center";
+    chip.style.transition = "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+    chip.style.transform = "translateY(0)";
+
+    const label = document.createElement("span");
+    label.className = "sensor-pill__label";
+    label.style.position = "relative";
+    label.style.zIndex = "2";
+    label.textContent = formatSensorName(sensor);
+    chip.append(label);
+
+    const shine = document.createElement("div");
+    shine.className = "sensor-pill__shine";
+    chip.append(shine);
+
+    applySensorChipTheme(chip, colors);
+
+    chip.addEventListener("mouseenter", () => setSensorChipHoverState(chip, true));
+    chip.addEventListener("mouseleave", () => setSensorChipHoverState(chip, false));
+
+    return chip;
+}
+
+/**
+ * @param {HTMLElement} chip
+ * @param {boolean} hovered
+ */
+function setSensorChipHoverState(chip, hovered) {
+    const primary = chip.dataset.primaryColor || "#3b82f6";
+    const accent = chip.dataset.accentColor || primary;
+    const shadow = chip.dataset.shadowColor || "rgba(59, 130, 246, 0.35)";
+    const heavyShadow = chip.dataset.shadowHeavyColor || "rgba(59, 130, 246, 0.55)";
+
+    if (hovered) {
+        chip.style.transform = "translateY(-3px) scale(1.05)";
+        chip.style.boxShadow = `0 8px 25px ${heavyShadow}`;
+        chip.style.background = `linear-gradient(135deg, ${accent}, ${primary})`;
+    } else {
+        chip.style.transform = "translateY(0) scale(1)";
+        chip.style.boxShadow = `0 4px 15px ${shadow}`;
+        chip.style.background = `linear-gradient(135deg, ${primary}, ${accent})`;
+    }
+
+    const shine = chip.querySelector(".sensor-pill__shine");
+    if (shine instanceof HTMLElement) {
+        shine.style.left = hovered ? "100%" : "-100%";
     }
 }

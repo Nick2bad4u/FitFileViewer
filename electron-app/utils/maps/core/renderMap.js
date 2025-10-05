@@ -75,6 +75,40 @@ import { drawOverlayForFitFile } from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
 
+const MAP_LAYER_ICON_MAP = {
+    CartoDB_DarkMatter: "mdi:weather-night",
+    CartoDB_Positron: "mdi:white-balance-sunny",
+    CyclOSM: "mdi:bike",
+    Esri_NatGeo: "mdi:earth",
+    Esri_Topo: "mdi:terrain",
+    Esri_WorldGrayCanvas: "mdi:invert-colors",
+    Esri_WorldImagery: "mdi:satellite-variant",
+    Esri_WorldImagery_Labels: "mdi:label",
+    Esri_WorldPhysical: "mdi:earth-box",
+    Esri_WorldShadedRelief: "mdi:chart-timeline-variant",
+    Esri_WorldStreetMap: "mdi:road",
+    Esri_WorldStreetMap_Labels: "mdi:format-letter-case",
+    Esri_WorldTerrain: "mdi:image-filter-hdr",
+    Esri_WorldTopo_Labels: "mdi:label-outline",
+    Humanitarian: "mdi:hand-heart",
+    OpenFreeMap_Bright: "mdi:brightness-7",
+    OpenFreeMap_Dark: "mdi:brightness-4",
+    OpenFreeMap_Fiord: "mdi:water",
+    OpenFreeMap_Liberty: "mdi:shield-star",
+    OpenFreeMap_Positron: "mdi:palette",
+    OpenRailwayMap: "mdi:train",
+    OpenSeaMap: "mdi:sail-boat",
+    OpenStreetMap: "flat-color-icons:globe",
+    OSM_France: "mdi:flag-variant",
+    Satellite: "mdi:satellite",
+    Thunderforest_Cycle: "mdi:bike-fast",
+    Thunderforest_Transport: "mdi:bus-multiple",
+    Topo: "mdi:map",
+    WaymarkedTrails_Cycling: "mdi:bike",
+    WaymarkedTrails_Hiking: "mdi:hiking",
+    WaymarkedTrails_Slopes: "mdi:ski-cross-country",
+};
+
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
     const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (globalThis));
@@ -115,7 +149,13 @@ export function renderMap() {
         });
     windowExt._leafletMapInstance = map;
 
-    LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" }).addTo(map);
+    const layersControl = LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" });
+    layersControl.addTo(map);
+    const layersControlContainer =
+        typeof layersControl.getContainer === "function"
+            ? layersControl.getContainer()
+            : document.querySelector(".leaflet-control-layers");
+    decorateLayerControlIcons(/** @type {HTMLElement | null} */(layersControlContainer));
 
     // Add a custom floating label/button to indicate map type selection
     const mapTypeBtn = document.createElement("div");
@@ -480,5 +520,67 @@ export function renderMap() {
             windowExt._mapThemeListener = () => updateMapTheme();
             document.body.addEventListener("themechange", /** @type {EventListener} */(windowExt._mapThemeListener));
         }
+    }
+}
+
+/**
+ * Enhance Leaflet layer control entries with icons for better scannability.
+ * @param {HTMLElement | null | undefined} container
+ */
+function decorateLayerControlIcons(container) {
+    if (!container) {
+        return;
+    }
+
+    const baseSection = container.querySelector(".leaflet-control-layers-base");
+    if (!baseSection) {
+        return;
+    }
+
+    const labels = baseSection.querySelectorAll("label");
+    for (const labelNode of labels) {
+        if (!(labelNode instanceof HTMLElement)) {
+            continue;
+        }
+
+        if (labelNode.dataset.iconified === "true") {
+            continue;
+        }
+
+        const nameSpan = labelNode.querySelector("span");
+        const layerName = (nameSpan?.textContent || labelNode.textContent || "").trim();
+        if (!layerName) {
+            labelNode.dataset.iconified = "true";
+            continue;
+        }
+
+        const iconName = MAP_LAYER_ICON_MAP[layerName];
+        if (!iconName) {
+            labelNode.dataset.iconified = "true";
+            continue;
+        }
+
+        if (labelNode.querySelector("iconify-icon")) {
+            labelNode.dataset.iconified = "true";
+            continue;
+        }
+
+        const iconEl = document.createElement("iconify-icon");
+        iconEl.setAttribute("icon", iconName);
+        iconEl.setAttribute("width", "18");
+        iconEl.setAttribute("height", "18");
+        iconEl.setAttribute("aria-hidden", "true");
+        iconEl.classList.add("map-layer-icon");
+        iconEl.style.marginRight = "6px";
+        iconEl.style.verticalAlign = "middle";
+
+        const radio = labelNode.querySelector('input[type="radio"]');
+        if (radio instanceof HTMLElement) {
+            radio.after(iconEl);
+        } else {
+            labelNode.prepend(iconEl);
+        }
+
+        labelNode.dataset.iconified = "true";
     }
 }

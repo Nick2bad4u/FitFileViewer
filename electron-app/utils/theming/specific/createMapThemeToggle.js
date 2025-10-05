@@ -22,6 +22,9 @@ const MAP_THEME_EVENTS = {
 },
     MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted"; // Note: "inverted" now means "dark map theme"
 
+const MAP_THEME_ICON_LIGHT = "mdi:weather-sunny";
+const MAP_THEME_ICON_DARK = "mdi:moon-waning-crescent";
+
 /**
  * Creates a map theme toggle button for controlling map inversion
  * @returns {HTMLElement} The configured map theme toggle button
@@ -36,6 +39,12 @@ export function createMapThemeToggle() {
         // Create icon container
         const iconContainer = document.createElement("span");
         iconContainer.className = "icon";
+        const iconElement = document.createElement("iconify-icon");
+        iconElement.setAttribute("width", "18");
+        iconElement.setAttribute("height", "18");
+        iconElement.setAttribute("aria-hidden", "true");
+        iconElement.classList.add("map-theme-toggle-icon");
+        iconContainer.append(iconElement);
 
         // Create label
         const label = document.createElement("span");
@@ -47,24 +56,19 @@ export function createMapThemeToggle() {
         // Update button appearance based on current state
         const updateButtonState = () => {
             try {
-                const isDarkMode = document.body.classList.contains("theme-dark"),
-                    isInverted = getMapThemeInverted();
+                const isInverted = getMapThemeInverted();
                 // Update icon and tooltip based on current map theme state
                 if (isInverted) {
-                    // Map is inverted/dark - show moon icon
-                    iconContainer.innerHTML = '<iconify-icon icon="twemoji:crescent-moon" width="18" height="18"></iconify-icon>';
+                    iconElement.setAttribute("icon", MAP_THEME_ICON_DARK);
                     button.title = "Map: Dark theme (click for light theme)";
                     button.classList.add("active");
                 } else {
-                    // Map is standard/light - show sun icon
-                    iconContainer.innerHTML = '<iconify-icon icon="twemoji:sun" width="18" height="18"></iconify-icon>';
+                    iconElement.setAttribute("icon", MAP_THEME_ICON_LIGHT);
                     button.title = "Map: Light theme (click for dark theme)";
                     button.classList.remove("active");
                 }
 
-                console.log(
-                    `[createMapThemeToggle] Button state updated - UI: ${isDarkMode ? "dark" : "light"}, Map: ${isInverted ? "dark" : "light"}`
-                );
+                console.log(`[createMapThemeToggle] Button state updated - Map: ${isInverted ? "dark" : "light"}`);
             } catch (error) {
                 console.error("[createMapThemeToggle] Error updating button state:", error);
             }

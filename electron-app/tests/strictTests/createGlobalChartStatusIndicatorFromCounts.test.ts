@@ -540,7 +540,7 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
 
             expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:grid"]')).toBeTruthy();
             expect(breakdown?.innerHTML).toContain("Metrics: 2/3");
-            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:line-chart"]')).toBeTruthy();
+            expect(breakdown?.querySelector('iconify-icon[icon="fluent-color:chart-multiple-32"]')).toBeTruthy();
             expect(breakdown?.innerHTML).toContain("Analysis: 2/2");
             expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:bullish"]')).toBeTruthy();
             expect(breakdown?.innerHTML).toContain("Zones: 1/1");
@@ -758,7 +758,7 @@ describe("createGlobalChartStatusIndicatorFromCounts", () => {
 
             expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:grid"]')).toBeTruthy();
             expect(breakdown?.innerHTML).toContain("Metrics: 1/2");
-            expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:line-chart"]')).toBeTruthy();
+            expect(breakdown?.querySelector('iconify-icon[icon="fluent-color:chart-multiple-32"]')).toBeTruthy();
             expect(breakdown?.innerHTML).toContain("Analysis: undefined/1");
             expect(breakdown?.querySelector('iconify-icon[icon="flat-color-icons:bullish"]')).toBeTruthy();
             expect(breakdown?.innerHTML).toContain("Zones: 1/undefined");

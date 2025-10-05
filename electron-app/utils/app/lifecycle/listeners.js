@@ -54,15 +54,43 @@ export function setupListeners({
         menu.style.position = "fixed";
         // ZIndex must be a string
         menu.style.zIndex = "10010";
-        menu.style.left = `${event.clientX}px`;
-        menu.style.top = `${event.clientY}px`;
-        menu.style.background = "var(--color-bg-alt-solid)";
+
+        // Get max recent files from settings (default to 10)
+        const maxRecentFiles = parseInt(localStorage.getItem('maxRecentFiles') || '10', 10);
+
+        // Clamp menu position to screen bounds
+        const menuWidth = 480;
+        const menuMaxHeight = 400;
+        let left = event.clientX;
+        let top = event.clientY;
+
+        // Clamp horizontal position
+        if (left + menuWidth > window.innerWidth) {
+            left = window.innerWidth - menuWidth - 10;
+        }
+        if (left < 10) {
+            left = 10;
+        }
+
+        // Clamp vertical position
+        if (top + menuMaxHeight > window.innerHeight) {
+            top = window.innerHeight - menuMaxHeight - 10;
+        }
+        if (top < 10) {
+            top = 10;
+        }
+
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.background = "linear-gradient( 120deg, var(--color-btn-bg-solid) 0%, #101010 45%, var(--color-btn-bg-solid) 100%)";
         menu.style.color = "var(--color-fg)";
         menu.style.border = "2px solid var(--color-border-light)";
         menu.style.borderRadius = "var(--border-radius-small)";
         menu.style.boxShadow = "var(--color-box-shadow)";
         menu.style.minWidth = "320px";
         menu.style.maxWidth = "480px";
+        menu.style.maxHeight = "400px";
+        menu.style.overflowY = "auto";
         menu.style.fontSize = "1rem";
         menu.style.padding = "4px 0";
         menu.style.cursor = "pointer";
@@ -71,6 +99,20 @@ export function setupListeners({
         menu.addEventListener("contextmenu", (e) => e.preventDefault());
         menu.setAttribute("role", "menu");
         menu.setAttribute("aria-label", "Recent files");
+
+        // Random iconify icons for file types
+        const fileIcons = [
+            'flat-color-icons:document',
+            'flat-color-icons:file',
+            'vscode-icons:file-type-json',
+            'flat-color-icons:data-configuration',
+            'flat-color-icons:database',
+            'flat-color-icons:line-chart',
+            'twemoji:page-facing-up',
+            'flat-color-icons:sports-mode',
+            'twemoji:person-biking',
+            'flat-color-icons:timeline'
+        ];
         let focusedIndex = 0;
         /** @type {HTMLDivElement[]} */
         const items = [];
@@ -129,18 +171,39 @@ export function setupListeners({
             };
         }
 
-        for (const [idx, file] of recentFiles.entries()) {
+        // Limit to max recent files setting
+        const filesToShow = recentFiles.slice(0, maxRecentFiles);
+
+        for (const [idx, file] of filesToShow.entries()) {
             const /** @type {HTMLDivElement} */
                 item = document.createElement("div"),
                 parts = file.split(/\\|\//g),
                 shortName = parts.length >= 2 ? `${parts.at(-2)}\\${parts.at(-1)}` : parts.at(-1);
-            // TextContent expects string | null; ensure fallback string
-            item.textContent = shortName || "";
+
+            // Create wrapper for icon and text
+            const iconElement = document.createElement('iconify-icon');
+            const randomIcon = fileIcons[Math.floor(Math.random() * fileIcons.length)];
+            iconElement.setAttribute('icon', randomIcon);
+            iconElement.setAttribute('width', '16');
+            iconElement.setAttribute('height', '16');
+            iconElement.style.marginRight = '8px';
+            iconElement.style.verticalAlign = 'middle';
+            iconElement.style.flexShrink = '0';
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = shortName || "";
+            textSpan.style.overflow = 'hidden';
+            textSpan.style.textOverflow = 'ellipsis';
+            textSpan.style.whiteSpace = 'nowrap';
+
+            item.append(iconElement);
+            item.append(textSpan);
+
             item.title = file;
             item.style.padding = "8px 18px";
-            item.style.whiteSpace = "nowrap";
-            item.style.overflow = "hidden";
-            item.style.textOverflow = "ellipsis";
+            item.style.display = "flex";
+            item.style.alignItems = "center";
+            item.style.gap = "4px";
             item.setAttribute("role", "menuitem");
             item.setAttribute("tabindex", "-1");
             item.style.background = idx === 0 ? "var(--color-glass-border)" : "transparent";

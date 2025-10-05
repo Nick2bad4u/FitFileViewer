@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
@@ -134,7 +134,13 @@
                     <span class="brand-subtitle" aria-label="Application purpose">Dashboards &amp; analytics</span>
                 </div>
             </div>
-            <button id="openFileBtn" class="btn" title="Open FIT File" aria-label="Open FIT file from your computer" tabindex="0">
+            <button
+                id="openFileBtn"
+                class="btn"
+                title="Open FIT File (Right-click to re-open recent files)"
+                aria-label="Open FIT file from your computer. Right-click to access recent files"
+                tabindex="0"
+            >
                 <span class="btn-icon" aria-hidden="true">
                     <iconify-icon icon="flat-color-icons:opened-folder" width="24" height="24"></iconify-icon>
                 </span>
@@ -142,7 +148,12 @@
             </button>
             <div id="activeFileNameContainer" role="status" aria-live="polite">
                 <span id="activeFileName" aria-label="Currently loaded file"></span>
-                <button id="unloadFileBtn" title="Unload current file" aria-label="Unload current file and return to start screen" tabindex="0">
+                <button
+                    id="unloadFileBtn"
+                    title="Unload current file"
+                    aria-label="Unload current file and return to start screen"
+                    tabindex="0"
+                >
                     <iconify-icon icon="twemoji:cross-mark" width="20" height="20"></iconify-icon>
                 </button>
             </div>
@@ -153,27 +164,79 @@
         </div>
         <!-- Centered Tab Bar -->
         <nav id="tabs" class="tab-bar" role="tablist" aria-label="Main navigation tabs">
-            <button class="tab-button active" id="tab-map" role="tab" aria-selected="true" aria-controls="content-map" tabindex="0" aria-label="Map view - GPS track visualization">
+            <button
+                class="tab-button active"
+                id="tab-map"
+                role="tab"
+                aria-selected="true"
+                aria-controls="content-map"
+                tabindex="0"
+                aria-label="Map view - GPS track visualization"
+            >
                 <iconify-icon class="tab-icon" icon="flat-color-icons:globe" aria-hidden="true"></iconify-icon>
                 <span>Map</span>
             </button>
-            <button class="tab-button" id="tab-altfit" role="tab" aria-selected="false" aria-controls="content-altfit" tabindex="-1" aria-label="Data view - Detailed metrics and statistics">
-                <iconify-icon class="tab-icon" icon="flat-color-icons:database" aria-hidden="true"></iconify-icon>
+            <button
+                class="tab-button"
+                id="tab-altfit"
+                role="tab"
+                aria-selected="false"
+                aria-controls="content-altfit"
+                tabindex="-1"
+                aria-label="Data view - Detailed metrics and statistics"
+            >
+                <iconify-icon
+                    class="tab-icon"
+                    icon="streamline-ultimate-color:data-file-bars-edit"
+                    aria-hidden="true"
+                ></iconify-icon>
                 <span>Data</span>
             </button>
-            <button class="tab-button" id="tab-data" role="tab" aria-selected="false" aria-controls="content-data" tabindex="-1" aria-label="Raw data view - Complete FIT file contents">
-                <iconify-icon class="tab-icon" icon="vscode-icons:file-type-json" aria-hidden="true"></iconify-icon>
+            <button
+                class="tab-button"
+                id="tab-data"
+                role="tab"
+                aria-selected="false"
+                aria-controls="content-data"
+                tabindex="-1"
+                aria-label="Raw data view - Complete FIT file contents"
+            >
+                <iconify-icon class="tab-icon" icon="icon-park:table-file" aria-hidden="true"></iconify-icon>
                 <span>Raw Data</span>
             </button>
-            <button class="tab-button" id="tab-chartjs" role="tab" aria-selected="false" aria-controls="content-chartjs" tabindex="-1" aria-label="Charts view - Interactive data visualizations">
-                <iconify-icon class="tab-icon" icon="flat-color-icons:line-chart" aria-hidden="true"></iconify-icon>
+            <button
+                class="tab-button"
+                id="tab-chartjs"
+                role="tab"
+                aria-selected="false"
+                aria-controls="content-chartjs"
+                tabindex="-1"
+                aria-label="Charts view - Interactive data visualizations"
+            >
+                <iconify-icon class="tab-icon" icon="fluent-color:chart-multiple-32" aria-hidden="true"></iconify-icon>
                 <span>Charts</span>
             </button>
-            <button class="tab-button" id="tab-summary" role="tab" aria-selected="false" aria-controls="content-summary" tabindex="-1" aria-label="Summary view - Activity overview and key metrics">
+            <button
+                class="tab-button"
+                id="tab-summary"
+                role="tab"
+                aria-selected="false"
+                aria-controls="content-summary"
+                tabindex="-1"
+                aria-label="Summary view - Activity overview and key metrics"
+            >
                 <iconify-icon class="tab-icon" icon="flat-color-icons:document" aria-hidden="true"></iconify-icon>
                 <span>Summary</span>
             </button>
-            <button class="tab-button" id="tab-zwift" role="tab" aria-selected="false" aria-controls="content-zwift" tabindex="-1" aria-label="Zwift view - Virtual cycling integration (Work in Progress)">
+            <button
+                class="tab-button"
+                id="tab-zwift"
+                role="tab"
+                aria-selected="false"
+                aria-controls="content-zwift"
+                tabindex="-1"
+                aria-label="Zwift view - Virtual cycling integration (Work in Progress)"
+            >
                 <iconify-icon class="tab-icon" icon="twemoji:person-biking" aria-hidden="true"></iconify-icon>
                 <span>Zwift <span class="text-xs opacity-75">(WIP)</span></span>
             </button>
@@ -245,8 +308,8 @@
                         loading="eager"
                         align="center"
                         aria-label="FitFileViewer logo"
-                    /> </a
-                >,
+                    />
+                </a>
                 <a
                     href="https://www.harryonline.net/"
                     class="italic ms-2"
@@ -266,8 +329,8 @@
                         loading="eager"
                         align="center"
                         aria-label="HarryOnline logo"
-                    /> </a
-                >,
+                    />
+                </a>
                 <a
                     href="https://github.com/thomascamminady/fit-viewer"
                     data-external-link="true"
@@ -276,7 +339,7 @@
                 >
                     <span class="italic">Thomas Camminady</span>
                 </a>
-                💾,
+                <iconify-icon icon="flat-color-icons:document" width="16" height="16" aria-hidden="true"></iconify-icon>
                 <a
                     href="https://github.com/garmin/fit-javascript-sdk"
                     data-external-link="true"
@@ -285,19 +348,30 @@
                 >
                     Garmin FIT JavaScript SDK
                 </a>
-                ⌚,
+                <iconify-icon icon="flat-color-icons:clock" width="16" height="16" aria-hidden="true"></iconify-icon>
                 <a href="https://leafletjs.com/" data-external-link="true" role="link" tabindex="0"> Leaflet.js </a>
-                🗺️,
+                <iconify-icon icon="flat-color-icons:globe" width="16" height="16" aria-hidden="true"></iconify-icon>
                 <a href="https://vega.github.io/vega-lite/" data-external-link="true" role="link" tabindex="0">
                     Vega-Lite
                 </a>
-                <iconify-icon icon="flat-color-icons:line-chart" width="16" height="16" aria-hidden="true"></iconify-icon>,
+                <iconify-icon
+                    icon="fluent-color:chart-multiple-32"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                ></iconify-icon
+                >,
                 <a href="https://github.com/vega/vega-embed" data-external-link="true" role="link" tabindex="0">
                     Vega-Embed
                 </a>
-                📈
+                <iconify-icon
+                    icon="fluent-color:chart-multiple-32"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                ></iconify-icon>
                 <a href="https://zwiftmap.com" data-external-link="true" role="link" tabindex="0"> ZwiftMap </a>
-                🗺️
+                <iconify-icon icon="flat-color-icons:globe" width="16" height="16" aria-hidden="true"></iconify-icon>
             </footer>
         </div>
 

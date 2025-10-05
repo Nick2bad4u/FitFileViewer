@@ -101,6 +101,67 @@ const __stateInitTracker = {
 };
 
 /**
+ * Applies layout enhancements to the credits footer without modifying global stylesheets.
+ * Ensures a compact presentation with auto-scroll animation when content is too wide.
+ */
+function enhanceCreditsFooter() {
+    const footer = document.querySelector(".credits-section footer");
+    if (!(footer instanceof HTMLElement) || footer.dataset.enhanced === "true") {
+        return;
+    }
+
+    footer.dataset.enhanced = "true";
+    footer.style.display = "inline-block";
+    footer.style.whiteSpace = "nowrap";
+
+    const links = footer.querySelectorAll("a");
+    for (const link of links) {
+        if (!(link instanceof HTMLElement)) {
+            continue;
+        }
+        link.style.display = "inline-flex";
+        link.style.alignItems = "center";
+        link.style.gap = "4px";
+        link.style.padding = "2px 6px";
+        link.style.borderRadius = "4px";
+    }
+
+    // Function to check if footer needs scrolling
+    const checkScroll = () => {
+        const container = footer.parentElement;
+        if (!container) return;
+
+        const containerWidth = container.offsetWidth - 48; // Account for padding
+        const footerWidth = footer.scrollWidth;
+
+        if (footerWidth > containerWidth) {
+            // Enable scrolling animation
+            const scrollDistance = footerWidth - containerWidth + 20; // +20 for smooth loop
+            footer.classList.add("scrolling");
+            footer.style.setProperty("--credits-scroll-distance", `${scrollDistance}px`);
+        } else {
+            // Disable scrolling animation
+            footer.classList.remove("scrolling");
+        }
+    };
+
+    // Create observer for footer content changes
+    const observer = new MutationObserver(checkScroll);
+    observer.observe(footer, {
+        characterData: true,
+        childList: true,
+        subtree: true,
+    });
+
+    // Check on window resize
+    window.addEventListener("resize", checkScroll);
+
+    // Initial check with delay to ensure styles are applied
+    setTimeout(checkScroll, 200);
+    setTimeout(checkScroll, 500);
+}
+
+/**
  * Dynamically resolves core modules so Vitest doMock hooks (using ../../ paths) are respected.
  * @returns {Promise<{
  *  showNotification: any, handleOpenFile: any, setupTheme: any, showUpdateNotification: any,
@@ -195,6 +256,10 @@ async function ensureCoreModules() {
     };
 }
 
+/**
+ * Applies layout enhancements to the credits footer without modifying shared stylesheets.
+ * Ensures a single-line, scrollable presentation that adapts to theme changes.
+ */
 /**
  * Gets the current environment name
  * @returns {string} Environment name
@@ -493,7 +558,7 @@ async function initializeApplication() {
 
         // Initialize core components
         // Initialize core components regardless of openFileBtn presence (tests mock listeners)
-        await initializeComponents(/** @type {any} */(dependencies));
+        await initializeComponents(/** @type {any} */ (dependencies));
 
         // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
         if (fileInput && typeof handleOpenFile === "function") {
@@ -511,29 +576,29 @@ async function initializeApplication() {
             try {
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).onMenuAction) === "function") {
                     /** @type {any} */ (globalThis.electronAPI).onMenuAction((/** @type {any} */ action) => {
-                    if (action === "open-file" && openFileBtn) {
-                        openFileBtn.click?.();
-                    } else if (action === "about") {
-                        try {
-                            showAboutModal();
-                        } catch {
-                            /* Ignore errors */
+                        if (action === "open-file" && openFileBtn) {
+                            openFileBtn.click?.();
+                        } else if (action === "about") {
+                            try {
+                                showAboutModal();
+                            } catch {
+                                /* Ignore errors */
+                            }
                         }
-                    }
-                });
+                    });
                 }
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).onThemeChanged) === "function") {
                     /** @type {any} */ (globalThis.electronAPI).onThemeChanged((/** @type {any} */ theme) => {
-                    try {
-                        applyTheme?.(theme);
-                    } catch {
-                        /* Ignore errors */
-                    }
-                });
+                        try {
+                            applyTheme?.(theme);
+                        } catch {
+                            /* Ignore errors */
+                        }
+                    });
                 }
                 if (typeof (/** @type {any} */ (globalThis.electronAPI).isDevelopment) === "function") {
                     // Probe development mode to satisfy test expectation
-                    /** @type {any} */ (globalThis.electronAPI).isDevelopment().catch(() => { });
+                    /** @type {any} */ (globalThis.electronAPI).isDevelopment().catch(() => {});
                 }
             } catch {
                 /* Ignore errors */
@@ -550,6 +615,8 @@ async function initializeApplication() {
         // Mark application as initialized using new state system
         const { AppActions } = await ensureCoreModules();
         AppActions.setInitialized(true);
+
+        enhanceCreditsFooter();
 
         const initTime = PerformanceMonitor.end("app_initialization");
         console.log(`[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`);
@@ -633,16 +700,16 @@ async function initializeComponents(dependencies) {
         try {
             // Prefer dynamically resolved (mockable) setupListeners for tests
             const { setupListeners: setupListenersDyn } = await ensureCoreModules();
-            setupListenersDyn(/** @type {any} */(dependencies));
+            setupListenersDyn(/** @type {any} */ (dependencies));
         } catch {
             // Fallback guard
             try {
                 const { setupListeners: sl } = await ensureCoreModules();
-                sl(/** @type {any} */(dependencies));
+                sl(/** @type {any} */ (dependencies));
             } catch (error) {
                 console.warn(
                     "[Renderer] Listener setup skipped or failed:",
-                    /** @type {any} */(error)?.message || error
+                    /** @type {any} */ (error)?.message || error
                 );
             }
         }
@@ -705,7 +772,7 @@ async function initializeStateManager() {
             // Subscribe to state changes to update legacy reference
             subscribe(
                 "app.isOpeningFile",
-                /** @param {any} isOpening */(isOpening) => {
+                /** @param {any} isOpening */ (isOpening) => {
                     isOpeningFileRef.value = isOpening;
                 }
             );
@@ -806,10 +873,10 @@ const APP_INFO = {
             language: navigator.language,
             memoryUsage: /** @type {any} */ (performance).memory
                 ? {
-                    jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
-                    totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
-                    usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
-                }
+                      jsHeapSizeLimit: /** @type {any} */ (performance).memory.jsHeapSizeLimit,
+                      totalJSHeapSize: /** @type {any} */ (performance).memory.totalJSHeapSize,
+                      usedJSHeapSize: /** @type {any} */ (performance).memory.usedJSHeapSize,
+                  }
                 : null,
             onLine: navigator.onLine,
             platform: navigator.platform,
@@ -992,9 +1059,9 @@ if (isDevelopmentMode()) {
             (async () => {
                 try {
                     const { masterStateManager } = await ensureCoreModules();
-                    console.log("Current State:", /** @type {any} */(masterStateManager).getState());
-                    console.log("State History:", /** @type {any} */(masterStateManager).getHistory());
-                    console.log("Active Subscriptions:", /** @type {any} */(masterStateManager).getSubscriptions());
+                    console.log("Current State:", /** @type {any} */ (masterStateManager).getState());
+                    console.log("State History:", /** @type {any} */ (masterStateManager).getHistory());
+                    console.log("Active Subscriptions:", /** @type {any} */ (masterStateManager).getSubscriptions());
                 } catch {
                     /* Ignore errors */
                 }
@@ -1050,13 +1117,13 @@ if (isDevelopmentMode()) {
             }
 
             const {
-                checkDataAvailability,
-                debugSensorInfo,
-                showDataKeys,
-                showSensorNames,
-                testManufacturerId,
-                testProductId,
-            } = await import("./utils/debug/debugSensorInfo.js"),
+                    checkDataAvailability,
+                    debugSensorInfo,
+                    showDataKeys,
+                    showSensorNames,
+                    testManufacturerId,
+                    testProductId,
+                } = await import("./utils/debug/debugSensorInfo.js"),
                 { testFaveroCase, testFaveroStringCase, testNewFormatting } = await import(
                     "./utils/debug/debugChartFormatting.js"
                 );
@@ -1103,7 +1170,7 @@ if (isDevelopmentMode()) {
             console.log("  __renderer_dev.AppActions                 - Access app actions");
             console.log("  __renderer_dev.uiStateManager             - Access UI state manager");
         } catch (error) {
-            console.warn("[Renderer] Debug utilities failed to load:", /** @type {Error} */(error).message);
+            console.warn("[Renderer] Debug utilities failed to load:", /** @type {Error} */ (error).message);
         }
     })();
 
@@ -1175,7 +1242,7 @@ try {
                 showNotification: sn,
                 showUpdateNotification: sun,
             };
-            sl(/** @type {any} */(deps));
+            sl(/** @type {any} */ (deps));
         })();
     } catch {
         /* Ignore errors */
@@ -1251,7 +1318,7 @@ function registerElectronAPI(/** @type {any} */ api) {
         }
         if (typeof api.isDevelopment === "function") {
             // Query development mode for coverage expectations
-            Promise.resolve(api.isDevelopment()).catch(() => { });
+            Promise.resolve(api.isDevelopment()).catch(() => {});
         }
         // Immediately trigger state init and app domain getState so tests' spies observe after beforeEach
         (async () => {
@@ -1303,7 +1370,7 @@ function registerElectronAPI(/** @type {any} */ api) {
 // Wire electronAPI events if available now
 try {
     if (globalThis.window !== undefined && /** @type {any} */ (globalThis).electronAPI) {
-        registerElectronAPI(/** @type {any} */(globalThis).electronAPI);
+        registerElectronAPI(/** @type {any} */ (globalThis).electronAPI);
     }
     // Install accessor to re-register immediately on future assignments and ensure one-time registration now
     if (globalThis.window !== undefined) {
@@ -1475,7 +1542,7 @@ try {
             }
             if (typeof sad === "function") {
                 try {
-                    sad("app.startTime", () => { });
+                    sad("app.startTime", () => {});
                 } catch {
                     /* Ignore errors */
                 }
@@ -1523,15 +1590,15 @@ try {
                 const fn = mod?.setupListeners;
                 if (typeof fn === "function") {
                     fn({
-                        applyTheme: () => { },
-                        handleOpenFile: () => { },
+                        applyTheme: () => {},
+                        handleOpenFile: () => {},
                         isOpeningFileRef,
-                        listenForThemeChange: () => { },
+                        listenForThemeChange: () => {},
                         openFileBtn: document.querySelector("#openFileBtn"),
                         setLoading,
-                        showAboutModal: () => { },
-                        showNotification: () => { },
-                        showUpdateNotification: () => { },
+                        showAboutModal: () => {},
+                        showNotification: () => {},
+                        showUpdateNotification: () => {},
                     });
                 }
             } catch {

@@ -624,7 +624,7 @@ describe("createChartStatusIndicatorFromCounts", () => {
 
             expect(breakdown.querySelector('iconify-icon[icon="flat-color-icons:grid"]')).toBeTruthy();
             expect(breakdown.innerHTML).toContain("Metrics: 1/2");
-            expect(breakdown.querySelector('iconify-icon[icon="flat-color-icons:line-chart"]')).toBeTruthy();
+            expect(breakdown.querySelector('iconify-icon[icon="fluent-color:chart-multiple-32"]')).toBeTruthy();
             expect(breakdown.innerHTML).toContain("Analysis: 1/2");
             expect(breakdown.querySelector('iconify-icon[icon="flat-color-icons:bullish"]')).toBeTruthy();
             expect(breakdown.innerHTML).toContain("Zones: 1/1");

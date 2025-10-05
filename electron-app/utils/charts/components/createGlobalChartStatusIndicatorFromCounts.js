@@ -168,7 +168,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
                     <iconify-icon icon="flat-color-icons:grid" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Metrics: ${counts.categories.metrics.visible}/${counts.categories.metrics.available}
                 </div>
                 <div style="color: var(--color-fg);">
-                    <iconify-icon icon="flat-color-icons:line-chart" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Analysis: ${counts.categories.analysis.visible}/${counts.categories.analysis.available}
+                    <iconify-icon icon="fluent-color:chart-multiple-32" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Analysis: ${counts.categories.analysis.visible}/${counts.categories.analysis.available}
                 </div>
                 <div style="color: var(--color-fg);">
                     <iconify-icon icon="flat-color-icons:bullish" width="14" height="14" style="vertical-align: middle;"></iconify-icon> Zones: ${counts.categories.zones.visible}/${counts.categories.zones.available}
