@@ -140,13 +140,18 @@ export function renderMap() {
     mapControlsDiv.id = "map-controls";
     mapContainer.append(mapControlsDiv);
 
-    const LeafletLib = /** @type {any} */ (windowExt).L,
-        map = LeafletLib.map("leaflet-map", {
-            center: [0, 0],
-            fullscreenControl: true,
-            layers: [baseLayers.OpenStreetMap],
-            zoom: 2,
-        });
+    const LeafletLib = /** @type {any} */ (windowExt).L;
+    if (!LeafletLib) {
+        console.error("[renderMap] Leaflet not available.");
+        mapContainer.innerHTML = "<p>Map library not loaded. Please check your connection.</p>";
+        return;
+    }
+    const map = LeafletLib.map("leaflet-map", {
+        center: [0, 0],
+        fullscreenControl: true,
+        layers: [baseLayers.OpenStreetMap],
+        zoom: 2,
+    });
     windowExt._leafletMapInstance = map;
 
     const layersControl = LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" });
@@ -315,22 +320,63 @@ export function renderMap() {
     // --- Print/export button ---
     const controlsDiv = document.querySelector("#map-controls");
 
+    /** @type {{rendered: number, total: number}} */
+    let markerSummaryState = { rendered: 0, total: 0 };
+    /** @type {HTMLElement | null} */
+    let markerSummaryElement = null;
+
+    /**
+     * @param {{rendered?: number, total?: number}|undefined|null} stats
+     */
+    const updateMarkerSummaryDisplay = (stats) => {
+        const rendered = Math.max(0, Math.floor(Number(stats?.rendered ?? markerSummaryState.rendered)));
+        const total = Math.max(0, Math.floor(Number(stats?.total ?? markerSummaryState.total)));
+        markerSummaryState = { rendered, total };
+        if (markerSummaryElement) {
+            const totalText = total > 0 ? `${rendered.toLocaleString()} / ${total.toLocaleString()}` : rendered.toLocaleString();
+            markerSummaryElement.textContent = `Data Points: ${totalText}`;
+            markerSummaryElement.dataset.rendered = String(rendered);
+            markerSummaryElement.dataset.total = String(total);
+        }
+    };
+
+    windowExt.updateMapMarkerSummary = (stats) => {
+        updateMarkerSummaryDisplay(stats);
+    };
+
     if (controlsDiv) {
         controlsDiv.append(createPrintButton());
         controlsDiv.append(createMapThemeToggle());
         controlsDiv.append(createExportGPXButton());
         controlsDiv.append(createElevationProfileButton());
-        controlsDiv.append(
-            createMarkerCountSelector(() => {
-                // Redraw map with new marker count
-                if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+        const markerCountSelector = createMarkerCountSelector(() => {
+            // Redraw map with new marker count, preserving current lap selection
+            const lapSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#lap-select"));
+            if (lapSelect) {
+                // Get current lap selection
+                const selected = [...lapSelect.selectedOptions].map((opt) => opt.value);
+                if (selected.length === 1 && selected[0] === "all") {
+                    mapDrawLapsWrapper("all");
+                } else if (selected.length === 1) {
+                    mapDrawLapsWrapper([selected[0]]);
+                } else if (selected.length > 1) {
+                    mapDrawLapsWrapper(selected);
+                } else {
                     mapDrawLapsWrapper("all");
                 }
-                if (windowExt.updateShownFilesList) {
-                    windowExt.updateShownFilesList();
-                }
-            })
-        );
+            } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+                // Fallback if lap selector not found
+                mapDrawLapsWrapper("all");
+            }
+            if (windowExt.updateShownFilesList) {
+                windowExt.updateShownFilesList();
+            }
+        });
+        controlsDiv.append(markerCountSelector);
+
+        markerSummaryElement = ensureMapMarkerSummaryElement(controlsDiv, markerCountSelector);
+        updateMarkerSummaryDisplay(markerSummaryState);
+
         addSimpleMeasureTool(map, controlsDiv);
         controlsDiv.append(createAddFitFileToMapButton());
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
@@ -583,4 +629,27 @@ function decorateLayerControlIcons(container) {
 
         labelNode.dataset.iconified = "true";
     }
+}
+
+/**
+ * Ensure the map marker summary element exists within the controls container.
+ * @param {HTMLElement} container - The map controls container.
+ * @param {HTMLElement} [anchor] - Optional anchor element to insert after.
+ * @returns {HTMLElement} Marker summary element.
+ */
+function ensureMapMarkerSummaryElement(container, anchor) {
+    const existing = container.querySelector("#map-marker-summary");
+    if (existing instanceof HTMLElement) {
+        return existing;
+    }
+    const summary = document.createElement("div");
+    summary.id = "map-marker-summary";
+    summary.className = "map-marker-summary";
+    summary.textContent = "Data Points: --";
+    if (anchor && anchor.parentElement === container) {
+        container.insertBefore(summary, anchor.nextSibling);
+    } else {
+        container.append(summary);
+    }
+    return summary;
 }

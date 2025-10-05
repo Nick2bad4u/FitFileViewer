@@ -287,13 +287,13 @@ async function importPreferTest(testPath, realPath) {
     if (IN_TEST) {
         // Attempt test path first so vi.doMock specifiers (../../) are honored
         try {
-            mod = await import(testPath);
+            mod = await import(/* @vite-ignore */ testPath);
         } catch {
-            mod = await import(realPath);
+            mod = await import(/* @vite-ignore */ realPath);
         }
     } else {
         // Production: skip invalid testPath to avoid 404 noise
-        mod = await import(realPath);
+        mod = await import(/* @vite-ignore */ realPath);
     }
     if (!IN_TEST) __moduleCache[cacheKey] = mod;
     return mod;

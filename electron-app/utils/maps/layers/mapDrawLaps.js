@@ -1,6 +1,8 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
 import { setState } from "../../state/core/stateManager.js";
+import { createMarkerSummary, getMarkerPreference } from "../helpers/mapMarkerSummary.js";
+import { createMarkerSampler } from "../helpers/markerSampler.js";
 
 /**
  * @typedef {Object} RecordMesg
@@ -27,6 +29,7 @@ import { setState } from "../../state/core/stateManager.js";
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
  */
+
 export function drawOverlayForFitFile({
     endIcon,
     fileName,
@@ -39,6 +42,10 @@ export function drawOverlayForFitFile({
     startIcon,
 }) {
     const L = getLeaflet();
+    if (!L) {
+        console.error("[drawOverlayForFitFile] Leaflet not available.");
+        return null;
+    }
     const lapMesgs = /** @type {Array<LapMesg>} */ (fitData.lapMesgs || []);
     const recordMesgs = /** @type {Array<RecordMesg>} */ (fitData.recordMesgs || []);
 
@@ -116,14 +123,13 @@ export function drawOverlayForFitFile({
             eMarker.bindPopup("End");
         }
 
-        const stepOverlay =
-            /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)));
-        for (let i = 0; i < coords.length; i += stepOverlay) {
-            const c = coords[i];
-            if (!c) continue;
-            const marker = L.circleMarker([c[0], c[1]], {
+        const overlaySampler = createMarkerSampler(coords.length, getMarkerPreference());
+        for (const [coordinateIdx, coordinate] of coords.entries()) {
+            if (!coordinate || !overlaySampler.shouldInclude(coordinateIdx)) {
+                continue;
+            }
+            const [lat, lng, _ts, _alt, _hr, _speed, recordIdx, row, lapVal] = coordinate;
+            const marker = L.circleMarker([lat, lng], {
                 color: paletteColor || "#1976d2",
                 fillColor: "#fff",
                 fillOpacity: 0.85,
@@ -139,12 +145,12 @@ export function drawOverlayForFitFile({
 
             let lapDisplay;
             if (getLapNumForIdx && fitData && Array.isArray(fitData.lapMesgs) && fitData.lapMesgs.length > 0) {
-                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */(fitData.lapMesgs));
+                lapDisplay = getLapNumForIdx(recordIdx, /** @type {any} */(fitData.lapMesgs));
             } else {
-                lapDisplay = c[8] || 1;
+                lapDisplay = lapVal || 1;
             }
 
-            let tooltip = formatTooltipData ? formatTooltipData(c[6], c[7], lapDisplay, recordMesgs) : "";
+            let tooltip = formatTooltipData ? formatTooltipData(recordIdx, row, lapDisplay, recordMesgs) : "";
             if (fileName) {
                 tooltip = `<b>${fileName}</b><br>${tooltip}`;
             }
@@ -205,8 +211,19 @@ export function mapDrawLaps(
         startIcon,
     }
 ) {
-    // Resolve L dynamically for this invocation
     const L = getLeaflet();
+    if (!L) {
+        console.error("[mapDrawLaps] Leaflet not available.");
+        return;
+    }
+
+    const markerSummary = createMarkerSummary();
+    const recordMarkerSummary = (totalPoints, renderedPoints) => {
+        markerSummary.record(totalPoints, renderedPoints);
+    };
+    const exitEarly = () => {
+        markerSummary.flush();
+    };
 
     // --- Always reset overlay polylines and main polyline at the start of a redraw ---
     /** @type {any} */ (getWin())._overlayPolylines = {};
@@ -370,7 +387,7 @@ export function mapDrawLaps(
 
         if (coords.length === 0) {
             mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-            return;
+            return exitEarly();
         }
 
         if (coords.length > 0) {
@@ -426,28 +443,14 @@ export function mapDrawLaps(
                 endMarker.bindPopup("End");
             }
 
-            // Replace loops adding markers where c may be undefined
-            for (
-                let i = 0;
-                i < coords.length;
-                i +=
-                    /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                    !(/** @type {any} */ (getWin()).mapMarkerCount)
-                    ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
-            ) {
-                const c = coords[i];
-                if (!c) {
+            const markerSampler = createMarkerSampler(coords.length, getMarkerPreference());
+            for (const [coordinateIdx, coordinate] of coords.entries()) {
+                if (!coordinate || !markerSampler.shouldInclude(coordinateIdx)) {
                     continue;
                 }
-                // c tuple: [lat, lng, ts, alt, hr, speed, idx, row, lap]
-                const tail = c.slice(6);
-                const [idx, row, lapVal] = tail;
-                let lapDisplay = lapVal;
-                if (!lapDisplay || isNaN(lapDisplay)) {
-                    lapDisplay = 1;
-                }
-                const marker = L.circleMarker([c[0], c[1]], {
+                const [lat, lng, _ts, _alt, _hr, _speed, dataIdx, row, lapVal] = coordinate;
+                const lapDisplay = Number.isFinite(lapVal) && lapVal ? lapVal : 1;
+                const marker = L.circleMarker([lat, lng], {
                     color: polyColor,
                     fillColor: "#fff",
                     fillOpacity: 0.85,
@@ -455,9 +458,17 @@ export function mapDrawLaps(
                     weight: 2,
                     zIndexOffset: 1500,
                 });
-                markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-                marker.bindTooltip(formatTooltipData(idx, row, lapDisplay), { direction: "top", sticky: true });
+                if (markerClusterGroup) {
+                    markerClusterGroup.addLayer(marker);
+                } else {
+                    marker.addTo(map);
+                }
+                marker.bindTooltip(formatTooltipData(dataIdx, row, lapDisplay, recordMesgs), {
+                    direction: "top",
+                    sticky: true,
+                });
             }
+            recordMarkerSummary(coords.length, markerSampler.sampledCount);
         }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
@@ -511,7 +522,7 @@ export function mapDrawLaps(
                 safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
             }
         }
-        return;
+        return exitEarly();
     }
 
     if (Array.isArray(lapIdx)) {
@@ -560,7 +571,7 @@ export function mapDrawLaps(
 
             if (coords.length === 0) {
                 mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-                return;
+                return exitEarly();
             }
 
             if (coords.length > 0) {
@@ -614,27 +625,14 @@ export function mapDrawLaps(
                     endMarker2.bindPopup("End");
                 }
 
-                // Replace loops adding markers where c may be undefined
-                for (
-                    let i = 0;
-                    i < coords.length;
-                    i +=
-                        /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                        !(/** @type {any} */ (getWin()).mapMarkerCount)
-                        ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
-                ) {
-                    const c = coords[i];
-                    if (!c) {
+                const samplerAllLaps = createMarkerSampler(coords.length, getMarkerPreference());
+                for (const [coordinateIdx, coordinate] of coords.entries()) {
+                    if (!coordinate || !samplerAllLaps.shouldInclude(coordinateIdx)) {
                         continue;
                     }
-                    const tail2 = c.slice(6);
-                    const [idx2, row2, lapVal2] = tail2;
-                    let lapDisplay = lapVal2;
-                    if (!lapDisplay || isNaN(lapDisplay)) {
-                        lapDisplay = 1;
-                    }
-                    const marker = L.circleMarker([c[0], c[1]], {
+                    const [lat, lng, _ts, _alt, _hr, _speed, sampleIdx, rowSample, lapValSample] = coordinate;
+                    const lapDisplay = Number.isFinite(lapValSample) && lapValSample ? lapValSample : 1;
+                    const marker = L.circleMarker([lat, lng], {
                         color: polyColor,
                         fillColor: "#fff",
                         fillOpacity: 0.85,
@@ -642,9 +640,17 @@ export function mapDrawLaps(
                         weight: 2,
                         zIndexOffset: 1500,
                     });
-                    markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-                    marker.bindTooltip(formatTooltipData(idx2, row2, lapDisplay), { direction: "top", sticky: true });
+                    if (markerClusterGroup) {
+                        markerClusterGroup.addLayer(marker);
+                    } else {
+                        marker.addTo(map);
+                    }
+                    marker.bindTooltip(formatTooltipData(sampleIdx, rowSample, lapDisplay, recordMesgs), {
+                        direction: "top",
+                        sticky: true,
+                    });
                 }
+                recordMarkerSummary(coords.length, samplerAllLaps.sampledCount);
             }
 
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
@@ -700,7 +706,7 @@ export function mapDrawLaps(
                     safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
                 }
             }
-            return;
+            return exitEarly();
         }
 
         // Existing code for multi-lap (not 'all')
@@ -780,26 +786,14 @@ export function mapDrawLaps(
                                 .bindPopup("End");
                         }
 
-                        const stepLap =
-                            /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                                !(/** @type {any} */ (getWin()).mapMarkerCount)
-                                ? 1
-                                : Math.max(
-                                    1,
-                                    Math.floor(lapCoords.length / /** @type {any} */ (getWin().mapMarkerCount || 1))
-                                );
-                        for (let j = 0; j < lapCoords.length; j += stepLap) {
-                            const c = lapCoords[j];
-                            if (!c) {
+                        const lapSampler = createMarkerSampler(lapCoords.length, getMarkerPreference());
+                        for (const [lapIdxLocal, coordLap] of lapCoords.entries()) {
+                            if (!coordLap || !lapSampler.shouldInclude(lapIdxLocal)) {
                                 continue;
                             }
-                            const tail3 = c.slice(6);
-                            const [idx3, row3, lapVal3] = tail3;
-                            let lapDisplay = lapVal3;
-                            if (!lapDisplay || isNaN(lapDisplay)) {
-                                lapDisplay = 1;
-                            }
-                            const marker = L.circleMarker([c[0], c[1]], {
+                            const [lat, lng, _ts, _alt, _hr, _speed, idx3, row3, lapVal3] = coordLap;
+                            const lapDisplay = Number.isFinite(lapVal3) && lapVal3 ? lapVal3 : 1;
+                            const marker = L.circleMarker([lat, lng], {
                                 color: polyColor,
                                 fillColor: "#fff",
                                 fillOpacity: 0.85,
@@ -807,8 +801,12 @@ export function mapDrawLaps(
                                 weight: 2,
                                 zIndexOffset: 1500,
                             });
-                            markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-                            marker.bindTooltip(formatTooltipData(idx3, row3, lapDisplay), {
+                            if (markerClusterGroup) {
+                                markerClusterGroup.addLayer(marker);
+                            } else {
+                                marker.addTo(map);
+                            }
+                            marker.bindTooltip(formatTooltipData(idx3, row3, lapDisplay, recordMesgs), {
                                 direction: "top",
                                 sticky: true,
                             });
@@ -875,7 +873,7 @@ export function mapDrawLaps(
                 safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
             }
         }
-        return;
+        return exitEarly();
     }
 
     if (lapIdx !== undefined && lapIdx !== "all" && lapMesgs.length > 0) {
@@ -917,12 +915,12 @@ export function mapDrawLaps(
                     .filter((coord) => coord !== null);
             } else {
                 mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startIdx: ${startIdx}<br>endIdx: ${endIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-                return;
+                return exitEarly();
             }
         } else {
             mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${lap && lap.startPositionLat
                 }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-            return;
+            return exitEarly();
         }
     } else {
         coords = recordMesgs
@@ -949,7 +947,7 @@ export function mapDrawLaps(
 
     if (coords.length === 0) {
         mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-        return;
+        return exitEarly();
     }
 
     if (coords.length > 0) {
@@ -977,7 +975,7 @@ export function mapDrawLaps(
 
         if (!polyline) {
             console.error("[mapDrawLaps] ERROR: polyline is null/undefined after chaining");
-            return;
+            return exitEarly();
         }
 
         // --- Store original bounds for main polyline ---
@@ -1000,26 +998,14 @@ export function mapDrawLaps(
             L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 }).addTo(map).bindPopup("End");
         }
 
-        // Replace loops adding markers where c may be undefined
-        for (
-            let i = 0;
-            i < coords.length;
-            i +=
-                /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
-        ) {
-            const c = coords[i];
-            if (!c) {
+        const samplerMain = createMarkerSampler(coords.length, getMarkerPreference());
+        for (const [coordIdx, coordTuple] of coords.entries()) {
+            if (!coordTuple || !samplerMain.shouldInclude(coordIdx)) {
                 continue;
             }
-            const tail4 = c.slice(6);
-            const [idx4, row4, lapVal4] = tail4;
-            let lapDisplay = lapVal4;
-            if (!lapDisplay || isNaN(lapDisplay)) {
-                lapDisplay = 1;
-            }
-            const marker = L.circleMarker([c[0], c[1]], {
+            const [lat, lng, _ts, _alt, _hr, _speed, idx4, row4, lapVal4] = coordTuple;
+            const lapDisplay = Number.isFinite(lapVal4) && lapVal4 ? lapVal4 : 1;
+            const marker = L.circleMarker([lat, lng], {
                 color: polyColor,
                 fillColor: "#fff",
                 fillOpacity: 0.85,
@@ -1027,9 +1013,17 @@ export function mapDrawLaps(
                 weight: 2,
                 zIndexOffset: 1500,
             });
-            markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-            marker.bindTooltip(formatTooltipData(idx4, row4, lapDisplay), { direction: "top", sticky: true });
+            if (markerClusterGroup) {
+                markerClusterGroup.addLayer(marker);
+            } else {
+                marker.addTo(map);
+            }
+            marker.bindTooltip(formatTooltipData(idx4, row4, lapDisplay, recordMesgs), {
+                direction: "top",
+                sticky: true,
+            });
         }
+        recordMarkerSummary(coords.length, samplerMain.sampledCount);
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
@@ -1083,6 +1077,8 @@ export function mapDrawLaps(
     } else {
         mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
     }
+
+    markerSummary.flush();
 }
 
 /**
@@ -1129,6 +1125,10 @@ function getWin() {
     return /** @type {any} */ (globalThis.window === undefined ? globalThis : globalThis);
 }
 
+/**
+ * Create a tracker that updates the UI summary for rendered markers.
+ * @returns {{record(total:number, rendered:number):void, flush():void}}
+ */
 /**
  * Patch lapMesgs to add start_index and end_index if missing
  * @param {Array<LapMesg>} lapMesgs - Lap messages to patch

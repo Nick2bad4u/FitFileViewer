@@ -2,18 +2,119 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Electron: Main (Attach)",
             "type": "node",
             "request": "attach",
-            "name": "Attach to Electron Main",
-            "port": 9230
+            "cwd": "${workspaceFolder}/electron-app",
+            "port": 9230,
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/electron-app/**/*.js"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "electron",
+                "order": 1
+            }
         },
         {
-            "name": "Run Extension",
-            "type": "extensionHost",
+            "name": "Electron: Renderer (Chrome)",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9232,
+            "webRoot": "${workspaceFolder}/electron-app",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./~/*": "${workspaceFolder}/electron-app/node_modules/*",
+                "webpack:///./*": "${workspaceFolder}/electron-app/*",
+                "webpack:///*": "*",
+                "meteor://💻app/*": "${workspaceFolder}/electron-app/*"
+            },
+            "urlFilter": "http://localhost:5273/*",
+            "presentation": {
+                "hidden": false,
+                "group": "electron",
+                "order": 2
+            }
+        },
+        {
+            "name": "Electron: Preload",
+            "type": "node",
+            "request": "attach",
+            "cwd": "${workspaceFolder}/electron-app",
+            "port": 9230,
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ],
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/electron-app/preload.js"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "electron",
+                "order": 3
+            }
+        },
+        {
+            "name": "Electron: All",
+            "type": "node",
             "request": "launch",
-            "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-            "outFiles": ["${workspaceFolder}/out/**/*.js"],
-            "preLaunchTask": "${defaultBuildTask}"
+            "cwd": "${workspaceFolder}/electron-app",
+            "runtimeExecutable": "${workspaceFolder}/electron-app/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceFolder}/electron-app/node_modules/.bin/electron.cmd"
+            },
+            "args": [
+                ".",
+                "--inspect=9230",
+                "--remote-debugging-port=9232"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "ELECTRON_IS_DEV": "1",
+                "VITE_DEV_SERVER_URL": "http://localhost:5273"
+            },
+            "outputCapture": "std",
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ],
+            "preLaunchTask": "Start Vite Dev Server",
+            "presentation": {
+                "hidden": false,
+                "group": "electron",
+                "order": 4
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Electron: Debug All (Main + Renderer)",
+            "configurations": [
+                "Electron: Main (Attach)",
+                "Electron: Renderer (Chrome)"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "electron",
+                "order": 1
+            },
+            "stopAll": true
         }
     ]
 }

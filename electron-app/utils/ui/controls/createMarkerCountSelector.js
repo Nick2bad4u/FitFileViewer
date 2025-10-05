@@ -48,23 +48,18 @@ export function createMarkerCountSelector(onChange) {
         }
 
         // Set initial value from global or default
-        const validOptions = [10, 25, 50, 100, 200, 500, 1000, "all"];
-        /** @type {string} */
-        let initial;
+        const validOptions = [10, 25, 50, 100, 200, 500, 1000, 0];
         /** @type {any} */
-        const g = globalThis,
-            current = g.mapMarkerCount;
-        if (typeof current !== "number") {
+        const g = globalThis;
+        let current = g.mapMarkerCount;
+
+        // Ensure current is a number, default to 50 if not
+        if (typeof current !== "number" || !validOptions.includes(current) && current !== 0) {
+            current = 50;
             g.mapMarkerCount = 50;
-            initial = "50";
-        } else if (current === 0) {
-            initial = "all";
-        } else if (validOptions.includes(current)) {
-            initial = String(current);
-        } else {
-            g.mapMarkerCount = 50; // Fallback to default
-            initial = "50";
         }
+
+        const initial = current === 0 ? "all" : String(current);
         select.value = initial;
 
         // Handle selection changes

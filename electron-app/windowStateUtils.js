@@ -121,14 +121,42 @@ function createWindow() {
             logWithContext("info", "Window displayed successfully");
         });
 
-        // Load the main HTML file
-        win.loadFile(CONSTANTS.PATHS.HTML.INDEX)
-            .then(() => {
-                logWithContext("info", "Main HTML file loaded successfully");
-            })
-            .catch((error) => {
-                logWithContext("error", "Error loading main HTML file:", { error: safeErrorMessage(error) });
-            });
+        // Load from Vite dev server in development, or file in production
+        const isDev = process.env.ELECTRON_IS_DEV === "1" || process.env.NODE_ENV === "development";
+        const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL || "http://localhost:5273";
+
+        if (isDev && viteDevServerUrl) {
+            // Development: Load from Vite dev server for HMR
+            logWithContext("info", "Loading from Vite dev server:", { url: viteDevServerUrl });
+            win.loadURL(viteDevServerUrl)
+                .then(() => {
+                    logWithContext("info", "Vite dev server loaded successfully");
+                    // Open DevTools in development
+                    if (process.env.NODE_ENV !== "test") {
+                        win.webContents.openDevTools();
+                    }
+                })
+                .catch((error) => {
+                    logWithContext("error", "Error loading from Vite dev server:", { error: safeErrorMessage(error) });
+                    // Fallback to file if dev server is not available
+                    logWithContext("info", "Falling back to loading from file");
+                    win.loadFile(CONSTANTS.PATHS.HTML.INDEX).catch((fallbackError) => {
+                        logWithContext("error", "Error loading fallback file:", {
+                            error: safeErrorMessage(fallbackError),
+                        });
+                    });
+                });
+        } else {
+            // Production: Load from file
+            logWithContext("info", "Loading from file (production mode)");
+            win.loadFile(CONSTANTS.PATHS.HTML.INDEX)
+                .then(() => {
+                    logWithContext("info", "Main HTML file loaded successfully");
+                })
+                .catch((error) => {
+                    logWithContext("error", "Error loading main HTML file:", { error: safeErrorMessage(error) });
+                });
+        }
 
         return win;
     } catch (error) {

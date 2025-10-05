@@ -42,6 +42,16 @@ const FORMATTING_CONSTANTS = {
     },
 };
 
+const FIELD_ALIASES = {
+    altitude: ["altitude", "altitudeMeters", "altitude_m", "enhancedAltitude", "enhanced_altitude"],
+    cadence: ["cadence", "cadence_rpm"],
+    distance: ["distance", "total_distance"],
+    heartRate: ["heartRate", "heart_rate"],
+    power: ["power", "power_watts"],
+    speed: ["speed", "enhancedSpeed", "enhanced_speed"],
+    timestamp: ["timestamp", "time_stamp", "time", "date_time"],
+};
+
 /**
  * Formats tooltip data for display on maps and charts
  * Creates a comprehensive data summary for a specific data point
@@ -69,23 +79,34 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             return "No data available";
         }
 
-        // Get record messages from state or override
-        const // Format individual metrics
-            altitude = formatAltitude(row.altitude ?? null),
-            cadence = formatCadence(row.cadence ?? null),
-            // Format timestamp
-            dateStr = row.timestamp ? new Date(row.timestamp).toLocaleString() : "",
-            distance = formatDistance(row.distance ?? null),
-            heartRate = formatHeartRate(row.heartRate ?? null),
-            power = formatPower(row.power ?? null),
-            recordMesgs =
-                recordMesgsOverride ||
-                getState("globalData.recordMesgs") ||
-                /** @type {any} */ (globalThis.globalData && /** @type {any} */ (globalThis).globalData.recordMesgs),
-            rideTime = formatRideTime(row.timestamp || "", recordMesgs),
-            speed = formatSpeed(row.speed ?? null),
-            // Build the tooltip HTML
-            tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
+        const recordMesgs =
+            recordMesgsOverride ||
+            getState("globalData.recordMesgs") ||
+            /** @type {any} */ (globalThis.globalData && /** @type {any} */ (globalThis).globalData.recordMesgs);
+
+        const fallbackRow = Array.isArray(recordMesgs) ? recordMesgs[idx] : undefined;
+        const resolvedRow = mergeRecordSources(row, fallbackRow);
+
+        const altitudeValue = pickFieldValue(resolvedRow, FIELD_ALIASES.altitude);
+        const cadenceValue = pickFieldValue(resolvedRow, FIELD_ALIASES.cadence);
+        const distanceValue = pickFieldValue(resolvedRow, FIELD_ALIASES.distance);
+        const heartRateValue = pickFieldValue(resolvedRow, FIELD_ALIASES.heartRate);
+        const powerValue = pickFieldValue(resolvedRow, FIELD_ALIASES.power);
+        const speedValue = pickFieldValue(resolvedRow, FIELD_ALIASES.speed);
+        const timestampValue = pickFieldValue(resolvedRow, FIELD_ALIASES.timestamp);
+
+        const altitude = formatAltitude(altitudeValue ?? null);
+        const cadence = formatCadence(cadenceValue ?? null);
+        const dateStr = timestampValue ? new Date(timestampValue).toLocaleString() : "";
+        const distance = formatDistance(distanceValue ?? null);
+        const heartRate = formatHeartRate(heartRateValue ?? null);
+        const power = formatPower(powerValue ?? null);
+        const speed = formatSpeed(speedValue ?? null);
+        const rideTime = formatRideTime(timestampValue || "", recordMesgs);
+
+        // Build the tooltip HTML
+        const tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
+        const metricsStartCount = tooltipParts.length;
 
         if (dateStr) {
             tooltipParts.push(`<b>Time:</b> ${dateStr}`);
@@ -110,6 +131,10 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         }
         if (cadence) {
             tooltipParts.push(`<b>Cadence:</b> ${cadence}`);
+        }
+
+        if (tooltipParts.length === metricsStartCount) {
+            tooltipParts.push("<b>Data:</b> Not available");
         }
 
         return tooltipParts.join("<br>");

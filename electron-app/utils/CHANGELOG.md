@@ -644,7 +644,7 @@ Enhances dark/light mode theme compatibility [`(86e03ae)`](https://github.com/Ni
 
 - Update GitHub Actions workflows and dependencies; fix badge link in README [`(c401c26)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c401c26b48c572958c7a8cb8a3e58fd556c88d12)
 
-- Update dependencies and version to 2.3.10 [`(962ac81)`](https://github.com/Nick2bad4u/FitFileViewer/commit/962ac81455aa0861558c517356bcae038c4695d9)
+- Update dependencies and version to 2.3.10 [`(962ac81)`](https://github.com/Nick2bad4u/FitFileViewer/commit/962ac81455aa0861558c527356bcae038c4695d9)
 
 ### 🛡️ Security
 

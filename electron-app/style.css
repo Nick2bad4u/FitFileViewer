@@ -560,12 +560,12 @@ h2 {
 /* =====================================================
    Iconify Icon Styles
    ===================================================== */
+
 /* Global alignment fix for all iconify-icon elements */
 iconify-icon {
     vertical-align: sub;
     display: inline-block;
-    align-content: center;
-    justify-content: center;
+    place-content: center center;
     align-items: center;
 }
 
@@ -575,7 +575,7 @@ div.table-header-title iconify-icon {
 
 /* Fix Open FIT file button icon */
 #openFileBtn iconify-icon {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgb(255 255 255 / 90%);
     filter: drop-shadow(0 0 8px rgb(var(--color-accent-rgb) / 30%));
 }
 
@@ -588,6 +588,8 @@ div.table-header-title iconify-icon {
 .tab-icon {
     vertical-align: middle;
     margin-right: 8px;
+    width: 18px;
+    height: 18px;
 }
 
 /* =====================================================
@@ -2222,15 +2224,6 @@ body[data-has-fit-file="true"] .tab-bar {
     filter: grayscale(0.7);
 }
 
-/* Tab Icon Styling */
-.tab-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 8px;
-    flex-shrink: 0;
-    transition: var(--transition-smooth);
-}
-
 .tab-button:hover .tab-icon,
 .tab-button.active .tab-icon {
     stroke-width: 2.5;
@@ -2282,7 +2275,6 @@ body[data-has-fit-file="true"] .tab-bar {
    Card & Section Containers
    ===================================================== */
 .tab-card {
-    padding-top: 15px !important;
     background: linear-gradient(135deg, var(--color-surface) 0%, rgb(var(--color-accent-rgb) / 3%) 100%);
     backdrop-filter: var(--backdrop-blur);
     border: 1px solid var(--color-glass-border);
@@ -2290,7 +2282,7 @@ body[data-has-fit-file="true"] .tab-bar {
     box-shadow:
         0 32px 60px var(--c_rgb000_28p),
         inset 0 1px 0 rgb(var(--color-accent-rgb) / 8%);
-    padding: clamp(24px, 3.5vw, 36px) clamp(18px, 3vw, 32px) clamp(20px, 3vw, 30px);
+    padding: 15px clamp(18px, 3vw, 32px) clamp(20px, 3vw, 30px);
     margin: 0 auto clamp(24px, 4vw, 40px);
     width: 98%;
     min-height: clamp(420px, 60vh, 900px);
@@ -2519,7 +2511,7 @@ tr:hover {
     color: var(--color-bg);
     border-color: var(--color-accent);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgb(var(--color-accent-rgb) / 0.3);
+    box-shadow: 0 4px 12px rgb(var(--color-accent-rgb) / 30%);
 }
 
 .density-toggle-btn:active {
@@ -2951,6 +2943,8 @@ body[data-has-fit-file="true"] .header-brand {
     transition:
         color 0.2s ease,
         transform 0.2s ease;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 #activeFileName:hover {
@@ -2962,11 +2956,6 @@ body[data-has-fit-file="true"] .header-brand {
     display: none;
 }
 
-#activeFileName {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
 /* Keep Active: label fixed */
 #activeFileName .active-label {
     flex-shrink: 0;
@@ -2975,6 +2964,8 @@ body[data-has-fit-file="true"] .header-brand {
     z-index: 2;
     background: var(--color-bg);
     padding-right: 4px;
+    color: var(--c_hex43a047);
+    font-weight: bold;
 }
 
 /* Scrollable filename text */
@@ -2992,6 +2983,7 @@ body[data-has-fit-file="true"] .header-brand {
     15% {
         transform: translateX(0);
     }
+
     85%,
     100% {
         transform: translateX(calc(-1 * var(--scroll-distance, 0px)));
@@ -3016,12 +3008,6 @@ body[data-has-fit-file="true"] #activeFileName {
 #activeFileName:hover,
 #activeFileName.highlighted {
     color: var(--color-accent);
-}
-
-#activeFileName .active-label {
-    color: var(--c_hex43a047);
-    font-weight: bold;
-    margin-right: 4px;
 }
 
 #unloadFileBtn {
@@ -3956,6 +3942,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 /* Improved Fullscreen Button */
+
 /* Unified Control Bar */
 .app-control-bar {
     position: fixed;
@@ -3968,14 +3955,14 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     border: 1px solid var(--color-border);
     border-radius: 21px;
     padding: 4px;
-    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 9px rgb(0 0 0 / 15%);
     backdrop-filter: blur(10px);
     z-index: 2001;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-control-bar:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
 }
 
 .fullscreen-btn-wrapper {
@@ -4017,7 +4004,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     cursor: pointer;
     outline: none;
-    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 3px 4px rgb(0 0 0 / 10%) !important;
     backdrop-filter: blur(10px);
     overflow: visible !important;
     isolation: auto !important;
@@ -4036,18 +4023,16 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .fullscreen-icon:hover,
 .fullscreen-btn .fullscreen-icon:hover,
 .fullscreen-btn.improved:hover,
-.fullscreen-btn.improved:focus,
-.fullscreen-btn.improved:hover,
 .fullscreen-btn.improved:focus {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: rgb(255 255 255 / 10%) !important;
     border-color: var(--color-accent) !important;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 6px 12px rgb(0 0 0 / 15%) !important;
     transform: scale(1.08) !important;
 }
 
 .fullscreen-btn.improved.themed-btn:active,
 .fullscreen-btn.improved:active {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: rgb(255 255 255 / 15%) !important;
     transform: scale(0.98) !important;
 }
 
@@ -4059,7 +4044,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     background: var(--color-bg-alt-solid) !important;
     border-color: var(--color-border) !important;
     transform: none !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 10%) !important;
 }
 
 .fullscreen-btn.improved:disabled:hover,
@@ -4069,7 +4054,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     background: var(--color-bg-alt-solid) !important;
     border-color: var(--color-border) !important;
     transform: none !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 10%) !important;
 }
 
 .fullscreen-btn.improved:disabled .fullscreen-icon svg,
@@ -4136,7 +4121,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     pointer-events: none !important;
     z-index: 10000 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 30%) !important;
     border: 1px solid var(--color-border) !important;
     display: block !important;
     width: max-content !important;
@@ -4194,12 +4179,6 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 .fullscreen-btn.improved.themed-btn[data-tooltip]:hover::before {
     opacity: 1 !important;
     visibility: visible !important;
-}
-
-.fullscreen-btn .fullscreen-icon svg {
-    width: 16px;
-    height: 16px;
-    color: var(--color-accent);
 }
 
 .tab-content:fullscreen,
@@ -4603,20 +4582,18 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     overflow: hidden;
     background: linear-gradient(120deg, var(--color-btn-bg-solid) 0%, #101010 45%, var(--color-btn-bg-solid) 100%);
     border-radius: 20px;
-    padding-inline-start: 20px;
-    padding-inline-end: 20px;
+    padding-inline: 20px;
 }
 
 #openFileBtn .btn-label {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-    -webkit-background-clip: text;
+    background: linear-gradient(135deg, rgb(255 255 255 / 95%) 0%, rgb(255 255 255 / 85%) 100%);
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 700;
 }
 
 #openFileBtn svg {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgb(255 255 255 / 90%);
     filter: drop-shadow(0 0 8px rgb(var(--color-accent-rgb) / 30%));
 }
 
@@ -4958,8 +4935,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 
 .summary-table-container {
     position: relative;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto hidden;
     margin: 0 -4px;
     padding: 4px 4px 12px;
     border-radius: calc(var(--border-radius) - 6px);
@@ -4976,7 +4952,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     width: 24px;
     height: 100%;
     pointer-events: none;
-    background: linear-gradient(270deg, rgb(var(--color-bg-rgb, 18 26 38) / 0.15) 0%, transparent 70%);
+    background: linear-gradient(270deg, rgb(var(--color-bg-rgb, 18 26 38) / 15%) 0%, transparent 70%);
     display: block;
 }
 
@@ -5170,6 +5146,7 @@ footer {
     15% {
         transform: translateX(0);
     }
+
     85%,
     100% {
         transform: translateX(calc(-1 * var(--credits-scroll-distance, 0px)));
@@ -5750,147 +5727,8 @@ input:disabled,
 textarea:disabled,
 select:disabled,
 button:disabled {
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-small);
-    padding: 8px 16px;
-    margin-right: 12px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: var(--transition-smooth);
-}
-
-input[type="file"]::-webkit-file-upload-button:hover {
-    background: var(--color-btn-hover);
-    transform: translateY(-1px);
-}
-
-/* Checkbox and Radio Button Styling */
-input[type="checkbox"],
-input[type="radio"] {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    background: var(--color-glass);
-    border: 2px solid var(--color-border);
-    border-radius: var(--border-radius-small);
-    position: relative;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-}
-
-input[type="radio"] {
-    border-radius: 50%;
-}
-
-input[type="checkbox"]:checked,
-input[type="radio"]:checked {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-}
-
-input[type="checkbox"]:checked::before {
-    content: "✓";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-input[type="radio"]:checked::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-}
-
-/* Range/Slider Styling */
-input[type="range"] {
-    appearance: none;
-    height: 6px;
-    background: var(--color-modal-bg);
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: var(--color-accent);
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid white;
-    box-shadow: var(--color-box-shadow-light);
-    transition: var(--transition-smooth);
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: var(--color-box-shadow);
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: var(--color-accent);
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid white;
-    box-shadow: var(--color-box-shadow-light);
-}
-
-/* Label Styling */
-label {
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-fg);
-    margin-bottom: 6px;
-    display: inline-block;
-    cursor: pointer;
-}
-
-/* Fieldset and Legend Styling */
-fieldset {
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    background: var(--color-glass);
-    backdrop-filter: var(--backdrop-blur);
-}
-
-legend {
-    font-weight: 600;
-    color: var(--color-fg);
-    padding: 0 12px;
-    background: var(--color-bg);
-    border-radius: var(--border-radius-small);
-}
-
-/* Placeholder Styling */
-::placeholder {
-    color: rgb(var(--color-fg-rgb) / 50%);
-    font-style: italic;
-}
-
-/* Disabled State */
-input:disabled,
-textarea:disabled,
-select:disabled,
-button:disabled {
-    /* Placeholder disabled style intentionally minimal to avoid empty block */
-    opacity: 1;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* =====================================================
