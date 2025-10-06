@@ -144,6 +144,23 @@ function createControlsToggleButton(container) {
 
     toggleBtn.addEventListener("click", toggleChartControls);
 
+    // Add theme change listener to update button styling
+    const updateButtonTheme = () => {
+        const theme = document.body.classList.contains("dark-theme") ? "dark" : "light";
+        if (theme === "dark") {
+            toggleBtn.style.background = "linear-gradient(145deg, #3b82f665 0%, #2563eb 100%)";
+            toggleBtn.style.color = "white";
+            toggleBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.3)";
+        } else {
+            toggleBtn.style.background = "linear-gradient(145deg, #3b82f6 0%, #2563eb 100%)";
+            toggleBtn.style.color = "white";
+            toggleBtn.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.25)";
+        }
+    };
+
+    document.body.addEventListener("themechange", updateButtonTheme);
+    updateButtonTheme(); // Set initial theme
+
     // Insert before the chart container
     const chartContainer = document.querySelector("#chartjs-chart-container");
     if (chartContainer && chartContainer.parentNode) {

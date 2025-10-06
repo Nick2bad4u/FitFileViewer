@@ -216,7 +216,7 @@ export function createUserDeviceInfoBox(container) {
             ? globalData.deviceInfoMesgs
             : [];
         const infoBox = document.createElement("section");
-        infoBox.className = "user-device-info-box";
+        infoBox.className = "user-device-info-box chart-info-section";
         infoBox.dataset.themeName = getThemeConfig()?.name ?? "default";
 
         const profileSection = buildProfileSection(userProfile);
@@ -236,6 +236,18 @@ export function createUserDeviceInfoBox(container) {
         }
 
         container.append(infoBox);
+
+        // Listen for theme changes and update the data attribute
+        const updateTheme = () => {
+            const currentTheme = getThemeConfig()?.name ?? "default";
+            infoBox.dataset.themeName = currentTheme;
+            console.log("[ChartJS] User device info box theme updated:", currentTheme);
+        };
+
+        document.body.addEventListener("themechange", updateTheme);
+
+        // Store cleanup function for potential future use
+        infoBox.dataset.themeCleanup = "registered";
 
         console.log(
             "[ChartJS] User and device info box rendered with theme:",

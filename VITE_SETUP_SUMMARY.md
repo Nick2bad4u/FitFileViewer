@@ -10,7 +10,7 @@ I've successfully configured a professional Electron development environment wit
 
 **Configurations Available:**
 - **Electron: Main (Attach)** - Debug main process (Node.js) on port 9230
-- **Electron: Renderer (Chrome)** - Debug renderer process (Chromium) on port 9232
+- **Electron: Renderer (Chrome)** - Debug renderer process (Chromium) on port 9222
 - **Electron: Preload** - Debug preload script
 - **Electron: All** - Launch with all debuggers enabled
 - **Electron: Debug All (Main + Renderer)** [COMPOUND] - **⭐ RECOMMENDED**
@@ -227,7 +227,7 @@ SETUP_COMPLETE.md      ✨ NEW - This file
 
 ### Debug Ports
 - **Main Process:** 9230 (Node.js Inspector)
-- **Renderer Process:** 9232 (Chrome DevTools Protocol)
+- **Renderer Process:** 9222 (Chrome DevTools Protocol)
 
 ### Dev Server
 - **URL:** http://localhost:5273
@@ -249,7 +249,7 @@ Stop-Process -Id <PID>
 
 ### Debugger Won't Attach
 1. Ensure app is running: `npm run dev`
-2. Check ports 9230 and 9232 are open
+2. Check ports 9230 and 9222 are open
 3. Restart VSCode
 4. Try "Electron: All" configuration
 

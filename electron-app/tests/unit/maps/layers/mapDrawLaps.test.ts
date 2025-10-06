@@ -50,6 +50,7 @@ describe("mapDrawLaps", () => {
     let mockGetLapColor: any;
     let mockFormatTooltipData: any;
     let mockGetLapNumForIdx: any;
+    let mockMarkerSummary: any;
 
     beforeEach(() => {
         // Reset global state
@@ -120,6 +121,11 @@ describe("mapDrawLaps", () => {
         mockGetLapColor = vi.fn().mockReturnValue("#1976d2");
         mockFormatTooltipData = vi.fn().mockReturnValue("Test tooltip");
         mockGetLapNumForIdx = vi.fn().mockReturnValue(1);
+        mockMarkerSummary = {
+            record: vi.fn(),
+            reset: vi.fn(),
+            flush: vi.fn(),
+        };
 
         // Initialize global state
         (globalThis as any)._overlayPolylines = {};
@@ -152,6 +158,7 @@ describe("mapDrawLaps", () => {
                 fileName: "test.fit",
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
+                markerSummary: mockMarkerSummary,
             });
 
             expect(mockLeaflet.polyline).toHaveBeenCalled();
@@ -175,6 +182,7 @@ describe("mapDrawLaps", () => {
                 fileName: "test.fit",
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
+                markerSummary: mockMarkerSummary,
             });
 
             expect(mockLeaflet.polyline).not.toHaveBeenCalled();
@@ -192,6 +200,7 @@ describe("mapDrawLaps", () => {
                 fileName: "test.fit",
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
+                markerSummary: mockMarkerSummary,
             });
 
             expect(result1).toBeNull();
@@ -217,6 +226,7 @@ describe("mapDrawLaps", () => {
                 fileName: "test.fit",
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
+                markerSummary: mockMarkerSummary,
             });
 
             expect(mockLeaflet.polyline).toHaveBeenCalledWith(
@@ -248,6 +258,7 @@ describe("mapDrawLaps", () => {
                 fileName: "test.fit",
                 formatTooltipData: vi.fn(),
                 getLapNumForIdx: vi.fn(),
+                markerSummary: mockMarkerSummary,
             });
 
             expect(mockLeaflet.polyline).toHaveBeenCalled();
@@ -448,6 +459,51 @@ describe("mapDrawLaps", () => {
             expect(mockMap.fitBounds).toHaveBeenCalled();
             expect(mockMap.invalidateSize).toHaveBeenCalled();
 
+
+        test("limits rendered markers to the requested count", () => {
+            const totalPoints = 120;
+            const baseLat = 429496729;
+            const baseLon = 858993459;
+
+            const mockRecordMesgs = Array.from({ length: totalPoints }, (_, idx) => ({
+                positionLat: baseLat + idx,
+                positionLong: baseLon + idx,
+                timestamp: 1_000 + idx,
+                altitude: 100 + idx,
+                heartRate: 140 + (idx % 10),
+                speed: 5 + idx * 0.01,
+            }));
+
+            (globalThis as any).globalData = {
+                recordMesgs: mockRecordMesgs,
+                lapMesgs: [],
+            };
+
+            (globalThis as any).mapMarkerCount = 10;
+            (globalThis as any).updateMapMarkerSummary = vi.fn();
+
+            const mapContainer = document.createElement("div");
+            mapContainer.style.width = "800px";
+            mapContainer.style.height = "600px";
+            document.body.appendChild(mapContainer);
+
+            mockMap._container = mapContainer;
+            mockLeaflet.circleMarker.mockClear();
+
+            mapDrawLaps("all", {
+                map: mockMap,
+                baseLayers: { base: mockMap },
+                markerClusterGroup: null,
+                startIcon: mockMarker,
+                endIcon: mockMarker,
+                mapContainer,
+                getLapColor: mockGetLapColor,
+                formatTooltipData: mockFormatTooltipData,
+                getLapNumForIdx: mockGetLapNumForIdx,
+            });
+
+            expect(mockLeaflet.circleMarker).toHaveBeenCalledTimes(10);
+        });
             // Verify marker creation (start/end markers)
             expect(mockLeaflet.marker).toHaveBeenCalled();
 

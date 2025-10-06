@@ -60,6 +60,8 @@ export function createMarkerSampler(totalPoints, requestedCount) {
     const indices = computeSampledIndices(totalPoints, requestedCount);
     const indexSet = new Set(indices);
 
+    console.log(`[MarkerSampler] Created sampler: total=${totalPoints}, requested=${requestedCount}, sampled=${indices.length}`);
+
     return {
         get indices() {
             return indices;

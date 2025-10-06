@@ -27,8 +27,8 @@ export function createMarkerCountSelector(onChange) {
         /** @type {HTMLLabelElement} */
         const label = document.createElement("label");
         label.innerHTML = `
-        <iconify-icon icon="flat-color-icons:bar-chart" width="18" height="18"></iconify-icon>
-        <span>Data Points:</span>
+            <iconify-icon icon="flat-color-icons:bar-chart" width="18" height="18"></iconify-icon>
+            <span>Data Points:</span>
         `;
         label.setAttribute("for", "marker-count-select");
         label.className = "marker-count-label";
@@ -66,10 +66,13 @@ export function createMarkerCountSelector(onChange) {
         select.addEventListener("change", () => {
             try {
                 const val = select.value;
-                g.mapMarkerCount = val === "all" ? 0 : Number.parseInt(val, 10);
+                const newCount = val === "all" ? 0 : Number.parseInt(val, 10);
+                g.mapMarkerCount = newCount;
+
+                console.log(`[MarkerCountSelector] Changed to: ${val} (${newCount})`);
 
                 if (typeof onChange === "function") {
-                    onChange(g.mapMarkerCount);
+                    onChange(newCount);
                 }
 
                 if (typeof g.updateShownFilesList === "function") {

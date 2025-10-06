@@ -63,10 +63,9 @@ export function createMarkerSummary() {
  */
 export function getMarkerPreference() {
     const rawValue = Number(getWindow()?.mapMarkerCount);
-    if (!Number.isFinite(rawValue) || rawValue <= 0) {
-        return 0;
-    }
-    return Math.floor(rawValue);
+    const result = !Number.isFinite(rawValue) || rawValue <= 0 ? 0 : Math.floor(rawValue);
+    console.log(`[MapMarkerSummary] getMarkerPreference: raw=${rawValue}, result=${result}`);
+    return result;
 }
 
 /**

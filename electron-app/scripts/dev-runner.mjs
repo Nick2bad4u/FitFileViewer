@@ -10,7 +10,7 @@ import { createServer } from 'vite';
 
 const DEV_SERVER_PORT = 5273;
 const ELECTRON_DEBUG_PORT = 9230;
-const RENDERER_DEBUG_PORT = 9232;
+const RENDERER_DEBUG_PORT = 9222;
 
 let electronProcess = null;
 let manualRestart = false;

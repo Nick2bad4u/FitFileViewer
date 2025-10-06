@@ -55,9 +55,15 @@ export function enterChartFullscreen(wrapper, options) {
     activeOptions = options || {};
     placeholderElement = document.createElement("div");
     placeholderElement.className = "chart-fullscreen-placeholder";
+    placeholderElement.style.display = "none";
     if (wrapper.parentNode) {
         wrapper.parentNode.insertBefore(placeholderElement, wrapper);
     }
+
+    // Store current dimensions to prevent layout shift
+    const rect = wrapper.getBoundingClientRect();
+    wrapper.dataset.originalWidth = String(rect.width);
+    wrapper.dataset.originalHeight = String(rect.height);
 
     const overlay = ensureOverlay();
     overlayContent = overlay.querySelector("[data-role=\"content\"]");
@@ -74,12 +80,15 @@ export function enterChartFullscreen(wrapper, options) {
 
     getWindowLike().addEventListener("keydown", handleKeydown, { once: false, passive: false });
 
+    // Delay the onEnter callback to prevent immediate re-renders during transition
     if (typeof activeOptions.onEnter === "function") {
-        try {
-            activeOptions.onEnter();
-        } catch {
-            /* ignore */
-        }
+        requestAnimationFrame(() => {
+            try {
+                activeOptions.onEnter();
+            } catch {
+                /* ignore */
+            }
+        });
     }
 
     notifyListeners(true);
@@ -93,25 +102,33 @@ export function exitChartFullscreen() {
         return;
     }
 
+    const wrapper = activeWrapper;
+
     if (placeholderElement && placeholderElement.parentNode) {
-        placeholderElement.replaceWith(activeWrapper);
+        placeholderElement.replaceWith(wrapper);
     }
 
-    activeWrapper.classList.remove(ACTIVE_WRAPPER_CLASS);
+    wrapper.classList.remove(ACTIVE_WRAPPER_CLASS);
     document.body.classList.remove(BODY_ACTIVE_CLASS);
 
+    // Clear stored dimensions
+    delete wrapper.dataset.originalWidth;
+    delete wrapper.dataset.originalHeight;
+
+    // Delay the onExit callback to prevent immediate re-renders during transition
     if (typeof activeOptions.onExit === "function") {
-        try {
-            activeOptions.onExit();
-        } catch {
-            /* ignore */
-        }
+        requestAnimationFrame(() => {
+            try {
+                activeOptions.onExit();
+            } catch {
+                /* ignore */
+            }
+        });
     }
 
     cleanupOverlay();
     getWindowLike().removeEventListener("keydown", handleKeydown);
 
-    const wrapper = activeWrapper;
     activeWrapper = null;
     activeOptions = {};
     notifyListeners(false, wrapper);

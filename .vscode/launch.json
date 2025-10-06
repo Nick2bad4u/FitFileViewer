@@ -29,7 +29,7 @@
             "name": "Electron: Renderer (Chrome)",
             "type": "chrome",
             "request": "attach",
-            "port": 9232,
+            "port": 9222,
             "webRoot": "${workspaceFolder}/electron-app",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
@@ -81,7 +81,7 @@
             "args": [
                 ".",
                 "--inspect=9230",
-                "--remote-debugging-port=9232"
+                "--remote-debugging-port=9222"
             ],
             "env": {
                 "NODE_ENV": "development",

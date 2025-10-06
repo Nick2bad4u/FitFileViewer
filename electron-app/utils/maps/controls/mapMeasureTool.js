@@ -32,7 +32,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     measureBtn.className = "map-action-btn";
     measureBtn.innerHTML = `
         <iconify-icon icon="flat-color-icons:ruler" width="18" height="18"></iconify-icon>
-        <span>Measure</span>`;
+        <span>Measure</span>
+    `;
     measureBtn.title = "Click, then click two points on the map to measure distance";
 
     function clearMeasure() {
@@ -57,8 +58,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         measuring = false;
         map.off("click", onMapClickMeasure);
         if (btn) {
-            btn.innerHTML =
-                '<iconify-icon icon="flat-color-icons:ruler" width="18" height="18"></iconify-icon> <span>Measure</span>';
+            btn.innerHTML = `
+                <iconify-icon icon="flat-color-icons:ruler" width="18" height="18"></iconify-icon>
+                <span>Measure</span>
+            `;
             btn.title = "Click, then click two points on the map to measure distance";
         }
     }
@@ -143,8 +146,10 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         measuring = true;
         map.on("click", onMapClickMeasure);
         if (btn) {
-            btn.innerHTML =
-                '<iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon> <span>Cancel</span>';
+            btn.innerHTML = `
+                <iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon>
+                <span>Cancel</span>
+            `;
             btn.title = "Cancel measurement mode";
         }
     }

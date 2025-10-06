@@ -29,7 +29,6 @@ import { createMarkerSampler } from "../helpers/markerSampler.js";
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
  */
-
 export function drawOverlayForFitFile({
     endIcon,
     fileName,
@@ -38,17 +37,15 @@ export function drawOverlayForFitFile({
     getLapNumForIdx,
     map,
     markerClusterGroup,
-    overlayIdx,
     markerSummary,
+    overlayIdx,
     startIcon,
 }) {
     const L = getLeaflet();
-    if (!L) {
-        console.error("[drawOverlayForFitFile] Leaflet not available.");
-        return null;
-    }
     const lapMesgs = /** @type {Array<LapMesg>} */ (fitData.lapMesgs || []);
     const recordMesgs = /** @type {Array<RecordMesg>} */ (fitData.recordMesgs || []);
+
+    patchLapIndices(lapMesgs, recordMesgs);
 
     const coords = recordMesgs
         .map((row, idx) => {
@@ -77,6 +74,8 @@ export function drawOverlayForFitFile({
     }
 
     if (coords.length > 0) {
+        const sampler = createMarkerSampler(coords.length, getMarkerPreference());
+        let renderedCount = 0;
         const isHighlighted =
             typeof overlayIdx === "number" && /** @type {any} */ (getWin())._highlightedOverlayIdx === overlayIdx;
         const paletteColor =
@@ -85,8 +84,12 @@ export function drawOverlayForFitFile({
                 typeof overlayIdx === "number"
                 ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
                 : "#1976d2";
+        // Filter coords to match marker filtering
+        const filteredPolylineCoords = coords
+            .map((c, idx) => (sampler.shouldInclude(idx) ? [c[0], c[1]] : null))
+            .filter(Boolean);
         const polyline = L.polyline(
-            coords.map((c) => [c[0], c[1]]),
+            filteredPolylineCoords,
             {
                 className: isHighlighted ? "overlay-highlight-glow" : "",
                 color: paletteColor,
@@ -122,22 +125,16 @@ export function drawOverlayForFitFile({
             eMarker.bindPopup("End");
         }
 
-        const overlaySampler = createMarkerSampler(coords.length, getMarkerPreference());
-        if (markerSummary) {
-            markerSummary.record(coords.length, overlaySampler.sampledCount);
-            markerSummary.flush();
-        }
-        for (const [coordinateIdx, coordinate] of coords.entries()) {
-            if (!coordinate || !overlaySampler.shouldInclude(coordinateIdx)) {
+        for (const [coordinateIdx, c] of coords.entries()) {
+            if (!c || !sampler.shouldInclude(coordinateIdx)) {
                 continue;
             }
-            const [lat, lng, _ts, _alt, _hr, _speed, recordIdx, row, lapVal] = coordinate;
-            const marker = L.circleMarker([lat, lng], {
+            const marker = L.circleMarker([c[0], c[1]], {
                 color: paletteColor || "#1976d2",
                 fillColor: "#fff",
-                fillOpacity: 0.85,
-                radius: 4,
-                weight: 2,
+                fillOpacity: 0.9,
+                radius: 6,
+                weight: 3,
                 zIndexOffset: 1500,
             });
             if (markerClusterGroup) {
@@ -148,16 +145,21 @@ export function drawOverlayForFitFile({
 
             let lapDisplay;
             if (getLapNumForIdx && fitData && Array.isArray(fitData.lapMesgs) && fitData.lapMesgs.length > 0) {
-                lapDisplay = getLapNumForIdx(recordIdx, /** @type {any} */(fitData.lapMesgs));
+                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */(fitData.lapMesgs));
             } else {
-                lapDisplay = lapVal || 1;
+                lapDisplay = c[8] || 1;
             }
 
-            let tooltip = formatTooltipData ? formatTooltipData(recordIdx, row, lapDisplay, recordMesgs) : "";
+            let tooltip = formatTooltipData ? formatTooltipData(c[6], c[7], lapDisplay, recordMesgs) : "";
             if (fileName) {
                 tooltip = `<b>${fileName}</b><br>${tooltip}`;
             }
             marker.bindTooltip(tooltip, { direction: "top", sticky: true });
+            renderedCount += 1;
+        }
+
+        if (markerSummary) {
+            markerSummary.record(coords.length, renderedCount);
         }
 
         /** @type {any} */
@@ -214,21 +216,18 @@ export function mapDrawLaps(
         startIcon,
     }
 ) {
+    // Resolve L dynamically for this invocation
     const L = getLeaflet();
-    if (!L) {
-        console.error("[mapDrawLaps] Leaflet not available.");
-        return;
-    }
 
     const markerSummary = createMarkerSummary();
     markerSummary.reset();
 
     const recordMarkerSummary = (totalPoints, renderedPoints) => {
         markerSummary.record(totalPoints, renderedPoints);
-        markerSummary.flush();
     };
-    const exitEarly = () => {
-        markerSummary.reset();
+
+    const flushMarkerSummary = () => {
+        markerSummary.flush();
     };
 
     // --- Always reset overlay polylines and main polyline at the start of a redraw ---
@@ -291,6 +290,35 @@ export function mapDrawLaps(
         recordMesgs = /** @type {Array<RecordMesg>} */ (/** @type {any} */ (getWin()).globalData?.recordMesgs || []);
 
     patchLapIndices(lapMesgs, recordMesgs);
+
+    const rawMarkerPreference = getMarkerPreference();
+    const sanitizedPreference = Number.isFinite(rawMarkerPreference)
+        ? Math.max(0, Math.floor(rawMarkerPreference))
+        : 0;
+
+    const renderableRecordIndices = recordMesgs.reduce((indices, row, idx) => {
+        if (row && typeof row.positionLat === "number" && typeof row.positionLong === "number") {
+            indices.push(idx);
+        }
+        return indices;
+    }, /** @type {number[]} */([]));
+
+    const totalRenderablePoints = renderableRecordIndices.length;
+    const shouldRenderGlobalIndex = (() => {
+        if (totalRenderablePoints <= 0) {
+            return () => false;
+        }
+        if (sanitizedPreference === 0 || sanitizedPreference >= totalRenderablePoints) {
+            return () => true;
+        }
+        const sampler = createMarkerSampler(totalRenderablePoints, sanitizedPreference);
+        const sampledRecordIndices = new Set(
+            sampler.indices
+                .map((positionIdx) => renderableRecordIndices[positionIdx])
+                .filter((val) => Number.isInteger(val))
+        );
+        return (index) => sampledRecordIndices.has(index);
+    })();
 
     /**
      * Helper: Wait until map container is visible and sized before fitBounds
@@ -392,14 +420,20 @@ export function mapDrawLaps(
         coords = /** @type {Array<CoordTuple>} */ (coords.filter(Boolean));
 
         if (coords.length === 0) {
-            return exitEarly();
+            mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+            flushMarkerSummary();
+            return;
         }
 
         if (coords.length > 0) {
             const polyColor = getLapColor("all");
             console.log(`[mapDrawLaps] Drawing polyline for all laps, coords.length = ${coords.length}`);
+            // Filter coords to match marker filtering
+            const filteredPolylineCoords = coords
+                .filter((c) => c && shouldRenderGlobalIndex(c[6]))
+                .map((c) => [c[0], c[1]]);
             const polyline = L.polyline(
-                coords.map((c) => [c[0], c[1]]),
+                filteredPolylineCoords,
                 {
                     color: polyColor,
                     dashArray: "6, 8",
@@ -448,32 +482,36 @@ export function mapDrawLaps(
                 endMarker.bindPopup("End");
             }
 
-            const markerSampler = createMarkerSampler(coords.length, getMarkerPreference());
-            for (const [coordinateIdx, coordinate] of coords.entries()) {
-                if (!coordinate || !markerSampler.shouldInclude(coordinateIdx)) {
+            let renderedAll = 0;
+            for (const c of coords) {
+                if (!c) {
                     continue;
                 }
-                const [lat, lng, _ts, _alt, _hr, _speed, dataIdx, row, lapVal] = coordinate;
-                const lapDisplay = Number.isFinite(lapVal) && lapVal ? lapVal : 1;
+                const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row, lapValRaw] = c;
+                if (!shouldRenderGlobalIndex(globalIdx)) {
+                    continue;
+                }
+                let lapDisplay = lapValRaw;
+                if (!lapDisplay || Number.isNaN(lapDisplay)) {
+                    lapDisplay = 1;
+                }
                 const marker = L.circleMarker([lat, lng], {
                     color: polyColor,
                     fillColor: "#fff",
-                    fillOpacity: 0.85,
+                    fillOpacity: 0.95,
                     radius: 4,
-                    weight: 2,
+                    weight: 3,
                     zIndexOffset: 1500,
                 });
-                if (markerClusterGroup) {
-                    markerClusterGroup.addLayer(marker);
-                } else {
-                    marker.addTo(map);
-                }
-                marker.bindTooltip(formatTooltipData(dataIdx, row, lapDisplay, recordMesgs), {
+                // Always add directly to map (bypass clustering) for better visibility
+                marker.addTo(map);
+                marker.bindTooltip(formatTooltipData(globalIdx, row, lapDisplay), {
                     direction: "top",
                     sticky: true,
                 });
+                renderedAll += 1;
             }
-            recordMarkerSummary(coords.length, markerSampler.sampledCount);
+            recordMarkerSummary(coords.length, renderedAll);
         }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
@@ -491,25 +529,25 @@ export function mapDrawLaps(
                 if (!overlay || !overlay.data) {
                     continue;
                 }
-                const color = colorPalette[overlayIdx % colorPalette.length];
-                const fileName =
-                    typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
-                const bounds = drawOverlayForFitFile({
-                    color: color || "#1976d2",
-                    endIcon,
-                    fileName,
-                    fitData: {
-                        lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
-                        recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
-                    },
-                    formatTooltipData,
-                    getLapNumForIdx,
-                    map,
-                    markerClusterGroup,
-                    markerSummary,
-                    overlayIdx: i,
-                    startIcon,
-                });
+                const color = colorPalette[overlayIdx % colorPalette.length],
+                    fileName =
+                        typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
+                    bounds = drawOverlayForFitFile({
+                        color: color || "#1976d2",
+                        endIcon,
+                        fileName,
+                        fitData: {
+                            lapMesgs: Array.isArray(overlay.data.lapMesgs) ? overlay.data.lapMesgs : [],
+                            recordMesgs: Array.isArray(overlay.data.recordMesgs) ? overlay.data.recordMesgs : [],
+                        },
+                        formatTooltipData,
+                        getLapNumForIdx,
+                        map,
+                        markerClusterGroup,
+                        markerSummary,
+                        overlayIdx: i,
+                        startIcon,
+                    });
                 if (bounds) {
                     let safeBounds = bounds;
                     if (
@@ -528,7 +566,8 @@ export function mapDrawLaps(
                 safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
             }
         }
-        return exitEarly();
+        flushMarkerSummary();
+        return;
     }
 
     if (Array.isArray(lapIdx)) {
@@ -577,14 +616,19 @@ export function mapDrawLaps(
 
             if (coords.length === 0) {
                 mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-                return exitEarly();
+                flushMarkerSummary();
+                return;
             }
 
             if (coords.length > 0) {
                 const polyColor = getLapColor("all");
                 console.log(`[mapDrawLaps] Drawing polyline for all laps, coords.length = ${coords.length}`);
+                // Filter coords to match marker filtering
+                const filteredPolylineCoords = coords
+                    .filter((c) => c && shouldRenderGlobalIndex(c[6]))
+                    .map((c) => [c[0], c[1]]);
                 const polyline = L.polyline(
-                    coords.map((c) => [c[0], c[1]]),
+                    filteredPolylineCoords,
                     {
                         color: polyColor,
                         dashArray: "6, 8",
@@ -631,32 +675,36 @@ export function mapDrawLaps(
                     endMarker2.bindPopup("End");
                 }
 
-                const samplerAllLaps = createMarkerSampler(coords.length, getMarkerPreference());
-                for (const [coordinateIdx, coordinate] of coords.entries()) {
-                    if (!coordinate || !samplerAllLaps.shouldInclude(coordinateIdx)) {
+                let renderedAllArray = 0;
+                for (const c of coords) {
+                    if (!c) {
                         continue;
                     }
-                    const [lat, lng, _ts, _alt, _hr, _speed, sampleIdx, rowSample, lapValSample] = coordinate;
-                    const lapDisplay = Number.isFinite(lapValSample) && lapValSample ? lapValSample : 1;
+                    const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row2, lapValRaw] = c;
+                    if (!shouldRenderGlobalIndex(globalIdx)) {
+                        continue;
+                    }
+                    let lapDisplay = lapValRaw;
+                    if (!lapDisplay || Number.isNaN(lapDisplay)) {
+                        lapDisplay = 1;
+                    }
                     const marker = L.circleMarker([lat, lng], {
                         color: polyColor,
                         fillColor: "#fff",
-                        fillOpacity: 0.85,
-                        radius: 4,
-                        weight: 2,
+                        fillOpacity: 0.95,
+                        radius: 8,
+                        weight: 3,
                         zIndexOffset: 1500,
                     });
-                    if (markerClusterGroup) {
-                        markerClusterGroup.addLayer(marker);
-                    } else {
-                        marker.addTo(map);
-                    }
-                    marker.bindTooltip(formatTooltipData(sampleIdx, rowSample, lapDisplay, recordMesgs), {
+                    // Always add directly to map (bypass clustering) for better visibility
+                    marker.addTo(map);
+                    marker.bindTooltip(formatTooltipData(globalIdx, row2, lapDisplay), {
                         direction: "top",
                         sticky: true,
                     });
+                    renderedAllArray += 1;
                 }
-                recordMarkerSummary(coords.length, samplerAllLaps.sampledCount);
+                recordMarkerSummary(coords.length, renderedAllArray);
             }
 
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
@@ -713,7 +761,7 @@ export function mapDrawLaps(
                     safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
                 }
             }
-            return exitEarly();
+            return;
         }
 
         // Existing code for multi-lap (not 'all')
@@ -766,16 +814,20 @@ export function mapDrawLaps(
                             .filter((coord) => coord !== null);
 
                     if (lapCoords.length > 0) {
-                        const polyColor = getLapColor(Number(lapVal)),
-                            polyline = L.polyline(
-                                lapCoords.map((c) => [c[0], c[1]]),
-                                {
-                                    color: polyColor,
-                                    dashArray: null,
-                                    opacity: 0.9,
-                                    weight: 4,
-                                }
-                            ).addTo(map);
+                        const polyColor = getLapColor(Number(lapVal));
+                        // Filter coords to match marker filtering
+                        const filteredPolylineCoords = lapCoords
+                            .filter((c) => c && shouldRenderGlobalIndex(c[6]))
+                            .map((c) => [c[0], c[1]]);
+                        const polyline = L.polyline(
+                            filteredPolylineCoords,
+                            {
+                                color: polyColor,
+                                dashArray: null,
+                                opacity: 0.9,
+                                weight: 4,
+                            }
+                        ).addTo(map);
                         if (bounds) {
                             bounds.extend(polyline.getBounds());
                         } else {
@@ -793,31 +845,36 @@ export function mapDrawLaps(
                                 .bindPopup("End");
                         }
 
-                        const lapSampler = createMarkerSampler(lapCoords.length, getMarkerPreference());
-                        for (const [lapIdxLocal, coordLap] of lapCoords.entries()) {
-                            if (!coordLap || !lapSampler.shouldInclude(lapIdxLocal)) {
+                        let renderedLap = 0;
+                        for (const c of lapCoords) {
+                            if (!c) {
                                 continue;
                             }
-                            const [lat, lng, _ts, _alt, _hr, _speed, idx3, row3, lapVal3] = coordLap;
-                            const lapDisplay = Number.isFinite(lapVal3) && lapVal3 ? lapVal3 : 1;
+                            const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row3, lapValRaw] = c;
+                            if (!shouldRenderGlobalIndex(globalIdx)) {
+                                continue;
+                            }
+                            let lapDisplay = lapValRaw;
+                            if (!lapDisplay || Number.isNaN(lapDisplay)) {
+                                lapDisplay = 1;
+                            }
                             const marker = L.circleMarker([lat, lng], {
                                 color: polyColor,
                                 fillColor: "#fff",
-                                fillOpacity: 0.85,
-                                radius: 4,
-                                weight: 2,
+                                fillOpacity: 0.95,
+                                radius: 8,
+                                weight: 3,
                                 zIndexOffset: 1500,
                             });
-                            if (markerClusterGroup) {
-                                markerClusterGroup.addLayer(marker);
-                            } else {
-                                marker.addTo(map);
-                            }
-                            marker.bindTooltip(formatTooltipData(idx3, row3, lapDisplay, recordMesgs), {
+                            // Always add directly to map (bypass clustering) for better visibility
+                            marker.addTo(map);
+                            marker.bindTooltip(formatTooltipData(globalIdx, row3, lapDisplay), {
                                 direction: "top",
                                 sticky: true,
                             });
+                            renderedLap += 1;
                         }
+                        recordMarkerSummary(lapCoords.length, renderedLap);
                     }
                 }
             }
@@ -881,7 +938,8 @@ export function mapDrawLaps(
                 safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
             }
         }
-        return exitEarly();
+        flushMarkerSummary();
+        return;
     }
 
     if (lapIdx !== undefined && lapIdx !== "all" && lapMesgs.length > 0) {
@@ -923,12 +981,14 @@ export function mapDrawLaps(
                     .filter((coord) => coord !== null);
             } else {
                 mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startIdx: ${startIdx}<br>endIdx: ${endIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-                return exitEarly();
+                flushMarkerSummary();
+                return;
             }
         } else {
             mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${lap && lap.startPositionLat
                 }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-            return exitEarly();
+            flushMarkerSummary();
+            return;
         }
     } else {
         coords = recordMesgs
@@ -955,15 +1015,20 @@ export function mapDrawLaps(
 
     if (coords.length === 0) {
         mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
-        return exitEarly();
+        flushMarkerSummary();
+        return;
     }
 
     if (coords.length > 0) {
         const polyColor = getLapColor(lapIdx);
 
         console.log("[mapDrawLaps] DEBUG About to create polyline with L.polyline");
+        // Filter coords to match marker filtering
+        const filteredPolylineCoords = coords
+            .filter((c) => c && shouldRenderGlobalIndex(c[6]))
+            .map((c) => [c[0], c[1]]);
         const polylineResult = L.polyline(
-            coords.map((c) => [c[0], c[1]]),
+            filteredPolylineCoords,
             {
                 color: polyColor,
                 dashArray: lapIdx === "all" ? "6, 8" : null,
@@ -983,7 +1048,8 @@ export function mapDrawLaps(
 
         if (!polyline) {
             console.error("[mapDrawLaps] ERROR: polyline is null/undefined after chaining");
-            return exitEarly();
+            flushMarkerSummary();
+            return;
         }
 
         // --- Store original bounds for main polyline ---
@@ -1006,32 +1072,33 @@ export function mapDrawLaps(
             L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 }).addTo(map).bindPopup("End");
         }
 
-        const samplerMain = createMarkerSampler(coords.length, getMarkerPreference());
-        for (const [coordIdx, coordTuple] of coords.entries()) {
-            if (!coordTuple || !samplerMain.shouldInclude(coordIdx)) {
+        let renderedSingle = 0;
+        for (const c of coords) {
+            if (!c) {
                 continue;
             }
-            const [lat, lng, _ts, _alt, _hr, _speed, idx4, row4, lapVal4] = coordTuple;
-            const lapDisplay = Number.isFinite(lapVal4) && lapVal4 ? lapVal4 : 1;
+            const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row4, lapValRaw] = c;
+            if (!shouldRenderGlobalIndex(globalIdx)) {
+                continue;
+            }
+            let lapDisplay = lapValRaw;
+            if (!lapDisplay || Number.isNaN(lapDisplay)) {
+                lapDisplay = 1;
+            }
             const marker = L.circleMarker([lat, lng], {
                 color: polyColor,
                 fillColor: "#fff",
-                fillOpacity: 0.85,
-                radius: 4,
-                weight: 2,
+                fillOpacity: 0.95,
+                radius: 8,
+                weight: 3,
                 zIndexOffset: 1500,
             });
-            if (markerClusterGroup) {
-                markerClusterGroup.addLayer(marker);
-            } else {
-                marker.addTo(map);
-            }
-            marker.bindTooltip(formatTooltipData(idx4, row4, lapDisplay, recordMesgs), {
-                direction: "top",
-                sticky: true,
-            });
+            // Always add directly to map (bypass clustering) for better visibility
+            marker.addTo(map);
+            marker.bindTooltip(formatTooltipData(globalIdx, row4, lapDisplay), { direction: "top", sticky: true });
+            renderedSingle += 1;
         }
-        recordMarkerSummary(coords.length, samplerMain.sampledCount);
+        recordMarkerSummary(coords.length, renderedSingle);
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
         if (
@@ -1063,7 +1130,6 @@ export function mapDrawLaps(
                         getLapNumForIdx,
                         map,
                         markerClusterGroup,
-                        markerSummary,
                         overlayIdx: i,
                         startIcon,
                     });
@@ -1086,8 +1152,6 @@ export function mapDrawLaps(
     } else {
         mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
     }
-
-    markerSummary.flush();
 }
 
 /**
@@ -1134,10 +1198,6 @@ function getWin() {
     return /** @type {any} */ (globalThis.window === undefined ? globalThis : globalThis);
 }
 
-/**
- * Create a tracker that updates the UI summary for rendered markers.
- * @returns {{record(total:number, rendered:number):void, flush():void}}
- */
 /**
  * Patch lapMesgs to add start_index and end_index if missing
  * @param {Array<LapMesg>} lapMesgs - Lap messages to patch

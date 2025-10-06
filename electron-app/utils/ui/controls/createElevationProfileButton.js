@@ -18,7 +18,10 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 export function createElevationProfileButton() {
 	const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
 	btn.className = "map-action-btn";
-	btn.innerHTML = '<iconify-icon icon="flat-color-icons:area-chart" width="18" height="18"></iconify-icon> <span>Elevation</span>';
+	btn.innerHTML = `
+		<iconify-icon icon="flat-color-icons:area-chart" width="18" height="18"></iconify-icon>
+		<span>Elevation</span>
+	`;
 	btn.title = "Show Elevation Profile";
 
 	btn.addEventListener("click", () => {

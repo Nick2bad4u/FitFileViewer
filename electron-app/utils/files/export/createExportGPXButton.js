@@ -1,15 +1,15 @@
-import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
- * The button uses the current theme colors and exports the track from globalData.
+ * The button uses iconify icons and exports the track from globalData.
  * @returns {HTMLButtonElement} The configured Export GPX button element
  */
 export function createExportGPXButton() {
     const exportBtn = document.createElement("button");
     exportBtn.className = "map-action-btn";
-    const themeColors = getThemeColors();
-    exportBtn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><path d="M10 2v12M10 14l-4-4m4 4l4-4" stroke="${themeColors.primary}" stroke-width="2" fill="none"/><rect x="4" y="16" width="12" height="2" rx="1" fill="${themeColors.primary}"/></svg> <span>Export GPX</span>`;
+    exportBtn.innerHTML = `
+        <iconify-icon icon="flat-color-icons:export" width="18" height="18"></iconify-icon>
+        <span>Export GPX</span>
+    `;
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.addEventListener("click", () => {
         if (
@@ -21,9 +21,9 @@ export function createExportGPXButton() {
         }
         const SEMICIRCLE_DIVISOR = 2_147_483_647, // 2 ** 31 - 1, per FIT protocol
             coords = globalThis.globalData.recordMesgs
-                .filter(/** @param {any} row */ (row) => row.positionLat != null && row.positionLong != null)
+                .filter(/** @param {any} row */(row) => row.positionLat != null && row.positionLong != null)
                 .map(
-                    /** @param {any} row */ (row) => [
+                    /** @param {any} row */(row) => [
                         Number((row.positionLat / SEMICIRCLE_DIVISOR) * 180),
                         Number((row.positionLong / SEMICIRCLE_DIVISOR) * 180),
                     ]

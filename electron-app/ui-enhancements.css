@@ -524,6 +524,14 @@ body.chart-fullscreen-active {
     overflow: hidden;
 }
 
+.chart-fullscreen-placeholder {
+    display: none;
+    visibility: hidden;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
 .chart-fullscreen-overlay {
     position: fixed;
     inset: 0;
@@ -533,6 +541,16 @@ body.chart-fullscreen-active {
     justify-content: center;
     pointer-events: auto;
     isolation: isolate;
+    animation: fadeInOverlay 0.2s ease-out;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .chart-fullscreen-overlay__backdrop {
@@ -607,14 +625,18 @@ body.chart-fullscreen-active {
 }
 
 .chart-wrapper--fullscreen {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: clamp(24px, 2.6vw, 40px);
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    overflow: hidden;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: clamp(24px, 2.6vw, 40px) !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    /* Prevent layout shifts and re-renders during fullscreen */
+    contain: layout style paint;
+    will-change: auto;
+    transform: translateZ(0);
 }
 
 .chart-wrapper--fullscreen .chart-action-toolbar {
