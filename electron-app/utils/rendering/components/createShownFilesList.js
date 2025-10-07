@@ -14,35 +14,45 @@ import { setState } from "../../state/core/stateManager.js";
  */
 export function createShownFilesList() {
     const container = document.createElement("div");
-    container.className = "shown-files-list";
-    container.style.margin = "8px 0";
-    container.style.fontSize = "0.95em";
-    container.style.border = "1px solid #bbb";
-    container.style.borderRadius = "6px";
-    container.style.padding = "6px 10px";
-    container.style.maxWidth = "fit-content";
-    container.style.overflow = "auto";
-    container.style.maxHeight = "fit-content";
-    container.style.minHeight = "40px";
+    container.className = "shown-files-list map-overlays-panel";
     container.tabIndex = 0;
     container.setAttribute("role", "region");
     container.setAttribute("aria-label", "Map overlay files");
     container.setAttribute("aria-disabled", "true");
     container.innerHTML =
-        '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
+        '<b>Extra Files shown on map:</b><ul id="shown-files-ul" class="shown-files-list-items"></ul>';
+    container.style.margin = "8px 0";
+    container.style.padding = "6px 10px";
+    container.style.maxWidth = "fit-content";
+    container.style.overflow = "auto";
+    container.style.maxHeight = "fit-content";
+    container.style.borderRadius = "6px";
+    container.style.fontSize = "0.95em";
+    container.style.border = "1px solid #cbd5f5";
+    container.style.boxShadow = "0 4px 10px rgba(8, 15, 35, 0.18)";
+    container.style.backdropFilter = "blur(6px)";
     const listElement = container.querySelector("#shown-files-ul");
     if (listElement) {
         listElement.setAttribute("role", "listbox");
     }
 
-    function applyTheme() {
-        const themeColors = getThemeColors();
-        container.style.background = `${themeColors.surface || "#ffffff"}ec`; // Add transparency
-        container.style.color = themeColors.text || "#000000";
-        container.style.border = `1px solid ${themeColors.border || "#cccccc"}`;
-    }
-    applyTheme();
-    document.body.addEventListener("themechange", applyTheme);
+    const applyThemeStyles = () => {
+        try {
+            const theme = getThemeColors();
+            const surface = theme?.surface || "#1f2937";
+            const border = theme?.border || "#334155";
+            const text = theme?.text || theme?.textPrimary || "#f8fafc";
+            container.style.background = surface;
+            container.style.border = `1px solid ${border}`;
+            container.style.color = text;
+            container.setAttribute("aria-disabled", "false");
+        } catch (error) {
+            console.warn("[createShownFilesList] Failed to apply theme colors", error);
+        }
+    };
+
+    applyThemeStyles();
+    document.body.addEventListener("themechange", applyThemeStyles);
 
     let pendingStateSync = false;
     const syncOverlayState = () => {

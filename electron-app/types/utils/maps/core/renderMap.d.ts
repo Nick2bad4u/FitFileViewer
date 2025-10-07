@@ -100,6 +100,10 @@ export type WindowExtensions = {
      * - Map theme change listener
      */
     _mapThemeListener?: Function;
+    _mapResizeObserver?: ResizeObserver | null | undefined;
+    _mapResizeHandler?: (event?: Event) => void;
+    _layerControlCloseHandler?: (event: MouseEvent) => void;
+    _miniMapControl?: any;
     /**
      * - Leaflet library object
      */

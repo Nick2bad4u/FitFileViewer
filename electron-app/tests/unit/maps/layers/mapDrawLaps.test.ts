@@ -459,6 +459,16 @@ describe("mapDrawLaps", () => {
             expect(mockMap.fitBounds).toHaveBeenCalled();
             expect(mockMap.invalidateSize).toHaveBeenCalled();
 
+            // Verify marker creation (start/end markers)
+            expect(mockLeaflet.marker).toHaveBeenCalled();
+
+            // Verify circle markers for data points
+            expect(mockLeaflet.circleMarker).toHaveBeenCalled();
+
+            // Cleanup
+            document.body.removeChild(mapContainer);
+
+        });
 
         test("limits rendered markers to the requested count", () => {
             const totalPoints = 120;
@@ -503,12 +513,6 @@ describe("mapDrawLaps", () => {
             });
 
             expect(mockLeaflet.circleMarker).toHaveBeenCalledTimes(10);
-        });
-            // Verify marker creation (start/end markers)
-            expect(mockLeaflet.marker).toHaveBeenCalled();
-
-            // Verify circle markers for data points
-            expect(mockLeaflet.circleMarker).toHaveBeenCalled();
 
             // Cleanup
             document.body.removeChild(mapContainer);

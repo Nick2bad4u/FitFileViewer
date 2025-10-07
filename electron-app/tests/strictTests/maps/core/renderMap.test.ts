@@ -148,23 +148,22 @@ describe("renderMap core", () => {
             return el as any;
         });
 
-        const { renderMap } = await importSUT();
-        renderMap();
-
-        // DOM pieces created
-        const mapDiv = document.getElementById("leaflet-map");
-        const controlsDiv = document.getElementById("map-controls");
-        expect(mapDiv).toBeTruthy();
-        expect(controlsDiv).toBeTruthy();
-
-        // Custom map type button exists and expands layer control on click
-        const btn = document.querySelector(".custom-maptype-btn") as HTMLDivElement;
-        expect(btn).toBeTruthy();
-
-        // Fake a layers control DOM to check expansion then collapse behavior
         const layersPanel = document.createElement("div");
         layersPanel.className = "leaflet-control-layers";
         document.body.appendChild(layersPanel);
+
+    const { renderMap } = await importSUT();
+    renderMap();
+
+    // DOM pieces created
+    const mapDiv = document.getElementById("leaflet-map");
+    const controlsDiv = document.getElementById("map-controls");
+    expect(mapDiv).toBeTruthy();
+    expect(controlsDiv).toBeTruthy();
+
+    // Layer toggle button exists and expands layer control on click
+    const btn = document.querySelector(".map-layer-toggle") as HTMLButtonElement;
+    expect(btn).toBeTruthy();
 
         btn.click();
         expect(layersPanel.classList.contains("leaflet-control-layers-expanded")).toBe(true);

@@ -73,6 +73,8 @@ export class BaseModal {
     lastFocusedElement: HTMLElement | null;
     /** @type {HTMLElement | null} */
     modalElement: HTMLElement | null;
+    /** @type {Set<() => void>} */
+    listenerCleanups: Set<() => void>;
     /**
      * Creates the modal element if it doesn't exist
      * @param {string} content - HTML content for the modal
@@ -90,6 +92,12 @@ export class BaseModal {
      */
     hide(): void;
     /**
+     * Register a listener cleanup function for later teardown.
+     * @param {(() => void) | undefined} cleanup
+     * @protected
+     */
+    protected registerCleanup(cleanup: (() => void) | undefined): void;
+    /**
      * Sets up event listeners for the modal
      * @param {HTMLElement} modal - The modal element
      * @protected
@@ -106,6 +114,11 @@ export class BaseModal {
      * @param {string} content - HTML content for the modal
      */
     show(content: string): Promise<void>;
+    /**
+     * Remove and clear all registered event listeners.
+     * @protected
+     */
+    protected teardownEventListeners(): void;
 }
 export type ModalConfig = {
     /**

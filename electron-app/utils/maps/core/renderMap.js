@@ -34,6 +34,10 @@
  * @property {Function} [setupOverlayFileNameMapActions] - Function to setup overlay file name map actions
  * @property {Function} [setupActiveFileNameMapActions] - Function to setup active file name map actions
  * @property {Function} [_mapThemeListener] - Map theme change listener
+ * @property {ResizeObserver | null | undefined} [_mapResizeObserver]
+ * @property {(event?: Event) => void} [_mapResizeHandler]
+ * @property {(event: MouseEvent) => void} [_layerControlCloseHandler]
+ * @property {any} [_miniMapControl]
  * @property {any} L - Leaflet library object
  */
 
@@ -113,6 +117,38 @@ export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
     const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (globalThis));
     windowExt._overlayPolylines = {};
+    if (windowExt._mapResizeObserver && typeof windowExt._mapResizeObserver.disconnect === "function") {
+        try {
+            windowExt._mapResizeObserver.disconnect();
+        } catch {
+            /* ignore cleanup errors */
+        }
+    }
+    windowExt._mapResizeObserver = null;
+    if (windowExt._mapResizeHandler) {
+        try {
+            window.removeEventListener("resize", windowExt._mapResizeHandler);
+        } catch {
+            /* ignore cleanup errors */
+        }
+        windowExt._mapResizeHandler = undefined;
+    }
+    if (windowExt._layerControlCloseHandler) {
+        try {
+            document.removeEventListener("mousedown", windowExt._layerControlCloseHandler);
+        } catch {
+            /* ignore cleanup errors */
+        }
+        windowExt._layerControlCloseHandler = undefined;
+    }
+    if (windowExt._miniMapControl && typeof windowExt._miniMapControl.remove === "function") {
+        try {
+            windowExt._miniMapControl.remove();
+        } catch {
+            /* ignore cleanup errors */
+        }
+        windowExt._miniMapControl = undefined;
+    }
 
     const mapContainer = document.querySelector("#content-map");
     if (!mapContainer) {
@@ -139,6 +175,23 @@ export function renderMap() {
     const mapControlsDiv = document.createElement("div");
     mapControlsDiv.id = "map-controls";
     mapContainer.append(mapControlsDiv);
+    const controlsBar = document.createElement("div");
+    controlsBar.className = "map-controls-bar";
+    const createGroup = (className) => {
+        const group = document.createElement("div");
+        group.className = className;
+        return group;
+    };
+    const primaryGroup = createGroup("map-controls-group map-controls-group--primary");
+    const utilityGroup = createGroup("map-controls-group map-controls-group--utility");
+    const metricsGroup = createGroup("map-controls-group map-controls-group--metrics");
+    controlsBar.append(primaryGroup, utilityGroup, metricsGroup);
+    mapControlsDiv.append(controlsBar);
+    const appendIfElement = (group, element) => {
+        if (element instanceof HTMLElement) {
+            group.append(element);
+        }
+    };
 
     const LeafletLib = /** @type {any} */ (windowExt).L;
     if (!LeafletLib) {
@@ -154,6 +207,34 @@ export function renderMap() {
     });
     windowExt._leafletMapInstance = map;
 
+    const forceInvalidateSize = () => {
+        try {
+            map.invalidateSize();
+        } catch {
+            /* ignore */
+        }
+    };
+    if (typeof map.whenReady === "function") {
+        map.whenReady(() => {
+            forceInvalidateSize();
+            setTimeout(forceInvalidateSize, 200);
+        });
+    } else {
+        forceInvalidateSize();
+        setTimeout(forceInvalidateSize, 200);
+    }
+    if (typeof ResizeObserver === "function" && leafletMapDiv instanceof HTMLElement) {
+        const resizeObserver = new ResizeObserver(() => {
+            forceInvalidateSize();
+        });
+        resizeObserver.observe(leafletMapDiv);
+        windowExt._mapResizeObserver = resizeObserver;
+    }
+    windowExt._mapResizeHandler = () => {
+        forceInvalidateSize();
+    };
+    window.addEventListener("resize", windowExt._mapResizeHandler, { passive: true });
+
     const layersControl = LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" });
     layersControl.addTo(map);
     const layersControlContainer =
@@ -161,55 +242,41 @@ export function renderMap() {
             ? layersControl.getContainer()
             : document.querySelector(".leaflet-control-layers");
     decorateLayerControlIcons(/** @type {HTMLElement | null} */(layersControlContainer));
+    const layersControlEl = /** @type {HTMLElement | null} */ (layersControlContainer instanceof HTMLElement
+        ? layersControlContainer
+        : document.querySelector(".leaflet-control-layers"));
 
-    // Add a custom floating label/button to indicate map type selection
-    const mapTypeBtn = document.createElement("div");
-    mapTypeBtn.className = "custom-maptype-btn leaflet-bar";
-    mapTypeBtn.style.position = "absolute";
-    mapTypeBtn.style.top = "16px";
-    mapTypeBtn.style.right = "60px";
-    mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
-    mapTypeBtn.innerHTML = '<iconify-icon icon="flat-color-icons:globe" width="20" height="20"></iconify-icon> Change Map Type';
-    mapTypeBtn.title = "Click to change the map type";
-    mapTypeBtn.addEventListener("click", handleMapTypeButtonClick);
-    const leafletMapDiv2 = document.querySelector("#leaflet-map");
-    if (leafletMapDiv2) {
-        leafletMapDiv2.append(mapTypeBtn);
-    }
-
-    /**
-     * Handle map type button click
-     * @param {Event} e - Click event
-     * @returns {void}
-     */
-    function handleMapTypeButtonClick(e) {
-        e.stopPropagation();
-        const layersControlEl = document.querySelector(".leaflet-control-layers");
+    const layerToggleButton = document.createElement("button");
+    layerToggleButton.type = "button";
+    layerToggleButton.className = "map-action-btn map-layer-toggle";
+    layerToggleButton.innerHTML =
+        '<iconify-icon icon="flat-color-icons:globe" width="18" height="18"></iconify-icon><span>Change Map</span>';
+    layerToggleButton.title = "Choose a different map base layer";
+    layerToggleButton.addEventListener("click", (event) => {
+        event.stopPropagation();
         if (layersControlEl) {
             layersControlEl.classList.add("leaflet-control-layers-expanded");
-            const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
-            layersControlElStyled.style.zIndex = "1201"; // Just below the button
-            // Focus the first input for accessibility
+            layersControlEl.style.zIndex = "1201";
             const firstInput = layersControlEl.querySelector('input[type="radio"]');
-            if (firstInput) {
-                const inputElement = /** @type {HTMLInputElement} */ (firstInput);
-                inputElement.focus();
-            }
-        }
-    }
-
-    // When the user clicks outside the control, collapse it
-    document.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
-        const layersControlEl = document.querySelector(".leaflet-control-layers");
-        if (layersControlEl && layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
-            const { target } = /** @type {{ target: Node }} */ (e);
-            if (!layersControlEl.contains(target) && !mapTypeBtn.contains(target)) {
-                layersControlEl.classList.remove("leaflet-control-layers-expanded");
-                const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
-                layersControlElStyled.style.zIndex = "";
+            if (firstInput instanceof HTMLElement) {
+                firstInput.focus();
             }
         }
     });
+    appendIfElement(utilityGroup, layerToggleButton);
+
+    windowExt._layerControlCloseHandler = (event) => {
+        if (!layersControlEl || !layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
+            return;
+        }
+        const target = /** @type {Node | null} */ ((event && event.target) || null);
+        const clickedToggle = target instanceof Node && layerToggleButton.contains(target);
+        if (!layersControlEl.contains(target) && !clickedToggle) {
+            layersControlEl.classList.remove("leaflet-control-layers-expanded");
+            layersControlEl.style.zIndex = "";
+        }
+    };
+    document.addEventListener("mousedown", /** @type {EventListener} */(windowExt._layerControlCloseHandler));
 
     // --- Add a custom zoom slider bar (normalized 0-100%) ---
     const zoomSliderBar = document.createElement("div");
@@ -345,15 +412,17 @@ export function renderMap() {
     };
 
     if (controlsDiv) {
-        controlsDiv.append(createPrintButton());
-        controlsDiv.append(createMapThemeToggle());
-        controlsDiv.append(createExportGPXButton());
-        controlsDiv.append(createElevationProfileButton());
+        appendIfElement(primaryGroup, createPrintButton());
+        appendIfElement(primaryGroup, createExportGPXButton());
+        appendIfElement(primaryGroup, createElevationProfileButton());
+        appendIfElement(primaryGroup, createAddFitFileToMapButton());
+
+        appendIfElement(utilityGroup, createMapThemeToggle());
+        addSimpleMeasureTool(map, utilityGroup);
+
         const markerCountSelector = createMarkerCountSelector(() => {
-            // Redraw map with new marker count, preserving current lap selection
             const lapSelect = /** @type {HTMLSelectElement | null} */ (document.querySelector("#lap-select"));
             if (lapSelect) {
-                // Get current lap selection
                 const selected = [...lapSelect.selectedOptions].map((opt) => opt.value);
                 if (selected.length === 1 && selected[0] === "all") {
                     mapDrawLapsWrapper("all");
@@ -365,20 +434,17 @@ export function renderMap() {
                     mapDrawLapsWrapper("all");
                 }
             } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
-                // Fallback if lap selector not found
                 mapDrawLapsWrapper("all");
             }
             if (windowExt.updateShownFilesList) {
                 windowExt.updateShownFilesList();
             }
         });
-        controlsDiv.append(markerCountSelector);
+        appendIfElement(metricsGroup, markerCountSelector);
 
-        markerSummaryElement = ensureMapMarkerSummaryElement(controlsDiv, markerCountSelector);
+        markerSummaryElement = ensureMapMarkerSummaryElement(metricsGroup, markerCountSelector);
         updateMarkerSummaryDisplay(markerSummaryState);
 
-        addSimpleMeasureTool(map, controlsDiv);
-        controlsDiv.append(createAddFitFileToMapButton());
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
             const shownFilesList = createShownFilesList();
             controlsDiv.append(shownFilesList);
@@ -429,13 +495,30 @@ export function renderMap() {
 
     // --- Minimap (if plugin available) ---
     if (windowExt.L && L.Control && L.Control.MiniMap) {
-        // Always use a standard tile layer for the minimap
         const miniMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "",
         });
-        new L.Control.MiniMap(miniMapLayer, {
+        const miniMapControl = new L.Control.MiniMap(miniMapLayer, {
+            aimingRectOptions: { color: "#2563eb", interactive: false, weight: 2 },
+            height: 180,
+            position: "bottomright",
+            shadowRectOptions: { color: "#2563eb", fillOpacity: 0.1, interactive: false, opacity: 0.35, weight: 1 },
             toggleDisplay: true,
-        }).addTo(map);
+            width: 180,
+            zoomAnimation: true,
+            zoomLevelOffset: -5,
+        });
+        miniMapControl.addTo(map);
+        windowExt._miniMapControl = miniMapControl;
+        if (miniMapControl?._miniMap && typeof miniMapControl._miniMap.invalidateSize === "function") {
+            setTimeout(() => {
+                try {
+                    miniMapControl._miniMap.invalidateSize();
+                } catch {
+                    /* ignore */
+                }
+            }, 250);
+        }
     }
 
     // --- Measurement tool (if plugin available) ---
@@ -619,6 +702,7 @@ function decorateLayerControlIcons(container) {
         iconEl.classList.add("map-layer-icon");
         iconEl.style.marginRight = "6px";
         iconEl.style.verticalAlign = "middle";
+        labelNode.classList.add("map-layer-option");
 
         const radio = labelNode.querySelector('input[type="radio"]');
         if (radio instanceof HTMLElement) {

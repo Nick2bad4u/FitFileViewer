@@ -104,7 +104,7 @@ describe("setupTheme", () => {
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
-        expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("getTheme not available"));
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("unable to fetch theme"));
     });
 
     it("logs warning when localStorage access fails", async () => {

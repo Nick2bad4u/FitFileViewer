@@ -344,6 +344,13 @@ function enhanceChartCanvas(canvas, themeConfig) {
 
 function ensureHoverStylesInjected() {
     if (stylesInjected) {
+        const existing = document.getElementById("chart-hover-effects-styles");
+        if (existing) {
+            return;
+        }
+        stylesInjected = false;
+    }
+    if (document.getElementById("chart-hover-effects-styles")) {
         return;
     }
     const style = document.createElement("style");

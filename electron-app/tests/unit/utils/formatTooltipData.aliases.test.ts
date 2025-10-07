@@ -47,7 +47,7 @@ describe("formatTooltipData alias support", () => {
         expect(result).toContain("<b>Lap:</b> 5");
         expect(result).toContain("<b>Alt:</b> 345.2 m / 1,133 ft");
         expect(result).toContain("<b>HR:</b> 142.0 bpm");
-        expect(result).toContain("<b>Speed:</b> 35.0 km/h / 21.5 mph");
+    expect(result).toContain("<b>Speed:</b> 35.0 km/h / 21.7 mph");
     });
 
     it("pulls fallback metrics when primary row lacks data", () => {

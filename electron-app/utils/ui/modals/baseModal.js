@@ -43,6 +43,9 @@ export class BaseModal {
 
         /** @type {HTMLElement | null} */
         this.modalElement = null;
+
+        /** @type {Set<() => void>} */
+        this.listenerCleanups = new Set();
     }
 
     /**
@@ -91,6 +94,8 @@ export class BaseModal {
             return;
         }
 
+        this.teardownEventListeners();
+
         // Start closing animation
         modal.classList.remove("show");
 
@@ -108,41 +113,62 @@ export class BaseModal {
     }
 
     /**
+     * Register a listener cleanup function for later teardown.
+     * @param {(() => void) | undefined} cleanup
+     * @protected
+     */
+    registerCleanup(cleanup) {
+        if (typeof cleanup === "function") {
+            this.listenerCleanups.add(cleanup);
+        }
+    }
+
+    /**
      * Sets up event listeners for the modal
      * @param {HTMLElement} modal - The modal element
      * @protected
      */
     setupEventListeners(modal) {
+        this.teardownEventListeners();
+
         // Close button
         const closeBtn = modal.querySelector(`#${this.config.id}-close, .modal-close`);
         if (closeBtn) {
-            addEventListenerWithCleanup(closeBtn, "click", (e) => {
-                e.preventDefault();
-                this.hide();
-            });
-
-            addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
-                if (e.key === "Enter" || e.key === " ") {
+            this.registerCleanup(
+                addEventListenerWithCleanup(closeBtn, "click", (e) => {
                     e.preventDefault();
                     this.hide();
-                }
-            });
+                })
+            );
+
+            this.registerCleanup(
+                addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        this.hide();
+                    }
+                })
+            );
         }
 
         // Close on backdrop click
         if (this.config.closeOnBackdrop) {
-            addEventListenerWithCleanup(modal, "click", (e) => {
-                if (e.target === modal) {
-                    this.hide();
-                }
-            });
+            this.registerCleanup(
+                addEventListenerWithCleanup(modal, "click", (e) => {
+                    if (e.target === modal) {
+                        this.hide();
+                    }
+                })
+            );
 
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                addEventListenerWithCleanup(/** @type {HTMLElement} */(modalContent), "click", (e) => {
-                    e.stopPropagation();
-                });
+                this.registerCleanup(
+                    addEventListenerWithCleanup(/** @type {HTMLElement} */(modalContent), "click", (e) => {
+                        e.stopPropagation();
+                    })
+                );
             }
         }
 
@@ -153,10 +179,9 @@ export class BaseModal {
                     e.preventDefault();
                     e.stopPropagation();
                     this.hide();
-                    document.removeEventListener("keydown", handleEscape, true);
                 }
             };
-            document.addEventListener("keydown", handleEscape, true);
+            this.registerCleanup(addEventListenerWithCleanup(document, "keydown", handleEscape, true));
         }
     }
 
@@ -169,20 +194,8 @@ export class BaseModal {
         const externalLinks = modal.querySelectorAll("[data-external-link]");
 
         for (const link of externalLinks) {
-            addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "click", (e) => {
-                e.preventDefault();
-                const url = /** @type {HTMLElement} */ (link).getAttribute("href");
-
-                if (url && globalThis.electronAPI?.openExternal) {
-                    globalThis.electronAPI.openExternal(url);
-                } else if (url) {
-                    // Fallback for non-Electron environments
-                    window.open(url, "_blank", "noopener,noreferrer");
-                }
-            });
-
-            addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "keydown", (e) => {
-                if (e.key === "Enter" || e.key === " ") {
+            this.registerCleanup(
+                addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "click", (e) => {
                     e.preventDefault();
                     const url = /** @type {HTMLElement} */ (link).getAttribute("href");
 
@@ -192,8 +205,24 @@ export class BaseModal {
                         // Fallback for non-Electron environments
                         window.open(url, "_blank", "noopener,noreferrer");
                     }
-                }
-            });
+                })
+            );
+
+            this.registerCleanup(
+                addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const url = /** @type {HTMLElement} */ (link).getAttribute("href");
+
+                        if (url && globalThis.electronAPI?.openExternal) {
+                            globalThis.electronAPI.openExternal(url);
+                        } else if (url) {
+                            // Fallback for non-Electron environments
+                            window.open(url, "_blank", "noopener,noreferrer");
+                        }
+                    }
+                })
+            );
         }
     }
 
@@ -225,6 +254,24 @@ export class BaseModal {
 
         // Call onShow callback
         this.config.onShow?.();
+    }
+
+    /**
+     * Remove and clear all registered event listeners.
+     * @protected
+     */
+    teardownEventListeners() {
+        if (!this.listenerCleanups.size) {
+            return;
+        }
+        for (const cleanup of this.listenerCleanups) {
+            try {
+                cleanup();
+            } catch (error) {
+                console.warn("[BaseModal] Failed to cleanup listener", error);
+            }
+        }
+        this.listenerCleanups.clear();
     }
 }
 
@@ -282,8 +329,13 @@ export function trapFocus(modal) {
         return () => { };
     }
 
-    const [firstElement] = focusableElements;
-    const lastElement = /** @type {HTMLElement} */ (focusableElements.at(-1));
+    const focusable = Array.from(focusableElements, (el) => /** @type {HTMLElement} */(el));
+    const [firstElement] = focusable;
+    const lastElement = focusable.at(-1);
+
+    if (!firstElement || !lastElement) {
+        return () => { };
+    }
 
     const handler = (/** @type {KeyboardEvent} */ e) => {
         if (e.key !== "Tab") {

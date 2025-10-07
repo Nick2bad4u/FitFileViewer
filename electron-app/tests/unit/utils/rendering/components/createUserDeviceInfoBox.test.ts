@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock dependent formatters and theme
-vi.mock("../../../../utils/theming/core/theme.js", () => ({
+vi.mock("../../../../../utils/theming/core/theme.js", () => ({
     getThemeConfig: vi.fn(() => ({
         name: "test-theme",
         colors: {
@@ -29,15 +29,15 @@ vi.mock("../../../../utils/theming/core/theme.js", () => ({
         },
     })),
 }));
-vi.mock("../../../../utils/formatting/formatters/formatHeight.js", () => ({ formatHeight: vi.fn((v) => `${v}cm`) }));
-vi.mock("../../../../utils/formatting/formatters/formatWeight.js", () => ({ formatWeight: vi.fn((v) => `${v}kg`) }));
-vi.mock("../../../../utils/formatting/formatters/formatSensorName.js", () => ({
+vi.mock("../../../../../utils/formatting/formatters/formatHeight.js", () => ({ formatHeight: vi.fn((v) => `${v}cm`) }));
+vi.mock("../../../../../utils/formatting/formatters/formatWeight.js", () => ({ formatWeight: vi.fn((v) => `${v}kg`) }));
+vi.mock("../../../../../utils/formatting/formatters/formatSensorName.js", () => ({
     formatSensorName: vi.fn(() => "Garmin Foo"),
 }));
-vi.mock("../../../../utils/formatting/formatters/formatManufacturer.js", () => ({
+vi.mock("../../../../../utils/formatting/formatters/formatManufacturer.js", () => ({
     formatManufacturer: vi.fn(() => "Garmin"),
 }));
-vi.mock("../../../../utils/formatting/display/formatCapitalize.js", () => ({
+vi.mock("../../../../../utils/formatting/display/formatCapitalize.js", () => ({
     formatCapitalize: vi.fn((s) => String(s)),
 }));
 

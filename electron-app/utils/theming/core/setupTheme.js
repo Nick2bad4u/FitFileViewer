@@ -58,10 +58,11 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
         logWithContext("Initializing theme setup");
 
         // Try to get theme from various sources in order of preference
+        const defaultTheme = THEME_CONSTANTS.DEFAULT_THEME;
         let theme = await fetchThemeFromMainProcess();
 
-        // Fallback to localStorage if main process fails
-        if (theme === THEME_CONSTANTS.DEFAULT_THEME && config.useLocalStorage) {
+        // Fallback to localStorage if main process fails or default is returned
+        if ((!theme || theme === defaultTheme) && config.useLocalStorage) {
             try {
                 const storedTheme = localStorage.getItem(THEME_CONSTANTS.STORAGE_KEY);
                 if (storedTheme && isValidTheme(storedTheme)) {
@@ -76,10 +77,20 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
             }
         }
 
-        // Final fallback to config option
+        // Final fallback chain
+        if (!theme && config.fallbackTheme && isValidTheme(config.fallbackTheme)) {
+            theme = config.fallbackTheme;
+            logWithContext(`Using fallback theme override: ${theme}`);
+        }
+
+        if (!theme) {
+            theme = defaultTheme;
+            logWithContext(`Using default theme: ${theme}`);
+        }
+
         if (!isValidTheme(theme)) {
-            theme = config.fallbackTheme || THEME_CONSTANTS.DEFAULT_THEME;
-            logWithContext(`Using fallback theme: ${theme}`);
+            logWithContext(`Invalid theme resolved (${theme}), reverting to default`, "warn");
+            theme = defaultTheme;
         }
 
         // Apply the theme and track it
@@ -156,11 +167,11 @@ function applyAndTrackTheme(theme, applyTheme) {
  * @private
  */
 async function fetchThemeFromMainProcess() {
-    const { DEFAULT_THEME, TIMEOUT } = THEME_CONSTANTS;
+    const { TIMEOUT } = THEME_CONSTANTS;
 
     if (!globalThis.electronAPI?.getTheme) {
-        logWithContext("ElectronAPI getTheme not available, using default theme", "warn");
-        return DEFAULT_THEME;
+        logWithContext("ElectronAPI getTheme not available, unable to fetch theme", "warn");
+        return null;
     }
 
     try {
@@ -171,19 +182,19 @@ async function fetchThemeFromMainProcess() {
             }),
             theme = await Promise.race([themePromise, timeoutPromise]);
 
-        if (!isValidTheme(theme)) {
-            logWithContext(`Invalid theme received: ${theme}, using default`, "warn");
-            return DEFAULT_THEME;
+        if (typeof theme === "string" && isValidTheme(theme)) {
+            logWithContext(`Theme fetched from main process: ${theme}`);
+            return theme;
         }
 
-        logWithContext(`Theme fetched from main process: ${theme}`);
-        return theme;
+        logWithContext(`Invalid theme received from main process: ${theme}`, "warn");
+        return null;
     } catch (error) {
         logWithContext(
-            `Failed to get theme from main process: ${/** @type {Error} */ (error).message}, using default`,
+            `Failed to get theme from main process: ${/** @type {Error} */ (error).message}`,
             "warn"
         );
-        return DEFAULT_THEME;
+        return null;
     }
 }
 
@@ -235,7 +246,7 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
         if (typeof listenForThemeChange === "function") {
             // Set up external theme change listener
             listenForThemeChange(
-                /** @param {*} newTheme */ (newTheme) => {
+                /** @param {*} newTheme */(newTheme) => {
                     logWithContext(`Theme change received: ${newTheme}`);
                     applyAndTrackTheme(newTheme, applyTheme);
                 }
@@ -245,7 +256,7 @@ function setupThemeChangeListener(applyTheme, listenForThemeChange) {
         // Set up state-based theme change listener
         subscribe(
             "ui.theme",
-            /** @param {*} newTheme */ (newTheme) => {
+            /** @param {*} newTheme */(newTheme) => {
                 if (newTheme && newTheme !== getState("ui.previousTheme")) {
                     logWithContext(`State-driven theme change: ${newTheme}`);
                     setState("ui.previousTheme", newTheme, { source: "setupTheme" });

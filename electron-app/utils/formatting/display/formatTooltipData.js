@@ -4,12 +4,11 @@
  */
 
 import { getState } from "../../state/core/stateManager.js";
-import { formatDistance as formatDistanceCentralized } from "../formatters/formatDistance.js";
 import { safeToNumber } from "../helpers/numberHelpers.js";
 
 /**
  * @typedef {Object} RecordMessage
- * @property {string|Date} [timestamp] - Message timestamp
+ * @property {string|number|Date|null} [timestamp] - Message timestamp
  * @property {number} [altitude] - Altitude in meters
  * @property {number} [heartRate] - Heart rate in bpm
  * @property {number} [speed] - Speed in m/s
@@ -207,8 +206,18 @@ function formatAltitude(altitude) {
 
     const { ALTITUDE_FEET, ALTITUDE_METERS } = FORMATTING_CONSTANTS.DECIMAL_PLACES,
         { METERS_TO_FEET } = FORMATTING_CONSTANTS.CONVERSION_FACTORS,
-        altFeet = altMeters * METERS_TO_FEET;
-    return `${altMeters.toFixed(ALTITUDE_METERS)} m / ${altFeet.toFixed(ALTITUDE_FEET)} ft`;
+        altFeet = altMeters * METERS_TO_FEET,
+        feetRounded = Number.parseFloat(altFeet.toFixed(ALTITUDE_FEET));
+
+    const metersText = altMeters.toFixed(ALTITUDE_METERS);
+    const feetText = Number.isFinite(feetRounded)
+        ? feetRounded.toLocaleString(undefined, {
+            maximumFractionDigits: ALTITUDE_FEET,
+            minimumFractionDigits: ALTITUDE_FEET,
+        })
+        : altFeet.toFixed(ALTITUDE_FEET);
+
+    return `${metersText} m / ${feetText} ft`;
 }
 
 /**
@@ -228,7 +237,7 @@ function formatCadence(cadence) {
 
 /**
  * Formats distance value with metric and imperial units
- * Uses centralized formatDistance and adds HTML line break for tooltips
+ * Uses tooltip-specific formatting (1 decimal place) and adds HTML line break for tooltips
  * Special handling for zero distance (allowed in tooltips)
  * @param {number|null} distance - Distance in meters
  * @returns {string} Formatted distance string with HTML line break or empty string
@@ -245,9 +254,10 @@ function formatDistance(distance) {
         return "0.00 km / 0.00 mi<br>";
     }
 
-    // Use centralized format for non-zero distances and add line break for tooltip display
-    const formatted = formatDistanceCentralized(meters);
-    return formatted ? `${formatted}<br>` : "";
+    const kilometers = meters / 1000;
+    const miles = meters / 1609.344;
+    const formatted = `${kilometers.toFixed(1)} km / ${miles.toFixed(1)} mi`;
+    return `${formatted}<br>`;
 }
 
 /**

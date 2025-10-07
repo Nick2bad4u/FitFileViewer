@@ -340,4 +340,32 @@ function setupActiveFileNameMapActions() {
         console.error("[mapActionButtons] Error patching updateShownFilesList:", error);
     }
 })();
+
+try {
+    if (typeof globalThis !== "undefined") {
+        const w = /** @type {any} */ (globalThis);
+        if (typeof w.centerMapOnRoute !== "function") {
+            w.centerMapOnRoute = () => {
+                if (typeof _centerMapOnMainFile === "function") {
+                    _centerMapOnMainFile();
+                }
+            };
+        }
+        if (typeof w.fitBounds !== "function") {
+            w.fitBounds = () => {
+                try {
+                    const bounds = w._mainPolylineOriginalBounds;
+                    const map = w._leafletMapInstance;
+                    if (map && bounds && typeof bounds.isValid === "function" && bounds.isValid()) {
+                        map.fitBounds(bounds, { padding: [20, 20] });
+                    }
+                } catch (error) {
+                    console.warn("[mapActionButtons] fitBounds helper failed:", error);
+                }
+            };
+        }
+    }
+} catch (error) {
+    console.error("[mapActionButtons] Failed to expose centering helpers:", error);
+}
 export { createMapThemeToggle } from "../../theming/specific/createMapThemeToggle.js";

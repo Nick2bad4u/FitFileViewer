@@ -9,7 +9,10 @@
  * Coverage Target: 95-100% line coverage with comprehensive edge case testing
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
+
+type FormatTooltipFn = typeof import("../../../utils/formatting/display/formatTooltipData.js")["formatTooltipData"];
+type GetStateFn = typeof import("../../../utils/state/core/stateManager.js")["getState"];
 
 // Mock the state manager
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
@@ -17,19 +20,20 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
 }));
 
 describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
-    let formatTooltipData;
-    let mockGetState;
+    let formatTooltipData: FormatTooltipFn;
+    let mockGetState: Mock;
 
     beforeEach(async () => {
         // Clear all mocks
         vi.clearAllMocks();
 
         // Import the function after mocks are set up
-        const module = await import("../../../utils/formatting/display/formatTooltipData.js");
-        formatTooltipData = module.formatTooltipData;
+    const module = await import("../../../utils/formatting/display/formatTooltipData.js");
+    formatTooltipData = module.formatTooltipData;
 
         // Get mock references
-        mockGetState = (await import("../../../utils/state/core/stateManager.js")).getState;
+    const stateModule = await import("../../../utils/state/core/stateManager.js");
+    mockGetState = stateModule.getState as Mock;
 
         // Set up default mock returns
         mockGetState.mockReturnValue([]);
@@ -136,7 +140,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 const result = formatTooltipData(999, row, 10);
 
-                expect(result).toContain("<b>Alt:</b> 8848.0 m / 29029 ft");
+                expect(result).toContain("<b>Alt:</b> 8848.0 m / 29,029 ft");
                 expect(result).toContain("<b>HR:</b> 220.0 bpm");
                 expect(result).toContain("<b>Speed:</b> 180.0 km/h / 111.8 mph");
                 expect(result).toContain("<b>Power:</b> 1500.0 W");
@@ -166,13 +170,13 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
     describe("Input Validation and Error Handling", () => {
         describe("Invalid Row Data", () => {
             it("should handle null row data", () => {
-                const result = formatTooltipData(10, null, 1);
+                const result = formatTooltipData(10, null as any, 1);
 
                 expect(result).toBe("No data available");
             });
 
             it("should handle undefined row data", () => {
-                const result = formatTooltipData(10, undefined, 1);
+                const result = formatTooltipData(10, undefined as any, 1);
 
                 expect(result).toBe("No data available");
             });
@@ -210,7 +214,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                     cadence: null,
                 };
 
-                const result = formatTooltipData(10, row, 1);
+                const result = formatTooltipData(10, row as any, 1);
 
                 expect(result).toContain("<b>Lap:</b> 1");
                 expect(result).toContain("<b>Index:</b> 10");
@@ -227,7 +231,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                     speed: undefined,
                 };
 
-                const result = formatTooltipData(10, row, 1);
+                const result = formatTooltipData(10, row as any, 1);
 
                 expect(result).toContain("<b>Lap:</b> 1");
                 expect(result).not.toContain("<b>Alt:</b>");
@@ -443,8 +447,8 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 const result = formatTooltipData(10, row, 1);
 
                 expect(result).toContain("<b>Distance:</b>");
-                expect(result).toContain("5.00 km");
-                expect(result).toContain("3.11 mi");
+                expect(result).toContain("5.0 km");
+                expect(result).toContain("3.1 mi");
             });
 
             it("should handle small distances", () => {
@@ -456,8 +460,8 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 const result = formatTooltipData(10, row, 1);
 
                 expect(result).toContain("<b>Distance:</b>");
-                expect(result).toContain("0.10 km");
-                expect(result).toContain("0.06 mi");
+                expect(result).toContain("0.1 km");
+                expect(result).toContain("0.1 mi");
             });
 
             it("should handle large distances", () => {
@@ -469,8 +473,8 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 const result = formatTooltipData(10, row, 1);
 
                 expect(result).toContain("<b>Distance:</b>");
-                expect(result).toContain("100.00 km");
-                expect(result).toContain("62.14 mi");
+                expect(result).toContain("100.0 km");
+                expect(result).toContain("62.1 mi");
             });
 
             it("should handle zero distance", () => {
@@ -665,7 +669,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 expect(result).toContain("<b>Lap:</b> 5");
                 expect(result).toContain("<b>Index:</b> 890");
-                expect(result).toContain("<b>Alt:</b> 892.3 m / 2927 ft");
+                expect(result).toContain("<b>Alt:</b> 892.3 m / 2,927 ft");
                 expect(result).toContain("<b>Distance:</b>");
                 expect(result).not.toContain("<b>HR:</b>");
                 expect(result).not.toContain("<b>Speed:</b>");

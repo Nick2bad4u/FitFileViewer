@@ -4,6 +4,7 @@ import { formatManufacturer } from "../../formatting/formatters/formatManufactur
 import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
 import { formatWeight } from "../../formatting/formatters/formatWeight.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { createIconElement } from "../../ui/icons/iconMappings.js";
 
 /**
  * @typedef {import("../../formatting/formatters/formatManufacturer.js").ManufacturerInfo} ManufacturerInfo
@@ -109,7 +110,7 @@ const PROFILE_FIELDS = [
         },
     },
     {
-        label: "Heart Rate Setting",
+        label: "HR Setting",
         getValue(profile) {
             return typeof profile?.hrSetting === "string" ? formatCapitalize(profile.hrSetting) : null;
         },
@@ -154,28 +155,88 @@ const PROFILE_FIELDS = [
                 : null;
         },
     },
+    {
+        label: "Local ID",
+        getValue(profile) {
+            return typeof profile?.localId === "number" || typeof profile?.localId === "string"
+                ? String(profile.localId)
+                : null;
+        },
+    },
+    {
+        label: "Global ID",
+        getValue(profile) {
+            return typeof profile?.globalId === "number" || typeof profile?.globalId === "string"
+                ? String(profile.globalId)
+                : null;
+        },
+    },
+    {
+        label: "Wake Time",
+        getValue(profile) {
+            return typeof profile?.wakeTime === "string" && profile.wakeTime.trim().length > 0
+                ? profile.wakeTime
+                : null;
+        },
+    },
+    {
+        label: "Sleep Time",
+        getValue(profile) {
+            return typeof profile?.sleepTime === "string" && profile.sleepTime.trim().length > 0
+                ? profile.sleepTime
+                : null;
+        },
+    },
+    {
+        label: "Height Setting",
+        getValue(profile) {
+            return typeof profile?.heightSetting === "string" && profile.heightSetting.trim().length > 0
+                ? formatCapitalize(profile.heightSetting)
+                : null;
+        },
+    },
+    {
+        label: "Depth Setting",
+        getValue(profile) {
+            return typeof profile?.depthSetting === "string" && profile.depthSetting.trim().length > 0
+                ? formatCapitalize(profile.depthSetting)
+                : null;
+        },
+    },
+    {
+        label: "Dive Count",
+        getValue(profile) {
+            return Number.isFinite(profile?.diveCount) ? String(profile.diveCount) : null;
+        },
+    },
 ];
 
 const DEVICE_FIELDS = [
     {
         label: "Manufacturer",
         getValue(device) {
-            return formatManufacturer(device);
+            if (device?.manufacturer === undefined || device.manufacturer === null) {
+                return null;
+            }
+            return formatManufacturer(device.manufacturer);
         },
     },
     {
-        label: "Product",
+        label: "Device Model",
         getValue(device) {
-            const parts = [device?.productName, device?.product].filter(Boolean);
-            return parts.length > 0 ? parts.join(" · ") : null;
+            return typeof device?.garminProduct === "string" && device.garminProduct.trim().length > 0
+                ? formatCapitalize(device.garminProduct)
+                : null;
         },
     },
     {
         label: "Software Version",
         getValue(device) {
-            return Number.isFinite(device?.softwareVersion)
-                ? `v${Number(device.softwareVersion).toFixed(1)}`
-                : null;
+            if (!Number.isFinite(device?.softwareVersion)) {
+                return null;
+            }
+            const version = Number(device.softwareVersion);
+            return `v${version.toFixed(version % 1 === 0 ? 0 : 1)}`;
         },
     },
     {
@@ -190,16 +251,19 @@ const DEVICE_FIELDS = [
             if (typeof device?.serialNumber !== "string" || device.serialNumber.trim().length === 0) {
                 return null;
             }
-
-            return device.serialNumber.length > 16
-                ? `${device.serialNumber.slice(0, 12)}…`
-                : device.serialNumber;
+            const serial = device.serialNumber.trim();
+            if (serial.length <= 12) {
+                return { text: serial, full: serial };
+            }
+            return { text: `${serial.slice(0, 11)}…`, full: serial };
         },
     },
     {
         label: "Battery Status",
         getValue(device) {
-            return typeof device?.batteryStatus === "string" ? formatCapitalize(device.batteryStatus) : null;
+            return typeof device?.batteryStatus === "string" && device.batteryStatus.trim().length > 0
+                ? formatCapitalize(device.batteryStatus)
+                : null;
         },
     },
 ];
@@ -264,17 +328,21 @@ function buildDeviceSection(deviceInfos) {
     }
 
     const primaryDevice = selectPrimaryDevice(deviceInfos);
-    const sensors = deviceInfos.filter((device) => device !== primaryDevice && (device?.descriptor || device?.deviceType || device?.productName));
+    const sensors = deviceInfos.filter((device) => device !== primaryDevice);
 
     const section = document.createElement("section");
     section.className = "user-device-info-box__section user-device-info-box__section--device";
 
     const header = document.createElement("header");
     header.className = "user-device-info-box__header";
-    header.innerHTML = `
-        <span class="user-device-info-box__header-icon" aria-hidden="true">�</span>
-        <h3 class="user-device-info-box__title">Device</h3>
-    `;
+    const deviceIconWrapper = document.createElement("span");
+    deviceIconWrapper.className = "user-device-info-box__header-icon";
+    deviceIconWrapper.setAttribute("aria-hidden", "true");
+    deviceIconWrapper.append(createIconElement("mdi:watch-variant", 18));
+    const deviceTitle = document.createElement("h3");
+    deviceTitle.className = "user-device-info-box__title";
+    deviceTitle.textContent = "Device";
+    header.append(deviceIconWrapper, deviceTitle);
 
     const detailsCard = document.createElement("div");
     detailsCard.className = "user-device-info-box__card";
@@ -319,10 +387,14 @@ function buildProfileSection(profile) {
 
     const header = document.createElement("header");
     header.className = "user-device-info-box__header";
-    header.innerHTML = `
-        <span class="user-device-info-box__header-icon" aria-hidden="true">�</span>
-        <h3 class="user-device-info-box__title">Profile</h3>
-    `;
+    const profileIconWrapper = document.createElement("span");
+    profileIconWrapper.className = "user-device-info-box__header-icon";
+    profileIconWrapper.setAttribute("aria-hidden", "true");
+    profileIconWrapper.append(createIconElement("mdi:account-badge", 18));
+    const profileTitle = document.createElement("h3");
+    profileTitle.className = "user-device-info-box__title";
+    profileTitle.textContent = "Profile";
+    header.append(profileIconWrapper, profileTitle);
 
     const fieldList = document.createElement("dl");
     fieldList.className = "user-device-info-box__fields";
@@ -369,6 +441,11 @@ function createEmptyState() {
     return empty;
 }
 
+/**
+ * @param {string} label
+ * @param {string | { text: string; full?: string }} value
+ * @returns {HTMLDivElement}
+ */
 function createFieldRow(label, value) {
     const row = document.createElement("div");
     row.className = "user-device-info-box__field";
@@ -379,7 +456,15 @@ function createFieldRow(label, value) {
 
     const description = document.createElement("dd");
     description.className = "user-device-info-box__field-value";
-    description.textContent = value;
+    if (typeof value === "string") {
+        description.textContent = value;
+    } else if (value && typeof value === "object") {
+        const text = value.text ?? "";
+        description.textContent = text;
+        if (value.full && value.full !== text) {
+            description.title = value.full;
+        }
+    }
 
     row.append(term, description);
     return row;

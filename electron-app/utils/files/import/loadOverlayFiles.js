@@ -1,4 +1,4 @@
-import { setState } from "../../state/core/stateManager.js";
+import { getState, setState } from "../../state/core/stateManager.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
@@ -20,6 +20,7 @@ export async function loadOverlayFiles(files) {
     const existingKeys = new Set();
     let stateDirty = ensureLoadedFitFilesInitialized(existingKeys);
     const initialCount = Array.isArray(globalThis.loadedFitFiles) ? globalThis.loadedFitFiles.length : 0;
+    const previousActiveTab = getState("ui.activeTab");
 
     const invalidFiles = [];
     const duplicateFiles = [];
@@ -72,6 +73,17 @@ export async function loadOverlayFiles(files) {
         }
         if (/** @type {any} */ (globalThis).updateShownFilesList) {
             /** @type {any} */ globalThis.updateShownFilesList();
+        }
+    }
+
+    if (previousActiveTab) {
+        try {
+            const currentTab = getState("ui.activeTab");
+            if (currentTab !== previousActiveTab) {
+                setState("ui.activeTab", previousActiveTab, { source: "loadOverlayFiles.restoreTab" });
+            }
+        } catch (error) {
+            console.warn("[loadOverlayFiles] Failed to restore active tab:", error);
         }
     }
 

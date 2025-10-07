@@ -11,5 +11,5 @@
  * @param {any} map - Leaflet map instance (L.Map)
  * @param {HTMLElement} controlsDiv - Container element for map action buttons
  */
-export function addSimpleMeasureTool(map: any, controlsDiv: HTMLElement): void;
+export function addSimpleMeasureTool(map: any, controlsDiv: HTMLElement): HTMLButtonElement;
 //# sourceMappingURL=mapMeasureTool.d.ts.map

@@ -23,7 +23,7 @@ export type RecordMessage = {
     /**
      * - Message timestamp
      */
-    timestamp?: string | Date;
+    timestamp?: string | number | Date | null;
     /**
      * - Altitude in meters
      */

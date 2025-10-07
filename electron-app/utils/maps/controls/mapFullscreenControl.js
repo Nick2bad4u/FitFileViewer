@@ -13,16 +13,24 @@ export function addFullscreenControl(map) {
     fullscreenControl.className = "custom-fullscreen-control leaflet-top leaflet-left";
     const fullscreenEnterSVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="https://www.w3.org/2000/svg"><rect x="3" y="3" width="5" height="2" rx="1" fill="currentColor"/><rect x="3" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="14" y="3" width="5" height="2" rx="1" fill="currentColor"/><rect x="17" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="3" y="17" width="5" height="2" rx="1" fill="currentColor"/><rect x="3" y="14" width="2" height="5" rx="1" fill="currentColor"/><rect x="14" y="17" width="5" height="2" rx="1" fill="currentColor"/><rect x="17" y="14" width="2" height="5" rx="1" fill="currentColor"/></svg>`,
         fullscreenExitSVG = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="https://www.w3.org/2000/svg"><rect x="7" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="3" y="7" width="5" height="2" rx="1" fill="currentColor"/><rect x="14" y="3" width="2" height="5" rx="1" fill="currentColor"/><rect x="15" y="7" width="5" height="2" rx="1" fill="currentColor"/><rect x="3" y="14" width="5" height="2" rx="1" fill="currentColor"/><rect x="7" y="15" width="2" height="5" rx="1" fill="currentColor"/><rect x="15" y="15" width="2" height="5" rx="1" fill="currentColor"/><rect x="15" y="15" width="5" height="2" rx="1" fill="currentColor"/></svg>`;
-    fullscreenControl.innerHTML = `
-		<div class="leaflet-bar custom-fullscreen-bar">
-			<button id="fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">${fullscreenEnterSVG}</button>
-		</div>
-	`;
     const mapDiv = document.querySelector("#leaflet-map");
     if (!mapDiv) {
         console.warn("[mapFullscreenControl] Map container not found");
         return;
     }
+    const mapControls = document.querySelector("#map-controls");
+    if (mapControls instanceof HTMLElement) {
+        const legacyButton = mapControls.querySelector("#fullscreen-btn");
+        if (legacyButton) {
+            legacyButton.remove();
+        }
+    }
+
+    fullscreenControl.innerHTML = `
+		<div class="leaflet-bar custom-fullscreen-bar">
+			<button id="fullscreen-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">${fullscreenEnterSVG}</button>
+		</div>
+	`;
     mapDiv.append(fullscreenControl);
 
     const fullscreenBtn = fullscreenControl.querySelector("#fullscreen-btn");
@@ -32,7 +40,6 @@ export function addFullscreenControl(map) {
     }
 
     const button = /** @type {HTMLButtonElement} */ (fullscreenBtn);
-    const mapControls = document.querySelector("#map-controls");
     const root = document.body instanceof HTMLBodyElement ? document.body : null;
 
     /**
@@ -90,10 +97,4 @@ export function addFullscreenControl(map) {
             }
         }
     });
-
-    // Remove old fullscreen button from map-controls if present
-    const oldFullscreenBtn = document.querySelector("#map-controls #fullscreen-btn");
-    if (oldFullscreenBtn) {
-        oldFullscreenBtn.remove();
-    }
 }

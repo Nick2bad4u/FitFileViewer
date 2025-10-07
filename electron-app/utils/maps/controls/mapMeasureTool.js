@@ -168,4 +168,5 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     });
     controlsDiv.append(measureBtn);
+    return measureBtn;
 }
