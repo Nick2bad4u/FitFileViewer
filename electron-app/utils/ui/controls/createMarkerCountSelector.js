@@ -1,3 +1,4 @@
+import { getOverlayMarkerCount, setOverlayMarkerCount } from "../../state/domain/overlayState.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -48,15 +49,28 @@ export function createMarkerCountSelector(onChange) {
         }
 
         // Set initial value from global or default
-        const validOptions = [10, 25, 50, 100, 200, 500, 1000, 0];
-        /** @type {any} */
-        const g = globalThis;
-        let current = g.mapMarkerCount;
+        const validOptions = new Set([0, 10, 25, 50, 100, 200, 500, 1000]);
+        let current = getOverlayMarkerCount();
+        const globalMarkerCount = typeof /** @type {any} */ (globalThis).mapMarkerCount === "number"
+            ? Number.parseInt(String(/** @type {any} */(globalThis).mapMarkerCount), 10)
+            : undefined;
 
-        // Ensure current is a number, default to 50 if not
-        if (typeof current !== "number" || !validOptions.includes(current) && current !== 0) {
+        if (current === 0 && typeof globalMarkerCount === "number" && Number.isFinite(globalMarkerCount)) {
+            if (validOptions.has(globalMarkerCount) && globalMarkerCount !== 0) {
+                current = globalMarkerCount;
+                setOverlayMarkerCount(globalMarkerCount, "createMarkerCountSelector.hydrateFromGlobal");
+            } else if (globalMarkerCount > 0 && !validOptions.has(globalMarkerCount)) {
+                current = 50;
+                setOverlayMarkerCount(50, "createMarkerCountSelector.normalizeInvalidGlobal");
+            }
+        }
+
+        if (
+            !validOptions.has(current) ||
+            (current === 0 && (globalMarkerCount === undefined || Number.isNaN(globalMarkerCount)))
+        ) {
             current = 50;
-            g.mapMarkerCount = 50;
+            setOverlayMarkerCount(50, "createMarkerCountSelector.initialize");
         }
 
         const initial = current === 0 ? "all" : String(current);
@@ -67,7 +81,7 @@ export function createMarkerCountSelector(onChange) {
             try {
                 const val = select.value;
                 const newCount = val === "all" ? 0 : Number.parseInt(val, 10);
-                g.mapMarkerCount = newCount;
+                setOverlayMarkerCount(newCount, "createMarkerCountSelector.change");
 
                 console.log(`[MarkerCountSelector] Changed to: ${val} (${newCount})`);
 
@@ -75,8 +89,8 @@ export function createMarkerCountSelector(onChange) {
                     onChange(newCount);
                 }
 
-                if (typeof g.updateShownFilesList === "function") {
-                    g.updateShownFilesList();
+                if (typeof globalThis.updateShownFilesList === "function") {
+                    globalThis.updateShownFilesList();
                 }
             } catch (error) {
                 console.error("[mapActionButtons] Error in marker count change:", error);

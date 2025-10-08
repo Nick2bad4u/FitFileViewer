@@ -1,3 +1,5 @@
+import { getGlobalData } from "../state/domain/globalDataState.js";
+
 // Utility to set up all event listeners for the app
 /**
  * Sets up all event listeners for the FitFileViewer application UI and IPC.
@@ -261,8 +263,10 @@ export function setupListeners({
         globalThis.electronAPI.onIpc("decoder-options-changed", (newOptions) => {
             console.log("[DEBUG] Decoder options changed:", newOptions);
             showNotification("Decoder options updated.", "info", 2000);
-            if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
-                const filePath = globalThis.globalData.cachedFilePath;
+            const globalData = getGlobalData();
+            const cachedFilePath = /** @type {any} */ (globalData)?.cachedFilePath;
+            if (typeof cachedFilePath === "string" && cachedFilePath.length > 0) {
+                const filePath = cachedFilePath;
                 setLoading(true);
                 globalThis.electronAPI
                     .readFile(filePath)
@@ -281,12 +285,13 @@ export function setupListeners({
             }
         });
         globalThis.electronAPI.onIpc("export-file", async (event, filePath) => {
-            if (!globalThis.globalData) return;
+            const globalData = getGlobalData();
+            if (!globalData) return;
             const ext = filePath.split(".").pop().toLowerCase();
             if (ext === "csv") {
                 const container = document.getElementById("content-summary");
                 if (globalThis.copyTableAsCSV && container) {
-                    const csv = globalThis.copyTableAsCSV({ container, data: globalThis.globalData });
+                    const csv = globalThis.copyTableAsCSV({ container, data: globalData });
                     const blob = new Blob([csv], { type: "text/csv" });
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(blob);
@@ -299,13 +304,11 @@ export function setupListeners({
                     }, 100);
                 }
             } else if (ext === "gpx") {
-                if (
-                    globalThis.createExportGPXButton &&
-                    globalThis.globalData.recordMesgs &&
-                    Array.isArray(globalThis.globalData.recordMesgs) &&
-                    globalThis.globalData.recordMesgs.length > 0
-                ) {
-                    const coords = globalThis.globalData.recordMesgs
+                const recordMesgs = Array.isArray(/** @type {any} */(globalData)?.recordMesgs)
+                    ? /** @type {Array<any>} */ (/** @type {any} */ (globalData).recordMesgs)
+                    : null;
+                if (globalThis.createExportGPXButton && recordMesgs && recordMesgs.length > 0) {
+                    const coords = recordMesgs
                         .filter((row) => row.positionLat != null && row.positionLong != null)
                         .map((row) => [
                             Number((row.positionLat / 2 ** 31) * 180),

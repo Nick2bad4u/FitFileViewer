@@ -20,28 +20,30 @@ import { getManufacturerName, getProductName } from "../formatting/display/forma
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
+import { getGlobalData } from "../state/domain/globalDataState.js";
 
 /**
  * Quick data availability check
  */
 export function checkDataAvailability() {
+    const globalData = getGlobalData();
     console.log("🔍 DATA AVAILABILITY CHECK:");
-    console.log(`window.globalData exists: ${Boolean(globalThis.globalData)}`);
-    console.log(`window.globalData type: ${typeof globalThis.globalData}`);
+    console.log(`window.globalData exists: ${Boolean(globalData)}`);
+    console.log(`window.globalData type: ${typeof globalData}`);
 
-    if (globalThis.globalData) {
-        console.log(`Keys count: ${Object.keys(globalThis.globalData).length}`);
-        console.log(`Available keys: ${Object.keys(globalThis.globalData).join(", ")}`);
+    if (globalData) {
+        console.log(`Keys count: ${Object.keys(globalData).length}`);
+        console.log(`Available keys: ${Object.keys(globalData).join(", ")}`);
 
         // Check specifically for sensor-related data
-        const sensorKeys = Object.keys(globalThis.globalData).filter(
+        const sensorKeys = Object.keys(globalData).filter(
             (key) =>
                 key.includes("device") || key.includes("session") || key.includes("file_id") || key.includes("sensor")
         );
         console.log(`Sensor-related keys: ${sensorKeys.join(", ") || "none found"}`);
     }
 
-    return globalThis.globalData;
+    return globalData;
 }
 
 /**
@@ -49,12 +51,12 @@ export function checkDataAvailability() {
  * @returns {Object|null} Sensor analysis summary or null if no data
  */
 export function debugSensorInfo() {
-    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+    const data = getGlobalData();
+    if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return null;
     }
 
-    const data = globalThis.globalData;
     console.log("🔍 SENSOR INFORMATION DEBUG");
     console.log("=".repeat(50));
     // Look for sensor data in different locations
@@ -242,12 +244,12 @@ export function debugSensorInfo() {
  * Show all available data keys for debugging
  */
 export function showDataKeys() {
-    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+    const data = getGlobalData();
+    if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
 
-    const data = globalThis.globalData;
     console.log("🗂️  AVAILABLE DATA KEYS:");
     for (const key of Object.keys(data)) {
         const count = Array.isArray(data[key]) ? data[key].length : 1;
@@ -259,13 +261,13 @@ export function showDataKeys() {
  * Quick command to show just the sensor names
  */
 export function showSensorNames() {
-    if (!globalThis.globalData || Object.keys(globalThis.globalData).length === 0) {
+    const data = getGlobalData();
+    if (!data || Object.keys(data).length === 0) {
         console.warn("❌ No global data available. Load a FIT file first.");
         return;
     }
 
-    const data = globalThis.globalData,
-        sensors = [];
+    const sensors = [];
     // Collect all potential sensors
     if (data.deviceInfoMesgs) {
         sensors.push(...data.deviceInfoMesgs.map(/** @param {*} d */(d) => ({ ...d, source: "deviceInfoMesgs" })));

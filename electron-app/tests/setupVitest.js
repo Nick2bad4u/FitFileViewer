@@ -1,5 +1,6 @@
 // @ts-nocheck
 // Mock Leaflet global L for all Vitest tests
+import { JSDOM } from "jsdom";
 import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach, afterAll as vitestAfterAll } from "vitest";
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
 /** @type {undefined | (() => void)} */
@@ -18,10 +19,26 @@ let __clearListeners;
     }
 })();
 
+// Ensure a DOM-like environment exists even when Vitest spawns Node-only workers (fork pool edge cases)
+if (typeof document === "undefined" || typeof window === "undefined") {
+    const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });
+    /** @type {any} */ (globalThis.window = dom.window);
+    /** @type {any} */ (globalThis.document = dom.window.document);
+    if (typeof globalThis.navigator === "undefined") {
+        /** @type {any} */ (globalThis.navigator = dom.window.navigator);
+    }
+    if (typeof globalThis.HTMLElement === "undefined") {
+        /** @type {any} */ (globalThis.HTMLElement = dom.window.HTMLElement);
+    }
+    if (typeof globalThis.customElements === "undefined" && dom.window.customElements) {
+        /** @type {any} */ (globalThis.customElements = dom.window.customElements);
+    }
+}
+
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
 function ensureConsoleAlive() {
     try {
-        const noop = () => {};
+        const noop = () => { };
         /** @type {any} */
         const current = /** @type {any} */ (globalThis.console);
         if (!current) {

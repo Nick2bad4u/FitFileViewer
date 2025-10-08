@@ -1,4 +1,5 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 
 /**
  * @typedef {{ total:number, visible:number, available:number }} ChartCategoryCounts
@@ -22,25 +23,27 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
  * @returns {ChartCounts}
  */
 export function getChartCounts() {
+    const globalData = getGlobalData();
+    const recordMesgs = Array.isArray(globalData?.recordMesgs) ? globalData.recordMesgs : null;
     const counts /** @type {ChartCounts} */ = {
-            available: 0,
-            categories: {
-                analysis: { available: 0, total: 0, visible: 0 },
-                gps: { available: 0, total: 0, visible: 0 },
-                metrics: { available: 0, total: 0, visible: 0 },
-                zones: { available: 0, total: 0, visible: 0 },
-            },
-            total: 0,
-            visible: 0,
+        available: 0,
+        categories: {
+            analysis: { available: 0, total: 0, visible: 0 },
+            gps: { available: 0, total: 0, visible: 0 },
+            metrics: { available: 0, total: 0, visible: 0 },
+            zones: { available: 0, total: 0, visible: 0 },
         },
-        // Check if we have data
-        hasData =
-            globalThis.globalData && globalThis.globalData.recordMesgs && globalThis.globalData.recordMesgs.length > 0;
-    if (!hasData) {
+        total: 0,
+        visible: 0,
+    },
+        hasData = Array.isArray(recordMesgs) && recordMesgs.length > 0;
+    if (!hasData || !recordMesgs) {
         return counts;
     }
 
-    const data = globalThis.globalData.recordMesgs;
+    const data = recordMesgs;
+    const eventMesgs = Array.isArray(globalData?.eventMesgs) ? globalData.eventMesgs : null;
+    const timeInZoneMesgs = Array.isArray(globalData?.timeInZoneMesgs) ? globalData.timeInZoneMesgs : null;
 
     try {
         // Ensure formatChartFields is an array of strings; handle legacy cases where it might be a single string
@@ -48,8 +51,8 @@ export function getChartCounts() {
         const metricFields = Array.isArray(formatChartFields)
             ? /** @type {string[]} */ (formatChartFields)
             : typeof formatChartFields === "string"
-              ? [formatChartFields]
-              : [];
+                ? [formatChartFields]
+                : [];
 
         // Basic metric fields
         for (const field of metricFields) {
@@ -58,12 +61,12 @@ export function getChartCounts() {
 
             // Check if this field has valid numeric data (same logic as renderChartJS)
             const numericData = data.map((/** @type {any} */ row) => {
-                    if (row[field] !== undefined && row[field] !== null) {
-                        const value = Number.parseFloat(row[field]);
-                        return isNaN(value) ? null : value;
-                    }
-                    return null;
-                }),
+                if (row[field] !== undefined && row[field] !== null) {
+                    const value = Number.parseFloat(row[field]);
+                    return isNaN(value) ? null : value;
+                }
+                return null;
+            }),
                 // Only count as available if there's at least one valid data point
                 hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
             if (hasValidData) {
@@ -115,9 +118,9 @@ export function getChartCounts() {
                 }
                 case "power_vs_hr": {
                     const hasHeartRate = data.some((/** @type {any} */ row) => {
-                            const hr = row.heartRate;
-                            return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
-                        }),
+                        const hr = row.heartRate;
+                        return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
+                    }),
                         hasPower = data.some((/** @type {any} */ row) => {
                             const { power } = row;
                             return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
@@ -127,9 +130,9 @@ export function getChartCounts() {
                 }
                 case "speed_vs_distance": {
                     const hasDistance = data.some((/** @type {any} */ row) => {
-                            const { distance } = row;
-                            return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
-                        }),
+                        const { distance } = row;
+                        return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
+                    }),
                         hasSpeed = data.some((/** @type {any} */ row) => {
                             const speed = row.enhancedSpeed || row.speed;
                             return speed !== undefined && speed !== null && !isNaN(Number.parseFloat(speed));
@@ -180,11 +183,7 @@ export function getChartCounts() {
                 }
             }
         } // Event messages chart
-        if (
-            globalThis.globalData?.eventMesgs &&
-            Array.isArray(globalThis.globalData.eventMesgs) &&
-            globalThis.globalData.eventMesgs.length > 0
-        ) {
+        if (eventMesgs && eventMesgs.length > 0) {
             counts.total++;
             counts.available++;
             counts.categories.analysis.total++;
@@ -199,9 +198,8 @@ export function getChartCounts() {
         } // Time in zone charts are handled by the field toggles above (hr_zone_doughnut, power_zone_doughnut)
 
         // No need to count separately as they use the same visibility toggles        // Lap zone charts (from renderLapZoneCharts - up to 4 charts possible)
-        if (globalThis.globalData?.timeInZoneMesgs) {
-            const { timeInZoneMesgs } = globalThis.globalData,
-                lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
+        if (timeInZoneMesgs && timeInZoneMesgs.length > 0) {
+            const lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap");
 
             if (lapZoneMsgs.length > 0) {
                 // Check for HR lap zone charts (2 charts: stacked bar and individual bars)
@@ -251,8 +249,8 @@ export function getChartCounts() {
         } // Developer fields (dynamic based on actual data)
 
         // Only count fields that are not already in formatChartFields and have meaningful data
-        if (globalThis.globalData?.recordMesgs && globalThis.globalData.recordMesgs.length > 0) {
-            const [sampleRecord] = globalThis.globalData.recordMesgs,
+        if (recordMesgs && recordMesgs.length > 0) {
+            const [sampleRecord] = recordMesgs,
                 excludedFields = new Set([
                     "distance",
                     "fractional_cadence",
@@ -269,12 +267,12 @@ export function getChartCounts() {
             for (const field of developerFields) {
                 // Check if this field has valid numeric data (same logic as renderChartJS)
                 const numericData = data.map((/** @type {any} */ row) => {
-                        if (row[field] !== undefined && row[field] !== null) {
-                            const value = Number.parseFloat(row[field]);
-                            return isNaN(value) ? null : value;
-                        }
-                        return null;
-                    }),
+                    if (row[field] !== undefined && row[field] !== null) {
+                        const value = Number.parseFloat(row[field]);
+                        return isNaN(value) ? null : value;
+                    }
+                    return null;
+                }),
                     // Only count as available if there's at least one valid data point
                     hasValidData = !numericData.every((/** @type {any} */ val) => val === null);
                 if (hasValidData) {

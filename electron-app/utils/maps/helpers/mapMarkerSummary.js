@@ -2,6 +2,8 @@
  * Utilities for tracking and presenting map marker sampling summaries.
  */
 
+import { getOverlayMarkerCount } from "../../state/domain/overlayState.js";
+
 /**
  * Create a tracker that records the number of available and rendered markers,
  * then notifies the UI via the global `updateMapMarkerSummary` helper.
@@ -62,7 +64,7 @@ export function createMarkerSummary() {
  * @returns {number} Requested marker count.
  */
 export function getMarkerPreference() {
-    const rawValue = Number(getWindow()?.mapMarkerCount);
+    const rawValue = getOverlayMarkerCount();
     const result = !Number.isFinite(rawValue) || rawValue <= 0 ? 0 : Math.floor(rawValue);
     console.log(`[MapMarkerSummary] getMarkerPreference: raw=${rawValue}, result=${result}`);
     return result;

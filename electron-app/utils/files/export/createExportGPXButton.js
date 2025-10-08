@@ -1,3 +1,5 @@
+import { getGlobalData } from "../../state/domain/globalDataState.js";
+
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
  * The button uses iconify icons and exports the track from globalData.
@@ -12,15 +14,12 @@ export function createExportGPXButton() {
     `;
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.addEventListener("click", () => {
-        if (
-            !globalThis.globalData ||
-            !globalThis.globalData.recordMesgs ||
-            !Array.isArray(globalThis.globalData.recordMesgs)
-        ) {
+        const globalData = getGlobalData();
+        if (!globalData || !Array.isArray(globalData.recordMesgs)) {
             return;
         }
         const SEMICIRCLE_DIVISOR = 2_147_483_647, // 2 ** 31 - 1, per FIT protocol
-            coords = globalThis.globalData.recordMesgs
+            coords = globalData.recordMesgs
                 .filter(/** @param {any} row */(row) => row.positionLat != null && row.positionLong != null)
                 .map(
                     /** @param {any} row */(row) => [

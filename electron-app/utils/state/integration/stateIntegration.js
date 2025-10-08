@@ -132,7 +132,7 @@ export function migrateChartControlsState() {
     if (/** @type {any} */ (globalThis).chartControlsState) {
         console.log("[StateMigration] Migrating chartControlsState...");
         // Copy existing state
-        setState("charts.controlsVisible", /** @type {any} */ (globalThis).chartControlsState.isVisible, {
+        setState("charts.controlsVisible", /** @type {any} */(globalThis).chartControlsState.isVisible, {
             source: "migration",
         });
 
@@ -208,7 +208,7 @@ export function setupStatePersistence() {
     for (const path of persistedPaths) {
         subscribe(path, () => {
             // Debounce the persistence to avoid excessive writes
-            clearTimeout(/** @type {any} */ (globalThis).__persistenceTimeout);
+            clearTimeout(/** @type {any} */(globalThis).__persistenceTimeout);
             /** @type {any} */ (globalThis).__persistenceTimeout = setTimeout(() => {
                 try {
                     const stateToSave = {};
@@ -298,7 +298,7 @@ function isDevelopmentMode() {
             protocol === "file:" ||
             /** @type {any} */ (
                 globalThis.window !== undefined &&
-                    globalThis.electronAPI &&
+                globalThis.electronAPI &&
                     /** @type {any} */ (globalThis).electronAPI.__devMode !== undefined
             ) ||
             (typeof console !== "undefined" && typeof href === "string" && href.includes("electron"))
@@ -341,20 +341,33 @@ function setNestedValue(obj, path, value) {
  * Set up backward compatibility with existing state patterns
  */
 function setupBackwardCompatibility() {
-    // Make sure window.globalData is reactive
-    if (!Object.getOwnPropertyDescriptor(globalThis, "globalData")) {
-        Object.defineProperty(globalThis, "globalData", {
-            configurable: true,
-            get() {
-                return getState("globalData");
-            },
-            set(value) {
-                setState("globalData", value, { source: "window.globalData" });
-            },
-        });
-    }
+    const defineProperty = (propName, getterPath, setterPath = getterPath, transform = (value) => value) => {
+        if (!Object.getOwnPropertyDescriptor(globalThis, propName)) {
+            Object.defineProperty(globalThis, propName, {
+                configurable: true,
+                get() {
+                    return getState(getterPath);
+                },
+                set(value) {
+                    setState(setterPath, transform(value), { source: `window.${propName}` });
+                },
+            });
+        }
+    };
 
-    // Make sure window.isChartRendered is reactive
+    defineProperty("globalData", "globalData");
+    defineProperty(
+        "loadedFitFiles",
+        "overlays.loadedFitFiles",
+        "overlays.loadedFitFiles",
+        (value) => (Array.isArray(value) ? [...value] : [])
+    );
+    defineProperty("mapMarkerCount", "overlays.mapMarkerCount");
+    defineProperty("heartRateZones", "zones.heartRate");
+    defineProperty("powerZones", "zones.power");
+    defineProperty("_highlightedOverlayIdx", "overlays.highlightedOverlayIndex");
+
+    // Maintain legacy chart rendered flag
     if (!Object.getOwnPropertyDescriptor(globalThis, "isChartRendered")) {
         Object.defineProperty(globalThis, "isChartRendered", {
             configurable: true,
@@ -445,7 +458,7 @@ function setupStateDebugging() {
             console.log(`[StateDebug] Watching state changes for: ${path}`);
             return subscribe(
                 path,
-                /** @param {*} newValue */ /** @param {*} oldValue */ (/** @type {any} */ newValue, oldValue) => {
+                /** @param {*} newValue */ /** @param {*} oldValue */(/** @type {any} */ newValue, oldValue) => {
                     console.log(`[StateDebug] ${path} changed:`, { newValue, oldValue });
                 }
             );

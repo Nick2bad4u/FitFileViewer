@@ -53,6 +53,8 @@ import { createExportGPXButton } from "../../files/export/createExportGPXButton.
 import { createPrintButton } from "../../files/export/createPrintButton.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
+import { getOverlayFiles } from "../../state/domain/overlayState.js";
 import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
@@ -116,6 +118,8 @@ const MAP_LAYER_ICON_MAP = {
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
     const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (globalThis));
+    const overlayFiles = getOverlayFiles();
+    const primaryData = getGlobalData();
     windowExt._overlayPolylines = {};
     if (windowExt._mapResizeObserver && typeof windowExt._mapResizeObserver.disconnect === "function") {
         try {
@@ -433,8 +437,11 @@ export function renderMap() {
                 } else {
                     mapDrawLapsWrapper("all");
                 }
-            } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
-                mapDrawLapsWrapper("all");
+            } else {
+                const latestData = getGlobalData();
+                if (latestData && Array.isArray(latestData.recordMesgs) && latestData.recordMesgs.length > 0) {
+                    mapDrawLapsWrapper("all");
+                }
             }
             if (windowExt.updateShownFilesList) {
                 windowExt.updateShownFilesList();
@@ -445,7 +452,7 @@ export function renderMap() {
         markerSummaryElement = ensureMapMarkerSummaryElement(metricsGroup, markerCountSelector);
         updateMarkerSummaryDisplay(markerSummaryState);
 
-        if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
+        if (overlayFiles.length > 1) {
             const shownFilesList = createShownFilesList();
             controlsDiv.append(shownFilesList);
             if (windowExt.updateShownFilesList) {
@@ -547,44 +554,47 @@ export function renderMap() {
     }
 
     // --- Overlay logic ---
-    if (windowExt.loadedFitFiles && Array.isArray(windowExt.loadedFitFiles) && windowExt.loadedFitFiles.length > 0) {
-        console.log("[renderMap] Overlay logic: loadedFitFiles.length =", windowExt.loadedFitFiles.length);
+    if (overlayFiles.length > 0) {
+        console.log("[renderMap] Overlay logic: loadedFitFiles.length =", overlayFiles.length);
         // Clear overlay polylines tracking before drawing
         windowExt._overlayPolylines = {};
-        for (const [idx, fitFile] of windowExt.loadedFitFiles.entries()) {
-            // Skip index 0 (main file) here to avoid duplicating the main track as an overlay
+        for (const [idx, fitFile] of overlayFiles.entries()) {
             if (idx === 0) {
-                continue;
+                continue; // Skip main file overlay duplicate
             }
+
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
                 chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
             ),
-                fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
-                bounds = drawOverlayForFitFile({
-                    color,
-                    endIcon,
-                    fileName,
-                    fitData: fitFile.data,
-                    formatTooltipData: (
-                        /** @type {any} */ pointIdx,
-                        /** @type {any} */ row,
-                        /** @type {any} */ lapNum
-                    ) => formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
-                    getLapNumForIdx,
-                    map,
-                    markerClusterGroup,
-                    overlayIdx: idx,
-                    startIcon,
-                });
+                fileName = (fitFile.filePath || "").split(/[/\\]/).pop();
+
+            const bounds = drawOverlayForFitFile({
+                color,
+                endIcon,
+                fileName,
+                fitData: fitFile.data,
+                formatTooltipData: (
+                    /** @type {any} */ pointIdx,
+                    /** @type {any} */ row,
+                    /** @type {any} */ lapNum
+                ) => formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                getLapNumForIdx,
+                map,
+                markerClusterGroup,
+                overlayIdx: idx,
+                startIcon,
+            });
+
             console.log(`[renderMap] Overlay idx=${idx} bounds:`, bounds);
         }
-        // --- Bring overlay markers to front so they appear above all polylines ---
+
+        // Bring overlay markers to the front so they appear above all polylines
         setTimeout(() => {
             if (windowExt._overlayPolylines) {
                 for (const [idx, polyline] of Object.entries(windowExt._overlayPolylines)) {
                     console.log(`[renderMap] Bring to front: overlay idx=${idx}, polyline=`, polyline);
-                    if (polyline && polyline._map && polyline._map && polyline._map._layers) {
+                    if (polyline && polyline._map && polyline._map._layers) {
                         for (const layer of Object.values(polyline._map._layers)) {
                             if (
                                 layer instanceof L.CircleMarker &&
@@ -600,10 +610,10 @@ export function renderMap() {
                 }
             }
         }, 10);
+
         console.log("[renderMap] Overlay logic complete. No fitBounds/zoom called here.");
-        // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
         mapDrawLapsWrapper("all");
-    } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+    } else if (primaryData && primaryData.recordMesgs) {
         console.log('[renderMap] No overlays, calling mapDrawLapsWrapper("all")');
         mapDrawLapsWrapper("all");
     }
@@ -634,7 +644,8 @@ export function renderMap() {
         if (!lapSelect) return;
         // Keep lap selector enabled. Optionally disable only if there are no laps available.
         try {
-            const laps = /** @type {any} */ (windowExt.globalData && windowExt.globalData.lapMesgs);
+            const latestData = getGlobalData();
+            const laps = /** @type {any} */ (latestData && latestData.lapMesgs);
             lapSelect.disabled = !laps || !Array.isArray(laps) || laps.length === 0 ? false : false;
         } catch {
             lapSelect.disabled = false;

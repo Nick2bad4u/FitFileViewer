@@ -1,3 +1,4 @@
+import { getHeartRateZones, getPowerZones, setHeartRateZones, setPowerZones } from "../../state/domain/zoneState.js";
 import { updateHRZoneControlsVisibility } from "../../ui/controls/createHRZoneControls.js";
 import { updatePowerZoneControlsVisibility } from "../../ui/controls/createPowerZoneControls.js";
 import { applyZoneColors } from "../zones/chartZoneColorUtils.js";
@@ -22,12 +23,22 @@ import { applyZoneColors } from "../zones/chartZoneColorUtils.js";
  * @returns {{ heartRateZones: ZoneEntry[]; powerZones: ZoneEntry[]; hasHRZoneData: boolean; hasPowerZoneData: boolean }}
  */
 export function setupZoneData(globalData) {
-    /** @type {ZoneEntry[]} */ let heartRateZones = Array.isArray(globalThis.heartRateZones)
-            ? /** @type {ZoneEntry[]} */ (globalThis.heartRateZones)
-            : [],
-        /** @type {ZoneEntry[]} */ hasHRZoneData = heartRateZones.length > 0,
-        powerZones = Array.isArray(globalThis.powerZones) ? /** @type {ZoneEntry[]} */ (globalThis.powerZones) : [],
-        hasPowerZoneData = powerZones.length > 0;
+    let heartRateZones = getHeartRateZones();
+    let hasHRZoneData = heartRateZones.length > 0;
+    let powerZones = getPowerZones();
+    let hasPowerZoneData = powerZones.length > 0;
+
+    const commitHeartRateZones = (zones, source) => {
+        heartRateZones = zones;
+        hasHRZoneData = zones.length > 0;
+        setHeartRateZones(zones, source);
+    };
+
+    const commitPowerZones = (zones, source) => {
+        powerZones = zones;
+        hasPowerZoneData = zones.length > 0;
+        setPowerZones(zones, source);
+    };
 
     try {
         if (!globalData) {
@@ -59,18 +70,20 @@ export function setupZoneData(globalData) {
                 if (Array.isArray(sessionZoneData.timeInHrZone)) {
                     const hrZones = buildZones(sessionZoneData.timeInHrZone);
                     if (hrZones.length > 0) {
-                        heartRateZones = /** @type {ZoneEntry[]} */ (applyZoneColors(hrZones, "hr"));
-                        globalThis.heartRateZones = heartRateZones;
-                        hasHRZoneData = true;
+                        commitHeartRateZones(
+                            /** @type {ZoneEntry[]} */(applyZoneColors(hrZones, "hr")),
+                            "setupZoneData.session"
+                        );
                         console.log("[ChartJS] Heart rate zones data set:", heartRateZones);
                     }
                 }
                 if (Array.isArray(sessionZoneData.timeInPowerZone)) {
                     const powZones = buildZones(sessionZoneData.timeInPowerZone);
                     if (powZones.length > 0) {
-                        powerZones = /** @type {ZoneEntry[]} */ (applyZoneColors(powZones, "power"));
-                        globalThis.powerZones = powerZones;
-                        hasPowerZoneData = true;
+                        commitPowerZones(
+                            /** @type {ZoneEntry[]} */(applyZoneColors(powZones, "power")),
+                            "setupZoneData.session"
+                        );
                         console.log("[ChartJS] Power zones data set:", powerZones);
                     }
                 }
@@ -83,9 +96,10 @@ export function setupZoneData(globalData) {
             if (sessionWithHrZones?.time_in_hr_zone) {
                 const hrZones = buildZones(sessionWithHrZones.time_in_hr_zone);
                 if (hrZones.length > 0) {
-                    heartRateZones = /** @type {ZoneEntry[]} */ (applyZoneColors(hrZones, "hr"));
-                    globalThis.heartRateZones = heartRateZones;
-                    hasHRZoneData = true;
+                    commitHeartRateZones(
+                        /** @type {ZoneEntry[]} */(applyZoneColors(hrZones, "hr")),
+                        "setupZoneData.sessionFallback"
+                    );
                     console.log("[ChartJS] HR zones from sessionMesgs:", heartRateZones);
                 }
             }
@@ -95,9 +109,10 @@ export function setupZoneData(globalData) {
             if (sessionWithPowerZones?.time_in_power_zone) {
                 const powZones = buildZones(sessionWithPowerZones.time_in_power_zone);
                 if (powZones.length > 0) {
-                    powerZones = /** @type {ZoneEntry[]} */ (applyZoneColors(powZones, "power"));
-                    globalThis.powerZones = powerZones;
-                    hasPowerZoneData = true;
+                    commitPowerZones(
+                        /** @type {ZoneEntry[]} */(applyZoneColors(powZones, "power")),
+                        "setupZoneData.sessionFallback"
+                    );
                     console.log("[ChartJS] Power zones from sessionMesgs:", powerZones);
                 }
             }
@@ -128,18 +143,20 @@ export function setupZoneData(globalData) {
             if (hrZoneTimes.length > 1 && hrZoneTimes.slice(1).some((t) => t > 0)) {
                 const hrZones = buildZones(hrZoneTimes);
                 if (hrZones.length > 0) {
-                    heartRateZones = /** @type {ZoneEntry[]} */ (applyZoneColors(hrZones, "hr"));
-                    globalThis.heartRateZones = heartRateZones;
-                    hasHRZoneData = true;
+                    commitHeartRateZones(
+                        /** @type {ZoneEntry[]} */(applyZoneColors(hrZones, "hr")),
+                        "setupZoneData.lapAggregate"
+                    );
                     console.log("[ChartJS] HR zones from laps:", heartRateZones);
                 }
             }
             if (powerZoneTimes.length > 1 && powerZoneTimes.slice(1).some((t) => t > 0)) {
                 const powZones = buildZones(powerZoneTimes);
                 if (powZones.length > 0) {
-                    powerZones = /** @type {ZoneEntry[]} */ (applyZoneColors(powZones, "power"));
-                    globalThis.powerZones = powerZones;
-                    hasPowerZoneData = true;
+                    commitPowerZones(
+                        /** @type {ZoneEntry[]} */(applyZoneColors(powZones, "power")),
+                        "setupZoneData.lapAggregate"
+                    );
                     console.log("[ChartJS] Power zones from laps:", powerZones);
                 }
             }

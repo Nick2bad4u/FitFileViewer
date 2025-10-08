@@ -4,6 +4,7 @@
  */
 
 import { getState } from "../../state/core/stateManager.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { safeToNumber } from "../helpers/numberHelpers.js";
 
 /**
@@ -78,10 +79,12 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             return "No data available";
         }
 
+        const recordMesgsFromState = getState("globalData.recordMesgs");
+        const globalData = getGlobalData();
         const recordMesgs =
             recordMesgsOverride ||
-            getState("globalData.recordMesgs") ||
-            /** @type {any} */ (globalThis.globalData && /** @type {any} */ (globalThis).globalData.recordMesgs);
+            (Array.isArray(recordMesgsFromState) ? recordMesgsFromState : undefined) ||
+            (Array.isArray(globalData?.recordMesgs) ? globalData.recordMesgs : undefined);
 
         const fallbackRow = Array.isArray(recordMesgs) ? recordMesgs[idx] : undefined;
         const resolvedRow = mergeRecordSources(row, fallbackRow);

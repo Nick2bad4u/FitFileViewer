@@ -460,7 +460,8 @@
     "leaflet.locatecontrol": "^0.85.1",
     "leaflet.markercluster": "^1.5.3",
     "maplibre-gl": "^5.8.0",
-    "screenfull": "^6.0.2"
+    "screenfull": "^6.0.2",
+    "zustand": "^5.0.8"
   },
   "authorEmail": "20943337+Nick2bad4u@users.noreply.github.com",
   "authorName": "Nick2bad4u",

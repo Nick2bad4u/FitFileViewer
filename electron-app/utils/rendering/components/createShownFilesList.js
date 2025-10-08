@@ -1,6 +1,11 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-import { setState } from "../../state/core/stateManager.js";
+import {
+    getHighlightedOverlayIndex,
+    getOverlayFiles,
+    setHighlightedOverlayIndex,
+    setOverlayFiles,
+} from "../../state/domain/overlayState.js";
 
 /**
  * @typedef {Object} LoadedFitFile
@@ -54,25 +59,12 @@ export function createShownFilesList() {
     applyThemeStyles();
     document.body.addEventListener("themechange", applyThemeStyles);
 
-    let pendingStateSync = false;
-    const syncOverlayState = () => {
+    const commitOverlayFiles = (files, source = "createShownFilesList.commitOverlayFiles") => {
         try {
-            const files = Array.isArray(globalThis.loadedFitFiles) ? [...globalThis.loadedFitFiles] : [];
-            setState("globalData.loadedFitFiles", files, { source: "createShownFilesList" });
+            setOverlayFiles(Array.isArray(files) ? [...files] : [], source);
         } catch (error) {
-            console.error("[createShownFilesList] Failed to sync overlay state:", error);
+            console.error("[createShownFilesList] Failed to update overlay state:", error);
         }
-    };
-
-    const scheduleOverlayStateSync = () => {
-        if (pendingStateSync) {
-            return;
-        }
-        pendingStateSync = true;
-        queueMicrotask(() => {
-            pendingStateSync = false;
-            syncOverlayState();
-        });
     };
 
     let keyboardFocusIndex = -1;
@@ -259,10 +251,11 @@ export function createShownFilesList() {
         }
         ul.innerHTML = "";
         let anyOverlays = false;
+        const overlayFiles = getOverlayFiles();
         // Remove main file clickable entry (undo previous change)
         // Only show overlays in the list
-        if (globalThis.loadedFitFiles && globalThis.loadedFitFiles.length > 1) {
-            for (const [idx, f] of globalThis.loadedFitFiles.entries()) {
+        if (overlayFiles.length > 1) {
+            for (const [idx, f] of overlayFiles.entries()) {
                 if (idx === 0) {
                     continue;
                 } // Skip main file
@@ -337,16 +330,17 @@ export function createShownFilesList() {
                 });
                 removeBtn.addEventListener("click", (ev) => {
                     ev.stopPropagation();
-                    if (globalThis.loadedFitFiles) {
-                        globalThis.loadedFitFiles.splice(overlayIndex, 1);
-                        scheduleOverlayStateSync();
+                    const currentFiles = getOverlayFiles();
+                    if (overlayIndex >= 0 && overlayIndex < currentFiles.length) {
                         const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
                         assignKeyboardFocus(nextFocusIndex);
+                        const updatedFiles = currentFiles.filter((_item, idxInner) => idxInner !== overlayIndex);
+                        commitOverlayFiles(updatedFiles, "createShownFilesList.removeOverlay");
                         if (globalThis.renderMap) {
                             globalThis.renderMap();
                         }
                         if (/** @type {any} */ (globalThis).updateShownFilesList) {
-                            /** @type {any} */ globalThis.updateShownFilesList();
+                            /** @type {any} */ (globalThis).updateShownFilesList();
                         }
                         setTimeout(() => {
                             const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
@@ -358,8 +352,7 @@ export function createShownFilesList() {
 
                 li.addEventListener("click", () => {
                     assignKeyboardFocus(overlayIndex);
-                    // @ts-expect-error - _highlightedOverlayIdx exists on window
-                    globalThis._highlightedOverlayIdx = overlayIndex;
+                    setHighlightedOverlayIndex(overlayIndex, "createShownFilesList.setHighlight");
                     // @ts-expect-error - updateOverlayHighlights exists on window
                     if (globalThis.updateOverlayHighlights) {
                         globalThis.updateOverlayHighlights();
@@ -395,8 +388,7 @@ export function createShownFilesList() {
                             polyElem.style.transition = "filter 0.2s";
                             polyElem.style.filter = `drop-shadow(0 0 16px ${polyline.options.color || "#1976d2"})`;
                             setTimeout(() => {
-                                // @ts-expect-error - _highlightedOverlayIdx exists on window
-                                if (globalThis._highlightedOverlayIdx === overlayIndex) {
+                                if (getHighlightedOverlayIndex() === overlayIndex) {
                                     polyElem.style.filter = `drop-shadow(0 0 8px ${polyline.options.color || "#1976d2"})`;
                                 }
                             }, 250);
@@ -422,8 +414,7 @@ export function createShownFilesList() {
                 li._tooltipRemover = null;
                 /** @param {MouseEvent} e */
                 li.addEventListener("mouseenter", (e) => {
-                    // @ts-expect-error - _highlightedOverlayIdx exists on window
-                    globalThis._highlightedOverlayIdx = overlayIndex;
+                    setHighlightedOverlayIndex(overlayIndex, "createShownFilesList.hoverStart");
                     // @ts-expect-error - updateOverlayHighlights exists on window
                     if (globalThis.updateOverlayHighlights) {
                         globalThis.updateOverlayHighlights();
@@ -446,8 +437,7 @@ export function createShownFilesList() {
                     // @ts-expect-error - _overlayTooltipTimeout exists on window
                     globalThis._overlayTooltipTimeout = setTimeout(() => {
                         // Only show if still hovered
-                        // @ts-expect-error - _highlightedOverlayIdx exists on window
-                        if (globalThis._highlightedOverlayIdx !== overlayIndex) {
+                        if (getHighlightedOverlayIndex() !== overlayIndex) {
                             return;
                         }
                         const tooltip = document.createElement("div");
@@ -495,8 +485,7 @@ export function createShownFilesList() {
                     }, 350);
                 });
                 li.addEventListener("mouseleave", () => {
-                    // @ts-expect-error - _highlightedOverlayIdx exists on window
-                    globalThis._highlightedOverlayIdx = null;
+                    setHighlightedOverlayIndex(null, "createShownFilesList.hoverEnd");
                     // @ts-expect-error - updateOverlayHighlights exists on window
                     if (globalThis.updateOverlayHighlights) {
                         globalThis.updateOverlayHighlights();
@@ -554,15 +543,16 @@ export function createShownFilesList() {
                 /** @param {MouseEvent} ev */
                 clearAll.addEventListener("click", (ev) => {
                     ev.stopPropagation();
-                    if (globalThis.loadedFitFiles) {
-                        globalThis.loadedFitFiles.splice(1);
+                    const currentFiles = getOverlayFiles();
+                    if (currentFiles.length > 1) {
                         assignKeyboardFocus(-1);
-                        scheduleOverlayStateSync();
+                        const updatedFiles = currentFiles.slice(0, 1);
+                        commitOverlayFiles(updatedFiles, "createShownFilesList.clearAll");
                         if (globalThis.renderMap) {
                             globalThis.renderMap();
                         }
                         if (/** @type {any} */ (globalThis).updateShownFilesList) {
-                            /** @type {any} */ globalThis.updateShownFilesList();
+                            /** @type {any} */ (globalThis).updateShownFilesList();
                         }
                         // Remove any lingering tooltips from the DOM after overlays are cleared
                         setTimeout(() => {
@@ -581,7 +571,7 @@ export function createShownFilesList() {
         }
     };
     // Hide initially if no overlays
-    if (!(globalThis.loadedFitFiles && globalThis.loadedFitFiles.length > 1)) {
+    if (!(getOverlayFiles().length > 1)) {
         container.style.display = "none";
     }
 

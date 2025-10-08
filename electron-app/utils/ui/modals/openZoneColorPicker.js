@@ -10,6 +10,7 @@ import {
     saveChartSpecificZoneColor,
 } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getHeartRateZones, getPowerZones } from "../../state/domain/zoneState.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 
@@ -28,7 +29,7 @@ export function openZoneColorPicker(field) {
 
         if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
             zoneType = "Heart Rate";
-            zoneData = globalThis.heartRateZones;
+            zoneData = getHeartRateZones();
             defaultColors = DEFAULT_HR_ZONE_COLORS;
 
             // Determine specific chart type for HR zones
@@ -54,7 +55,7 @@ export function openZoneColorPicker(field) {
             }
         } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
             zoneType = "Power";
-            zoneData = globalThis.powerZones;
+            zoneData = getPowerZones();
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
 
             // Determine specific chart type for Power zones

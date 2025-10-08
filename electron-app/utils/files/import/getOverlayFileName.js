@@ -6,7 +6,7 @@
  * @returns {string} The filename or empty string if not found
  */
 
-import { getState } from "../../state/core/stateManager.js";
+import { getOverlayFiles } from "../../state/domain/overlayState.js";
 
 /**
  * Error messages for overlay file operations
@@ -41,7 +41,7 @@ export function getOverlayFileName(idx) {
     }
 
     try {
-        const loadedFitFiles = getState("globalData.loadedFitFiles");
+        const loadedFitFiles = getOverlayFiles();
 
         // Validate state data
         if (!Array.isArray(loadedFitFiles)) {

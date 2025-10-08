@@ -17,6 +17,7 @@ type GetStateFn = typeof import("../../../utils/state/core/stateManager.js")["ge
 // Mock the state manager
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
+    setState: vi.fn(),
 }));
 
 describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {

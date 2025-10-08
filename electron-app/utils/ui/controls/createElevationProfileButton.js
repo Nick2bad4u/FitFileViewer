@@ -1,4 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
+import { getOverlayFiles } from "../../state/domain/overlayState.js";
 
 /**
  * Create the Elevation Profile action button (Map toolbar) which opens a new
@@ -27,16 +29,19 @@ export function createElevationProfileButton() {
 	btn.addEventListener("click", () => {
 		/** @type {Array<any>} */
 		let fitFiles = [];
-		const w = /** @type {any} */ (globalThis);
-		if (Array.isArray(w.loadedFitFiles) && w.loadedFitFiles.length > 0) {
-			fitFiles = w.loadedFitFiles;
-		} else if (w.globalData && Array.isArray(w.globalData.recordMesgs)) {
-			fitFiles = [
-				{
-					data: w.globalData,
-					filePath: w.globalData?.cachedFilePath,
-				},
-			];
+		const overlayFiles = getOverlayFiles();
+		if (overlayFiles.length > 0) {
+			fitFiles = overlayFiles;
+		} else {
+			const globalData = getGlobalData();
+			if (globalData && Array.isArray(globalData?.recordMesgs)) {
+				fitFiles = [
+					{
+						data: globalData,
+						filePath: globalData?.cachedFilePath,
+					},
+				];
+			}
 		}
 		const chartWin = window.open("", "Elevation Profile", "width=900,height=600"),
 			isDark = document.body.classList.contains("theme-dark"),

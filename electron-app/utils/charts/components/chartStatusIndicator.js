@@ -4,6 +4,8 @@
  * out of the total available charts, helping users understand their chart selection status
  */
 
+import { subscribe } from "../../state/core/stateManager.js";
+import { getGlobalData, setGlobalData } from "../../state/domain/globalDataState.js";
 import { getChartCounts } from "../core/getChartCounts.js";
 import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 import { createChartStatusIndicatorFromCounts } from "./createChartStatusIndicatorFromCounts.js";
@@ -11,12 +13,17 @@ import { createGlobalChartStatusIndicator } from "./createGlobalChartStatusIndic
 import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartStatusIndicatorFromCounts.js";
 /** @typedef {import('../core/getChartCounts.js').ChartCounts} ChartCounts */
 
+/** @type {(() => void) | null} */
+let unsubscribeGlobalDataListener = null;
+
 /**
  * Sets up automatic updates for the chart status indicator
  * Called whenever charts are rendered or field toggles change
  */
 export function setupChartStatusUpdates() {
     try {
+        ensureGlobalDataProperty();
+
         // Listen for storage changes (field toggles)
         globalThis.addEventListener("storage", (e) => {
             if (e.key && e.key.startsWith("chartjs_field_")) {
@@ -49,45 +56,22 @@ export function setupChartStatusUpdates() {
                     console.error("[ChartStatus] Error in chartsRendered handler:", error);
                 }
             }, 50);
-        }); // Update when global data changes
-        const existingDescriptor = Object.getOwnPropertyDescriptor(globalThis, "globalData");
+        });
 
-        // Only set up the property if it doesn't already have a custom setter
-        if (!existingDescriptor || !existingDescriptor.set || existingDescriptor.configurable) {
-            try {
-                // Store existing value if any
-                const currentValue = globalThis.globalData;
-
-                Object.defineProperty(globalThis, "globalData", {
-                    configurable: true,
-                    enumerable: true,
-                    get() {
-                        return /** @type {any} */ (globalThis).___ffv_globalData || currentValue;
-                    },
-                    set(value) {
-                        /** @type {any} */ (globalThis).___ffv_globalData = value;
-                        setTimeout(() => {
-                            try {
-                                updateAllChartStatusIndicators();
-                            } catch (error) {
-                                console.error("[ChartStatus] Error in globalData setter:", error);
-                            }
-                        }, 100);
-                    },
-                });
-
-                // Set initial value if it existed
-                if (currentValue !== undefined) {
-                    /** @type {any} */ (globalThis).___ffv_globalData = currentValue;
+        if (unsubscribeGlobalDataListener) {
+            unsubscribeGlobalDataListener();
+        }
+        unsubscribeGlobalDataListener = subscribe("globalData", () => {
+            setTimeout(() => {
+                try {
+                    updateAllChartStatusIndicators();
+                } catch (error) {
+                    console.error("[ChartStatus] Error reacting to globalData change:", error);
                 }
-            } catch (propertyError) {
-                console.warn(
-                    "[ChartStatus] Could not redefine globalData property, using fallback approach:",
-                    propertyError
-                );
-                // Fallback: just monitor for manual updates
-            }
-        } // Create global indicator on initial setup
+            }, 100);
+        });
+
+        // Create global indicator on initial setup
         setTimeout(() => {
             try {
                 createGlobalChartStatusIndicator();
@@ -97,6 +81,32 @@ export function setupChartStatusUpdates() {
         }, 100);
     } catch (error) {
         console.error("[ChartStatus] Error setting up chart status updates:", error);
+    }
+}
+
+function ensureGlobalDataProperty() {
+    try {
+        const host = /** @type {any} */ (globalThis);
+        if (!Object.getOwnPropertyDescriptor(host, "globalData")) {
+            Object.defineProperty(host, "globalData", {
+                configurable: true,
+                get: () => getGlobalData(),
+                set: (value) => setGlobalData(value, "chartStatusIndicator.windowSetter"),
+            });
+        }
+
+        if (host.window && typeof host.window === "object") {
+            const windowHost = host.window;
+            if (!Object.getOwnPropertyDescriptor(windowHost, "globalData")) {
+                Object.defineProperty(windowHost, "globalData", {
+                    configurable: true,
+                    get: () => getGlobalData(),
+                    set: (value) => setGlobalData(value, "chartStatusIndicator.windowSetter"),
+                });
+            }
+        }
+    } catch (error) {
+        console.warn("[ChartStatus] Failed to ensure globalData property", error);
     }
 }
 

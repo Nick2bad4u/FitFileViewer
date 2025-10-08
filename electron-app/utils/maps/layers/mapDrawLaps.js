@@ -1,6 +1,7 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
-import { setState } from "../../state/core/stateManager.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
+import { getOverlayFiles, setOverlayFiles } from "../../state/domain/overlayState.js";
 import { createMarkerSummary, getMarkerPreference } from "../helpers/mapMarkerSummary.js";
 import { createMarkerSampler } from "../helpers/markerSampler.js";
 
@@ -246,22 +247,16 @@ export function mapDrawLaps(
         markerClusterGroup.clearLayers();
     }
 
-    // --- If switching main files, ensure overlays are cleared and only the new main file is plotted ---
-    if (
-        /** @type {any} */ (getWin()).loadedFitFiles &&
-        /** @type {any} */ (getWin()).loadedFitFiles.length > 1 &&
-        typeof (/** @type {any} */ (getWin())._activeMainFileIdx) === "number" &&
-        /** @type {any} */ (getWin())._activeMainFileIdx > 0
-    ) {
-        // Remove overlays from loadedFitFiles except the main file
-        /** @type {any} */ (getWin()).loadedFitFiles = [
-            /** @type {any} */ (getWin()).loadedFitFiles[/** @type {any} */ (getWin())._activeMainFileIdx],
-        ];
+    const activeWindow = getWin();
+    const activeMainIdx = typeof activeWindow._activeMainFileIdx === "number" ? activeWindow._activeMainFileIdx : null;
+    let overlayFiles = getOverlayFilesWithFallback();
+    if (overlayFiles.length > 1 && typeof activeMainIdx === "number" && activeMainIdx > 0) {
+        const normalizedIdx = Math.min(Math.max(activeMainIdx, 0), overlayFiles.length - 1);
+        const mainEntry = overlayFiles[normalizedIdx];
+        const filesToKeep = mainEntry ? [mainEntry] : overlayFiles.slice(0, 1);
         try {
-            const files = Array.isArray(/** @type {any} */(getWin()).loadedFitFiles)
-                ? [.../** @type {any} */ (getWin()).loadedFitFiles]
-                : [];
-            setState("globalData.loadedFitFiles", files, { source: "mapDrawLaps" });
+            setOverlayFiles(filesToKeep, "mapDrawLaps.syncLoadedFitFiles");
+            overlayFiles = getOverlayFilesWithFallback();
         } catch (error) {
             console.warn("[mapDrawLaps] Failed to sync loadedFitFiles state:", error);
         }
@@ -277,17 +272,16 @@ export function mapDrawLaps(
 
     /** @type {Array<CoordTuple>} */
     let coords = [];
-    // Replace window global data access comments
+    const globalData = getGlobalDataWithFallback() || {};
+    console.log("[mapDrawLaps] DEBUG globalData keys:", Object.keys(globalData || {}));
 
-    // DEBUG: Log what we're seeing
-    const __w = getWin();
-    console.log("[mapDrawLaps] DEBUG win =", __w);
-    console.log("[mapDrawLaps] DEBUG win.globalData =", __w.globalData);
-    console.log("[mapDrawLaps] DEBUG win.globalData?.lapMesgs =", __w.globalData?.lapMesgs);
-    console.log("[mapDrawLaps] DEBUG win.globalData?.recordMesgs =", __w.globalData?.recordMesgs);
-
-    const lapMesgs = /** @type {Array<LapMesg>} */ (/** @type {any} */ (getWin()).globalData?.lapMesgs || []),
-        recordMesgs = /** @type {Array<RecordMesg>} */ (/** @type {any} */ (getWin()).globalData?.recordMesgs || []);
+    const lapMesgsSource = Array.isArray(globalData?.lapMesgs) ? globalData.lapMesgs : [];
+    const lapMesgs = /** @type {Array<LapMesg>} */ (
+        lapMesgsSource.map((lap) => (lap && typeof lap === "object" ? { ...lap } : {}))
+    );
+    const recordMesgs = /** @type {Array<RecordMesg>} */ (
+        Array.isArray(globalData?.recordMesgs) ? globalData.recordMesgs : []
+    );
 
     patchLapIndices(lapMesgs, recordMesgs);
 
@@ -515,17 +509,13 @@ export function mapDrawLaps(
         }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
-        if (
-            /** @type {any} */ (getWin()).loadedFitFiles &&
-            Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
-            /** @type {any} */ (getWin()).loadedFitFiles.length > 1
-        ) {
+        overlayFiles = getOverlayFilesWithFallback();
+        if (overlayFiles.length > 1) {
             const colorPalette = chartOverlayColorPalette;
             let lastOverlayBounds = null,
-                /** @type {any} */ overlayIdx = 0;
-            const loaded = /** @type {any} */ (getWin()).loadedFitFiles;
-            for (let i = 1; i < loaded.length; ++i) {
-                const overlay = /** @type {{data?: any, filePath?: string}} */ (loaded[i]);
+                overlayIdx = 0;
+            for (let i = 1; i < overlayFiles.length; ++i) {
+                const overlay = /** @type {{data?: any, filePath?: string}} */ (overlayFiles[i]);
                 if (!overlay || !overlay.data) {
                     continue;
                 }
@@ -708,17 +698,13 @@ export function mapDrawLaps(
             }
 
             // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
-            if (
-                /** @type {any} */ (getWin()).loadedFitFiles &&
-                Array.isArray(/** @type {any} */(getWin()).loadedFitFiles) &&
-                /** @type {any} */ (getWin()).loadedFitFiles.length > 1
-            ) {
+            overlayFiles = getOverlayFilesWithFallback();
+            if (overlayFiles.length > 1) {
                 const colorPalette = chartOverlayColorPalette;
                 let lastOverlayBounds = null,
-                    /** @type {any} */ overlayIdx = 0;
-                const loaded = /** @type {any} */ (getWin()).loadedFitFiles;
-                for (let i = 1; i < loaded.length; ++i) {
-                    const overlay = /** @type {{data?: any, filePath?: string}} */ (loaded[i]);
+                    overlayIdx = 0;
+                for (let i = 1; i < overlayFiles.length; ++i) {
+                    const overlay = /** @type {{data?: any, filePath?: string}} */ (overlayFiles[i]);
                     if (!overlay || !overlay.data) {
                         continue;
                     }
@@ -1183,10 +1169,31 @@ function findClosestRecordIndexByLatLon(lat, lon, records) {
  * Never capture L at module init time to avoid stale references in tests.
  * @returns {any}
  */
+function getGlobalDataWithFallback() {
+    const stateData = getGlobalData();
+    if (stateData && typeof stateData === "object") {
+        return stateData;
+    }
+    const win = getWin();
+    return win && typeof win === "object" ? win.globalData || null : null;
+}
+
 function getLeaflet() {
     const w = getWin();
     // Prefer globalThis.L if present; fall back to window.L
     return /** @type {any} */ (globalThis && globalThis.L ? globalThis.L : w && w.L ? w.L : undefined);
+}
+
+function getOverlayFilesWithFallback() {
+    const stateFiles = getOverlayFiles();
+    if (Array.isArray(stateFiles) && stateFiles.length > 0) {
+        return stateFiles;
+    }
+    const win = getWin();
+    if (win && Array.isArray(win.loadedFitFiles)) {
+        return win.loadedFitFiles;
+    }
+    return Array.isArray(stateFiles) ? stateFiles : [];
 }
 
 /**

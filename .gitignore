@@ -357,3 +357,4 @@ electron-app/recent-files-test.json
 electron-app/.stylelintignore
 electron-app/.env.development
 electron-app/.env.production
+html/

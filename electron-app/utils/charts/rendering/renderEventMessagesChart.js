@@ -1,5 +1,6 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { getChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
@@ -15,7 +16,8 @@ import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
  */
 export function renderEventMessagesChart(container, options, startTime) {
     try {
-        const eventMesgs = globalThis.globalData?.eventMesgs;
+        const globalData = getGlobalData();
+        const eventMesgs = Array.isArray(globalData?.eventMesgs) ? globalData.eventMesgs : null;
         if (!eventMesgs || !Array.isArray(eventMesgs) || eventMesgs.length === 0) {
             return;
         }

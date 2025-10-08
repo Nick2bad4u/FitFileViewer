@@ -15,6 +15,12 @@ const modPath = "../../../../utils/data/processing/setupZoneData.js";
 
 describe("setupZoneData", () => {
     beforeEach(() => {
+        if (!(globalThis as any).window) {
+            (globalThis as any).window = globalThis;
+        }
+        if (typeof (globalThis as any).window.addEventListener !== "function") {
+            (globalThis as any).window.addEventListener = vi.fn();
+        }
         (globalThis as any).window.heartRateZones = [];
         (globalThis as any).window.powerZones = [];
         vi.resetModules();

@@ -1,4 +1,5 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 
 // Utility to set up all event listeners for the app
 /**
@@ -522,8 +523,10 @@ export function setupListeners({
          */
         globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ _newOptions) => {
             showNotification("Decoder options updated.", "info", 2000);
-            if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
-                const filePath = globalThis.globalData.cachedFilePath;
+            const globalData = getGlobalData();
+            const cachedFilePath = /** @type {any} */ (globalData)?.cachedFilePath;
+            if (typeof cachedFilePath === "string" && cachedFilePath.length > 0) {
+                const filePath = cachedFilePath;
                 setLoading(true);
                 globalThis.electronAPI
                     .readFile(filePath)
@@ -549,7 +552,8 @@ export function setupListeners({
         globalThis.electronAPI.onIpc(
             "export-file",
             /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
-                if (!globalThis.globalData) {
+                const globalData = getGlobalData();
+                if (!globalData) {
                     return;
                 }
                 const safePath = filePath || "",
@@ -560,7 +564,7 @@ export function setupListeners({
                         const a = document.createElement("a"),
                             csv = /** @type {any} */ (globalThis).copyTableAsCSV({
                                 container,
-                                data: globalThis.globalData,
+                                data: globalData,
                             }),
                             blob = new Blob([csv], { type: "text/csv" });
                         a.href = URL.createObjectURL(blob);
@@ -573,13 +577,15 @@ export function setupListeners({
                         }, 100);
                     }
                 } else if (ext === "gpx") {
+                    const recordMesgs = Array.isArray(/** @type {any} */(globalData)?.recordMesgs)
+                        ? /** @type {Array<any>} */ (/** @type {any} */ (globalData).recordMesgs)
+                        : null;
                     if (
                         /** @type {any} */ (globalThis).createExportGPXButton &&
-                        globalThis.globalData.recordMesgs &&
-                        Array.isArray(globalThis.globalData.recordMesgs) &&
-                        globalThis.globalData.recordMesgs.length > 0
+                        recordMesgs &&
+                        recordMesgs.length > 0
                     ) {
-                        const coords = globalThis.globalData.recordMesgs
+                        const coords = recordMesgs
                             .filter(
                                 (/** @type {{positionLat?:number, positionLong?:number}} */ row) =>
                                     row.positionLat != null && row.positionLong != null

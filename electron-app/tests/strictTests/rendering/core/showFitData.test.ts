@@ -3,6 +3,7 @@ import { setState } from "../../../../utils/state/core/stateManager.js";
 
 vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     setState: vi.fn(),
+    getState: vi.fn(() => undefined),
 }));
 
 vi.mock("../../../../utils/charts/components/createGlobalChartStatusIndicator.js", () => ({

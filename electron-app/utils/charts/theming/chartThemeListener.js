@@ -4,6 +4,7 @@
  * This file uses JSDoc types so TypeScript (checkJs) can understand shapes.
  */
 
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { chartStateManager } from "../core/chartStateManager.js";
 
 /**
@@ -26,7 +27,7 @@ export function forceUpdateChartTheme(chartsContainer, settingsContainer) {
     console.log("[ChartThemeListener] Force updating chart theme");
 
     // Re-render charts through modern state management
-    if (chartsContainer && globalThis.globalData) {
+    if (chartsContainer && getGlobalData()) {
         if (chartStateManager) {
             chartStateManager.handleThemeChange();
         } else if (globalThis.ChartUpdater) {
@@ -94,7 +95,7 @@ function onChartThemeChangeFactory(chartsContainer, settingsContainer) {
 
         handler.timeout = setTimeout(() => {
             // Re-render all charts with new theme using modern state management
-            if (chartsContainer && globalThis.globalData) {
+            if (chartsContainer && getGlobalData()) {
                 console.log("[ChartThemeListener] Re-rendering charts for theme change");
 
                 // Use the modern chart state manager for theme changes

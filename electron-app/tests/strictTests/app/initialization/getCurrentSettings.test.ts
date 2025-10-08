@@ -20,7 +20,10 @@ vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({ showN
 vi.mock("../../../../utils/charts/components/chartStatusIndicator.js", () => ({
     updateAllChartStatusIndicators: vi.fn(),
 }));
-vi.mock("../../../../utils/state/core/stateManager.js", () => ({ setState: vi.fn() }));
+vi.mock("../../../../utils/state/core/stateManager.js", () => ({
+    getState: vi.fn(() => undefined),
+    setState: vi.fn(),
+}));
 vi.mock("../../../../utils/charts/core/chartStateManager.js", () => ({
     chartStateManager: { debouncedRender: vi.fn() },
 }));

@@ -20,6 +20,7 @@ import {
     saveZoneColor,
 } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getHeartRateZones, getPowerZones } from "../../state/domain/zoneState.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 /**
@@ -84,11 +85,11 @@ export function createInlineZoneColorSelector(field, container) {
             zoneType = "";
         if (field.includes("hr_zone") || field.includes("hr_lap_zone") || field === "hr_zone") {
             zoneType = "hr";
-            zoneData = /** @type {ZoneDataItem[]|null} */ (globalThis.heartRateZones || null);
+            zoneData = /** @type {ZoneDataItem[]|null} */ (getHeartRateZones() || null);
             defaultColors = DEFAULT_HR_ZONE_COLORS;
         } else if (field.includes("power_zone") || field.includes("power_lap_zone") || field === "power_zone") {
             zoneType = "power";
-            zoneData = /** @type {ZoneDataItem[]|null} */ (globalThis.powerZones || null);
+            zoneData = /** @type {ZoneDataItem[]|null} */ (getPowerZones() || null);
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
             console.log(`[ZoneColorSelector] Creating power zone selector with ${zoneData?.length || 0} zones`);
         } else {
@@ -705,7 +706,7 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
     `;
 
     const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
-        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
+        zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */(zone).time, true) : "";
     label.innerHTML = `
         <div>${zoneName}</div>
         ${zoneTime ? `<div style="font-size: 10px; color: var(--color-fg-alt); margin-top: 2px;">${zoneTime}</div>` : ""}
@@ -865,14 +866,14 @@ function updateZoneColorPreview(field, zoneIndex, newColor) {
 
                 // Check if this chart contains zone data that matches our field
                 const isHRZoneChart =
-                        field.includes("hr_zone") &&
-                        chart.data.datasets.some(
-                            (/** @type {any} */ dataset) =>
-                                dataset.label &&
-                                (dataset.label.includes("Heart Rate") ||
-                                    dataset.label.includes("HR Zone") ||
-                                    dataset.label.toLowerCase().includes("heart"))
-                        ),
+                    field.includes("hr_zone") &&
+                    chart.data.datasets.some(
+                        (/** @type {any} */ dataset) =>
+                            dataset.label &&
+                            (dataset.label.includes("Heart Rate") ||
+                                dataset.label.includes("HR Zone") ||
+                                dataset.label.toLowerCase().includes("heart"))
+                    ),
                     isPowerZoneChart =
                         field.includes("power_zone") &&
                         chart.data.datasets.some(

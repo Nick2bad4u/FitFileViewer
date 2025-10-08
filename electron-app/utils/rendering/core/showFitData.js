@@ -18,6 +18,7 @@
 import { deferUntilIdle } from "../../app/performance/lazyRenderingUtils.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
 import { setState } from "../../state/core/stateManager.js";
+import { getGlobalData, setGlobalData } from "../../state/domain/globalDataState.js";
 
 // Constants for better maintainability
 const DISPLAY_CONSTANTS = {
@@ -74,9 +75,8 @@ export function showFitData(data, filePath, options = {}) {
         logWithContext("Displaying FIT data", "info");
 
         // Set global data and update state
-        globalThis.globalData = data;
         console.log("[ShowFitData] Setting globalData state", data ? "with data" : "null");
-        setState("globalData", data, { source: "showFitData" });
+        setGlobalData(data, "showFitData");
 
         // Reset rendering states if requested
         if (config.resetRenderStates) {
@@ -140,14 +140,20 @@ export function showFitData(data, filePath, options = {}) {
     }
 
     // Create tables if available
-    if (globalThis.createTables && globalThis.globalData) {
-        globalThis.createTables(globalThis.globalData);
+    if (globalThis.createTables) {
+        const currentData = getGlobalData();
+        if (currentData) {
+            globalThis.createTables(currentData);
+        }
     }
 
     // Pre-render summary data so it's ready when user switches to summary tab
     // This ensures all tabs have their data ready, even though we default to map
-    if (globalThis.renderSummary && globalThis.globalData) {
-        globalThis.renderSummary(globalThis.globalData);
+    if (globalThis.renderSummary) {
+        const currentData = getGlobalData();
+        if (currentData) {
+            globalThis.renderSummary(currentData);
+        }
     }
 
     // Pre-render charts in the background during idle time

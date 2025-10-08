@@ -1,4 +1,5 @@
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { createDensityToggle, getDensityPreference } from "../../ui/controls/createDensityToggle.js";
 import {
     createIconElement,
@@ -63,13 +64,13 @@ export function getRowLabel(rowIdx, isLap) {
 export function getStorageKey(data) {
     let fpath = "";
     try {
-        const w = /** @type {AugmentedWindow} */ (globalThis);
-        if (globalThis.window !== undefined && w?.globalData?.cachedFilePath) {
-            fpath = w.globalData.cachedFilePath;
+        const globalData = getGlobalData();
+        if (globalData && typeof globalData === "object" && /** @type {any} */ (globalData)?.cachedFilePath) {
+            fpath = /** @type {any} */ (globalData).cachedFilePath;
         } else if (data && typeof data === "object" && /** @type {any} */ (data)?.cachedFilePath) {
             fpath = /** @type {any} */ (data).cachedFilePath;
-        } else if (globalThis.window !== undefined && w?.activeFitFileName) {
-            fpath = w.activeFitFileName;
+        } else if (globalThis.window !== undefined && /** @type {AugmentedWindow} */ (globalThis)?.activeFitFileName) {
+            fpath = /** @type {AugmentedWindow} */ (globalThis).activeFitFileName;
         }
     } catch {
         // Ignore
@@ -447,7 +448,7 @@ export function showColModal({
                 updateVisibleColumns(newCols);
                 updateColList();
                 reRenderTable();
-                saveColPrefs(getStorageKey(globalThis.globalData || {}), newCols);
+                saveColPrefs(getStorageKey(getGlobalData() || {}), newCols);
             }
         };
     }
@@ -478,7 +479,7 @@ export function showColModal({
             selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
             updateColList();
             reRenderTable();
-            saveColPrefs(getStorageKey(globalThis.globalData || {}), newCols);
+            saveColPrefs(getStorageKey(getGlobalData() || {}), newCols);
         };
     }
     /**
@@ -518,7 +519,7 @@ export function showColModal({
         updateVisibleColumns(newCols);
         updateColList();
         reRenderTable();
-        saveColPrefs(getStorageKey(globalThis.globalData || {}), newCols);
+        saveColPrefs(getStorageKey(getGlobalData() || {}), newCols);
     });
     modal.append(selectAllBtn);
     updateColList();
@@ -535,7 +536,7 @@ export function showColModal({
     okBtn.addEventListener("click", () => {
         overlay.remove();
         reRenderTable();
-        saveColPrefs(getStorageKey(globalThis.globalData || {}), visibleColumns);
+        saveColPrefs(getStorageKey(getGlobalData() || {}), visibleColumns);
     });
     actions.append(cancelBtn);
     actions.append(okBtn);

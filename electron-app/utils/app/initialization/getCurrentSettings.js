@@ -15,6 +15,7 @@ import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { isHTMLElement, query, queryAll, setChecked, setValue } from "../../dom/index.js";
 import { fieldColors, formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { setState } from "../../state/core/stateManager.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -157,12 +158,19 @@ export function getDefaultSettings() {
 export function reRenderChartsAfterSettingChange(settingName, newValue) {
     try {
         // Check if chart data is available
-        if (!globalThis.globalData || !globalThis.globalData.recordMesgs) {
-            console.log(`${LOG_PREFIX} No chart data available for re-rendering after ${settingName} change`);
-            return;
-        }
+        const globalData = getGlobalData();
+        const recordMesgs = Array.isArray(/** @type {any} */(globalData)?.recordMesgs)
+            ? /** @type {Array<any>} */ (/** @type {any} */ (globalData).recordMesgs)
+            : null;
+        const hasChartData = Array.isArray(recordMesgs) && recordMesgs.length > 0;
 
-        console.log(`${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`);
+        if (!hasChartData) {
+            console.log(
+                `${LOG_PREFIX} No chart data available when ${settingName} changed to ${newValue}. Performing cleanup only.`
+            );
+        } else {
+            console.log(`${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`);
+        }
 
         // CRITICAL: Clear cached settings from state management
         // This ensures the chart rendering will read fresh settings from localStorage
@@ -205,13 +213,13 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             chartStateManager && typeof chartStateManager.debouncedRender === "function"
                 ? chartStateManager
                 : /** @type {any} */ (globalThis).chartStateManager;
-        if (managerCandidate && typeof managerCandidate.debouncedRender === "function") {
+        if (hasChartData && managerCandidate && typeof managerCandidate.debouncedRender === "function") {
             managerCandidate.debouncedRender(reason);
             console.log(`${LOG_PREFIX} Delegated re-render to chartStateManager`);
             return;
         }
 
-        if (actions && typeof actions.requestRerender === "function") {
+        if (hasChartData && actions && typeof actions.requestRerender === "function") {
             actions.requestRerender(reason);
             console.log(`${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`);
             return;
@@ -228,20 +236,24 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
 
         console.log(`${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`);
 
-        // Force re-render through modern state management
-        if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
-            // Fallback: direct rendering for compatibility if globally exposed
-            const target = container || document.querySelector("#content-chart") || document.body;
-            /** @type {any} */ (globalThis).renderChartJS(target);
+        if (hasChartData) {
+            // Force re-render through modern state management
+            if (typeof (/** @type {any} */ (globalThis).renderChartJS) === "function") {
+                // Fallback: direct rendering for compatibility if globally exposed
+                const target = container || document.querySelector("#content-chart") || document.body;
+                /** @type {any} */ (globalThis).renderChartJS(target);
+                console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change (direct render)`);
+            } else {
+                // Final fallback: dispatch a render request event handled elsewhere
+                console.log(`${LOG_PREFIX} Dispatching render request event fallback`);
+                globalThis.dispatchEvent(
+                    new CustomEvent("ffv:request-render-charts", { detail: { reason: `setting-change:${settingName}` } })
+                );
+                console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change (event fallback)`);
+            }
         } else {
-            // Final fallback: dispatch a render request event handled elsewhere
-            console.log(`${LOG_PREFIX} Dispatching render request event fallback`);
-            globalThis.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", { detail: { reason: `setting-change:${settingName}` } })
-            );
+            console.log(`${LOG_PREFIX} Skipped re-render triggers due to missing chart data`);
         }
-
-        console.log(`${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`);
     } catch (error) {
         const err = /** @type {any} */ (error);
         console.error(`${LOG_PREFIX} Error re-rendering charts after ${settingName} change:`, err?.message || err);
@@ -458,7 +470,11 @@ function performDirectControlUpdates() {
 function reRenderChartsAfterReset() {
     try {
         // Check if chart data is available
-        if (!globalThis.globalData || !globalThis.globalData.recordMesgs) {
+        const globalData = getGlobalData();
+        const recordMesgs = Array.isArray(/** @type {any} */(globalData)?.recordMesgs)
+            ? /** @type {Array<any>} */ (/** @type {any} */ (globalData).recordMesgs)
+            : null;
+        if (!recordMesgs || recordMesgs.length === 0) {
             console.log(`${LOG_PREFIX} No chart data available for re-rendering`);
             return;
         }
@@ -579,7 +595,7 @@ function resetUIControlsToDefaults(wrapper) {
         for (const picker of colorPickers) {
             const fieldName = picker.id.replace("field-color-", "").replace("chartjs-", "");
             if (/** @type {any} */ (fieldColors)[fieldName]) {
-                setValue(picker, /** @type {any} */ (fieldColors)[fieldName]);
+                setValue(picker, /** @type {any} */(fieldColors)[fieldName]);
             }
         }
         if (colorPickers.length > 0) {

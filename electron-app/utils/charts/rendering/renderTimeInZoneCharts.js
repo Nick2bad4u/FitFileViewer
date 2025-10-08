@@ -1,3 +1,4 @@
+import { getHeartRateZones, getPowerZones } from "../../state/domain/zoneState.js";
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
 import { renderZoneChart } from "./renderZoneChart.js";
@@ -17,13 +18,13 @@ export function renderTimeInZoneCharts(container, options = {}) {
         console.log("[ChartJS] renderTimeInZoneCharts called");
 
         /** @type {ZoneInfo[]|undefined} */
-        const hrZones = Array.isArray(globalThis.heartRateZones) ? globalThis.heartRateZones : undefined,
+        const hrZones = getHeartRateZones(),
             /** @type {ZoneVisibilitySettings} */
             hrZoneSettings = (getHRZoneVisibilitySettings && getHRZoneVisibilitySettings()) || {
                 doughnutVisible: true,
             },
             /** @type {ZoneInfo[]|undefined} */
-            powerZones = Array.isArray(globalThis.powerZones) ? globalThis.powerZones : undefined;
+            powerZones = getPowerZones();
         if (hrZoneSettings.doughnutVisible && hrZones && hrZones.length > 0) {
             console.log("[ChartJS] Rendering HR zone chart with data:", hrZones);
             renderZoneChart(container, "HR Zone Distribution (Doughnut)", hrZones, "heart-rate-zones", options);
