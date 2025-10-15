@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
+const addChartHoverEffectsMock = vi.fn();
+
+vi.mock("../../../utils/charts/plugins/addChartHoverEffects.js", () => ({
+    addChartHoverEffects: (...args) => addChartHoverEffectsMock(...args),
+}));
+
 async function loadModule() {
     return await import("../../../utils/charts/rendering/renderZoneChart.js");
 }
@@ -9,6 +15,7 @@ describe("renderZoneChart", () => {
     beforeEach(() => {
         document.body.innerHTML = '<div id="root"></div>';
         (window as any)._chartjsInstances = [];
+        addChartHoverEffectsMock.mockReset();
         originalChart = (window as any).Chart;
         (window as any).Chart = vi.fn().mockImplementation((_canvas, _config) => ({
             update: vi.fn(),
@@ -34,11 +41,12 @@ describe("renderZoneChart", () => {
             { zone: 1, label: "Z1", time: 10, color: "#111111" },
             { zone: 2, label: "Z2", time: 20, color: "#222222" },
         ];
-        renderZoneChart(container as any, "HR Zones", zoneData as any, "hr_zone", { showLegend: true });
+    renderZoneChart(container as any, "HR Zones", zoneData as any, "hr_zone", { showLegend: true });
         expect(container.querySelector("canvas")).toBeTruthy();
         expect((window as any).Chart).toHaveBeenCalled();
         expect(Array.isArray((window as any)._chartjsInstances)).toBe(true);
         expect((window as any)._chartjsInstances.length).toBe(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(container, expect.any(Object));
     });
 
     it("renders bar config when chartType=bar and uses zoneType colors fallback", async () => {
@@ -60,12 +68,13 @@ describe("renderZoneChart", () => {
         });
         expect(container.querySelector("canvas")).toBeTruthy();
         expect((window as any).Chart).toHaveBeenCalled();
+        expect(addChartHoverEffectsMock).toHaveBeenCalledWith(container, expect.any(Object));
     });
 
     it("gracefully returns on invalid inputs", async () => {
         const { renderZoneChart } = await loadModule();
         renderZoneChart(null as any, "X", [] as any, "id");
         renderZoneChart(document.body, "X", null as any, "id");
-        expect(true).toBe(true);
+        expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 });

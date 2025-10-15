@@ -272,7 +272,7 @@ function enhanceChartCanvas(canvas, themeConfig) {
     wrapper.append(toolbar);
 
     const legendBtn = createToolbarButton("mdi:format-list-bulleted", "Toggle legend visibility");
-    const resetBtn = createToolbarButton("mdi:magnify-remove-outline", "Reset zoom");
+    const resetBtn = createToolbarButton("mdi:fit-to-page-outline", "Reset zoom");
     resetBtn.title = "Reset zoom (Shift + drag to zoom)";
     resetBtn.setAttribute("aria-label", resetBtn.title);
     const fullscreenBtn = createToolbarButton("mdi:fullscreen", "View chart fullscreen");
@@ -649,12 +649,26 @@ function setupResetZoom(context) {
 function setupRippleEffect(context) {
     const { wrapper, titleAccent, cleanupFns } = context;
     const handler = (event) => {
+        if (typeof event.stopPropagation === "function") {
+            event.stopPropagation();
+        }
+        if (typeof event.button === "number" && event.button !== 0) {
+            return;
+        }
+
+        const mouseEvent = /** @type {MouseEvent} */ (event);
+        const clientX = mouseEvent?.clientX;
+        const clientY = mouseEvent?.clientY;
+        if (typeof clientX !== "number" || typeof clientY !== "number") {
+            return;
+        }
+
         const rect = wrapper.getBoundingClientRect();
         const ripple = document.createElement("div");
         ripple.className = "chart-ripple";
         const size = Math.max(rect.width, rect.height);
-        const x = event.clientX - rect.left - size / 2;
-        const y = event.clientY - rect.top - size / 2;
+        const x = clientX - rect.left - size / 2;
+        const y = clientY - rect.top - size / 2;
         ripple.style.width = `${size}px`;
         ripple.style.height = `${size}px`;
         ripple.style.left = `${x}px`;

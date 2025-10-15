@@ -6,6 +6,7 @@ import { getGlobalData } from "../../../state/domain/globalDataState.js";
 import { useAppState } from "../../../state/hooks/useAppState.js";
 import { getMapThemeInverted } from "../../../theming/specific/createMapThemeToggle.js";
 import { updateMapTheme } from "../../../theming/specific/updateMapTheme.js";
+import { getEffectiveTheme } from "../../../theming/core/theme.js";
 import { showNotification } from "../../../ui/notifications/showNotification.js";
 import { addFullscreenControl } from "../../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../../controls/mapLapSelector.js";
@@ -79,6 +80,7 @@ export function MapViewRoot() {
     const [mapError, setMapError] = useState(/** @type {string | null} */ (null));
 
     const mapControlsTheme = getMapThemeInverted() ? "dark" : "light";
+    const uiTheme = getEffectiveTheme();
 
     const overlayFiles = useAppState((state) => state?.overlays?.loadedFitFiles ?? []);
     const highlightedOverlayIndex = useAppState((state) => state?.overlays?.highlightedOverlayIndex ?? null);
@@ -759,7 +761,13 @@ export function MapViewRoot() {
     return createElement(
         "div",
         { className: "map-view-root" },
-        createElement("div", { id: "leaflet-map", ref: mapContainerRef, className: "map-view-root__canvas" }),
+        createElement("div", {
+            id: "leaflet-map",
+            ref: mapContainerRef,
+            className: "map-view-root__canvas",
+            "data-map-theme": mapControlsTheme,
+            "data-ui-theme": uiTheme,
+        }),
         mapError
             ? createElement(
                 "div",
@@ -769,7 +777,12 @@ export function MapViewRoot() {
             : null,
         createElement(
             "div",
-            { id: "map-controls", className: "map-view-root__controls", "data-map-theme": mapControlsTheme },
+            {
+                id: "map-controls",
+                className: "map-view-root__controls",
+                "data-map-theme": mapControlsTheme,
+                "data-ui-theme": uiTheme,
+            },
             createElement(MapControls, { mapInstance })
         )
     );

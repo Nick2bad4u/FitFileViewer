@@ -2,6 +2,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Note: use relative path from this test folder to module under test
 import * as theme from "../../../../../utils/theming/core/theme.js";
+import * as stateManager from "../../../../../utils/state/core/stateManager.js";
 
 describe("utils/theming/core/theme.js - additional coverage", () => {
     const originalMatchMedia = globalThis.matchMedia as any;
@@ -172,5 +173,24 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
 
         // Call cleanup to satisfy branch
         (cleanup as Function)();
+    });
+
+    test("setThemePreference applies, persists, and syncs state", () => {
+        const setStateSpy = vi.spyOn(stateManager, "setState").mockImplementation(() => {} as any);
+        const getStateSpy = vi.spyOn(stateManager, "getState").mockImplementation(() => "dark");
+
+        theme.setThemePreference("light", { withTransition: false });
+
+        expect(localStorage.getItem("ffv-theme")).toBe("light");
+        expect(localStorage.getItem("fitFileViewer_theme")).toBe("light");
+        expect(document.body.classList.contains("theme-light")).toBe(true);
+        expect(setStateSpy).toHaveBeenCalledWith(
+            "ui.theme",
+            "light",
+            expect.objectContaining({ source: "theme.setThemePreference" })
+        );
+
+        setStateSpy.mockRestore();
+        getStateSpy.mockRestore();
     });
 });

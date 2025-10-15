@@ -6,7 +6,7 @@
  */
 
 import { getEffectiveAccentColor, setAccentColor } from "../theming/core/accentColor.js";
-import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
+import { getEffectiveTheme, loadTheme, setThemePreference, THEME_MODES } from "../theming/core/theme.js";
 
 /**
  * Preset color palettes with witty names
@@ -21,6 +21,12 @@ const COLOR_PRESETS = [
 	{ color: "#ef4444", name: "Red Hot" },
 	{ color: "#06b6d4", name: "Cyan-tific" },
 	{ color: "#f97316", name: "Orange Crush" },
+];
+
+const THEME_OPTIONS = [
+	{ icon: "mdi:weather-sunny", label: "Light", mode: THEME_MODES.LIGHT },
+	{ icon: "mdi:moon-waning-crescent", label: "Dark", mode: THEME_MODES.DARK },
+	{ icon: "mdi:theme-light-dark", label: "Auto", mode: THEME_MODES.AUTO },
 ];
 
 /**
@@ -85,6 +91,16 @@ function createSwitcherElement() {
 		<div class="switcher-dropdown" id="color-switcher-dropdown">
 			<div class="switcher-header">
 				<span class="witty-title">🎨 Pick Your Vibe</span>
+			</div>
+			<div class="theme-toggle-group" role="group" aria-label="Theme selection">
+				${THEME_OPTIONS.map(
+		(option) => `
+					<button class="theme-toggle-btn${currentTheme === option.mode ? " active" : ""}" data-theme="${option.mode}" type="button">
+						<iconify-icon icon="${option.icon}" width="16" height="16"></iconify-icon>
+						<span>${option.label}</span>
+					</button>
+				`
+	).join("")}
 			</div>
 			<div class="color-grid">
 				${COLOR_PRESETS.map(
@@ -200,6 +216,48 @@ function injectSwitcherStyles() {
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			background-clip: text;
+		}
+
+		.theme-toggle-group {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+			gap: 8px;
+			padding: 16px;
+			border-bottom: 1px solid var(--color-border);
+		}
+
+		.theme-toggle-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			padding: 8px 10px;
+			border-radius: var(--border-radius-small);
+			background: var(--color-glass);
+			border: 1px solid var(--color-border);
+			color: var(--color-fg);
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: var(--transition-smooth);
+		}
+
+		.theme-toggle-btn iconify-icon {
+			color: currentColor;
+		}
+
+		.theme-toggle-btn:hover,
+		.theme-toggle-btn:focus-visible {
+			border-color: var(--color-accent);
+			color: var(--color-accent);
+			outline: none;
+			box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+		}
+
+		.theme-toggle-btn.active {
+			background: rgb(var(--color-accent-rgb) / 16%);
+			border-color: var(--color-accent);
+			color: var(--color-accent);
 		}
 
 		.color-grid {
@@ -324,6 +382,10 @@ function injectSwitcherStyles() {
 				font-size: 0.85rem;
 			}
 
+			.theme-toggle-group {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
 			.switcher-dropdown {
 				width: 280px;
 			}
@@ -348,6 +410,25 @@ function setupSwitcherListeners(switcher) {
 	const dropdown = switcher.querySelector("#color-switcher-dropdown");
 	const colorOptions = switcher.querySelectorAll(".color-option");
 	const settingsBtn = switcher.querySelector("#open-full-settings");
+	const themeButtons = switcher.querySelectorAll(".theme-toggle-btn");
+
+	const updateThemeButtonState = (/** @type {string} */ activeTheme) => {
+		for (const button of themeButtons) {
+			button.classList.toggle("active", button.dataset.theme === activeTheme);
+		}
+	};
+
+	const handleThemeChange = () => {
+		updateThemeButtonState(loadTheme());
+	};
+
+	if (themeButtons.length > 0) {
+		updateThemeButtonState(loadTheme());
+		document.body.addEventListener("themechange", handleThemeChange);
+		window.addEventListener("beforeunload", () => {
+			document.body.removeEventListener("themechange", handleThemeChange);
+		});
+	}
 
 	// Toggle dropdown
 	toggle?.addEventListener("click", (e) => {
@@ -361,6 +442,21 @@ function setupSwitcherListeners(switcher) {
 			dropdown?.classList.remove("open");
 		}
 	});
+
+	for (const button of themeButtons) {
+		button.addEventListener("click", () => {
+			const themeMode = button.dataset.theme;
+			if (!themeMode) {
+				return;
+			}
+
+			setThemePreference(themeMode, { withTransition: true });
+			updateThemeButtonState(themeMode);
+			setTimeout(() => {
+				dropdown?.classList.remove("open");
+			}, 220);
+		});
+	}
 
 	// Color option click
 	for (const option of colorOptions) {

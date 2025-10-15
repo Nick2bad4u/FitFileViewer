@@ -6,6 +6,7 @@ const getThemeConfigMock = vi.fn();
 const getZoneTypeFromFieldMock = vi.fn();
 const getChartZoneColorsMock = vi.fn();
 const formatTimeMock = vi.fn();
+const addChartHoverEffectsMock = vi.fn();
 
 const chartBackgroundColorPluginStub = { id: "background-plugin" };
 
@@ -15,6 +16,10 @@ vi.mock("../../../../../utils/charts/components/createChartCanvas.js", () => ({
 
 vi.mock("../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
     chartBackgroundColorPlugin: chartBackgroundColorPluginStub,
+}));
+
+vi.mock("../../../../../utils/charts/plugins/addChartHoverEffects.js", () => ({
+    addChartHoverEffects: (...args: any[]) => addChartHoverEffectsMock(...args),
 }));
 
 vi.mock("../../../../../utils/charts/theming/chartThemeUtils.js", () => ({
@@ -96,6 +101,7 @@ describe("renderZoneChartNew", () => {
 
         expect(createChartCanvasMock).not.toHaveBeenCalled();
         expect(chartConstructorMock).not.toHaveBeenCalled();
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 
     it("creates a doughnut chart using provided zone colors and updates legend + tooltips", async () => {
@@ -112,6 +118,8 @@ describe("renderZoneChartNew", () => {
         expect(createChartCanvasMock).toHaveBeenCalledWith("hr-zone-chart", 0);
         expect(container.querySelector("canvas")).toBeTruthy();
         expect(chartConstructorMock).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(container, expect.any(Object));
 
         const { canvas, config } = chartCalls[0];
         expect(config.type).toBe("doughnut");
@@ -167,6 +175,8 @@ describe("renderZoneChartNew", () => {
 
         expect(createChartCanvasMock).toHaveBeenCalledWith("power-zone-chart", 0);
         expect(chartConstructorMock).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(container, expect.any(Object));
 
         const { config } = chartCalls[0];
         expect(config.type).toBe("bar");

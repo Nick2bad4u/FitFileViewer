@@ -11,7 +11,7 @@ import {
 	resetAccentColor,
 	setAccentColor,
 } from "../theming/core/accentColor.js";
-import { applyTheme, getEffectiveTheme, loadTheme, THEME_MODES } from "../theming/core/theme.js";
+import { getEffectiveTheme, loadTheme, setThemePreference, THEME_MODES } from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 
 /**
@@ -444,7 +444,7 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 	if (themeSelect) {
 		addEventListenerWithCleanup(themeSelect, "change", (/** @type {Event} */ e) => {
 			const { value: newTheme } = /** @type {HTMLSelectElement} */ (e.target);
-			applyTheme(newTheme, true);
+			setThemePreference(newTheme, { withTransition: true });
 
 			// Update effective theme for accent color
 			effectiveTheme = getEffectiveTheme(newTheme);

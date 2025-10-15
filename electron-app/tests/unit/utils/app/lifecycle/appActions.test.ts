@@ -206,6 +206,12 @@ describe("AppActions", () => {
         AppActions.switchTheme("dark");
         expect(h.mockSetState).toHaveBeenCalledWith("ui.theme", "dark", expect.any(Object));
         h.mockSetState.mockClear();
+        AppActions.switchTheme("auto");
+        expect(h.mockSetState).toHaveBeenCalledWith("ui.theme", "auto", expect.any(Object));
+        h.mockSetState.mockClear();
+        AppActions.switchTheme("system");
+        expect(h.mockSetState).toHaveBeenCalledWith("ui.theme", "auto", expect.any(Object));
+        h.mockSetState.mockClear();
         AppActions.switchTheme("purple");
         expect(h.mockSetState).not.toHaveBeenCalled();
     });
@@ -234,7 +240,7 @@ describe("AppSelectors", () => {
         expect(AppSelectors.areTablesRendered()).toBe(false);
 
         h.mockGetState.mockReturnValueOnce(undefined); // ui.theme
-        expect(AppSelectors.currentTheme()).toBe("system");
+    expect(AppSelectors.currentTheme()).toBe("auto");
 
         h.mockGetState.mockReturnValueOnce(undefined); // charts
         expect(AppSelectors.getChartConfig()).toEqual({});

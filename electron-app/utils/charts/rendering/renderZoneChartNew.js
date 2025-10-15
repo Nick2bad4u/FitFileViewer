@@ -6,6 +6,7 @@ import { getChartIcon, getZoneChartEmoji, getZoneChartIcon } from "../../ui/icon
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
+import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 /**
@@ -98,6 +99,12 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
             }
             globalThis._chartjsInstances.push(chart);
             console.log(`[ChartJS] Zone chart created successfully for ${title}`);
+        }
+
+        try {
+            addChartHoverEffects(container, themeConfig);
+        } catch (hookError) {
+            console.warn("[ChartJS] Unable to enhance zone chart hover effects", hookError);
         }
     } catch (error) {
         console.error("[ChartJS] Failed to create zone chart", error);

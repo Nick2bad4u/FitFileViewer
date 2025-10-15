@@ -143,9 +143,9 @@ export class MasterStateManager {
     /**
      * Initialize core state management
      */ /**
-     * Get active subscriptions for debugging
-     * @returns {Object} Subscription information
-     */
+    * Get active subscriptions for debugging
+    * @returns {Object} Subscription information
+    */
     getSubscriptions() {
         const stateAPI = getStateManagerAPI();
         return stateAPI.getSubscriptions();
@@ -387,7 +387,7 @@ export class MasterStateManager {
         dynInitControls();
 
         // Set up theme initialization
-        const savedTheme = localStorage.getItem("fitFileViewer_theme") || "system";
+        const savedTheme = localStorage.getItem("fitFileViewer_theme") || "auto";
         const { UIActions: dynUI } = getUIStateModule();
         dynUI.setTheme(savedTheme);
     }
@@ -548,7 +548,7 @@ export class MasterStateManager {
         // Integrate file operations with UI state
         stateAPI.subscribe(
             "globalData",
-            /** @param {*} data */ (data) => {
+            /** @param {*} data */(data) => {
                 if (data) {
                     // Enable tabs when data is loaded
                     const { UIActions: dynUI } = getUIStateModule();
@@ -564,7 +564,7 @@ export class MasterStateManager {
         // Integrate loading state with UI
         stateAPI.subscribe(
             "isLoading",
-            /** @param {boolean} isLoading */ (isLoading) => {
+            /** @param {boolean} isLoading */(isLoading) => {
                 // Update UI elements based on loading state
                 const elements = document.querySelectorAll(".loading-sensitive");
                 for (const el of elements) {
@@ -577,7 +577,7 @@ export class MasterStateManager {
         // Integrate theme changes with maps and charts
         stateAPI.subscribe(
             "ui.theme",
-            /** @param {string} theme */ (theme) => {
+            /** @param {string} theme */(theme) => {
                 // Notify other components about theme changes
                 globalThis.dispatchEvent(new CustomEvent("themeChanged", { detail: { theme } }));
             }
@@ -657,19 +657,19 @@ export class MasterStateManager {
                             performance
                         ).memory
                             ? {
-                                  total: Math.round(
-                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */ (performance)
-                                          .memory.totalJSHeapSize /
-                                          1024 /
-                                          1024
-                                  ),
-                                  used: Math.round(
-                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */ (performance)
-                                          .memory.usedJSHeapSize /
-                                          1024 /
-                                          1024
-                                  ),
-                              }
+                                total: Math.round(
+                                      /** @type {Performance & {memory: {totalJSHeapSize: number}}} */(performance)
+                                        .memory.totalJSHeapSize /
+                                    1024 /
+                                    1024
+                                ),
+                                used: Math.round(
+                                      /** @type {Performance & {memory: {usedJSHeapSize: number}}} */(performance)
+                                        .memory.usedJSHeapSize /
+                                    1024 /
+                                    1024
+                                ),
+                            }
                             : null,
                     stateChangesPerMinute: elapsed > 0 ? Math.round((stateChangeCount * 60_000) / elapsed) : 0,
                     timestamp: now,
@@ -897,10 +897,10 @@ function getStateManagerAPI() {
                 }
                 const candidates = __lazyNodePath
                     ? [
-                          __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.js"),
-                          __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.cjs"),
-                          __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.mjs"),
-                      ]
+                        __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.js"),
+                        __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.cjs"),
+                        __lazyNodePath.join(cwd, "utils", "state", "core", "stateManager.mjs"),
+                    ]
                     : [];
                 for (const cand of candidates) {
                     try {

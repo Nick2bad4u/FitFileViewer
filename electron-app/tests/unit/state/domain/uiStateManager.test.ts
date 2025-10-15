@@ -26,6 +26,16 @@ vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     updateState: vi.fn(),
 }));
 
+const themeMocks = vi.hoisted(() => ({
+    mockSetThemePreference: vi.fn(),
+    THEME_MODES: { AUTO: "auto", DARK: "dark", LIGHT: "light" },
+}));
+
+vi.mock("../../../../utils/theming/core/theme.js", () => ({
+    setThemePreference: themeMocks.mockSetThemePreference,
+    THEME_MODES: themeMocks.THEME_MODES,
+}));
+
 // Import the modules after mocks are set up
 import { UIStateManager, uiStateManager, UIActions } from "../../../../utils/state/domain/uiStateManager.js";
 import { AppActions } from "../../../../utils/app/lifecycle/appActions.js";
@@ -60,7 +70,7 @@ describe("UIStateManager - comprehensive coverage", () => {
             <!-- Theme buttons -->
             <button data-theme="light" id="theme-light">Light</button>
             <button data-theme="dark" id="theme-dark">Dark</button>
-            <button data-theme="system" id="theme-system">System</button>
+            <button data-theme="auto" id="theme-auto">Auto</button>
 
             <!-- Tab content -->
             <div class="tab-content" data-tab-content="charts"></div>
@@ -123,6 +133,7 @@ describe("UIStateManager - comprehensive coverage", () => {
 
         // Reset all mocks
         vi.clearAllMocks();
+    themeMocks.mockSetThemePreference.mockReset();
         vi.mocked(getState).mockReturnValue(false);
     });
 
@@ -161,107 +172,44 @@ describe("UIStateManager - comprehensive coverage", () => {
     });
 
     describe("Theme Management", () => {
-        it("should apply light theme correctly", () => {
-            const manager = new UIStateManager();
-
-            manager.applyTheme("light");
-
-            expect(document.documentElement.getAttribute("data-theme")).toBe("light");
-        });
-
-        it("should apply dark theme correctly", () => {
-            const manager = new UIStateManager();
-
-            manager.applyTheme("dark");
-
-            expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-        });
-
-        it("should handle system theme with matchMedia support", () => {
-            const manager = new UIStateManager();
-            const mockMatchMedia = vi.fn(() => ({
-                matches: true,
-                addEventListener: vi.fn(),
-                removeEventListener: vi.fn(),
-            }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
-
-            manager.applyTheme("system");
-
-            expect(mockMatchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
-            expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-        });
-
-        it("should handle system theme when matchMedia is not available", () => {
-            const manager = new UIStateManager();
-            delete (globalThis as any).matchMedia;
-
-            manager.applyTheme("system");
-
-            expect(document.documentElement.getAttribute("data-theme")).toBe("light");
-        });
-
-        it("should use legacy addListener when addEventListener is not available", () => {
-            const manager = new UIStateManager();
-            const addListener = vi.fn();
-            const mockMatchMedia = vi.fn(() => ({
-                matches: false,
-                addListener,
-                removeListener: vi.fn(),
-            }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
-
-            manager.applyTheme("system");
-
-            expect(addListener).toHaveBeenCalled();
-        });
-
-        it("should update theme buttons when applying theme", () => {
+        it("invokes setThemePreference for explicit themes and updates toggle state", () => {
             const manager = new UIStateManager();
             const darkButton = document.querySelector('[data-theme="dark"]');
             const lightButton = document.querySelector('[data-theme="light"]');
 
+            themeMocks.mockSetThemePreference.mockClear();
             manager.applyTheme("dark");
 
+            expect(themeMocks.mockSetThemePreference).toHaveBeenCalledWith("dark", { withTransition: false });
             expect(darkButton?.classList.contains("active")).toBe(true);
+            expect(darkButton?.getAttribute("aria-pressed")).toBe("true");
             expect(lightButton?.classList.contains("active")).toBe(false);
+            expect(lightButton?.getAttribute("aria-pressed")).toBe("false");
         });
 
-        it("should clean up system theme listener when switching to explicit theme", () => {
+        it("normalizes legacy 'system' value to auto and highlights the auto toggle", () => {
             const manager = new UIStateManager();
-            const removeEventListener = vi.fn();
-            const mockMatchMedia = vi.fn(() => ({
-                matches: false,
-                addEventListener: vi.fn(),
-                removeEventListener,
-            }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            const autoButton = document.querySelector('[data-theme="auto"]');
+            const darkButton = document.querySelector('[data-theme="dark"]');
 
-            // First apply system theme to set up listener
+            themeMocks.mockSetThemePreference.mockClear();
             manager.applyTheme("system");
 
-            // Then switch to explicit theme
-            manager.applyTheme("dark");
-
-            expect(removeEventListener).toHaveBeenCalled();
+            expect(themeMocks.mockSetThemePreference).toHaveBeenCalledWith("auto", { withTransition: false });
+            expect(autoButton?.classList.contains("active")).toBe(true);
+            expect(autoButton?.getAttribute("aria-pressed")).toBe("true");
+            expect(darkButton?.classList.contains("active")).toBe(false);
         });
 
-        it("should use legacy removeListener when removeEventListener is not available", () => {
+        it("defaults to auto mode when provided theme is invalid", () => {
             const manager = new UIStateManager();
-            const removeListener = vi.fn();
-            const mockMatchMedia = vi.fn(() => ({
-                matches: false,
-                addEventListener: vi.fn(),
-                addListener: vi.fn(),
-                removeListener,
-            }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
+            const autoButton = document.querySelector('[data-theme="auto"]');
 
-            // Apply system theme then switch to explicit theme
-            manager.applyTheme("system");
-            manager.applyTheme("light");
+            themeMocks.mockSetThemePreference.mockClear();
+            manager.applyTheme("neon");
 
-            expect(removeListener).toHaveBeenCalled();
+            expect(themeMocks.mockSetThemePreference).toHaveBeenCalledWith("auto", { withTransition: false });
+            expect(autoButton?.classList.contains("active")).toBe(true);
         });
     });
 
@@ -623,24 +571,6 @@ describe("UIStateManager - comprehensive coverage", () => {
     });
 
     describe("Cleanup", () => {
-        it("should clean up system theme listener", () => {
-            const manager = new UIStateManager();
-            const removeEventListener = vi.fn();
-            const mockMatchMedia = vi.fn(() => ({
-                matches: false,
-                addEventListener: vi.fn(),
-                removeEventListener,
-            }));
-            Object.defineProperty(globalThis, "matchMedia", { value: mockMatchMedia });
-
-            // Set up system theme listener
-            manager.applyTheme("system");
-
-            manager.cleanup();
-
-            expect(removeEventListener).toHaveBeenCalled();
-        });
-
         it("should clear event listeners map", () => {
             const manager = new UIStateManager();
 

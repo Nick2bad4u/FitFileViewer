@@ -4,6 +4,7 @@
  */
 
 import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
+import { setThemePreference, THEME_MODES } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
@@ -220,19 +221,20 @@ export const AppActions = {
     },
 
     /**
-     * Toggle theme between light, dark, and system
-     * @param {string} theme - Theme to switch to ('light', 'dark', 'system')
+     * Toggle theme between light, dark, and auto (system)
+     * @param {string} theme - Theme to switch to ('light', 'dark', 'auto' | legacy 'system')
      */
     switchTheme(theme) {
-        const validThemes = ["light", "dark", "system"];
+        const normalizedTheme = theme === "system" ? THEME_MODES.AUTO : theme;
+        const validThemes = new Set(Object.values(THEME_MODES));
 
-        if (!validThemes.includes(theme)) {
+        if (!validThemes.has(normalizedTheme)) {
             console.warn(`[AppActions] Invalid theme: ${theme}`);
             return;
         }
 
-        setState("ui.theme", theme, { source: "AppActions.switchTheme" });
-        console.log(`[AppActions] Theme switched to: ${theme}`);
+        setThemePreference(normalizedTheme, { withTransition: true });
+        console.log(`[AppActions] Theme switched to: ${normalizedTheme}`);
     },
 
     /**
@@ -296,7 +298,7 @@ export const AppSelectors = {
      * @returns {string} Current theme
      */
     currentTheme() {
-        return getState("ui.theme") || "system";
+        return getState("ui.theme") || THEME_MODES.AUTO;
     },
 
     /**
@@ -449,12 +451,12 @@ export function useComputed(computeFn, dependencies = []) {
 
     // Subscribe to dependency changes
     const getComputedValue = () => {
-            if (!isValid) {
-                cachedValue = computeFn();
-                isValid = true;
-            }
-            return cachedValue;
-        },
+        if (!isValid) {
+            cachedValue = computeFn();
+            isValid = true;
+        }
+        return cachedValue;
+    },
         unsubscribers = dependencies.map((dep) =>
             subscribe(dep, () => {
                 isValid = false;

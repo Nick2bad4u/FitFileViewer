@@ -3,6 +3,8 @@ import { renderLapZoneChart } from "../../utils/charts/rendering/renderLapZoneCh
 import { getThemeConfig } from "../../utils/theming/core/theme.js";
 import { getZoneColor } from "../../utils/data/zones/chartZoneColorUtils.js";
 
+const addChartHoverEffectsMock = vi.fn();
+
 // Mock dependencies
 vi.mock("../../utils/theming/core/theme.js", () => ({
     getThemeConfig: vi.fn(() => ({
@@ -49,6 +51,10 @@ vi.mock("../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
     chartZoomResetPlugin: { id: "chartZoomResetPlugin", beforeDraw: vi.fn() },
 }));
 
+vi.mock("../../utils/charts/plugins/addChartHoverEffects.js", () => ({
+    addChartHoverEffects: (...args: unknown[]) => addChartHoverEffectsMock(...args),
+}));
+
 describe("renderLapZoneChart", () => {
     let mockCanvas: HTMLCanvasElement;
     let mockChart: any;
@@ -57,6 +63,8 @@ describe("renderLapZoneChart", () => {
         // Create mock canvas
         mockCanvas = /** @type {HTMLCanvasElement} */ document.createElement("canvas");
         document.body.appendChild(mockCanvas);
+
+        addChartHoverEffectsMock.mockReset();
 
         // Mock Chart.js
         mockChart = {
@@ -83,26 +91,29 @@ describe("renderLapZoneChart", () => {
     it("should return null when Chart.js is missing", () => {
         delete (window as any).Chart;
 
-        const result = renderLapZoneChart(mockCanvas, []);
+    const result = renderLapZoneChart(mockCanvas, []);
 
         expect(result).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 
     it("should return null when canvas is missing", () => {
         // @ts-ignore - Intentionally passing null to test error handling
-        const result = renderLapZoneChart(null, []);
+    const result = renderLapZoneChart(null, []);
 
         expect(result).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 
     it("should return null when lapZoneData is not an array", () => {
         // @ts-ignore - Intentionally passing null to test error handling
-        const result = renderLapZoneChart(mockCanvas, null);
+    const result = renderLapZoneChart(mockCanvas, null);
 
         expect(result).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalledWith("Failed to render lap zone chart", "error");
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 
     it("should create a Chart.js chart with correct configuration", () => {
@@ -125,10 +136,12 @@ describe("renderLapZoneChart", () => {
 
         const options = { title: "Heart Rate Zones by Lap" };
 
-        const result = renderLapZoneChart(mockCanvas, lapZoneData, options);
+    const result = renderLapZoneChart(mockCanvas, lapZoneData, options);
 
         expect(result).toBe(mockChart);
         expect((window as any).Chart).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(mockCanvas.parentElement, expect.any(Object));
 
         // Check that Chart was called with the correct parameters
         const chartCall = (window as any).Chart.mock.calls[0];
@@ -149,10 +162,11 @@ describe("renderLapZoneChart", () => {
     });
 
     it("should handle empty lap zone data", () => {
-        const result = renderLapZoneChart(mockCanvas, [], {});
+    const result = renderLapZoneChart(mockCanvas, [], {});
 
         expect(result).toBe(mockChart);
         expect((window as any).Chart).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledTimes(1);
 
         const chartCall = (window as any).Chart.mock.calls[0];
         const chartConfig = chartCall[1];

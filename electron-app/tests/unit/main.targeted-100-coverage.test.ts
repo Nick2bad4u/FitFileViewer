@@ -237,7 +237,7 @@ beforeEach(() => {
 
     Object.assign(globalMocks.mockNativeTheme, {
         shouldUseDarkColors: true,
-        themeSource: "system",
+    themeSource: "auto",
         on: vi.fn(),
         once: vi.fn(),
         removeAllListeners: vi.fn(),

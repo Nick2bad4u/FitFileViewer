@@ -4,6 +4,7 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
+import { setThemePreference, THEME_MODES } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 
@@ -22,55 +23,20 @@ export class UIStateManager {
 
     /**
      * Apply theme to the UI
-     * @param {string} theme - Theme to apply ('light', 'dark', 'system')
+     * @param {string} theme - Theme to apply ('light', 'dark', 'auto' | legacy 'system')
      */
     applyTheme(theme) {
-        const root = /** @type {HTMLElement} */ (document.documentElement || document.body || /** @type {any} */ ({}));
-
-        if (theme === "system") {
-            // Remove explicit theme and use system preference
-            delete root.dataset.theme;
-
-            // Listen for system theme changes if supported
-            if (globalThis.window !== undefined && typeof globalThis.matchMedia === "function") {
-                const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)"),
-                    systemTheme = mediaQuery.matches ? "dark" : "light";
-                root.dataset.theme = systemTheme;
-
-                // Update on system theme change
-                if (!this.systemThemeListener) {
-                    this.systemThemeListener = (/** @type {*} */ e) => {
-                        const newSystemTheme = e.matches ? "dark" : "light";
-                        root.dataset.theme = newSystemTheme;
-                    };
-                    if (typeof mediaQuery.addEventListener === "function") {
-                        mediaQuery.addEventListener("change", this.systemThemeListener);
-                    } else if (typeof mediaQuery.addListener === "function") {
-                        // Older API fallback
-                        mediaQuery.addListener(this.systemThemeListener);
-                    }
-                }
-            } else {
-                // Fallback when matchMedia is not available (e.g., jsdom)
-                root.dataset.theme = "light";
+        const normalizedTheme = (() => {
+            if (theme === "system") {
+                return THEME_MODES.AUTO;
             }
-        } else {
-            // Apply explicit theme
-            root.dataset.theme = theme;
-
-            // Remove system theme listener if it exists
-            if (this.systemThemeListener) {
-                if (globalThis.window !== undefined && typeof globalThis.matchMedia === "function") {
-                    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
-                    if (typeof mediaQuery.removeEventListener === "function") {
-                        mediaQuery.removeEventListener("change", this.systemThemeListener);
-                    } else if (typeof mediaQuery.removeListener === "function") {
-                        mediaQuery.removeListener(this.systemThemeListener);
-                    }
-                }
-                this.systemThemeListener = null;
+            if (typeof theme === "string" && Object.values(THEME_MODES).includes(theme)) {
+                return theme;
             }
-        }
+            return THEME_MODES.AUTO;
+        })();
+
+        setThemePreference(normalizedTheme, { withTransition: false });
 
         // Update theme toggle buttons
         const themeButtons = (() => {
@@ -81,11 +47,13 @@ export class UIStateManager {
             }
         })();
         for (const button of themeButtons) {
-            const buttonTheme = button.dataset.theme;
-            button.classList.toggle("active", buttonTheme === theme);
+            const buttonTheme = button.dataset.theme === "system" ? THEME_MODES.AUTO : button.dataset.theme;
+            const isActive = buttonTheme === normalizedTheme;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
         }
 
-        console.log(`[UIStateManager] Theme applied: ${theme}`);
+        console.log(`[UIStateManager] Theme applied: ${normalizedTheme}`);
     }
 
     /**

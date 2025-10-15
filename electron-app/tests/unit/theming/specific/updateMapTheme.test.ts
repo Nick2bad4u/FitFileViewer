@@ -37,6 +37,8 @@ describe("updateMapTheme", () => {
     beforeEach(() => {
         resetGlobals();
         document.body.innerHTML = "";
+        document.body.dataset.theme = "dark";
+        localStorage.clear();
         mockGetMapThemeInverted.mockReset();
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -44,7 +46,9 @@ describe("updateMapTheme", () => {
 
     it("applies dark theme and switches to the managed dark base layer", () => {
         mockGetMapThemeInverted.mockReturnValue(true);
-    document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
+        localStorage.setItem("ffv-theme", "light");
+        document.body.dataset.theme = "light";
+        document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
 
         const darkLayer = createLayerMock("dark");
         const lightLayer = createLayerMock("light");
@@ -78,7 +82,9 @@ describe("updateMapTheme", () => {
         const leafletMap = document.querySelector("#leaflet-map") as HTMLElement;
         const mapControls = document.querySelector("#map-controls") as HTMLElement;
         expect(leafletMap.dataset.mapTheme).toBe("dark");
-        expect(mapControls.dataset.mapTheme).toBe("dark");
+    expect(mapControls.dataset.mapTheme).toBe("dark");
+    expect(leafletMap.dataset.uiTheme).toBe("light");
+    expect(mapControls.dataset.uiTheme).toBe("light");
         expect(mapInstance.removeLayer).toHaveBeenCalledWith(lightLayer);
         expect(darkLayer.addTo).toHaveBeenCalledWith(mapInstance);
         expect(windowExt._miniMapControl.changeLayer).toHaveBeenCalledWith({ id: "mini-dark" });
@@ -87,6 +93,7 @@ describe("updateMapTheme", () => {
 
     it("keeps the current base layer when the user selected a manual override", () => {
         mockGetMapThemeInverted.mockReturnValue(false);
+        localStorage.setItem("ffv-theme", "dark");
         document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
         const mapControls = document.querySelector("#map-controls") as HTMLElement;
 
@@ -109,20 +116,23 @@ describe("updateMapTheme", () => {
 
         updateMapTheme();
 
-    expect(windowExt._leafletMapInstance.removeLayer).not.toHaveBeenCalled();
-    expect(customLayer.addTo).not.toHaveBeenCalled();
-    expect(mapControls.dataset.mapTheme).toBe("light");
+        expect(windowExt._leafletMapInstance.removeLayer).not.toHaveBeenCalled();
+        expect(customLayer.addTo).not.toHaveBeenCalled();
+        expect(mapControls.dataset.mapTheme).toBe("light");
+        expect(mapControls.dataset.uiTheme).toBe("dark");
     });
 
     it("handles missing map element without throwing", () => {
         mockGetMapThemeInverted.mockReturnValue(true);
+        localStorage.setItem("ffv-theme", "dark");
         document.body.innerHTML = '<div id="map-controls" class="map-view-root__controls"></div>';
 
         expect(() => updateMapTheme()).not.toThrow();
         expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
 
         const mapControls = document.querySelector("#map-controls") as HTMLElement | null;
-        expect(mapControls?.dataset.mapTheme).toBe("dark");
+    expect(mapControls?.dataset.mapTheme).toBe("dark");
+    expect(mapControls?.dataset.uiTheme).toBe("dark");
     });
 
     it("logs errors from getMapThemeInverted", () => {
@@ -161,7 +171,9 @@ describe("updateMapTheme", () => {
 
     it("invokes update logic when the global listener fires", () => {
         mockGetMapThemeInverted.mockReturnValue(false);
-    document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
+        localStorage.setItem("ffv-theme", "light");
+        document.body.dataset.theme = "light";
+        document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
         const windowExt = globalThis as any;
         windowExt._leafletMapInstance = { removeLayer: vi.fn() };
         windowExt.__mapLayerRegistry = {
@@ -177,9 +189,11 @@ describe("updateMapTheme", () => {
 
         globalThis._mapThemeListener?.();
 
-    const leafletMap = document.querySelector("#leaflet-map") as HTMLElement;
-    const mapControls = document.querySelector("#map-controls") as HTMLElement;
-    expect(leafletMap.dataset.mapTheme).toBe("light");
-    expect(mapControls.dataset.mapTheme).toBe("light");
+        const leafletMap = document.querySelector("#leaflet-map") as HTMLElement;
+        const mapControls = document.querySelector("#map-controls") as HTMLElement;
+        expect(leafletMap.dataset.mapTheme).toBe("light");
+        expect(mapControls.dataset.mapTheme).toBe("light");
+        expect(leafletMap.dataset.uiTheme).toBe("light");
+        expect(mapControls.dataset.uiTheme).toBe("light");
     });
 });

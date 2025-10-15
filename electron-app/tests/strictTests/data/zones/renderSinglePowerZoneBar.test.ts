@@ -15,9 +15,20 @@ vi.mock("../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
     getChartZoneColors: () => ["#f00", "#0f0", "#00f"],
 }));
 
+const addChartHoverEffectsMock = vi.fn();
+
+vi.mock("../../../../utils/charts/plugins/addChartHoverEffects.js", () => ({
+    addChartHoverEffects: (...args: unknown[]) => addChartHoverEffectsMock(...args),
+}));
+
+vi.mock("../../../../utils/theming/core/theme.js", () => ({
+    getThemeConfig: () => ({ colors: { textPrimary: "#111", accent: "#3b82f6" } }),
+}));
+
 describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
+        addChartHoverEffectsMock.mockReset();
     });
 
     it("renders chart when Chart is available", async () => {
@@ -51,6 +62,7 @@ describe("renderSinglePowerZoneBar", () => {
         const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
         expect(yTickCb(30)).toBe("30s");
         expect(tooltipCb({ dataset: { label: "Z1" }, parsed: { y: 30 } })).toBe("Z1: 30s");
+        expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
     });
 
     it("handles errors gracefully when Chart.js missing", async () => {
@@ -60,5 +72,6 @@ describe("renderSinglePowerZoneBar", () => {
         const res = renderSinglePowerZoneBar(null as any, null as any);
         expect(res).toBeNull();
         expect((window as any).showNotification).toHaveBeenCalled();
+        expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 });

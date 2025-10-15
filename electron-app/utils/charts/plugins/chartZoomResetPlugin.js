@@ -26,7 +26,12 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 export const chartZoomResetPlugin = {
     afterDraw(chart) {
         try {
-            if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) {
+            if (
+                chart?.canvas?.dataset?.hoverEffectsAdded === "true" ||
+                !chart?.isZoomedOrPanned ||
+                !chart.isZoomedOrPanned()
+            ) {
+                chart._zoomResetBtnBounds = undefined;
                 return;
             }
             const canvas = chart?.canvas,
@@ -80,7 +85,11 @@ export const chartZoomResetPlugin = {
     },
     afterEvent(chart, args) {
         try {
-            if (!chart?.isZoomedOrPanned || !chart.isZoomedOrPanned()) {
+            if (
+                chart?.canvas?.dataset?.hoverEffectsAdded === "true" ||
+                !chart?.isZoomedOrPanned ||
+                !chart.isZoomedOrPanned()
+            ) {
                 return;
             }
             const evtWrapper = args?.event,

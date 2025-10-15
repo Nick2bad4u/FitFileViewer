@@ -15,6 +15,7 @@
  */
 
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { getEffectiveTheme } from "../core/theme.js";
 
 // Constants for map theme management
 const MAP_THEME_EVENTS = {
@@ -128,12 +129,21 @@ export function createMapThemeToggle() {
 export function getMapThemeInverted() {
     try {
         const stored = localStorage.getItem(MAP_THEME_STORAGE_KEY);
-        // Default to true (dark map) if no preference is stored
-        return stored === null ? true : stored === "true";
+        if (stored !== null) {
+            return stored === "true";
+        }
     } catch (error) {
         console.error("[createMapThemeToggle] Error reading map theme preference:", error);
-        return true; // Default to dark map
     }
+
+    try {
+        const effectiveTheme = getEffectiveTheme();
+        return effectiveTheme !== "light";
+    } catch (error) {
+        console.warn("[createMapThemeToggle] Falling back to dark map theme:", error);
+    }
+
+    return true;
 }
 
 /**

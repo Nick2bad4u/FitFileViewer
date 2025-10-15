@@ -9,6 +9,7 @@
  */
 
 import { getMapThemeInverted } from "./createMapThemeToggle.js";
+import { getEffectiveTheme } from "../core/theme.js";
 
 const THEME_KEYS = Object.freeze({ dark: "dark", light: "light" });
 
@@ -20,17 +21,23 @@ export function updateMapTheme() {
     try {
         const mapShouldBeDark = getMapThemeInverted();
         const themeKey = mapShouldBeDark ? THEME_KEYS.dark : THEME_KEYS.light;
+        const uiTheme = getEffectiveTheme();
 
         const leafletMap = document.querySelector("#leaflet-map");
         if (leafletMap instanceof HTMLElement) {
             leafletMap.style.filter = "none";
             leafletMap.dataset.mapTheme = themeKey;
+            leafletMap.dataset.uiTheme = uiTheme;
         }
 
-        const mapControls = document.querySelector("#map-controls, .map-view-root__controls");
-        if (mapControls instanceof HTMLElement) {
-            mapControls.style.filter = "none";
-            mapControls.dataset.mapTheme = themeKey;
+        const mapControls = document.querySelectorAll("#map-controls, .map-view-root__controls");
+        for (const controls of mapControls) {
+            if (!(controls instanceof HTMLElement)) {
+                continue;
+            }
+            controls.style.filter = "none";
+            controls.dataset.mapTheme = themeKey;
+            controls.dataset.uiTheme = uiTheme;
         }
 
         const windowExt = /** @type {any} */ (globalThis);

@@ -189,6 +189,7 @@ function ensureOverlay() {
     overlayElement = document.createElement("div");
     overlayElement.id = OVERLAY_ID;
     overlayElement.className = "chart-fullscreen-overlay";
+    overlayElement.tabIndex = -1;
     overlayElement.innerHTML = `
         <div class="chart-fullscreen-overlay__backdrop" data-role="backdrop"></div>
         <div class="chart-fullscreen-overlay__panel">

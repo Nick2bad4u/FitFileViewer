@@ -101,9 +101,9 @@ export const UI_CONSTANTS = {
     // Theme configuration
     DEFAULT_THEME: "dark",
     THEMES: {
+        AUTO: "auto",
         DARK: "dark",
         LIGHT: "light",
-        SYSTEM: "system",
     },
 
     // Notification configurations

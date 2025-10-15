@@ -1,6 +1,7 @@
 // Theme utility functions for theme switching and persistence
 
 import { initializeAccentColor } from "./accentColor.js";
+import { getState, setState } from "../../state/core/stateManager.js";
 
 /**
  * @typedef {Object} ThemeConfig
@@ -383,6 +384,35 @@ export function toggleTheme(withTransition = true) {
         effectiveTheme = getEffectiveTheme(currentTheme),
         newTheme = effectiveTheme === "dark" ? "light" : "dark";
     applyTheme(newTheme, withTransition);
+}
+
+/**
+ * Persist a theme selection across storage and state while applying it immediately.
+ * Keeps localStorage keys (`ffv-theme`, `fitFileViewer_theme`) and UI state in sync
+ * to avoid regressions where the UI reverts to a prior theme selection.
+ *
+ * @param {string} theme - Theme identifier ("dark", "light", or "auto")
+ * @param {{ withTransition?: boolean }} [options]
+ */
+export function setThemePreference(theme, options = {}) {
+    const { withTransition = true } = options;
+
+    applyTheme(theme, withTransition);
+
+    try {
+        localStorage.setItem("fitFileViewer_theme", theme);
+    } catch (error) {
+        console.warn("[Theme] Failed to persist fitFileViewer_theme:", error);
+    }
+
+    try {
+        const current = getState("ui.theme");
+        if (current !== theme) {
+            setState("ui.theme", theme, { source: "theme.setThemePreference" });
+        }
+    } catch (error) {
+        console.warn("[Theme] Failed to sync theme state:", error);
+    }
 }
 
 /**

@@ -96,7 +96,7 @@ export function createInitialAppState() {
                 progress: 0,
             },
             sidebarCollapsed: false,
-            theme: "system",
+            theme: "auto",
             unloadButtonVisible: false,
             windowFocused: true,
             windowState: {

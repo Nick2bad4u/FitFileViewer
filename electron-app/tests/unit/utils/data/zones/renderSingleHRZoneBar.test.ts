@@ -35,11 +35,22 @@ vi.mock("../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js", () 
     chartBackgroundColorPlugin: {},
 }));
 
+const addChartHoverEffectsMock = vi.fn();
+
+vi.mock("../../../../../utils/charts/plugins/addChartHoverEffects.js", () => ({
+    addChartHoverEffects: (...args: unknown[]) => addChartHoverEffectsMock(...args),
+}));
+
+vi.mock("../../../../../utils/theming/core/theme.js", () => ({
+    getThemeConfig: vi.fn().mockReturnValue({ colors: { textPrimary: "#111", accent: "#3b82f6" } }),
+}));
+
 // Import the module after mocks
 import { renderSingleHRZoneBar } from "../../../../../utils/data/zones/renderSingleHRZoneBar.js";
 import * as chartThemeUtils from "../../../../../utils/charts/theming/chartThemeUtils.js";
 import * as formatTime from "../../../../../utils/formatting/formatters/formatTime.js";
 import * as chartZoneColorUtils from "../../../../../utils/data/zones/chartZoneColorUtils.js";
+import { getThemeConfig } from "../../../../../utils/theming/core/theme.js";
 
 describe("renderSingleHRZoneBar", () => {
     let canvas: HTMLCanvasElement;
@@ -56,6 +67,8 @@ describe("renderSingleHRZoneBar", () => {
             pretendToBeVisual: true,
             resources: "usable",
         });
+
+        addChartHoverEffectsMock.mockReset();
 
         global.window = dom.window as any;
         global.document = dom.window.document as any;
@@ -185,6 +198,8 @@ describe("renderSingleHRZoneBar", () => {
 
         // Verify the result
         expect(result).toBe(mockChartInstance);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledTimes(1);
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
     });
 
     it("should handle custom options like title", () => {
@@ -207,6 +222,7 @@ describe("renderSingleHRZoneBar", () => {
         // Verify title was set correctly
         expect(chartConfig?.options?.plugins?.title?.display).toBe(true);
         expect(chartConfig?.options?.plugins?.title?.text).toBe("Custom HR Zones Title");
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
     });
 
     it("should use zone colors from chartZoneColorUtils when colors not provided", () => {
@@ -248,6 +264,7 @@ describe("renderSingleHRZoneBar", () => {
         // Verify colors were set (mocked getChartZoneColors would provide these)
         expect(chartConfig.data.datasets[0].backgroundColor).toBeDefined();
         expect(chartConfig.data.datasets[1].backgroundColor).toBeDefined();
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
     });
 
     it("should wire tooltip and y-axis callbacks that format time", () => {
@@ -273,6 +290,7 @@ describe("renderSingleHRZoneBar", () => {
         ftSpy.mockReturnValueOnce("90s");
         expect(yTickCb(90)).toBe("90s");
         expect(ftSpy).toHaveBeenCalledWith(90, true);
+        expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
         ftSpy.mockReturnValueOnce("120s");
         expect(tooltipCb({ dataset: { label: "Zone 1" }, parsed: { y: 120 } })).toBe("Zone 1: 120s");
         expect(ftSpy).toHaveBeenCalledWith(120, true);
@@ -292,6 +310,7 @@ describe("renderSingleHRZoneBar", () => {
         // Verify callback presence without asserting exact styles
         expect(typeof chartConfig.options.scales.y.ticks.callback).toBe("function");
         expect(chartConfig.options.plugins.chartBackgroundColorPlugin).toBeDefined();
+    expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
     });
 
     it("should handle invalid inputs gracefully", () => {
@@ -299,6 +318,7 @@ describe("renderSingleHRZoneBar", () => {
         const result1 = renderSingleHRZoneBar(null as any, []);
         expect(result1).toBeNull();
         expect(window.showNotification).toHaveBeenCalledWith("Failed to render HR zone bar", "error");
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
 
         // Reset mocks
         vi.clearAllMocks();
@@ -307,6 +327,7 @@ describe("renderSingleHRZoneBar", () => {
         const result2 = renderSingleHRZoneBar(canvas, null as any);
         expect(result2).toBeNull();
         expect(window.showNotification).toHaveBeenCalledWith("Failed to render HR zone bar", "error");
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
 
         // Reset mocks
         vi.clearAllMocks();
@@ -316,6 +337,7 @@ describe("renderSingleHRZoneBar", () => {
         const result3 = renderSingleHRZoneBar(canvas, [{ label: "Zone 1", value: 300 }]);
         expect(result3).toBeNull();
         expect(window.showNotification).toHaveBeenCalledWith("Failed to render HR zone bar", "error");
+    expect(addChartHoverEffectsMock).not.toHaveBeenCalled();
     });
 
     it("should include tooltip and y-axis format callbacks (smoke)", () => {
@@ -331,5 +353,6 @@ describe("renderSingleHRZoneBar", () => {
         expect(chartConfig).toBeDefined();
         expect(chartConfig.options.plugins.tooltip.callbacks.label).toBeDefined();
         expect(chartConfig.options.scales.y.ticks.callback).toBeDefined();
+        expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
     });
 });

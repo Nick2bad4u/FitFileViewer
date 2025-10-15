@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
 import { renderLapZoneCharts } from "../../utils/charts/rendering/renderLapZoneCharts.js";
 
+const addChartHoverEffectsMock = vi.fn();
+
 // Mock dependencies
 vi.mock("../../utils/theming/core/theme.js", () => ({
     getThemeConfig: vi.fn(),
@@ -22,6 +24,10 @@ vi.mock("../../utils/data/zones/chartZoneColorUtils.js", () => ({
     getZoneColor: vi.fn(),
 }));
 
+vi.mock("../../utils/charts/plugins/addChartHoverEffects.js", () => ({
+    addChartHoverEffects: (...args: unknown[]) => addChartHoverEffectsMock(...args),
+}));
+
 // Import mocks for manipulation
 import { getThemeConfig } from "../../utils/theming/core/theme.js";
 import { renderLapZoneChart } from "../../utils/charts/rendering/renderLapZoneChart.js";
@@ -39,6 +45,8 @@ describe("renderLapZoneCharts", () => {
         // Setup DOM
         container = document.createElement("div");
         document.body.appendChild(container);
+
+        addChartHoverEffectsMock.mockReset();
 
         // Setup global data
         window.globalData = {
@@ -693,6 +701,8 @@ describe("renderLapZoneCharts", () => {
             expect(renderSingleHRZoneBar).toHaveBeenCalledTimes(1);
             expect(renderSinglePowerZoneBar).toHaveBeenCalledTimes(1);
 
+            expect(addChartHoverEffectsMock).toHaveBeenCalledWith(container, expect.any(Object));
+
             // Should have logged success
             expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Lap zone charts rendered successfully");
         });
@@ -709,6 +719,7 @@ describe("renderLapZoneCharts", () => {
             // Should create at least the HR individual chart
             expect(container.querySelectorAll("canvas").length).toBeGreaterThan(0);
             expect(mockConsoleLog).toHaveBeenCalledWith("[ChartJS] Lap zone charts rendered successfully");
+            expect(addChartHoverEffectsMock).toHaveBeenCalledWith(container, expect.any(Object));
         });
     });
 });

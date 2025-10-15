@@ -668,6 +668,7 @@ export function MapControls({ mapInstance }) {
                     <button
                         className="map-action-btn"
                         data-active={String(measurementActive)}
+                        aria-pressed={measurementActive}
                         onClick={handleMeasurementToggle}
                         title={measurementActive ? "Cancel measurement" : "Measure distance between two points"}
                         type="button"
@@ -691,6 +692,7 @@ export function MapControls({ mapInstance }) {
                     </button>
                     <button
                         className={`map-action-btn map-theme-toggle${mapThemeInverted ? " active" : ""}`}
+                        aria-pressed={mapThemeInverted}
                         onClick={handleMapThemeToggle}
                         title={mapThemeInverted ? "Map: Dark theme (click for light)" : "Map: Light theme (click for dark)"}
                         type="button"

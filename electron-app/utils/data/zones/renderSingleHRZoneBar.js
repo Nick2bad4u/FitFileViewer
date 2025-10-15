@@ -1,6 +1,8 @@
 import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
+import { addChartHoverEffects } from "../../charts/plugins/addChartHoverEffects.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
+import { getThemeConfig } from "../../theming/core/theme.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
 import { getChartZoneColors } from "./chartZoneColorUtils.js";
@@ -19,6 +21,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
         const theme = detectCurrentTheme();
+        const themeConfig = /** @type {any} */ (typeof getThemeConfig === "function" ? getThemeConfig() : {});
         console.log("[renderSingleHRZoneBar] Detected theme:", theme);
 
         // Get saved HR zone colors
@@ -26,14 +29,14 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
 
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
-                backgroundColor:
+            backgroundColor:
                     /** @type {any} */ (zone).color || savedColors[index] || (theme === "dark" ? "#ef4444" : "#dc2626"),
-                borderColor: theme === "dark" ? "#333" : "#fff",
-                borderWidth: 1,
-                data: [/** @type {any} */ (zone).value], // Single value array for this zone
-                label: /** @type {any} */ (zone).label,
-            })),
-            chart = new /** @type {any} */ (globalThis).Chart(canvas, {
+            borderColor: theme === "dark" ? "#333" : "#fff",
+            borderWidth: 1,
+            data: [/** @type {any} */ (zone).value], // Single value array for this zone
+            label: /** @type {any} */ (zone).label,
+        })),
+            chart = new /** @type {any} */(globalThis).Chart(canvas, {
                 data: {
                     datasets,
                     labels: ["Time in Zone"], // Single category for all zones
@@ -141,6 +144,14 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                 plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
                 type: "bar",
             });
+        try {
+            if (canvas.parentElement) {
+                addChartHoverEffects(canvas.parentElement, themeConfig || {});
+            }
+        } catch (hookError) {
+            console.warn("[renderSingleHRZoneBar] Failed to enhance hover effects", hookError);
+        }
+
         return chart;
     } catch (error) {
         if (/** @type {any} */ (globalThis).showNotification) {

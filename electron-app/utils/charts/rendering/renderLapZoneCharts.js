@@ -5,6 +5,7 @@ import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getHeartRateZones, getPowerZones } from "../../state/domain/zoneState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
+import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
 /**
  * @typedef {Object} LapZoneDatum
  * @property {string} label
@@ -359,6 +360,14 @@ export function renderLapZoneCharts(container, options = {}) {
                 }
             } else {
                 console.log("[ChartJS] No Power zone data available for Chart 4");
+            }
+        }
+
+        if (container instanceof HTMLElement) {
+            try {
+                addChartHoverEffects(container, themeConfig);
+            } catch (hookError) {
+                console.warn("[ChartJS] Failed to enhance lap zone charts with hover effects", hookError);
             }
         }
 

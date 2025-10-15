@@ -22,6 +22,12 @@ describe("createMapThemeToggle", () => {
         expect(getMapThemeInverted()).toBe(false);
     });
 
+    it("defaults to light map when UI theme preference is light", async () => {
+        localStorage.setItem("ffv-theme", "light");
+        const { getMapThemeInverted } = await import(modPath);
+        expect(getMapThemeInverted()).toBe(false);
+    });
+
     it("creates button and toggles state with click", async () => {
         const { createMapThemeToggle, MAP_THEME_EVENTS } = await import(modPath);
         const btn = createMapThemeToggle();

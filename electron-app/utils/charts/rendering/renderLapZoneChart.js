@@ -5,6 +5,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { getChartIcon, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
+import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
 
 /**
  * @typedef {Object} LapZoneDatum
@@ -269,6 +270,14 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
             ],
             type: "bar",
         });
+        try {
+            if (canvas.parentElement) {
+                addChartHoverEffects(canvas.parentElement, themeConfig);
+            }
+        } catch (hookError) {
+            console.warn("[renderLapZoneChart] Failed to enhance hover interactions", hookError);
+        }
+
         return chart;
     } catch (error) {
         if (globalThis.showNotification) {

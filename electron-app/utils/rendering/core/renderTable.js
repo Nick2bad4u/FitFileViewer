@@ -63,9 +63,27 @@ export function renderTable(container, title, table, index) {
     copyButton.classList.add("copy-btn", "table-copy-btn");
     copyButton.innerHTML =
         '<iconify-icon icon="mdi:content-copy" width="16" height="16" aria-hidden="true"></iconify-icon><span>Copy CSV</span>';
-    copyButton.addEventListener("click", (event) => {
+    copyButton.addEventListener("click", async (event) => {
         event.stopPropagation();
-        copyTableAsCSV(/** @type {any} */(table));
+        copyButton.classList.remove("copy-btn--success", "copy-btn--error");
+        copyButton.disabled = true;
+        try {
+            await copyTableAsCSV(/** @type {any} */(table));
+            copyButton.classList.add("copy-btn--success");
+            globalThis.setTimeout(() => {
+                copyButton.classList.remove("copy-btn--success");
+            }, 1600);
+        } catch (error) {
+            console.error("[renderTable] Failed to copy table as CSV", error);
+            copyButton.classList.add("copy-btn--error");
+            globalThis.setTimeout(() => {
+                copyButton.classList.remove("copy-btn--error");
+            }, 2000);
+        } finally {
+            globalThis.setTimeout(() => {
+                copyButton.disabled = false;
+            }, 250);
+        }
     });
     const toggleIcon = document.createElement("iconify-icon");
     toggleIcon.setAttribute("aria-hidden", "true");

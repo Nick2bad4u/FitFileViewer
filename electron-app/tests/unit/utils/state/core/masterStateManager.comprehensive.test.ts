@@ -236,7 +236,7 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
 
         Object.defineProperty(globalThis, "localStorage", {
             value: {
-                getItem: vi.fn().mockReturnValue("system"),
+                getItem: vi.fn().mockReturnValue("auto"),
                 setItem: vi.fn(),
             },
             configurable: true,
@@ -484,7 +484,7 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             expect(mocks.updateActiveTab.initializeActiveTabState).toHaveBeenCalled();
             expect(mocks.updateTabVisibility.initializeTabVisibilityState).toHaveBeenCalled();
             expect(mocks.updateControlsState.initializeControlsState).toHaveBeenCalled();
-            expect(mocks.uiStateManager.UIActions.setTheme).toHaveBeenCalledWith("system");
+            expect(mocks.uiStateManager.UIActions.setTheme).toHaveBeenCalledWith("auto");
 
             // Verify state updates
             expect(mocks.stateManager.setState).toHaveBeenCalledWith("system.initialized", true, {
