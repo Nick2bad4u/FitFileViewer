@@ -3382,14 +3382,387 @@ body.theme-light .zone-color-preview:hover {
 }
 
 #leaflet-map {
-    /* Adjusts map colors for dark mode using inversion, hue rotation, brightness, and contrast. */
-    filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);
     background: var(--color-bg-alt);
     border-radius: 4px;
     width: 100%;
     min-height: clamp(420px, 70vh, 900px);
     height: auto;
     display: block;
+    position: relative;
+    --leaflet-control-bg: rgba(255, 255, 255, 0.94);
+    --map-control-border: rgba(15, 23, 42, 0.18);
+    --map-control-color: #0f172a;
+    --map-control-muted: rgba(71, 85, 105, 0.7);
+    --map-control-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    --map-layer-toggle-filter: invert(1);
+    --map-control-slider-track: var(--color-accent);
+    --map-control-slider-thumb: var(--color-accent);
+    --map-minimap-size: 180px;
+    --map-minimap-gap: clamp(12px, 2.5vw, 18px);
+    --map-icon-filter: none;
+    --map-icon-filter-active: none;
+    --map-control-hover-bg: rgba(148, 163, 184, 0.16);
+    --map-control-active-bg: rgba(59, 130, 246, 0.2);
+}
+
+.map-view-root__controls {
+    color: var(--map-control-color, #0f172a);
+    --leaflet-control-bg: rgba(255, 255, 255, 0.94);
+    --map-control-border: rgba(15, 23, 42, 0.18);
+    --map-control-color: #0f172a;
+    --map-control-muted: rgba(71, 85, 105, 0.7);
+    --map-control-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    --map-layer-toggle-filter: invert(1);
+    --map-control-slider-track: var(--color-accent);
+    --map-control-slider-thumb: var(--color-accent);
+    --map-icon-filter: none;
+    --map-icon-filter-active: none;
+    --map-control-hover-bg: rgba(148, 163, 184, 0.12);
+    --map-control-active-bg: rgba(59, 130, 246, 0.18);
+}
+
+.map-view-root__controls[data-map-theme="dark"] {
+    --leaflet-control-bg: rgba(15, 23, 42, 0.9);
+    --map-control-border: rgba(148, 163, 184, 0.35);
+    --map-control-color: #f8fafc;
+    --map-control-muted: rgba(203, 213, 225, 0.76);
+    --map-control-shadow: 0 18px 34px rgba(2, 6, 23, 0.42);
+    --map-layer-toggle-filter: none;
+    --map-control-slider-track: #60a5fa;
+    --map-control-slider-thumb: #93c5fd;
+    --map-icon-filter: invert(0.92) hue-rotate(180deg) saturate(140%);
+    --map-icon-filter-active: invert(0.96) hue-rotate(180deg) saturate(180%);
+    --map-control-hover-bg: rgba(203, 213, 225, 0.16);
+    --map-control-active-bg: rgba(96, 165, 250, 0.24);
+}
+
+.map-view-root__controls[data-map-theme="light"] {
+    --leaflet-control-bg: rgba(255, 255, 255, 0.96);
+    --map-control-border: rgba(15, 23, 42, 0.14);
+    --map-control-color: #0f172a;
+    --map-control-muted: rgba(71, 85, 105, 0.7);
+    --map-control-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+    --map-layer-toggle-filter: invert(1);
+    --map-control-slider-track: var(--color-accent);
+    --map-control-slider-thumb: var(--color-accent-secondary, var(--color-accent));
+    --map-icon-filter: none;
+    --map-icon-filter-active: none;
+    --map-control-hover-bg: rgba(148, 163, 184, 0.12);
+    --map-control-active-bg: rgba(59, 130, 246, 0.18);
+}
+
+#leaflet-map[data-map-theme="dark"] {
+    --leaflet-control-bg: rgba(15, 23, 42, 0.9);
+    --map-control-border: rgba(148, 163, 184, 0.35);
+    --map-control-color: #f8fafc;
+    --map-control-muted: rgba(203, 213, 225, 0.76);
+    --map-control-shadow: 0 18px 34px rgba(2, 6, 23, 0.42);
+    --map-layer-toggle-filter: none;
+    --map-control-slider-track: #60a5fa;
+    --map-control-slider-thumb: #93c5fd;
+    --map-icon-filter: invert(0.92) hue-rotate(180deg) saturate(140%);
+    --map-icon-filter-active: invert(0.96) hue-rotate(180deg) saturate(180%);
+    --map-control-hover-bg: rgba(203, 213, 225, 0.16);
+    --map-control-active-bg: rgba(96, 165, 250, 0.24);
+}
+
+#leaflet-map[data-map-theme="light"] {
+    --leaflet-control-bg: rgba(255, 255, 255, 0.96);
+    --map-control-border: rgba(15, 23, 42, 0.14);
+    --map-control-color: #0f172a;
+    --map-control-muted: rgba(71, 85, 105, 0.7);
+    --map-control-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+    --map-layer-toggle-filter: invert(1);
+    --map-control-slider-track: var(--color-accent);
+    --map-control-slider-thumb: var(--color-accent-secondary, var(--color-accent));
+    --map-icon-filter: none;
+    --map-icon-filter-active: none;
+    --map-control-hover-bg: rgba(148, 163, 184, 0.12);
+    --map-control-active-bg: rgba(59, 130, 246, 0.18);
+}
+
+#leaflet-map .leaflet-control {
+    color: var(--map-control-color);
+}
+
+/* ============================================
+   Leaflet Controls
+   ============================================ */
+#leaflet-map .leaflet-control a,
+#leaflet-map .leaflet-control button {
+    color: var(--map-control-color);
+    cursor: pointer;
+    text-decoration: none;
+    outline: none;
+}
+
+#leaflet-map .leaflet-bar {
+    background: var(--leaflet-control-bg);
+    border: 1px solid var(--map-control-border);
+    border-radius: 10px;
+    box-shadow: var(--map-control-shadow);
+    overflow: hidden;
+}
+
+#leaflet-map .leaflet-bar a,
+#leaflet-map .leaflet-bar button {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--map-control-border);
+    color: var(--map-control-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    width: 34px;
+    height: 34px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#leaflet-map .leaflet-bar a:last-child,
+#leaflet-map .leaflet-bar button:last-child {
+    border-bottom: none;
+}
+
+#leaflet-map .leaflet-bar a:hover,
+#leaflet-map .leaflet-bar a:focus-visible,
+#leaflet-map .leaflet-bar button:hover,
+#leaflet-map .leaflet-bar button:focus-visible {
+    background-color: var(--map-control-hover-bg);
+    color: var(--map-control-color);
+}
+
+#leaflet-map .leaflet-bar a:active,
+#leaflet-map .leaflet-bar button:active {
+    background-color: var(--map-control-active-bg);
+}
+
+#leaflet-map .leaflet-bar a.leaflet-disabled,
+#leaflet-map .leaflet-bar button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#leaflet-map .leaflet-draw-toolbar {
+    margin: 0;
+    padding: 0;
+}
+
+#leaflet-map .leaflet-draw-toolbar a {
+    border-bottom: 1px solid var(--map-control-border);
+    background-color: transparent;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#leaflet-map .leaflet-draw-toolbar a:last-child {
+    border-bottom: none;
+}
+
+#leaflet-map .leaflet-draw-toolbar a:hover,
+#leaflet-map .leaflet-draw-toolbar a:focus-visible {
+    background-color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.18);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 59, 130, 246), 0.35);
+}
+
+#leaflet-map .leaflet-draw-toolbar a.leaflet-draw-toolbar-button-enabled,
+#leaflet-map .leaflet-draw-toolbar a:active {
+    background-color: rgba(var(--color-accent-rgb, 59, 130, 246), 0.28);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb, 59, 130, 246), 0.55);
+}
+
+/* Hide the duplicate Measure Control Button */
+#leaflet-map .leaflet-control-measure-toggle {
+    display: none !important;
+}
+
+/* ============================================
+   LAYER CONTROLS
+   ============================================ */
+#leaflet-map .leaflet-control-layers,
+#leaflet-map .leaflet-control-layers-expanded,
+#leaflet-map .leaflet-control-scale,
+#leaflet-map .leaflet-control-attribution {
+    background: var(--leaflet-control-bg);
+    color: var(--map-control-color);
+    border: 1px solid var(--map-control-border);
+    box-shadow: var(--map-control-shadow);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#leaflet-map .leaflet-control-attribution a {
+    color: var(--map-control-muted);
+}
+
+#leaflet-map .leaflet-control-layers label {
+    color: var(--map-control-muted);
+    font-weight: 600;
+}
+
+#leaflet-map .leaflet-control-layers label .map-layer-icon {
+    color: var(--map-control-muted);
+    transition: color 0.2s ease;
+}
+
+#leaflet-map .leaflet-control-layers label:hover .map-layer-icon,
+#leaflet-map .leaflet-control-layers label input:checked + .map-layer-icon {
+    color: var(--color-accent, #8b5cf6);
+}
+
+/* Layer Toggle Button */
+#leaflet-map .leaflet-control-layers-toggle {
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+}
+
+#leaflet-map .leaflet-control-layers-toggle:hover,
+#leaflet-map .leaflet-control-layers-toggle:focus-visible {
+    background-color: var(--map-control-hover-bg);
+}
+
+/* Fullscreen Control */
+#leaflet-map .leaflet-control-zoom-fullscreen {
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+}
+
+#leaflet-map .leaflet-control-zoom-fullscreen:hover,
+#leaflet-map .leaflet-control-zoom-fullscreen:focus-visible {
+    background-color: var(--map-control-hover-bg);
+}
+
+#leaflet-map .leaflet-control-locate a {
+    background-color: transparent;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.map-locate-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+
+.map-locate-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    color: var(--map-control-color);
+    transition: color 0.2s ease, transform 0.2s ease;
+    position: relative;
+}
+
+.map-locate-icon__glyph {
+    display: block;
+    color: inherit;
+    transition: inherit;
+}
+
+.map-locate-icon__spinner {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--color-accent, #2563eb);
+    border-right-color: var(--color-accent, #2563eb);
+    animation: map-control-spinner 0.8s linear infinite;
+    display: none;
+}
+
+.map-locate-icon--loading {
+    color: var(--map-control-muted);
+}
+
+.map-locate-icon--loading .map-locate-icon__glyph {
+    opacity: 0;
+}
+
+.map-locate-icon--loading .map-locate-icon__spinner {
+    display: block;
+}
+
+#leaflet-map .leaflet-control-locate a:hover .map-locate-icon,
+#leaflet-map .leaflet-control-locate a:focus-visible .map-locate-icon {
+    color: var(--color-accent, #2563eb);
+    transform: scale(1.06);
+}
+
+#leaflet-map .leaflet-control-locate.active .map-locate-icon,
+#leaflet-map .leaflet-control-locate.following .map-locate-icon {
+    color: var(--color-accent, #2563eb);
+}
+
+#leaflet-map .leaflet-control-locate.requesting .map-locate-icon {
+    color: var(--map-control-muted);
+}
+
+@keyframes map-control-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#leaflet-map .leaflet-control-measure .leaflet-bar-part,
+#leaflet-map .leaflet-control-measure .leaflet-bar-part-single {
+    color: var(--map-control-color);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+#leaflet-map .leaflet-control-layers-expanded label:hover {
+    color: var(--map-control-color);
+    background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.18);
+    border-radius: 6px;
+}
+
+#leaflet-map .leaflet-bar svg,
+#leaflet-map .leaflet-control svg,
+#leaflet-map .leaflet-bar iconify-icon {
+    color: currentColor;
+}
+
+#leaflet-map .leaflet-bar svg circle,
+#leaflet-map .leaflet-bar svg line,
+#leaflet-map .leaflet-bar svg path,
+#leaflet-map .leaflet-bar svg polygon,
+#leaflet-map .leaflet-bar svg rect {
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1.4;
+}
+
+#leaflet-map .leaflet-control-minimap {
+    background: rgba(var(--color-surface-rgb, 15, 23, 42), 0.85);
+    border: 1px solid var(--map-control-border);
+    border-radius: 16px;
+    box-shadow: var(--map-control-shadow);
+    overflow: hidden;
+}
+
+#leaflet-map .leaflet-control-minimap .leaflet-container {
+    border-radius: inherit;
+}
+
+#leaflet-map .leaflet-control-minimap-toggle-display {
+    background: var(--leaflet-control-bg);
+    border: 1px solid var(--map-control-border);
+    border-radius: 10px;
+    color: var(--map-control-color);
+}
+
+#leaflet-map .leaflet-control-minimap-toggle-display:hover {
+    background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.24);
+    color: var(--map-control-color);
 }
 
 #map-controls {
@@ -3399,31 +3772,80 @@ body.theme-light .zone-color-preview:hover {
     gap: 16px;
     margin-top: 16px;
     width: 100%;
-    background: none !important;
 }
 
 .map-controls-bar {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
     justify-content: space-between;
-    gap: 12px;
-    background: var(--color-glass);
-    border: 1px solid var(--color-glass-border);
-    border-radius: 16px;
-    padding: 14px 18px;
-    box-shadow: var(--color-box-shadow-light);
-    backdrop-filter: var(--backdrop-blur);
+    gap: 14px;
+    padding: 16px 22px;
+    border-radius: 20px;
+    color: var(--map-control-color);
+    background:
+        linear-gradient(155deg, rgb(var(--color-accent-rgb, 59 130 246) / 18%) 0%, transparent 60%),
+        var(--leaflet-control-bg);
+    border: 1px solid var(--map-control-border);
+    box-shadow: var(--map-control-shadow);
+    backdrop-filter: var(--backdrop-blur, blur(18px));
     transition: var(--transition-smooth);
+    overflow: hidden;
+}
+
+.map-controls-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at top left, rgb(var(--color-accent-rgb, 59 130 246) / 24%) 0%, transparent 68%);
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+.map-controls-bar:hover::before,
+.map-controls-bar:focus-within::before {
+    opacity: 0.85;
 }
 
 .map-controls-group {
+    position: relative;
     display: flex;
-    flex: 1 1 220px;
+    flex: 1 1 240px;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgb(255 255 255 / 4%);
+    border: 1px solid rgb(255 255 255 / 8%);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 14%),
+        0 8px 18px rgb(15 23 42 / 12%);
+    color: inherit;
+    transition: var(--transition-smooth);
+}
+
+[data-map-theme="light"] .map-controls-group {
+    background: rgb(15 23 42 / 8%);
+    border-color: rgb(15 23 42 / 14%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 60%);
+}
+
+[data-map-theme="dark"] .map-controls-group {
+    background: rgb(15 23 42 / 46%);
+    border-color: rgb(148 163 184 / 30%);
+}
+
+.map-controls-group:hover,
+.map-controls-group:focus-within {
+    border-color: var(--map-control-active-bg);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 18%),
+        0 16px 32px rgb(15 23 42 / 18%);
 }
 
 
@@ -3482,86 +3904,6 @@ body.map-fullscreen-active {
     white-space: nowrap;
 }
 
-/* Make map control SVG elements use accent color */
-#map-controls button svg text,
-#map-controls svg text {
-    fill: var(--color-accent) !important;
-    font-weight: 600;
-}
-
-/* Override inline fill and stroke attributes on all SVG elements */
-#map-controls button svg rect,
-#map-controls button svg path,
-#map-controls button svg circle,
-#map-controls button svg line,
-#map-controls button svg polyline,
-#map-controls button svg polygon {
-    stroke: var(--color-accent) !important;
-}
-
-#map-controls button svg rect[fill],
-#map-controls button svg path[fill],
-#map-controls button svg circle[fill],
-#map-controls button svg polygon[fill] {
-    fill: rgb(var(--color-accent-rgb) / 15%) !important;
-}
-
-/* Hover states */
-#map-controls button:hover svg text {
-    fill: var(--color-accent-secondary) !important;
-}
-
-#map-controls button:hover svg rect,
-#map-controls button:hover svg path,
-#map-controls button:hover svg circle,
-#map-controls button:hover svg line,
-#map-controls button:hover svg polyline,
-#map-controls button:hover svg polygon {
-    stroke: var(--color-accent-secondary) !important;
-}
-
-#map-controls button:hover svg rect[fill],
-#map-controls button:hover svg path[fill],
-#map-controls button:hover svg circle[fill],
-#map-controls button:hover svg polygon[fill] {
-    fill: rgb(var(--color-accent-rgb) / 25%) !important;
-}
-
-body.theme-light #leaflet-map {
-    filter: none;
-}
-
-body .leaflet-control-layers,
-body .leaflet-control-layers-expanded {
-    background-color: var(--c_hexf5f5f5);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
-}
-
-body .leaflet-control-layers-base label {
-    color: rgb(var(--color-accent-rgb) / 20%) !important;
-    font-weight: 600 !important;
-}
-
-body .leaflet-control-layers-expanded label:hover {
-    color: var(--color-accent);
-    background-color: var(--c_hexe0e0e0);
-    border-radius: 4px;
-}
-
-body .leaflet-control-layers-toggle {
-    background-image: url("node_modules/leaflet/dist/images/layers-2x.png") !important;
-    background-size: 26px 26px !important;
-    filter: invert(1) !important;
-}
-
-body.theme-light .leaflet-control-layers-toggle {
-    background-image: url("node_modules/leaflet/dist/images/layers-2x.png") !important;
-    background-size: 26px 26px !important;
-    filter: invert(1) !important;
-}
-
-
 .map-layer-toggle {
     min-width: clamp(140px, 18vw, 220px);
     justify-content: center;
@@ -3577,7 +3919,7 @@ body.theme-light .leaflet-control-layers-toggle {
     padding: 8px 14px;
     border-radius: 12px;
     background: rgb(var(--color-accent-rgb) / 12%);
-    color: var(--color-fg);
+    color: var(--map-control-color);
     border: 1px solid rgb(var(--color-accent-rgb) / 22%);
     min-width: 160px;
     display: inline-flex;
@@ -3590,7 +3932,7 @@ body.theme-light .leaflet-control-layers-toggle {
 body.theme-light .map-marker-summary {
     background: rgb(var(--color-accent-rgb) / 10%);
     border-color: rgb(var(--color-accent-rgb) / 32%);
-    color: var(--color-fg);
+    color: var(--map-control-color);
 }
 
 
@@ -3893,53 +4235,101 @@ body.theme-light .vega-embed .vega-actions::after {
    ===================================================== */
 .custom-zoom-slider-bar {
     position: absolute;
-    right: 175px;
-    bottom: 30px;
-    z-index: 1100;
-    background: var(--c_hexfff);
-    border-radius: 8px;
-    box-shadow: 0 1px 5px var(--c_rgb000_40p);
-    padding: 10px 18px 14px;
-    font-size: 15px;
-    font-weight: bold;
-    color: var(--c_hex222);
+    left: auto;
+    right: clamp(12px, 3vw, 12px);
+    bottom: calc(var(--map-minimap-size) + var(--map-minimap-gap) + clamp(8px, 2vh, 20px));
+    z-index: 1300;
+    background: var(--leaflet-control-bg);
+    border: 1px solid var(--map-control-border);
+    border-radius: 12px;
+    box-shadow: var(--map-control-shadow);
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: var(--map-control-color);
     user-select: none;
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
-    align-items: center;
+    gap: 6px;
     min-width: 160px;
+    width: clamp(160px, 22vw, 175px);
+    max-width: 240px;
+    pointer-events: auto;
 }
 
 .custom-zoom-slider-label {
-    font-size: 13px;
-    font-weight: normal;
-    margin-bottom: 2px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--map-control-muted);
 }
 
 .custom-zoom-slider-bar input[type="range"] {
-    width: 120px;
-    margin: 0 0 2px;
-    accent-color: var(--c_hex2196f3);
+    width: 100%;
+    margin: 0;
+    accent-color: var(--map-control-slider-track);
     cursor: pointer;
+    background: transparent;
+}
+
+.custom-zoom-slider-bar input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.16);
+}
+
+.custom-zoom-slider-bar input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--map-control-slider-thumb);
+    border: 2px solid var(--leaflet-control-bg);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    transition: transform 0.16s ease;
+    margin-top: -4px;
+}
+
+.custom-zoom-slider-bar input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.12);
+}
+
+.custom-zoom-slider-bar input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.16);
+}
+
+.custom-zoom-slider-bar input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--map-control-slider-thumb);
+    border: 2px solid var(--leaflet-control-bg);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    transition: transform 0.16s ease;
+}
+
+.custom-zoom-slider-bar input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.12);
 }
 
 .custom-zoom-slider-values {
-    font-size: 12px;
-    font-weight: normal;
-    margin-top: 2px;
+    font-size: 0.7rem;
+    font-weight: 500;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 6px;
+    color: var(--map-control-muted);
 }
 
-body .custom-zoom-slider-bar {
-    background: var(--c_hexf1f1f1);
-    color: var(--c_hex000);
-    border: 1px solid var(--c_hex888);
+.custom-zoom-slider-values span {
+    margin: 0;
 }
 
-body .custom-zoom-slider-bar input[type="range"] {
-    accent-color: var(--c_hex4fc3f7);
+.custom-zoom-slider-values .margin-horizontal {
+    opacity: 0.5;
 }
 
 /* =====================================================
@@ -3958,123 +4348,72 @@ body .custom-zoom-slider-bar input[type="range"] {
 }
 
 .custom-lap-control.leaflet-bar {
-    background: var(--leaflet-control-bg, var(--c_hexfff));
-    border-radius: 4px;
-    box-shadow: 0 1px 5px var(--c_rgb000_40p);
+    background: var(--leaflet-control-bg);
+    border-radius: 8px;
+    border: 1px solid var(--map-control-border);
+    box-shadow: var(--map-control-shadow);
     padding: 6px 10px;
     display: flex;
     align-items: center;
     gap: 6px;
     pointer-events: auto;
+    color: var(--map-control-color);
 }
 
 .custom-lap-control label {
     margin: 0;
     font-size: 14px;
-    filter: invert(1) hue-rotate(180deg);
-}
-
-body.theme-light .custom-lap-control label {
-    margin: 0;
-    font-size: 14px;
-    filter: none;
+    color: inherit;
 }
 
 .custom-lap-control select {
     font-size: 14px;
     pointer-events: auto;
-    background: var(--color-bg-alt);
-    color: var(--color-fg);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
+    background: var(--leaflet-control-bg);
+    color: var(--map-control-color);
+    border: 1px solid var(--map-control-border);
+    border-radius: 6px;
     padding: 4px 10px;
-    filter: invert(1) hue-rotate(180deg);
-}
-
-body.theme-light .custom-lap-control.leaflet-bar {
-    background: var(--c_hexf5f5f5);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
-}
-
-body.theme-light .custom-lap-control select {
-    background: var(--c_hexfff);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
-    filter: none;
 }
 
 /* =====================================================
    Custom Fullscreen Control (Map)
    ===================================================== */
-.custom-fullscreen-control.leaflet-top.leaflet-left {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 1200;
+.custom-fullscreen-control {
     pointer-events: auto;
 }
 
-.custom-fullscreen-bar.leaflet-bar {
-    background: var(--leaflet-control-bg, var(--c_hexfff));
-    border-radius: 4px;
-    box-shadow: 0 1px 5px var(--c_rgb000_40p);
-    padding: 6px 10px;
+.custom-fullscreen-control .custom-fullscreen-bar {
+    background: var(--leaflet-control-bg);
+    border: 1px solid var(--map-control-border);
+    border-radius: 12px;
+    box-shadow: var(--map-control-shadow);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
+    padding: 6px;
     pointer-events: auto;
-    position: absolute;
-    top: 60px;
-    left: -6px;
 }
 
-.custom-fullscreen-bar button {
+.custom-fullscreen-control .custom-fullscreen-bar button {
     background: none;
     border: none;
-    color: var(--c_hex222);
-    font-size: 1.5em;
-    padding: 2px 8px;
-    border-radius: 4px;
+    color: var(--map-control-color);
+    border-radius: 8px;
     cursor: pointer;
-    transition:
-        background 0.2s,
-        color 0.2s,
-        border 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.custom-fullscreen-control .custom-fullscreen-bar button:hover,
+.custom-fullscreen-control .custom-fullscreen-bar button:focus-visible {
+    background: rgba(var(--color-accent-rgb, 59, 130, 246), 0.22);
+    color: var(--map-control-color);
     outline: none;
-    box-shadow: none;
-}
-
-.custom-fullscreen-bar button:hover,
-.custom-fullscreen-bar button:focus {
-    background: var(--color-accent);
-    color: var(--c_hexfff);
-}
-
-body.theme-dark .custom-fullscreen-bar.leaflet-bar {
-    background: var(--c_hexf1f1f1);
-    color: var(--c_hex000);
-    border: 1px solid var(--c_hex888);
-    position: absolute;
-    top: 60px;
-    left: -6px;
-}
-
-body.theme-dark .custom-fullscreen-bar button {
-    font-size: 14px;
-    pointer-events: auto;
-    background: var(--color-bg-alt);
-    color: var(--color-fg);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 4px 10px;
-    filter: invert(1) hue-rotate(180deg);
-}
-
-body.theme-dark .custom-fullscreen-bar button:hover,
-body.theme-dark .custom-fullscreen-bar button:focus {
-    background: var(--color-accent);
-    color: var(--c_hexfff);
 }
 
 #leaflet-map.fullscreen {
@@ -5354,6 +5693,23 @@ footer {
     padding-right: 20px;
 }
 
+.leaflet-tooltip.map-draw-tooltip {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.45);
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.leaflet-tooltip.map-draw-tooltip:before,
+.leaflet-tooltip.map-draw-tooltip:after {
+    display: none;
+}
+
 /* =====================================================
    Multi-Lap Toggle Button
    ===================================================== */
@@ -5432,27 +5788,42 @@ body.theme-light .multi-lap-toggle:hover {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    min-height: 44px;
+    min-height: 42px;
     padding: 10px 18px;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    background: rgb(var(--color-accent-rgb) / 14%);
-    color: var(--color-fg);
-    border: 1px solid rgb(var(--color-accent-rgb) / 28%);
-    box-shadow: 0 12px 28px rgb(var(--color-surface-rgb, 18 26 38) / 35%);
+    background: var(--leaflet-control-bg, rgba(255, 255, 255, 0.96));
+    color: var(--map-control-color, #0f172a);
+    border: 1px solid var(--map-control-border, rgba(15, 23, 42, 0.18));
+    box-shadow: var(--map-control-shadow, 0 12px 28px rgba(15, 23, 42, 0.12));
     cursor: pointer;
-    transition: var(--transition-smooth);
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
     text-decoration: none;
     min-width: 0;
     user-select: none;
 }
 
 .map-action-btn iconify-icon,
-.map-action-btn .icon {
+.map-action-btn .icon,
+.map-action-btn svg {
     width: 20px;
     height: 20px;
+    color: currentColor;
+}
+
+.map-action-btn svg {
+    fill: currentColor;
+    stroke: currentColor;
+}
+
+.map-action-btn svg [fill] {
+    fill: currentColor;
+}
+
+.map-action-btn svg [stroke] {
+    stroke: currentColor;
 }
 
 .map-action-btn span {
@@ -5463,58 +5834,30 @@ body.theme-light .multi-lap-toggle:hover {
 }
 
 .map-action-btn:hover,
-.map-action-btn:focus {
-    background: rgb(var(--color-accent-rgb) / 24%);
-    border-color: rgb(var(--color-accent-rgb) / 38%);
-    color: var(--color-fg);
-    box-shadow: 0 18px 36px rgb(var(--color-surface-rgb, 18 26 38) / 42%);
+.map-action-btn:focus-visible {
+    background: var(--map-control-hover-bg, rgba(148, 163, 184, 0.12));
+    color: var(--map-control-color, #0f172a);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
     outline: none;
-    transform: translateY(-1px);
 }
 
-body.theme-light .map-action-btn {
-    background: rgb(var(--color-accent-rgb) / 12%);
-    border-color: rgb(var(--color-accent-rgb) / 24%);
-    box-shadow: 0 10px 24px rgb(15 23 42 / 8%);
+.map-action-btn:active {
+    background: var(--map-control-active-bg, rgba(59, 130, 246, 0.18));
 }
 
-body.theme-light .map-action-btn:hover,
-body.theme-light .map-action-btn:focus {
-    background: rgb(var(--color-accent-rgb) / 20%);
-    border-color: rgb(var(--color-accent-rgb) / 32%);
-    box-shadow: 0 14px 32px rgb(15 23 42 / 12%);
-}
-
-body.theme-dark .map-action-btn {
-    background: rgb(var(--color-accent-rgb) / 18%);
-    border-color: rgb(var(--color-accent-rgb) / 32%);
-    color: var(--color-fg);
-    box-shadow: 0 12px 28px rgb(0 0 0 / 45%);
-}
-
-body.theme-dark .map-action-btn:hover,
-body.theme-dark .map-action-btn:focus {
-    background: rgb(var(--color-accent-rgb) / 28%);
-    border-color: rgb(var(--color-accent-rgb) / 42%);
-    box-shadow: 0 18px 40px rgb(0 0 0 / 55%);
+.map-action-btn[data-active="true"] {
+    background: var(--map-control-active-bg, rgba(59, 130, 246, 0.18));
+    color: var(--map-control-color, #0f172a);
 }
 
 .map-action-btn:disabled,
 .map-action-btn.disabled {
-    background: rgb(var(--color-accent-rgb) / 8%);
-    border-color: rgb(var(--color-accent-rgb) / 14%);
-    color: rgb(var(--color-accent-rgb) / 38%);
+    background: rgba(148, 163, 184, 0.12);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(148, 163, 184, 0.6);
     cursor: not-allowed;
-    opacity: 0.65;
+    opacity: 0.7;
     box-shadow: none;
-    transform: none;
-}
-
-body.theme-dark .map-action-btn:disabled,
-body.theme-dark .map-action-btn.disabled {
-    background: rgb(var(--color-accent-rgb) / 10%);
-    border-color: rgb(var(--color-accent-rgb) / 18%);
-    color: rgb(var(--color-accent-rgb) / 45%);
 }
 
 /* =====================================================

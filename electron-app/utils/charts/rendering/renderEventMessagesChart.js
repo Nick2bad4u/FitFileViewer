@@ -2,7 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartEmoji, getChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
@@ -47,7 +47,9 @@ export function renderEventMessagesChart(container, options, startTime) {
         canvas.style.boxShadow = themeColors.shadow || "0 2px 4px #00000020";
 
         const xLabel = `Time (${getUnitSymbol("time", "time")})`,
-            titleText = "Event Messages";
+            titleText = "Event Messages",
+            legendEmoji = getChartEmoji("event_messages"),
+            datasetLabel = legendEmoji ? `${legendEmoji} Events` : "Events";
 
         attachChartLabelMetadata(canvas, {
             titleIcon: getChartIcon("event_messages"),
@@ -102,7 +104,7 @@ export function renderEventMessagesChart(container, options, startTime) {
                             backgroundColor: `${eventColor}CC`, // Add transparency
                             borderColor: eventColor,
                             data: eventData,
-                            label: "Events",
+                            label: datasetLabel,
                             pointHoverRadius: 8,
                             pointRadius: 6,
                         },

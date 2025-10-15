@@ -1,3 +1,4 @@
+import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
 import { getState, subscribe } from "../../state/core/stateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
@@ -14,8 +15,12 @@ export function createAddFitFileToMapButton() {
         addOverlayBtn.disabled = true;
         addOverlayBtn.setAttribute("aria-disabled", "true");
 
+        const themeColors = getThemeColors();
         addOverlayBtn.innerHTML = `
-            <iconify-icon icon="flat-color-icons:plus" width="18" height="18"></iconify-icon>
+            <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
+                <line x1="10" y1="4" x2="10" y2="16" stroke="${themeColors.primary}" stroke-width="2" stroke-linecap="round"/>
+                <line x1="4" y1="10" x2="16" y2="10" stroke="${themeColors.primary}" stroke-width="2" stroke-linecap="round"/>
+            </svg>
             <span>Add FIT File(s) to Map</span>
         `;
 

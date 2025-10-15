@@ -59,11 +59,18 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     lapControl.innerHTML = `
         <div class="custom-lap-control leaflet-bar">
             <button id="multi-lap-toggle" class="multi-lap-toggle" type="button" title="Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.">
-                <iconify-icon icon="flat-color-icons:clock" width="18" height="18"></iconify-icon>
+                <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="12" r="9" fill="none" stroke="${themeColors.primary}" stroke-width="2"/>
+                    <polyline points="12,7 12,12 15,15" fill="none" stroke="${themeColors.primary}" stroke-width="2" stroke-linecap="round"/>
+                </svg>
                 <span style="color:${themeColors.text};margin-left:4px;">Laps:</span>
             </button>
             <button id="deselect-all-btn" class="deselect-all-btn" title="Deselect all laps (Esc)">
-                <iconify-icon icon="twemoji:cross-mark" width="16" height="16"></iconify-icon>
+                <svg class="icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false">
+                    <circle cx="10" cy="10" r="8" fill="none" stroke="${themeColors.textSecondary || '#888'}" stroke-width="2"/>
+                    <line x1="6" y1="6" x2="14" y2="14" stroke="${themeColors.textSecondary || '#888'}" stroke-width="2"/>
+                    <line x1="14" y1="6" x2="6" y2="14" stroke="${themeColors.textSecondary || '#888'}" stroke-width="2"/>
+                </svg>
             </button>
             <label for="lap-select" class="lap-label" style="color:${themeColors.text};">Lap:</label>
             <select id="lap-select">
@@ -88,12 +95,20 @@ export function addLapSelector(_map, container, mapDrawLaps) {
      */
     function getMultiLapIcon(on) {
         // Bar chart style icon for lap selectors, theme-aware
+        const colors = getThemeColors();
         if (on) {
             // Active: multi-lap mode icon (bar chart style, accent color)
-            return '<iconify-icon icon="flat-color-icons:bar-chart" width="18" height="18"></iconify-icon>';
+            return `<svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                <rect x="4" y="14" width="3" height="6" fill="${colors.accent}" rx="1"/>
+                <rect x="10" y="8" width="3" height="12" fill="${colors.accent}" rx="1"/>
+                <rect x="16" y="4" width="3" height="16" fill="${colors.accent}" rx="1"/>
+            </svg>`;
         }
         // Inactive: single-lap mode icon (stopwatch/lap circle, primary color)
-        return '<iconify-icon icon="flat-color-icons:clock" width="18" height="18"></iconify-icon>';
+        return `<svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="${colors.primary}" stroke-width="2"/>
+            <polyline points="12,7 12,12 15,15" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round"/>
+        </svg>`;
     }
 
     /**

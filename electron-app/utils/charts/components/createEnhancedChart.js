@@ -2,7 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { convertTimeUnits } from "../../formatting/converters/convertTimeUnits.js";
 import { formatTooltipWithUnits } from "../../formatting/display/formatTooltipWithUnits.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartEmoji, getChartIcon } from "../../ui/icons/iconMappings.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { hexToRgba } from "../core/renderChartJS.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
@@ -49,6 +49,8 @@ export function createEnhancedChart(canvas, options) {
         // Get field color
         const fieldColor = customColors[field] || getFieldColor(field),
             fieldLabel = fieldLabels[field] || field,
+            legendEmoji = getChartEmoji(field),
+            legendLabel = legendEmoji ? `${legendEmoji} ${fieldLabel}` : fieldLabel,
             unitSymbol = getUnitSymbol(field),
             unitSuffix = unitSymbol ? ` (${unitSymbol})` : "",
             titleLabel = `${fieldLabel}${unitSuffix}`.trim(),
@@ -62,7 +64,7 @@ export function createEnhancedChart(canvas, options) {
                 data: chartData,
                 parsing: false,
                 fill: showFill,
-                label: fieldLabels[field] || field,
+                label: legendLabel,
                 pointBackgroundColor: fieldColor,
                 pointBorderColor: fieldColor,
                 pointHoverRadius: 5,

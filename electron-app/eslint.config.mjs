@@ -14,7 +14,20 @@ import globals from "globals";
 
 export default defineConfig([
     {
-        files: ["**/*.{js,mjs,cjs,ts}"],
+        files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+        languageOptions: {
+            ecmaVersion: 2024,
+            sourceType: "module",
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+            },
+            parserOptions: {
+                ecmaFeatures: {
+                    jsx: true,
+                },
+            },
+        },
         plugins: { js },
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
@@ -190,6 +203,12 @@ export default defineConfig([
             "perfectionist/sort-jsx-props": "warn",
             "perfectionist/sort-sets": "warn",
             "perfectionist/sort-maps": "warn",
+        },
+    },
+    {
+        files: ["**/*.jsx"],
+        languageOptions: {
+            sourceType: "module",
         },
     },
     // File-specific relaxations for legacy or intentionally dynamic code

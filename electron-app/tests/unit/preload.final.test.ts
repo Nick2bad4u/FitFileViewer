@@ -371,8 +371,10 @@ describe("preload.js - Comprehensive Coverage Tests", () => {
             // Test Gyazo server methods
             expect(electronAPI).toHaveProperty("startGyazoServer");
             expect(electronAPI).toHaveProperty("stopGyazoServer");
+            expect(electronAPI).toHaveProperty("exchangeGyazoToken");
             expect(typeof electronAPI.startGyazoServer).toBe("function");
             expect(typeof electronAPI.stopGyazoServer).toBe("function");
+            expect(typeof electronAPI.exchangeGyazoToken).toBe("function");
         });
 
         it("should test file operations", () => {

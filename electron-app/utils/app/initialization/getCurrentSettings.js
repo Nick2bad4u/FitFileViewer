@@ -164,12 +164,12 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             : null;
         const hasChartData = Array.isArray(recordMesgs) && recordMesgs.length > 0;
 
-        if (!hasChartData) {
+        if (hasChartData) {
+            console.log(`${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`);
+        } else {
             console.log(
                 `${LOG_PREFIX} No chart data available when ${settingName} changed to ${newValue}. Performing cleanup only.`
             );
-        } else {
-            console.log(`${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${newValue}`);
         }
 
         // CRITICAL: Clear cached settings from state management

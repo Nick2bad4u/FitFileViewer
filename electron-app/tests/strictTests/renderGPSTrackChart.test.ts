@@ -385,7 +385,7 @@ describe("renderGPSTrackChart", () => {
             const chartConfig = global.window.Chart.mock.calls[0][1];
             const dataset = chartConfig.data.datasets[0];
 
-            expect(dataset.label).toBe("GPS Track");
+            expect(dataset.label).toBe("\u{1F5FA}\uFE0F GPS Track");
             expect(dataset.pointRadius).toBe(2); // showPoints: true
             expect(dataset.pointHoverRadius).toBe(4);
             expect(dataset.showLine).toBe(true);

@@ -208,7 +208,7 @@ export const exportUtils = {
                             }
 
                             // Remove the listener
-                            globalThis.electronAPI.onIpc("gyazo-oauth-callback", () => {});
+                            globalThis.electronAPI.onIpc("gyazo-oauth-callback", () => { });
 
                             // Stop the server
                             await globalThis.electronAPI.stopGyazoServer();
@@ -217,12 +217,12 @@ export const exportUtils = {
                             const tokenData = await exportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
 
                             // Store the access token
-                            exportUtils.setGyazoAccessToken(/** @type {any} */ (tokenData).access_token);
+                            exportUtils.setGyazoAccessToken(/** @type {any} */(tokenData).access_token);
 
                             // Update status in any open account manager modal
                             const accountManagerModal = document.querySelector(".gyazo-account-manager-modal");
                             if (accountManagerModal) {
-                                exportUtils.updateGyazoAuthStatus(/** @type {HTMLElement} */ (accountManagerModal));
+                                exportUtils.updateGyazoAuthStatus(/** @type {HTMLElement} */(accountManagerModal));
                             }
 
                             // Close any open auth modal
@@ -231,7 +231,7 @@ export const exportUtils = {
                                 existingModal.remove();
                             }
 
-                            resolve(/** @type {any} */ (tokenData).access_token);
+                            resolve(/** @type {any} */(tokenData).access_token);
                         } catch (error) {
                             // Stop the server on error
                             await globalThis.electronAPI.stopGyazoServer();
@@ -269,8 +269,8 @@ export const exportUtils = {
      * @param {ChartJSInstance} chart - Chart.js instance
      * @param {string} filename - Download filename
      */ /**
-     * Clears the stored Gyazo access token
-     */
+    * Clears the stored Gyazo access token
+    */
     clearGyazoAccessToken() {
         try {
             localStorage.removeItem("gyazo_access_token");
@@ -284,8 +284,8 @@ export const exportUtils = {
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */ /**
-     * Clears all Gyazo configuration and tokens
-     */
+    * Clears all Gyazo configuration and tokens
+    */
     clearGyazoConfig() {
         try {
             localStorage.removeItem("gyazo_client_id");
@@ -341,12 +341,12 @@ export const exportUtils = {
                     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
                     __deps.showNotification("Chart copied to clipboard", "success");
                 } catch (clipboardError) {
-                    console.error("Clipboard API failed:", /** @type {any} */ (clipboardError));
+                    console.error("Clipboard API failed:", /** @type {any} */(clipboardError));
                     __deps.showNotification("Failed to copy chart to clipboard", "error");
                 }
             }, "image/png");
         } catch (error) {
-            console.error("Error copying chart to clipboard:", /** @type {any} */ (error));
+            console.error("Error copying chart to clipboard:", /** @type {any} */(error));
             __deps.showNotification(
                 `Failed to copy chart to clipboard: ${/** @type {any} */ (error).message}`,
                 "error"
@@ -434,7 +434,7 @@ export const exportUtils = {
                     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
                     __deps.showNotification("Combined charts copied to clipboard", "success");
                 } catch (clipboardError) {
-                    console.error("Clipboard API failed:", /** @type {any} */ (clipboardError));
+                    console.error("Clipboard API failed:", /** @type {any} */(clipboardError));
                     __deps.showNotification("Failed to copy combined charts to clipboard", "error");
                 }
             }, "image/png");
@@ -525,7 +525,7 @@ export const exportUtils = {
 
             __deps.showNotification("Combined charts exported", "success");
         } catch (error) {
-            console.error("Error creating combined charts image:", /** @type {any} */ (error));
+            console.error("Error creating combined charts image:", /** @type {any} */(error));
             __deps.showNotification("Failed to create combined image", "error");
         }
     },
@@ -572,7 +572,7 @@ export const exportUtils = {
         `;
 
         const actionButtons = useServer
-                ? `
+            ? `
             <div style="display: flex; gap: 8px;">
                 <button id="gyazo-cancel-auth" style="
                     flex: 1;
@@ -589,7 +589,7 @@ export const exportUtils = {
                 </button>
             </div>
         `
-                : `
+            : `
             <div style="display: flex; gap: 8px;">
                 <button id="gyazo-complete-auth" style="
                     flex: 1;
@@ -717,13 +717,13 @@ export const exportUtils = {
                     showNotification("Exchanging code for access token...", "info");
                     const tokenData = await exportUtils.exchangeGyazoCodeForToken(
                         code,
-                        /** @type {any} */ (exportUtils.getGyazoConfig()).redirectUri
+                        /** @type {any} */(exportUtils.getGyazoConfig()).redirectUri
                     );
-                    exportUtils.setGyazoAccessToken(/** @type {any} */ (tokenData).access_token);
+                    exportUtils.setGyazoAccessToken(/** @type {any} */(tokenData).access_token);
 
                     overlay.remove();
                     showNotification("Gyazo authentication successful!", "success");
-                    resolve(/** @type {any} */ (tokenData).access_token);
+                    resolve(/** @type {any} */(tokenData).access_token);
                 } catch (error) {
                     console.error("Error completing Gyazo authentication:", error);
                     showNotification(`Authentication failed: ${/** @type {any} */ (error).message}`, "error");
@@ -822,7 +822,22 @@ export const exportUtils = {
             });
 
         try {
-            const response = await fetch(/** @type {any} */ (config).tokenUrl, {
+            const { electronAPI } = /** @type {{ electronAPI?: { exchangeGyazoToken?: Function } }} */ (globalThis);
+            if (electronAPI && typeof electronAPI.exchangeGyazoToken === "function") {
+                const tokenData = await electronAPI.exchangeGyazoToken({
+                    clientId: /** @type {any} */ (config).clientId,
+                    clientSecret: /** @type {any} */ (config).clientSecret,
+                    code,
+                    redirectUri,
+                    tokenUrl: /** @type {any} */ (config).tokenUrl,
+                });
+                if (tokenData && typeof tokenData === "object" && tokenData.access_token) {
+                    return tokenData;
+                }
+                throw new Error("No access token returned from Gyazo");
+            }
+
+            const response = await fetch(/** @type {any} */(config).tokenUrl, {
                 body: tokenParams.toString(),
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -860,7 +875,7 @@ export const exportUtils = {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                zip = new /** @type {any} */ (globalThis).JSZip(); // JSZip is loaded globally via script tag
+                zip = new /** @type {any} */(globalThis).JSZip(); // JSZip is loaded globally via script tag
 
             // Add individual chart images
             for (const [i, chart] of charts.entries()) {
@@ -1035,11 +1050,11 @@ export const exportUtils = {
     async exportChartDataAsJSON(chartData, fieldName, filename = "chart-data.json") {
         try {
             const jsonData = {
-                    data: chartData,
-                    exportedAt: new Date().toISOString(),
-                    field: fieldName,
-                    totalPoints: chartData.length,
-                },
+                data: chartData,
+                exportedAt: new Date().toISOString(),
+                field: fieldName,
+                totalPoints: chartData.length,
+            },
                 blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json;charset=utf-8;" }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
@@ -1185,10 +1200,10 @@ export const exportUtils = {
         // Provide default demo credentials for easier onboarding
         // Obfuscated default credentials using multiple encoding layers
         const GyazoAppData1 = [
-                0x6c, 0x63, 0x6f, 0x7a, 0x6f, 0x61, 0x6e, 0x44, 0x4a, 0x57, 0x76, 0x6f, 0x75, 0x39, 0x70, 0x6a, 0x6b,
-                0x42, 0x6d, 0x50, 0x4a, 0x6c, 0x61, 0x30, 0x62, 0x4e, 0x67, 0x72, 0x54, 0x37, 0x59, 0x62, 0x73, 0x37,
-                0x69, 0x79, 0x56, 0x77, 0x4f, 0x6c, 0x59, 0x45, 0x51,
-            ],
+            0x6c, 0x63, 0x6f, 0x7a, 0x6f, 0x61, 0x6e, 0x44, 0x4a, 0x57, 0x76, 0x6f, 0x75, 0x39, 0x70, 0x6a, 0x6b,
+            0x42, 0x6d, 0x50, 0x4a, 0x6c, 0x61, 0x30, 0x62, 0x4e, 0x67, 0x72, 0x54, 0x37, 0x59, 0x62, 0x73, 0x37,
+            0x69, 0x79, 0x56, 0x77, 0x4f, 0x6c, 0x59, 0x45, 0x51,
+        ],
             // Apply ROT13-like transformation as additional obfuscation layer
             /** @type {(arr: number[]) => string} */
             transform = (arr) => arr.map((/** @type {number} */ code) => String.fromCodePoint(code)).join(""),
@@ -1432,10 +1447,10 @@ export const exportUtils = {
      * Prints the chart with theme background
      * @param {ChartJSInstance} chart - Chart.js instance
      */ /**
-     * Saves Gyazo configuration to user settings
-     * @param {string} clientId - Gyazo client ID
-     * @param {string} clientSecret - Gyazo client secret
-     */
+    * Saves Gyazo configuration to user settings
+    * @param {string} clientId - Gyazo client ID
+    * @param {string} clientSecret - Gyazo client secret
+    */
     setGyazoConfig(clientId, clientSecret) {
         try {
             localStorage.setItem("gyazo_client_id", clientId);
@@ -1732,7 +1747,7 @@ export const exportUtils = {
         const /** @type {GyazoConfig} */
             config = /** @type {any} */ (exportUtils.getGyazoConfig()),
             hasCredentials = Boolean(
-                /** @type {GyazoConfig} */ (config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
+                /** @type {GyazoConfig} */(config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
             ),
             isAuthenticated = exportUtils.isGyazoAuthenticated(),
             // Create modal overlay
@@ -2173,7 +2188,7 @@ export const exportUtils = {
             /** @type {GyazoConfig} */
             config = /** @type {any} */ (exportUtils.getGyazoConfig()),
             hasCredentials = Boolean(
-                /** @type {GyazoConfig} */ (config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
+                /** @type {GyazoConfig} */(config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
             ),
             isAuthenticated = exportUtils.isGyazoAuthenticated();
         if (authStatus) {
@@ -2234,7 +2249,7 @@ export const exportUtils = {
             formData.append("access_token", accessToken);
             formData.append("imagedata", blob, "chart.png");
 
-            const uploadResponse = await fetch(/** @type {any} */ (exportUtils.getGyazoConfig()).uploadUrl, {
+            const uploadResponse = await fetch(/** @type {any} */(exportUtils.getGyazoConfig()).uploadUrl, {
                 body: formData,
                 method: "POST",
             });

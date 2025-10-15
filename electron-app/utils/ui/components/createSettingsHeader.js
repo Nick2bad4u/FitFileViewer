@@ -864,8 +864,9 @@ function createFieldToggle(/** @type {string} */ field) {
         themeConfig = getThemeConfig();
     container.className = "field-toggle";
 
-    // Check if this field has valid data
-    let hasValidData = false;
+    // Determine data availability heuristics
+    let hasValidData = true;
+    let dataEvaluated = false;
     if (
         /** @type {WindowExtensions} */ (globalThis).globalData &&
         /** @type {WindowExtensions} */ (globalThis).globalData.recordMesgs &&
@@ -875,6 +876,7 @@ function createFieldToggle(/** @type {string} */ field) {
 
         switch (field) {
             case "altitude_profile": {
+                dataEvaluated = true;
                 hasValidData = data.some((row) => {
                     const altitude = row.altitude || row.enhancedAltitude;
                     return altitude !== undefined && altitude !== null && !isNaN(Number.parseFloat(altitude));
@@ -883,6 +885,7 @@ function createFieldToggle(/** @type {string} */ field) {
                 break;
             }
             case "event_messages": {
+                dataEvaluated = true;
                 hasValidData = Boolean(
                     /** @type {WindowExtensions} */(globalThis).globalData?.eventMesgs &&
                     Array.isArray(/** @type {WindowExtensions} */(globalThis).globalData.eventMesgs) &&
@@ -892,6 +895,7 @@ function createFieldToggle(/** @type {string} */ field) {
                 break;
             }
             case "gps_track": {
+                dataEvaluated = true;
                 hasValidData = data.some((row) => {
                     const lat = row.positionLat,
                         long = row.positionLong;
@@ -906,6 +910,7 @@ function createFieldToggle(/** @type {string} */ field) {
             case "hr_lap_zone_individual":
             case "hr_lap_zone_stacked": {
                 // Check for HR lap zone data
+                dataEvaluated = true;
                 if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
                     const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
                         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
@@ -918,6 +923,7 @@ function createFieldToggle(/** @type {string} */ field) {
             case "power_lap_zone_individual":
             case "power_lap_zone_stacked": {
                 // Check for Power lap zone data
+                dataEvaluated = true;
                 if (/** @type {WindowExtensions} */ (globalThis).globalData?.timeInZoneMesgs) {
                     const { timeInZoneMesgs } = /** @type {WindowExtensions} */ (globalThis).globalData,
                         lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
@@ -928,6 +934,7 @@ function createFieldToggle(/** @type {string} */ field) {
                 break;
             }
             case "power_vs_hr": {
+                dataEvaluated = true;
                 const hasHeartRate = data.some((row) => {
                     const hr = row.heartRate;
                     return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
@@ -941,6 +948,7 @@ function createFieldToggle(/** @type {string} */ field) {
                 break;
             }
             case "speed_vs_distance": {
+                dataEvaluated = true;
                 const hasDistance = data.some((row) => {
                     const { distance } = row;
                     return distance !== undefined && distance !== null && !isNaN(Number.parseFloat(distance));
@@ -955,17 +963,20 @@ function createFieldToggle(/** @type {string} */ field) {
             }
             default: {
                 if (field.includes("hr_zone")) {
+                    dataEvaluated = true;
                     hasValidData = data.some((row) => {
                         const hr = row.heartRate;
                         return hr !== undefined && hr !== null && !isNaN(Number.parseFloat(hr));
                     });
                 } else if (field.includes("power_zone")) {
+                    dataEvaluated = true;
                     hasValidData = data.some((row) => {
                         const { power } = row;
                         return power !== undefined && power !== null && !isNaN(Number.parseFloat(power));
                     });
                 } else if (/** @type {string[]} */ (/** @type {unknown} */ (formatChartFields)).includes(field)) {
                     // Regular chart field
+                    dataEvaluated = true;
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
                             const value = Number.parseFloat(row[field]);
@@ -976,6 +987,7 @@ function createFieldToggle(/** @type {string} */ field) {
                     hasValidData = !numericData.every((val) => val === null);
                 } else {
                     // Developer field
+                    dataEvaluated = true;
                     const numericData = data.map((row) => {
                         if (row[field] !== undefined && row[field] !== null) {
                             const value = Number.parseFloat(row[field]);
@@ -999,8 +1011,11 @@ function createFieldToggle(/** @type {string} */ field) {
 		border: 1px solid var(--color-border);
 		transition: var(--transition-smooth);
 		backdrop-filter: var(--backdrop-blur);
-		${hasValidData ? "" : "opacity: 0.5; filter: grayscale(0.7);"}
 	`;
+
+    if (dataEvaluated && !hasValidData) {
+        container.classList.add("field-toggle--no-data");
+    }
 
     // Toggle switch
     const toggle = document.createElement("input");

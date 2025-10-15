@@ -5,6 +5,7 @@
  * @param {() => any} options.shellRef
  * @param {(port?: number) => Promise<any>} options.startGyazoOAuthServer
  * @param {() => Promise<any>} options.stopGyazoOAuthServer
+ * @param {(payload: {clientId: string; clientSecret: string; code: string; redirectUri: string; tokenUrl: string}) => Promise<any>} [options.exchangeGyazoToken]
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
 function registerExternalHandlers(options) {
@@ -17,6 +18,7 @@ function wireExternalHandlers(options = {}) {
         shellRef,
         startGyazoOAuthServer,
         stopGyazoOAuthServer,
+        exchangeGyazoToken,
         logWithContext,
     } = options;
     if (typeof registerIpcHandle !== 'function') {
@@ -68,6 +70,19 @@ function wireExternalHandlers(options = {}) {
             throw error;
         }
     });
+
+    if (typeof exchangeGyazoToken === 'function') {
+        registerIpcHandle('gyazo:token:exchange', async (_event, payload) => {
+            try {
+                return await exchangeGyazoToken(payload);
+            } catch (error) {
+                logWithContext?.('error', 'Error in gyazo:token:exchange:', {
+                    error: /** @type {Error} */ (error)?.message,
+                });
+                throw error;
+            }
+        });
+    }
 }
 
 module.exports = { registerExternalHandlers, wireExternalHandlers };

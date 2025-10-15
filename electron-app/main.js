@@ -23,12 +23,12 @@ function getElectron() {
         return /** @type {any} */ ({});
     }
 }
-const appRef = () => /** @type {any} */ (getElectron().app);
-const browserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
-const dialogRef = () => /** @type {any} */ (getElectron().dialog);
-const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
-const menuRef = () => /** @type {any} */ (getElectron().Menu);
-const shellRef = () => /** @type {any} */ (getElectron().shell);
+const appRef = () => /** @type {any} */(getElectron().app);
+const browserWindowRef = () => /** @type {any} */(getElectron().BrowserWindow);
+const dialogRef = () => /** @type {any} */(getElectron().dialog);
+const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
+const menuRef = () => /** @type {any} */(getElectron().Menu);
+const shellRef = () => /** @type {any} */(getElectron().shell);
 
 const IPC_HANDLE_REGISTRY = new Map();
 const IPC_EVENT_LISTENER_REGISTRY = new Map();
@@ -672,7 +672,7 @@ function exposeDevHelpers() {
             const win = browserWindowRef().getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */ (win),
+                    /** @type {any} */(win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );
@@ -715,8 +715,8 @@ try {
         __prime_mod && (__prime_mod.app || __prime_mod.BrowserWindow)
             ? __prime_mod
             : __prime_mod && __prime_mod.default
-              ? __prime_mod.default
-              : __prime_mod;
+                ? __prime_mod.default
+                : __prime_mod;
     const __prime_app = __prime && __prime.app;
     const __prime_BW = __prime && __prime.BrowserWindow;
     let __prime_app_val = __prime_app;
@@ -923,7 +923,7 @@ try {
                 i0.handle("__test_init_handle__", () => true);
             }
             if (i0 && typeof i0.on === "function") {
-                i0.on("__test_init_on__", () => {});
+                i0.on("__test_init_on__", () => { });
             }
         } catch {
             /* ignore */
@@ -949,7 +949,7 @@ try {
             const http0 = httpRef();
             if (http0 && typeof http0.createServer === "function") {
                 // No listen call – harmless creation to satisfy spy expectations only
-                http0.createServer(() => {});
+                http0.createServer(() => { });
             }
         } catch {
             /* ignore */
@@ -1114,12 +1114,12 @@ try {
                             /* ignore */
                         }
                         try {
-                            i.on("menu-export", () => {});
+                            i.on("menu-export", () => { });
                         } catch {
                             /* ignore */
                         }
                         try {
-                            i.on("set-fullscreen", () => {});
+                            i.on("set-fullscreen", () => { });
                         } catch {
                             /* ignore */
                         }
@@ -1132,7 +1132,7 @@ try {
                     const http = httpRef();
                     if (http && typeof http.createServer === "function") {
                         try {
-                            http.createServer(() => {});
+                            http.createServer(() => { });
                         } catch {
                             /* ignore */
                         }
@@ -1154,9 +1154,9 @@ try {
                     try {
                         const hasEnv = Boolean(
                             typeof process !== "undefined" &&
-                                process.env &&
-                                process.env.GYAZO_CLIENT_ID &&
-                                process.env.GYAZO_CLIENT_SECRET
+                            process.env &&
+                            process.env.GYAZO_CLIENT_ID &&
+                            process.env.GYAZO_CLIENT_SECRET
                         );
                         const hasServer = Boolean(getAppState("gyazoServer"));
                         if (hasEnv && !hasServer) {
@@ -1171,7 +1171,7 @@ try {
                                 const http = httpRef();
                                 if (http && typeof http.createServer === "function") {
                                     try {
-                                        http.createServer(() => {});
+                                        http.createServer(() => { });
                                     } catch {
                                         /* ignore */
                                     }
@@ -1462,8 +1462,8 @@ function setupIPCHandlers(mainWindow) {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "fit-file-loaded event")) {
             try {
-                const theme = await getThemeFromRenderer(/** @type {any} */ (win));
-                safeCreateAppMenu(/** @type {any} */ (win), theme, getAppState("loadedFitFilePath"));
+                const theme = await getThemeFromRenderer(/** @type {any} */(win));
+                safeCreateAppMenu(/** @type {any} */(win), theme, getAppState("loadedFitFilePath"));
             } catch (error) {
                 logWithContext("error", "Failed to update menu after fit file loaded:", {
                     error: /** @type {Error} */ (error).message,
@@ -1618,6 +1618,65 @@ function setupIPCHandlers(mainWindow) {
         }
     });
 
+    registerIpcHandle("gyazo:token:exchange", async (/** @type {any} */ _event, /** @type {any} */ payload) => {
+        const {
+            clientId,
+            clientSecret,
+            code,
+            redirectUri,
+            tokenUrl,
+        } = /** @type {{clientId?: string; clientSecret?: string; code?: string; redirectUri?: string; tokenUrl?: string}} */ (
+                payload || {}
+            );
+
+        try {
+            if (!clientId || !clientSecret || !code || !redirectUri || !tokenUrl) {
+                throw new Error("Missing required Gyazo token exchange parameters");
+            }
+
+            const tokenParams = new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                code,
+                grant_type: "authorization_code",
+                redirect_uri: redirectUri,
+            });
+
+            const fetchImpl = typeof fetch === "function" ? fetch : null;
+            if (!fetchImpl) {
+                throw new Error("Global fetch is not available in main process");
+            }
+
+            const response = await fetchImpl(tokenUrl, {
+                body: tokenParams.toString(),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                method: "POST",
+            });
+
+            const responseText = await response.text();
+            if (!response.ok) {
+                throw new Error(`Token exchange failed: ${response.status} - ${responseText}`);
+            }
+
+            try {
+                const data = JSON.parse(responseText);
+                if (!data || typeof data !== "object" || !("access_token" in data)) {
+                    throw new Error("No access token returned from Gyazo");
+                }
+                return data;
+            } catch (parseError) {
+                const fallbackMessage =
+                    responseText || (parseError instanceof Error ? parseError.message : String(parseError));
+                throw new Error(`Failed to parse Gyazo token response: ${fallbackMessage}`);
+            }
+        } catch (error) {
+            logWithContext("error", "Error in gyazo:token:exchange:", {
+                error: /** @type {Error} */ (error).message,
+            });
+            throw error;
+        }
+    });
+
     registerIpcHandle("gyazo:server:stop", async (/** @type {any} */ _event) => {
         try {
             return await stopGyazoOAuthServer();
@@ -1637,7 +1696,7 @@ function setupMenuAndEventHandlers() {
         const win = browserWindowRef().fromWebContents(event.sender);
         if (validateWindow(win, "theme-changed event")) {
             safeCreateAppMenu(
-                /** @type {any} */ (win),
+                /** @type {any} */(win),
                 theme || CONSTANTS.DEFAULT_THEME,
                 getAppState("loadedFitFilePath")
             );
@@ -1707,7 +1766,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath.replace(/\.fit$/i, ".csv"),
                     filters: CONSTANTS.DIALOG_FILTERS.EXPORT_FILES,
                     title: "Export As",
@@ -1730,7 +1789,7 @@ function setupMenuAndEventHandlers() {
             }
 
             try {
-                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */ (win), {
+                const { canceled, filePath } = await dialogRef().showSaveDialog(/** @type {any} */(win), {
                     defaultPath: loadedFilePath,
                     filters: CONSTANTS.DIALOG_FILTERS.ALL_FILES,
                     title: "Save As",
@@ -1769,7 +1828,7 @@ function setupMenuAndEventHandlers() {
                 win = browserWindowRef().fromWebContents(event.sender);
             logWithContext("info", "Manual menu injection requested", { fitFilePath: f, theme: t });
             if (win) {
-                safeCreateAppMenu(/** @type {any} */ (win), t, f);
+                safeCreateAppMenu(/** @type {any} */(win), t, f);
             }
             return true;
         }
@@ -2057,7 +2116,7 @@ async function startGyazoOAuthServer(port = 3000) {
                 throw new Error("HTTP module unavailable");
             }
             const server = _http.createServer((req, res) => {
-                const parsedUrl = new URL(/** @type {string} */ (req.url), `http://localhost:${port}`);
+                const parsedUrl = new URL(/** @type {string} */(req.url), `http://localhost:${port}`);
 
                 // Handle CORS and preflight requests
                 res.setHeader("Access-Control-Allow-Origin", "*");

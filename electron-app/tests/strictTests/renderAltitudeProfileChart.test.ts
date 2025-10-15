@@ -316,7 +316,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             renderAltitudeProfileChart(container, data, labels, options);
 
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.label).toBe("Altitude Profile");
+            expect(dataset.label).toBe("\u26F0\uFE0F Altitude Profile");
             expect(dataset.backgroundColor).toBe("#00ff004D"); // Green with alpha
             expect(dataset.borderColor).toBe("#00ff00");
             expect(dataset.pointRadius).toBe(0);

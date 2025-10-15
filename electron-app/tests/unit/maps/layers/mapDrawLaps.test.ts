@@ -3,6 +3,68 @@
  */
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
+import { createStateManagerMock } from "../../../helpers/createStateManagerMock";
+
+type StateManagerHarness = ReturnType<typeof createStateManagerMock>;
+type MockFn = ReturnType<typeof vi.fn>;
+
+type StateManagerRefs = {
+    harness?: StateManagerHarness;
+    getStateMock?: MockFn;
+    setStateMock?: MockFn;
+    updateStateMock?: MockFn;
+    subscribeMock?: MockFn;
+};
+
+const stateManagerRefs = vi.hoisted((): StateManagerRefs => ({
+    harness: undefined,
+    getStateMock: undefined,
+    setStateMock: undefined,
+    updateStateMock: undefined,
+    subscribeMock: undefined,
+}));
+
+vi.mock("../../../../utils/state/core/stateManager.js", () => {
+    if (!stateManagerRefs.harness) {
+        const harness = createStateManagerMock();
+        stateManagerRefs.harness = harness;
+        stateManagerRefs.getStateMock = vi.fn((path?: string) => harness.getState(path));
+        stateManagerRefs.setStateMock = vi.fn((path: string, value: unknown, options?: any) =>
+            harness.setState(path, value, options)
+        );
+        stateManagerRefs.updateStateMock = vi.fn((path: string, patch: Record<string, unknown>, options?: any) =>
+            harness.updateState(path, patch, options)
+        );
+        stateManagerRefs.subscribeMock = vi.fn((path: string, listener: (value: unknown) => void) =>
+            harness.subscribe(path, listener as any)
+        );
+    }
+
+    return {
+        getState: stateManagerRefs.getStateMock!,
+        setState: stateManagerRefs.setStateMock!,
+        updateState: stateManagerRefs.updateStateMock!,
+        subscribe: stateManagerRefs.subscribeMock!,
+    };
+});
+
+const ensureStateManagerRefs = () => {
+    const { harness, getStateMock, setStateMock, updateStateMock, subscribeMock } = stateManagerRefs;
+    if (!harness || !getStateMock || !setStateMock || !updateStateMock || !subscribeMock) {
+        throw new Error("State manager mocks failed to initialize");
+    }
+    return { harness, getStateMock, setStateMock, updateStateMock, subscribeMock };
+};
+
+const { harness: stateManagerHarness, getStateMock, setStateMock, updateStateMock, subscribeMock } =
+    ensureStateManagerRefs();
+
+import { setGlobalData } from "../../../../utils/state/domain/globalDataState.js";
+import {
+    clearOverlayState,
+    setOverlayFiles,
+    setOverlayMarkerCount,
+} from "../../../../utils/state/domain/overlayState.js";
 
 // Mock dependencies
 vi.mock("../../../../utils/charts/theming/chartOverlayColorPalette.js", () => ({
@@ -53,6 +115,24 @@ describe("mapDrawLaps", () => {
     let mockMarkerSummary: any;
 
     beforeEach(() => {
+        stateManagerHarness.reset();
+        vi.clearAllMocks();
+        getStateMock.mockImplementation((path?: string) => stateManagerHarness.getState(path));
+        setStateMock.mockImplementation((path: string, value: unknown, options?: any) =>
+            stateManagerHarness.setState(path, value, options)
+        );
+        updateStateMock.mockImplementation((path: string, patch: Record<string, unknown>, options?: any) =>
+            stateManagerHarness.updateState(path, patch, options)
+        );
+        subscribeMock.mockImplementation((path: string, listener: (value: unknown) => void) =>
+            stateManagerHarness.subscribe(path, listener as any)
+        );
+
+        clearOverlayState("mapDrawLaps.test.setup");
+        setOverlayMarkerCount(10, "mapDrawLaps.test.setup");
+        setOverlayFiles([], "mapDrawLaps.test.setup");
+        setGlobalData(null, "mapDrawLaps.test.setup");
+
         // Reset global state
         (globalThis as any).window = globalThis;
 
@@ -262,7 +342,8 @@ describe("mapDrawLaps", () => {
             });
 
             expect(mockLeaflet.polyline).toHaveBeenCalled();
-            expect(result).toBe(mockLatLngBounds); // Returns bounds, not polyline
+            expect(result).toBeTruthy();
+            expect(typeof (result as any).extend).toBe("function");
         });
     });
 
@@ -420,12 +501,15 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            // Setup global data
-            (globalThis as any).globalData = {
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: mockLapMesgs,
-            };
-            (globalThis as any).mapMarkerCount = 10;
+            // Setup global data using state bridge
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: mockLapMesgs,
+                },
+                "mapDrawLaps.test.all"
+            );
+            setOverlayMarkerCount(10, "mapDrawLaps.test.all");
 
             // Setup map container
             const mapContainer = document.createElement("div");
@@ -484,12 +568,14 @@ describe("mapDrawLaps", () => {
                 speed: 5 + idx * 0.01,
             }));
 
-            (globalThis as any).globalData = {
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: [],
-            };
-
-            (globalThis as any).mapMarkerCount = 10;
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: [],
+                },
+                "mapDrawLaps.test.markerLimit"
+            );
+            setOverlayMarkerCount(10, "mapDrawLaps.test.markerLimit");
             (globalThis as any).updateMapMarkerSummary = vi.fn();
 
             const mapContainer = document.createElement("div");
@@ -556,11 +642,14 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            (globalThis as any).globalData = {
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: mockLapMesgs,
-            };
-            (globalThis as any).mapMarkerCount = 5;
+                setGlobalData(
+                    {
+                        recordMesgs: mockRecordMesgs,
+                        lapMesgs: mockLapMesgs,
+                    },
+                    "mapDrawLaps.test.singleLap"
+                );
+                setOverlayMarkerCount(5, "mapDrawLaps.test.singleLap");
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -634,10 +723,13 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            (globalThis as any).globalData = {
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: mockLapMesgs,
-            };
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: mockLapMesgs,
+                },
+                "mapDrawLaps.test.multiLap"
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -671,10 +763,13 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            (globalThis as any).globalData = {
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: [],
-            };
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: [],
+                },
+                "mapDrawLaps.test.arrayAll"
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -697,22 +792,26 @@ describe("mapDrawLaps", () => {
 
         test("should handle overlay files with multiple loaded files", () => {
             // Setup main file data
-            (globalThis as any).globalData = {
-                recordMesgs: [
-                    {
-                        positionLat: 429496729,
-                        positionLong: 858993459,
-                        timestamp: 1000,
-                        altitude: 100,
-                        heartRate: 150,
-                        speed: 5.5,
-                    },
-                ],
-                lapMesgs: [],
-            };
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        {
+                            positionLat: 429496729,
+                            positionLong: 858993459,
+                            timestamp: 1000,
+                            altitude: 100,
+                            heartRate: 150,
+                            speed: 5.5,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                "mapDrawLaps.test.overlay"
+            );
 
             // Setup overlay files
-            (globalThis as any).loadedFitFiles = [
+            setOverlayFiles(
+                [
                 {
                     data: { recordMesgs: [], lapMesgs: [] },
                 },
@@ -732,7 +831,9 @@ describe("mapDrawLaps", () => {
                     },
                     filePath: "overlay1.fit",
                 },
-            ];
+                ],
+                "mapDrawLaps.test.overlay"
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -754,19 +855,22 @@ describe("mapDrawLaps", () => {
         });
 
         test("should handle invalid lap index gracefully", () => {
-            (globalThis as any).globalData = {
-                recordMesgs: [
-                    {
-                        positionLat: 429496729,
-                        positionLong: 858993459,
-                        timestamp: 1000,
-                        altitude: 100,
-                        heartRate: 150,
-                        speed: 5.5,
-                    },
-                ],
-                lapMesgs: [],
-            };
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        {
+                            positionLat: 429496729,
+                            positionLong: 858993459,
+                            timestamp: 1000,
+                            altitude: 100,
+                            heartRate: 150,
+                            speed: 5.5,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                "mapDrawLaps.test.invalidIdx"
+            );
 
             const mapContainer = document.createElement("div");
 
@@ -788,20 +892,23 @@ describe("mapDrawLaps", () => {
         });
 
         test("should handle missing position data in records", () => {
-            (globalThis as any).globalData = {
-                recordMesgs: [
-                    { timestamp: 1000, altitude: 100, heartRate: 150, speed: 5.5 }, // Missing position
-                    {
-                        positionLat: 429496729,
-                        positionLong: 858993459,
-                        timestamp: 2000,
-                        altitude: 101,
-                        heartRate: 151,
-                        speed: 5.6,
-                    },
-                ],
-                lapMesgs: [],
-            };
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        { timestamp: 1000, altitude: 100, heartRate: 150, speed: 5.5 }, // Missing position
+                        {
+                            positionLat: 429496729,
+                            positionLong: 858993459,
+                            timestamp: 2000,
+                            altitude: 101,
+                            heartRate: 151,
+                            speed: 5.6,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                "mapDrawLaps.test.missingPosition"
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;

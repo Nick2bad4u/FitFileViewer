@@ -1,15 +1,20 @@
+import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { getGlobalData } from "../../state/domain/globalDataState.js";
 
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
- * The button uses iconify icons and exports the track from globalData.
+ * The button uses inline SVG icons and exports the track from globalData.
  * @returns {HTMLButtonElement} The configured Export GPX button element
  */
 export function createExportGPXButton() {
     const exportBtn = document.createElement("button");
+    const themeColors = getThemeColors();
     exportBtn.className = "map-action-btn";
     exportBtn.innerHTML = `
-        <iconify-icon icon="flat-color-icons:export" width="18" height="18"></iconify-icon>
+        <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
+            <path d="M10 2 L10 12 M10 12 L7 9 M10 12 L13 9" stroke="${themeColors.primary}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3" y="14" width="14" height="4" rx="1" fill="none" stroke="${themeColors.primary}" stroke-width="1.5"/>
+        </svg>
         <span>Export GPX</span>
     `;
     exportBtn.title = "Export the current track as a GPX file";

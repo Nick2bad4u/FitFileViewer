@@ -1,5 +1,5 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartEmoji, getChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
@@ -78,7 +78,9 @@ export function renderGPSTrackChart(container, data, options) {
         const titleText = "GPS Track",
             xLabel = "Longitude (°)",
             yLabel = "Latitude (°)",
-            accentColor = themeConfig?.colors?.primary || themeConfig?.colors?.accent || "#3b82f6";
+            accentColor = themeConfig?.colors?.primary || themeConfig?.colors?.accent || "#3b82f6",
+            legendEmoji = getChartEmoji("gps_track"),
+            datasetLabel = legendEmoji ? `${legendEmoji} ${titleText}` : titleText;
 
         attachChartLabelMetadata(canvas, {
             titleIcon: getChartIcon("gps-track"),
@@ -102,7 +104,7 @@ export function renderGPSTrackChart(container, data, options) {
                         borderWidth: 2,
                         data: gpsData,
                         fill: false,
-                        label: "GPS Track",
+                        label: datasetLabel,
                         pointHoverRadius: 4,
                         pointRadius: options.showPoints ? 2 : 1,
                         showLine: true,

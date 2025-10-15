@@ -78,6 +78,8 @@ export function MapViewRoot() {
     const [mapInstance, setMapInstance] = useState(/** @type {any} */ (null));
     const [mapError, setMapError] = useState(/** @type {string | null} */ (null));
 
+    const mapControlsTheme = getMapThemeInverted() ? "dark" : "light";
+
     const overlayFiles = useAppState((state) => state?.overlays?.loadedFitFiles ?? []);
     const highlightedOverlayIndex = useAppState((state) => state?.overlays?.highlightedOverlayIndex ?? null);
     const globalData = useAppState((state) => state?.globalData ?? null);
@@ -767,7 +769,7 @@ export function MapViewRoot() {
             : null,
         createElement(
             "div",
-            { id: "map-controls", className: "map-view-root__controls" },
+            { id: "map-controls", className: "map-view-root__controls", "data-map-theme": mapControlsTheme },
             createElement(MapControls, { mapInstance })
         )
     );

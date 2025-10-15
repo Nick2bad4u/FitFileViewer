@@ -245,6 +245,7 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
                 "setFullScreen",
                 "startGyazoServer",
                 "stopGyazoServer",
+                "exchangeGyazoToken",
                 "validateAPI",
             ];
 
@@ -388,6 +389,19 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
             await exposedAPI.stopGyazoServer();
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("gyazo:server:stop");
+        });
+
+        test("exchangeGyazoToken should invoke correct channel", async () => {
+            const payload = {
+                clientId: "id",
+                clientSecret: "secret",
+                code: "code",
+                redirectUri: "http://localhost/callback",
+                tokenUrl: "https://gyazo.com/oauth/token",
+            };
+            await exposedAPI.exchangeGyazoToken(payload);
+
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("gyazo:token:exchange", payload);
         });
     });
 

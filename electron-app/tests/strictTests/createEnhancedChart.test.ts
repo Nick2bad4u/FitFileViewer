@@ -307,7 +307,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             createEnhancedChart(canvas, options);
 
             const dataset = Chart.mock.calls[0][1].data.datasets[0];
-            expect(dataset.label).toBe("Speed (Enhanced)");
+            expect(dataset.label).toBe("\u26A1 Speed (Enhanced)");
         });
 
         it("should configure point display based on showPoints option", () => {

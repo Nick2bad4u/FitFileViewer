@@ -7,6 +7,13 @@ export type GyazoServerStopResult = {
     success: boolean;
     message?: string;
 };
+export type GyazoTokenExchangePayload = {
+    clientId: string;
+    clientSecret: string;
+    code: string;
+    redirectUri: string;
+    tokenUrl: string;
+};
 export type ChannelInfo = {
     channels: Record<string, string>;
     events: Record<string, string>;
@@ -37,6 +44,7 @@ export type ElectronAPI = {
     openExternal: (url: string) => Promise<boolean>;
     startGyazoServer: (port: number) => Promise<GyazoServerStartResult>;
     stopGyazoServer: () => Promise<GyazoServerStopResult>;
+    exchangeGyazoToken: (payload: GyazoTokenExchangePayload) => Promise<any>;
     onMenuOpenFile: (callback: Function) => void;
     onMenuOpenOverlay: (callback: Function) => void;
     onOpenRecentFile: (callback: (filePath: string) => void) => void;

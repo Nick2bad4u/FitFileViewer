@@ -1,258 +1,185 @@
-/**
- * @fileoverview Tests for updateMapTheme utility
- *
- * Comprehensive test suite covering map theme updates, event handling,
- * and side effects for the updateMapTheme module.
- */
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock the dependency
 const mockGetMapThemeInverted = vi.fn();
 vi.mock("../../../../utils/theming/specific/createMapThemeToggle.js", () => ({
     getMapThemeInverted: mockGetMapThemeInverted,
 }));
 
-// Extend globalThis interface for _mapThemeListener
 declare global {
+    // eslint-disable-next-line no-var
     var _mapThemeListener: (() => void) | undefined;
 }
 
-// Import the module AFTER setting up mocks
 const { updateMapTheme } = await import("../../../../utils/theming/specific/updateMapTheme.js");
 
-describe("updateMapTheme - comprehensive coverage", () => {
-    let consoleLogSpy: any;
-    let consoleErrorSpy: any;
+const createLayerMock = (label: string) => ({
+    addTo: vi.fn(),
+    label,
+});
+
+const resetGlobals = () => {
+    const windowExt = globalThis as any;
+    delete windowExt._leafletMapInstance;
+    delete windowExt.__mapLayerRegistry;
+    delete windowExt.__mapManagedLayerConfig;
+    delete windowExt.__mapManagedLayerIds;
+    delete windowExt.__mapCurrentBaseLayer;
+    delete windowExt.__mapCurrentBaseLayerId;
+    delete windowExt.__mapBaseLayerManual;
+    delete windowExt.__miniMapLayers;
+    delete windowExt._miniMapControl;
+};
+
+describe("updateMapTheme", () => {
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-        // Reset all mocks
-        vi.resetAllMocks();
-
-        // Set up console spies
+        resetGlobals();
+        document.body.innerHTML = "";
+        mockGetMapThemeInverted.mockReset();
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-        // Reset DOM
-        document.body.innerHTML = "";
-
-        // Clear module cache to test fresh imports
-        vi.clearAllMocks();
     });
 
-    describe("updateMapTheme function", () => {
-        it("should apply dark theme filter when map should be dark", () => {
-            // Setup
-            mockGetMapThemeInverted.mockReturnValue(true);
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-            const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
+    it("applies dark theme and switches to the managed dark base layer", () => {
+        mockGetMapThemeInverted.mockReturnValue(true);
+    document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
 
-            // Execute
-            updateMapTheme();
+        const darkLayer = createLayerMock("dark");
+        const lightLayer = createLayerMock("light");
+        const mapInstance = { removeLayer: vi.fn() } as any;
 
-            // Verify
-            expect(mockGetMapThemeInverted).toHaveBeenCalled();
-            expect(mapElement.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
-        });
+        const windowExt = globalThis as any;
+        windowExt._leafletMapInstance = mapInstance;
+        windowExt.__mapLayerRegistry = {
+            CartoDB_DarkMatter: darkLayer,
+            CartoDB_Positron: lightLayer,
+            OpenStreetMap: lightLayer,
+        };
+        windowExt.__mapManagedLayerConfig = {
+            dark: "CartoDB_DarkMatter",
+            fallback: "OpenStreetMap",
+            light: "CartoDB_Positron",
+        };
+        windowExt.__mapManagedLayerIds = new Set(["CartoDB_DarkMatter", "CartoDB_Positron"]);
+        windowExt.__mapCurrentBaseLayer = lightLayer;
+        windowExt.__mapCurrentBaseLayerId = "CartoDB_Positron";
+        windowExt.__mapBaseLayerManual = false;
+        windowExt.__miniMapLayers = {
+            dark: { id: "mini-dark" },
+            fallback: { id: "mini-fallback" },
+            light: { id: "mini-light" },
+        };
+        windowExt._miniMapControl = { changeLayer: vi.fn() };
 
-        it("should remove filter when map should be light", () => {
-            // Setup
-            mockGetMapThemeInverted.mockReturnValue(false);
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-            const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
+        updateMapTheme();
 
-            // Execute
-            updateMapTheme();
-
-            // Verify
-            expect(mockGetMapThemeInverted).toHaveBeenCalled();
-            expect(mapElement.style.filter).toBe("none");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: false");
-        });
-
-        it("should handle missing map element gracefully", () => {
-            // Setup - no map element in DOM
-            mockGetMapThemeInverted.mockReturnValue(true);
-
-            // Execute
-            updateMapTheme();
-
-            // Verify
-            expect(mockGetMapThemeInverted).toHaveBeenCalled();
-            expect(consoleLogSpy).not.toHaveBeenCalled();
-            expect(consoleErrorSpy).not.toHaveBeenCalled();
-        });
-
-        it("should handle errors in getMapThemeInverted", () => {
-            // Setup
-            const testError = new Error("Theme preference error");
-            mockGetMapThemeInverted.mockImplementation(() => {
-                throw testError;
-            });
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-
-            // Execute
-            updateMapTheme();
-
-            // Verify error handling
-            expect(consoleErrorSpy).toHaveBeenCalledWith("[updateMapTheme] Error updating map theme:", testError);
-        });
-
-        it("should handle DOM query errors", () => {
-            // Setup - mock querySelector to throw
-            const originalQuerySelector = document.querySelector;
-            document.querySelector = vi.fn().mockImplementation(() => {
-                throw new Error("DOM query error");
-            });
-            mockGetMapThemeInverted.mockReturnValue(true);
-
-            try {
-                // Execute
-                updateMapTheme();
-
-                // Verify error handling
-                expect(consoleErrorSpy).toHaveBeenCalledWith(
-                    "[updateMapTheme] Error updating map theme:",
-                    expect.any(Error)
-                );
-            } finally {
-                // Restore original querySelector
-                document.querySelector = originalQuerySelector;
-            }
-        });
+        const leafletMap = document.querySelector("#leaflet-map") as HTMLElement;
+        const mapControls = document.querySelector("#map-controls") as HTMLElement;
+        expect(leafletMap.dataset.mapTheme).toBe("dark");
+        expect(mapControls.dataset.mapTheme).toBe("dark");
+        expect(mapInstance.removeLayer).toHaveBeenCalledWith(lightLayer);
+        expect(darkLayer.addTo).toHaveBeenCalledWith(mapInstance);
+        expect(windowExt._miniMapControl.changeLayer).toHaveBeenCalledWith({ id: "mini-dark" });
+        expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
     });
 
-    describe("Event Listener Setup", () => {
-        it("should have set up event listeners after module import", () => {
-            // The module was already imported at the top level, so the event listeners
-            // should already be established
-            expect(globalThis._mapThemeListener).toBeDefined();
-            expect(typeof globalThis._mapThemeListener).toBe("function");
-        });
+    it("keeps the current base layer when the user selected a manual override", () => {
+        mockGetMapThemeInverted.mockReturnValue(false);
+        document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
+        const mapControls = document.querySelector("#map-controls") as HTMLElement;
 
-        it("should not set up duplicate listeners when already established", () => {
-            // Setup - capture current listener count
-            const currentListener = globalThis._mapThemeListener;
+        const customLayer = createLayerMock("custom");
+        const windowExt = globalThis as any;
+        windowExt._leafletMapInstance = { removeLayer: vi.fn() };
+        windowExt.__mapLayerRegistry = {
+            CartoDB_DarkMatter: createLayerMock("dark"),
+            CartoDB_Positron: createLayerMock("light"),
+        };
+        windowExt.__mapManagedLayerConfig = {
+            dark: "CartoDB_DarkMatter",
+            fallback: "CartoDB_Positron",
+            light: "CartoDB_Positron",
+        };
+        windowExt.__mapManagedLayerIds = new Set(["CartoDB_DarkMatter", "CartoDB_Positron"]);
+        windowExt.__mapCurrentBaseLayer = customLayer;
+        windowExt.__mapCurrentBaseLayerId = "Esri";
+        windowExt.__mapBaseLayerManual = true;
 
-            // The condition in the module checks if(!globalThis._mapThemeListener)
-            // Since it already exists, no new listeners should be added
+        updateMapTheme();
 
-            // Verify the listener exists
-            expect(currentListener).toBeDefined();
-        });
+    expect(windowExt._leafletMapInstance.removeLayer).not.toHaveBeenCalled();
+    expect(customLayer.addTo).not.toHaveBeenCalled();
+    expect(mapControls.dataset.mapTheme).toBe("light");
     });
 
-    describe("Event Handling", () => {
-        it("should respond to themechange events", () => {
-            // Setup
-            mockGetMapThemeInverted.mockReturnValue(true);
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-            const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
-            consoleLogSpy.mockClear();
+    it("handles missing map element without throwing", () => {
+        mockGetMapThemeInverted.mockReturnValue(true);
+        document.body.innerHTML = '<div id="map-controls" class="map-view-root__controls"></div>';
 
-            // Execute - call the listener directly since it's already set up
-            if (globalThis._mapThemeListener) {
-                globalThis._mapThemeListener();
-            }
+        expect(() => updateMapTheme()).not.toThrow();
+        expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
 
-            // Verify response
-            expect(mapElement.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: true");
-        });
-
-        it("should respond to mapThemeChanged events", () => {
-            // Setup
-            mockGetMapThemeInverted.mockReturnValue(false);
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-            const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
-            consoleLogSpy.mockClear();
-
-            // Execute - call the listener directly since it's already set up
-            if (globalThis._mapThemeListener) {
-                globalThis._mapThemeListener();
-            }
-
-            // Verify response
-            expect(mapElement.style.filter).toBe("none");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: false");
-        });
+        const mapControls = document.querySelector("#map-controls") as HTMLElement | null;
+        expect(mapControls?.dataset.mapTheme).toBe("dark");
     });
 
-    describe("Cleanup Handling", () => {
-        it("should remove event listeners on beforeunload", () => {
-            // Setup - ensure listener exists first
-            if (!globalThis._mapThemeListener) {
-                globalThis._mapThemeListener = () => updateMapTheme();
-            }
-
-            // Verify listener exists
-            expect(globalThis._mapThemeListener).toBeDefined();
-            const listener = globalThis._mapThemeListener;
-
-            // Mock removeEventListener to verify cleanup
-            const removeEventListenerSpy = vi.spyOn(document.body, "removeEventListener");
-            const documentRemoveEventListenerSpy = vi.spyOn(document, "removeEventListener");
-
-            // Execute cleanup manually (simulate the cleanup logic from the module)
-            document.body.removeEventListener("themechange", globalThis._mapThemeListener);
-            document.removeEventListener("mapThemeChanged", globalThis._mapThemeListener);
-            delete globalThis._mapThemeListener;
-
-            // Verify cleanup was called
-            expect(removeEventListenerSpy).toHaveBeenCalledWith("themechange", listener);
-            expect(documentRemoveEventListenerSpy).toHaveBeenCalledWith("mapThemeChanged", listener);
-            expect(globalThis._mapThemeListener).toBeUndefined();
+    it("logs errors from getMapThemeInverted", () => {
+        const error = new Error("preference failure");
+        mockGetMapThemeInverted.mockImplementation(() => {
+            throw error;
         });
 
-        it("should handle cleanup when no listeners exist", () => {
-            // Setup - remove listener
-            delete globalThis._mapThemeListener;
+        updateMapTheme();
 
-            // Execute - this should not throw
-            const beforeUnloadEvent = new Event("beforeunload");
-            expect(() => {
-                window.dispatchEvent(beforeUnloadEvent);
-            }).not.toThrow();
-        });
+        expect(consoleErrorSpy).toHaveBeenCalledWith("[updateMapTheme] Error updating map theme:", error);
     });
 
-    describe("Integration Scenarios", () => {
-        it("should handle complete theme update workflow", () => {
-            // Setup
-            mockGetMapThemeInverted.mockReturnValue(false);
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-            const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
-            consoleLogSpy.mockClear();
-
-            // Execute complete workflow
-            updateMapTheme();
-            const themeEvent = new Event("themechange");
-            document.body.dispatchEvent(themeEvent);
-
-            // Verify final state
-            expect(mapElement.style.filter).toBe("none");
-            expect(consoleLogSpy).toHaveBeenCalledWith("[updateMapTheme] Map theme updated - Map dark: false");
+    it("handles DOM query failures gracefully", () => {
+        mockGetMapThemeInverted.mockReturnValue(true);
+        const originalQuery = document.querySelector;
+        document.querySelector = vi.fn().mockImplementation(() => {
+            throw new Error("query issue");
         });
 
-        it("should maintain state consistency across multiple calls", () => {
-            // Setup
-            document.body.innerHTML = '<div id="leaflet-map"></div>';
-            const mapElement = document.querySelector("#leaflet-map") as HTMLElement;
-
-            // Execute multiple calls with different theme states
-            mockGetMapThemeInverted.mockReturnValue(true);
+        try {
             updateMapTheme();
-            expect(mapElement.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "[updateMapTheme] Error updating map theme:",
+                expect.any(Error)
+            );
+        } finally {
+            document.querySelector = originalQuery;
+        }
+    });
 
-            mockGetMapThemeInverted.mockReturnValue(false);
-            updateMapTheme();
-            expect(mapElement.style.filter).toBe("none");
+    it("registers a global theme listener during module load", () => {
+        expect(globalThis._mapThemeListener).toBeDefined();
+        expect(typeof globalThis._mapThemeListener).toBe("function");
+    });
 
-            // Verify consistency
-            mockGetMapThemeInverted.mockReturnValue(true);
-            updateMapTheme();
-            expect(mapElement.style.filter).toBe("invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)");
-        });
+    it("invokes update logic when the global listener fires", () => {
+        mockGetMapThemeInverted.mockReturnValue(false);
+    document.body.innerHTML = '<div id="leaflet-map"></div><div id="map-controls" class="map-view-root__controls"></div>';
+        const windowExt = globalThis as any;
+        windowExt._leafletMapInstance = { removeLayer: vi.fn() };
+        windowExt.__mapLayerRegistry = {
+            CartoDB_DarkMatter: createLayerMock("dark"),
+            CartoDB_Positron: createLayerMock("light"),
+        };
+        windowExt.__mapManagedLayerConfig = {
+            dark: "CartoDB_DarkMatter",
+            fallback: "CartoDB_Positron",
+            light: "CartoDB_Positron",
+        };
+        windowExt.__mapManagedLayerIds = new Set(["CartoDB_DarkMatter", "CartoDB_Positron"]);
+
+        globalThis._mapThemeListener?.();
+
+    const leafletMap = document.querySelector("#leaflet-map") as HTMLElement;
+    const mapControls = document.querySelector("#map-controls") as HTMLElement;
+    expect(leafletMap.dataset.mapTheme).toBe("light");
+    expect(mapControls.dataset.mapTheme).toBe("light");
     });
 });

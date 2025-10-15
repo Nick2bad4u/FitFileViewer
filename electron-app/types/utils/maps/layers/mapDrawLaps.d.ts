@@ -21,7 +21,8 @@
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
  */
-export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatTooltipData, getLapNumForIdx, map, markerClusterGroup, markerSummary, overlayIdx, startIcon, }: {
+export function drawOverlayForFitFile({ addLayer, endIcon, fileName, fitData, formatTooltipData, getLapNumForIdx, map, markerClusterGroup, markerSummary, overlayIdx, startIcon, }: {
+    addLayer?: (layer: any) => void;
     endIcon: any;
     fileName: any;
     fitData: any;
@@ -37,9 +38,20 @@ export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatToolti
  * Draws the map for a given lap or laps
  * Dependencies must be passed as arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
  * @param {string|number|Array<string|number>} lapIdx - Lap index or array of indices or "all"
- * @param {MapDrawOptions} options - Map drawing options
+ * @param {Object} options - Map drawing options
  */
-export function mapDrawLaps(lapIdx: string | number | Array<string | number>, { baseLayers, endIcon, formatTooltipData, getLapColor, getLapNumForIdx, map, mapContainer, markerClusterGroup, startIcon, }: MapDrawOptions): void;
+export function mapDrawLaps(lapIdx: string | number | Array<string | number>, { baseLayers, dynamicLayerGroup, endIcon, formatTooltipData, getLapColor, getLapNumForIdx, map, mapContainer, markerClusterGroup, startIcon, }: {
+    baseLayers: Record<string, any>;
+    dynamicLayerGroup?: any;
+    endIcon: any;
+    formatTooltipData: any;
+    getLapColor: any;
+    getLapNumForIdx: any;
+    map: any;
+    mapContainer: any;
+    markerClusterGroup: any;
+    startIcon: any;
+}): void;
 export type RecordMesg = {
     /**
      * - Position latitude

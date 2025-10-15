@@ -2,7 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { getChartIcon, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartIcon, getZoneChartEmoji, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
@@ -88,7 +88,7 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
             yText: yLabel,
         });
 
-        const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
+        const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme, chartId);
 
         console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
         const chart = new globalThis.Chart(canvas, config);
@@ -120,8 +120,11 @@ function createBarChartConfig(
     title,
     /** @type {RenderZoneChartOptions|undefined} */ _options,
     currentTheme,
-    baseDataset
+    baseDataset,
+    chartId
 ) {
+    const legendEmoji = getZoneChartEmoji(chartId);
+    const datasetLabel = legendEmoji ? `${legendEmoji} Time in Zone` : "Time in Zone";
     // _options kept for parity
     return {
         data: {
@@ -139,7 +142,7 @@ function createBarChartConfig(
                     }),
                     hoverBorderColor: colors.slice(0, zoneData.length),
                     hoverBorderWidth: 2,
-                    label: "Time in Zone",
+                    label: datasetLabel,
                 },
             ],
             labels: zoneData.map((zone, i) => zone.label || `Zone ${zone.zone || i + 1}`),
@@ -278,7 +281,8 @@ function createChartConfig(
     colors,
     title,
     /** @type {RenderZoneChartOptions} */ options,
-    currentTheme
+    currentTheme,
+    chartId
 ) {
     const baseDataset = {
         backgroundColor: colors.slice(0, zoneData.length),
@@ -288,9 +292,9 @@ function createChartConfig(
     };
 
     if (chartType === "bar") {
-        return createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
+        return createBarChartConfig(zoneData, colors, title, options, currentTheme, baseDataset, chartId);
     }
-    return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset);
+    return createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset, chartId);
 }
 
 /**
@@ -304,7 +308,9 @@ function createChartConfig(
  * @param {string} currentTheme
  * @param {any} baseDataset
  */
-function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset) {
+function createDoughnutChartConfig(zoneData, colors, title, options, currentTheme, baseDataset, chartId) {
+    const legendEmoji = getZoneChartEmoji(chartId);
+    const datasetLabel = legendEmoji ? `${legendEmoji} Time in Zone` : "Time in Zone";
     return {
         data: {
             datasets: [
@@ -329,6 +335,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     rotation: -90, // Start from top
                     spacing: 2,
                     weight: 1,
+                    label: datasetLabel,
                 },
             ],
             labels: zoneData.map((zone, i) => zone.label || `Zone ${zone.zone || i + 1}`),
@@ -366,41 +373,50 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                             weight: "600",
                         },
                         generateLabels(/** @type {any} */ chart) {
-                            const data = chart?.data || { datasets: [], labels: [] };
-                            if (
-                                Array.isArray(data.labels) &&
-                                data.labels.length > 0 &&
-                                Array.isArray(data.datasets) &&
-                                data.datasets.length > 0
-                            ) {
-                                const [dataset] = data.datasets,
-                                    total = Array.isArray(dataset.data)
-                                        ? dataset.data.reduce(
-                                            (/** @type {number} */ a, /** @type {number} */ b) => a + b,
-                                            0
-                                        )
-                                        : 0;
-                                return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
-                                    const meta = chart.getDatasetMeta ? chart.getDatasetMeta(0) : { data: [] },
-                                        hidden = meta?.data?.[i]?.hidden,
-                                        value = Array.isArray(dataset.data) ? dataset.data[i] : 0,
-                                        percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
-                                    return {
-                                        fillStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.backgroundColor?.[i],
-                                        hidden,
-                                        index: i,
-                                        lineWidth: 1,
-                                        pointStyle: "circle",
-                                        strokeStyle: hidden ? "rgba(128, 128, 128, 0.5)" : dataset.borderColor,
-                                        text: `${label}: ${formatTime(value, true)} (${percentage}%)`,
-                                    };
-                                });
+                            const data = chart?.data;
+                            if (!data || !Array.isArray(data.labels) || data.labels.length === 0) {
+                                return [];
                             }
-                            return [];
+                            if (!Array.isArray(data.datasets) || data.datasets.length === 0) {
+                                return [];
+                            }
+
+                            const [dataset] = data.datasets,
+                                total = Array.isArray(dataset.data)
+                                    ? dataset.data.reduce((/** @type {number} */ a, /** @type {number} */ b) => a + b, 0)
+                                    : 0;
+
+                            return data.labels.map((/** @type {string} */ label, /** @type {number} */ i) => {
+                                const fillSource = Array.isArray(dataset.backgroundColor)
+                                    ? dataset.backgroundColor[i]
+                                    : dataset.backgroundColor,
+                                    isHidden = chart?.getDataVisibility?.(i) === false,
+                                    value = Array.isArray(dataset.data) ? dataset.data[i] : 0,
+                                    percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0",
+                                    decoratedLabel = legendEmoji ? `${legendEmoji} ${label}` : label;
+
+                                return {
+                                    fillStyle: isHidden ? "rgba(128, 128, 128, 0.5)" : fillSource,
+                                    hidden: Boolean(isHidden || chart?.getDatasetMeta?.(0)?.data?.[i]?.hidden),
+                                    index: i,
+                                    lineWidth: 1,
+                                    pointStyle: "circle",
+                                    strokeStyle: isHidden ? "rgba(128, 128, 128, 0.5)" : fillSource,
+                                    text: `${decoratedLabel}: ${formatTime(value, true)} (${percentage}%)`,
+                                };
+                            });
                         },
                         padding: 20,
                         pointStyle: "circle",
                         usePointStyle: true,
+                    },
+                    onClick(_event, legendItem, legend) {
+                        const { chart } = legend || {};
+                        if (!chart || typeof legendItem?.index !== "number") {
+                            return;
+                        }
+                        chart.toggleDataVisibility(legendItem.index);
+                        chart.update();
                     },
                     position: "right",
                 },

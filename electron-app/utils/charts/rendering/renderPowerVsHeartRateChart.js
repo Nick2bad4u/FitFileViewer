@@ -1,5 +1,5 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartEmoji, getChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
@@ -65,7 +65,9 @@ export function renderPowerVsHeartRateChart(container, data, options) {
         const titleText = "Power vs Heart Rate",
             xLabel = "Heart Rate (bpm)",
             yLabel = "Power (W)",
-            accentColor = themeConfig?.colors?.warning || themeConfig?.colors?.primary || "#f97316";
+            accentColor = themeConfig?.colors?.warning || themeConfig?.colors?.primary || "#f97316",
+            legendEmoji = getChartEmoji("power_vs_hr") || getChartEmoji("power"),
+            datasetLabel = legendEmoji ? `${legendEmoji} ${titleText}` : titleText;
 
         attachChartLabelMetadata(canvas, {
             titleIcon: getChartIcon("power-vs-hr"),
@@ -88,7 +90,7 @@ export function renderPowerVsHeartRateChart(container, data, options) {
                         backgroundColor: `${themeConfig.colors.warning}99`, // Orange with alpha
                         borderColor: themeConfig.colors.warning,
                         data: chartData,
-                        label: "Power vs Heart Rate",
+                        label: datasetLabel,
                         pointHoverRadius: 4,
                         pointRadius: options.showPoints ? 2 : 1,
                     },

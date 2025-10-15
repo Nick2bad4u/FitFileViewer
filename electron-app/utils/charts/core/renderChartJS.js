@@ -2268,7 +2268,15 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     const { renderableFields } = chartState;
     /** @type {string[]} */
     let fieldsToRender = Array.isArray(renderableFields) ? [...renderableFields] : [];
-    if (!fieldsToRender.length) {
+    const localStore =
+        /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
+    const visibilityKeys = localStore
+        ? Object.keys(localStore).filter((key) => key.startsWith("chartjs_field_"))
+        : [];
+    const userExplicitlyHidAll =
+        visibilityKeys.length > 0 && visibilityKeys.every((key) => localStore?.getItem?.(key) === "hidden");
+
+    if (!fieldsToRender.length && !userExplicitlyHidAll) {
         try {
             const sample = Array.isArray(recordMesgs) ? recordMesgs.find((r) => r && typeof r === "object") || {} : {};
             fieldsToRender = Object.keys(sample)
@@ -2282,6 +2290,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         } catch {
             // ignore and proceed with empty, which will show no-data messages later
         }
+    } else if (!fieldsToRender.length && userExplicitlyHidAll) {
+        console.log("[ChartJS] All metrics hidden by user preferences; skipping fallback field discovery");
     }
 
     console.log(

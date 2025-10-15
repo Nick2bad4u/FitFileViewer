@@ -1,3 +1,4 @@
+import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 
@@ -62,11 +63,11 @@ export default defineConfig({
     },
 
     // Plugin configuration
-    plugins: [],
+    plugins: [react()],
 
     // Optimization
     optimizeDeps: {
-        include: ["chart.js", "leaflet", "jquery", "date-fns", "arquero"],
+        include: ["chart.js", "leaflet", "jquery", "date-fns", "arquero", "react", "react-dom"],
         // Force exclude electron
         exclude: ["electron"],
     },

@@ -2,7 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import { formatTooltipWithUnits } from "../../formatting/display/formatTooltipWithUnits.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartEmoji, getChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
@@ -73,7 +73,9 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         const titleText = "Speed vs Distance",
             xLabel = `Distance (${getUnitSymbol("distance")})`,
             yLabel = `Speed (${getUnitSymbol("speed")})`,
-            accentColor = themeConfig?.colors?.warning || themeConfig?.colors?.primary || "#f59e0b";
+            accentColor = themeConfig?.colors?.warning || themeConfig?.colors?.primary || "#f59e0b",
+            legendEmoji = getChartEmoji("speed_vs_distance"),
+            datasetLabel = legendEmoji ? `${legendEmoji} ${titleText}` : titleText;
 
         attachChartLabelMetadata(canvas, {
             titleIcon: getChartIcon("speed-vs-distance"),
@@ -98,7 +100,7 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         borderWidth: 2,
                         data: chartData,
                         fill: false,
-                        label: "Speed vs Distance",
+                        label: datasetLabel,
                         pointHoverRadius: 4,
                         pointRadius: options.showPoints ? 2 : 1,
                         showLine: true,

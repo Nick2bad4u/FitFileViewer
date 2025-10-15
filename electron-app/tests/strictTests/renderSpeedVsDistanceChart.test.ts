@@ -279,7 +279,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(Chart).toHaveBeenCalled();
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.type).toBe("scatter");
-            expect(chartConfig.data.datasets[0].label).toBe("Speed vs Distance");
+            expect(chartConfig.data.datasets[0].label).toBe("\u{1F4C8} Speed vs Distance");
             expect(chartConfig.data.datasets[0].showLine).toBe(true);
             expect(chartConfig.data.datasets[0].fill).toBe(false);
             expect(chartConfig.data.datasets[0].tension).toBe(0.1);

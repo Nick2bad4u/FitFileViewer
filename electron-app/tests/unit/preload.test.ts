@@ -193,6 +193,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             // Test Gyazo operations
             expect(electronAPI).toHaveProperty("startGyazoServer");
             expect(electronAPI).toHaveProperty("stopGyazoServer");
+            expect(electronAPI).toHaveProperty("exchangeGyazoToken");
 
             // Test validation
             expect(electronAPI).toHaveProperty("validateAPI");

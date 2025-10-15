@@ -84,32 +84,6 @@ export function setupChartStatusUpdates() {
     }
 }
 
-function ensureGlobalDataProperty() {
-    try {
-        const host = /** @type {any} */ (globalThis);
-        if (!Object.getOwnPropertyDescriptor(host, "globalData")) {
-            Object.defineProperty(host, "globalData", {
-                configurable: true,
-                get: () => getGlobalData(),
-                set: (value) => setGlobalData(value, "chartStatusIndicator.windowSetter"),
-            });
-        }
-
-        if (host.window && typeof host.window === "object") {
-            const windowHost = host.window;
-            if (!Object.getOwnPropertyDescriptor(windowHost, "globalData")) {
-                Object.defineProperty(windowHost, "globalData", {
-                    configurable: true,
-                    get: () => getGlobalData(),
-                    set: (value) => setGlobalData(value, "chartStatusIndicator.windowSetter"),
-                });
-            }
-        }
-    } catch (error) {
-        console.warn("[ChartStatus] Failed to ensure globalData property", error);
-    }
-}
-
 /**
  * Updates both the settings and global chart status indicators synchronously
  * This ensures they always show the same counts
@@ -166,5 +140,35 @@ export function updateChartStatusIndicator(indicator = null) {
         }
     } catch (error) {
         console.error("[ChartStatus] Error updating chart status indicator:", error);
+    }
+}
+
+function ensureGlobalDataProperty() {
+    try {
+        const host = /** @type {any} */ (globalThis);
+        if (!Object.getOwnPropertyDescriptor(host, "globalData")) {
+            Object.defineProperty(host, "globalData", {
+                configurable: true,
+                get: () => getGlobalData(),
+                set: (value) => {
+                    setGlobalData(value, "chartStatusIndicator.windowSetter");
+                },
+            });
+        }
+
+        if (host.window && typeof host.window === "object") {
+            const windowHost = host.window;
+            if (!Object.getOwnPropertyDescriptor(windowHost, "globalData")) {
+                Object.defineProperty(windowHost, "globalData", {
+                    configurable: true,
+                    get: () => getGlobalData(),
+                    set: (value) => {
+                        setGlobalData(value, "chartStatusIndicator.windowSetter");
+                    },
+                });
+            }
+        }
+    } catch (error) {
+        console.warn("[ChartStatus] Failed to ensure globalData property", error);
     }
 }

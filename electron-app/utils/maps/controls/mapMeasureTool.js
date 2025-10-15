@@ -1,5 +1,6 @@
 /* global L */
 // Simple point-to-point measurement tool for Leaflet
+import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 
 /**
  * Add a simple point-to-point measurement tool (two clicks) to a Leaflet map.
@@ -28,10 +29,18 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     // Button reference will be the created element below
 
     // Create the measure button up front so it's available to handlers
-    const measureBtn = document.createElement("button");
+    const measureBtn = document.createElement("button"),
+        themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
     measureBtn.innerHTML = `
-        <iconify-icon icon="flat-color-icons:ruler" width="18" height="18"></iconify-icon>
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
+            <circle cx="5" cy="19" r="2" fill="${themeColors.primary}"/>
+            <circle cx="19" cy="5" r="2" fill="${themeColors.primary}"/>
+            <line x1="8" y1="16" x2="10" y2="14" stroke="${themeColors.primary}" stroke-width="1.5"/>
+            <line x1="12" y1="12" x2="14" y2="10" stroke="${themeColors.primary}" stroke-width="1.5"/>
+            <line x1="16" y1="8" x2="18" y2="6" stroke="${themeColors.primary}" stroke-width="1.5"/>
+        </svg>
         <span>Measure</span>
     `;
     measureBtn.title = "Click, then click two points on the map to measure distance";
@@ -59,7 +68,14 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         map.off("click", onMapClickMeasure);
         if (btn) {
             btn.innerHTML = `
-                <iconify-icon icon="flat-color-icons:ruler" width="18" height="18"></iconify-icon>
+                <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                    <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
+                    <circle cx="5" cy="19" r="2" fill="${themeColors.primary}"/>
+                    <circle cx="19" cy="5" r="2" fill="${themeColors.primary}"/>
+                    <line x1="8" y1="16" x2="10" y2="14" stroke="${themeColors.primary}" stroke-width="1.5"/>
+                    <line x1="12" y1="12" x2="14" y2="10" stroke="${themeColors.primary}" stroke-width="1.5"/>
+                    <line x1="16" y1="8" x2="18" y2="6" stroke="${themeColors.primary}" stroke-width="1.5"/>
+                </svg>
                 <span>Measure</span>
             `;
             btn.title = "Click, then click two points on the map to measure distance";
@@ -147,7 +163,11 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         map.on("click", onMapClickMeasure);
         if (btn) {
             btn.innerHTML = `
-                <iconify-icon icon="flat-color-icons:cancel" width="18" height="18"></iconify-icon>
+                <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
+                    <circle cx="10" cy="10" r="8" fill="none" stroke="#b71c1c" stroke-width="2"/>
+                    <line x1="6" y1="6" x2="14" y2="14" stroke="#b71c1c" stroke-width="2"/>
+                    <line x1="14" y1="6" x2="6" y2="14" stroke="#b71c1c" stroke-width="2"/>
+                </svg>
                 <span>Cancel</span>
             `;
             btn.title = "Cancel measurement mode";

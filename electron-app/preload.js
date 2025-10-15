@@ -18,6 +18,7 @@ const // Constants for better maintainability
             // Gyazo OAuth server channels
             GYAZO_SERVER_START: "gyazo:server:start",
             GYAZO_SERVER_STOP: "gyazo:server:stop",
+            GYAZO_TOKEN_EXCHANGE: "gyazo:token:exchange",
             LICENSE_INFO: "getLicenseInfo",
             NODE_VERSION: "getNodeVersion",
             PLATFORM_INFO: "getPlatformInfo",
@@ -54,6 +55,14 @@ const // Constants for better maintainability
      * @property {string} [message]
      */
     /**
+     * @typedef {Object} GyazoTokenExchangePayload
+     * @property {string} clientId
+     * @property {string} clientSecret
+     * @property {string} code
+     * @property {string} redirectUri
+     * @property {string} tokenUrl
+     */
+    /**
      * @typedef {Object} ChannelInfo
      * @property {Record<string,string>} channels
      * @property {Record<string,string>} events
@@ -86,6 +95,7 @@ const // Constants for better maintainability
      * @property {(url: string) => Promise<boolean>} openExternal
      * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
      * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
+    * @property {(payload: GyazoTokenExchangePayload) => Promise<any>} exchangeGyazoToken
      * @property {(callback: Function) => void} onMenuOpenFile
      * @property {(callback: Function) => void} onMenuOpenOverlay
      * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
@@ -542,6 +552,16 @@ const electronAPI = {
      * @returns {Promise<{success: boolean, port: number, message?: string}>}
      */
     startGyazoServer: createSafeInvokeHandler(CONSTANTS.CHANNELS.GYAZO_SERVER_START, "startGyazoServer"),
+
+    /**
+     * Exchanges a Gyazo authorization code for an access token via the main process.
+     * @param {GyazoTokenExchangePayload} payload
+     * @returns {Promise<any>}
+     */
+    exchangeGyazoToken: createSafeInvokeHandler(
+        CONSTANTS.CHANNELS.GYAZO_TOKEN_EXCHANGE,
+        "exchangeGyazoToken"
+    ),
 
     /**
      * Stops the temporary Gyazo OAuth callback server.

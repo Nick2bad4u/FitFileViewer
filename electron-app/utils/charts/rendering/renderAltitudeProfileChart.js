@@ -1,7 +1,7 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
+import { getChartEmoji, getChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
@@ -69,7 +69,9 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             altitudeUnit = getUnitSymbol("altitude") || "m",
             xLabel = `Time (${getUnitSymbol("time", "time")})`,
             yLabel = `Altitude (${altitudeUnit})`,
-            accentColor = themeConfig?.colors?.success || themeConfig?.colors?.primary || "#22c55e";
+            accentColor = themeConfig?.colors?.success || themeConfig?.colors?.primary || "#22c55e",
+            legendEmoji = getChartEmoji("altitude_profile"),
+            datasetLabel = legendEmoji ? `${legendEmoji} ${titleText}` : titleText;
 
         attachChartLabelMetadata(canvas, {
             titleIcon: getChartIcon("altitude-profile"),
@@ -93,7 +95,7 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         borderWidth: 2,
                         data: chartData,
                         fill: "origin",
-                        label: "Altitude Profile",
+                        label: datasetLabel,
                         pointHoverRadius: 4,
                         pointRadius: 0,
                         tension: 0.1,

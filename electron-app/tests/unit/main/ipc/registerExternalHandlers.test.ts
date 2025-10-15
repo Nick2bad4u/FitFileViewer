@@ -23,6 +23,7 @@ describe("registerExternalHandlers", () => {
     let mockShellRef: ReturnType<typeof vi.fn>;
     let mockStartGyazoOAuthServer: ReturnType<typeof vi.fn>;
     let mockStopGyazoOAuthServer: ReturnType<typeof vi.fn>;
+    let mockExchangeGyazoToken: ReturnType<typeof vi.fn>;
     let mockLogWithContext: ReturnType<typeof vi.fn>;
     let mockShell: { openExternal: ReturnType<typeof vi.fn> };
 
@@ -32,6 +33,7 @@ describe("registerExternalHandlers", () => {
         mockShellRef = vi.fn().mockReturnValue(mockShell);
         mockStartGyazoOAuthServer = vi.fn().mockResolvedValue({ port: 3000, url: "http://localhost:3000" });
         mockStopGyazoOAuthServer = vi.fn().mockResolvedValue({ stopped: true });
+        mockExchangeGyazoToken = vi.fn().mockResolvedValue({ access_token: "token" });
         mockLogWithContext = vi.fn();
     });
 
@@ -43,12 +45,14 @@ describe("registerExternalHandlers", () => {
             shellRef: mockShellRef,
             startGyazoOAuthServer: mockStartGyazoOAuthServer,
             stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+            exchangeGyazoToken: mockExchangeGyazoToken,
             logWithContext: mockLogWithContext,
         });
 
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:start", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:stop", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:token:exchange", expect.any(Function));
     });
 
     it("should wire handlers via the helper to ensure internal coverage", async () => {
@@ -59,13 +63,15 @@ describe("registerExternalHandlers", () => {
             shellRef: mockShellRef,
             startGyazoOAuthServer: mockStartGyazoOAuthServer,
             stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+            exchangeGyazoToken: mockExchangeGyazoToken,
             logWithContext: mockLogWithContext,
         });
 
-        expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(3);
+        expect(mockRegisterIpcHandle).toHaveBeenCalledTimes(4);
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("shell:openExternal", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:start", expect.any(Function));
         expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:server:stop", expect.any(Function));
+        expect(mockRegisterIpcHandle).toHaveBeenCalledWith("gyazo:token:exchange", expect.any(Function));
     });
 
     it("should not register handlers if registerIpcHandle is not a function", async () => {
@@ -76,6 +82,7 @@ describe("registerExternalHandlers", () => {
             shellRef: mockShellRef,
             startGyazoOAuthServer: mockStartGyazoOAuthServer,
             stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+            exchangeGyazoToken: mockExchangeGyazoToken,
             logWithContext: mockLogWithContext,
         });
 
@@ -91,6 +98,7 @@ describe("registerExternalHandlers", () => {
                 shellRef: mockShellRef,
                 startGyazoOAuthServer: mockStartGyazoOAuthServer,
                 stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                exchangeGyazoToken: mockExchangeGyazoToken,
                 logWithContext: mockLogWithContext,
             });
 
@@ -383,6 +391,7 @@ describe("registerExternalHandlers", () => {
                 shellRef: mockShellRef,
                 startGyazoOAuthServer: mockStartGyazoOAuthServer,
                 stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                exchangeGyazoToken: mockExchangeGyazoToken,
                 logWithContext: mockLogWithContext,
             });
 
@@ -407,6 +416,7 @@ describe("registerExternalHandlers", () => {
                 shellRef: mockShellRef,
                 startGyazoOAuthServer: mockStartGyazoOAuthServer,
                 stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                exchangeGyazoToken: mockExchangeGyazoToken,
                 logWithContext: mockLogWithContext,
             });
 
@@ -431,6 +441,7 @@ describe("registerExternalHandlers", () => {
                 shellRef: mockShellRef,
                 startGyazoOAuthServer: mockStartGyazoOAuthServer,
                 stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                exchangeGyazoToken: mockExchangeGyazoToken,
                 logWithContext: undefined as any,
             });
 
@@ -439,6 +450,63 @@ describe("registerExternalHandlers", () => {
             )?.[1];
 
             await expect(handler({})).rejects.toThrow("Stop error");
+        });
+    });
+
+    describe("gyazo:token:exchange handler", () => {
+        it("should exchange Gyazo token with provided payload", async () => {
+            const { registerExternalHandlers } = await loadModule();
+
+            registerExternalHandlers({
+                registerIpcHandle: mockRegisterIpcHandle,
+                shellRef: mockShellRef,
+                startGyazoOAuthServer: mockStartGyazoOAuthServer,
+                stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                exchangeGyazoToken: mockExchangeGyazoToken,
+                logWithContext: mockLogWithContext,
+            });
+
+            const handler = mockRegisterIpcHandle.mock.calls.find(
+                (call: any) => call[0] === "gyazo:token:exchange"
+            )?.[1];
+
+            const payload = {
+                clientId: "client",
+                clientSecret: "secret",
+                code: "code",
+                redirectUri: "http://localhost/callback",
+                tokenUrl: "https://gyazo.com/oauth/token",
+            };
+
+            const result = await handler({}, payload);
+
+            expect(mockExchangeGyazoToken).toHaveBeenCalledWith(payload);
+            expect(result).toEqual({ access_token: "token" });
+        });
+
+        it("should log and rethrow token exchange errors", async () => {
+            const { registerExternalHandlers } = await loadModule();
+
+            const error = new Error("Token failure");
+            mockExchangeGyazoToken.mockRejectedValue(error);
+
+            registerExternalHandlers({
+                registerIpcHandle: mockRegisterIpcHandle,
+                shellRef: mockShellRef,
+                startGyazoOAuthServer: mockStartGyazoOAuthServer,
+                stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                exchangeGyazoToken: mockExchangeGyazoToken,
+                logWithContext: mockLogWithContext,
+            });
+
+            const handler = mockRegisterIpcHandle.mock.calls.find(
+                (call: any) => call[0] === "gyazo:token:exchange"
+            )?.[1];
+
+            await expect(handler({}, {})).rejects.toThrow("Token failure");
+            expect(mockLogWithContext).toHaveBeenCalledWith("error", "Error in gyazo:token:exchange:", {
+                error: "Token failure",
+            });
         });
     });
 

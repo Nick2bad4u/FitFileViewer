@@ -307,6 +307,21 @@ describe("preload.js - Advanced Test Coverage", () => {
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("gyazo:server:stop");
             expect(result).toBe("mock-result");
         });
+
+        test("should provide exchangeGyazoToken method", async () => {
+            const { exposedAPI } = createPreloadEnvironment();
+            const payload = {
+                clientId: "client",
+                clientSecret: "secret",
+                code: "code",
+                redirectUri: "http://localhost/cb",
+                tokenUrl: "https://gyazo.com/oauth/token",
+            };
+            const result = await exposedAPI.exchangeGyazoToken(payload);
+
+            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith("gyazo:token:exchange", payload);
+            expect(result).toBe("mock-result");
+        });
     });
 
     describe("Event Handler Registration", () => {

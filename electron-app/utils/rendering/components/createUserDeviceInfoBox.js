@@ -3,6 +3,7 @@ import { formatHeight } from "../../formatting/formatters/formatHeight.js";
 import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
 import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
 import { formatWeight } from "../../formatting/formatters/formatWeight.js";
+import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createIconElement } from "../../ui/icons/iconMappings.js";
 
@@ -211,6 +212,15 @@ const PROFILE_FIELDS = [
     },
 ];
 
+/**
+ * Narrow unknown values to a record-like object.
+ * @param {unknown} value
+ * @returns {value is Record<string, unknown>}
+ */
+function isRecord(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 const DEVICE_FIELDS = [
     {
         label: "Manufacturer",
@@ -274,11 +284,17 @@ const DEVICE_FIELDS = [
  */
 export function createUserDeviceInfoBox(container) {
     try {
-        const globalData = /** @type {Record<string, unknown>} */ (globalThis).globalData ?? {};
-        const userProfile = (globalData.userProfileMesgs?.[0]) ?? {};
-        const deviceInfos = Array.isArray(globalData.deviceInfoMesgs)
-            ? globalData.deviceInfoMesgs
-            : [];
+        const stateData = getGlobalData();
+        const host = /** @type {Record<string, unknown>} */ (
+            typeof globalThis === "object" && globalThis ? /** @type {any} */ (globalThis) : {}
+        );
+        const legacyData = host.globalData;
+        const globalData = /** @type {Record<string, unknown>} */ (
+            isRecord(stateData) ? stateData : isRecord(legacyData) ? legacyData : {}
+        );
+        const userProfiles = Array.isArray(globalData.userProfileMesgs) ? globalData.userProfileMesgs : [];
+        const userProfile = /** @type {Record<string, unknown>} */ (userProfiles[0] ?? {});
+        const deviceInfos = Array.isArray(globalData.deviceInfoMesgs) ? globalData.deviceInfoMesgs : [];
         const infoBox = document.createElement("section");
         infoBox.className = "user-device-info-box chart-info-section";
         infoBox.dataset.themeName = getThemeConfig()?.name ?? "default";

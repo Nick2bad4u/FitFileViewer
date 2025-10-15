@@ -16,6 +16,13 @@ interface GyazoServerStopResult {
     success: boolean;
     message?: string;
 }
+interface GyazoTokenExchangePayload {
+    clientId: string;
+    clientSecret: string;
+    code: string;
+    redirectUri: string;
+    tokenUrl: string;
+}
 interface PlatformInfo {
     platform: string;
     arch: string;
@@ -55,6 +62,7 @@ interface ElectronAPI {
     // Gyazo server
     startGyazoServer(port: number): Promise<GyazoServerStartResult>;
     stopGyazoServer(): Promise<GyazoServerStopResult>;
+    exchangeGyazoToken(payload: GyazoTokenExchangePayload): Promise<any>;
 
     // Events (registration functions return void)
     onMenuOpenFile(callback: Function): void;
@@ -157,6 +165,9 @@ declare global {
         /** Leaflet global (present when Leaflet library loaded) */
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         L?: any;
+        __clearDrawnItems?: () => void;
+        __mapDrawCreatedHandler?: (...args: any[]) => void;
+        __mapDrawnItems?: any;
     }
 
     /**

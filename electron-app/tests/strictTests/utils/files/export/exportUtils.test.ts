@@ -685,6 +685,37 @@ describe("exportUtils core flows", () => {
 
             expect(result).toEqual({ access_token: "new-token" });
         });
+
+        it("exchangeGyazoCodeForToken delegates to electronAPI when available", async () => {
+            const { exportUtils } = await import(modPath);
+
+            localStorage.setItem("gyazo_client_id", "test-client");
+            localStorage.setItem("gyazo_client_secret", "test-secret");
+
+            const exchangeSpy = vi.fn().mockResolvedValue({ access_token: "ipc-token" });
+            (globalThis as any).electronAPI = {
+                exchangeGyazoToken: exchangeSpy,
+            };
+            const fetchSpy = vi.fn().mockRejectedValue(new Error("fetch should not be called"));
+            vi.stubGlobal("fetch", fetchSpy);
+
+            const result = await exportUtils.exchangeGyazoCodeForToken(
+                "auth-code",
+                "http://localhost:3000/callback"
+            );
+
+            expect(exchangeSpy).toHaveBeenCalledWith({
+                clientId: "test-client",
+                clientSecret: "test-secret",
+                code: "auth-code",
+                redirectUri: "http://localhost:3000/callback",
+                tokenUrl: "https://gyazo.com/oauth/token",
+            });
+            expect(fetchSpy).not.toHaveBeenCalled();
+            expect(result).toEqual({ access_token: "ipc-token" });
+
+            delete (globalThis as any).electronAPI;
+        });
     });
 
     // NOTE: shareChartsAsURL function is primarily a UI integration function

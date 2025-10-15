@@ -337,7 +337,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             expect(chartConfig.type).toBe("scatter");
             expect(chartConfig.data.datasets).toHaveLength(1);
-            expect(chartConfig.data.datasets[0].label).toBe("Events");
+            expect(chartConfig.data.datasets[0].label).toBe("\u{1F514} Events");
         });
 
         test("should configure dataset with correct styling and colors", () => {

@@ -28,7 +28,7 @@ export function createMarkerCountSelector(onChange) {
         /** @type {HTMLLabelElement} */
         const label = document.createElement("label");
         label.innerHTML = `
-            <iconify-icon icon="flat-color-icons:bar-chart" width="18" height="18"></iconify-icon>
+            <iconify-icon aria-hidden="true" height="18" icon="flat-color-icons:bar-chart" width="18"></iconify-icon>
             <span>Data Points:</span>
         `;
         label.setAttribute("for", "marker-count-select");

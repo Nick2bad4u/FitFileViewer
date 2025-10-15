@@ -278,7 +278,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             expect(chartConfig.type).toBe("scatter");
             expect(chartConfig.data.datasets).toHaveLength(1);
-            expect(chartConfig.data.datasets[0].label).toBe("Power vs Heart Rate");
+            expect(chartConfig.data.datasets[0].label).toBe("\u26A1 Power vs Heart Rate");
             expect(chartConfig.options.responsive).toBe(true);
             expect(chartConfig.options.maintainAspectRatio).toBe(false);
         });
@@ -749,7 +749,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(Chart).toHaveBeenCalled();
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.data.datasets[0].data).toHaveLength(6);
-            expect(chartConfig.data.datasets[0].label).toBe("Power vs Heart Rate");
+            expect(chartConfig.data.datasets[0].label).toBe("\u26A1 Power vs Heart Rate");
         });
 
         it("should handle training data with power spikes", () => {

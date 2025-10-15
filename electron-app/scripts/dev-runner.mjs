@@ -14,6 +14,9 @@ const RENDERER_DEBUG_PORT = 9222;
 
 let electronProcess = null;
 let manualRestart = false;
+let viteServer = null;
+const fileWatchers = [];
+let shuttingDown = false;
 
 /**
  * Main function
@@ -21,7 +24,7 @@ let manualRestart = false;
 async function main() {
     try {
         // Start Vite dev server
-        await startVite();
+        viteServer = await startVite();
 
         // Start Electron
         startElectron();
@@ -36,7 +39,8 @@ async function main() {
 
     } catch (error) {
         console.error('❌ Error starting development environment:', error);
-        process.exit(1);
+        await shutdown();
+        throw error;
     }
 }
 
@@ -59,6 +63,33 @@ function restartElectron() {
 /**
  * Start Electron process
  */
+async function shutdown() {
+    if (shuttingDown) {
+        return;
+    }
+    shuttingDown = true;
+
+    if (electronProcess) {
+        electronProcess.removeAllListeners('close');
+        electronProcess.kill();
+        electronProcess = null;
+    }
+
+    while (fileWatchers.length > 0) {
+        const watcher = fileWatchers.pop();
+        watcher?.close();
+    }
+
+    if (viteServer) {
+        try {
+            await viteServer.close();
+        } catch (error) {
+            console.error('⚠️  Failed to close Vite server cleanly:', error);
+        }
+        viteServer = null;
+    }
+}
+
 function startElectron() {
     console.log('⚡ Starting Electron...');
 
@@ -81,7 +112,17 @@ function startElectron() {
     electronProcess.on('close', (code) => {
         if (!manualRestart) {
             console.log('Electron exited with code:', code);
-            process.exit(code || 0);
+            shutdown()
+                .then(() => {
+                    if ((code ?? 0) !== 0) {
+                        setImmediate(() => {
+                            throw new Error(`Electron process exited with code ${code}`);
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('⚠️  Error during shutdown:', error);
+                });
         }
     });
 
@@ -115,28 +156,29 @@ function watchMainProcess() {
     console.log('👀 Watching main process files...');
 
     for (const file of mainFiles) {
-        watch(file, (eventType) => {
+        const watcher = watch(file, (eventType) => {
             if (eventType === 'change') {
                 console.log(`📝 ${file} changed, restarting Electron...`);
                 restartElectron();
             }
         });
+        fileWatchers.push(watcher);
     }
+
 }
+
 
 // Handle process termination
 process.on('SIGINT', () => {
-    if (electronProcess) {
-        electronProcess.kill();
-    }
-    process.exit(0);
+    shutdown().catch((error) => {
+        console.error('⚠️  Error during shutdown:', error);
+    });
 });
 
 process.on('SIGTERM', () => {
-    if (electronProcess) {
-        electronProcess.kill();
-    }
-    process.exit(0);
+    shutdown().catch((error) => {
+        console.error('⚠️  Error during shutdown:', error);
+    });
 });
 
 // Start

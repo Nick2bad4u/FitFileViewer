@@ -1,14 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import { createStateManagerMock } from "../../helpers/createStateManagerMock";
 
 type FormatTooltipFn = typeof import("../../../utils/formatting/display/formatTooltipData.js")["formatTooltipData"];
 
+const stateManagerHarness = createStateManagerMock();
+const getStateMock = vi.fn((path?: string) => stateManagerHarness.getState(path));
+const setStateMock = vi.fn((path: string, value: unknown, options?: any) =>
+    stateManagerHarness.setState(path, value, options)
+);
+const updateStateMock = vi.fn((path: string, patch: Record<string, unknown>, options?: any) =>
+    stateManagerHarness.updateState(path, patch, options)
+);
+const subscribeMock = vi.fn((path: string, listener: (value: unknown) => void) =>
+    stateManagerHarness.subscribe(path, listener as any)
+);
+
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
-    getState: vi.fn(),
+    getState: getStateMock,
+    setState: setStateMock,
+    updateState: updateStateMock,
+    subscribe: subscribeMock,
 }));
 
 describe("formatTooltipData alias support", () => {
     let formatTooltipData: FormatTooltipFn;
-    let mockGetState: ReturnType<typeof vi.fn>;
 
     const invokeFormatter = (
         idx: number,
@@ -25,13 +40,21 @@ describe("formatTooltipData alias support", () => {
 
     beforeEach(async () => {
         vi.clearAllMocks();
+        stateManagerHarness.reset();
+        getStateMock.mockImplementation((path?: string) => stateManagerHarness.getState(path));
+        setStateMock.mockImplementation((path: string, value: unknown, options?: any) =>
+            stateManagerHarness.setState(path, value, options)
+        );
+        updateStateMock.mockImplementation((path: string, patch: Record<string, unknown>, options?: any) =>
+            stateManagerHarness.updateState(path, patch, options)
+        );
+        subscribeMock.mockImplementation((path: string, listener: (value: unknown) => void) =>
+            stateManagerHarness.subscribe(path, listener as any)
+        );
 
         const module = await import("../../../utils/formatting/display/formatTooltipData.js");
         formatTooltipData = module.formatTooltipData;
-
-        const stateModule = await import("../../../utils/state/core/stateManager.js");
-        mockGetState = stateModule.getState as ReturnType<typeof vi.fn>;
-        mockGetState.mockReturnValue([]);
+        stateManagerHarness.setState("globalData.recordMesgs", []);
     });
 
     it("formats rows with snake_case metrics", () => {

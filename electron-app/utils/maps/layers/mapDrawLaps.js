@@ -29,8 +29,10 @@ import { createMarkerSampler } from "../helpers/markerSampler.js";
  * @typedef {Object} FitFile
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
+ * @param {(layer: any) => void} [options.addLayer] - Injector for routing layers into a parent group
  */
 export function drawOverlayForFitFile({
+    addLayer,
     endIcon,
     fileName,
     fitData,
@@ -45,6 +47,17 @@ export function drawOverlayForFitFile({
     const L = getLeaflet();
     const lapMesgs = /** @type {Array<LapMesg>} */ (fitData.lapMesgs || []);
     const recordMesgs = /** @type {Array<RecordMesg>} */ (fitData.recordMesgs || []);
+
+    const commitLayer = (layer) => {
+        if (!layer) {
+            return;
+        }
+        if (typeof addLayer === "function") {
+            addLayer(layer);
+        } else if (layer && typeof layer.addTo === "function") {
+            layer.addTo(map);
+        }
+    };
 
     patchLapIndices(lapMesgs, recordMesgs);
 
@@ -98,7 +111,8 @@ export function drawOverlayForFitFile({
                 opacity: 0.95,
                 weight: isHighlighted ? 10 : 4,
             }
-        ).addTo(map);
+        );
+        commitLayer(polyline);
 
         if (typeof overlayIdx === "number") {
             if (!(/** @type {any} */ (getWin())._overlayPolylines)) {
@@ -119,10 +133,10 @@ export function drawOverlayForFitFile({
 
         if (startIcon && endIcon && start && end) {
             const sMarker = L.marker([start[0], start[1]], { icon: startIcon, title: "Start", zIndexOffset: 2000 });
-            sMarker.addTo(map);
+            commitLayer(sMarker);
             sMarker.bindPopup("Start");
             const eMarker = L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 });
-            eMarker.addTo(map);
+            commitLayer(eMarker);
             eMarker.bindPopup("End");
         }
 
@@ -132,8 +146,8 @@ export function drawOverlayForFitFile({
             }
             const marker = L.circleMarker([c[0], c[1]], {
                 color: paletteColor || "#1976d2",
-                fillColor: "#fff",
-                fillOpacity: 0.9,
+                fillColor: paletteColor || "#1976d2",
+                fillOpacity: 0.3,
                 radius: 6,
                 weight: 3,
                 zIndexOffset: 1500,
@@ -141,7 +155,7 @@ export function drawOverlayForFitFile({
             if (markerClusterGroup) {
                 markerClusterGroup.addLayer(marker);
             } else {
-                marker.addTo(map);
+                commitLayer(marker);
             }
 
             let lapDisplay;
@@ -201,12 +215,15 @@ export function drawOverlayForFitFile({
  * Draws the map for a given lap or laps
  * Dependencies must be passed as arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
  * @param {string|number|Array<string|number>} lapIdx - Lap index or array of indices or "all"
- * @param {MapDrawOptions} options - Map drawing options
+ * @param {Object} options - Map drawing options
+ * @param {Record<string, any>} options.baseLayers - Registered base layers for the Leaflet map
+ * @param {any} [options.dynamicLayerGroup] - Optional layer group to hold transient map artifacts
  */
 export function mapDrawLaps(
     lapIdx,
     {
         baseLayers,
+        dynamicLayerGroup,
         endIcon,
         formatTooltipData,
         getLapColor,
@@ -236,16 +253,35 @@ export function mapDrawLaps(
     /** @type {any} */ (getWin())._mainPolylineOriginalBounds = undefined;
     /** @type {any} */ (getWin())._mainPolyline = undefined;
 
-    // Remove all layers except base layers and controls
-    // @ts-expect-error - Leaflet map method with dynamic layer checking
-    map.eachLayer((layer) => {
-        if (!Object.values(baseLayers).includes(layer)) {
-            map.removeLayer(layer);
+    if (dynamicLayerGroup && typeof dynamicLayerGroup.clearLayers === "function") {
+        try {
+            dynamicLayerGroup.clearLayers();
+        } catch (error) {
+            console.warn("[mapDrawLaps] Failed to clear dynamic layer group", error);
         }
-    });
+    } else {
+        // Remove all layers except base layers and controls as a fallback when no dedicated group exists
+        // @ts-expect-error - Leaflet map method with dynamic layer checking
+        map.eachLayer((layer) => {
+            if (!Object.values(baseLayers).includes(layer)) {
+                map.removeLayer(layer);
+            }
+        });
+    }
     if (markerClusterGroup) {
         markerClusterGroup.clearLayers();
     }
+
+    const addLayer = (layer) => {
+        if (!layer) {
+            return;
+        }
+        if (dynamicLayerGroup && typeof dynamicLayerGroup.addLayer === "function") {
+            dynamicLayerGroup.addLayer(layer);
+        } else if (layer && typeof layer.addTo === "function") {
+            layer.addTo(map);
+        }
+    };
 
     const activeWindow = getWin();
     const activeMainIdx = typeof activeWindow._activeMainFileIdx === "number" ? activeWindow._activeMainFileIdx : null;
@@ -435,8 +471,7 @@ export function mapDrawLaps(
                     weight: 4,
                 }
             );
-            // Avoid relying on addTo return value for mock compatibility
-            polyline.addTo(map);
+            addLayer(polyline);
 
             // Note: do not add main track to _overlayPolylines; only overlays belong there.
             /** @type {any} */ (getWin())._mainPolyline = polyline;
@@ -465,14 +500,14 @@ export function mapDrawLaps(
                     title: "Start",
                     zIndexOffset: 2000,
                 });
-                startMarker.addTo(map);
+                addLayer(startMarker);
                 startMarker.bindPopup("Start");
                 const endMarker = L.marker([end[0], end[1]], {
                     icon: endIcon,
                     title: "End",
                     zIndexOffset: 2000,
                 });
-                endMarker.addTo(map);
+                addLayer(endMarker);
                 endMarker.bindPopup("End");
             }
 
@@ -491,14 +526,14 @@ export function mapDrawLaps(
                 }
                 const marker = L.circleMarker([lat, lng], {
                     color: polyColor,
-                    fillColor: "#fff",
-                    fillOpacity: 0.95,
+                    fillColor: polyColor,
+                    fillOpacity: 0.28,
                     radius: 4,
                     weight: 3,
                     zIndexOffset: 1500,
                 });
-                // Always add directly to map (bypass clustering) for better visibility
-                marker.addTo(map);
+                // Always add directly to the route layer group (bypass clustering) for better visibility
+                addLayer(marker);
                 marker.bindTooltip(formatTooltipData(globalIdx, row, lapDisplay), {
                     direction: "top",
                     sticky: true,
@@ -523,6 +558,7 @@ export function mapDrawLaps(
                     fileName =
                         typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
                     bounds = drawOverlayForFitFile({
+                        addLayer,
                         color: color || "#1976d2",
                         endIcon,
                         fileName,
@@ -626,7 +662,7 @@ export function mapDrawLaps(
                         weight: 4,
                     }
                 );
-                polyline.addTo(map);
+                addLayer(polyline);
                 /** @type {any} */ (getWin())._mainPolyline = polyline;
                 // --- Store original bounds for main polyline ---
                 const origBounds = polyline.getBounds();
@@ -654,14 +690,14 @@ export function mapDrawLaps(
                         title: "Start",
                         zIndexOffset: 2000,
                     });
-                    startMarker2.addTo(map);
+                    addLayer(startMarker2);
                     startMarker2.bindPopup("Start");
                     const endMarker2 = L.marker([end[0], end[1]], {
                         icon: endIcon,
                         title: "End",
                         zIndexOffset: 2000,
                     });
-                    endMarker2.addTo(map);
+                    addLayer(endMarker2);
                     endMarker2.bindPopup("End");
                 }
 
@@ -680,14 +716,14 @@ export function mapDrawLaps(
                     }
                     const marker = L.circleMarker([lat, lng], {
                         color: polyColor,
-                        fillColor: "#fff",
-                        fillOpacity: 0.95,
+                        fillColor: polyColor,
+                        fillOpacity: 0.28,
                         radius: 8,
                         weight: 3,
                         zIndexOffset: 1500,
                     });
                     // Always add directly to map (bypass clustering) for better visibility
-                    marker.addTo(map);
+                    addLayer(marker);
                     marker.bindTooltip(formatTooltipData(globalIdx, row2, lapDisplay), {
                         direction: "top",
                         sticky: true,
@@ -712,6 +748,7 @@ export function mapDrawLaps(
                         fileName =
                             typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
                         bounds = drawOverlayForFitFile({
+                            addLayer,
                             color: color || "#1976d2",
                             endIcon,
                             fileName,
@@ -813,7 +850,8 @@ export function mapDrawLaps(
                                 opacity: 0.9,
                                 weight: 4,
                             }
-                        ).addTo(map);
+                        );
+                        addLayer(polyline);
                         if (bounds) {
                             bounds.extend(polyline.getBounds());
                         } else {
@@ -823,12 +861,20 @@ export function mapDrawLaps(
                         const end = lapCoords.at(-1);
                         const [start] = lapCoords;
                         if (showIcons && start && end) {
-                            L.marker([start[0], start[1]], { icon: startIcon, title: "Start", zIndexOffset: 2000 })
-                                .addTo(map)
-                                .bindPopup("Start");
-                            L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 })
-                                .addTo(map)
-                                .bindPopup("End");
+                            const lapStartMarker = L.marker([start[0], start[1]], {
+                                icon: startIcon,
+                                title: "Start",
+                                zIndexOffset: 2000,
+                            });
+                            addLayer(lapStartMarker);
+                            lapStartMarker.bindPopup("Start");
+                            const lapEndMarker = L.marker([end[0], end[1]], {
+                                icon: endIcon,
+                                title: "End",
+                                zIndexOffset: 2000,
+                            });
+                            addLayer(lapEndMarker);
+                            lapEndMarker.bindPopup("End");
                         }
 
                         let renderedLap = 0;
@@ -846,14 +892,14 @@ export function mapDrawLaps(
                             }
                             const marker = L.circleMarker([lat, lng], {
                                 color: polyColor,
-                                fillColor: "#fff",
-                                fillOpacity: 0.95,
+                                fillColor: polyColor,
+                                fillOpacity: 0.28,
                                 radius: 8,
                                 weight: 3,
                                 zIndexOffset: 1500,
                             });
-                            // Always add directly to map (bypass clustering) for better visibility
-                            marker.addTo(map);
+                            // Always add directly to the managed layer group (bypass clustering) for better visibility
+                            addLayer(marker);
                             marker.bindTooltip(formatTooltipData(globalIdx, row3, lapDisplay), {
                                 direction: "top",
                                 sticky: true,
@@ -889,6 +935,7 @@ export function mapDrawLaps(
                     fileName =
                         typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "";
                 const overlayBounds = drawOverlayForFitFile({
+                    addLayer,
                     color: color || "#1976d2",
                     endIcon,
                     fileName,
@@ -1024,10 +1071,9 @@ export function mapDrawLaps(
         );
         console.log("[mapDrawLaps] DEBUG L.polyline() returned:", polylineResult);
 
-        const polylineWithMap = polylineResult.addTo(map);
-        console.log("[mapDrawLaps] DEBUG .addTo(map) returned:", polylineWithMap);
+        addLayer(polylineResult);
 
-        const polyline = polylineWithMap;
+        const polyline = polylineResult;
         /** @type {any} */ (getWin())._mainPolyline = polyline;
         console.log("[mapDrawLaps] DEBUG final polyline:", polyline);
         console.log("[mapDrawLaps] DEBUG polyline.getBounds exists?", typeof polyline?.getBounds);
@@ -1052,10 +1098,12 @@ export function mapDrawLaps(
         const end = coords.at(-1);
         const [start] = coords;
         if (start && end) {
-            L.marker([start[0], start[1]], { icon: startIcon, title: "Start", zIndexOffset: 2000 })
-                .addTo(map)
-                .bindPopup("Start");
-            L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 }).addTo(map).bindPopup("End");
+            const startMarker = L.marker([start[0], start[1]], { icon: startIcon, title: "Start", zIndexOffset: 2000 });
+            addLayer(startMarker);
+            startMarker.bindPopup("Start");
+            const endMarker = L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 });
+            addLayer(endMarker);
+            endMarker.bindPopup("End");
         }
 
         let renderedSingle = 0;
@@ -1073,14 +1121,14 @@ export function mapDrawLaps(
             }
             const marker = L.circleMarker([lat, lng], {
                 color: polyColor,
-                fillColor: "#fff",
-                fillOpacity: 0.95,
+                fillColor: polyColor,
+                fillOpacity: 0.28,
                 radius: 8,
                 weight: 3,
                 zIndexOffset: 1500,
             });
-            // Always add directly to map (bypass clustering) for better visibility
-            marker.addTo(map);
+            // Always add directly to the managed layer group (bypass clustering) for better visibility
+            addLayer(marker);
             marker.bindTooltip(formatTooltipData(globalIdx, row4, lapDisplay), { direction: "top", sticky: true });
             renderedSingle += 1;
         }
@@ -1105,6 +1153,7 @@ export function mapDrawLaps(
                     fileName =
                         typeof getOverlayFileName === "function" ? getOverlayFileName(i) : overlay.filePath || "",
                     bounds = drawOverlayForFitFile({
+                        addLayer,
                         color: color || "#1976d2",
                         endIcon,
                         fileName,
