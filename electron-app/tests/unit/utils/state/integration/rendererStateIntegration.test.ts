@@ -7,6 +7,8 @@ const renderMapMock = vi.fn();
 const renderTableMock = vi.fn();
 const switchThemeMock = vi.fn();
 
+const normalizeTabNameMock = vi.fn((tab: string) => tab?.trim?.().toLowerCase() ?? "");
+
 const hasDataMock = vi.fn();
 const isTabActiveMock = vi.fn();
 const areChartsRenderedMock = vi.fn();
@@ -43,6 +45,7 @@ vi.mock("../../../../../utils/app/lifecycle/appActions.js", () => ({
         isMapRendered: isMapRenderedMock,
         areTablesRendered: areTablesRenderedMock,
     },
+    normalizeTabName: normalizeTabNameMock,
 }));
 
 vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
@@ -132,7 +135,7 @@ describe("rendererStateIntegration", () => {
         stateStore.set("isLoading", false);
 
         hasDataMock.mockReturnValue(true);
-        isTabActiveMock.mockImplementation((tab: string) => tab === "chart");
+        isTabActiveMock.mockImplementation((tab: string) => tab === "chartjs");
 
         const module = await importTarget();
 
@@ -153,11 +156,11 @@ describe("rendererStateIntegration", () => {
             expect.objectContaining({ source: "exampleFunction" })
         );
 
-        expect(switchTabMock).toHaveBeenCalledWith("chart");
+    expect(switchTabMock).toHaveBeenCalledWith("chartjs");
         expect(loadFileMock).toHaveBeenCalledWith({ records: [] }, "path/to/file.fit");
         expect(toggleChartControlsMock).toHaveBeenCalled();
         expect(hasDataMock).toHaveBeenCalled();
-        expect(isTabActiveMock).toHaveBeenCalledWith("chart");
+    expect(isTabActiveMock).toHaveBeenCalledWith("chartjs");
 
         const handlers = getHandlers("ui.activeTab");
         expect(handlers.length).toBe(1);
@@ -176,16 +179,17 @@ describe("rendererStateIntegration", () => {
         tabContentSummary.dataset.tabContent = "summary";
         document.body.append(tabContentSummary);
 
-        const tabContentChart = document.createElement("div");
-        tabContentChart.className = "tab-content";
-        tabContentChart.dataset.tabContent = "chart";
+    const tabContentChart = document.createElement("div");
+    tabContentChart.className = "tab-content";
+    tabContentChart.dataset.tabContent = "chartjs";
         document.body.append(tabContentChart);
 
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
         document.body.append(settingsWrapper);
 
-        const tabButton = document.createElement("button");
+    const tabButton = document.createElement("button");
+    tabButton.className = "tab-button";
         tabButton.dataset.tab = "map";
         document.body.append(tabButton);
 
@@ -248,7 +252,7 @@ describe("rendererStateIntegration", () => {
         );
 
         setStateMock.mockClear();
-        componentHandler("chart");
+    componentHandler("chartjs");
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             true,
@@ -273,7 +277,7 @@ describe("rendererStateIntegration", () => {
             expect.objectContaining({ source: "loadTableTab" })
         );
 
-        reactiveHandler("chart");
+    reactiveHandler("chartjs");
         expect(tabContentSummary.style.display).toBe("none");
         expect(tabContentChart.style.display).toBe("block");
 
@@ -304,7 +308,7 @@ describe("rendererStateIntegration", () => {
             throw new Error("Expected globalData handler");
         }
         setStateMock.mockClear();
-        stateStore.set("ui.activeTab", "chart");
+    stateStore.set("ui.activeTab", "chartjs");
         globalHandler({ rows: [] });
         expect(setStateMock).toHaveBeenCalledWith(
             "charts.isRendered",

@@ -176,7 +176,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     });
 
     test("setThemePreference applies, persists, and syncs state", () => {
-        const setStateSpy = vi.spyOn(stateManager, "setState").mockImplementation(() => {} as any);
+    const setStateSpy = vi.spyOn(stateManager, "setState").mockImplementation(() => ({} as any));
         const getStateSpy = vi.spyOn(stateManager, "getState").mockImplementation(() => "dark");
 
         theme.setThemePreference("light", { withTransition: false });

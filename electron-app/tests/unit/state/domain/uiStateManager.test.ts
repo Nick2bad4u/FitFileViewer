@@ -4,14 +4,20 @@
 import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from "vitest";
 
 // Mock AppActions
-vi.mock("../../../../utils/app/lifecycle/appActions.js", () => ({
-    AppActions: {
-        switchTab: vi.fn(),
-        switchTheme: vi.fn(),
-        toggleChartControls: vi.fn(),
-        toggleMeasurementMode: vi.fn(),
-    },
-}));
+vi.mock("../../../../utils/app/lifecycle/appActions.js", async () => {
+    const actual = await vi.importActual<typeof import("../../../../utils/app/lifecycle/appActions.js")>(
+        "../../../../utils/app/lifecycle/appActions.js"
+    );
+    return {
+        ...actual,
+        AppActions: {
+            switchTab: vi.fn(),
+            switchTheme: vi.fn(),
+            toggleChartControls: vi.fn(),
+            toggleMeasurementMode: vi.fn(),
+        },
+    };
+});
 
 // Mock showNotification
 vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({

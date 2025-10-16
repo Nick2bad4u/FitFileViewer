@@ -87,7 +87,7 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             `;
 
             updateActiveTab("tab-chart");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
 
             updateActiveTab("tab-summary");
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
@@ -182,15 +182,15 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             updateActiveTab("tab-Summary");
             expect(document.getElementById("tab-Summary")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "Summary", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
 
             updateActiveTab("tab-CHART");
             expect(document.getElementById("tab-CHART")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "CHART", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
 
             // These should not match due to case sensitivity
             updateActiveTab("tab-summary");
-            expect(mockSetState).toHaveBeenCalledTimes(2); // Should not increment
+            expect(mockSetState).toHaveBeenCalledTimes(2); // Should not increment beyond canonical updates
         });
 
         it("should handle repeated calls with same tab ID", () => {
@@ -223,7 +223,7 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "summary", { source: "updateActiveTab" });
 
             updateActiveTab("btn-chart");
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
 
             updateActiveTab("map-btn");
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", { source: "updateActiveTab" });
@@ -370,7 +370,7 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
 
             const result = getActiveTab();
 
-            expect(result).toBe("chart");
+            expect(result).toBe("chartjs");
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
         });
 
@@ -395,7 +395,7 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
         it("should handle various state types", () => {
             // Test string
             mockGetState.mockReturnValue("chart");
-            expect(getActiveTab()).toBe("chart");
+            expect(getActiveTab()).toBe("chartjs");
 
             // Test empty string (falsy) - should return default
             mockGetState.mockReturnValue("");
@@ -443,7 +443,7 @@ describe("updateActiveTab.js - Comprehensive Tests", () => {
             updateActiveTab("tab-chart");
             expect(document.getElementById("tab-summary")?.classList.contains("active")).toBe(false);
             expect(document.getElementById("tab-chart")?.classList.contains("active")).toBe(true);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
 
             // Switch to map
             updateActiveTab("tab-map");

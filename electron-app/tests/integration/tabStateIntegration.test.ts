@@ -51,7 +51,7 @@ describe("Tab State Management Integration", () => {
             // Should prevent the click
             expect(preventDefaultSpy).toHaveBeenCalled();
             // State should not change
-            expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chart", { source: "tabButtonClick" });
+            expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "tabButtonClick" });
         });
 
         it("should re-enable tabs after file load and allow clicks", () => {
@@ -72,7 +72,7 @@ describe("Tab State Management Integration", () => {
             chartTab?.dispatchEvent(clickEvent);
 
             // State should change
-            expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "tabButtonClick" });
+            expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "tabButtonClick" });
         });
 
         it("should handle multiple enable/disable cycles correctly", () => {
@@ -88,7 +88,7 @@ describe("Tab State Management Integration", () => {
                 // Click should be prevented
                 const clickEvent = new MouseEvent("click", { bubbles: true });
                 chartTab?.dispatchEvent(clickEvent);
-                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chart", {
+                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chartjs", {
                     source: "tabButtonClick",
                 });
 
@@ -106,7 +106,7 @@ describe("Tab State Management Integration", () => {
             initializeActiveTabState();
 
             // Set chart as active programmatically
-            mockState.setState("ui.activeTab", "chart");
+            mockState.setState("ui.activeTab", "chartjs");
 
             const summaryTab = /** @type {HTMLElement} */ document.getElementById("tab-summary");
             const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
@@ -128,7 +128,7 @@ describe("Tab State Management Integration", () => {
             setTabButtonsEnabled(false);
 
             // Rapidly change active tab state
-            const tabNames = ["chart", "map", "table", "summary"];
+            const tabNames = ["chartjs", "map", "data", "summary"];
             tabNames.forEach((tabName) => {
                 mockState.setState("ui.activeTab", tabName);
             });
@@ -152,7 +152,7 @@ describe("Tab State Management Integration", () => {
 
             // Should not throw when trying to set chart as active
             expect(() => {
-                mockState.setState("ui.activeTab", "chart");
+                mockState.setState("ui.activeTab", "chartjs");
             }).not.toThrow();
         });
 
@@ -169,14 +169,14 @@ describe("Tab State Management Integration", () => {
 
         it("should handle state changes before initialization", () => {
             // Change state before initializing
-            mockState.setState("ui.activeTab", "chart");
+            mockState.setState("ui.activeTab", "chartjs");
 
             // Then initialize
             initializeActiveTabState();
 
             // The initialization should read current state and apply it
             // Force a state update to trigger the subscriber
-            mockState.setState("ui.activeTab", "chart");
+            mockState.setState("ui.activeTab", "chartjs");
 
             // Should reflect the state
             const chartTab = /** @type {HTMLElement} */ document.getElementById("tab-chart");
@@ -213,7 +213,7 @@ describe("Tab State Management Integration", () => {
             // Should only be called once per initialization (could be multiple due to repeated init)
             // But should not grow exponentially
             const callCount = mockState.setState.mock.calls.filter(
-                (/** @type {any[]} */ call) => call[0] === "ui.activeTab" && call[1] === "chart"
+                (/** @type {any[]} */ call) => call[0] === "ui.activeTab" && call[1] === "chartjs"
             ).length;
 
             expect(callCount).toBeGreaterThan(0);
@@ -225,7 +225,7 @@ describe("Tab State Management Integration", () => {
 
             // Rapidly change states
             for (let i = 0; i < 100; i++) {
-                const tabName = ["summary", "chart", "map", "table"][i % 4];
+                const tabName = ["summary", "chartjs", "map", "data"][i % 4];
                 mockState.setState("ui.activeTab", tabName);
             }
 

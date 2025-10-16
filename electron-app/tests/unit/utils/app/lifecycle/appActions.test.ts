@@ -194,9 +194,17 @@ describe("AppActions", () => {
         expect(h.mockUpdateState).toHaveBeenCalledWith("ui.windowState", { w: 1 }, expect.any(Object));
     });
 
-    itHasAssertions("switchTab validates values and sets state when valid", () => {
+    itHasAssertions("switchTab validates values, normalizes aliases, and avoids redundant updates", () => {
+        h.mockGetState.mockImplementation((path: string) => (path === "ui.activeTab" ? "summary" : undefined));
+
         AppActions.switchTab("chart");
-        expect(h.mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", expect.any(Object));
+
+        h.mockSetState.mockClear();
+        h.mockGetState.mockImplementation((path: string) => (path === "ui.activeTab" ? "chartjs" : undefined));
+        AppActions.switchTab("chart");
+        expect(h.mockSetState).not.toHaveBeenCalled();
+
         h.mockSetState.mockClear();
         AppActions.switchTab("not-a-tab");
         expect(h.mockSetState).not.toHaveBeenCalled();
@@ -268,6 +276,15 @@ describe("AppSelectors", () => {
         h.mockGetState.mockImplementation((path: string) => (path === "ui.activeTab" ? "map" : undefined));
         expect(AppSelectors.isTabActive("map")).toBe(true);
         expect(AppSelectors.isTabActive("chart")).toBe(false);
+
+        h.mockGetState.mockImplementation((path: string) => (path === "ui.activeTab" ? "chartjs" : undefined));
+        expect(AppSelectors.isTabActive("chart")).toBe(true);
+        expect(AppSelectors.isTabActive("chartjs")).toBe(true);
+    });
+
+    itHasAssertions("activeTab returns canonical identifiers", () => {
+        h.mockGetState.mockImplementation((path: string) => (path === "ui.activeTab" ? "chart" : undefined));
+        expect(AppSelectors.activeTab()).toBe("chartjs");
     });
 });
 

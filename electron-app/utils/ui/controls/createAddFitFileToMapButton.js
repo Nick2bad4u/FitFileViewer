@@ -11,6 +11,7 @@ import { showNotification } from "../notifications/showNotification.js";
 export function createAddFitFileToMapButton() {
     try {
         const addOverlayBtn = document.createElement("button");
+        addOverlayBtn.type = "button";
         addOverlayBtn.className = "map-action-btn";
         addOverlayBtn.disabled = true;
         addOverlayBtn.setAttribute("aria-disabled", "true");

@@ -594,6 +594,7 @@ function createColorSchemeSelector(
  */
 function createResetButton(field, zoneType, zoneData, onReset) {
     const button = document.createElement("button");
+    button.type = "button";
     button.innerHTML = "↻ Reset";
     button.title = "Reset all zone colors to defaults";
     button.style.cssText = `

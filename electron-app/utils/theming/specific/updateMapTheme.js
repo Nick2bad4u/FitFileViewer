@@ -8,8 +8,8 @@
  * @since 1.0.0
  */
 
-import { getMapThemeInverted } from "./createMapThemeToggle.js";
 import { getEffectiveTheme } from "../core/theme.js";
+import { getMapThemeInverted } from "./createMapThemeToggle.js";
 
 const THEME_KEYS = Object.freeze({ dark: "dark", light: "light" });
 
@@ -25,6 +25,10 @@ export function updateMapTheme() {
 
         const leafletMap = document.querySelector("#leaflet-map");
         if (leafletMap instanceof HTMLElement) {
+            // Only update if theme actually changed
+            if (leafletMap.dataset.mapTheme === themeKey && leafletMap.dataset.uiTheme === uiTheme) {
+                return;
+            }
             leafletMap.style.filter = "none";
             leafletMap.dataset.mapTheme = themeKey;
             leafletMap.dataset.uiTheme = uiTheme;

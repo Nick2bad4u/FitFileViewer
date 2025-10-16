@@ -184,6 +184,7 @@
   },
   "scripts": {
     "dev": "node scripts/dev-runner.mjs",
+    "dev:mcp": "cross-env ENABLE_MCP=1 node scripts/dev-runner.mjs",
     "dev:vite": "vite",
     "dev:electron": "electron . --inspect=9230 --remote-debugging-port=9222",
     "watch:main": "nodemon --watch main.js --watch preload.js --watch fitParser.js --exec \"echo Main process changed\"",

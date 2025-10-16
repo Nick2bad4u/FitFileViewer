@@ -65,7 +65,7 @@ describe("updateActiveTab.js - Focused Comprehensive Tests", () => {
             expect(document.getElementById("tab-summary").classList.contains("active")).toBe(false);
             expect(document.getElementById("tab-chart").classList.contains("active")).toBe(true);
             expect(document.getElementById("tab-map").classList.contains("active")).toBe(false);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
         });
 
         it("should handle all tab ID patterns correctly", () => {
@@ -189,7 +189,7 @@ describe("updateActiveTab.js - Focused Comprehensive Tests", () => {
     describe("getActiveTab", () => {
         it("should return state value when available", () => {
             mockGetState.mockReturnValue("chart");
-            expect(getActiveTab()).toBe("chart");
+            expect(getActiveTab()).toBe("chartjs");
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
         });
 
@@ -334,11 +334,11 @@ describe("updateActiveTab.js - Focused Comprehensive Tests", () => {
 
             // User clicks on chart tab
             document.getElementById("tab-chart").click();
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "tabButtonClick" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "tabButtonClick" });
 
             // Simulate state change (would normally come from state manager)
             const subscriptionCallback = mockSubscribe.mock.calls[0][1];
-            subscriptionCallback("chart");
+            subscriptionCallback("chartjs");
 
             // DOM should be updated
             expect(document.getElementById("tab-summary").classList.contains("active")).toBe(false);
@@ -347,7 +347,7 @@ describe("updateActiveTab.js - Focused Comprehensive Tests", () => {
 
             // Check current state
             mockGetState.mockReturnValue("chart");
-            expect(getActiveTab()).toBe("chart");
+            expect(getActiveTab()).toBe("chartjs");
         });
 
         it("should handle setState errors gracefully", () => {

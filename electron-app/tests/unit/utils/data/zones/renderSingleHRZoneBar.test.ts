@@ -37,6 +37,16 @@ vi.mock("../../../../../utils/charts/plugins/chartBackgroundColorPlugin.js", () 
 
 const addChartHoverEffectsMock = vi.fn();
 
+const attachChartLabelMetadataMock = vi.fn();
+
+vi.mock("../../../../../utils/charts/components/attachChartLabelMetadata.js", () => ({
+    attachChartLabelMetadata: (...args: unknown[]) => attachChartLabelMetadataMock(...args),
+}));
+
+vi.mock("../../../../../utils/ui/icons/iconMappings.js", () => ({
+    getChartIcon: vi.fn().mockImplementation((name: string) => `icon-${name}`),
+}));
+
 vi.mock("../../../../../utils/charts/plugins/addChartHoverEffects.js", () => ({
     addChartHoverEffects: (...args: unknown[]) => addChartHoverEffectsMock(...args),
 }));
@@ -69,6 +79,7 @@ describe("renderSingleHRZoneBar", () => {
         });
 
         addChartHoverEffectsMock.mockReset();
+    attachChartLabelMetadataMock.mockReset();
 
         global.window = dom.window as any;
         global.document = dom.window.document as any;
@@ -265,6 +276,16 @@ describe("renderSingleHRZoneBar", () => {
         expect(chartConfig.data.datasets[0].backgroundColor).toBeDefined();
         expect(chartConfig.data.datasets[1].backgroundColor).toBeDefined();
     expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
+    });
+
+    it("should attach chart metadata before rendering", () => {
+        const zoneData = [{ label: "Zone 1", value: 120 }];
+        renderSingleHRZoneBar(canvas, zoneData, { title: "HR Zones" });
+        expect(attachChartLabelMetadataMock).toHaveBeenCalledTimes(1);
+        const [capturedCanvas, metadata] = attachChartLabelMetadataMock.mock.calls[0];
+        expect(capturedCanvas).toBe(canvas);
+        expect(metadata.titleText).toBe("HR Zones");
+        expect(metadata.yText).toMatch(/Time/);
     });
 
     it("should wire tooltip and y-axis callbacks that format time", () => {

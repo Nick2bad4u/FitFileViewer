@@ -185,7 +185,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
 
             // Should call setState with correct tab names
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "summary", expect.any(Object));
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "chart", expect.any(Object)); // chartjs -> chart
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "chartjs", expect.any(Object));
             expect(mockSetState).toHaveBeenCalledWith("ui.activeTabContent", "map", expect.any(Object));
         });
 
@@ -209,10 +209,10 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         it("BUG TEST: should handle special chartjs mapping correctly", () => {
             updateTabVisibility("content-chartjs");
 
-            // Should map chartjs to chart (special case)
+            // Should map chartjs to its canonical identifier
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.activeTabContent",
-                "chart",
+                "chartjs",
                 expect.objectContaining({ source: "updateTabVisibility" })
             );
         });

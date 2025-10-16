@@ -1,3 +1,4 @@
+import { normalizeTabName } from "../../app/lifecycle/appActions.js";
 // Prefer dynamic access to state manager to avoid cross-suite stale imports
 import * as __StateMgr from "../../state/core/stateManager.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
@@ -125,7 +126,10 @@ const getStateMgr = () => {
  * @returns {string} Currently active tab name
  */
 export function getActiveTab() {
-    return getStateMgr().getState("ui.activeTab") || "summary";
+    const current = normalizeTabName(
+        /** @type {string | null | undefined} */(getStateMgr().getState("ui.activeTab"))
+    );
+    return current || "summary";
 }
 
 // No persistent cache to avoid cross-test contamination. Use minimal DOM queries per call.
@@ -183,10 +187,11 @@ export function initializeActiveTabState() {
                     const btnId = typeof button.id === "string" ? button.id.trim() : "";
                     if (!btnId) return; // Do not update state if element has no valid id
                     const tabName = extractTabName(btnId);
-                    if (!tabName) return;
+                    const canonicalTabName = normalizeTabName(tabName);
+                    if (!canonicalTabName) return;
                     // Handle potential state errors gracefully within event handler
                     try {
-                        getStateMgr().setState("ui.activeTab", tabName, { source: "tabButtonClick" });
+                        getStateMgr().setState("ui.activeTab", canonicalTabName, { source: "tabButtonClick" });
                     } catch (error) {
                         try {
                             console.warn("[ActiveTab] Failed to set state from button click:", error);
@@ -222,7 +227,12 @@ export function updateActiveTab(tabId) {
         const currentActive = getDoc().querySelector(".tab-button.active");
         if (currentActive && currentActive.id === tabId) {
             const tabNameFast = extractTabName(tabId);
-            getStateMgr().setState("ui.activeTab", tabNameFast, { source: "updateActiveTab" });
+            const canonicalTabFast = normalizeTabName(tabNameFast);
+            if (!canonicalTabFast) {
+                return false;
+            }
+
+            getStateMgr().setState("ui.activeTab", canonicalTabFast, { source: "updateActiveTab" });
             return true;
         }
     } catch {
@@ -247,7 +257,12 @@ export function updateActiveTab(tabId) {
         anyTarget.classList.add("active");
         const tabName = extractTabName(tabId);
         // Let errors from setState propagate to satisfy tests expecting throws
-        getStateMgr().setState("ui.activeTab", tabName, { source: "updateActiveTab" });
+        const canonicalTab = normalizeTabName(tabName);
+        if (!canonicalTab) {
+            return false;
+        }
+
+        getStateMgr().setState("ui.activeTab", canonicalTab, { source: "updateActiveTab" });
         return true;
     }
     console.error(`Element with ID "${tabId}" not found in the DOM or missing classList.`);
@@ -289,6 +304,7 @@ function extractTabName(tabId) {
  * @param {string} activeTab - Currently active tab name
  */
 function updateTabButtonsFromState(activeTab) {
+    const activeCanonical = normalizeTabName(activeTab);
     const tabButtons = getDoc().querySelectorAll(".tab-button");
 
     // CRITICAL BUG FIX: Defensive check for querySelectorAll result
@@ -304,8 +320,9 @@ function updateTabButtonsFromState(activeTab) {
             continue;
         }
 
-        const tabName = extractTabName(btn.id),
-            isActive = tabName === activeTab;
+        const tabName = extractTabName(btn.id);
+        const buttonCanonical = normalizeTabName(tabName);
+        const isActive = Boolean(buttonCanonical) && buttonCanonical === activeCanonical;
 
         btn.classList.toggle("active", isActive);
 

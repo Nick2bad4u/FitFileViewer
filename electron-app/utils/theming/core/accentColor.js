@@ -141,6 +141,11 @@ export function getEffectiveAccentColor(theme) {
  */
 export function initializeAccentColor(theme) {
 	const effectiveColor = getEffectiveAccentColor(theme);
+	// Only apply if we're not already using this color
+	const currentAccent = document.documentElement.style.getPropertyValue("--color-accent");
+	if (currentAccent === effectiveColor) {
+		return effectiveColor;
+	}
 	applyAccentColor(effectiveColor, theme);
 	return effectiveColor;
 }

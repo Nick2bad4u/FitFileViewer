@@ -189,6 +189,7 @@ function calculateChartStatus(counts) {
  */
 function createQuickActionButton(status) {
     const quickAction = document.createElement("button");
+    quickAction.type = "button";
     quickAction.style.cssText = `
         padding: 4px 8px;
         border: 1px solid var(--color-border);

@@ -1,11 +1,13 @@
+import { attachChartLabelMetadata } from "../../charts/components/attachChartLabelMetadata.js";
+import { addChartHoverEffects } from "../../charts/plugins/addChartHoverEffects.js";
 import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
-import { addChartHoverEffects } from "../../charts/plugins/addChartHoverEffects.js";
+import { getChartIcon } from "../../ui/icons/iconMappings.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getThemeConfig } from "../../theming/core/theme.js";
 import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
 import { getChartZoneColors } from "./chartZoneColorUtils.js";
-import { getThemeConfig } from "../../theming/core/theme.js";
 
 /**
  * Renders a single power zone bar (e.g., for a summary or lap)
@@ -26,6 +28,24 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
 
         // Get saved Power zone colors
         const savedColors = getChartZoneColors("power", zoneData.length);
+
+        const accentColor =
+            themeConfig?.colors?.primary ||
+            themeConfig?.colors?.accent ||
+            (theme === "dark" ? "#f97316" : "#c2410c");
+        const chartTitle = options.title || "Power Zones";
+
+        attachChartLabelMetadata(canvas, {
+            titleIcon: getChartIcon("power"),
+            titleText: chartTitle,
+            titleColor: accentColor,
+            xIcon: getChartIcon("zone"),
+            xText: "Zone",
+            xColor: accentColor,
+            yIcon: getChartIcon("time"),
+            yText: `Time (${getUnitSymbol("time", "time")})`,
+            yColor: accentColor,
+        });
 
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
@@ -52,14 +72,31 @@ export function renderSinglePowerZoneBar(canvas, zoneData, options = {}) {
                         labels: {
                             color: theme === "dark" ? "#fff" : "#000",
                             font: { size: 12 },
+                            boxWidth: 22,
+                            boxHeight: 12,
+                            padding: 16,
+                            usePointStyle: false,
+                            hitboxWidth: 80,
                         },
                         position: "top",
+                        onHover(_event, _legendItem, legend) {
+                            const chartRef = legend?.chart;
+                            if (chartRef?.canvas) {
+                                chartRef.canvas.style.cursor = "pointer";
+                            }
+                        },
+                        onLeave(_event, _legendItem, legend) {
+                            const chartRef = legend?.chart;
+                            if (chartRef?.canvas) {
+                                chartRef.canvas.style.cursor = "";
+                            }
+                        },
                     },
                     title: {
                         color: theme === "dark" ? "#fff" : "#000",
                         display: Boolean(options.title),
                         font: { size: 16, weight: "bold" },
-                        text: options.title || "Power Zones",
+                        text: chartTitle,
                     },
                     tooltip: {
                         backgroundColor: theme === "dark" ? "#222" : "#fff",

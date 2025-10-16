@@ -51,7 +51,7 @@ describe("updateActiveTab.js - Basic Tests", () => {
     it("should call getState when getActiveTab is called", () => {
         mockGetState.mockReturnValue("chart");
         const result = getActiveTab();
-        expect(result).toBe("chart");
+        expect(result).toBe("chartjs");
         expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
     });
 });

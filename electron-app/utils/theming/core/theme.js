@@ -1,7 +1,7 @@
 // Theme utility functions for theme switching and persistence
 
-import { initializeAccentColor } from "./accentColor.js";
 import { getState, setState } from "../../state/core/stateManager.js";
+import { initializeAccentColor } from "./accentColor.js";
 
 /**
  * @typedef {Object} ThemeConfig
@@ -36,26 +36,49 @@ export function applyTheme(theme, withTransition = true) {
         document.body.classList.add(THEME_TRANSITION_CLASS);
     }
 
-    // Remove existing theme classes
-    document.body.classList.remove("theme-dark", "theme-light");
+    const themeTargets = [];
+    if (document?.body instanceof HTMLElement) {
+        themeTargets.push(document.body);
+    }
+    if (document?.documentElement instanceof HTMLElement) {
+        themeTargets.push(document.documentElement);
+    }
+
+    for (const target of themeTargets) {
+        target.classList.remove("theme-dark", "theme-light");
+    }
 
     // Handle auto theme
     if (theme === THEME_MODES.AUTO) {
         const systemTheme = getSystemTheme();
-        document.body.classList.add(`theme-${systemTheme}`);
+        for (const target of themeTargets) {
+            target.classList.add(`theme-${systemTheme}`);
+            try {
+                target.dataset.theme = systemTheme;
+                target.dataset.themePreference = theme;
+            } catch {
+                /* Ignore dataset errors */
+            }
+        }
         try {
-            document.body.dataset.theme = systemTheme;
-            document.documentElement.dataset.theme = systemTheme;
+            document.documentElement.style.colorScheme = systemTheme;
         } catch {
-            /* Ignore dataset errors */
+            /* Ignore color-scheme errors */
         }
     } else {
-        document.body.classList.add(`theme-${theme}`);
+        for (const target of themeTargets) {
+            target.classList.add(`theme-${theme}`);
+            try {
+                target.dataset.theme = theme;
+                target.dataset.themePreference = theme;
+            } catch {
+                /* Ignore dataset errors */
+            }
+        }
         try {
-            document.body.dataset.theme = theme;
-            document.documentElement.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
         } catch {
-            /* Ignore dataset errors */
+            /* Ignore color-scheme errors */
         }
     }
 
@@ -376,17 +399,6 @@ export function loadTheme() {
 }
 
 /**
- * Toggle between light and dark themes
- * @param {boolean} withTransition - Whether to animate the theme change
- */
-export function toggleTheme(withTransition = true) {
-    const currentTheme = loadTheme(),
-        effectiveTheme = getEffectiveTheme(currentTheme),
-        newTheme = effectiveTheme === "dark" ? "light" : "dark";
-    applyTheme(newTheme, withTransition);
-}
-
-/**
  * Persist a theme selection across storage and state while applying it immediately.
  * Keeps localStorage keys (`ffv-theme`, `fitFileViewer_theme`) and UI state in sync
  * to avoid regressions where the UI reverts to a prior theme selection.
@@ -397,7 +409,23 @@ export function toggleTheme(withTransition = true) {
 export function setThemePreference(theme, options = {}) {
     const { withTransition = true } = options;
 
-    applyTheme(theme, withTransition);
+    // Check if theme is already applied to avoid redundant work
+    const effectiveTheme = getEffectiveTheme(theme);
+    const hasThemeClass = document?.body?.classList.contains(`theme-${effectiveTheme}`);
+    const currentState = (() => {
+        try {
+            return getState("ui.theme");
+        } catch {
+            return null;
+        }
+    })();
+
+    // Only apply if DOM doesn't have the correct class OR state needs updating
+    const needsApply = !hasThemeClass || currentState !== theme;
+
+    if (needsApply) {
+        applyTheme(theme, withTransition);
+    }
 
     try {
         localStorage.setItem("fitFileViewer_theme", theme);
@@ -413,6 +441,17 @@ export function setThemePreference(theme, options = {}) {
     } catch (error) {
         console.warn("[Theme] Failed to sync theme state:", error);
     }
+}
+
+/**
+ * Toggle between light and dark themes
+ * @param {boolean} withTransition - Whether to animate the theme change
+ */
+export function toggleTheme(withTransition = true) {
+    const currentTheme = loadTheme(),
+        effectiveTheme = getEffectiveTheme(currentTheme),
+        newTheme = effectiveTheme === "dark" ? "light" : "dark";
+    applyTheme(newTheme, withTransition);
 }
 
 /**

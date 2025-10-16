@@ -81,7 +81,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const ok = updateActiveTab("tab-chart");
 
         expect(ok).toBe(true);
-        expect(setState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+    expect(setState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
         // Validate that the class was toggled on the effective document element
         const el = (globalThis as any).__vitest_effective_document__.getElementById("tab-chart");
         expect(el.classList.contains("active")).toBe(true);

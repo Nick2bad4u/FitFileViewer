@@ -79,6 +79,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
 
         // Right side - quick action
         const quickAction = document.createElement("button");
+        quickAction.type = "button";
         quickAction.style.cssText = `
             padding: 4px 8px;
             border: 1px solid var(--color-border);

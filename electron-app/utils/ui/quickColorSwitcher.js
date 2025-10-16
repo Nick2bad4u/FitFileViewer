@@ -6,7 +6,7 @@
  */
 
 import { getEffectiveAccentColor, setAccentColor } from "../theming/core/accentColor.js";
-import { getEffectiveTheme, loadTheme, setThemePreference, THEME_MODES } from "../theming/core/theme.js";
+import { getEffectiveTheme, loadTheme, THEME_MODES } from "../theming/core/theme.js";
 
 /**
  * Preset color palettes with witty names
@@ -405,7 +405,7 @@ function injectSwitcherStyles() {
  * @param {HTMLElement} switcher - The switcher element
  * @private
  */
-function setupSwitcherListeners(switcher) {
+async function setupSwitcherListeners(switcher) {
 	const toggle = switcher.querySelector("#color-switcher-toggle");
 	const dropdown = switcher.querySelector("#color-switcher-dropdown");
 	const colorOptions = switcher.querySelectorAll(".color-option");
@@ -444,14 +444,20 @@ function setupSwitcherListeners(switcher) {
 	});
 
 	for (const button of themeButtons) {
-		button.addEventListener("click", () => {
+		button.addEventListener("click", async () => {
 			const themeMode = button.dataset.theme;
 			if (!themeMode) {
 				return;
 			}
 
-			setThemePreference(themeMode, { withTransition: true });
-			updateThemeButtonState(themeMode);
+			// Use AppActions.switchTheme (same as menu) for consistent behavior
+			try {
+				const { AppActions } = await import("../app/lifecycle/appActions.js");
+				AppActions.switchTheme(themeMode);
+				console.log(`[Quick Color Switcher] Theme switched to: ${themeMode}`);
+			} catch (error) {
+				console.error("[Quick Color Switcher] Failed to switch theme:", error);
+			} updateThemeButtonState(themeMode);
 			setTimeout(() => {
 				dropdown?.classList.remove("open");
 			}, 220);
@@ -487,4 +493,16 @@ function setupSwitcherListeners(switcher) {
 		const { showSettingsModal } = await import("./settingsModal.js");
 		showSettingsModal();
 	});
+
+	// Notify UIStateManager to re-attach event listeners if it exists
+	try {
+		const { uiStateManager } = await import("../state/domain/uiStateManager.js");
+		if (uiStateManager && typeof uiStateManager.setupEventListeners === "function") {
+			uiStateManager.setupEventListeners();
+			console.log("[Quick Color Switcher] Event listeners re-attached");
+		}
+	} catch {
+		// UIStateManager might not be loaded yet, that's okay
+		console.log("[Quick Color Switcher] UIStateManager not available, event listeners will attach on next state change");
+	}
 }

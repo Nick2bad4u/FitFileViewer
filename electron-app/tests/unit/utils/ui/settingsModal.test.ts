@@ -14,6 +14,9 @@ const mockSetAccentColor = vi.fn();
 const mockApplyTheme = vi.fn();
 const mockGetEffectiveTheme = vi.fn();
 const mockLoadTheme = vi.fn();
+const mockSetThemePreference = vi.fn((theme: string, options?: { withTransition?: boolean }) => {
+    mockApplyTheme(theme, options?.withTransition !== false);
+});
 const mockAddEventListenerWithCleanup = vi.fn();
 const mockInjectModalStyles = vi.fn();
 
@@ -28,6 +31,7 @@ vi.mock("../../../../utils/theming/core/theme.js", () => ({
     applyTheme: mockApplyTheme,
     getEffectiveTheme: mockGetEffectiveTheme,
     loadTheme: mockLoadTheme,
+    setThemePreference: mockSetThemePreference,
     THEME_MODES: {
         AUTO: "auto",
         DARK: "dark",

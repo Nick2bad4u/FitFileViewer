@@ -3,6 +3,7 @@
  * Now integrated with centralized state management for reactive updates.
  */
 
+import { normalizeTabName } from "../../app/lifecycle/appActions.js";
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
 
@@ -78,6 +79,10 @@ const getDoc = () => {
     return /** @type {Document} */ (d);
 };
 
+const LEGACY_CONTENT_FALLBACKS = {
+    "content-chartjs": ["content-chart"],
+};
+
 // Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
 // And only fall back to a canonical global mock if module functions are unavailable.
 /** @returns {{ getState: any, setState: any, subscribe: any }} */
@@ -136,7 +141,7 @@ export function initializeTabVisibilityState() {
     // Subscribe to active tab changes to update content visibility
     getStateMgr().subscribe(
         "ui.activeTab",
-        /** @param {any} activeTab */ (activeTab) => {
+        /** @param {any} activeTab */(activeTab) => {
             const contentId = getContentIdFromTabName(activeTab);
             updateTabVisibility(contentId);
         }
@@ -145,7 +150,7 @@ export function initializeTabVisibilityState() {
     // Subscribe to data loading to show/hide appropriate content
     getStateMgr().subscribe(
         "globalData",
-        /** @param {any} data */ (data) => {
+        /** @param {any} data */(data) => {
             const currentTab = getStateMgr().getState("ui.activeTab") || "summary",
                 hasData = data !== null && data !== undefined;
 
@@ -188,7 +193,19 @@ export function updateTabVisibility(visibleTabId) {
             "content-zwift",
         ];
     for (const id of tabContentIds) {
-        const el = getDoc().getElementById(/** @type {string} */ (id));
+        let el = getDoc().getElementById(/** @type {string} */(id));
+        if (!el) {
+            const fallbacks = LEGACY_CONTENT_FALLBACKS[/** @type {string} */(id)];
+            if (Array.isArray(fallbacks)) {
+                for (const fallbackId of fallbacks) {
+                    const fallbackEl = getDoc().getElementById(fallbackId);
+                    if (fallbackEl) {
+                        el = fallbackEl;
+                        break;
+                    }
+                }
+            }
+        }
         if (el) {
             /** @type {any} */ (elementMap)[/** @type {string} */ (id)] = el;
         } else {
@@ -227,7 +244,7 @@ export function updateTabVisibility(visibleTabId) {
 
     // Update state to track visible tab content
     if (targetId) {
-        const tabName = derivedTabName ?? extractTabNameFromContentId(targetId);
+        const tabName = normalizeTabName(derivedTabName ?? extractTabNameFromContentId(targetId));
         if (tabName) {
             getStateMgr().setState("ui.activeTabContent", tabName, { source: "updateTabVisibility" });
         }
@@ -257,7 +274,7 @@ function extractTabNameFromContentId(contentId) {
     for (const pattern of patterns) {
         const match = contentId.match(pattern);
         if (match) {
-            return match[1] === "chartjs" ? "chart" : /** @type {string} */ (match[1]); // Special case for chartjs -> chart
+            return normalizeTabName(match[1]);
         }
     }
 
@@ -274,6 +291,7 @@ function getContentIdFromTabName(tabName) {
     const tabToContentMap = {
         altfit: "content-altfit",
         chart: "content-chartjs",
+        chartjs: "content-chartjs",
         data: "content-data",
         map: "content-map",
         summary: "content-summary",

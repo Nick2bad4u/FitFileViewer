@@ -3,7 +3,7 @@
  * This shows how to modify your existing renderer.js to use the new centralized state management
  */
 
-import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
+import { AppActions, AppSelectors, normalizeTabName } from "../../app/lifecycle/appActions.js";
 // Corrected path: state manager utilities live in ../core directory
 import { getState, setState, subscribe } from "../core/stateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -27,7 +27,7 @@ export function exampleStateUsage() {
     setState("isLoading", true, { silent: false, source: "exampleFunction" });
 
     // Using actions
-    AppActions.switchTab("chart");
+    AppActions.switchTab("chartjs");
     AppActions.loadFile({ records: [] }, "path/to/file.fit");
     UIActions.toggleChartControls();
 
@@ -36,7 +36,7 @@ export function exampleStateUsage() {
         console.log("Data is available");
     }
 
-    if (AppSelectors.isTabActive("chart")) {
+    if (AppSelectors.isTabActive("chartjs")) {
         console.log("Chart tab is active");
     }
 
@@ -103,17 +103,19 @@ export function migrateExistingRenderer() {
  */
 /** @param {string} activeTab */
 function handleTabChange(activeTab) {
+    const canonicalTab = normalizeTabName(activeTab);
     const hasData = AppSelectors.hasData();
 
-    if (!hasData && activeTab !== "summary") {
+    if (!hasData && canonicalTab !== "summary") {
         // If no data is loaded, switch back to summary
         AppActions.switchTab("summary");
         return;
     }
 
     // Load tab content based on current state
-    switch (activeTab) {
-        case "chart": {
+    switch (canonicalTab) {
+        case "chart":
+        case "chartjs": {
             if (!AppSelectors.areChartsRendered()) {
                 loadChartTab();
             }
@@ -125,6 +127,7 @@ function handleTabChange(activeTab) {
             }
             break;
         }
+        case "data":
         case "table": {
             if (!AppSelectors.areTablesRendered()) {
                 loadTableTab();
@@ -252,11 +255,17 @@ async function loadTableTab() {
 function setupReactiveUI() {
     // Update tab visibility when active tab changes
     subscribe("ui.activeTab", (/** @type {string} */ activeTab) => {
+        const canonicalActive = normalizeTabName(activeTab);
         const tabContents = document.querySelectorAll(".tab-content");
         for (const content of tabContents) {
             const tabName = content.dataset.tabContent;
             if (content instanceof HTMLElement) {
-                content.style.display = tabName === activeTab ? "block" : "none";
+                const canonicalContentTab = normalizeTabName(tabName);
+                const isActive = canonicalActive && canonicalContentTab
+                    ? canonicalContentTab === canonicalActive
+                    : tabName === activeTab;
+                content.style.display = isActive ? "block" : "none";
+                content.setAttribute("aria-hidden", (!isActive).toString());
             }
         }
     });
@@ -281,6 +290,37 @@ function setupReactiveUI() {
  * Set up event handlers that work with the state system
  */
 function setupStateAwareEventHandlers() {
+    /**
+     * Safely derive the logical tab name from a tab button element.
+     * @param {HTMLElement} element
+     * @returns {string|null}
+     */
+    const deriveTabName = (element) => {
+        if (!(element instanceof HTMLElement)) {
+            return null;
+        }
+
+        const dataTab = element.dataset?.tab;
+        if (typeof dataTab === "string" && dataTab.trim().length > 0) {
+            return dataTab.trim();
+        }
+
+        const identifier = typeof element.id === "string" ? element.id.trim() : "";
+        if (!identifier) {
+            return null;
+        }
+
+        const patterns = [/^tab-(.+)$/i, /^(.+?)-tab$/i];
+        for (const pattern of patterns) {
+            const match = identifier.match(pattern);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+
+        return null;
+    };
+
     // File open handler (optional in preload API)
     if (globalThis.electronAPI?.onFileOpened) {
         globalThis.electronAPI.onFileOpened((fileData, filePath) => {
@@ -294,13 +334,23 @@ function setupStateAwareEventHandlers() {
         if (!target) {
             return;
         }
-        const tabButton = target.closest("[data-tab]");
-        if (tabButton) {
-            const tabName = tabButton.dataset.tab;
-            if (tabName) {
-                AppActions.switchTab(tabName);
-            }
+        const tabButton = target.closest(".tab-button");
+        if (!(tabButton instanceof HTMLElement)) {
+            return;
         }
+
+        const tabName = deriveTabName(tabButton);
+        const canonicalTarget = normalizeTabName(tabName);
+        if (!canonicalTarget) {
+            return;
+        }
+
+        const activeCanonical = normalizeTabName(/** @type {string | null | undefined} */(getState("ui.activeTab")));
+        if (activeCanonical === canonicalTarget) {
+            return;
+        }
+
+        AppActions.switchTab(canonicalTarget);
     });
 
     // Theme switching
@@ -309,7 +359,8 @@ function setupStateAwareEventHandlers() {
         if (!target) {
             return;
         }
-        const themeButton = target.closest("[data-theme]");
+        // Only match buttons with data-theme attribute, not parent elements like body/html
+        const themeButton = target.closest("button[data-theme], .theme-toggle-btn[data-theme]");
         if (themeButton) {
             const { theme } = themeButton.dataset;
             if (theme) {

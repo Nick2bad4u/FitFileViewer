@@ -7,6 +7,7 @@
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { normalizeTabName } from "../../app/lifecycle/appActions.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 
@@ -133,7 +134,7 @@ const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
         requiresData: false,
     },
     chart: {
-        contentId: "content-chart",
+        contentId: "content-chartjs",
         handler: "renderChartJS",
         id: "tab-chart",
         label: "Charts",
@@ -176,6 +177,10 @@ const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
     },
 });
 
+const LEGACY_CONTENT_FALLBACKS = {
+    "content-chartjs": ["content-chart"],
+};
+
 /**
  * Tab State Manager - handles tab switching and content management
  */
@@ -207,6 +212,7 @@ class TabStateManager {
 
         this.initializeSubscriptions();
         this.setupTabButtonHandlers();
+        this.normalizeInitialActiveTabState();
 
         console.log("[TabStateManager] Initialized");
     }
@@ -456,7 +462,8 @@ class TabStateManager {
 
         // Extract tab name from button ID
         const tabName = this.extractTabName(tabId);
-        if (!tabName) {
+        const canonicalTabName = normalizeTabName(tabName);
+        if (!canonicalTabName) {
             console.warn(`[TabStateManager] Could not extract tab name from ID: ${tabId}`);
             return;
         }
@@ -467,7 +474,7 @@ class TabStateManager {
         }
 
         // Check if tab requires data
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
+        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[canonicalTabName] || (tabName ? TAB_CONFIG[tabName] : undefined));
         if (tabConfig?.requiresData) {
             const globalData = getStateMgr().getState("globalData");
             if (!globalData || !globalData.recordMesgs) {
@@ -477,7 +484,7 @@ class TabStateManager {
         }
 
         // Update state - this will trigger the subscription handler
-        getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.buttonClick" });
+        getStateMgr().setState("ui.activeTab", canonicalTabName, { source: "TabStateManager.buttonClick" });
     };
 
     /**
@@ -486,21 +493,34 @@ class TabStateManager {
      * @param {string} oldTab - Previous active tab name
      */
     handleTabChange(newTab, oldTab) {
-        console.log(`[TabStateManager] Tab change: ${oldTab} -> ${newTab}`);
+        const canonicalNew = normalizeTabName(newTab);
+        const canonicalOld = normalizeTabName(oldTab);
 
-        this.previousTab = oldTab;
+        if (!canonicalNew) {
+            console.warn(`[TabStateManager] Ignoring unknown tab change: ${newTab}`);
+            return;
+        }
+
+        if (canonicalNew !== newTab) {
+            getStateMgr().setState("ui.activeTab", canonicalNew, { source: "TabStateManager.normalizeTab" });
+            return;
+        }
+
+        console.log(`[TabStateManager] Tab change: ${canonicalOld || oldTab} -> ${canonicalNew}`);
+
+        this.previousTab = canonicalOld || oldTab;
 
         // Notify tab rendering manager of the switch to cancel old operations
-        tabRenderingManager.notifyTabSwitch(oldTab, newTab);
+        tabRenderingManager.notifyTabSwitch(this.previousTab, canonicalNew);
 
         // Update tab button states
-        this.updateTabButtonStates(newTab);
+        this.updateTabButtonStates(canonicalNew);
 
         // Update content visibility
-        this.updateContentVisibility(newTab);
+        this.updateContentVisibility(canonicalNew);
 
         // Handle tab-specific logic
-        this.handleTabSpecificLogic(newTab);
+        this.handleTabSpecificLogic(canonicalNew);
     }
 
     /**
@@ -508,7 +528,9 @@ class TabStateManager {
      * @param {string} tabName - Name of the active tab
      */
     async handleTabSpecificLogic(tabName) {
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[tabName]);
+        const canonicalTab = normalizeTabName(tabName);
+        const resolvedTab = canonicalTab && TAB_CONFIG[canonicalTab] ? canonicalTab : tabName;
+        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[resolvedTab]);
         if (!tabConfig) {
             return;
         }
@@ -516,7 +538,7 @@ class TabStateManager {
         const globalData = getStateMgr().getState("globalData");
 
         try {
-            switch (tabName) {
+            switch (resolvedTab) {
                 case "altfit": {
                     this.handleAltFitTab();
                     break;
@@ -650,12 +672,20 @@ class TabStateManager {
      * @param {string} tabName - Name of tab to switch to
      */
     switchToTab(tabName) {
-        if (!TAB_CONFIG[tabName]) {
+        const canonicalTabName = normalizeTabName(tabName);
+        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[canonicalTabName] || TAB_CONFIG[tabName]);
+
+        if (!tabConfig) {
             console.warn(`[TabStateManager] Unknown tab: ${tabName}`);
             return false;
         }
 
-        getStateMgr().setState("ui.activeTab", tabName, { source: "TabStateManager.switchToTab" });
+        const currentActive = normalizeTabName(/** @type {string | null | undefined} */(getStateMgr().getState("ui.activeTab")));
+        if (currentActive === canonicalTabName) {
+            return true;
+        }
+
+        getStateMgr().setState("ui.activeTab", canonicalTabName, { source: "TabStateManager.switchToTab" });
         return true;
     }
 
@@ -664,7 +694,9 @@ class TabStateManager {
      * @param {string} activeTab - Currently active tab name
      */
     updateContentVisibility(activeTab) {
-        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[activeTab]);
+        const canonicalTab = normalizeTabName(activeTab);
+        const resolvedTab = canonicalTab && TAB_CONFIG[canonicalTab] ? canonicalTab : activeTab;
+        const tabConfig = /** @type {TabDef|undefined} */ (TAB_CONFIG[resolvedTab]);
         if (!tabConfig) {
             console.warn(`[TabStateManager] Unknown tab: ${activeTab}`);
             return;
@@ -676,10 +708,31 @@ class TabStateManager {
             if (contentElement) {
                 contentElement.style.display = "none";
             }
+            const fallbacks = LEGACY_CONTENT_FALLBACKS[config.contentId];
+            if (Array.isArray(fallbacks)) {
+                for (const fallbackId of fallbacks) {
+                    const fallbackEl = getDoc().getElementById(fallbackId);
+                    if (fallbackEl) {
+                        fallbackEl.style.display = "none";
+                    }
+                }
+            }
         }
 
         // Show active content area
-        const activeContent = getDoc().getElementById(tabConfig.contentId);
+        let activeContent = getDoc().getElementById(tabConfig.contentId);
+        if (!activeContent) {
+            const fallbacks = LEGACY_CONTENT_FALLBACKS[tabConfig.contentId];
+            if (Array.isArray(fallbacks)) {
+                for (const fallbackId of fallbacks) {
+                    const fallbackEl = getDoc().getElementById(fallbackId);
+                    if (fallbackEl) {
+                        activeContent = fallbackEl;
+                        break;
+                    }
+                }
+            }
+        }
         if (activeContent) {
             activeContent.style.display = "block";
         }
@@ -735,6 +788,32 @@ class TabStateManager {
             } catch {
                 // Ignore individual button failures to keep others updated
             }
+        }
+    }
+
+    normalizeInitialActiveTabState() {
+        const rawActive = getStateMgr().getState("ui.activeTab");
+        const canonicalActive = normalizeTabName(rawActive);
+        const fallbackTab = canonicalActive || "summary";
+
+        if (!rawActive && fallbackTab) {
+            getStateMgr().setState("ui.activeTab", fallbackTab, { source: "TabStateManager.normalizeInitial" });
+            return;
+        }
+
+        if (canonicalActive && rawActive !== canonicalActive) {
+            getStateMgr().setState("ui.activeTab", canonicalActive, { source: "TabStateManager.normalizeInitial" });
+            return;
+        }
+
+        if (!canonicalActive && fallbackTab) {
+            getStateMgr().setState("ui.activeTab", fallbackTab, { source: "TabStateManager.normalizeInitial" });
+            return;
+        }
+
+        if (canonicalActive) {
+            this.updateTabButtonStates(canonicalActive);
+            this.updateContentVisibility(canonicalActive);
         }
     }
 }

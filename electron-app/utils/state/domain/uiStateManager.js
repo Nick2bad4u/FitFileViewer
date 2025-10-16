@@ -3,7 +3,7 @@
  * Specific utilities for managing UI state and interactions
  */
 
-import { AppActions } from "../../app/lifecycle/appActions.js";
+import { AppActions, normalizeTabName } from "../../app/lifecycle/appActions.js";
 import { setThemePreference, THEME_MODES } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
@@ -35,6 +35,18 @@ export class UIStateManager {
             }
             return THEME_MODES.AUTO;
         })();
+
+        // Check if the theme is actually applied to the DOM, not just the state
+        // This allows theme changes even when state value hasn't changed yet
+        const currentTheme = getState("ui.theme");
+        const isAlreadyApplied = currentTheme === normalizedTheme &&
+            (document.body?.classList.contains(`theme-${normalizedTheme}`) ||
+                (normalizedTheme === THEME_MODES.AUTO &&
+                    (document.body?.classList.contains('theme-dark') || document.body?.classList.contains('theme-light'))));
+
+        if (isAlreadyApplied) {
+            return;
+        }
 
         setThemePreference(normalizedTheme, { withTransition: false });
 
@@ -560,9 +572,14 @@ export class UIStateManager {
         };
         const tabButtons = safeQuerySelectorAll("[data-tab]");
 
+        const canonicalActive = normalizeTabName(activeTab);
+
         for (const button of tabButtons) {
-            const tabName = button.dataset.tab,
-                isActive = tabName === activeTab;
+            const tabName = typeof button.dataset.tab === "string" ? button.dataset.tab : "";
+            const canonicalButton = normalizeTabName(tabName);
+            const isActive = canonicalActive && canonicalButton
+                ? canonicalButton === canonicalActive
+                : tabName === activeTab;
 
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-selected", isActive.toString());
@@ -591,9 +608,14 @@ export class UIStateManager {
         };
         const tabContents = safeQuerySelectorAll(".tab-content");
 
+        const canonicalActive = normalizeTabName(activeTab);
+
         for (const content of tabContents) {
-            const tabName = content.dataset.tabContent,
-                isActive = tabName === activeTab;
+            const tabName = typeof content.dataset.tabContent === "string" ? content.dataset.tabContent : "";
+            const canonicalContent = normalizeTabName(tabName);
+            const isActive = canonicalActive && canonicalContent
+                ? canonicalContent === canonicalActive
+                : tabName === activeTab;
 
             /** @type {HTMLElement} */ (content).style.display = isActive ? "block" : "none";
             content.setAttribute("aria-hidden", (!isActive).toString());

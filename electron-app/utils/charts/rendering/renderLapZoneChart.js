@@ -148,8 +148,25 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         labels: {
                             color: themeConfig?.colors?.textPrimary || "#000",
                             font: { size: 12 },
+                            boxWidth: 22,
+                            boxHeight: 12,
+                            padding: 16,
+                            usePointStyle: false,
+                            hitboxWidth: 80,
                         },
                         position: "top",
+                        onHover(_event, _legendItem, legend) {
+                            const chartRef = legend?.chart;
+                            if (chartRef?.canvas) {
+                                chartRef.canvas.style.cursor = "pointer";
+                            }
+                        },
+                        onLeave(_event, _legendItem, legend) {
+                            const chartRef = legend?.chart;
+                            if (chartRef?.canvas) {
+                                chartRef.canvas.style.cursor = "";
+                            }
+                        },
                     },
                     title: {
                         color: "rgba(0,0,0,0)",

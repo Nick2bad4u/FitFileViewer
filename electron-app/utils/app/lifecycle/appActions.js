@@ -8,6 +8,52 @@ import { setThemePreference, THEME_MODES } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
+ * Canonical tab identifiers supported by the application UI. Entries MUST be lower-case.
+ * @type {Set<string>}
+ */
+const VALID_TABS = new Set(["altfit", "chartjs", "data", "map", "summary", "zwift"]);
+
+/**
+ * Alias map used to normalize historic or legacy tab identifiers to the canonical names.
+ * Keys and values are stored in lower-case for easy comparison.
+ * @type {Map<string, string>}
+ */
+const TAB_ALIASES = new Map([
+    ["chart", "chartjs"],
+    ["chartjs", "chartjs"],
+    ["table", "data"],
+    ["data", "data"],
+]);
+
+/**
+ * Normalize a provided tab identifier to its canonical lower-case representation.
+ * @param {string | null | undefined} tabName
+ * @returns {string} Canonical tab name or empty string when unavailable
+ */
+export function normalizeTabName(tabName) {
+    if (typeof tabName !== "string") {
+        return "";
+    }
+
+    const trimmed = tabName.trim();
+    if (trimmed.length === 0) {
+        return "";
+    }
+
+    const lower = trimmed.toLowerCase();
+    const aliasTarget = TAB_ALIASES.get(lower);
+    if (aliasTarget) {
+        return aliasTarget;
+    }
+
+    if (VALID_TABS.has(lower)) {
+        return lower;
+    }
+
+    return trimmed;
+}
+
+/**
  * @typedef {Object} ChartData
  * @property {any} datasets - Underlying chart dataset collection (library specific)
  * @property {any} [meta] - Optional metadata about the chart
@@ -209,15 +255,22 @@ export const AppActions = {
      * @param {string} tabName - Name of the tab to switch to
      */
     switchTab(tabName) {
-        const validTabs = ["summary", "chart", "map", "table"];
+        const canonicalTab = normalizeTabName(tabName);
 
-        if (!validTabs.includes(tabName)) {
+        if (!canonicalTab || !VALID_TABS.has(canonicalTab)) {
             console.warn(`[AppActions] Invalid tab name: ${tabName}`);
             return;
         }
 
-        setState("ui.activeTab", tabName, { source: "AppActions.switchTab" });
-        console.log(`[AppActions] Switched to tab: ${tabName}`);
+        const currentTab = normalizeTabName(/** @type {string | null | undefined} */(getState("ui.activeTab")));
+
+        if (currentTab === canonicalTab) {
+            console.log(`[AppActions] Tab already active: ${canonicalTab}`);
+            return;
+        }
+
+        setState("ui.activeTab", canonicalTab, { source: "AppActions.switchTab" });
+        console.log(`[AppActions] Switched to tab: ${canonicalTab}`);
     },
 
     /**
@@ -274,7 +327,8 @@ export const AppSelectors = {
      * @returns {string} Active tab name
      */
     activeTab() {
-        return getState("ui.activeTab") || "summary";
+        const current = normalizeTabName(/** @type {string | null | undefined} */(getState("ui.activeTab")));
+        return current || "summary";
     },
 
     /**
@@ -363,7 +417,7 @@ export const AppSelectors = {
      * @returns {boolean} True if tab is active
      */
     isTabActive(tabName) {
-        return this.activeTab() === tabName;
+        return normalizeTabName(this.activeTab()) === normalizeTabName(tabName);
     },
 };
 

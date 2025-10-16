@@ -328,6 +328,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     `;
 
     const enableAllBtn = document.createElement("button");
+    enableAllBtn.type = "button";
     enableAllBtn.textContent = "Enable All";
     enableAllBtn.style.cssText = `
         padding: 4px 8px;
@@ -341,6 +342,7 @@ export function createFieldTogglesSection(/** @type {HTMLElement} */ wrapper) {
     `;
 
     const disableAllBtn = document.createElement("button");
+    disableAllBtn.type = "button";
     disableAllBtn.textContent = "Disable All";
     disableAllBtn.style.cssText = `
         padding: 4px 8px;
@@ -659,6 +661,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
     // Combined option
     const combinedItem = document.createElement("button");
+    combinedItem.type = "button";
     combinedItem.innerHTML = `<iconify-icon icon="flat-color-icons:link" width="18" height="18"></iconify-icon> All Charts Combined (${validCharts.length} charts)`;
     combinedItem.style.cssText = `
 		display: block;
@@ -690,6 +693,7 @@ export function showChartSelectionModal(actionType, singleCallback, combinedCall
 
     // Cancel button
     const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
     cancelButton.textContent = "Cancel";
     cancelButton.style.cssText = `
 		width: 100%;
@@ -748,6 +752,7 @@ function createActionButton(
     /** @type {string} */ className = ""
 ) {
     const button = document.createElement("button");
+    button.type = "button";
     button.textContent = text;
     button.title = title;
     button.className = className;

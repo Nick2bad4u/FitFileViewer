@@ -56,6 +56,7 @@ export function createPowerZoneControls(parentContainer) {
 
     // Create collapse toggle button
     const collapseBtn = document.createElement("button");
+    collapseBtn.type = "button";
     collapseBtn.className = "power-zone-collapse-btn";
     collapseBtn.textContent = "▼";
     collapseBtn.setAttribute("aria-label", "Toggle power zone controls");

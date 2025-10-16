@@ -16,9 +16,18 @@ vi.mock("../../../../utils/data/zones/chartZoneColorUtils.js", () => ({
 }));
 
 const addChartHoverEffectsMock = vi.fn();
+const attachChartLabelMetadataMock = vi.fn();
 
 vi.mock("../../../../utils/charts/plugins/addChartHoverEffects.js", () => ({
     addChartHoverEffects: (...args: unknown[]) => addChartHoverEffectsMock(...args),
+}));
+
+vi.mock("../../../../utils/charts/components/attachChartLabelMetadata.js", () => ({
+    attachChartLabelMetadata: (...args: unknown[]) => attachChartLabelMetadataMock(...args),
+}));
+
+vi.mock("../../../../utils/ui/icons/iconMappings.js", () => ({
+    getChartIcon: vi.fn().mockImplementation((name: string) => `icon-${name}`),
 }));
 
 vi.mock("../../../../utils/theming/core/theme.js", () => ({
@@ -29,6 +38,7 @@ describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
         addChartHoverEffectsMock.mockReset();
+        attachChartLabelMetadataMock.mockReset();
     });
 
     it("renders chart when Chart is available", async () => {
@@ -63,6 +73,10 @@ describe("renderSinglePowerZoneBar", () => {
         expect(yTickCb(30)).toBe("30s");
         expect(tooltipCb({ dataset: { label: "Z1" }, parsed: { y: 30 } })).toBe("Z1: 30s");
         expect(addChartHoverEffectsMock).toHaveBeenCalledWith(canvas.parentElement, expect.any(Object));
+        expect(attachChartLabelMetadataMock).toHaveBeenCalledTimes(1);
+        const [capturedCanvas, metadata] = attachChartLabelMetadataMock.mock.calls[0];
+        expect(capturedCanvas).toBe(canvas);
+        expect(metadata.titleText).toBe("Power Zones");
     });
 
     it("handles errors gracefully when Chart.js missing", async () => {

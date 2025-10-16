@@ -3,8 +3,8 @@ import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { getZoneChartEmoji } from "../../ui/icons/iconMappings.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
-import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
+import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Helper function to render individual zone chart
@@ -334,6 +334,10 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                             size: 14,
                             weight: "600",
                         },
+                        boxWidth: 22,
+                        boxHeight: 12,
+                        padding: 18,
+                        hitboxWidth: 80,
                         /** @param {any} chartInstance */
                         generateLabels(chartInstance) {
                             const { data } = chartInstance; // Fallbacks for defensive programming
@@ -368,6 +372,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                                             ? "#ffffff"
                                             : "#333333",
                                     hidden: Boolean(isHidden || meta?.data?.[i]?.hidden),
+                                    datasetIndex: 0,
                                     index: i,
                                     lineWidth: 1,
                                     pointStyle: "circle",

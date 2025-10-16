@@ -105,6 +105,7 @@ function createControlsToggleButton(container) {
     }
 
     toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
     toggleBtn.id = "chart-controls-toggle";
     toggleBtn.className = "chart-controls-toggle-btn";
 

@@ -27,6 +27,7 @@ export function createDensityToggle({ defaultDensity = "spacious", labelText = "
 
     // Create button
     const button = document.createElement("button");
+    button.type = "button";
     button.className = "density-toggle-btn";
     button.title = "Toggle table density";
 

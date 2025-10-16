@@ -66,13 +66,13 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.classList.contains("active")).toBe(true);
             expect(mapTab?.classList.contains("active")).toBe(false);
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
         });
 
         it("should handle all supported tab ID patterns", () => {
             const patterns = [
                 { id: "tab-summary", expected: "summary" },
-                { id: "chart-tab", expected: "chart" },
+                { id: "chart-tab", expected: "chartjs" },
                 { id: "btn-map", expected: "map" },
                 { id: "analysis-btn", expected: "analysis" },
             ];
@@ -158,7 +158,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
 
             const result = getActiveTab();
 
-            expect(result).toBe("chart");
+            expect(result).toBe("chartjs");
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
         });
 
@@ -289,7 +289,7 @@ describe("updateActiveTab.js - Complete Test Suite", () => {
                 chartButton.dispatchEvent(clickEvent);
             }
 
-            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "tabButtonClick" });
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "tabButtonClick" });
         });
     });
 

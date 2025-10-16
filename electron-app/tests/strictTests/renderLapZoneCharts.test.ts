@@ -310,11 +310,9 @@ describe("renderLapZoneCharts", () => {
             renderLapZoneCharts(container);
             const canvas = container.querySelector("#chartjs-canvas-lap-hr-zones") as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
-            expect(canvas.style.marginBottom).toBe("32px");
-            expect(canvas.style.maxHeight).toBe("400px");
-            expect(canvas.style.background).toBe("rgb(255, 255, 255)");
-            expect(canvas.style.borderRadius).toBe("12px");
-            expect(canvas.style.boxShadow).toBe("0 2px 4px rgba(0,0,0,0.1)");
+            expect(canvas.classList.contains("chart-canvas")).toBe(true);
+            expect(canvas.dataset.chartHeight).toBe("400");
+            expect(canvas.dataset.chartTitleColor).toBe("#3b82f6");
         });
 
         it("should create canvas for Power stacked chart", () => {
@@ -329,8 +327,9 @@ describe("renderLapZoneCharts", () => {
 
         it("should create canvas for HR individual chart", () => {
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-single-lap-hr");
+            const canvas = container.querySelector("#chartjs-canvas-single-lap-hr") as HTMLCanvasElement | null;
             expect(canvas).toBeTruthy();
+            expect(canvas?.dataset.chartHeight).toBe("360");
         });
 
         it("should create canvas for Power individual chart", () => {
@@ -339,8 +338,9 @@ describe("renderLapZoneCharts", () => {
             ];
 
             renderLapZoneCharts(container);
-            const canvas = container.querySelector("#chartjs-canvas-single-lap-power");
+            const canvas = container.querySelector("#chartjs-canvas-single-lap-power") as HTMLCanvasElement | null;
             expect(canvas).toBeTruthy();
+            expect(canvas?.dataset.chartHeight).toBe("360");
         });
     });
 

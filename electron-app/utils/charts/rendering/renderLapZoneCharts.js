@@ -49,7 +49,39 @@ export function renderLapZoneCharts(container, options = {}) {
             lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
             // Get theme configuration
             themeConfig = /** @type {any} */ (getThemeConfig() || {}),
-            themeColors = themeConfig.colors || { bgPrimary: "#ffffff", shadow: "none" };
+            themeColors = themeConfig.colors || { bgPrimary: "#ffffff", shadow: "none" },
+            themeAccent = themeColors.primary || themeColors.accent || "#3b82f6";
+
+        /**
+         * Create a standardized chart canvas with shared styling hooks.
+         * @param {string} canvasId
+         * @param {string} ariaLabel
+         * @param {number} [height]
+         * @returns {HTMLCanvasElement}
+         */
+        const createLapCanvas = (canvasId, ariaLabel, height = 400) => {
+            const canvas = document.createElement("canvas");
+            canvas.id = canvasId;
+            canvas.classList.add("chart-canvas");
+            canvas.setAttribute("role", "img");
+            canvas.setAttribute("aria-label", ariaLabel);
+            canvas.dataset.chartHeight = String(height);
+            if (themeAccent) {
+                canvas.dataset.chartTitleColor = themeAccent;
+            }
+            if (themeColors && typeof themeColors === "object") {
+                if (themeColors.bgPrimary) {
+                    canvas.style.background = themeColors.bgPrimary;
+                }
+                if (themeColors.shadow) {
+                    canvas.style.boxShadow = themeColors.shadow;
+                }
+                if (themeColors.borderRadius) {
+                    canvas.style.borderRadius = themeColors.borderRadius;
+                }
+            }
+            return canvas;
+        };
         const existingHeartRateZones = getHeartRateZones();
         const existingPowerZones = getPowerZones();
         if (themeConfig && typeof themeConfig === "object" && themeConfig.name) {
@@ -184,17 +216,12 @@ export function renderLapZoneCharts(container, options = {}) {
         console.log("[ChartJS] Power Zone filtering - meaningfulPowerZones:", meaningfulPowerZones);
         console.log("[ChartJS] Power Zone data after filtering:", pwrZoneData); // Chart 1: Lap Heart Rate Zone Lap Bar Stacked
         if (visibility.hrStackedVisible && hrZoneData.length > 0) {
-            const canvas1 = document.createElement("canvas");
-            canvas1.id = "chartjs-canvas-lap-hr-zones";
-            canvas1.style.marginBottom = "32px";
-            canvas1.style.maxHeight = "400px";
-            canvas1.style.background = themeColors.bgPrimary;
-            canvas1.style.borderRadius = "12px";
-            canvas1.style.boxShadow = themeColors.shadow;
+            const chartTitle = "HR Zone by Lap (Stacked)";
+            const canvas1 = createLapCanvas("chartjs-canvas-lap-hr-zones", chartTitle, 400);
             container.append(canvas1);
 
             const hrChart = renderLapZoneChart(canvas1, hrZoneData, {
-                title: "HR Zone by Lap (Stacked)",
+                title: chartTitle,
             });
             if (hrChart) {
                 if (!Array.isArray(globalThis._chartjsInstances)) {
@@ -206,16 +233,11 @@ export function renderLapZoneCharts(container, options = {}) {
 
         // Chart 2: Lap Power Zone Distribution (Stacked Bar)
         if (visibility.powerStackedVisible && pwrZoneData.length > 0) {
-            const canvas2 = document.createElement("canvas");
-            canvas2.id = "chartjs-canvas-lap-power-zones";
-            canvas2.style.marginBottom = "32px";
-            canvas2.style.maxHeight = "400px";
-            canvas2.style.background = themeColors.bgPrimary;
-            canvas2.style.borderRadius = "12px";
-            canvas2.style.boxShadow = themeColors.shadow;
+            const chartTitle = "Power Zone by Lap (Stacked)";
+            const canvas2 = createLapCanvas("chartjs-canvas-lap-power-zones", chartTitle, 400);
             container.append(canvas2);
             const pwrChart = renderLapZoneChart(canvas2, pwrZoneData, {
-                title: "Power Zone by Lap (Stacked)",
+                title: chartTitle,
             });
             if (pwrChart) {
                 if (!Array.isArray(globalThis._chartjsInstances)) {
@@ -269,17 +291,12 @@ export function renderLapZoneCharts(container, options = {}) {
 
             if (sessionHRZones && sessionHRZones.length > 0) {
                 console.log("[ChartJS] Rendering HR zone bar with data:", sessionHRZones);
-                const canvas3 = document.createElement("canvas");
-                canvas3.id = "chartjs-canvas-single-lap-hr";
-                canvas3.style.marginBottom = "32px";
-                canvas3.style.maxHeight = "350px";
-                canvas3.style.background = themeColors.bgPrimary;
-                canvas3.style.borderRadius = "12px";
-                canvas3.style.boxShadow = themeColors.shadow;
+                const chartTitle = "HR Zone by Lap (Individual)";
+                const canvas3 = createLapCanvas("chartjs-canvas-single-lap-hr", chartTitle, 360);
                 container.append(canvas3);
 
                 const singleHRChart = renderSingleHRZoneBar(canvas3, sessionHRZones, {
-                    title: "HR Zone by Lap (Individual)",
+                    title: chartTitle,
                 });
                 if (singleHRChart) {
                     if (!Array.isArray(globalThis._chartjsInstances)) {
@@ -336,20 +353,15 @@ export function renderLapZoneCharts(container, options = {}) {
 
             if (sessionPowerZones && sessionPowerZones.length > 0) {
                 console.log("[ChartJS] Rendering Power zone bar with data:", sessionPowerZones);
-                const canvas4 = document.createElement("canvas");
-                canvas4.id = "chartjs-canvas-single-lap-power";
-                canvas4.style.marginBottom = "32px";
-                canvas4.style.maxHeight = "350px";
-                canvas4.style.background = themeColors.bgPrimary;
-                canvas4.style.borderRadius = "12px";
-                canvas4.style.boxShadow = themeColors.shadow;
+                const chartTitle = "Power Zone by Lap (Individual)";
+                const canvas4 = createLapCanvas("chartjs-canvas-single-lap-power", chartTitle, 360);
                 container.append(canvas4);
 
                 const singlePwrChart = renderSinglePowerZoneBar(
                     canvas4,
                     /** @type {{label:string,value:number,color:string}[]} */(sessionPowerZones),
                     {
-                        title: "Power Zone by Lap (Individual)",
+                        title: chartTitle,
                     }
                 );
                 if (singlePwrChart) {

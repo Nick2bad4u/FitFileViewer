@@ -89,6 +89,7 @@ export function addFullScreenButton() {
             wrapper.id = FULLSCREEN_WRAPPER_ID;
 
             const btn = document.createElement("button");
+            btn.type = "button";
             btn.id = FULLSCREEN_BUTTON_ID;
             btn.className = "fullscreen-btn improved themed-btn";
             btn.dataset.tooltip = "Load a file first";
@@ -112,6 +113,7 @@ export function addFullScreenButton() {
         wrapper.id = FULLSCREEN_WRAPPER_ID;
 
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.id = FULLSCREEN_BUTTON_ID;
         btn.className = "fullscreen-btn improved themed-btn";
         btn.dataset.tooltip = "Load a file first";

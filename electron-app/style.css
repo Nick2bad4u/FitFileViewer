@@ -5936,9 +5936,24 @@ body.theme-light .multi-lap-toggle:hover {
 
 .map-view-root__controls[data-ui-theme="dark"] .map-controls-bar,
 #leaflet-map[data-ui-theme="dark"] .leaflet-control-container > .leaflet-bottom > div {
-    background: rgba(17, 24, 39, 0.78);
+    background: rgba(17, 24, 39, 0.78) !important;
     border-color: rgba(148, 163, 184, 0.32);
     box-shadow: 0 28px 46px rgba(2, 6, 23, 0.55);
+}
+
+/* Fix white background on scale control in dark mode */
+#leaflet-map[data-ui-theme="dark"] .leaflet-control-container .leaflet-bottom.leaflet-left > div,
+#leaflet-map[data-ui-theme="dark"] .leaflet-control-scale {
+    background: rgba(17, 24, 39, 0.78) !important;
+    border-color: rgba(148, 163, 184, 0.32) !important;
+    color: rgba(226, 232, 240, 0.95) !important;
+}
+
+/* Ensure scale control text is visible in dark mode */
+#leaflet-map[data-ui-theme="dark"] .leaflet-control-scale-line {
+    background: rgba(17, 24, 39, 0.78) !important;
+    border-color: rgba(148, 163, 184, 0.32) !important;
+    color: rgba(226, 232, 240, 0.95) !important;
 }
 
 #leaflet-map .leaflet-control-container > .leaflet-bottom > div {

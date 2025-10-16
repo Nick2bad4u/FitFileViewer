@@ -1,3 +1,4 @@
+import { normalizeTabName } from "../../app/lifecycle/appActions.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getOverlayFiles, setOverlayFiles } from "../../state/domain/overlayState.js";
@@ -82,9 +83,10 @@ export async function loadOverlayFiles(files) {
 
     if (previousActiveTab) {
         try {
-            const currentTab = getState("ui.activeTab");
-            if (currentTab !== previousActiveTab) {
-                setState("ui.activeTab", previousActiveTab, { source: "loadOverlayFiles.restoreTab" });
+            const targetTab = normalizeTabName(previousActiveTab);
+            const currentTab = normalizeTabName(/** @type {string | null | undefined} */(getState("ui.activeTab")));
+            if (targetTab && currentTab !== targetTab) {
+                setState("ui.activeTab", targetTab, { source: "loadOverlayFiles.restoreTab" });
             }
         } catch (error) {
             console.warn("[loadOverlayFiles] Failed to restore active tab:", error);

@@ -253,6 +253,13 @@ function enhanceChartCanvas(canvas, themeConfig) {
     wrapper.append(canvas);
 
     if (canvas.style) {
+        const desiredHeight = (() => {
+            const heightAttr = canvas.dataset.chartHeight;
+            const parsed = heightAttr ? Number.parseInt(heightAttr, 10) : NaN;
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : 400;
+        })();
+        const heightPx = `${desiredHeight}px`;
+
         canvas.style.border = "none";
         canvas.style.boxShadow = "none";
         canvas.style.margin = "0";
@@ -261,8 +268,8 @@ function enhanceChartCanvas(canvas, themeConfig) {
         canvas.style.display = "block";
         canvas.style.width = "100%";
         canvas.style.maxWidth = "100%";
-        canvas.style.height = "400px";
-        canvas.style.maxHeight = "400px";
+        canvas.style.height = heightPx;
+        canvas.style.maxHeight = heightPx;
         canvas.style.position = "relative";
         canvas.style.boxSizing = "border-box";
     }
@@ -550,6 +557,7 @@ function setupFullscreenControls(context, displayTitle) {
     };
 
     const clickHandler = (event) => {
+        event.preventDefault();
         event.stopPropagation();
         toggleChartFullscreen(wrapper, {
             title: displayTitle,
@@ -594,6 +602,7 @@ function setupLegendControls(context) {
     };
 
     const clickHandler = (event) => {
+        event.preventDefault();
         event.stopPropagation();
         const chart = getChartInstance(canvas);
         if (!chart?.options?.plugins?.legend) {
@@ -636,6 +645,7 @@ function setupResetZoom(context) {
     const { resetBtn, canvas, cleanupFns } = context;
 
     const handler = (event) => {
+        event.preventDefault();
         event.stopPropagation();
         const chart = getChartInstance(canvas);
         if (chart?.resetZoom) {
@@ -649,8 +659,21 @@ function setupResetZoom(context) {
 function setupRippleEffect(context) {
     const { wrapper, titleAccent, cleanupFns } = context;
     const handler = (event) => {
+        // Prevent default action to avoid any form submission or navigation
+        if (typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
         if (typeof event.stopPropagation === "function") {
             event.stopPropagation();
+        }
+        if (typeof event.stopImmediatePropagation === "function") {
+            event.stopImmediatePropagation();
+        }
+        try {
+            // Ensure legacy cancelBubble flag is also set for environments that stub stopPropagation
+            event.cancelBubble = true;
+        } catch {
+            /* ignore inability to set cancelBubble */
         }
         if (typeof event.button === "number" && event.button !== 0) {
             return;

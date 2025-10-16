@@ -19,6 +19,7 @@ import { getOverlayFiles } from "../../state/domain/overlayState.js";
  */
 export function createElevationProfileButton() {
 	const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+	btn.type = "button";
 	btn.className = "map-action-btn";
 	btn.innerHTML = `
 		<iconify-icon aria-hidden="true" height="18" icon="flat-color-icons:area-chart" width="18"></iconify-icon>

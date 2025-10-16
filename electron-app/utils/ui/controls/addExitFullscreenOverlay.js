@@ -85,6 +85,7 @@ function createButtonHTML() {
  */
 function createExitButton() {
     const button = document.createElement("button");
+    button.type = "button";
 
     // Apply CSS classes for styling
     button.className = [

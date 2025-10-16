@@ -42,7 +42,7 @@ describe("Tab Button Disabled State", () => {
 
             expect(summaryTab?.classList.contains("active")).toBe(false);
             expect(chartTab?.classList.contains("active")).toBe(true);
-            expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", "chart", { source: "updateActiveTab" });
+            expect(mockState.setState).toHaveBeenCalledWith("ui.activeTab", "chartjs", { source: "updateActiveTab" });
         });
 
         it("should handle invalid tab IDs gracefully", () => {
@@ -75,7 +75,7 @@ describe("Tab Button Disabled State", () => {
                 chartTab.dispatchEvent(clickEvent);
 
                 // Tab should remain on summary
-                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chart", {
+                expect(mockState.setState).not.toHaveBeenCalledWith("ui.activeTab", "chartjs", {
                     source: "tabButtonClick",
                 });
                 expect(preventDefaultSpy).toHaveBeenCalled();
@@ -194,9 +194,9 @@ describe("Tab Button Disabled State", () => {
             // This tests the internal extractTabName function indirectly
             const testCases = [
                 ["tab-summary", "summary"],
-                ["tab-chart", "chart"],
+                ["tab-chart", "chartjs"],
                 ["btn-map", "map"],
-                ["table-btn", "table"],
+                ["table-btn", "data"],
             ];
 
             testCases.forEach(([buttonId, expectedName]) => {

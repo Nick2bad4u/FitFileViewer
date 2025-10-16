@@ -1,9 +1,11 @@
+import { attachChartLabelMetadata } from "../../charts/components/attachChartLabelMetadata.js";
+import { addChartHoverEffects } from "../../charts/plugins/addChartHoverEffects.js";
 import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
-import { addChartHoverEffects } from "../../charts/plugins/addChartHoverEffects.js";
+import { getChartIcon } from "../../ui/icons/iconMappings.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
-import { getThemeConfig } from "../../theming/core/theme.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getThemeConfig } from "../../theming/core/theme.js";
 import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
 import { getChartZoneColors } from "./chartZoneColorUtils.js";
 
@@ -24,8 +26,49 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         const themeConfig = /** @type {any} */ (typeof getThemeConfig === "function" ? getThemeConfig() : {});
         console.log("[renderSingleHRZoneBar] Detected theme:", theme);
 
+        const doc = canvas.ownerDocument;
+        let hoverContainer = canvas.parentElement;
+
+        if (!hoverContainer && doc) {
+            const body = doc.body;
+            if (body) {
+                if (!body.contains(canvas)) {
+                    body.append(canvas);
+                }
+                hoverContainer = body;
+            }
+        }
+
+        if (!hoverContainer && canvas.parentNode instanceof HTMLElement) {
+            hoverContainer = canvas.parentNode;
+        }
+
+        if (hoverContainer) {
+            try {
+                addChartHoverEffects(/** @type {HTMLElement} */(hoverContainer), themeConfig || {});
+            } catch (hoverError) {
+                console.warn("[renderSingleHRZoneBar] Failed to apply hover effects", hoverError);
+            }
+        }
+
         // Get saved HR zone colors
         const savedColors = getChartZoneColors("hr", zoneData.length);
+
+        const accentColor =
+            themeConfig?.colors?.primary || themeConfig?.colors?.accent || (theme === "dark" ? "#3b82f6" : "#2563eb");
+        const chartTitle = /** @type {string} */ (options.title || "Heart Rate Zones");
+
+        attachChartLabelMetadata(canvas, {
+            titleIcon: getChartIcon("heartRate"),
+            titleText: chartTitle,
+            titleColor: accentColor,
+            xIcon: getChartIcon("zone"),
+            xText: "Zone",
+            xColor: accentColor,
+            yIcon: getChartIcon("time"),
+            yText: `Time (${getUnitSymbol("time", "time")})`,
+            yColor: accentColor,
+        });
 
         // Create one dataset per zone for interactive legend
         const datasets = zoneData.map((zone, index) => ({
@@ -52,14 +95,31 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                             labels: {
                                 color: theme === "dark" ? "#fff" : "#000",
                                 font: { size: 12 },
+                                boxWidth: 22,
+                                boxHeight: 12,
+                                padding: 16,
+                                usePointStyle: false,
+                                hitboxWidth: 80,
                             },
                             position: "top",
+                            onHover(_event, _legendItem, legend) {
+                                const chartRef = legend?.chart;
+                                if (chartRef?.canvas) {
+                                    chartRef.canvas.style.cursor = "pointer";
+                                }
+                            },
+                            onLeave(_event, _legendItem, legend) {
+                                const chartRef = legend?.chart;
+                                if (chartRef?.canvas) {
+                                    chartRef.canvas.style.cursor = "";
+                                }
+                            },
                         },
                         title: {
                             color: theme === "dark" ? "#fff" : "#000",
                             display: Boolean(options.title),
                             font: { size: 16, weight: "bold" },
-                            text: /** @type {any} */ (options).title || "Heart Rate Zones",
+                            text: chartTitle,
                         },
                         tooltip: {
                             backgroundColor: theme === "dark" ? "#222" : "#fff",
@@ -144,14 +204,6 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                 plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
                 type: "bar",
             });
-        try {
-            if (canvas.parentElement) {
-                addChartHoverEffects(canvas.parentElement, themeConfig || {});
-            }
-        } catch (hookError) {
-            console.warn("[renderSingleHRZoneBar] Failed to enhance hover effects", hookError);
-        }
-
         return chart;
     } catch (error) {
         if (/** @type {any} */ (globalThis).showNotification) {
