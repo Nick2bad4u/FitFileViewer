@@ -752,6 +752,7 @@ export function MapControls({ mapInstance }) {
                             const color = chartOverlayColorPalette[(index + 1) % chartOverlayColorPalette.length] ?? "#1976d2";
                             return (
                                 <li
+                                    aria-selected="false"
                                     className="overlay-list-item"
                                     data-overlay-index={overlayIndex}
                                     key={`${label}-${overlayIndex}`}

@@ -84,7 +84,7 @@ const chartEmojiMap = {
 };
 
 const summaryKeywordIcons = [
-    { pattern: /time|duration|timestamp/i, icon: "mdi:clock-outline" },
+    { pattern: /duration|timestamp/i, icon: "mdi:clock-outline" },
     { pattern: /distance/i, icon: "mdi:map-marker-distance" },
     { pattern: /speed|pace/i, icon: "mdi:speedometer" },
     { pattern: /power|watt/i, icon: "mdi:flash" },
@@ -95,7 +95,7 @@ const summaryKeywordIcons = [
 ];
 
 const summaryKeywordEmoji = [
-    { pattern: /time|duration|timestamp/i, emoji: "⏱️" },
+    { pattern: /duration|timestamp/i, emoji: "⏱️" },
     { pattern: /distance/i, emoji: "📏" },
     { pattern: /speed|pace/i, emoji: "⚡" },
     { pattern: /power|watt/i, emoji: "⚡" },

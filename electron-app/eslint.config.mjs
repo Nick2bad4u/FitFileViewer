@@ -3,25 +3,36 @@ import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
+import pluginArrayFunc from "eslint-plugin-array-func";
+import pluginCommentLength from "eslint-plugin-comment-length";
+import pluginEx from "eslint-plugin-ex";
 import importXPlugin from "eslint-plugin-import-x";
 import jsxA11y from "eslint-plugin-jsx-a11y";
+import pluginListeners from "eslint-plugin-listeners";
 import nodePlugin from "eslint-plugin-n";
+import pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
+import pluginNoSecrets from "eslint-plugin-no-secrets";
+import pluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
 import nounsanitized from "eslint-plugin-no-unsanitized";
 import perfectionist from "eslint-plugin-perfectionist";
+import pluginPreferArrow from "eslint-plugin-prefer-arrow";
 import pluginPromise from "eslint-plugin-promise";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import pluginRegexp from "eslint-plugin-regexp";
 import pluginSecurity from "eslint-plugin-security";
 import pluginSonarjs from "eslint-plugin-sonarjs";
+import pluginSwitchCase from "eslint-plugin-switch-case";
+import pluginTsdoc from "eslint-plugin-tsdoc";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
 
-// NOTE: We are not enabling TypeScript-specific ESLint rules in this flat config.
-// If future TS linting is needed, bring in typescript-eslint and extend its configs.
+// TypeScript support is now enabled with @typescript-eslint parser and plugin
 
 export default defineConfig([
     {
@@ -40,11 +51,21 @@ export default defineConfig([
             },
         },
         plugins: {
+            "array-func": pluginArrayFunc,
+            "comment-length": pluginCommentLength,
+            "eslint-comments": eslintComments,
+            ex: pluginEx,
             js,
-            "unused-imports": pluginUnusedImports,
+            listeners: pluginListeners,
+            "no-function-declare-after-return": pluginNFDAR,
+            "no-secrets": pluginNoSecrets,
+            "no-use-extend-native": pluginNoUseExtendNative,
+            "prefer-arrow": pluginPreferArrow,
             promise: pluginPromise,
             security: pluginSecurity,
-            "eslint-comments": eslintComments,
+            "switch-case": pluginSwitchCase,
+            tsdoc: pluginTsdoc,
+            "unused-imports": pluginUnusedImports,
         },
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
@@ -157,10 +178,51 @@ export default defineConfig([
     { ...perfectionist.configs["recommended-natural"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
     { ...pluginSonarjs.configs.recommended, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
     { ...pluginRegexp.configs["flat/recommended"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
-    { ...importXPlugin.flatConfigs.recommended, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...importXPlugin.flatConfigs.electron, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    // @ts-expect-error - No types available
     { ...nounsanitized.configs.recommended, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    // TypeScript files configuration
+    {
+        files: ["**/*.ts", "**/*.tsx"],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                project: "./tsconfig.json",
+                ecmaVersion: 2024,
+                sourceType: "module",
+            },
+        },
+        plugins: {
+            "@typescript-eslint": tseslint,
+        },
+        rules: {
+            // TypeScript-specific rules (basic set, not overly strict)
+            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/no-unused-vars": [
+                "warn",
+                { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+            ],
+            "@typescript-eslint/explicit-function-return-type": "off",
+            "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-non-null-assertion": "warn",
+            "@typescript-eslint/prefer-nullish-coalescing": "warn",
+            "@typescript-eslint/prefer-optional-chain": "warn",
+        },
+    },
     {
         files: ["**/*.{js,mjs,cjs,ts}", "**/*.jsx", "**/*.tsx"],
+        settings: {
+            // Configure import-x to skip parsing problematic modules
+            "import-x/parsers": {
+                espree: [".js", ".cjs", ".mjs", ".jsx"],
+            },
+            "import-x/ignore": [
+                // Skip parsing eslint plugins that use newer syntax
+                "eslint-plugin-unicorn",
+                "eslint-plugin-.*",
+                "node_modules",
+            ],
+        },
         rules: {
             // Electron/CommonJS friendly adjustments
             "unicorn/prefer-module": "off", // Project uses CommonJS entrypoints
@@ -288,6 +350,16 @@ export default defineConfig([
             "sonarjs/no-all-duplicated-branches": "warn", // Warn instead of error
             "sonarjs/no-redundant-boolean": "warn",
             "sonarjs/no-gratuitous-expressions": "warn",
+            "sonarjs/no-unused-vars": "off", // Use built-in rule instead
+            "sonarjs/no-dead-store": "warn", // Warn instead of error
+            "sonarjs/pseudo-random": "warn", // Math.random() is fine for non-security uses
+            "sonarjs/no-os-command-from-path": "warn", // PATH usage is sometimes necessary
+            "sonarjs/no-useless-catch": "warn", // Sometimes needed for logging
+            "sonarjs/single-character-alternation": "warn", // Sometimes more readable
+            "sonarjs/no-duplicated-branches": "warn",
+            "sonarjs/slow-regex": "error", // Keep as error for security
+            "sonarjs/anchor-precedence": "warn",
+            "sonarjs/no-unused-collection": "warn",
 
             // No-unsanitized rules
             "no-unsanitized/method": "off", // Too many false positives with dynamic imports
@@ -300,6 +372,58 @@ export default defineConfig([
             "eslint-comments/no-unlimited-disable": "off",
             "eslint-comments/no-unused-disable": "warn",
             "eslint-comments/no-unused-enable": "warn",
+
+            // Array-func rules - better array method usage
+            "array-func/from-map": "warn",
+            "array-func/no-unnecessary-this-arg": "warn",
+            "array-func/prefer-array-from": "warn",
+            "array-func/avoid-reverse": "warn",
+            "array-func/prefer-flat-map": "warn",
+            "array-func/prefer-flat": "warn",
+
+            // Comment-length rules - keep comments readable
+            "comment-length/limit-single-line-comments": ["warn", { maxLength: 120 }],
+            "comment-length/limit-multi-line-comments": ["warn", { maxLength: 120 }],
+
+            // No-secrets rules - security
+            "no-secrets/no-secrets": ["error", { tolerance: 4.5 }],
+
+            // No-use-extend-native rules - prevent extending native prototypes
+            "no-use-extend-native/no-use-extend-native": "error",
+
+            // Prefer-arrow rules - consistency with arrow functions
+            "prefer-arrow/prefer-arrow-functions": [
+                "off",
+                {
+                    disallowPrototype: true,
+                    singleReturnOnly: false,
+                    classPropertiesAllowed: false,
+                },
+            ],
+
+            // TSDoc rules - better JSDoc/TSDoc validation
+            "tsdoc/syntax": "off",
+
+            // Listeners plugin - event listener best practices
+            "listeners/no-missing-remove-event-listener": "warn",
+            "listeners/matching-remove-event-listener": "warn",
+
+            // No-function-declare-after-return plugin
+            "no-function-declare-after-return/no-function-declare-after-return": "warn",
+
+            // Switch-case plugin - better switch statement handling
+            "switch-case/no-case-curly": "warn",
+            "switch-case/newline-between-switch-case": "off", // Can be noisy
+
+            // Ex plugin - disallow specific ES features if needed (off by default)
+            // Enable specific rules as needed, e.g., "ex/no-array-from": "warn"
+        },
+    },
+    // Barrel/index files with re-exports
+    {
+        files: ["**/index.js", "**/index.mjs"],
+        rules: {
+            "import-x/export": "off", // Allow duplicate exports in barrel files
         },
     },
     // React and JSX rules for .jsx and .tsx files
@@ -400,12 +524,12 @@ export default defineConfig([
         language: "css/css",
         extends: ["css/recommended"],
         rules: {
-            // Disabling 'css/no-important' because certain styles require the use of !important for overriding specificity issues.
+            // Allow !important for overriding specificity issues
             "css/no-important": "off",
-            // Disabling 'css/use-baseline' as the project does not strictly adhere to a baseline grid system.
+            // Project does not strictly adhere to a baseline grid system
             "css/use-baseline": "off",
-            // Project uses gradients, custom properties, and utility patterns that the strict property validator flags.
-            // Disable for now to prioritize JS lint health; revisit with a tailored allowlist if needed.
+            // Project uses gradients and custom properties that trigger false positives
+            // Disable for now to prioritize JS lint health; revisit with tailored allowlist if needed
             "css/no-invalid-properties": "off",
             // Allow id selectors/universal selectors given existing stylesheet structure.
             "css/no-id-selectors": "off",
@@ -433,6 +557,8 @@ export default defineConfig([
             "coverage-report.json",
             // Jest/Vitest/Electron mocks
             "__mocks__/**",
+            // Vendor files
+            "vendor/**",
         ],
     },
     // Place Prettier last to turn off rules that conflict with Prettier formatting

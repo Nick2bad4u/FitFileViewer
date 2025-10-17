@@ -103,7 +103,7 @@ describe("createGlobalChartStatusIndicator", () => {
         // display should be set to block and toggle text changed
         expect(settingsWrapper.style.display).toBe("block");
         expect(toggleBtn.innerHTML).toBe(
-            '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon> Hide Controls'
+            '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon> Hide Controls'
         );
         expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
     });

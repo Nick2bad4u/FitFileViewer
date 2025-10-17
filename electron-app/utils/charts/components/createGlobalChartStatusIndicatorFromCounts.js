@@ -99,7 +99,7 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
                     wrapper = document.querySelector("#chartjs-settings-wrapper");
                 if (wrapper instanceof HTMLElement && toggleBtn instanceof HTMLElement) {
                     wrapper.style.display = "block";
-                    const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+                    const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon>';
                     toggleBtn.innerHTML = `${downIcon} Hide Controls`;
                     toggleBtn.setAttribute("aria-expanded", "true");
                     const fieldsSection = document.querySelector(".fields-section");

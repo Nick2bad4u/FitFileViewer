@@ -4,11 +4,13 @@ import { updateControlsState } from "../../rendering/helpers/updateControlsState
 import { getState, setState, updateState } from "../../state/core/stateManager.js";
 import { createHRZoneControls, moveHRZoneControlsToSection } from "../controls/createHRZoneControls.js";
 import { createPowerZoneControls, movePowerZoneControlsToSection } from "../controls/createPowerZoneControls.js";
-import { applySettingsPanelStyles,
+import {
+    applySettingsPanelStyles,
     createControlsSection,
     createExportSection,
     createFieldTogglesSection,
-    createSettingsHeader } from "./createSettingsHeader.js";
+    createSettingsHeader
+} from "./createSettingsHeader.js";
 
 
 /**
@@ -110,7 +112,7 @@ function createControlsToggleButton(container) {
 
     // Set initial text based on current state
     const controlsVisible = getState("charts.controlsVisible") !== false; // Default to true
-    const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+    const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon>';
     const rightIcon = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
     toggleBtn.innerHTML = controlsVisible ? `${downIcon} Hide Controls` : `${rightIcon} Show Controls`;
     toggleBtn.setAttribute("aria-expanded", controlsVisible.toString());
@@ -195,7 +197,7 @@ function toggleChartControls() {
     // Update toggle button text if it exists
     const toggleBtn = document.querySelector("#chart-controls-toggle");
     if (toggleBtn) {
-        const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+        const downIcon = '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon>';
         const rightIcon = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
         toggleBtn.innerHTML = newVisibility ? `${downIcon} Hide Controls` : `${rightIcon} Show Controls`;
         toggleBtn.setAttribute("aria-expanded", newVisibility.toString());

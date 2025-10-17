@@ -18,6 +18,42 @@ import {
  * @returns {HTMLElement} The files list container
  */
 export function createShownFilesList() {
+
+    /**
+     * Creates a function to position tooltip near mouse, avoiding window edges
+     * @param {HTMLElement} tooltip - The tooltip element
+     * @returns {(evt: MouseEvent) => void} Mouse move handler
+     */
+    function createTooltipMover(tooltip) {
+        return (evt) => {
+            const pad = 12;
+            let x = evt.clientX + pad,
+                y = evt.clientY + pad;
+            if (x + tooltip.offsetWidth > window.innerWidth) {
+                x = window.innerWidth - tooltip.offsetWidth - pad;
+            }
+            if (y + tooltip.offsetHeight > window.innerHeight) {
+                y = window.innerHeight - tooltip.offsetHeight - pad;
+            }
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        };
+    }
+
+    /**
+     * Creates a function to remove tooltip and its event listeners
+     * @param {(evt: MouseEvent) => void} moveHandler - The mousemove handler to remove
+     * @param {HTMLElement} tooltip - The tooltip element to remove
+     * @returns {() => void} Remover function
+     */
+    function createTooltipRemover(moveHandler, tooltip) {
+        return () => {
+            globalThis.removeEventListener("mousemove", moveHandler);
+            if (tooltip.parentNode) {
+                tooltip.remove();
+            }
+        };
+    }
     const container = document.createElement("div");
     container.className = "shown-files-list map-overlays-panel";
     container.tabIndex = 0;
@@ -459,29 +495,14 @@ export function createShownFilesList() {
                         }
                         tooltip.innerHTML = html;
                         document.body.append(tooltip);
-                        /** @param {MouseEvent} evt */
-                        const moveTooltip = (evt) => {
-                            const pad = 12;
-                            let x = evt.clientX + pad,
-                                y = evt.clientY + pad;
-                            if (x + tooltip.offsetWidth > window.innerWidth) {
-                                x = window.innerWidth - tooltip.offsetWidth - pad;
-                            }
-                            if (y + tooltip.offsetHeight > window.innerHeight) {
-                                y = window.innerHeight - tooltip.offsetHeight - pad;
-                            }
-                            tooltip.style.left = `${x}px`;
-                            tooltip.style.top = `${y}px`;
-                        };
+
+                        // Helper: Position tooltip near mouse, avoiding window edges
+                        const moveTooltip = createTooltipMover(tooltip);
+
                         moveTooltip(e);
                         globalThis.addEventListener("mousemove", moveTooltip);
                         // @ts-expect-error - Custom property on HTMLElement
-                        li._tooltipRemover = () => {
-                            globalThis.removeEventListener("mousemove", moveTooltip);
-                            if (tooltip.parentNode) {
-                                tooltip.remove();
-                            }
-                        };
+                        li._tooltipRemover = createTooltipRemover(moveTooltip, tooltip);
                     }, 350);
                 });
                 li.addEventListener("mouseleave", () => {
@@ -571,7 +592,7 @@ export function createShownFilesList() {
         }
     };
     // Hide initially if no overlays
-    if (!(getOverlayFiles().length > 1)) {
+    if (getOverlayFiles().length <= 1) {
         container.style.display = "none";
     }
 

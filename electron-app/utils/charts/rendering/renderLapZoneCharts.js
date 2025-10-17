@@ -121,8 +121,11 @@ export function renderLapZoneCharts(container, options = {}) {
                 return [];
             }
             try {
-                const clean = val.trim().replaceAll(/^"+|"+$/g, ""),
-                    arr = JSON.parse(clean);
+                // Remove leading and trailing quotes manually to avoid regex backtracking
+                let clean = val.trim();
+                while (clean.startsWith('"')) clean = clean.slice(1);
+                while (clean.endsWith('"')) clean = clean.slice(0, -1);
+                const arr = JSON.parse(clean);
                 if (!Array.isArray(arr)) {
                     throw new TypeError("Not an array");
                 }

@@ -1496,20 +1496,19 @@ canvas {
 
 /* Chart controls toggle button */
 #chart-controls-toggle {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, rgb(var(--color-accent-rgb) / 90%) 0%, var(--color-accent) 100%);
-    color: var(--c_hexfff);
-    border: 1px solid transparent;
-    border-radius: calc(var(--border-radius-small) + 6px);
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 10px 24px rgb(var(--color-accent-rgb) / 22%);
-    letter-spacing: 0.01em;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;;
+    background: var(--color-btn-bg) !important;;
+    color: var(--color-fg-alt) !important;;
+    font-size: 12px !important;;
+    font-weight: 600 !important;;
+    cursor: pointer !important;;
+    transition: var(--transition-smooth) !important;;
+    border: 1px solid var(--color-border) !important;;
+    white-space: nowrap !important;;
+    backdrop-filter: var(--backdrop-blur) !important;;
+    transform: translateY(0px) !important;;
+    box-shadow: none !important;;
 }
 
 #chart-controls-toggle iconify-icon {

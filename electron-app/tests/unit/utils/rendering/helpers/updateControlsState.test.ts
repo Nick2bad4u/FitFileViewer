@@ -27,7 +27,7 @@ const mockSubscribe = vi.mocked(subscribe);
 const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 
 // Mock DOM elements
-const ICON_DOWN = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+const ICON_DOWN = '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon>';
 const ICON_RIGHT = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
 
 let toggleHtml = "";

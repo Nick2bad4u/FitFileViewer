@@ -38,7 +38,7 @@ const CONSTANTS = {
     LOG_PREFIX: "[GlobalChartStatus]",
     TEXTS: {
         ALL_SET: "All Set",
-        HIDE_CONTROLS: '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon> Hide Controls',
+        HIDE_CONTROLS: '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon> Hide Controls',
         LOAD_FIT: "Load FIT",
         SHOW_SETTINGS: "Show Settings",
     },

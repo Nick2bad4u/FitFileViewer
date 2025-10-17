@@ -9,7 +9,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
 
 const DEFAULT_DOCUMENT_TITLE = typeof document !== "undefined" && document?.title ? document.title : "Fit File Viewer";
-const ICON_DOWN = '<iconify-icon icon="flat-color-icons:down" width="18" height="18"></iconify-icon>';
+const ICON_DOWN = '<iconify-icon icon="flat-color-icons:down" width="18" height="18" fill="#FFFFFF"></iconify-icon>';
 const ICON_RIGHT = '<iconify-icon icon="flat-color-icons:right" width="18" height="18"></iconify-icon>';
 
 /**
