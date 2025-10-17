@@ -5954,6 +5954,13 @@ body.theme-light .multi-lap-toggle:hover {
     background: rgba(17, 24, 39, 0.78) !important;
     border-color: rgba(148, 163, 184, 0.32) !important;
     color: rgba(226, 232, 240, 0.95) !important;
+    text-shadow: none !important;
+}
+
+/* Fix blurry text on Leaflet scale control (remove text-shadow) */
+.leaflet-control-scale-line {
+    text-shadow: none !important;
+    font-weight: 500;
 }
 
 #leaflet-map .leaflet-control-container > .leaflet-bottom > div {
@@ -6552,6 +6559,210 @@ a:focus-visible {
 .map-theme-toggle:disabled .icon svg {
     stroke: currentcolor;
     opacity: 0.5;
+}
+
+/* =====================================================
+   User & Device Info Box (Charts Tab)
+   ===================================================== */
+.user-device-info-box {
+    margin: 0 0 24px 0;
+    padding: 20px;
+    background: var(--color-bg-alt, #f8f9fa);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px var(--color-shadow, rgba(0, 0, 0, 0.05));
+    transition: all 0.2s ease;
+}
+
+.user-device-info-box__section {
+    margin-bottom: 20px;
+}
+
+.user-device-info-box__section:last-child {
+    margin-bottom: 0;
+}
+
+.user-device-info-box__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--color-accent, #3b82f6);
+}
+
+.user-device-info-box__header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--color-accent, #3b82f6), var(--color-accent-hover, #2563eb));
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.user-device-info-box__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text-primary, #1e293b);
+    letter-spacing: 0.02em;
+}
+
+.user-device-info-box__card {
+    background: var(--color-bg-primary, #ffffff);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px var(--color-shadow, rgba(0, 0, 0, 0.05));
+}
+
+.user-device-info-box__card:last-child {
+    margin-bottom: 0;
+}
+
+.user-device-info-box__card-title {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.user-device-info-box__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.user-device-info-box__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: var(--color-bg-alt, #f8f9fa);
+    border-radius: 8px;
+    border-left: 3px solid var(--color-accent, #3b82f6);
+    transition: all 0.2s ease;
+}
+
+.user-device-info-box__field:hover {
+    background: var(--color-bg-hover, #eff6ff);
+    border-left-color: var(--color-accent-hover, #2563eb);
+    transform: translateX(2px);
+}
+
+.user-device-info-box__field-label {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.user-device-info-box__field-value {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary, #1e293b);
+}
+
+/* Sensor Pills */
+.sensor-pill-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sensor-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, var(--color-accent, #3b82f6), var(--color-accent-hover, #2563eb));
+    color: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.sensor-pill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.sensor-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+.sensor-pill:hover::before {
+    left: 100%;
+}
+
+.user-device-info-box__empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--color-text-secondary, #64748b);
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Dark theme adjustments */
+body.theme-dark .user-device-info-box {
+    background: var(--color-bg-alt, #1e293b);
+    border-color: var(--color-border, #334155);
+}
+
+body.theme-dark .user-device-info-box__title {
+    color: var(--color-text-primary, #f1f5f9);
+}
+
+body.theme-dark .user-device-info-box__card {
+    background: var(--color-bg-primary, #0f172a);
+    border-color: var(--color-border, #334155);
+}
+
+body.theme-dark .user-device-info-box__card-title {
+    color: var(--color-text-secondary, #94a3b8);
+}
+
+body.theme-dark .user-device-info-box__field {
+    background: var(--color-bg-alt, #1e293b);
+}
+
+body.theme-dark .user-device-info-box__field:hover {
+    background: var(--color-bg-hover, #1e3a5f);
+}
+
+body.theme-dark .user-device-info-box__field-label {
+    color: var(--color-text-secondary, #94a3b8);
+}
+
+body.theme-dark .user-device-info-box__field-value {
+    color: var(--color-text-primary, #f1f5f9);
+}
+
+body.theme-dark .user-device-info-box__empty {
+    color: var(--color-text-secondary, #94a3b8);
 }
 
 /* =====================================================

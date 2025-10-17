@@ -4,8 +4,8 @@ import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { getChartIcon, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
-import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
+import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 /**
  * @typedef {Object} LapZoneDatum
@@ -148,11 +148,11 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                         labels: {
                             color: themeConfig?.colors?.textPrimary || "#000",
                             font: { size: 12 },
-                            boxWidth: 22,
-                            boxHeight: 12,
-                            padding: 16,
+                            boxWidth: 32,
+                            boxHeight: 18,
+                            padding: 20,
                             usePointStyle: false,
-                            hitboxWidth: 80,
+                            hitboxWidth: 120,
                         },
                         position: "top",
                         onHover(_event, _legendItem, legend) {

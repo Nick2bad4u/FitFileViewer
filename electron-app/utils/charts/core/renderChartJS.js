@@ -289,6 +289,7 @@ import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 // Import the notification state module broadly; provide safe wrapper exports below to avoid
 // tight coupling during SSR and module cache injection in tests
 import * as chartNotificationState from "./chartNotificationState.js";
+
 const _previousChartState = chartNotificationState.previousChartState;
 
 const DATA_SIGNATURE_SOURCES = [

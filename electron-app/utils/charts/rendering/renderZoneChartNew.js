@@ -5,8 +5,8 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { getChartIcon, getZoneChartEmoji, getZoneChartIcon } from "../../ui/icons/iconMappings.js";
 import { attachChartLabelMetadata } from "../components/attachChartLabelMetadata.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
-import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
+import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 /**
@@ -141,7 +141,7 @@ function createBarChartConfig(
                     borderRadius: 4,
                     borderSkipped: false,
                     hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
-                        const safe = /^#?[\dA-Fa-f]{6}$/.test(color) ? color.replace("#", "") : "999999",
+                        const safe = /^#?[\da-f]{6}$/i.test(color) ? color.replace("#", "") : "999999",
                             b = Number.parseInt(safe.slice(4, 6), 16),
                             g = Number.parseInt(safe.slice(2, 4), 16),
                             r = Number.parseInt(safe.slice(0, 2), 16);
@@ -329,7 +329,7 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                     circumference: 360, // Full circle
                     hoverBackgroundColor: colors.slice(0, zoneData.length).map((color) => {
                         // Lighten the color on hover
-                        const safe = /^#?[\dA-Fa-f]{6}$/.test(color) ? color.replace("#", "") : "999999",
+                        const safe = /^#?[\da-f]{6}$/i.test(color) ? color.replace("#", "") : "999999",
                             b = Number.parseInt(safe.slice(4, 6), 16),
                             g = Number.parseInt(safe.slice(2, 4), 16),
                             r = Number.parseInt(safe.slice(0, 2), 16);

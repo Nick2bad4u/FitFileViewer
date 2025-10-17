@@ -106,11 +106,11 @@ export const chartOptionsConfig = [
         type: "select",
     },
     {
-        default: "smooth",
-        description: "Chart animation style (smooth for best visual effect, fast for performance, none to disable)",
+        default: "none",
+        description: "Chart animation style (smooth for best visual effect, fast for performance, none for instant rendering)",
         id: "animation",
         label: "Animation",
-        options: ["smooth", "fast", "none"],
+        options: ["none", "fast", "smooth"],
         type: "select",
     },
     {

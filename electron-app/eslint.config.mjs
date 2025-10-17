@@ -1,11 +1,22 @@
+import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
+import importXPlugin from "eslint-plugin-import-x";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import nodePlugin from "eslint-plugin-n";
+import nounsanitized from "eslint-plugin-no-unsanitized";
 import perfectionist from "eslint-plugin-perfectionist";
+import pluginPromise from "eslint-plugin-promise";
+import pluginReact from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import pluginRegexp from "eslint-plugin-regexp";
+import pluginSecurity from "eslint-plugin-security";
+import pluginSonarjs from "eslint-plugin-sonarjs";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
+import pluginUnusedImports from "eslint-plugin-unused-imports";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
 
@@ -28,7 +39,13 @@ export default defineConfig([
                 },
             },
         },
-        plugins: { js },
+        plugins: {
+            js,
+            "unused-imports": pluginUnusedImports,
+            promise: pluginPromise,
+            security: pluginSecurity,
+            "eslint-comments": eslintComments,
+        },
         // Use the sane defaults instead of the extremely strict "all" ruleset.
         // This aligns with common practice and reduces noisy stylistic errors
         // while keeping correctness-focused rules.
@@ -129,9 +146,8 @@ export default defineConfig([
             "unicorn/error-message": "off", // Allow Error() without message
             "unicorn/no-array-callback-reference": "off", // Allow direct function references in array callbacks
             "unicorn/no-new-array": "off", // Allow new Array()
-            "no-implicit-globals": "warn", // Warn about implicit globals
-            "no-invalid-this": "warn", // Warn about invalid this usage
-            "n/no-deprecated-api": "warn", // Warn about deprecated APIs
+            "eslint-comments/no-unlimited-disable": "off", // Allow unlimited disables in some files
+            "eslint-comments/no-unused-disable": "warn", // Warn about unused disable directives
         },
     },
     // Apply strict rule-sets from Unicorn, Node (n), and Perfectionist, scoped to JS/TS only to avoid
@@ -139,6 +155,10 @@ export default defineConfig([
     { ...eslintPluginUnicorn.configs.all, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
     { ...nodePlugin.configs["flat/all"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
     { ...perfectionist.configs["recommended-natural"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...pluginSonarjs.configs.recommended, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...pluginRegexp.configs["flat/recommended"], files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...importXPlugin.flatConfigs.recommended, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
+    { ...nounsanitized.configs.recommended, files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
     {
         files: ["**/*.{js,mjs,cjs,ts}", "**/*.jsx", "**/*.tsx"],
         rules: {
@@ -203,6 +223,136 @@ export default defineConfig([
             "perfectionist/sort-jsx-props": "warn",
             "perfectionist/sort-sets": "warn",
             "perfectionist/sort-maps": "warn",
+
+            // Security plugin rules - start as warnings
+            "security/detect-object-injection": "off", // Too many false positives
+            "security/detect-non-literal-regexp": "off", // Allow dynamic regexps
+            "security/detect-unsafe-regex": "warn",
+            "security/detect-buffer-noassert": "warn",
+            "security/detect-eval-with-expression": "error",
+            "security/detect-no-csrf-before-method-override": "warn",
+            "security/detect-possible-timing-attacks": "off", // Too many false positives
+            "security/detect-pseudoRandomBytes": "warn",
+
+            // Promise plugin rules
+            "promise/always-return": "off", // Allow promises without explicit returns
+            "promise/no-return-wrap": "warn",
+            "promise/param-names": "warn",
+            "promise/catch-or-return": "off", // Allow promises without catch
+            "promise/no-nesting": "warn",
+            "promise/no-promise-in-callback": "warn",
+            "promise/no-callback-in-promise": "warn",
+            "promise/avoid-new": "off", // Allow new Promise()
+            "promise/no-new-statics": "error",
+            "promise/no-return-in-finally": "error",
+            "promise/valid-params": "error",
+            "promise/prefer-await-to-then": "off", // Allow .then() usage
+
+            // Unused imports plugin
+            "unused-imports/no-unused-imports": "warn",
+            "unused-imports/no-unused-vars": [
+                "warn",
+                { vars: "all", varsIgnorePattern: "^_", args: "after-used", argsIgnorePattern: "^_" },
+            ],
+
+            // Import-x plugin rules
+            "import-x/no-unresolved": "off", // Handled by TypeScript
+            "import-x/named": "off",
+            "import-x/namespace": "off",
+            "import-x/default": "off",
+            "import-x/export": "error",
+            "import-x/no-named-as-default": "warn",
+            "import-x/no-named-as-default-member": "warn",
+            "import-x/no-duplicates": "warn",
+            "import-x/no-namespace": "off", // Allow namespace imports
+            "import-x/extensions": "off", // Don't enforce file extensions
+            "import-x/order": "off", // Use perfectionist instead
+            "import-x/newline-after-import": "warn",
+            "import-x/no-mutable-exports": "warn",
+            "import-x/no-unused-modules": "off", // Too slow for large projects
+
+            // Regexp plugin rules
+            "regexp/no-super-linear-backtracking": "error",
+            "regexp/no-useless-lazy": "warn",
+            "regexp/no-useless-quantifier": "warn",
+            "regexp/optimal-quantifier-concatenation": "warn",
+            "regexp/prefer-quantifier": "warn",
+
+            // SonarJS rules adjustments
+            "sonarjs/cognitive-complexity": ["warn", 30],
+            "sonarjs/no-duplicate-string": "off", // Too noisy for test files
+            "sonarjs/no-identical-functions": "warn",
+            "sonarjs/no-nested-template-literals": "off",
+            "sonarjs/prefer-immediate-return": "off",
+            "sonarjs/no-nested-conditional": "warn", // Allow nested ternaries with warning
+            "sonarjs/no-all-duplicated-branches": "warn", // Warn instead of error
+            "sonarjs/no-redundant-boolean": "warn",
+            "sonarjs/no-gratuitous-expressions": "warn",
+
+            // No-unsanitized rules
+            "no-unsanitized/method": "off", // Too many false positives with dynamic imports
+            "no-unsanitized/property": "warn",
+
+            // ESLint comments rules
+            "eslint-comments/disable-enable-pair": "warn",
+            "eslint-comments/no-aggregating-enable": "warn",
+            "eslint-comments/no-duplicate-disable": "error",
+            "eslint-comments/no-unlimited-disable": "off",
+            "eslint-comments/no-unused-disable": "warn",
+            "eslint-comments/no-unused-enable": "warn",
+        },
+    },
+    // React and JSX rules for .jsx and .tsx files
+    {
+        files: ["**/*.{jsx,tsx}"],
+        plugins: {
+            react: pluginReact,
+            "react-hooks": reactHooks,
+            "jsx-a11y": jsxA11y,
+        },
+        languageOptions: {
+            parserOptions: {
+                ecmaFeatures: {
+                    jsx: true,
+                },
+            },
+        },
+        settings: {
+            react: {
+                version: "detect",
+            },
+        },
+        rules: {
+            ...pluginReact.configs.recommended.rules,
+            ...pluginReact.configs["jsx-runtime"].rules,
+            ...reactHooks.configs.recommended.rules,
+            ...jsxA11y.configs.recommended.rules,
+
+            // React rules adjustments
+            "react/react-in-jsx-scope": "off", // Not needed with React 17+
+            "react/prop-types": "off", // Using TypeScript for type checking
+            "react/jsx-uses-react": "off",
+            "react/jsx-uses-vars": "error",
+            "react/jsx-no-undef": "error",
+            "react/jsx-key": "error",
+            "react/no-unescaped-entities": "warn",
+            "react/display-name": "off",
+            "react/jsx-no-target-blank": ["error", { enforceDynamicLinks: "always" }],
+
+            // React Hooks rules
+            "react-hooks/rules-of-hooks": "error",
+            "react-hooks/exhaustive-deps": "warn",
+
+            // JSX a11y rules adjustments
+            "jsx-a11y/anchor-is-valid": "warn",
+            "jsx-a11y/click-events-have-key-events": "warn",
+            "jsx-a11y/no-static-element-interactions": "warn",
+            "jsx-a11y/alt-text": "error",
+            "jsx-a11y/aria-props": "error",
+            "jsx-a11y/aria-proptypes": "error",
+            "jsx-a11y/aria-unsupported-elements": "error",
+            "jsx-a11y/role-has-required-aria-props": "error",
+            "jsx-a11y/role-supports-aria-props": "error",
         },
     },
     {

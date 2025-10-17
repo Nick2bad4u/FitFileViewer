@@ -334,10 +334,9 @@ function createDoughnutChartConfig(zoneData, colors, title, options, currentThem
                             size: 14,
                             weight: "600",
                         },
-                        boxWidth: 22,
-                        boxHeight: 12,
-                        padding: 18,
-                        hitboxWidth: 80,
+                        boxWidth: 32,
+                        boxHeight: 18,
+                        hitboxWidth: 120,
                         /** @param {any} chartInstance */
                         generateLabels(chartInstance) {
                             const { data } = chartInstance; // Fallbacks for defensive programming

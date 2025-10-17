@@ -4,13 +4,12 @@ import { updateControlsState } from "../../rendering/helpers/updateControlsState
 import { getState, setState, updateState } from "../../state/core/stateManager.js";
 import { createHRZoneControls, moveHRZoneControlsToSection } from "../controls/createHRZoneControls.js";
 import { createPowerZoneControls, movePowerZoneControlsToSection } from "../controls/createPowerZoneControls.js";
-import { applySettingsPanelStyles } from "./createSettingsHeader.js";
-import {
+import { applySettingsPanelStyles,
     createControlsSection,
     createExportSection,
     createFieldTogglesSection,
-    createSettingsHeader,
-} from "./createSettingsHeader.js";
+    createSettingsHeader } from "./createSettingsHeader.js";
+
 
 /**
  * Ensures chart settings dropdowns exist and applies styling

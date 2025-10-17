@@ -4,8 +4,8 @@ import { renderSinglePowerZoneBar } from "../../data/zones/renderSinglePowerZone
 import { getGlobalData } from "../../state/domain/globalDataState.js";
 import { getHeartRateZones, getPowerZones } from "../../state/domain/zoneState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
-import { renderLapZoneChart } from "./renderLapZoneChart.js";
 import { addChartHoverEffects } from "../plugins/addChartHoverEffects.js";
+import { renderLapZoneChart } from "./renderLapZoneChart.js";
 /**
  * @typedef {Object} LapZoneDatum
  * @property {string} label

@@ -6,8 +6,8 @@
  */
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
-import * as __StateMgr from "../../state/core/stateManager.js";
 import { normalizeTabName } from "../../app/lifecycle/appActions.js";
+import * as __StateMgr from "../../state/core/stateManager.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 
@@ -633,6 +633,32 @@ class TabStateManager {
         this.isInitialized = true;
     }
 
+    normalizeInitialActiveTabState() {
+        const rawActive = getStateMgr().getState("ui.activeTab");
+        const canonicalActive = normalizeTabName(rawActive);
+        const fallbackTab = canonicalActive || "summary";
+
+        if (!rawActive && fallbackTab) {
+            getStateMgr().setState("ui.activeTab", fallbackTab, { source: "TabStateManager.normalizeInitial" });
+            return;
+        }
+
+        if (canonicalActive && rawActive !== canonicalActive) {
+            getStateMgr().setState("ui.activeTab", canonicalActive, { source: "TabStateManager.normalizeInitial" });
+            return;
+        }
+
+        if (!canonicalActive && fallbackTab) {
+            getStateMgr().setState("ui.activeTab", fallbackTab, { source: "TabStateManager.normalizeInitial" });
+            return;
+        }
+
+        if (canonicalActive) {
+            this.updateTabButtonStates(canonicalActive);
+            this.updateContentVisibility(canonicalActive);
+        }
+    }
+
     /**
      * Set up click handlers for all tab buttons
      */
@@ -688,7 +714,6 @@ class TabStateManager {
         getStateMgr().setState("ui.activeTab", canonicalTabName, { source: "TabStateManager.switchToTab" });
         return true;
     }
-
     /**
      * Update content area visibility
      * @param {string} activeTab - Currently active tab name
@@ -737,6 +762,7 @@ class TabStateManager {
             activeContent.style.display = "block";
         }
     }
+
     /**
      * Update tab availability based on data availability
      * @param {Object} globalData - Current global data
@@ -765,6 +791,7 @@ class TabStateManager {
             }
         }
     }
+
     /**
      * Update tab button visual states
      * @param {string} activeTab - Currently active tab name
@@ -788,32 +815,6 @@ class TabStateManager {
             } catch {
                 // Ignore individual button failures to keep others updated
             }
-        }
-    }
-
-    normalizeInitialActiveTabState() {
-        const rawActive = getStateMgr().getState("ui.activeTab");
-        const canonicalActive = normalizeTabName(rawActive);
-        const fallbackTab = canonicalActive || "summary";
-
-        if (!rawActive && fallbackTab) {
-            getStateMgr().setState("ui.activeTab", fallbackTab, { source: "TabStateManager.normalizeInitial" });
-            return;
-        }
-
-        if (canonicalActive && rawActive !== canonicalActive) {
-            getStateMgr().setState("ui.activeTab", canonicalActive, { source: "TabStateManager.normalizeInitial" });
-            return;
-        }
-
-        if (!canonicalActive && fallbackTab) {
-            getStateMgr().setState("ui.activeTab", fallbackTab, { source: "TabStateManager.normalizeInitial" });
-            return;
-        }
-
-        if (canonicalActive) {
-            this.updateTabButtonStates(canonicalActive);
-            this.updateContentVisibility(canonicalActive);
         }
     }
 }

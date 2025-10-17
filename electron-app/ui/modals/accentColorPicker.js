@@ -461,7 +461,7 @@ function setupEventListeners(modal) {
     // Custom color text input
     customText.addEventListener("input", (event) => {
         const color = event.target.value;
-        if (/^#[\dA-Fa-f]{6}$/.test(color)) {
+        if (/^#[\da-f]{6}$/i.test(color)) {
             customPicker.value = color;
             applyColor(color);
         }

@@ -2,10 +2,10 @@ import { attachChartLabelMetadata } from "../../charts/components/attachChartLab
 import { addChartHoverEffects } from "../../charts/plugins/addChartHoverEffects.js";
 import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
-import { getChartIcon } from "../../ui/icons/iconMappings.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { getChartIcon } from "../../ui/icons/iconMappings.js";
 import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
 import { getChartZoneColors } from "./chartZoneColorUtils.js";
 
@@ -30,7 +30,7 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         let hoverContainer = canvas.parentElement;
 
         if (!hoverContainer && doc) {
-            const body = doc.body;
+            const { body } = doc;
             if (body) {
                 if (!body.contains(canvas)) {
                     body.append(canvas);
@@ -95,11 +95,11 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
                             labels: {
                                 color: theme === "dark" ? "#fff" : "#000",
                                 font: { size: 12 },
-                                boxWidth: 22,
-                                boxHeight: 12,
-                                padding: 16,
+                                boxWidth: 32,
+                                boxHeight: 18,
+                                padding: 20,
                                 usePointStyle: false,
-                                hitboxWidth: 80,
+                                hitboxWidth: 120,
                             },
                             position: "top",
                             onHover(_event, _legendItem, legend) {

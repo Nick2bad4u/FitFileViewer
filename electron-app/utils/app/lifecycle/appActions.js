@@ -21,8 +21,8 @@ const VALID_TABS = new Set(["altfit", "chartjs", "data", "map", "summary", "zwif
 const TAB_ALIASES = new Map([
     ["chart", "chartjs"],
     ["chartjs", "chartjs"],
-    ["table", "data"],
     ["data", "data"],
+    ["table", "data"],
 ]);
 
 /**

@@ -121,16 +121,16 @@ function handleTabChange(activeTab) {
             }
             break;
         }
-        case "map": {
-            if (!AppSelectors.isMapRendered()) {
-                loadMapTab();
-            }
-            break;
-        }
         case "data":
         case "table": {
             if (!AppSelectors.areTablesRendered()) {
                 loadTableTab();
+            }
+            break;
+        }
+        case "map": {
+            if (!AppSelectors.isMapRendered()) {
+                loadMapTab();
             }
             break;
         }
