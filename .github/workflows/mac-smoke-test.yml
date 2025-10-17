@@ -1,0 +1,44 @@
+name: macOS File Open Smoke Test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'electron-app/**'
+      - 'fit-test-files/**'
+      - '.github/workflows/mac-smoke-test.yml'
+  pull_request:
+    paths:
+      - 'electron-app/**'
+      - 'fit-test-files/**'
+      - '.github/workflows/mac-smoke-test.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: electron-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: electron-app
+        run: npx playwright install --with-deps
+
+      - name: Run smoke tests
+        working-directory: electron-app
+        env:
+          ELECTRON_DISABLE_SECURITY_WARNINGS: '1'
+        run: npm run test:smoke

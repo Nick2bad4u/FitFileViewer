@@ -23,7 +23,7 @@ const // Constants for better maintainability
         WEB_PREFERENCES: {
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: true,
+            sandbox: process.platform !== "darwin",
         },
     },
     { app, BrowserWindow } = require("electron");

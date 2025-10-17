@@ -1,3 +1,6 @@
+const fs = require('node:fs');
+const path = require('node:path');
+
 /**
  * Ensures a valid dialog module is available and exposes showOpenDialog.
  * @param {unknown} dialogRef
@@ -47,8 +50,43 @@ function registerDialogHandlers({
         return;
     }
 
+    const resolveSelectedPath = async (candidatePath) => {
+        if (!candidatePath) {
+            return null;
+        }
+
+        const normalizedPath = path.normalize(candidatePath);
+
+        if (typeof addRecentFile === 'function') {
+            addRecentFile(normalizedPath);
+        }
+
+        if (typeof setAppState === 'function') {
+            setAppState('loadedFitFilePath', normalizedPath);
+        }
+
+        const win = resolveTargetWindow(browserWindowRef, mainWindow);
+        if (win && typeof getThemeFromRenderer === 'function' && typeof safeCreateAppMenu === 'function') {
+            try {
+                const theme = await getThemeFromRenderer(win);
+                safeCreateAppMenu(win, theme, normalizedPath);
+            } catch (menuError) {
+                logWithContext?.('warn', 'Failed to refresh menu after file dialog selection', {
+                    error: /** @type {Error} */ (menuError)?.message,
+                });
+            }
+        }
+
+        return normalizedPath;
+    };
+
     registerIpcHandle('dialog:openFile', async () => {
         try {
+            const forcedPath = resolveForcedOpenFilePath(logWithContext);
+            if (forcedPath) {
+                return resolveSelectedPath(forcedPath);
+            }
+
             const dialog = ensureDialogModule(dialogRef);
 
             const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -65,27 +103,7 @@ function registerDialogHandlers({
                 return null;
             }
 
-            if (typeof addRecentFile === 'function') {
-                addRecentFile(firstPath);
-            }
-
-            if (typeof setAppState === 'function') {
-                setAppState('loadedFitFilePath', firstPath);
-            }
-
-            const win = resolveTargetWindow(browserWindowRef, mainWindow);
-            if (win && typeof getThemeFromRenderer === 'function' && typeof safeCreateAppMenu === 'function') {
-                try {
-                    const theme = await getThemeFromRenderer(win);
-                    safeCreateAppMenu(win, theme, firstPath);
-                } catch (menuError) {
-                    logWithContext?.('warn', 'Failed to refresh menu after file dialog selection', {
-                        error: /** @type {Error} */ (menuError)?.message,
-                    });
-                }
-            }
-
-            return firstPath;
+            return resolveSelectedPath(firstPath);
         } catch (error) {
             logWithContext?.('error', 'Error in dialog:openFile', {
                 error: /** @type {Error} */ (error)?.message,
@@ -139,3 +157,36 @@ function resolveTargetWindow(browserWindowRef, fallback) {
 }
 
 module.exports = { registerDialogHandlers, ensureDialogModule, resolveTargetWindow };
+
+/**
+ * Resolves an environment-provided file path for automated smoke tests.
+ * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void | undefined} logWithContext
+ * @returns {string|null}
+ */
+function resolveForcedOpenFilePath(logWithContext) {
+    const rawPath = process.env.FFV_E2E_OPEN_FILE_PATH;
+    if (!rawPath) {
+        return null;
+    }
+
+    try {
+        const candidate = path.resolve(rawPath);
+        if (!fs.existsSync(candidate)) {
+            logWithContext?.('warn', 'Forced open file path does not exist', {
+                candidate,
+            });
+            return null;
+        }
+
+        logWithContext?.('info', 'Using forced file path for dialog:openFile handler', {
+            candidate,
+        });
+
+        return candidate;
+    } catch (error) {
+        logWithContext?.('warn', 'Failed to resolve forced open file path', {
+            error: /** @type {Error} */ (error)?.message,
+        });
+        return null;
+    }
+}

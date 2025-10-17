@@ -133,8 +133,10 @@
         "vite/client",
         "vitest.config.ts",
         "vitest.shared.config.ts",
-        "tailwind.config.mjs"
-, "scripts/dev-runner.mjs"    ],
+        "tailwind.config.mjs",
+        "playwright.config.ts",
+        "scripts/dev-runner.mjs"
+    ],
     "typeAcquisition": {
         "enable": true
     }
