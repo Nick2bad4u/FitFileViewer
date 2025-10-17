@@ -7,14 +7,542 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[d525d57](https://github.com/Nick2bad4u/FitFileViewer/commit/d525d570a77f831c2492612e53b9e8eadb686a28)...
+[d525d57](https://github.com/Nick2bad4u/FitFileViewer/commit/d525d570a77f831c2492612e53b9e8eadb686a28)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d525d570a77f831c2492612e53b9e8eadb686a28...d525d570a77f831c2492612e53b9e8eadb686a28))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.3.0 [`(d525d57)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d525d570a77f831c2492612e53b9e8eadb686a28)
+
+
+
+
+
+
+## [27.3.0] - 2025-10-17
+
+
 [[5ca8a61](https://github.com/Nick2bad4u/FitFileViewer/commit/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5)...
-[5ca8a61](https://github.com/Nick2bad4u/FitFileViewer/commit/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5...5ca8a612b83bb90cb547c721f6b0e2ad87b757b5))
+[2f0a185](https://github.com/Nick2bad4u/FitFileViewer/commit/2f0a18501a8943ece8ce709d902f789a1f35c099)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5...2f0a18501a8943ece8ce709d902f789a1f35c099))
+
+
+### 💼 Other
+
+- 🚜 [refactor] Modernize array handling
+
+Refactors code to use `Array.from` for array creation and manipulation, improving code consistency and readability.
+
+- 🔄 Replaces spread syntax (`[...array]`) with `Array.from(array)` for creating new arrays from iterables.
+ - 🎨 This change improves code clarity and ensures consistent array handling across the application.
+ - 🧪 Affects various files including eslint config, main process initialization, resource management, menu creation, chart rendering, data extraction, DOM manipulation, file exporting/importing, recent files handling, map controls, measurement formatting, UI components, state management, and UI controls.
+- 🧹 Removes unused eslint rule and disables another one.
+ - 📝 Updates JSDoc comments for clarity.
+- 🐛 Fixes a minor issue with main process initialization by clarifying a comment.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(2f0a185)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2f0a18501a8943ece8ce709d902f789a1f35c099)
+
+
+- ✨ [feat] Enable TypeScript ESLint rules
+
+Enables TypeScript-specific ESLint rules to improve code quality and consistency.
+
+- Adds:
+  - `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to the project dependencies.
+  - TypeScript-specific ESLint rules for `.ts` and `.tsx` files, including:
+    - `@typescript-eslint/no-explicit-any`: Warns against the use of `any` type.
+    - `@typescript-eslint/no-unused-vars`: Warns against unused variables and function arguments.
+    - `@typescript-eslint/explicit-function-return-type`: Enforces explicit return types for functions.
+    - `@typescript-eslint/explicit-module-boundary-types`: Enforces explicit types for module boundaries.
+    - `@typescript-eslint/no-non-null-assertion`: Warns against non-null assertions.
+    - `@typescript-eslint/prefer-nullish-coalescing`: Suggests using nullish coalescing operator.
+    - `@typescript-eslint/prefer-optional-chain`: Suggests using optional chaining.
+- Integrates several new ESLint plugins for enhanced code analysis:
+  - eslint-plugin-array-func: 🔄 improves array method usage.
+  - eslint-plugin-comment-length: 📏 enforces readable comment lengths.
+  - eslint-plugin-ex: 🚫 disallows specific ES features.
+  - eslint-plugin-listeners: 👂 promotes event listener best practices.
+  - eslint-plugin-no-function-declare-after-return: ➡️ enforces function declaration order.
+  - eslint-plugin-no-secrets: 🤫 prevents committing secrets.
+  - eslint-plugin-no-use-extend-native: ⛔ prevents extending native prototypes.
+  - eslint-plugin-prefer-arrow: ➡️ encourages arrow functions.
+  - eslint-plugin-switch-case: 🚦 improves switch statement handling.
+  - eslint-plugin-tsdoc: 📝 validates TSDoc syntax.
+- Configures `import-x` plugin to ignore parsing of ESLint plugins and problematic modules.
+- Adjusts SonarJS rules - disabling `no-unused-vars` in favor of the built-in rule and demoting several rules from errors to warnings to reduce noise.
+- Updates UI components to include `#FFFFFF` fill color in the toggle button icon.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(95ee908)`](https://github.com/Nick2bad4u/FitFileViewer/commit/95ee908a02caff94b1a90d5c447ec8ed755f14fe)
+
+
+- ✨ [feat] Enhance UI and add MCP server support
+
+This commit introduces several enhancements and new features to the application, including UI improvements, better theme handling, support for an MCP server, and test updates.
+
+- 🎨 [style] Improves UI theming and map control appearance, especially in dark mode:
+ - Fixes the white background issue on the scale control in dark mode by setting the background and border colors.
+ - Ensures scale control text is visible in dark mode by setting the text color.
+- ✨ [feat] Adds optional MCP server support for enhanced debugging and development:
+ - Introduces a new `dev:mcp` script to start the development environment with MCP enabled.
+ - Implements `startMcpServer` function that spawns an `electron-mcp-server` process.
+ - Generates a random encryption key if `SCREENSHOT_ENCRYPTION_KEY` is not set in the environment.
+- 🚜 [refactor] Improves tab management and state normalization:
+ - Normalizes tab names to their canonical representation to avoid issues with case sensitivity and aliases.
+ - Prevents redundant theme applications by verifying that the theme is not already applied.
+ - Updates tab switching logic to use normalized tab names and avoids redundant state updates.
+- 🧪 [test] Introduces theme switching and rendering integration tests.
+ - 🧪 [test] Updates tab state integration tests to use canonical tab identifiers.
+- 🛠️ [fix] Prevents redundant updates and improves chart rendering:
+ - Prevents redundant accent color re-application on every click.
+ - Prevents unnecessary map theme updates if the map theme data hasn't changed.
+- 🧹 [chore] Improves chart rendering and styling:
+ - Standardizes chart canvas creation with shared styling hooks.
+ - Adds metadata to chart labels for better context and accessibility.
+ - Enhances chart hover effects and legend controls for better user interaction.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ea701ec)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ea701ec97db9f7669c6f64149d2dd6d6194cf43f)
+
+
+- 🎨 [style] Enhance UI theming and chart styles
+
+This commit improves the application's UI theming and chart styles for better visual consistency and user experience.
+
+- 🎨 [style] Updates CSS to leverage CSS variables for theming, improving consistency between light and dark modes 🌖.
+   - Replaces hardcoded color values with CSS variables for map controls, data tables, and other UI elements.
+   - Introduces new CSS classes for copy button success/error states.
+   - Improves the appearance of sensor pills and user device info cards with hover effects.
+   - Enhances chart legend styles for better readability and interactivity.
+- ✨ [feat] Adds hover effects to charts for improved user interaction 🖱️.
+   - Implements a ripple effect on chart clicks for visual feedback.
+   - Adds a fullscreen button to charts.
+   - Adds a reset zoom button to charts.
+   - Adds legend toggling to charts.
+- 🚜 [refactor] Refactors theme application logic for better maintainability.
+   - Consolidates theme application logic into a single function.
+   - Updates map theme toggle to use CSS variables.
+   - Normalizes the 'system' theme to 'auto'.
+- 🛠️ [fix] Fixes issue where global click listeners were firing when clicking on charts.
+   - Adds `stopPropagation` to chart wrapper clicks so global listeners do not fire.
+- 🧪 [test] Adds tests for chart hover effects and theme application logic.
+   - Adds tests to ensure that chart hover effects are applied correctly.
+   - Adds tests to ensure that theme application logic is working correctly.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(75b32bb)`](https://github.com/Nick2bad4u/FitFileViewer/commit/75b32bb9a26d806f2803ce0d5f2e979ab4d72deb)
+
+
+- ✨ [feat] Enhance map and add Gyazo token exchange
+
+This commit introduces several enhancements and new features to the application, focusing on improving the map component and adding support for Gyazo token exchange.
+
+- 🎨 [style] Revamps map styles for improved theming and UX, including dark mode support and enhanced control styling.
+   - Introduces new CSS variables for map control colors, borders, shadows, and icon filters.
+   - Updates the map controls bar and group styles for a cleaner and more modern look.
+   - Adds styles for map layers, fullscreen, and zoom controls.
+   - Changes the way map colors are adjusted for dark mode by using CSS variables instead of inversion filters.
+- ✨ [feat] Implements Gyazo token exchange functionality for seamless integration.
+   - Adds `GyazoTokenExchangePayload` interface to `global.d.ts` for type safety.
+   - Registers a new IPC handle `gyazo:token:exchange` in `main.js` to exchange Gyazo authorization codes for access tokens.
+   - Implements the token exchange logic using `fetch` to make a POST request to the Gyazo token URL.
+   - Adds `exchangeGyazoToken` to `electronAPI` in `preload.js` to expose the token exchange functionality to the renderer process.
+   - Registers external handlers for 'gyazo:token:exchange' in `registerExternalHandlers.js`.
+- ✨ [feat] Adds emojis to chart labels for better readability and UX
+   - Adds `getChartEmoji` and `getZoneChartEmoji` functions to `iconMappings.js` to provide emojis for chart and zone labels.
+   - Updates chart rendering functions to include emojis in chart titles and legend labels.
+- 🚜 [refactor] Refactors map rendering to use React components for better maintainability and performance.
+   - Creates a `MapViewRoot` React component to manage the map view.
+   - Mounts the React component in `renderMap.js` using `react-dom/client`.
+   - Modifies `renderMap.js` to return early if the map container is missing.
+   - Updates `renderMap.js` to reuse the same React root for subsequent calls.
+   - Updates `renderMap.js` to replace the root if the underlying container element changes.
+- 🛠️ [fix] Fixes a bug where the map would not re-render after a setting change.
+   - Adds logic to clear cached settings from state management when re-rendering charts after a setting change.
+- 🧪 [test] Adds unit tests for the new Gyazo token exchange functionality.
+   - Creates a mock implementation of the `electronAPI` to test the token exchange functionality.
+   - Adds tests to verify that the token exchange logic is called with the correct parameters and that the access token is returned successfully.
+- 🧪 [test] Improves test coverage for map rendering and external handlers.
+   - Adds tests to verify that the map structure and UI controls are created correctly.
+   - Adds tests to verify that external handlers are registered correctly and that they handle errors gracefully.
+- 🧹 [chore] Updates dependencies and configuration files.
+   - Updates `package.json` and `package-lock.json` to include new dependencies and update existing ones.
+   - Adds `@vitejs/plugin-react` and related dependencies to support React components.
+   - Adds type definitions for React and React DOM.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(b1c5027)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b1c50271d961ba3c5fcdc49c2c0b45fabfeb2d21)
+
+
+- ✨ [feat] Implement interactive map with overlays
+
+Adds an interactive map component with overlay support, measurement tools, and theming.
+
+- Implements `MapViewRoot` component using Leaflet for map rendering.
+ -  Includes base layer management, zoom controls, fullscreen, and location services.
+ -  Adds support for drawing shapes and measuring distances on the map. 📏
+ -  Adds overlay support to visualize multiple FIT files on the map, enhancing data comparison. 📊
+- Introduces `MapControls` component for user interactions.
+ -  Adds actions for printing, GPX exporting, overlay management, and elevation profiles. ⛰️
+ -  Adds UI elements for selecting marker count and map theming. 🎨
+- Implements a zustand store for managing application state.
+ -  Provides hooks for accessing and updating state. ⚙️
+- Adds helper functions for measurement formatting and calculations. 📐
+ -  Includes area and distance calculations and formatting.
+- Introduces zoom slider control for intuitive zoom interaction. 🔍
+- Adds tests for the `MapViewRoot` component. 🧪
+ -  Verifies map creation, control mounting, and lap drawing.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3327a84)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3327a8408001badc7f2aee05ad78e56e027070af)
+
+
+- 🚜 [refactor] Modernize app state management
+
+Refactors the application's state management to leverage a vanilla Zustand store, promoting immutability, simplifying debugging, and paving the way for future enhancements
+
+- 🧩 Introduces a centralized, path-based state management system using Zustand
+ - Replaces direct `window` and `globalThis` mutations with controlled state updates
+ - Improves state management by using explicit getter and setter methods
+- 🔄 Migrates various components to consume and update state via state manager API
+ - Updates chart components to use the new state getters, improving data flow
+ - Modifies overlay-related code to use state manager for file loading and marker management
+- 🗑️ Removes legacy code and reactive property definitions
+ - Removes direct property definitions on `globalThis` and `window`
+ - Cleans up legacy state migration and persistence logic
+- 🧪 Updates tests to align with the new state management paradigm
+ - Refactors tests to mock `getState` and `setState`
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(f429c4c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f429c4cc506675fa26c8b44365ae8349ba3ee4a4)
+
+
+- 🎨 [style] Refactors map controls for better UI
+
+Refactors the map controls for improved user experience and visual consistency.
+
+- 🗺️  Restructures map controls into a flexible column layout with grouped elements for primary actions, utilities, and metrics.
+   -  Groups are arranged within a glass-style bar that adapts to different screen sizes using flexbox.
+   -  This new structure enhances responsiveness and provides a cleaner interface.
+- ✨ Replaces the custom map type button with a more standard-looking toggle.
+   - Improves the look and feel.
+- 🎨 Modernizes the appearance of map action buttons.
+   -  Uses a consistent design with iconify icons and smooth transitions.
+   -  The buttons now have a more polished look and feel, improving the user interface.
+- 🧪 Updates tests for chart hover effects to improve parameter validation and canvas enhancement.
+   - Adds new tests to cover empty canvas collections and wrapper creation failures.
+   - These updates ensure that the hover effects are applied correctly under various conditions.
+- 🛠️ Fixes a tooltip formatting issue where speed calculations were slightly off.
+- 🐛 Cleans up map state on re-render.
+   - Removes listeners and observers to avoid memory leaks and ensure a clean slate for new map instances.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(8a3eb21)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8a3eb21b7c2e5958963b08e0bf8f5471c6921a35)
+
+
+- 🛠️ [fix] Enhance map marker rendering and debugging
+
+This commit improves map marker rendering and fixes debugging configurations.
+
+- 🧰 Updates the Electron debugging port to 9222 across VSCode launch configurations, Electron app scripts, and documentation.
+- 🗺️ Implements marker sampling to limit the number of markers rendered on the map, improving performance for large datasets.
+  - Introduces `createMarkerSampler` to select a subset of data points for rendering markers.
+  - Adds a `mapMarkerCount` setting to control the maximum number of markers displayed.
+  - Modifies `mapDrawLaps` to utilize the marker sampler and render a limited number of markers.
+  - Adds logging for marker count preferences and sampler creation.
+- 🎨 Refactors map action buttons to use Iconify icons for visual consistency.
+  - Replaces inline SVG code with `<iconify-icon>` components in `createExportGPXButton`, `createPrintButton`, and `addSimpleMeasureTool`.
+- 📈 Enhances chart fullscreen functionality with improved styling and transition handling.
+  - Adds a placeholder element to prevent layout shifts during fullscreen transitions.
+  - Stores original dimensions before entering fullscreen and restores them on exit.
+  - Delays `onEnter` and `onExit` callbacks to prevent immediate re-renders during transitions.
+  - Adds CSS animations for a smoother fullscreen overlay appearance.
+- 🧪 Updates unit tests for `mapDrawLaps` to include a mock for `markerSummary`.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(44c2b4f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/44c2b4fb4f70d23f1f1b7e26e733b1b70e7f9761)
+
+
+- 🧪 [test] Enhance test suite coverage
+
+This commit improves the test suite by adding new tests and refactoring existing ones for better coverage and clarity.
+
+- ✨ Adds tests for chart fullscreen functionality
+ - Creates a new test file `chartFullscreenManager.test.ts` to test the `chartFullscreenManager` utility
+ - Tests entering and exiting fullscreen, toggling, and listener notifications
+ - Ensures overlay is created and removed correctly
+- 🛠️ Improves `formatTooltipData` alias support
+ - Adds tests to verify that `formatTooltipData` correctly handles snake_case metrics and fallback metrics
+ - Ensures timestamps are parsed correctly
+- ✨ Adds tests for map marker summary functionality
+ - Creates a new test file `mapMarkerSummary.test.ts` to test the `mapMarkerSummary` utility
+ - Tests aggregation of marker records and emission of updates
+ - Ensures zero rendered markers are treated as rendering all points
+- 🎨 Improves user device info box tests
+ - Updates tests to reflect UI text changes and serial number truncation
+ - Ensures theme metadata is exposed without inline overrides
+- 🧹 Updates electron-builder config and adds new type definitions
+ - Adds new type definition files for electron-builder config, assets, dev-runner, and chart fullscreen manager
+ - Updates `stylelint.config.d.ts` to remove unnecessary content
+- 🚜 Refactors `mapDrawLaps` to include marker summary
+ - Modifies `drawOverlayForFitFile` to accept and use `markerSummary`
+- 📝 Updates type definitions for various utilities
+ - Updates type definitions for `addChartHoverEffects`, `formatTooltipData`, `renderMap`, and `createMarkerCountSelector`
+- 🎨 Adds and updates UI enhancements
+ - Adds styles for user device info box, map marker summary, and chart fullscreen overlay
+ - Updates `ui-enhancements.css` to include new styles
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(e435901)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e435901301eaeed69a9ffc6f297cb494ac2ad516)
+
+
+- ✨ [feat] Integrate Vite for HMR and debugging
+
+- 🚀 Integrates Vite for faster HMR and improved Electron debugging experience.
+ - Updates `.gitignore` to exclude development and production environment files, and stylelint config.
+- ⚙️ Configures VSCode tasks for development, build, and testing:
+ - Adds tasks for starting the Vite dev server, building Vite, watching the main process, type checking, and linting.
+ - Introduces a compound task for full-stack development, running Vite and watching the main process in parallel.
+- 🛠️ Sets up VSCode launch configurations for debugging:
+ - Adds configurations for attaching to the Electron main process, renderer process, and preload script.
+ - Introduces a compound configuration to debug both main and renderer processes simultaneously.
+- 📦 Updates `package.json` with new development and build scripts:
+ - Adds scripts for starting the Vite dev server, watching the main process, building the renderer, and packaging the app.
+ - Updates the `start` script to use the new development runner.
+- ⚡ Creates a development runner script (`dev-runner.mjs`) to:
+ - Start the Vite dev server automatically.
+ - Launch Electron with debugging ports enabled.
+ - Watch main process files and auto-restart Electron on changes.
+- 📝 Adds documentation for the Vite + HMR + Electron debugging setup in `VITE_SETUP_SUMMARY.md`.
+- 📁 Creates separate `.env` files for development and production, managing environment variables.
+- 🔨 Extracts electron-builder configuration from `package.json` into a dedicated `electron-builder.config.js` file.
+- 🎨 Updates `index.html` to allow connections to Vite dev server (http://localhost:5273).
+- ✨ Adds `jszip.min-Cw1MSAQl.js` to use JSZip library.
+- 🐛 Fixes renderer process imports by adding `@vite-ignore` to prevent Vite from processing them.
+- 🧪 Modifies `test` and `test:changed` scripts to allocate more memory for tests.
+- 🧹 Removes `stylelint`'s configuration.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(47de3f4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/47de3f4de095a02122b85048cacef3dd58e09ee3)
+
+
+- ✨ [feat] Enhances UI and adds functionality
+
+This commit improves the user interface, enhances map functionality, and refactors code for better organization.
+
+Source code changes:
+ - 🎨 [style] Refactors and enhances:
+   - The UI with new icons for data representation, map layers, and actions, improving visual clarity
+   - Credits footer to ensure a compact, scrollable presentation that adapts to theme changes
+   - Notification system for better user feedback
+ - ✨ [feat] Adds right-click context menu to the "Open File" button for quick access to recent files, improving user workflow and file accessibility
+   - ⚙️ Implements persistent storage for the maximum number of recent files to display in the context menu, allowing users to customize their experience
+   - 🗺️ Enhances map layer control entries with icons for better scannability
+   - ⚡ Implements a mechanism to prevent multiple concurrent overlay selections to avoid UI conflicts
+ - 🚜 [refactor] Refactors file loading:
+   - Improves file loading and processing by adding dedicated functions for overlay files, enhancing code modularity
+   - Modifies file selection to use facade files, providing a consistent interface for file access, whether from web or Electron APIs
+ - 🛠️ [fix] Fixes an issue where the map was not properly resizing after entering fullscreen mode
+   - 📐 Implements a smoother fullscreen transition for the map and UI elements like the map controls
+
+Test and build changes:
+ - 🧪 [test] Adds unit tests for new file loading functions and conversion utilities for meters per second to kilometers per hour and miles per hour, ensuring code reliability and correctness
+ - 👷 [build] Updates dependencies and configuration files to support new features and improvements
+
+This commit enhances the application's usability, visual appeal, and robustness through a series of targeted improvements and refactoring.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ef6a55a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ef6a55a999392447bf051497f1c5da33d2f98ca6)
+
+
+- 🎨 [style] Enhance UI and map features
+
+Improves the user interface and map functionality with various styling and functional enhancements.
+
+- 🎨 [style] Adds a scrollbar style to improve UI consistency.
+- 🎨 [style] Updates the main content area with radial gradients and background colors for a more visually appealing experience.
+ -  - This involves changes to `index.html` and `style.css` to introduce new CSS classes and modify existing ones.
+- 🎨 [style] Enhances the map fullscreen mode by applying overlay styles to map controls and managing fullscreen UI state. 🗺️
+ -  - Adds fullscreen toggle button.
+ -  - Applies UI classes for overlays and scroll locking.
+- 🛠️ [fix] Improves dialog handling in file operations.
+ -  - Introduces `ensureDialogModule` to validate dialog modules.
+ -  - Modifies `registerDialogHandlers` to use the new validation method.
+- 🚜 [refactor] Refactors IPC handler registrations for better modularity and testability.
+ -  - Updates `registerExternalHandlers`, `registerFileSystemHandlers`, `registerFitFileHandlers`, and `registerInfoHandlers` to use `wire...Handlers` functions.
+ -  - These functions encapsulate the handler registration logic, making it easier to test and maintain.
+- 🧪 [test] Adds unit tests for dialog handling.
+ -  - Includes tests for `ensureDialogModule` and `resolveTargetWindow`.
+- 🧪 [test] Adds unit tests for IPC handler registrations.
+ -  - Tests cover external, file system, FIT file, and information handlers.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a9a6446)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a9a64468816725f8704527c2ae16fbf723b25fa4)
+
+
+- 🎨 [style] Enhance chart UI with icons
+
+Updates the chart UI to improve visual clarity and user experience.
+
+- Adds Iconify icons to chart titles, axis labels, and status indicators.
+ - Improves the visual representation of chart elements.
+- Refactors chart components to use Iconify icons instead of text-based indicators.
+ - Enhances the visual appeal and clarity of chart status.
+- Updates chart hover effects to use theme colors.
+ - Improves the visual consistency of chart interactions.
+- Modifies chart rendering to set title colors to transparent.
+ - Improves chart readability.
+- Updates chart tests to reflect icon changes.
+ - Ensures tests pass with the updated UI.
+- Adds type definitions for chart label metadata.
+ - Improves code maintainability.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(225e5f7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/225e5f74ee25c19eeee23653f47d67a13489edf8)
+
+
+- 🎨 [style] Modernize UI with Iconify and utilities
+
+This commit focuses on modernizing the user interface and improving the overall user experience.
+
+- ✨ [feat] Integrates Iconify for scalable vector icons, replacing SVGs with `<iconify-icon>` components.
+   - This enhances maintainability and visual consistency across the app, and reduces codebase size.
+- 🎨 [style] Introduces a comprehensive set of UI utility classes (ui-utilities.css) for rapid and consistent styling.
+   - Provides a wide array of spacing, display, flexbox, typography, color, border, sizing, positioning, shadow, transition, overflow, cursor, selection, scrolling, and component utilities.
+   - Facilitates a more streamlined and maintainable approach to UI development.
+- 🎨 [style] Implements accessibility enhancements
+   - Adds a "Skip to main content" link for improved keyboard navigation.
+   - Improves ARIA labels, roles and descriptions throughout the application.
+ - 🎨 [style] Introduces a table density toggle in summary and raw data tables, allowing users to select between spacious and dense layouts.
+ - 🎨 [style] Replaces basic text-based status indicators with Iconify icons for improved clarity and visual appeal.
+ - 🎨 [style] Moves previously inline styles to CSS files for better organization and maintainability.
+ - 🎨 [style] Refactors and standardizes button styles across the application.
+- 🚜 [refactor] Updates tab bar to use semantic `<nav>` element and descriptive labels for improved accessibility.
+- 🧹 [chore] Updates `package-lock.json` and `package.json` to include `iconify-icon` and update related dependencies.
+- 🧪 [test] Updates unit tests to account for icon introduction in labels.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(010e2d8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/010e2d89691313acdea7386413e257f443379f1a)
+
+
+- 🎨 [style] Enhance UI with modern styles
+
+Improves the application's user interface by adding modern styles, a theme system, and reusable modal utilities.
+
+- ✨ Introduces a new `ui-enhancements.css` file containing styles for buttons, forms, notifications, loading states, modals, tabs, and other components
+ - Enhances the visual appeal and user experience of the application
+ - Implements a consistent and modern design language across different UI elements
+ - Includes utility classes for common styling needs, like flexbox layouts, spacing, and shadows
+ - Adds component-specific enhancements for charts and maps
+- 🧪 Creates a `theme-test.html` file to showcase and test the theme system
+ - Allows developers to preview and verify the appearance of UI components under different themes
+ - Provides a visual reference for available styles and components
+- 🛠️ Adds a `BaseModal` class and related utilities for managing modal dialogs
+ - Simplifies the creation and management of modal dialogs throughout the application
+ - Provides a consistent API for showing, hiding, and configuring modals
+ - Includes features like focus trapping, backdrop closing, and escape key handling
+- ⚡ Adds preloading for critical CSS to improve initial load performance.
+- 📝 Includes updated type definitions for the new modal utilities.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a029dcd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a029dcded60edec3e3757a5ce132d74bdcb2b839)
+
+
+- 🚜 [refactor] Modernize and streamline codebase
+
+Refactors and modernizes the codebase for improved maintainability, performance, and consistency.
+
+- ⚙️ Updates Electron debugging port and vitest config.
+- 🧹 Adds `knip.json` to manage unused files and dependencies.
+ - Helps to keep the project lean and focused.
+- 🚜 Refactors `main-ui.js` to remove `setupDOMContentLoaded` and update legacy globals.
+ - Simplifies the initialization process and aligns with modern state management.
+- 🧪 Updates comprehensive tests and removes legacy `setupDOMContentLoaded` mocks.
+- 🛠️ Patches `renderSummaryHelpers` to increase stability and remove compatiblity issues.
+ - Improves the way storage keys are generated.
+- 🛠️ Patches `formatTooltipData.js` to use centralized formatters and add line breaks for tooltips.
+ - Ensures consistency in data formatting and enhances user experience.
+- ✨ Adds number validation and conversion helpers.
+ - Introduces centralized utilities for safe number validation and conversion.
+- 🛠️ Patches `patchSummaryFields.js` to use `safeToNumber` from `/helpers` and removes legacy aliases.
+ - Ensures consistent and safe number handling across summary fields.
+- 🧹 Organizes and optimizes imports across multiple modules.
+ - Improves code readability, maintainability, and organization.
+- 📝 Adds comprehensive tests for external and info IPC handlers.
+ - Ensures robust and reliable inter-process communication.
+- 🛠️ Patches `settingsModal.js` to improve theme handling.
+ - Fixes theme selection and accent color synchronization.
+- 🛠️ Patches `addFullScreenButton.js` to remove legacy setup and improve button functionality.
+ - Ensures consistent and reliable fullscreen button behavior.
+- 🧹 Removes exit fullscreen overlay from specified container.
+- 🛠️ Patches `createMarkerCountSelector.js` to use legacy global usage wrapper.
+- 🛠️ Patches `enableTabButtons.js` to expose function globally for debugging.
+- 🧹 Removes `theme` from `utils/index.js` to prevent circular dependencies.
+- 📝 Updates type definitions for clarity and consistency.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(4397898)`](https://github.com/Nick2bad4u/FitFileViewer/commit/43978982ef48e33945f6a017a5923dccb0843367)
+
+
+- 🔧 [build] Update tools in Beast Mode chatmode and improve debugging instructions
+ - Changed tools list to include more specific commands for file operations and diagnostics
+ - Updated debugging section to reflect correct npm commands for the electron-app context
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6daf88c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6daf88cea17c2f92dd34f648ec96c1788b8a8f4b)
+
+
+- 🔧 [build] [dependency] Update version 27.1.0 and update maplibre-gl to 5.8.0
+ - Updated package.json to reflect new version and dependencies
+ - Adjusted package-lock.json for consistency with package.json changes
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(cb963b1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb963b1ab9b19eec843dc7fcbfa38d3d62125f3c)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.2.0 [skip ci] [`(02018ed)`](https://github.com/Nick2bad4u/FitFileViewer/commit/02018ede4565126a00f7d41ec7de89ad46d5c2fe)
+
 
 
 ### 📦 Dependencies
 
 - [dependency] Update version 27.2.0 [`(5ca8a61)`](https://github.com/Nick2bad4u/FitFileViewer/commit/5ca8a612b83bb90cb547c721f6b0e2ad87b757b5)
+
+
+
+### 🛡️ Security
+
+- ✨ [feat] Enhance codebase with linting rules
+
+Adds and configures ESLint plugins to improve code quality and consistency.
+
+- 🧩 Adds new ESLint plugins:
+  - `@eslint-community/eslint-plugin-eslint-comments` for ESLint comments
+  - `eslint-plugin-import-x` for import sorting
+  - `eslint-plugin-jsx-a11y` for accessibility in JSX
+  - `eslint-plugin-n` for Node.js-specific rules
+  - `eslint-plugin-no-unsanitized` for preventing XSS
+  - `eslint-plugin-perfectionist` for code style
+  - `eslint-plugin-promise` for promise best practices
+  - `eslint-plugin-react` and `eslint-plugin-react-hooks` for React-specific rules
+  - `eslint-plugin-regexp` for regular expression rules
+  - `eslint-plugin-security` for security-related rules
+  - `eslint-plugin-sonarjs` for SonarJS rules
+  - `eslint-plugin-unicorn` for Unicorn rules
+  - `eslint-plugin-unused-imports` for detecting unused imports
+
+- ⚙️ Configures rules for the new plugins, setting severity levels (off, warn, error)
+   -  - Includes adjustments for unicorn, node, perfectionist, sonarjs, regexp, import-x, no-unsanitized, and eslint-comments plugins
+   -  - Sets specific rules for security, promise, unused-imports, and react/jsx-a11y plugins
+   -  - Adjusts cognitive complexity threshold for sonarjs plugin
+
+- 🎨 Updates styling in `style.css`
+   -  - Fixes blurry text on Leaflet scale control by removing `text-shadow`
+   -  - Introduces styles for User & Device Info Box in Charts Tab
+   -  - Adds styles for sensor pills
+
+- 🛠️ Fixes a validation issue with custom color text input in `accentColorPicker.js`
+   -  - Modifies the regex to allow lowercase hexadecimal characters
+
+- 🧹 Normalizes initial tab state and reorders tab loading in `appActions.js` and `rendererStateIntegration.js`
+   -  - Ensures correct tab loading sequence and initial state
+
+- ♻️ Refactors chart rendering to improve visual consistency and user experience
+   -  - Adjusts chart animation style
+   -  - Increases hitbox width
+   -  - Updates styles for labels and hitboxes in `renderLapZoneChart.js`, `renderZoneChart.js`, and `renderZoneChartNew.js`
+
+- Export file names are sanitized to increase reliability and prevent errors
+   -  - Updates `exportUtils.js` to clean export name
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(b6e1c86)`](https://github.com/Nick2bad4u/FitFileViewer/commit/b6e1c866910baacf121c03c37b0521191037b99c)
 
 
 
@@ -1607,9 +2135,9 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(65ed
 ## [26.0.0] - 2025-08-28
 
 
-[[b66df28](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)...
+[[8a0f03c](https://github.com/Nick2bad4u/FitFileViewer/commit/8a0f03cf3a0042f9921e4bdebc099df6bd64c755)...
 [375a256](https://github.com/Nick2bad4u/FitFileViewer/commit/375a256b221561caa8b1cb53212fe7c8aeaf3afa)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/b66df283fb26e5370017f20bd7cfd27b11f4318d...375a256b221561caa8b1cb53212fe7c8aeaf3afa))
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/8a0f03cf3a0042f9921e4bdebc099df6bd64c755...375a256b221561caa8b1cb53212fe7c8aeaf3afa))
 
 
 ### 💼 Other
@@ -1684,18 +2212,10 @@ Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(bb2d
 - Update metrics.repository.svg - [Skip GitHub Action] [`(2bf65d8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2bf65d8659c3f8796e3bdf53ff96ddc6110d5f0a)
 
 
-- Merge PR #140
-
-[dev-dependency](deps-dev): [dependency] Update form-data 2.5.5 in /electron-app in the npm_and_yarn group [`(e5106a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e5106a2107ed186928da741dc72569e6c1641c86)
-
-
 
 ### ⚙️ Miscellaneous Tasks
 
 - Update changelogs for v25.9.0 [skip ci] [`(875ab59)`](https://github.com/Nick2bad4u/FitFileViewer/commit/875ab596b8e40aef84d0c8475ebd376e8c40cc39)
-
-
-- Update changelogs for v25.8.0 [skip ci] [`(aeea72d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aeea72d606ef085484bf668a5061f794d6a5057e)
 
 
 
@@ -1714,6 +2234,34 @@ test(deps): [dependency] Update the npm-all group in /electron-app with 94 updat
 
 - [dependency] Update version 25.9.0 [`(8a0f03c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/8a0f03cf3a0042f9921e4bdebc099df6bd64c755)
 
+
+
+
+
+
+## [25.9.0] - 2025-07-22
+
+
+[[b66df28](https://github.com/Nick2bad4u/FitFileViewer/commit/b66df283fb26e5370017f20bd7cfd27b11f4318d)...
+[e5106a2](https://github.com/Nick2bad4u/FitFileViewer/commit/e5106a2107ed186928da741dc72569e6c1641c86)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/b66df283fb26e5370017f20bd7cfd27b11f4318d...e5106a2107ed186928da741dc72569e6c1641c86))
+
+
+### 💼 Other
+
+- Merge PR #140
+
+[dev-dependency](deps-dev): [dependency] Update form-data 2.5.5 in /electron-app in the npm_and_yarn group [`(e5106a2)`](https://github.com/Nick2bad4u/FitFileViewer/commit/e5106a2107ed186928da741dc72569e6c1641c86)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v25.8.0 [skip ci] [`(aeea72d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aeea72d606ef085484bf668a5061f794d6a5057e)
+
+
+
+### 📦 Dependencies
 
 - *(deps-dev)* [dependency] Update form-data [`(a264ee8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a264ee83b9ab33d9b73cbe3b0c5b3af601dbae42)
 
