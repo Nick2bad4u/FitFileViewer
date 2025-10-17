@@ -244,10 +244,10 @@ class AppStateManager {
      */
     getDebugInfo() {
         return {
-            listeners: [...this.listeners.keys()],
+            listeners: Array.from(this.listeners.keys()),
             persistentKeys: PERSISTENCE_CONFIG.PERSISTENT_KEYS,
             state: this.getSnapshot(),
-            validators: [...this.validators.keys()],
+            validators: Array.from(this.validators.keys()),
             volatileKeys: PERSISTENCE_CONFIG.VOLATILE_KEYS,
         };
     }
@@ -538,7 +538,8 @@ const appState = new AppStateManager();
 // Expose convenience methods globally (following your existing patterns)
 if (globalThis.window !== undefined) {
     // Backward compatibility with existing globalData usage.
-    // Guard against re-definition if another module already defined it (e.g., multiple imports of renderer/main-ui during tests).
+    // Guard against re-definition if another module already defined it (e.g., multiple imports of renderer/main-ui
+    // during tests).
     try {
         const desc = Object.getOwnPropertyDescriptor(globalThis, "globalData");
         if (!desc || desc.configurable) {

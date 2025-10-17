@@ -22,7 +22,7 @@ export async function loadOverlayFiles(files) {
 
     const existingKeys = new Set();
     const { overlays: initialOverlays, mutated: initializedMutated } = ensureLoadedFitFilesInitialized(existingKeys);
-    const overlayFiles = [...initialOverlays];
+    const overlayFiles = Array.from(initialOverlays);
     let stateDirty = initializedMutated;
     const initialCount = overlayFiles.length;
     const previousActiveTab = getState("ui.activeTab");
@@ -165,7 +165,7 @@ function deriveEntryKey(entry) {
 
 function ensureLoadedFitFilesInitialized(existingKeys) {
     const overlayFiles = getOverlayFiles();
-    const workingEntries = overlayFiles.length > 0 ? [...overlayFiles] : [];
+    const workingEntries = overlayFiles.length > 0 ? Array.from(overlayFiles) : [];
     const normalizedEntries = [];
     let mutated = false;
 

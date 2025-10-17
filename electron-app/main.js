@@ -1857,7 +1857,8 @@ function validateWindow(win, context = "unknown operation") {
 let __initScheduled = false;
 let __initCompleted = false;
 
-// Main application initialization at import-time (tests expect whenReady to be called and BrowserWindow.getAllWindows invoked)
+// Main application initialization at import-time (tests expect whenReady to be called and BrowserWindow.getAllWindows
+// invoked)
 try {
     // Use helper that handles default export interop so mocked modules work in both CJS/ESM shapes
     // Prefer direct require to ensure Vitest's hoisted mocks are observed

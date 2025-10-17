@@ -38,5 +38,5 @@ export function extractDeveloperFieldsList(recordMesgs) {
         }
     }
 
-    return /** @type {string[]} */ ([...fieldSet]);
+    return /** @type {string[]} */ (Array.from(fieldSet));
 }

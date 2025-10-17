@@ -360,7 +360,7 @@ function setupBackwardCompatibility() {
         "loadedFitFiles",
         "overlays.loadedFitFiles",
         "overlays.loadedFitFiles",
-        (value) => (Array.isArray(value) ? [...value] : [])
+        (value) => (Array.isArray(value) ? Array.from(value) : [])
     );
     defineProperty("mapMarkerCount", "overlays.mapMarkerCount");
     defineProperty("heartRateZones", "zones.heartRate");

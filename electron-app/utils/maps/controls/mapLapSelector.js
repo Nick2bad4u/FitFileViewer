@@ -163,7 +163,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     multiLapToggle.addEventListener("click", () => setMultiSelectMode(!multiSelectMode));
 
     lapSelect.addEventListener("change", () => {
-        let selected = [...lapSelect.selectedOptions].map((/** @type {HTMLOptionElement} */ opt) => opt.value);
+        let selected = Array.from(lapSelect.selectedOptions, (/** @type {HTMLOptionElement} */ opt) => opt.value);
         if (multiSelectMode) {
             if (selected.includes("all") && selected.length > 1) {
                 for (const opt of lapSelect.options) {
@@ -235,7 +235,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         (/** @type {WheelEvent} */ e) => {
             e.preventDefault();
             e.stopPropagation();
-            const options = [...lapSelect.options];
+            const options = Array.from(lapSelect.options);
             let idx = lapSelect.selectedIndex;
             if (idx === -1) {
                 idx = 0;

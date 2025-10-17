@@ -10,7 +10,7 @@
  */
 export function getChartOverlayColorPalette(inputArray) {
     // Remove duplicates
-    const unique = [...new Set(inputArray)];
+    const unique = Array.from(new Set(inputArray));
 
     // Helper to compute color distance in RGB space
     /**
@@ -71,7 +71,7 @@ export function getChartOverlayColorPalette(inputArray) {
             m = 2 ** 32;
         let state = seed;
         /** @type {string[]} */
-        const arr = [...array];
+        const arr = Array.from(array);
         for (let i = arr.length - 1; i > 0; i--) {
             state = (a * state + c) % m;
             const j = state % (i + 1);

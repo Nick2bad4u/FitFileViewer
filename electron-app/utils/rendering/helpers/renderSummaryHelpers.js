@@ -177,7 +177,7 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
         "wheel",
         (e) => {
             e.preventDefault();
-            const options = [...filterSelect.options];
+            const options = Array.from(filterSelect.options);
             let idx = options.findIndex((opt) => opt.value === filterSelect.value);
             if (e.deltaY > 0 && idx < options.length - 1) {
                 idx++;
@@ -397,14 +397,14 @@ export function showColModal({
     title.textContent = "Select Summary Columns";
     modal.append(title);
     // Local visibleColumns state
-    let visibleColumns = [...initialVisibleColumns];
+    let visibleColumns = Array.from(initialVisibleColumns);
     /**
      * @param {string[]} cols
      */
     const // Select/Deselect All
         selectAllBtn = document.createElement("button"),
         updateVisibleColumns = (cols) => {
-            visibleColumns = [...cols];
+            visibleColumns = Array.from(cols);
             if (typeof setVisibleColumns === "function") {
                 setVisibleColumns(visibleColumns);
             }
@@ -431,7 +431,7 @@ export function showColModal({
                 const end = Math.max(lastCheckedIndex, idx);
                 const start = Math.min(lastCheckedIndex, idx);
                 const shouldCheck = !visibleColumns.includes(key);
-                let newCols = [...visibleColumns];
+                let newCols = Array.from(visibleColumns);
                 for (let i = start; i <= end; ++i) {
                     const k = allKeys[i];
                     if (typeof k !== "string") {
@@ -466,7 +466,7 @@ export function showColModal({
                 return; // handled in mousedown
             }
             lastCheckedIndex = idx;
-            let newCols = [...visibleColumns];
+            let newCols = Array.from(visibleColumns);
             if (loopCheckbox.checked) {
                 if (!newCols.includes(key)) {
                     newCols.push(key);
@@ -515,7 +515,7 @@ export function showColModal({
     selectAllBtn.textContent = visibleColumns.length === allKeys.length ? "Deselect All" : "Select All";
     selectAllBtn.addEventListener("click", () => {
         /** @type {string[]} */
-        const newCols = visibleColumns.length === allKeys.length ? [] : [...allKeys];
+        const newCols = visibleColumns.length === allKeys.length ? [] : Array.from(allKeys);
         updateVisibleColumns(newCols);
         updateColList();
         reRenderTable();

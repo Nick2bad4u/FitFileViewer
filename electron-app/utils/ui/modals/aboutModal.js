@@ -1,6 +1,7 @@
 /**
  * Enhanced About Modal Dialog Utility
- * Provides modern design and animations with dynamic version l								<span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>ading
+ * Provides modern design and animations with dynamic version l								<span class="system-info-value
+ * node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>ading
  */
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";

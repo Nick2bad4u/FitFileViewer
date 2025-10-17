@@ -97,7 +97,7 @@ export function createShownFilesList() {
 
     const commitOverlayFiles = (files, source = "createShownFilesList.commitOverlayFiles") => {
         try {
-            setOverlayFiles(Array.isArray(files) ? [...files] : [], source);
+            setOverlayFiles(Array.isArray(files) ? Array.from(files) : [], source);
         } catch (error) {
             console.error("[createShownFilesList] Failed to update overlay state:", error);
         }

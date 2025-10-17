@@ -53,7 +53,7 @@ export class UIStateManager {
         // Update theme toggle buttons
         const themeButtons = (() => {
             try {
-                return /** @type {Element[]} */ ([...(document.querySelectorAll("[data-theme]") || [])]);
+                return /** @type {Element[]} */ (Array.from(document.querySelectorAll("[data-theme]") || []));
             } catch {
                 return [];
             }
@@ -169,7 +169,7 @@ export class UIStateManager {
                 const doc = /** @type {Document} */ (document);
                 if (doc && typeof doc.querySelectorAll === "function") {
                     // Array.from guards non-iterables
-                    return /** @type {Element[]} */ ([...(doc.querySelectorAll(selector) || [])]);
+                    return /** @type {Element[]} */ (Array.from(doc.querySelectorAll(selector) || []));
                 }
             } catch {
                 // Swallow to keep tests stable if document was swapped or methods are from another realm
@@ -563,7 +563,7 @@ export class UIStateManager {
             try {
                 const doc = /** @type {Document} */ (document);
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return /** @type {Element[]} */ ([...(doc.querySelectorAll(selector) || [])]);
+                    return /** @type {Element[]} */ (Array.from(doc.querySelectorAll(selector) || []));
                 }
             } catch {
                 /* Ignore errors */
@@ -599,7 +599,7 @@ export class UIStateManager {
             try {
                 const doc = /** @type {Document} */ (document);
                 if (doc && typeof doc.querySelectorAll === "function") {
-                    return /** @type {Element[]} */ ([...(doc.querySelectorAll(selector) || [])]);
+                    return /** @type {Element[]} */ (Array.from(doc.querySelectorAll(selector) || []));
                 }
             } catch {
                 /* Ignore errors */

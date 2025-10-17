@@ -559,10 +559,10 @@ function safeQueryTabButtons() {
         if (typeof document !== "undefined") {
             if (typeof document.querySelectorAll === "function") {
                 // NodeList may not be iterable in some mocked environments, Array.from handles it
-                return /** @type {HTMLElement[]} */ ([...document.querySelectorAll(".tab-button")]);
+                return /** @type {HTMLElement[]} */ (Array.from(document.querySelectorAll(".tab-button")));
             }
             if (typeof document.getElementsByClassName === "function") {
-                return /** @type {HTMLElement[]} */ ([...document.querySelectorAll(".tab-button")]);
+                return /** @type {HTMLElement[]} */ (Array.from(document.querySelectorAll(".tab-button")));
             }
         }
     } catch {

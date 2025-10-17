@@ -116,7 +116,7 @@ function addRecentFile(filePath) {
         console.warn("Invalid recent files list, resetting to an empty array.");
         list = [];
     }
-    const originalList = [...list];
+    const originalList = Array.from(list);
     if (list.includes(filePath)) {
         list = list.filter((f) => f !== filePath);
     }

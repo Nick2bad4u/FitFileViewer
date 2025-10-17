@@ -7,7 +7,8 @@ import { getGlobalData } from "../../state/domain/globalDataState.js";
  *  total:number,
  *  visible:number,
  *  available:number,
- *  categories:{ metrics:ChartCategoryCounts, analysis:ChartCategoryCounts, zones:ChartCategoryCounts, gps:ChartCategoryCounts }
+ *  categories:{ metrics:ChartCategoryCounts, analysis:ChartCategoryCounts, zones:ChartCategoryCounts,
+ *  gps:ChartCategoryCounts }
  * }} ChartCounts
  */
 // Re-export typedef via empty export trick for JSDoc consumers

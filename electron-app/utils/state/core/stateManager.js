@@ -70,7 +70,7 @@ function getState(path) {
 }
 
 function getStateHistory() {
-    return [...stateHistory];
+    return Array.from(stateHistory);
 }
 
 function getSubscriptions() {
@@ -230,7 +230,7 @@ function setNestedValueImmutable(prevState, path, value, merge) {
         const clonedChild = isPlainObject(prevChild)
             ? { ...prevChild }
             : Array.isArray(prevChild)
-                ? [...prevChild]
+                ? Array.from(prevChild)
                 : {};
 
         if (!isPlainObject(nextCursor) && !Array.isArray(nextCursor)) {

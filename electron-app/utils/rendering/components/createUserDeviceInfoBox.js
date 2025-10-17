@@ -496,7 +496,7 @@ function formatStepLength(rawValue) {
 }
 
 function selectPrimaryDevice(deviceInfos) {
-    const sorted = [...deviceInfos].sort((a, b) => {
+    const sorted = Array.from(deviceInfos).sort((a, b) => {
         const aSource = typeof a?.sourceType === "string" ? a.sourceType : "";
         const bSource = typeof b?.sourceType === "string" ? b.sourceType : "";
         if (aSource === bSource) {

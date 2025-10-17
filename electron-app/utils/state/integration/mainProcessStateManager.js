@@ -221,7 +221,7 @@ class MainProcessState {
         return {
             errors: (this.get("errors") || []).length,
             eventHandlers: this.get("eventHandlers")?.size || 0,
-            listeners: [...this.listeners.keys()],
+            listeners: Array.from(this.listeners.keys()),
             operations: Object.keys(this.get("operations") || {}),
             state: this.data,
             uptime: Date.now() - (this.get("metrics")?.startTime || Date.now()),
@@ -574,8 +574,9 @@ class MainProcessState {
                     logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
                 }
             });
-            // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
-            // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
+            // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard
+            // via weak ref NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to
+            // satisfy type checker.
 
             return true;
         });

@@ -141,7 +141,7 @@ export const exportUtils = {
             }
 
             const headers = ["timestamp"],
-                timestamps = [...allTimestamps].sort();
+                timestamps = Array.from(allTimestamps).sort();
             for (const chart of charts) {
                 const [dataset] = /** @type {any} */ (chart.data).datasets,
                     fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;
@@ -1091,7 +1091,7 @@ export const exportUtils = {
 
             const // Create headers
                 headers = ["timestamp"],
-                timestamps = [...allTimestamps].sort();
+                timestamps = Array.from(allTimestamps).sort();
             for (const chart of charts) {
                 const [dataset] = /** @type {any} */ (chart.data).datasets,
                     fieldName = dataset?.label || `chart-${charts.indexOf(chart)}`;

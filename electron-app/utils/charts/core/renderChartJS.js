@@ -123,8 +123,8 @@ const FALLBACK_ZONE_COLORS = [
     "#8A2BE2",
     "#000000",
 ];
-const FALLBACK_HEART_RATE_ZONE_COLORS = [...FALLBACK_ZONE_COLORS];
-const FALLBACK_POWER_ZONE_COLORS = [...FALLBACK_ZONE_COLORS];
+const FALLBACK_HEART_RATE_ZONE_COLORS = Array.from(FALLBACK_ZONE_COLORS);
+const FALLBACK_POWER_ZONE_COLORS = Array.from(FALLBACK_ZONE_COLORS);
 const FALLBACK_THEME_COLORS = {
     background: "#f8fafc",
     backgroundAlt: "#ffffff",
@@ -212,13 +212,13 @@ function normalizeThemeConfig(rawConfig) {
     };
 
     if (!Array.isArray(mergedColors.zoneColors) || mergedColors.zoneColors.length === 0) {
-        mergedColors.zoneColors = [...FALLBACK_ZONE_COLORS];
+        mergedColors.zoneColors = Array.from(FALLBACK_ZONE_COLORS);
     }
     if (!Array.isArray(mergedColors.heartRateZoneColors) || mergedColors.heartRateZoneColors.length === 0) {
-        mergedColors.heartRateZoneColors = [...FALLBACK_HEART_RATE_ZONE_COLORS];
+        mergedColors.heartRateZoneColors = Array.from(FALLBACK_HEART_RATE_ZONE_COLORS);
     }
     if (!Array.isArray(mergedColors.powerZoneColors) || mergedColors.powerZoneColors.length === 0) {
-        mergedColors.powerZoneColors = [...FALLBACK_POWER_ZONE_COLORS];
+        mergedColors.powerZoneColors = Array.from(FALLBACK_POWER_ZONE_COLORS);
     }
 
     normalized.colors = mergedColors;
@@ -2268,7 +2268,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     let visibleFieldCount = 0;
     const { renderableFields } = chartState;
     /** @type {string[]} */
-    let fieldsToRender = Array.isArray(renderableFields) ? [...renderableFields] : [];
+    let fieldsToRender = Array.isArray(renderableFields) ? Array.from(renderableFields) : [];
     const localStore =
         /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
     const visibilityKeys = localStore

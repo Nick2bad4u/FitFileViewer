@@ -33,7 +33,7 @@ export function clearZoneData(source = `${DEFAULT_SOURCE}.clearZoneData`) {
 export function getHeartRateZones() {
     const zones = getState("zones.heartRate");
     if (Array.isArray(zones) && zones.length > 0) {
-        heartRateZoneSnapshot = [...zones];
+        heartRateZoneSnapshot = Array.from(zones);
         return zones;
     }
 
@@ -41,11 +41,11 @@ export function getHeartRateZones() {
         commitHeartRateZonesInternal(value, source, false)
     );
     if (Array.isArray(hydrated) && hydrated.length > 0) {
-        heartRateZoneSnapshot = [...hydrated];
+        heartRateZoneSnapshot = Array.from(hydrated);
         return hydrated;
     }
 
-    return heartRateZoneSnapshot.length > 0 ? [...heartRateZoneSnapshot] : Array.isArray(zones) ? zones : [];
+    return heartRateZoneSnapshot.length > 0 ? Array.from(heartRateZoneSnapshot) : Array.isArray(zones) ? zones : [];
 }
 
 /**
@@ -55,7 +55,7 @@ export function getHeartRateZones() {
 export function getPowerZones() {
     const zones = getState("zones.power");
     if (Array.isArray(zones) && zones.length > 0) {
-        powerZoneSnapshot = [...zones];
+        powerZoneSnapshot = Array.from(zones);
         return zones;
     }
 
@@ -63,11 +63,11 @@ export function getPowerZones() {
         commitPowerZonesInternal(value, source, false)
     );
     if (Array.isArray(hydrated) && hydrated.length > 0) {
-        powerZoneSnapshot = [...hydrated];
+        powerZoneSnapshot = Array.from(hydrated);
         return hydrated;
     }
 
-    return powerZoneSnapshot.length > 0 ? [...powerZoneSnapshot] : Array.isArray(zones) ? zones : [];
+    return powerZoneSnapshot.length > 0 ? Array.from(powerZoneSnapshot) : Array.isArray(zones) ? zones : [];
 }
 
 /**
@@ -127,7 +127,7 @@ function hydrateZonesFromDescriptor(propName, commitFn) {
         if (descriptor && Object.hasOwn(descriptor, "value")) {
             const rawValue = descriptor.value;
             if (Array.isArray(rawValue) && rawValue.length > 0) {
-                const normalized = [...rawValue];
+                const normalized = Array.from(rawValue);
                 commitFn(normalized, `${DEFAULT_SOURCE}.hydrate.${propName}`, false);
                 return normalized;
             }
@@ -138,18 +138,18 @@ function hydrateZonesFromDescriptor(propName, commitFn) {
 initializeZoneBridge();
 
 function commitHeartRateZonesInternal(zones, source, reflect = true) {
-    const normalized = Array.isArray(zones) ? [...zones] : [];
+    const normalized = Array.isArray(zones) ? Array.from(zones) : [];
     setState("zones.heartRate", normalized, { source });
-    heartRateZoneSnapshot = [...normalized];
+    heartRateZoneSnapshot = Array.from(normalized);
     if (reflect) {
         reflectLegacyZoneProperty("heartRateZones", normalized, source);
     }
 }
 
 function commitPowerZonesInternal(zones, source, reflect = true) {
-    const normalized = Array.isArray(zones) ? [...zones] : [];
+    const normalized = Array.isArray(zones) ? Array.from(zones) : [];
     setState("zones.power", normalized, { source });
-    powerZoneSnapshot = [...normalized];
+    powerZoneSnapshot = Array.from(normalized);
     if (reflect) {
         reflectLegacyZoneProperty("powerZones", normalized, source);
     }

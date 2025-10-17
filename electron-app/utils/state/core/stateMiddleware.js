@@ -186,7 +186,7 @@ class StateMiddlewareManager {
      * @returns {{name:string, priority:number, isEnabled:boolean, phases:string[], metadata:Object<string,any>}[]}
      */
     getMiddlewareInfo() {
-        return [...this.middleware.values()].map((middleware) => ({
+        return Array.from(this.middleware.values(), (middleware) => ({
             isEnabled: middleware.isEnabled,
             metadata: middleware.metadata,
             name: middleware.name,
@@ -296,7 +296,7 @@ class StateMiddlewareManager {
      */
     /** @returns {void} */
     updateExecutionOrder() {
-        this.executionOrder = [...this.middleware.keys()].sort((a, b) => {
+        this.executionOrder = Array.from(this.middleware.keys()).sort((a, b) => {
             const mwA = this.middleware.get(a),
                 mwB = this.middleware.get(b),
                 priorityA = mwA ? mwA.priority : 100,

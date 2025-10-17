@@ -147,7 +147,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         // @ts-ignore
         const gf = typeof globalThis === "undefined" ? /** @type {any} */ undefined : globalThis.__mockRecentFiles;
         if (Array.isArray(gf)) {
-            injectedRecentFiles = [...gf];
+            injectedRecentFiles = Array.from(gf);
             hasInjectedRecentFiles = true;
         }
     } catch {
@@ -743,7 +743,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         try {
             console.log(
                 "[createAppMenu] Debug: recentFiles loaded:",
-                Array.isArray(recentFiles) ? [...recentFiles] : recentFiles
+                Array.isArray(recentFiles) ? Array.from(recentFiles) : recentFiles
             );
         } catch {
             /* Ignore errors */

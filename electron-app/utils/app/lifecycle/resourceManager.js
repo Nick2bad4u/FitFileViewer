@@ -173,7 +173,7 @@ class ResourceManager {
      * @returns {Array<{id: string, type: ResourceType, owner?: string}>}
      */
     list() {
-        return Array.from(this.resources.values()).map((resource) => ({
+        return Array.from(this.resources.values(), (resource) => ({
             id: resource.id,
             owner: resource.owner,
             timestamp: resource.timestamp,
@@ -386,7 +386,7 @@ class ResourceManager {
 
         // Execute shutdown hooks first
         await Promise.all(
-            Array.from(this.shutdownHooks).map(async (hook) => {
+            Array.from(this.shutdownHooks, async (hook) => {
                 try {
                     await hook();
                 } catch (error) {

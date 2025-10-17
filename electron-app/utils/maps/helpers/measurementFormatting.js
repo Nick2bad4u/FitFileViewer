@@ -40,7 +40,7 @@ export function calculatePolylineLength(map, latLngs) {
 
 export function flattenLatLngs(latLngs) {
     const result = [];
-    const stack = Array.isArray(latLngs) ? [...latLngs] : [];
+    const stack = Array.isArray(latLngs) ? Array.from(latLngs) : [];
     while (stack.length > 0) {
         const value = stack.shift();
         if (!value) {

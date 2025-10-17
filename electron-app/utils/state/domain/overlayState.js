@@ -58,7 +58,7 @@ export function getHighlightedOverlayIndex() {
 export function getOverlayFiles() {
     const files = getState("overlays.loadedFitFiles");
     if (Array.isArray(files) && files.length > 0) {
-        overlayFilesSnapshot = [...files];
+        overlayFilesSnapshot = Array.from(files);
         return files;
     }
 
@@ -66,11 +66,11 @@ export function getOverlayFiles() {
         commitOverlayFilesInternal(value, source, false)
     );
     if (Array.isArray(hydrated) && hydrated.length > 0) {
-        overlayFilesSnapshot = [...hydrated];
+        overlayFilesSnapshot = Array.from(hydrated);
         return hydrated;
     }
 
-    return overlayFilesSnapshot.length > 0 ? [...overlayFilesSnapshot] : Array.isArray(files) ? files : [];
+    return overlayFilesSnapshot.length > 0 ? Array.from(overlayFilesSnapshot) : Array.isArray(files) ? files : [];
 }
 
 /**
@@ -175,9 +175,9 @@ function commitMarkerCountInternal(count, source, explicitOverride, reflect = tr
 }
 
 function commitOverlayFilesInternal(files, source, reflect = true) {
-    const normalized = Array.isArray(files) ? [...files] : [];
+    const normalized = Array.isArray(files) ? Array.from(files) : [];
     setState("overlays.loadedFitFiles", normalized, { source });
-    overlayFilesSnapshot = [...normalized];
+    overlayFilesSnapshot = Array.from(normalized);
     if (reflect) {
         reflectLegacyGlobal("loadedFitFiles", normalized, source);
     }
@@ -255,7 +255,7 @@ function hydrateOverlayArrayFromDescriptor(propName, commitFn) {
         if (descriptor && Object.hasOwn(descriptor, "value")) {
             const rawValue = descriptor.value;
             if (Array.isArray(rawValue) && rawValue.length > 0) {
-                const normalized = [...rawValue];
+                const normalized = Array.from(rawValue);
                 commitFn(normalized, `${DEFAULT_SOURCE}.hydrate.${propName}`);
                 return normalized;
             }

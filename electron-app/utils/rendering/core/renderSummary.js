@@ -42,8 +42,8 @@ export function renderSummary(data) {
     if (data && data.recordMesgs) {
         for (const row of data.recordMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
     }
-    const allKeys = [...keySet];
-    let visibleColumns = loadColPrefs(getStorageKey(data)) || [...allKeys];
+    const allKeys = Array.from(keySet);
+    let visibleColumns = loadColPrefs(getStorageKey(data)) || Array.from(allKeys);
 
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";

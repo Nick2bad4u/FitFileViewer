@@ -107,7 +107,7 @@ export function createMarkerCountSelector(onChange) {
                     e.stopPropagation();
 
                     const idx = select.selectedIndex,
-                        optionElements = [...select.options];
+                        optionElements = Array.from(select.options);
 
                     if (e.deltaY > 0 && idx < optionElements.length - 1) {
                         select.selectedIndex = idx + 1;

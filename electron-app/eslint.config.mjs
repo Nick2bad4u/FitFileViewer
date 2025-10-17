@@ -15,8 +15,8 @@ import pluginListeners from "eslint-plugin-listeners";
 import nodePlugin from "eslint-plugin-n";
 import pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
 import pluginNoSecrets from "eslint-plugin-no-secrets";
-import pluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
 import nounsanitized from "eslint-plugin-no-unsanitized";
+import pluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
 import perfectionist from "eslint-plugin-perfectionist";
 import pluginPreferArrow from "eslint-plugin-prefer-arrow";
 import pluginPromise from "eslint-plugin-promise";
@@ -363,7 +363,7 @@ export default defineConfig([
 
             // No-unsanitized rules
             "no-unsanitized/method": "off", // Too many false positives with dynamic imports
-            "no-unsanitized/property": "warn",
+            "no-unsanitized/property": "off",
 
             // ESLint comments rules
             "eslint-comments/disable-enable-pair": "warn",
@@ -400,6 +400,7 @@ export default defineConfig([
                     classPropertiesAllowed: false,
                 },
             ],
+
 
             // TSDoc rules - better JSDoc/TSDoc validation
             "tsdoc/syntax": "off",

@@ -60,7 +60,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         const // Create one dataset per zone (stacked across laps)
             /** @type {any[]} */
             datasets = [],
-            zoneLabels = [...allZoneLabels].sort((a, b) => {
+            zoneLabels = Array.from(allZoneLabels).sort((a, b) => {
                 const aNum = parseZoneNumber(a, 0),
                     bNum = parseZoneNumber(b, 0);
                 return aNum - bNum;

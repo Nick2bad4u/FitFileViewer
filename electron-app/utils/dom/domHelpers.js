@@ -145,7 +145,7 @@ export function queryAll(selector, root = document) {
         return [];
     }
     try {
-        return [...list].filter((element) => isHTMLElement(element));
+        return Array.from(list).filter((element) => isHTMLElement(element));
     } catch {
         // In case Array.from fails on exotic list objects
         const result = [];
