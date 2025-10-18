@@ -7,9 +7,108 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[aa8c47d](https://github.com/Nick2bad4u/FitFileViewer/commit/aa8c47d260651c8b87d9072519be31528f2d484d)...
+[aa8c47d](https://github.com/Nick2bad4u/FitFileViewer/commit/aa8c47d260651c8b87d9072519be31528f2d484d)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aa8c47d260651c8b87d9072519be31528f2d484d...aa8c47d260651c8b87d9072519be31528f2d484d))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.5.0 [`(aa8c47d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/aa8c47d260651c8b87d9072519be31528f2d484d)
+
+
+
+
+
+
+## [27.5.0] - 2025-10-18
+
+
+[[783ee9d](https://github.com/Nick2bad4u/FitFileViewer/commit/783ee9d9708aa2d02d78217771450b5e2e8fb9ff)...
+[c812220](https://github.com/Nick2bad4u/FitFileViewer/commit/c8122207bcf8b14d8cf6bd3a31e2228b3d78b3e1)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/783ee9d9708aa2d02d78217771450b5e2e8fb9ff...c8122207bcf8b14d8cf6bd3a31e2228b3d78b3e1))
+
+
+### 🛠️ GitHub Actions
+
+- 👷 [ci] Implements packaged macOS smoke test
+
+This commit adds a smoke test for packaged macOS builds.
+
+- ✨ [feat] Introduces `registerSmokeTestHandlers` to manage IPC handlers for smoke tests, enabling automated testing of the packaged application.
+   - Registers a "smoke-test:result" listener to capture test outcomes and trigger application exit.
+   - Implements a timeout mechanism to ensure tests complete within a defined timeframe.
+- 🛠️ [fix] Adds `isSmokeTestMode` and `reportSmokeTestResult` to `preload.js` to allow renderer processes to report test results.
+   - Conditionally enables smoke test features based on the `FFV_SMOKE_TEST_MODE` environment variable.
+   - Prevents smoke test execution if the environment variable is not set.
+- 🛠️ [fix] Modifies `handleOpenFile` to report smoke test results at various stages of file opening and processing.
+   - Reports success or failure at different stages, including parameter validation, file reading, parsing, and rendering.
+   - Adds detailed information such as file path, record count, and byte length to the report.
+- 🚜 [refactor] Modifies `bootstrapMainWindow` to trigger a "menu-open-file" event in smoke test mode, automating file opening.
+   - Delays the event dispatch to ensure the main window is fully initialized.
+- 🧹 [chore] Adds a new script, `run-mac-smoke-test.cjs`, to launch the packaged macOS build and execute the smoke test.
+   - Locates the executable path recursively.
+   - Uses `spawn` to execute the application.
+- 🧹 [chore] Updates `electron-builder.config.js` to ensure the renderer bundle exists before packaging, invoking Vite's production build if necessary.
+- 🧹 [chore] Adds a new `test:smoke:mac` npm script to package the macOS app and run the smoke test.
+- 📝 [docs] Updates `.github/workflows/mac-smoke-test.yml` to include a job for running the packaged smoke test.
+   - Sets environment variables required for smoke test execution.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c812220)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c8122207bcf8b14d8cf6bd3a31e2228b3d78b3e1)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.4.0 [`(783ee9d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/783ee9d9708aa2d02d78217771450b5e2e8fb9ff)
+
+
+
+
+
+
+## [27.4.0] - 2025-10-17
+
+
 [[d525d57](https://github.com/Nick2bad4u/FitFileViewer/commit/d525d570a77f831c2492612e53b9e8eadb686a28)...
-[d525d57](https://github.com/Nick2bad4u/FitFileViewer/commit/d525d570a77f831c2492612e53b9e8eadb686a28)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d525d570a77f831c2492612e53b9e8eadb686a28...d525d570a77f831c2492612e53b9e8eadb686a28))
+[7354c6d](https://github.com/Nick2bad4u/FitFileViewer/commit/7354c6da4a7234cded4f5f51fc0f13a813db48a0)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/d525d570a77f831c2492612e53b9e8eadb686a28...7354c6da4a7234cded4f5f51fc0f13a813db48a0))
+
+
+### 🛠️ GitHub Actions
+
+- ✨ [skip-ci][feat] Enables macOS smoke tests
+
+Adds a macOS smoke test workflow and improves file opening.
+
+- ✨ [feat] Introduces a new GitHub Actions workflow (`mac-smoke-test.yml`) to run smoke tests on macOS.
+   - The workflow is triggered on pushes to the `main` branch and pull requests, specifically when changes are made to files in the `electron-app/`, `fit-test-files/`, or `.github/workflows/mac-smoke-test.yml` directories.
+   - It sets up Node.js, installs dependencies, installs Playwright browsers, and runs smoke tests.
+   - Uses `macos-14` as the runner.
+- 🛠️ [fix] Modifies `registerDialogHandlers.js` to handle file opening more robustly and facilitate automated testing.
+   - Adds `resolveForcedOpenFilePath` function, which resolves an environment-provided file path for automated smoke tests, allowing a file to be opened directly via an environment variable (`FFV_E2E_OPEN_FILE_PATH`).
+   - Introduces `resolveSelectedPath` to streamline the path resolution process after file selection.
+   - Refactors the `dialog:openFile` handler to first check for a forced path before showing the dialog.
+   - Adds logging to provide better feedback during automated tests.
+- 🧪 [test] Adds Playwright configuration and a test file for end-to-end smoke testing.
+   - Creates `playwright.config.ts` to configure Playwright tests, setting timeouts, retries, and trace/screenshot/video recording options.
+   - Introduces `open-fit-file.spec.ts` to test the application's ability to open and decode a FIT file.
+   - The test launches the Electron app, waits for the window to load, and then evaluates code in the renderer process to open a specified FIT file and verify that it can be read and parsed.
+- 🧹 [chore] Updates `package.json` to include a new `test:smoke` script and adds `@playwright/test` as a dev dependency.
+   - Updates the version number.
+   - Adds a `test:smoke` script that runs Playwright tests.
+   - Adds `@playwright/test` as a development dependency.
+- 🛠️ [fix] Modifies the `sandbox` property in `windowStateUtils.js` to conditionally disable sandboxing on macOS (`darwin`) platforms.
+- 📝 [docs] Updates `tsconfig.json` to include new files in the compilation process.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7354c6d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7354c6da4a7234cded4f5f51fc0f13a813db48a0)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.3.0 [skip ci] [`(6251a17)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6251a17979353814125f6e2b75f9f37504b59a68)
+
 
 
 ### 📦 Dependencies
