@@ -791,6 +791,14 @@ try {
     if (electronAPI.validateAPI()) {
         contextBridge.exposeInMainWorld("electronAPI", electronAPI);
 
+        if (typeof electronAPI.notifySmokeTestReady === "function") {
+            try {
+                electronAPI.notifySmokeTestReady();
+            } catch (error) {
+                console.error("[preload.js] Failed to notify smoke test readiness immediately:", error);
+            }
+        }
+
         // Log API structure in development
         if (process.env.NODE_ENV === "development") {
             console.log("[preload.js] Successfully exposed electronAPI to main world");
