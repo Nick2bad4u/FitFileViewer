@@ -358,3 +358,4 @@ electron-app/.stylelintignore
 electron-app/.env.development
 electron-app/.env.production
 html/
+electron-app/test-results/.last-run.json

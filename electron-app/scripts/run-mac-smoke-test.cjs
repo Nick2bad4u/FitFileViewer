@@ -9,7 +9,18 @@ const path = require("node:path");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const REPO_ROOT = path.resolve(PROJECT_ROOT, "..");
-const RELEASE_DIR = path.resolve(PROJECT_ROOT, "release");
+const CUSTOM_OUTPUT_DIR = process.env.FFV_SMOKE_BUILD_DIR?.trim();
+/** @type {string[]} */
+const OUTPUT_DIR_CANDIDATES = [];
+
+if (CUSTOM_OUTPUT_DIR) {
+    OUTPUT_DIR_CANDIDATES.push(path.resolve(PROJECT_ROOT, CUSTOM_OUTPUT_DIR));
+}
+
+OUTPUT_DIR_CANDIDATES.push(
+    path.resolve(PROJECT_ROOT, "release"),
+    path.resolve(PROJECT_ROOT, "dist"),
+);
 const SAMPLE_FIT = process.env.FFV_SMOKE_SAMPLE ?? path.join(REPO_ROOT, "fit-test-files", "17326739450_ACTIVITY.fit");
 const SMOKE_TIMEOUT_MS = Number(process.env.FFV_SMOKE_TEST_TIMEOUT_MS || 120_000);
 
@@ -47,13 +58,16 @@ async function main() {
         throw new Error(`[mac-smoke-test] Sample FIT file not found at ${SAMPLE_FIT}`);
     }
 
-    if (!fs.existsSync(RELEASE_DIR) || !fs.statSync(RELEASE_DIR).isDirectory()) {
-        throw new Error(`[mac-smoke-test] Release directory missing at ${RELEASE_DIR}`);
+    const outputDir = resolveOutputDirectory();
+    if (!outputDir) {
+        throw new Error(`[mac-smoke-test] Packaged output directory missing. Checked: ${OUTPUT_DIR_CANDIDATES.join(", ")}`);
     }
 
-    const executablePath = findExecutable(RELEASE_DIR);
+    console.info(`[mac-smoke-test] Inspecting packaged artifacts in ${outputDir}`);
+
+    const executablePath = findExecutable(outputDir);
     if (!executablePath) {
-        throw new Error(`[mac-smoke-test] Unable to locate packaged macOS binary under ${RELEASE_DIR}`);
+        throw new Error(`[mac-smoke-test] Unable to locate packaged macOS binary under ${outputDir}`);
     }
 
     console.info(`[mac-smoke-test] Launching ${executablePath}`);
@@ -106,6 +120,23 @@ async function main() {
     await smokeRunPromise;
 
     console.info("[mac-smoke-test] Smoke test completed successfully.");
+}
+
+/**
+ * Determine which packaged output directory is available for the smoke test.
+ * @returns {string|null}
+ */
+function resolveOutputDirectory() {
+    for (const candidate of OUTPUT_DIR_CANDIDATES) {
+        try {
+            if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+                return candidate;
+            }
+        } catch {
+            // Ignore filesystem errors so we can continue scanning.
+        }
+    }
+    return null;
 }
 
 main().catch((error) => {

@@ -1,7 +1,17 @@
 // @ts-nocheck
 // Mock Leaflet global L for all Vitest tests
 import { JSDOM } from "jsdom";
-import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach, afterAll as vitestAfterAll } from "vitest";
+import {
+    vi,
+    afterEach as vitestAfterEach,
+    beforeEach as vitestBeforeEach,
+    afterAll as vitestAfterAll,
+    beforeAll as vitestBeforeAll,
+    describe as vitestDescribe,
+    it as vitestIt,
+    test as vitestTest,
+    expect as vitestExpect,
+} from "vitest";
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
 /** @type {undefined | (() => void)} */
 let __resetStateMgr;
@@ -144,6 +154,135 @@ function ensureConsoleAlive() {
     }
 }
 
+function ensureGlobalTestApi() {
+    try {
+        if (typeof globalThis.expect !== "function") {
+            globalThis.expect = vitestExpect;
+        }
+        if (typeof globalThis.describe !== "function") {
+            globalThis.describe = vitestDescribe;
+        }
+        if (typeof globalThis.it !== "function") {
+            globalThis.it = vitestIt;
+        }
+        if (typeof globalThis.test !== "function") {
+            globalThis.test = vitestTest;
+        }
+        if (typeof globalThis.beforeEach !== "function") {
+            globalThis.beforeEach = vitestBeforeEach;
+        }
+        if (typeof globalThis.afterEach !== "function") {
+            globalThis.afterEach = vitestAfterEach;
+        }
+        if (typeof globalThis.beforeAll !== "function") {
+            globalThis.beforeAll = vitestBeforeAll;
+        }
+        if (typeof globalThis.afterAll !== "function") {
+            globalThis.afterAll = vitestAfterAll;
+        }
+    } catch {
+        /* ignore */
+    }
+}
+
+ensureGlobalTestApi();
+
+class MemoryStorage {
+    constructor() {
+        this._store = new Map();
+    }
+
+    getItem(key) {
+        const normalized = String(key);
+        return this._store.has(normalized) ? this._store.get(normalized) : null;
+    }
+
+    setItem(key, value) {
+        this._store.set(String(key), String(value));
+    }
+
+    removeItem(key) {
+        this._store.delete(String(key));
+    }
+
+    clear() {
+        this._store.clear();
+    }
+
+    key(index) {
+        return Array.from(this._store.keys())[Number(index)] ?? null;
+    }
+
+    get length() {
+        return this._store.size;
+    }
+}
+
+function isStorageValid(candidate) {
+    return (
+        !!candidate &&
+        typeof candidate.getItem === "function" &&
+        typeof candidate.setItem === "function" &&
+        typeof candidate.removeItem === "function" &&
+        typeof candidate.clear === "function"
+    );
+}
+
+function captureStorage(key) {
+    try {
+        const fromGlobal = /** @type {any} */ (globalThis)[key];
+        if (isStorageValid(fromGlobal)) {
+            return fromGlobal;
+        }
+    } catch {
+        /* ignore */
+    }
+    try {
+        if (typeof window !== "undefined") {
+            const fromWindow = /** @type {any} */ (window)[key];
+            if (isStorageValid(fromWindow)) {
+                return fromWindow;
+            }
+        }
+    } catch {
+        /* ignore */
+    }
+    return undefined;
+}
+
+function assignStorage(target, key, storage) {
+    if (!target) return;
+    try {
+        Object.defineProperty(target, key, {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: storage,
+        });
+    } catch {
+        try {
+            target[key] = storage;
+        } catch {
+            /* ignore */
+        }
+    }
+}
+
+function restoreStorage(key, initial) {
+    const replacement = isStorageValid(initial) ? initial : new MemoryStorage();
+    assignStorage(globalThis, key, replacement);
+    if (typeof window !== "undefined") {
+        assignStorage(window, key, replacement);
+    }
+    return replacement;
+}
+
+const __initialLocalStorage = captureStorage("localStorage");
+const __initialSessionStorage = captureStorage("sessionStorage");
+
+restoreStorage("localStorage", __initialLocalStorage);
+restoreStorage("sessionStorage", __initialSessionStorage);
+
 // Register hooks defensively: in some execution modes (e.g., forks pool or
 // early setup evaluation), the Vitest runner might not yet be ready, causing
 // "Vitest failed to find the runner". Swallow those cases and proceed; tests
@@ -151,6 +290,7 @@ function ensureConsoleAlive() {
 try {
     vitestBeforeEach(() => {
         ensureConsoleAlive();
+        ensureGlobalTestApi();
         try {
             const g = /** @type {any} */ (globalThis);
             if (!g.process || typeof g.process !== "object") g.process = {};
@@ -167,6 +307,8 @@ try {
         } catch {
             /* ignore */
         }
+        restoreStorage("localStorage", __initialLocalStorage);
+        restoreStorage("sessionStorage", __initialSessionStorage);
     });
 } catch {
     /* ignore: runner not yet available */
@@ -174,6 +316,7 @@ try {
 try {
     vitestAfterEach(() => {
         ensureConsoleAlive();
+        ensureGlobalTestApi();
         try {
             const g = /** @type {any} */ (globalThis);
             if (!g.process || typeof g.process !== "object") g.process = {};
@@ -190,12 +333,19 @@ try {
         } catch {
             /* ignore */
         }
+        restoreStorage("localStorage", __initialLocalStorage);
+        restoreStorage("sessionStorage", __initialSessionStorage);
     });
 } catch {
     /* ignore: runner not yet available */
 }
 try {
-    vitestAfterAll(() => ensureConsoleAlive());
+    vitestAfterAll(() => {
+        ensureConsoleAlive();
+        ensureGlobalTestApi();
+        restoreStorage("localStorage", __initialLocalStorage);
+        restoreStorage("sessionStorage", __initialSessionStorage);
+    });
 } catch {
     /* ignore: runner not yet available */
 }
