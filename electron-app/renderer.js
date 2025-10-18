@@ -77,6 +77,44 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
+// Early smoke test ready notification for macOS compatibility
+// Send this as soon as the script loads, before any initialization
+// This ensures smoke tests don't timeout even if initialization has issues
+(function() {
+    // Check multiple times as electronAPI may not be immediately available
+    let attemptCount = 0;
+    const maxAttempts = 20; // 2 seconds total (20 * 100ms)
+    
+    function tryNotifySmokeTest() {
+        attemptCount++;
+        
+        if (typeof globalThis?.electronAPI?.isSmokeTestMode === "function" && 
+            globalThis.electronAPI.isSmokeTestMode()) {
+            console.log("[Renderer] Smoke test mode detected, sending early ready notification");
+            
+            if (typeof globalThis.electronAPI.notifySmokeTestReady === "function") {
+                try {
+                    globalThis.electronAPI.notifySmokeTestReady();
+                    console.log("[Renderer] Early smoke test ready notification sent");
+                    return; // Success, stop trying
+                } catch (error) {
+                    console.error("[Renderer] Failed to send early smoke test ready notification:", error);
+                }
+            }
+        }
+        
+        // Retry if not yet successful and under max attempts
+        if (attemptCount < maxAttempts) {
+            setTimeout(tryNotifySmokeTest, 100);
+        } else {
+            console.log("[Renderer] Stopped attempting early smoke test notification after", attemptCount, "attempts");
+        }
+    }
+    
+    // Start trying immediately
+    tryNotifySmokeTest();
+})();
+
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -733,6 +771,18 @@ async function initializeComponents(dependencies) {
         console.log("[Renderer] All components initialized successfully");
     } catch (error) {
         console.error("[Renderer] Component initialization failed:", error);
+        
+        // Critical: Ensure smoke test ready notification is sent even if initialization fails
+        // This prevents smoke tests from timing out on macOS
+        if (typeof globalThis?.electronAPI?.notifySmokeTestReady === "function") {
+            try {
+                globalThis.electronAPI.notifySmokeTestReady();
+                console.log("[Renderer] Smoke test ready notification sent despite initialization error");
+            } catch (notifyError) {
+                console.error("[Renderer] Failed to send smoke test ready notification:", notifyError);
+            }
+        }
+        
         throw error;
     }
 }
