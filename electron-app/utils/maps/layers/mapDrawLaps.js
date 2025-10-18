@@ -511,20 +511,21 @@ export function mapDrawLaps(
                 endMarker.bindPopup("End");
             }
 
-            let renderedAll = 0;
-            for (const c of coords) {
-                if (!c) {
-                    continue;
-                }
-                const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row, lapValRaw] = c;
-                if (!shouldRenderGlobalIndex(globalIdx)) {
-                    continue;
-                }
-                let lapDisplay = lapValRaw;
-                if (!lapDisplay || Number.isNaN(lapDisplay)) {
-                    lapDisplay = 1;
-                }
-                const marker = L.circleMarker([lat, lng], {
+            // Replace loops adding markers where c may be undefined
+            for (
+                let i = 0;
+                i < coords.length;
+                i +=
+                    /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
+                        ? 1
+                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
+            ) {
+                const c = coords[i];
+                if (!c) continue;
+                let lapDisplay = c[8];
+                if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+                const marker = L.circleMarker([c[0], c[1]], {
+                    radius: 4,
                     color: polyColor,
                     fillColor: polyColor,
                     fillOpacity: 0.28,
@@ -701,20 +702,21 @@ export function mapDrawLaps(
                     endMarker2.bindPopup("End");
                 }
 
-                let renderedAllArray = 0;
-                for (const c of coords) {
-                    if (!c) {
-                        continue;
-                    }
-                    const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row2, lapValRaw] = c;
-                    if (!shouldRenderGlobalIndex(globalIdx)) {
-                        continue;
-                    }
-                    let lapDisplay = lapValRaw;
-                    if (!lapDisplay || Number.isNaN(lapDisplay)) {
-                        lapDisplay = 1;
-                    }
-                    const marker = L.circleMarker([lat, lng], {
+                // Replace loops adding markers where c may be undefined
+                for (
+                    let i = 0;
+                    i < coords.length;
+                    i +=
+                        /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
+                            ? 1
+                            : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
+                ) {
+                    const c = coords[i];
+                    if (!c) continue;
+                    let lapDisplay = c[8];
+                    if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+                    const marker = L.circleMarker([c[0], c[1]], {
+                        radius: 4,
                         color: polyColor,
                         fillColor: polyColor,
                         fillOpacity: 0.28,
@@ -858,39 +860,20 @@ export function mapDrawLaps(
                             bounds = polyline.getBounds();
                         }
 
-                        const end = lapCoords.at(-1);
-                        const [start] = lapCoords;
-                        if (showIcons && start && end) {
-                            const lapStartMarker = L.marker([start[0], start[1]], {
-                                icon: startIcon,
-                                title: "Start",
-                                zIndexOffset: 2000,
-                            });
-                            addLayer(lapStartMarker);
-                            lapStartMarker.bindPopup("Start");
-                            const lapEndMarker = L.marker([end[0], end[1]], {
-                                icon: endIcon,
-                                title: "End",
-                                zIndexOffset: 2000,
-                            });
-                            addLayer(lapEndMarker);
-                            lapEndMarker.bindPopup("End");
-                        }
-
-                        let renderedLap = 0;
-                        for (const c of lapCoords) {
-                            if (!c) {
-                                continue;
-                            }
-                            const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row3, lapValRaw] = c;
-                            if (!shouldRenderGlobalIndex(globalIdx)) {
-                                continue;
-                            }
-                            let lapDisplay = lapValRaw;
-                            if (!lapDisplay || Number.isNaN(lapDisplay)) {
-                                lapDisplay = 1;
-                            }
-                            const marker = L.circleMarker([lat, lng], {
+                        const stepLap =
+                            /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
+                                ? 1
+                                : Math.max(
+                                      1,
+                                      Math.floor(lapCoords.length / /** @type {any} */ (win.mapMarkerCount || 1))
+                                  );
+                        for (let j = 0; j < lapCoords.length; j += stepLap) {
+                            const c = lapCoords[j];
+                            if (!c) continue;
+                            let lapDisplay = c[8];
+                            if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+                            const marker = L.circleMarker([c[0], c[1]], {
+                                radius: 4,
                                 color: polyColor,
                                 fillColor: polyColor,
                                 fillOpacity: 0.28,
@@ -1106,20 +1089,21 @@ export function mapDrawLaps(
             endMarker.bindPopup("End");
         }
 
-        let renderedSingle = 0;
-        for (const c of coords) {
-            if (!c) {
-                continue;
-            }
-            const [lat, lng, _timestamp, _altitude, _heartRate, _speed, globalIdx, row4, lapValRaw] = c;
-            if (!shouldRenderGlobalIndex(globalIdx)) {
-                continue;
-            }
-            let lapDisplay = lapValRaw;
-            if (!lapDisplay || Number.isNaN(lapDisplay)) {
-                lapDisplay = 1;
-            }
-            const marker = L.circleMarker([lat, lng], {
+        // Replace loops adding markers where c may be undefined
+        for (
+            let i = 0;
+            i < coords.length;
+            i +=
+                /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
+                    ? 1
+                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)))
+        ) {
+            const c = coords[i];
+            if (!c) continue;
+            let lapDisplay = c[8];
+            if (!lapDisplay || isNaN(lapDisplay)) lapDisplay = 1;
+            const marker = L.circleMarker([c[0], c[1]], {
+                radius: 4,
                 color: polyColor,
                 fillColor: polyColor,
                 fillOpacity: 0.28,
@@ -1213,71 +1197,94 @@ function findClosestRecordIndexByLatLon(lat, lon, records) {
     return minIdx;
 }
 
-/**
- * Resolve Leaflet global dynamically to respect runtime/test overrides.
- * Never capture L at module init time to avoid stale references in tests.
- * @returns {any}
- */
-function getGlobalDataWithFallback() {
-    const stateData = getGlobalData();
-    if (stateData && typeof stateData === "object") {
-        return stateData;
-    }
-    const win = getWin();
-    return win && typeof win === "object" ? win.globalData || null : null;
-}
+    if (coords.length > 0) {
+        const isHighlighted =
+            typeof overlayIdx === "number" && /** @type {any} */ (win)._highlightedOverlayIdx === overlayIdx;
 
-function getLeaflet() {
-    const w = getWin();
-    // Prefer globalThis.L if present; fall back to window.L
-    return /** @type {any} */ (globalThis && globalThis.L ? globalThis.L : w && w.L ? w.L : undefined);
-}
+        const paletteColor =
+            Array.isArray(chartOverlayColorPalette) &&
+            chartOverlayColorPalette.length > 0 &&
+            typeof overlayIdx === "number"
+                ? chartOverlayColorPalette[overlayIdx % chartOverlayColorPalette.length]
+                : "#1976d2"; // Default fallback color
 
-function getOverlayFilesWithFallback() {
-    const stateFiles = getOverlayFiles();
-    if (Array.isArray(stateFiles) && stateFiles.length > 0) {
-        return stateFiles;
-    }
-    const win = getWin();
-    if (win && Array.isArray(win.loadedFitFiles)) {
-        return win.loadedFitFiles;
-    }
-    return Array.isArray(stateFiles) ? stateFiles : [];
-}
-
-/**
- * Resolve the active window dynamically to avoid stale references in tests.
- * @returns {Window & WindowExtensions}
- */
-function getWin() {
-    // @ts-ignore
-    return /** @type {any} */ (globalThis.window === undefined ? globalThis : globalThis);
-}
-
-/**
- * Patch lapMesgs to add start_index and end_index if missing
- * @param {Array<LapMesg>} lapMesgs - Lap messages to patch
- * @param {Array<RecordMesg>} recordMesgs - Record messages for reference
- */
-function patchLapIndices(lapMesgs, recordMesgs) {
-    for (const [i, lap] of lapMesgs.entries()) {
-        if (
-            lap &&
-            (lap.start_index == null || lap.end_index == null) && // Find closest record index for start and end positions
-            typeof lap.startPositionLat === "number" &&
-            typeof lap.startPositionLong === "number" &&
-            typeof lap.endPositionLat === "number" &&
-            typeof lap.endPositionLong === "number"
-        ) {
-            const startIdx = findClosestRecordIndexByLatLon(lap.startPositionLat, lap.startPositionLong, recordMesgs);
-            let endIdx = findClosestRecordIndexByLatLon(lap.endPositionLat, lap.endPositionLong, recordMesgs);
-            if (endIdx === -1) {
-                endIdx = recordMesgs.length - 1;
+        const polyline = L.polyline(
+            coords.map((c) => [c[0], c[1]]),
+            {
+                color: paletteColor,
+                weight: isHighlighted ? 10 : 4,
+                opacity: 0.95,
+                dashArray: null,
+                className: isHighlighted ? "overlay-highlight-glow" : "",
             }
-            lap.start_index = startIdx;
-            lap.end_index = endIdx;
-            console.log(`[patchLapIndices] Lap ${i + 1}: start_index=${startIdx}, end_index=${endIdx}`);
+        ).addTo(map);
+
+        // Track overlay polylines for highlight updates
+        if (typeof overlayIdx === "number") {
+            if (!(/** @type {any} */ (win)._overlayPolylines)) /** @type {any} */ (win)._overlayPolylines = {};
+            /** @type {any} */ (win)._overlayPolylines[overlayIdx] = polyline;
         }
+
+        if (isHighlighted) {
+            const polyElem = polyline.getElement && polyline.getElement();
+            if (polyElem) {
+                polyElem.style.filter = "drop-shadow(0 0 8px " + (paletteColor || "#1976d2") + ")";
+            }
+        }
+
+        const start = coords[0];
+        const end = coords[coords.length - 1];
+
+        // --- Ensure start/end markers are always above polylines ---
+        if (startIcon && endIcon && start && end) {
+            L.marker([start[0], start[1]], { title: "Start", icon: startIcon, zIndexOffset: 2000 })
+                .addTo(map)
+                .bindPopup("Start");
+            L.marker([end[0], end[1]], { title: "End", icon: endIcon, zIndexOffset: 2000 }).addTo(map).bindPopup("End");
+        }
+
+        // --- Ensure data point markers are above polylines ---
+        const stepOverlay =
+            /** @type {any} */ (win).mapMarkerCount === 0 || !(/** @type {any} */ (win).mapMarkerCount)
+                ? 1
+                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (win.mapMarkerCount || 1)));
+        for (let i = 0; i < coords.length; i += stepOverlay) {
+            const c = coords[i];
+            if (!c) continue;
+            const marker = L.circleMarker([c[0], c[1]], {
+                radius: 4,
+                color: paletteColor || "#1976d2",
+                fillColor: "#fff",
+                fillOpacity: 0.85,
+                weight: 2,
+                zIndexOffset: 1500, // <-- ensure above polylines
+            });
+            if (markerClusterGroup) {
+                markerClusterGroup.addLayer(marker);
+            } else {
+                marker.addTo(map);
+            }
+
+            let lapDisplay;
+            if (getLapNumForIdx && fitData && Array.isArray(fitData.lapMesgs) && fitData.lapMesgs.length > 0) {
+                lapDisplay = getLapNumForIdx(c[6], /** @type {any} */ (fitData.lapMesgs));
+            } else {
+                lapDisplay = c[8] || 1;
+            }
+
+            let tooltip = formatTooltipData ? formatTooltipData(c[6], c[7], lapDisplay, recordMesgs) : "";
+            if (fileName) {
+                tooltip = `<b>${fileName}</b><br>` + tooltip;
+            }
+            marker.bindTooltip(tooltip, {
+                direction: "top",
+                sticky: true,
+            });
+        }
+
+        // Always return a new LatLngBounds object, never the polyline's internal bounds
+        const polyBounds = polyline.getBounds();
+        return typeof polyBounds.clone === "function" ? polyBounds.clone() : L.latLngBounds(polyBounds);
     }
 }
 
