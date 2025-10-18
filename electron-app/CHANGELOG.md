@@ -7,9 +7,120 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[fbb5f7f](https://github.com/Nick2bad4u/FitFileViewer/commit/fbb5f7ff42285d246b75273286d68d8b4bb91331)...
+[fbb5f7f](https://github.com/Nick2bad4u/FitFileViewer/commit/fbb5f7ff42285d246b75273286d68d8b4bb91331)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fbb5f7ff42285d246b75273286d68d8b4bb91331...fbb5f7ff42285d246b75273286d68d8b4bb91331))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.9.0 [`(fbb5f7f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fbb5f7ff42285d246b75273286d68d8b4bb91331)
+
+
+
+
+
+
+## [27.9.0] - 2025-10-18
+
+
+[[88324bf](https://github.com/Nick2bad4u/FitFileViewer/commit/88324bf60e7769593be79e0f44dc3bc950e83280)...
+[9a89530](https://github.com/Nick2bad4u/FitFileViewer/commit/9a8953024f526bf93becae156795ab030ced5bde)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/88324bf60e7769593be79e0f44dc3bc950e83280...9a8953024f526bf93becae156795ab030ced5bde))
+
+
+### 💼 Other
+
+- ✨ [feat] Improve smoke-test dispatch reliability and immediate readiness notification
+
+ - 🧪 [test] Implement retry/scheduling for smoke-test "menu-open-file" dispatch:
+   - track retry attempts, schedule retries with SMOKE_DISPATCH_RETRY_INTERVAL_MS
+   - retry on missing main window, missing/destroyed webContents, or loading state
+   - wait for did-finish-load when possible before dispatching
+ - 🧹 [chore] Parse and centralize timeout configuration (FFV_SMOKE_TEST_TIMEOUT_MS) and derive maxDispatchAttempts from timeout window
+ - 🛠️ [fix] Harden dispatch flow and error handling:
+   - separate attemptSend/dispatchMenuOpen logic with structured logging
+   - finalize dispatch failures with context and fail fast on send errors
+ - 🧹 [chore] Improve cleanup and listener lifecycle management:
+   - clear retry timers, remove result/renderer listeners, and support app listener cleanup to avoid leaks
+ - 🧪 [test] Preload: call electronAPI.notifySmokeTestReady() immediately after exposing API (safe try/catch) to speed up readiness signaling for smoke tests
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9a89530)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9a8953024f526bf93becae156795ab030ced5bde)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.8.0 [`(88324bf)`](https://github.com/Nick2bad4u/FitFileViewer/commit/88324bf60e7769593be79e0f44dc3bc950e83280)
+
+
+
+
+
+
+## [27.8.0] - 2025-10-18
+
+
+[[6bc12a9](https://github.com/Nick2bad4u/FitFileViewer/commit/6bc12a93ab5932fb96be0460787202e44e6d938d)...
+[3ea4201](https://github.com/Nick2bad4u/FitFileViewer/commit/3ea42013c5a47731c23c65ddeab3a98328f2eb72)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6bc12a93ab5932fb96be0460787202e44e6d938d...3ea42013c5a47731c23c65ddeab3a98328f2eb72))
+
+
+### 💼 Other
+
+- ✨ [feat] Improves smoke test reliability
+
+Improves the reliability and robustness of the smoke test by adding renderer readiness detection and menu dispatching.
+
+- Adds a mechanism for the main process to detect when the renderer is ready, preventing premature menu dispatch and ensuring the application is fully initialized before testing begins.
+ - Introduces `notifySmokeTestReady` in `preload.js` and calls it from `events.js` and `lifecycle/listeners.js` to signal renderer readiness.
+ - Uses `ipcMain.on("smoke-test:renderer-ready", ...)` to listen for this signal in `registerSmokeTestHandlers.js`.
+ - Adds a timeout to dispatch the menu event even if the readiness signal is not received.
+ - Cleans up listeners on completion or failure.
+- Modifies `registerSmokeTestHandlers` to accept `getMainWindow` and `sendToRenderer` functions as parameters, enabling the dispatch of menu events from the main process.
+ - Includes checks to ensure the main window and its web contents are available and not destroyed before dispatching.
+ - Adds a check for `win.webContents.isLoading()` to ensure the page has loaded before dispatching.
+- Removes the direct menu dispatch from `bootstrapMainWindow.js` to avoid race conditions and ensure events are dispatched only when the renderer is ready.
+- Updates the macOS smoke test script to capture and display stdout/stderr, providing better debugging information.
+ - Adds a platform check to ensure the macOS smoke test script only runs on macOS.
+- Updates type definitions in `preload.d.ts` to include `notifySmokeTestReady` and `SmokeTestResultPayload`.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3ea4201)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3ea42013c5a47731c23c65ddeab3a98328f2eb72)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.7.0 [`(6bc12a9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6bc12a93ab5932fb96be0460787202e44e6d938d)
+
+
+
+
+
+
+## [27.7.0] - 2025-10-18
+
+
 [[3866697](https://github.com/Nick2bad4u/FitFileViewer/commit/38666974b67896af2f15f7868d31fa5bed68dd12)...
-[3866697](https://github.com/Nick2bad4u/FitFileViewer/commit/38666974b67896af2f15f7868d31fa5bed68dd12)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/38666974b67896af2f15f7868d31fa5bed68dd12...38666974b67896af2f15f7868d31fa5bed68dd12))
+[a5a5163](https://github.com/Nick2bad4u/FitFileViewer/commit/a5a516397c249020824dd1c6ee61b6e081c7bc5e)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/38666974b67896af2f15f7868d31fa5bed68dd12...a5a516397c249020824dd1c6ee61b6e081c7bc5e))
+
+
+### 💼 Other
+
+- 🔧 [build] Standardize electron-builder usage and ensure renderer build for mac smoke/test packaging
+ - Use --config electron-builder.config.js for all electron-builder invocations (build:electron, build:prod, build:dev, build:dev:all, build:dev:package, build:dev:package:all, build:dev:package:prod, build:dev:package:prod:all, build:dev:package:prod:all:zip, build-all, package)
+ - Prepend npm run build:vite to test:smoke:mac to ensure renderer assets are built before running the packaged mac smoke test
+ - Preserve existing flags/targets (e.g. --mac --arm64 --dir, -mwl, -l, --dir) while making the electron-builder config explicit for consistency and reliability [ci-skip][skip-ci]
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(a5a5163)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a5a516397c249020824dd1c6ee61b6e081c7bc5e)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.6.0 [skip ci] [`(94d7c7d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/94d7c7dd21aef21a129909636980e182b5d57a6f)
+
 
 
 ### 📦 Dependencies
