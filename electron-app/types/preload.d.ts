@@ -24,6 +24,16 @@ export type PlatformInfo = {
     platform: string;
     arch: string;
 };
+export type SmokeTestResultPayload = {
+    success: boolean;
+    message?: string;
+    filePath?: string;
+    recordCount?: number;
+    byteLength?: number;
+    stage?: string;
+    timestamp?: string;
+    [key: string]: string | number | boolean | undefined;
+};
 export type ElectronAPI = {
     openFile: () => Promise<string[]>;
     openFileDialog: () => Promise<string[]>;
@@ -60,5 +70,8 @@ export type ElectronAPI = {
     injectMenu: (theme?: string | null, fitFilePath?: string | null) => Promise<boolean>;
     getChannelInfo: () => ChannelInfo;
     validateAPI: () => boolean;
+    isSmokeTestMode: () => boolean;
+    reportSmokeTestResult: (payload: SmokeTestResultPayload) => void;
+    notifySmokeTestReady: () => void;
 };
 //# sourceMappingURL=preload.d.ts.map

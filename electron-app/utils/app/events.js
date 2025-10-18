@@ -256,6 +256,12 @@ export function setupListeners({
             openFileBtn.disabled = false;
             setLoading(false);
         });
+
+        try {
+            globalThis.electronAPI.notifySmokeTestReady?.();
+        } catch (error) {
+            console.error("[events] Failed to notify smoke test readiness:", error);
+        }
     }
 
     if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {

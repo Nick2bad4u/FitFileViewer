@@ -256,6 +256,7 @@ function validateString(value, paramName, methodName) {
 
 // Main API object
 const isSmokeTestMode = process.env.FFV_SMOKE_TEST_MODE === "1";
+let hasNotifiedSmokeReady = false;
 
 /** @type {ElectronAPI} */
 const electronAPI = {
@@ -437,6 +438,23 @@ const electronAPI = {
             ipcRenderer.send("smoke-test:result", payload);
         } catch (error) {
             console.error("[preload.js] Error reporting smoke test result:", error);
+        }
+    },
+
+    /**
+     * Notifies the main process that the renderer has finished wiring smoke-test listeners.
+     * @returns {void}
+     */
+    notifySmokeTestReady: () => {
+        if (!isSmokeTestMode || hasNotifiedSmokeReady) {
+            return;
+        }
+
+        try {
+            ipcRenderer.send("smoke-test:renderer-ready");
+            hasNotifiedSmokeReady = true;
+        } catch (error) {
+            console.error("[preload.js] Error notifying smoke test readiness:", error);
         }
     },
 

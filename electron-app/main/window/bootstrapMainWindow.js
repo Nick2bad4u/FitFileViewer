@@ -25,8 +25,6 @@ async function bootstrapMainWindow({
     setupAutoUpdater,
     logWithContext,
 }) {
-    const isSmokeTestMode = process.env.FFV_SMOKE_TEST_MODE === "1";
-
     if (/** @type {any} */ (process.env).NODE_ENV === 'test') {
         try {
             const { app: __wa } = require('electron');
@@ -123,19 +121,6 @@ async function bootstrapMainWindow({
             });
             safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState('loadedFitFilePath'));
             sendToRenderer(mainWindow, 'set-theme', CONSTANTS.DEFAULT_THEME);
-        }
-
-        if (isSmokeTestMode) {
-            setTimeout(() => {
-                try {
-                    logWithContext('info', 'Smoke test mode active, dispatching menu-open-file event');
-                    sendToRenderer(mainWindow, 'menu-open-file');
-                } catch (error) {
-                    logWithContext('error', 'Failed to trigger smoke test file open event', {
-                        error: /** @type {Error} */ (error)?.message,
-                    });
-                }
-            }, 150);
         }
     });
 

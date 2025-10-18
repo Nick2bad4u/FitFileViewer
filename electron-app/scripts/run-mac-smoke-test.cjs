@@ -54,6 +54,14 @@ function findExecutable(baseDir) {
 }
 
 async function main() {
+    if (process.platform !== "darwin") {
+        console.error(
+            `[mac-smoke-test] This smoke test launcher only runs on macOS. Current platform: ${process.platform}`
+        );
+        process.exitCode = 1;
+        return;
+    }
+
     if (!fs.existsSync(SAMPLE_FIT)) {
         throw new Error(`[mac-smoke-test] Sample FIT file not found at ${SAMPLE_FIT}`);
     }
@@ -78,13 +86,39 @@ async function main() {
             env: {
                 ...process.env,
                 ELECTRON_DISABLE_SECURITY_WARNINGS: "1",
+                ELECTRON_ENABLE_LOGGING: "1",
+                ELECTRON_LOG_LEVEL: "info",
                 FFV_E2E_OPEN_FILE_PATH: SAMPLE_FIT,
                 FFV_SMOKE_TEST_MODE: "1",
                 FFV_SMOKE_TEST_TIMEOUT_MS: String(SMOKE_TIMEOUT_MS),
                 NODE_ENV: "production",
             },
-            stdio: "inherit",
+            stdio: ["ignore", "pipe", "pipe"],
         });
+
+        const forward = (stream, label, writer) => {
+            if (!stream) {
+                return;
+            }
+            const handler = (chunk) => {
+                const message = chunk.toString();
+                if (message.trim().length === 0) {
+                    return;
+                }
+                writer(`[mac-app:${label}] ${message}`);
+            };
+            const cleanup = () => {
+                stream.removeListener("data", handler);
+                stream.removeListener("end", cleanup);
+                stream.removeListener("close", cleanup);
+            };
+            stream.on("data", handler);
+            stream.once("end", cleanup);
+            stream.once("close", cleanup);
+        };
+
+        forward(child.stdout, "stdout", (msg) => process.stdout.write(msg));
+        forward(child.stderr, "stderr", (msg) => process.stderr.write(msg));
 
         let timeoutHandle = null;
         if (Number.isFinite(SMOKE_TIMEOUT_MS) && SMOKE_TIMEOUT_MS > 0) {

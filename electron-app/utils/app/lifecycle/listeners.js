@@ -513,6 +513,12 @@ export function setupListeners({
                 setLoading(false);
             }
         });
+
+        try {
+            globalThis.electronAPI.notifySmokeTestReady?.();
+        } catch (error) {
+            console.error("[listeners] Failed to notify smoke test readiness:", error);
+        }
     }
 
     if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {

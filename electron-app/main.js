@@ -1437,8 +1437,10 @@ function setupIPCHandlers(mainWindow) {
 
     registerSmokeTestHandlers({
         appRef,
+        getMainWindow: () => mainWindow,
         ipcMainRef,
         logWithContext,
+        sendToRenderer,
     });
 
     registerDialogHandlers({
