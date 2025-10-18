@@ -80,20 +80,40 @@
 // Early smoke test ready notification for macOS compatibility
 // Send this as soon as the script loads, before any initialization
 // This ensures smoke tests don't timeout even if initialization has issues
-if (typeof process !== "undefined" && process.env?.FFV_SMOKE_TEST_MODE === "1") {
-    console.log("[Renderer] Smoke test mode detected, will send early ready notification");
-    // Use setTimeout to ensure electronAPI is available (loaded by preload)
-    setTimeout(() => {
-        if (typeof globalThis?.electronAPI?.notifySmokeTestReady === "function") {
-            try {
-                globalThis.electronAPI.notifySmokeTestReady();
-                console.log("[Renderer] Early smoke test ready notification sent");
-            } catch (error) {
-                console.error("[Renderer] Failed to send early smoke test ready notification:", error);
+(function() {
+    // Check multiple times as electronAPI may not be immediately available
+    let attemptCount = 0;
+    const maxAttempts = 20; // 2 seconds total (20 * 100ms)
+    
+    function tryNotifySmokeTest() {
+        attemptCount++;
+        
+        if (typeof globalThis?.electronAPI?.isSmokeTestMode === "function" && 
+            globalThis.electronAPI.isSmokeTestMode()) {
+            console.log("[Renderer] Smoke test mode detected, sending early ready notification");
+            
+            if (typeof globalThis.electronAPI.notifySmokeTestReady === "function") {
+                try {
+                    globalThis.electronAPI.notifySmokeTestReady();
+                    console.log("[Renderer] Early smoke test ready notification sent");
+                    return; // Success, stop trying
+                } catch (error) {
+                    console.error("[Renderer] Failed to send early smoke test ready notification:", error);
+                }
             }
         }
-    }, 100);
-}
+        
+        // Retry if not yet successful and under max attempts
+        if (attemptCount < maxAttempts) {
+            setTimeout(tryNotifySmokeTest, 100);
+        } else {
+            console.log("[Renderer] Stopped attempting early smoke test notification after", attemptCount, "attempts");
+        }
+    }
+    
+    // Start trying immediately
+    tryNotifySmokeTest();
+})();
 
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
