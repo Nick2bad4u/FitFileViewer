@@ -7,9 +7,53 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[3274279](https://github.com/Nick2bad4u/FitFileViewer/commit/32742798bccc3d879014be404d37ed988aafea67)...
+[3274279](https://github.com/Nick2bad4u/FitFileViewer/commit/32742798bccc3d879014be404d37ed988aafea67)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/32742798bccc3d879014be404d37ed988aafea67...32742798bccc3d879014be404d37ed988aafea67))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.0.0 [`(3274279)`](https://github.com/Nick2bad4u/FitFileViewer/commit/32742798bccc3d879014be404d37ed988aafea67)
+
+
+
+
+
+
+## [28.0.0] - 2025-10-18
+
+
 [[fbb5f7f](https://github.com/Nick2bad4u/FitFileViewer/commit/fbb5f7ff42285d246b75273286d68d8b4bb91331)...
-[fbb5f7f](https://github.com/Nick2bad4u/FitFileViewer/commit/fbb5f7ff42285d246b75273286d68d8b4bb91331)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fbb5f7ff42285d246b75273286d68d8b4bb91331...fbb5f7ff42285d246b75273286d68d8b4bb91331))
+[ee1aa8e](https://github.com/Nick2bad4u/FitFileViewer/commit/ee1aa8ee05f40d12ed605645f61434684423eca2)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/fbb5f7ff42285d246b75273286d68d8b4bb91331...ee1aa8ee05f40d12ed605645f61434684423eca2))
+
+
+### 💼 Other
+
+- ✨ [feat] Introduces smoke test harness mode
+
+Adds a harness mode for smoke tests, allowing for more direct and reliable testing in specific environments.
+
+- 🧪 Skips the Vite build and uses a dedicated HTML file (`smoke-test.html`) when the `FFV_SMOKE_HARNESS` or `SKIP_VITE_BUNDLE` environment variables are set to "1".
+- 🧪 Includes `smoke-test.html` and `smoke-test-runner.js` in the application package.
+- 🧪 Registers IPC handlers only when not in harness mode, preventing conflicts.
+ - 🧪 Adds a listener for the "smoke-test:renderer-ready" event when in harness mode.
+- 🧪 Modifies the `run-mac-smoke-test.cjs` script to set `FFV_SMOKE_HARNESS=1` to enable harness mode during smoke tests on macOS.
+- 🧪 Loads `smoke-test.html` when `FFV_SMOKE_HARNESS` is set, bypassing the standard index file.
+- 🧪 Adds `smoke-test-runner.js` to drive smoke tests without UI, reporting results via `electronAPI`.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ee1aa8e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ee1aa8ee05f40d12ed605645f61434684423eca2)
+
+
+- Fix packaged preload path for macOS builds (#160) [`(7434830)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7434830654ee369ece1a636c94eee45603c56b94)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.9.0 [skip ci] [`(a3b2aad)`](https://github.com/Nick2bad4u/FitFileViewer/commit/a3b2aaddb932831cb84732c739699b8c88c379c5)
+
 
 
 ### 📦 Dependencies
