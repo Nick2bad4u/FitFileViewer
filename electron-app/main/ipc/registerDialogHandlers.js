@@ -84,17 +84,23 @@ function registerDialogHandlers({
         try {
             const forcedPath = resolveForcedOpenFilePath(logWithContext);
             if (forcedPath) {
+                logWithContext?.('info', 'Using forced file path from environment variable', {
+                    forcedPath,
+                    envVar: 'FFV_E2E_OPEN_FILE_PATH',
+                });
                 return resolveSelectedPath(forcedPath);
             }
 
             const dialog = ensureDialogModule(dialogRef);
 
+            logWithContext?.('info', 'Showing file open dialog');
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS?.DIALOG_FILTERS?.FIT_FILES,
                 properties: ['openFile'],
             });
 
             if (canceled || !Array.isArray(filePaths) || filePaths.length === 0) {
+                logWithContext?.('info', 'File dialog canceled or no files selected');
                 return null;
             }
 
@@ -103,6 +109,7 @@ function registerDialogHandlers({
                 return null;
             }
 
+            logWithContext?.('info', 'File selected from dialog', { filePath: firstPath });
             return resolveSelectedPath(firstPath);
         } catch (error) {
             logWithContext?.('error', 'Error in dialog:openFile', {
@@ -166,14 +173,26 @@ module.exports = { registerDialogHandlers, ensureDialogModule, resolveTargetWind
 function resolveForcedOpenFilePath(logWithContext) {
     const rawPath = process.env.FFV_E2E_OPEN_FILE_PATH;
     if (!rawPath) {
+        logWithContext?.('info', 'No forced file path specified (FFV_E2E_OPEN_FILE_PATH not set)');
         return null;
     }
 
+    logWithContext?.('info', 'Attempting to resolve forced file path', {
+        rawPath,
+        cwd: process.cwd(),
+    });
+
     try {
         const candidate = path.resolve(rawPath);
+        
+        logWithContext?.('info', 'Resolved absolute path', {
+            candidate,
+        });
+        
         if (!fs.existsSync(candidate)) {
             logWithContext?.('warn', 'Forced open file path does not exist', {
                 candidate,
+                rawPath,
             });
             return null;
         }
@@ -186,6 +205,7 @@ function resolveForcedOpenFilePath(logWithContext) {
     } catch (error) {
         logWithContext?.('warn', 'Failed to resolve forced open file path', {
             error: /** @type {Error} */ (error)?.message,
+            rawPath,
         });
         return null;
     }
