@@ -7,9 +7,49 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[3866697](https://github.com/Nick2bad4u/FitFileViewer/commit/38666974b67896af2f15f7868d31fa5bed68dd12)...
+[3866697](https://github.com/Nick2bad4u/FitFileViewer/commit/38666974b67896af2f15f7868d31fa5bed68dd12)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/38666974b67896af2f15f7868d31fa5bed68dd12...38666974b67896af2f15f7868d31fa5bed68dd12))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 27.6.0 [`(3866697)`](https://github.com/Nick2bad4u/FitFileViewer/commit/38666974b67896af2f15f7868d31fa5bed68dd12)
+
+
+
+
+
+
+## [27.6.0] - 2025-10-18
+
+
 [[aa8c47d](https://github.com/Nick2bad4u/FitFileViewer/commit/aa8c47d260651c8b87d9072519be31528f2d484d)...
-[aa8c47d](https://github.com/Nick2bad4u/FitFileViewer/commit/aa8c47d260651c8b87d9072519be31528f2d484d)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aa8c47d260651c8b87d9072519be31528f2d484d...aa8c47d260651c8b87d9072519be31528f2d484d))
+[46fa80d](https://github.com/Nick2bad4u/FitFileViewer/commit/46fa80d18548955d803bb77a0d2f5e2ffbe988b8)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/aa8c47d260651c8b87d9072519be31528f2d484d...46fa80d18548955d803bb77a0d2f5e2ffbe988b8))
+
+
+### 💼 Other
+
+- 🛠️ [fix] Improve macOS smoke test reliability
+
+Improves the reliability of the macOS smoke test by enhancing output directory resolution and ensuring test API availability.
+
+- 🔍 Updates the smoke test to search for the application in both `release` and `dist` directories, and also allows specifying a custom directory via environment variable.
+ - Previously, the test only checked the `release` directory, causing failures when the application was built to a different location.
+ - 🧪 Adds checks to ensure that Vitest's test API (e.g., `expect`, `describe`, `it`) is available in the global scope during tests.
+ - This mitigates issues where the test API might not be properly initialized, leading to test failures.
+ - 💾 Mocks `localStorage` and `sessionStorage` to prevent errors during tests and restores them after each test.
+ - ➕ Adds `.last-run.json` to `.gitignore` to prevent it from being committed. [skip-ci] [ci-skip]
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(46fa80d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/46fa80d18548955d803bb77a0d2f5e2ffbe988b8)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v27.5.0 [skip ci] [`(c3f13de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c3f13de2cd805512a50865f79584656d5d260816)
+
 
 
 ### 📦 Dependencies
