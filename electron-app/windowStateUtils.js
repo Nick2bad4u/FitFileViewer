@@ -89,7 +89,7 @@ function createWindow() {
                 icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
                 show: false,
                 webPreferences: {
-                    preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
+                    preload: resolvePreloadPath(),
                     ...CONSTANTS.WEB_PREFERENCES,
                     // Enable remote debugging for development
                     webSecurity: process.env.NODE_ENV !== "production",
@@ -228,6 +228,62 @@ function logWithContext(level, message, context = {}) {
         // @ts-ignore
         console[level](logMessage);
     }
+}
+
+/**
+ * Resolves the preload script path for both development and packaged builds.
+ * Hardened macOS builds require the preload script to live outside the asar
+ * archive, so we probe common locations before falling back to the local path.
+ * @returns {string}
+ */
+function resolvePreloadPath() {
+    const fallbackPath = path.join(__dirname, CONSTANTS.PATHS.PRELOAD);
+
+    try {
+        const electronApp = app;
+        const candidates = [];
+
+        if (electronApp && typeof electronApp.isPackaged === "boolean" && electronApp.isPackaged) {
+            const resourcesPath = process?.resourcesPath;
+            if (typeof resourcesPath === "string" && resourcesPath.length > 0) {
+                candidates.push(
+                    path.join(resourcesPath, "app.asar.unpacked", CONSTANTS.PATHS.PRELOAD),
+                    path.join(resourcesPath, CONSTANTS.PATHS.PRELOAD)
+                );
+            }
+
+            try {
+                const appPath = typeof electronApp.getAppPath === "function" ? electronApp.getAppPath() : null;
+                if (typeof appPath === "string" && appPath.length > 0) {
+                    candidates.push(path.join(appPath, CONSTANTS.PATHS.PRELOAD));
+                }
+            } catch (error) {
+                logWithContext("warn", "Failed to resolve app path while determining preload location", {
+                    error: safeErrorMessage(error),
+                });
+            }
+        }
+
+        for (const candidate of candidates) {
+            try {
+                if (candidate && fs.existsSync(candidate)) {
+                    logWithContext("info", "Using packaged preload script path", { preloadPath: candidate });
+                    return candidate;
+                }
+            } catch (error) {
+                logWithContext("warn", "Unable to access preload candidate path", {
+                    candidate,
+                    error: safeErrorMessage(error),
+                });
+            }
+        }
+    } catch (error) {
+        logWithContext("warn", "Falling back to default preload path", {
+            error: safeErrorMessage(error),
+        });
+    }
+
+    return fallbackPath;
 }
 
 // Enhanced error handling and logging
