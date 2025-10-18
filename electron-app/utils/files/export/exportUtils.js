@@ -1744,14 +1744,12 @@ export const exportUtils = {
      * Shows Gyazo account management modal with credentials setup
      */
     showGyazoAccountManager() {
-        const /** @type {GyazoConfig} */
-            config = /** @type {any} */ (exportUtils.getGyazoConfig()),
-            hasCredentials = Boolean(
-                /** @type {GyazoConfig} */(config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
-            ),
-            isAuthenticated = exportUtils.isGyazoAuthenticated(),
-            // Create modal overlay
-            overlay = document.createElement("div");
+        const isAuthenticated = exportUtils.isGyazoAuthenticated();
+        const config = exportUtils.getGyazoConfig();
+        const hasCredentials = !!(/** @type {any} */ (config.clientId && /** @type {any} */ (config).clientSecret));
+
+        // Create modal overlay
+        const overlay = document.createElement("div");
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -2183,14 +2181,12 @@ export const exportUtils = {
      * @param {HTMLElement} modal - The modal element containing status indicators
      */
     updateGyazoAuthStatus(modal) {
-        const // Update auth status
-            authStatus = modal.querySelector("#auth-status"),
-            /** @type {GyazoConfig} */
-            config = /** @type {any} */ (exportUtils.getGyazoConfig()),
-            hasCredentials = Boolean(
-                /** @type {GyazoConfig} */(config).clientId && /** @type {GyazoConfig} */ (config).clientSecret
-            ),
-            isAuthenticated = exportUtils.isGyazoAuthenticated();
+        const isAuthenticated = exportUtils.isGyazoAuthenticated();
+        const config = exportUtils.getGyazoConfig();
+        const hasCredentials = !!(/** @type {any} */ (config.clientId && /** @type {any} */ (config).clientSecret));
+
+        // Update auth status
+        const authStatus = modal.querySelector("#auth-status");
         if (authStatus) {
             /** @type {HTMLElement} */ (authStatus).style.background = isAuthenticated
                 ? "var(--color-success)"
