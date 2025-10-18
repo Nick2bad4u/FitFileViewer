@@ -5,6 +5,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+
 let rendererBundleVerified = false;
 
 /**
@@ -62,6 +63,7 @@ module.exports = {
     ],
 
     asar: true,
+    asarUnpack: ["preload.js"],
 
     publish: [
         {
