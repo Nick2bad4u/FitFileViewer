@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Fit File Viewer Smoke Harness</title>
+    </head>
+    <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 24px;">
+        <main
+            style="max-width: 720px; margin: 0 auto; border: 1px solid #cbd5f5; border-radius: 12px; padding: 24px; background: #0f172a; color: #e2e8f0;"
+        >
+            <h1 style="margin-top: 0; text-align: center;">Fit File Viewer</h1>
+            <p style="text-align: center; opacity: 0.8;">Running self-driven smoke verification…</p>
+            <pre
+                id="harness-log"
+                aria-live="polite"
+                style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 16px; overflow-y: auto; max-height: 260px;"
+            ></pre>
+        </main>
+        <script type="module" src="./smoke-test-runner.js"></script>
+    </body>
+</html>

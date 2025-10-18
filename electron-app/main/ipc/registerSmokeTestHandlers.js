@@ -43,6 +43,7 @@ function registerSmokeTestHandlers({ appRef, ipcMainRef, logWithContext, getMain
     const canDispatch = typeof getMainWindow === "function" && typeof sendToRenderer === "function";
     const configuredTimeout = Number(process.env.FFV_SMOKE_TEST_TIMEOUT_MS || DEFAULT_SMOKE_TIMEOUT_MS);
     const timeoutMs = Number.isFinite(configuredTimeout) ? configuredTimeout : DEFAULT_SMOKE_TIMEOUT_MS;
+    const harnessDriven = process.env.FFV_SMOKE_HARNESS === "1";
 
     function clearRetryTimer() {
         if (retryTimeoutHandle) {
@@ -252,7 +253,7 @@ function registerSmokeTestHandlers({ appRef, ipcMainRef, logWithContext, getMain
         }
     }
 
-    if (canDispatch) {
+    if (canDispatch && !harnessDriven) {
         const baseAttemptsWindow = timeoutMs > 0 ? timeoutMs : DEFAULT_SMOKE_TIMEOUT_MS;
         maxDispatchAttempts = Math.max(10, Math.ceil(baseAttemptsWindow / SMOKE_DISPATCH_RETRY_INTERVAL_MS));
         const readinessDelay = Number.isFinite(timeoutMs) && timeoutMs > 0
@@ -298,6 +299,13 @@ function registerSmokeTestHandlers({ appRef, ipcMainRef, logWithContext, getMain
         }
 
         dispatchMenuOpen();
+    } else if (harnessDriven) {
+        rendererReadyListener = () => {
+            logWithContext("info", "Smoke test harness renderer signaled readiness", {});
+        };
+
+        ipcMain.on("smoke-test:renderer-ready", rendererReadyListener);
+        logWithContext("info", "Harness-driven smoke test active; renderer will perform file open", {});
     }
 
     return () => {

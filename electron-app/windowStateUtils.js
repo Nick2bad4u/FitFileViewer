@@ -124,6 +124,7 @@ function createWindow() {
 
         // Load from Vite dev server in development, or file in production
         const isDev = process.env.ELECTRON_IS_DEV === "1" || process.env.NODE_ENV === "development";
+        const isSmokeHarness = process.env.FFV_SMOKE_HARNESS === "1";
         const viteDevServerUrl = process.env.VITE_DEV_SERVER_URL || "http://localhost:5273";
 
         if (isDev && viteDevServerUrl) {
@@ -149,25 +150,40 @@ function createWindow() {
                 });
         } else {
             // Production: Load from file
-            const distIndexPath = path.join(__dirname, CONSTANTS.PATHS.HTML.DIST_INDEX);
-            const fallbackIndexPath = path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX);
-            const hasDistBundle = fs.existsSync(distIndexPath);
-            const htmlPath = hasDistBundle ? distIndexPath : fallbackIndexPath;
+            if (isSmokeHarness) {
+                const harnessPath = path.join(__dirname, "smoke-test.html");
+                logWithContext("info", "Loading dedicated smoke test harness", { harnessPath });
+                win.loadFile(harnessPath)
+                    .then(() => {
+                        logWithContext("info", "Smoke harness loaded successfully");
+                    })
+                    .catch((error) => {
+                        logWithContext("error", "Failed to load smoke harness HTML", {
+                            error: safeErrorMessage(error),
+                            harnessPath,
+                        });
+                    });
+            } else {
+                const distIndexPath = path.join(__dirname, CONSTANTS.PATHS.HTML.DIST_INDEX);
+                const fallbackIndexPath = path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX);
+                const hasDistBundle = fs.existsSync(distIndexPath);
+                const htmlPath = hasDistBundle ? distIndexPath : fallbackIndexPath;
 
-            if (!hasDistBundle) {
-                logWithContext("warn", "Renderer dist bundle missing; falling back to source index.html", {
-                    expectedPath: distIndexPath,
-                });
+                if (!hasDistBundle) {
+                    logWithContext("warn", "Renderer dist bundle missing; falling back to source index.html", {
+                        expectedPath: distIndexPath,
+                    });
+                }
+
+                logWithContext("info", "Loading renderer HTML asset", { htmlPath });
+                win.loadFile(htmlPath)
+                    .then(() => {
+                        logWithContext("info", "Main HTML file loaded successfully");
+                    })
+                    .catch((error) => {
+                        logWithContext("error", "Error loading main HTML file:", { error: safeErrorMessage(error) });
+                    });
             }
-
-            logWithContext("info", "Loading renderer HTML asset", { htmlPath });
-            win.loadFile(htmlPath)
-                .then(() => {
-                    logWithContext("info", "Main HTML file loaded successfully");
-                })
-                .catch((error) => {
-                    logWithContext("error", "Error loading main HTML file:", { error: safeErrorMessage(error) });
-                });
         }
 
         return win;

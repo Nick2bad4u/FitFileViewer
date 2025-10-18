@@ -18,7 +18,20 @@ async function ensureRendererBundle() {
         return;
     }
 
+    const harnessMode = process.env.FFV_SMOKE_HARNESS === "1" || process.env.SKIP_VITE_BUNDLE === "1";
+
     const distIndexPath = path.join(__dirname, "dist", "index.html");
+    if (harnessMode) {
+        const harnessHtmlPath = path.join(__dirname, "smoke-test.html");
+        if (!fs.existsSync(harnessHtmlPath)) {
+            throw new Error(`Smoke harness HTML missing. Expected file: ${harnessHtmlPath}`);
+        }
+
+        rendererBundleVerified = true;
+        console.info("[electron-builder] Skipping Vite build because smoke harness mode is active.");
+        return;
+    }
+
     if (!fs.existsSync(distIndexPath)) {
         console.info("[electron-builder] Renderer dist assets missing; running Vite production build...");
         const vite = await import("vite");
@@ -52,6 +65,8 @@ module.exports = {
         "preload.js",
         "fitParser.js",
         "windowStateUtils.js",
+        "smoke-test.html",
+        "smoke-test-runner.js",
         "utils/**/*",
         "icons/**/*",
         "package.json",

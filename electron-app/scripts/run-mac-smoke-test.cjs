@@ -90,6 +90,7 @@ async function main() {
                 ELECTRON_LOG_LEVEL: "info",
                 FFV_E2E_OPEN_FILE_PATH: SAMPLE_FIT,
                 FFV_SMOKE_TEST_MODE: "1",
+                FFV_SMOKE_HARNESS: "1",
                 FFV_SMOKE_TEST_TIMEOUT_MS: String(SMOKE_TIMEOUT_MS),
                 NODE_ENV: "production",
             },
