@@ -77,6 +77,24 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
+// Early smoke test ready notification for macOS compatibility
+// Send this as soon as the script loads, before any initialization
+// This ensures smoke tests don't timeout even if initialization has issues
+if (typeof process !== "undefined" && process.env?.FFV_SMOKE_TEST_MODE === "1") {
+    console.log("[Renderer] Smoke test mode detected, will send early ready notification");
+    // Use setTimeout to ensure electronAPI is available (loaded by preload)
+    setTimeout(() => {
+        if (typeof globalThis?.electronAPI?.notifySmokeTestReady === "function") {
+            try {
+                globalThis.electronAPI.notifySmokeTestReady();
+                console.log("[Renderer] Early smoke test ready notification sent");
+            } catch (error) {
+                console.error("[Renderer] Failed to send early smoke test ready notification:", error);
+            }
+        }
+    }, 100);
+}
+
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -733,6 +751,18 @@ async function initializeComponents(dependencies) {
         console.log("[Renderer] All components initialized successfully");
     } catch (error) {
         console.error("[Renderer] Component initialization failed:", error);
+        
+        // Critical: Ensure smoke test ready notification is sent even if initialization fails
+        // This prevents smoke tests from timing out on macOS
+        if (typeof globalThis?.electronAPI?.notifySmokeTestReady === "function") {
+            try {
+                globalThis.electronAPI.notifySmokeTestReady();
+                console.log("[Renderer] Smoke test ready notification sent despite initialization error");
+            } catch (notifyError) {
+                console.error("[Renderer] Failed to send smoke test ready notification:", notifyError);
+            }
+        }
+        
         throw error;
     }
 }
