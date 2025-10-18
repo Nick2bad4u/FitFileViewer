@@ -55,10 +55,43 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         ...options,
     };
 
+    const electronAPI = /** @type {*} */ (globalThis)?.electronAPI;
+    const isSmokeTestMode = Boolean(electronAPI?.isSmokeTestMode?.());
+    let smokeTestReported = false;
+
+    /**
+     * @param {boolean} success
+     * @param {Partial<{ stage: string; message: string; filePath: string; recordCount: number; byteLength: number }>} [details]
+     */
+    const reportSmokeTest = (success, details = {}) => {
+        if (!isSmokeTestMode || smokeTestReported) {
+            return;
+        }
+
+        if (typeof electronAPI?.reportSmokeTestResult !== "function") {
+            return;
+        }
+
+        try {
+            electronAPI.reportSmokeTestResult({
+                success,
+                ...details,
+                timestamp: new Date().toISOString(),
+            });
+            smokeTestReported = true;
+        } catch (error) {
+            logWithContext(
+                `Smoke test reporting failed: ${error instanceof Error ? error.message : String(error)}`,
+                "warn"
+            );
+        }
+    };
+
     // Prevent multiple simultaneous file opening operations
     if (/** @type {*} */ (isOpeningFileRef)?.value) {
         logWithContext("File opening already in progress", "warn");
         showNotification("File opening is already in progress. Please wait.", "warning");
+        reportSmokeTest(false, { stage: "already-opening", message: "Concurrent open prevented" });
         return false;
     }
 
@@ -74,6 +107,7 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         if (isOpeningFileRef && typeof isOpeningFileRef === "object") {
             isOpeningFileRef.value = false;
         }
+        reportSmokeTest(false, { stage: "validate-params", message: "showNotification missing" });
         return false;
     }
 
@@ -92,6 +126,10 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
                 "error",
                 FILE_OPEN_CONSTANTS.ERROR_TIMEOUTS.CRITICAL
             );
+            reportSmokeTest(false, {
+                stage: "validate-electron-api",
+                message: "Electron API unavailable",
+            });
             return false;
         }
 
@@ -105,6 +143,10 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
+            reportSmokeTest(false, {
+                stage: "open-dialog",
+                message: String(error),
+            });
             return false;
         }
 
@@ -112,6 +154,10 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         if (!filePath) {
             logWithContext("File dialog cancelled by user");
             updateUIState(uiElements, false, false);
+            reportSmokeTest(false, {
+                stage: "dialog-cancelled",
+                message: "File dialog cancelled",
+            });
             return false;
         }
 
@@ -129,6 +175,11 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
+            reportSmokeTest(false, {
+                stage: "read-file",
+                message: String(error),
+                filePath: Array.isArray(filePath) ? filePath[0] : filePath,
+            });
             return false;
         }
 
@@ -138,6 +189,11 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
+            reportSmokeTest(false, {
+                stage: "validate-file",
+                message: "File is empty",
+                filePath: Array.isArray(filePath) ? filePath[0] : filePath,
+            });
             return false;
         }
 
@@ -151,6 +207,11 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             logWithContext(errorMessage, "error");
             showNotification(errorMessage, "error");
             updateUIState(uiElements, false, false);
+            reportSmokeTest(false, {
+                stage: "parse-fit",
+                message: String(error),
+                filePath: Array.isArray(filePath) ? filePath[0] : filePath,
+            });
             return false;
         }
 
@@ -158,6 +219,11 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
         if (result?.error) {
             showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
             updateUIState(uiElements, false, false);
+            reportSmokeTest(false, {
+                stage: "parse-result",
+                message: result.error,
+                filePath: Array.isArray(filePath) ? filePath[0] : filePath,
+            });
             return false;
         }
         if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
@@ -178,10 +244,33 @@ async function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showN
             }
         } catch (error) {
             showNotification(`Error displaying FIT data: ${error}`, "error");
+            reportSmokeTest(false, {
+                stage: "render-fit-data",
+                message: String(error),
+                filePath: Array.isArray(filePath) ? filePath[0] : filePath,
+            });
         }
 
         // Update UI state to indicate loading is complete
         updateUIState(uiElements, false, false);
+
+        if (!smokeTestReported) {
+            const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+            const recordCandidates = Array.isArray(result?.data?.recordMesgs) && result.data.recordMesgs.length > 0
+                ? result.data.recordMesgs
+                : Array.isArray(result?.data?.records) && result.data.records.length > 0
+                    ? result.data.records
+                    : Array.isArray(result?.records)
+                        ? result.records
+                        : [];
+
+            reportSmokeTest(true, {
+                stage: "completed",
+                filePath: filePathString,
+                recordCount: recordCandidates.length,
+                byteLength: arrayBuffer?.byteLength ?? 0,
+            });
+        }
         return true; // Return true on successful processing
     } finally {
         /** @type {*} */ (isOpeningFileRef).value = false;

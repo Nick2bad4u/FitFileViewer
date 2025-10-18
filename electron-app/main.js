@@ -322,6 +322,7 @@ const { registerFileSystemHandlers: _registerFileSystemHandlers } = require("./m
 const { registerFitFileHandlers: _registerFitFileHandlers } = require("./main/ipc/registerFitFileHandlers");
 const { registerInfoHandlers: _registerInfoHandlers } = require("./main/ipc/registerInfoHandlers");
 const { registerRecentFileHandlers } = require("./main/ipc/registerRecentFileHandlers");
+const { registerSmokeTestHandlers } = require("./main/ipc/registerSmokeTestHandlers");
 const { bootstrapMainWindow } = require("./main/window/bootstrapMainWindow");
 const { addRecentFile, loadRecentFiles } = require("./utils/files/recent/recentFiles");
 const // Constants
@@ -1432,6 +1433,12 @@ function setupIPCHandlers(mainWindow) {
         logWithContext("warn", "Fit parser state integration failed to initialize", {
             error: /** @type {Error} */ (error)?.message,
         });
+    });
+
+    registerSmokeTestHandlers({
+        appRef,
+        ipcMainRef,
+        logWithContext,
     });
 
     registerDialogHandlers({

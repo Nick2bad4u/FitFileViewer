@@ -197,6 +197,7 @@
     "test:changed": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --changed --run --reporter=dot --silent",
     "test:jest": "jest",
     "test:smoke": "playwright test --config playwright.config.ts",
+    "test:smoke:mac": "electron-builder --mac --arm64 --dir && node ./scripts/run-mac-smoke-test.cjs",
     "start": "npm run dev",
     "start-prod": "cross-env ELECTRON_IS_DEV=0 electron .",
     "build-all": "npm run build:vite && electron-builder -mwl",

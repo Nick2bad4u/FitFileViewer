@@ -3,10 +3,42 @@
  * @see https://www.electron.build/configuration/configuration
  */
 
+const fs = require("node:fs");
+const path = require("node:path");
+let rendererBundleVerified = false;
+
+/**
+ * Ensures the renderer bundle exists before packaging.
+ * Invokes Vite's production build when dist assets are missing.
+ * @returns {Promise<void>}
+ */
+async function ensureRendererBundle() {
+    if (rendererBundleVerified) {
+        return;
+    }
+
+    const distIndexPath = path.join(__dirname, "dist", "index.html");
+    if (!fs.existsSync(distIndexPath)) {
+        console.info("[electron-builder] Renderer dist assets missing; running Vite production build...");
+        const vite = await import("vite");
+        await vite.build({
+            configFile: path.join(__dirname, "vite.config.js"),
+            mode: "production",
+        });
+    }
+
+    if (!fs.existsSync(distIndexPath)) {
+        throw new Error(`Renderer bundle missing after Vite build. Expected file: ${distIndexPath}`);
+    }
+
+    rendererBundleVerified = true;
+}
+
 module.exports = {
     appId: "com.example.fitfileviewer",
     productName: "Fit File Viewer",
     artifactName: `Fit-File-Viewer-\${platform}-\${arch}-\${version}.\${ext}`,
+    beforePack: ensureRendererBundle,
 
     directories: {
         output: "release",

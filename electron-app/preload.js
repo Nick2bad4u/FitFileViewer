@@ -75,6 +75,16 @@ const // Constants for better maintainability
      * @property {string} arch
      */
     /**
+    * @typedef {Object} SmokeTestResultPayload
+    * @property {boolean} success
+    * @property {string} [message]
+    * @property {string} [filePath]
+    * @property {number} [recordCount]
+    * @property {number} [byteLength]
+    * @property {string} [stage]
+    * @property {string} [timestamp]
+     */
+    /**
      * @typedef {Object} ElectronAPI
      * @property {() => Promise<string[]>} openFile
      * @property {() => Promise<string[]>} openFileDialog
@@ -111,6 +121,8 @@ const // Constants for better maintainability
      * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
      * @property {() => ChannelInfo} getChannelInfo
      * @property {() => boolean} validateAPI
+    * @property {() => boolean} isSmokeTestMode
+    * @property {(payload: SmokeTestResultPayload) => void} reportSmokeTestResult
      */
 
     // Robust Electron resolver to support Vitest mocks (CJS/ESM interop)
@@ -243,6 +255,8 @@ function validateString(value, paramName, methodName) {
 }
 
 // Main API object
+const isSmokeTestMode = process.env.FFV_SMOKE_TEST_MODE === "1";
+
 /** @type {ElectronAPI} */
 const electronAPI = {
     /**
@@ -395,6 +409,34 @@ const electronAPI = {
             });
         } catch (error) {
             console.error(`[preload.js] Error setting up onIpc(${channel}):`, error);
+        }
+    },
+
+    /**
+     * Indicates whether smoke test mode is active for CI verification flows.
+     * @returns {boolean}
+     */
+    isSmokeTestMode: () => isSmokeTestMode,
+
+    /**
+     * Reports the outcome of a smoke test run back to the main process when enabled.
+     * @param {SmokeTestResultPayload} payload
+     * @returns {void}
+     */
+    reportSmokeTestResult: (payload) => {
+        if (!isSmokeTestMode) {
+            return;
+        }
+
+        if (!payload || typeof payload !== "object" || typeof payload.success !== "boolean") {
+            console.error("[preload.js] Invalid smoke test payload supplied", payload);
+            return;
+        }
+
+        try {
+            ipcRenderer.send("smoke-test:result", payload);
+        } catch (error) {
+            console.error("[preload.js] Error reporting smoke test result:", error);
         }
     },
 

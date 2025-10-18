@@ -42,3 +42,11 @@ jobs:
         env:
           ELECTRON_DISABLE_SECURITY_WARNINGS: '1'
         run: npm run test:smoke
+      - name: Run packaged smoke test
+        working-directory: electron-app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          ELECTRON_SKIP_NOTARIZE: 'true'
+          ELECTRON_DISABLE_SECURITY_WARNINGS: '1'
+          FFV_SMOKE_TEST_TIMEOUT_MS: '180000'
+        run: npm run test:smoke:mac

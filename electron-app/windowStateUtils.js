@@ -14,6 +14,7 @@ const // Constants for better maintainability
         PATHS: {
             HTML: {
                 INDEX: "index.html",
+                DIST_INDEX: "dist/index.html",
             },
             ICONS: {
                 FAVICON: "icons/favicon.ico",
@@ -148,8 +149,19 @@ function createWindow() {
                 });
         } else {
             // Production: Load from file
-            logWithContext("info", "Loading from file (production mode)");
-            win.loadFile(CONSTANTS.PATHS.HTML.INDEX)
+            const distIndexPath = path.join(__dirname, CONSTANTS.PATHS.HTML.DIST_INDEX);
+            const fallbackIndexPath = path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX);
+            const hasDistBundle = fs.existsSync(distIndexPath);
+            const htmlPath = hasDistBundle ? distIndexPath : fallbackIndexPath;
+
+            if (!hasDistBundle) {
+                logWithContext("warn", "Renderer dist bundle missing; falling back to source index.html", {
+                    expectedPath: distIndexPath,
+                });
+            }
+
+            logWithContext("info", "Loading renderer HTML asset", { htmlPath });
+            win.loadFile(htmlPath)
                 .then(() => {
                     logWithContext("info", "Main HTML file loaded successfully");
                 })
