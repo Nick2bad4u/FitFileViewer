@@ -7,9 +7,93 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[6962917](https://github.com/Nick2bad4u/FitFileViewer/commit/69629177ab73497828d22d235a847babb7475790)...
+[6962917](https://github.com/Nick2bad4u/FitFileViewer/commit/69629177ab73497828d22d235a847babb7475790)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/69629177ab73497828d22d235a847babb7475790...69629177ab73497828d22d235a847babb7475790))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.2.0 [`(6962917)`](https://github.com/Nick2bad4u/FitFileViewer/commit/69629177ab73497828d22d235a847babb7475790)
+
+
+
+
+
+
+## [28.2.0] - 2025-10-19
+
+
 [[ae55969](https://github.com/Nick2bad4u/FitFileViewer/commit/ae55969524cda5e1c57f2f7980592f232610d2b6)...
-[ae55969](https://github.com/Nick2bad4u/FitFileViewer/commit/ae55969524cda5e1c57f2f7980592f232610d2b6)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/ae55969524cda5e1c57f2f7980592f232610d2b6...ae55969524cda5e1c57f2f7980592f232610d2b6))
+[ca12733](https://github.com/Nick2bad4u/FitFileViewer/commit/ca127334f0f93e88c8dcba200ef0451584a76a6a)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/ae55969524cda5e1c57f2f7980592f232610d2b6...ca127334f0f93e88c8dcba200ef0451584a76a6a))
+
+
+### 💼 Other
+
+- 🛠️ [fix] Enhances UI and fixes map issues
+
+This commit improves the user interface and fixes several map-related issues.
+
+- 🛠️ [fix] Corrects elapsed time display in tooltips.
+  - Changes "Ride Time" to "Elapsed Time" for clarity.
+- 🛠️ [fix] Fixes file name sanitization for GPX exports.
+  - Uses `replaceAll` instead of `replace` to remove all invalid characters from track names, ensuring valid file names for GPX exports. ⚙️
+- 🛠️ [fix] Preserves active tab during file loading.
+  - Saves and restores the current tab when loading overlay files to prevent unexpected tab switches. 🔄
+- 🗺️ [feat] Improves map tab activation and centering.
+  - Ensures the map tab is always activated and the map is centered on the main file when the active file name is clicked. 🖱️
+  - Centers the map after a delay to ensure the tab switch completes.
+- 🗺️ [feat] Enhances mini-map functionality.
+  - Adds configuration options for better control like `zoomLevelOffset`, `aimingRectOptions`, `shadowRectOptions`, etc.
+  - Forces mini-map to update after a short delay to ensure proper rendering. ⏱️
+  - Keeps mini-map in sync with the main map by invalidating its size on main map move or zoom events, preventing grey tiles. 🗺️
+- 🗺️ [feat] Fixes grey tiles issue on map tab switch.
+  - Invalidates the map size when switching to the map tab to prevent grey tiles from appearing. ⬜
+- 🧹 [chore] Reorders imports in `renderer.js` for better organization. 🗂️
+  - Moves `setupCreditsMarquee` import to improve code readability.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ca12733)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca127334f0f93e88c8dcba200ef0451584a76a6a)
+
+
+- ✨ [feat] Enhance GPX export and UI
+
+Improves GPX export functionality and enhances the user interface.
+
+- 🗺️ **Adds GPX Export Enhancements**:
+ -  ⚙️ Introduces a new GPX export process, now utilizing `buildGpxFromRecords` and `resolveTrackNameFromLoadedFiles` to generate GPX files, ensuring more accurate and user-friendly track names.
+ -  📝 Includes handling for scenarios where no data is available for GPX export, providing user notifications.
+ -  🧹 Sanitizes track names to ensure compatibility with file systems.
+ -  ✨ Adds a GPS Time Chart to visualize GPS data over time.
+- 🎨 **Improves UI Layout and Styling**:
+ -  🎨 Introduces a marquee effect for overflowing credits text in the footer, improving readability.
+ -  🎨 Adjusts the tab bar padding and introduces new styling for map controls, enhancing the visual appeal and usability of the application.
+- 🧪 **Adds Tests**:
+ -  🧪 Introduces new tests for GPX export and credits marquee functionality, ensuring reliability and stability of the new features.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(fc58da9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/fc58da95e996dc17ac80535bafa484e7b90de3c6)
+
+
+- 🚜 [refactor] Modularize main process
+
+Refactors the main process into smaller, more manageable modules.
+
+ - 🧩 This change improves code organization and maintainability by breaking down the monolithic `main.js` file into separate modules, each responsible for a specific aspect of the application's functionality.
+   -  The original `main.js` file exceeded the maximum line limit enforced by ESLint, making it difficult to navigate and understand.
+ - 🪵 Introduces dedicated modules for app events, constants, dev helpers, IPC, logging, menu, OAuth, runtime, state, theme, updater, and window management, each containing related functions and logic.
+   -  These modules encapsulate specific functionalities, such as setting up application event handlers, managing IPC communication, handling OAuth flows, and managing the main window.
+ - 🧪 Preserves existing test-oriented side effects, ensuring that tests continue to function as expected after the refactor.
+   -  This includes priming the `whenReady` event, wiring IPC communication, and supporting Gyazo OAuth.
+ - 📏 Adds ESLint rule to warn on files exceeding 600 lines, and excludes legacy files from line limit
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(2d06bae)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2d06bae652740983d00170d8766cbf8022acf610)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.1.0 [skip ci] [`(91c8dac)`](https://github.com/Nick2bad4u/FitFileViewer/commit/91c8dac1e1afbb611896b6090368c85a6e939264)
+
 
 
 ### 📦 Dependencies
