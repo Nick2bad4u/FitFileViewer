@@ -7,9 +7,49 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[6e0d4cc](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)...
+[6e0d4cc](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9...6e0d4cc4a3e1e78ce1c0821242c47156718f73b9))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.4.0 [`(6e0d4cc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)
+
+
+
+
+
+
+## [28.4.0] - 2025-10-19
+
+
 [[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)...
-[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...70d3b035d3b6dc3f8febfe27380335b68a1b21ea))
+[c1ee70e](https://github.com/Nick2bad4u/FitFileViewer/commit/c1ee70e56c50ff3358a873f2a0ac51a768996d70)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...c1ee70e56c50ff3358a873f2a0ac51a768996d70))
+
+
+### 💼 Other
+
+- 🎨 [style] Improve chart canvas styling and theming
+
+Improves the styling and theming of chart canvases for better visual consistency and dark mode compatibility.
+
+- 🎨 Updates CSS to ensure `data-point-filter-control__select` options have a black background, improving readability in dark mode.
+- ✨ Adds a `chart-canvas` class to dynamically created chart canvases.
+ - 🛠️ This ensures consistent styling across all charts.
+- 🚜 Refactors `renderLapZoneCharts` to use `createChartCanvas` function.
+ - 🧹 Removes redundant styling code.
+ - 🧪 Simplifies canvas creation and styling.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c1ee70e)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c1ee70e56c50ff3358a873f2a0ac51a768996d70)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.3.0 [skip ci] [`(abe9060)`](https://github.com/Nick2bad4u/FitFileViewer/commit/abe9060f8a0ba2baafcdeccc1399f110b78c23a2)
+
 
 
 ### 📦 Dependencies
