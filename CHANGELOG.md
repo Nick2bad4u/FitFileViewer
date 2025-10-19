@@ -7,9 +7,73 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)...
+[70d3b03](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/70d3b035d3b6dc3f8febfe27380335b68a1b21ea...70d3b035d3b6dc3f8febfe27380335b68a1b21ea))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.3.0 [`(70d3b03)`](https://github.com/Nick2bad4u/FitFileViewer/commit/70d3b035d3b6dc3f8febfe27380335b68a1b21ea)
+
+
+
+
+
+
+## [28.3.0] - 2025-10-19
+
+
 [[6962917](https://github.com/Nick2bad4u/FitFileViewer/commit/69629177ab73497828d22d235a847babb7475790)...
-[6962917](https://github.com/Nick2bad4u/FitFileViewer/commit/69629177ab73497828d22d235a847babb7475790)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/69629177ab73497828d22d235a847babb7475790...69629177ab73497828d22d235a847babb7475790))
+[db78ef8](https://github.com/Nick2bad4u/FitFileViewer/commit/db78ef805928c323f5c709140274b30a185388e4)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/69629177ab73497828d22d235a847babb7475790...db78ef805928c323f5c709140274b30a185388e4))
+
+
+### 💼 Other
+
+- ✨ [feat] Adds map metric filter control
+
+Adds a new control to filter map data points based on selected metrics.
+
+ - Introduces a new UI control for filtering map markers by metric percentiles, allowing users to focus on specific data ranges.
+ - Implements the filter logic to select top percentile data points for metrics such as speed, power, cadence, heart rate, and altitude.
+ - Enhances map rendering to apply the selected filter, displaying only the data points that meet the criteria.
+ - Includes UI elements for metric selection, percentile input, and filter application/clearing.
+ - Adds a new test file to ensure correct filter operation.
+ - Updates map drawing logic to use new filter
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(db78ef8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/db78ef805928c323f5c709140274b30a185388e4)
+
+
+- 🛠️ [fix] Improve file export and UI elements
+
+This commit addresses several issues related to file exporting and UI element styling, enhancing the application's usability and stability.
+
+- 🗂️ **Filename Sanitization**:
+ - Introduces filename sanitization utilities to ensure compatibility across different file systems.
+ - Implements `buildDownloadFilename`, `sanitizeFilenameComponent`, and `sanitizeFileExtension` to handle file naming and extension normalization.
+ -  Ensures that filenames are safe for download by removing reserved characters and control codes, collapsing whitespace, and avoiding reserved Windows device names.
+- 💾 **Export Logic**:
+ -  Updates file export logic in `events.js`, `lifecycle/listeners.js`, and `createExportGPXButton.js` to use the new filename sanitization utilities.
+ -  Ensures that exported files have safe and consistent names, improving the user experience.
+ -  Adds a fallback mechanism to provide a default filename if the original input is invalid or empty.
+- ⏱️ **Tooltip Data**:
+ -  Corrects the tooltip data to display "Elapsed Time" instead of "Ride Time".
+ -  Reflects the change in the unit tests to ensure the correct label is used.
+- 🎨 **UI Styling**:
+ -  Updates the styling for the shown files list container, setting the margin to `0px`.
+ -  Removes the regex match and replaces with a strict equality check for the margin style.
+
+These changes collectively improve the reliability and user-friendliness of the application.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d0e6a20)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d0e6a20b276c6ca8195a5e2bea4899ba343cfbff)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.2.0 [skip ci] [`(f9fb5da)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f9fb5da51958128227b70f977920ef1a80814f5c)
+
 
 
 ### 📦 Dependencies
