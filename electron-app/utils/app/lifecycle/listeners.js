@@ -1,5 +1,6 @@
 import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "../../files/export/gpxExport.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
+import { buildDownloadFilename, sanitizeFileExtension } from "../../files/sanitizeFilename.js";
 
 // Utility to set up all event listeners for the app
 /**
@@ -490,19 +491,22 @@ export function setupListeners({
                 if (!globalThis.globalData) {
                     return;
                 }
-                const safePath = filePath || "",
-                    ext = safePath.split(".").pop()?.toLowerCase() || "";
+                const safePath = filePath || "";
+                const ext = sanitizeFileExtension(safePath.split(".").pop() ?? "");
                 if (ext === "csv") {
                     const container = document.querySelector("#content-summary");
                     if (/** @type {any} */ (globalThis).copyTableAsCSV && container) {
-                        const a = document.createElement("a"),
-                            csv = /** @type {any} */ (globalThis).copyTableAsCSV({
-                                container,
-                                data: globalThis.globalData,
-                            }),
-                            blob = new Blob([csv], { type: "text/csv" });
+                        const csv = /** @type {any} */ (globalThis).copyTableAsCSV({
+                            container,
+                            data: globalThis.globalData,
+                        });
+                        const blob = new Blob([csv], { type: "text/csv" });
+                        const a = document.createElement("a");
                         a.href = URL.createObjectURL(blob);
-                        a.download = safePath.split(/[/\\]/).pop() || "export.csv";
+                        a.download = buildDownloadFilename(safePath, {
+                            defaultExtension: "csv",
+                            fallbackBase: "export",
+                        });
                         document.body.append(a);
                         a.click();
                         setTimeout(() => {
@@ -526,10 +530,12 @@ export function setupListeners({
                         return;
                     }
 
-                    const sanitizedBaseName = trackName.replaceAll(/[\s\u0000-\u001F<>:"/\\|?*]+/gu, "_") || "export";
-                    const a = document.createElement("a"),
-                        blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" }),
-                        downloadName = safePath.split(/[/\\]/).pop() || `${sanitizedBaseName}.gpx`;
+                    const a = document.createElement("a");
+                    const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
+                    const downloadName = buildDownloadFilename(safePath, {
+                        defaultExtension: "gpx",
+                        fallbackBase: trackName || "export",
+                    });
                     a.href = URL.createObjectURL(blob);
                     a.download = downloadName;
                     document.body.append(a);

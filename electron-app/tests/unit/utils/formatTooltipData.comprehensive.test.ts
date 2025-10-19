@@ -382,7 +382,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 const result = formatTooltipData(2, row, 1);
 
-                expect(result).toContain("<b>Ride Time:</b>");
+                expect(result).toContain("<b>Elapsed Time:</b>");
                 expect(result).toContain("2 minutes");
             });
 
@@ -397,7 +397,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 const result = formatTooltipData(10, row, 1);
 
                 expect(result).toContain("<b>Alt:</b>");
-                expect(result).not.toContain("<b>Ride Time:</b>");
+                expect(result).not.toContain("<b>Elapsed Time:</b>");
             });
 
             it("should handle empty record messages array", () => {
@@ -410,7 +410,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 const result = formatTooltipData(10, row, 1);
 
-                expect(result).not.toContain("<b>Ride Time:</b>");
+                expect(result).not.toContain("<b>Elapsed Time:</b>");
             });
 
             it("should use record messages override parameter", () => {
@@ -426,7 +426,7 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 const result = formatTooltipData(1, row, 1, recordMesgsOverride);
 
-                expect(result).toContain("<b>Ride Time:</b>");
+                expect(result).toContain("<b>Elapsed Time:</b>");
                 expect(result).toContain("1 minute, 30 seconds");
             });
         });

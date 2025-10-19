@@ -127,7 +127,7 @@ describe("createShownFilesList", () => {
             expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Container should have styling applied (theme is applied automatically)
-            expect(container.style.margin).toMatch(/^8px 0(px)?$/);
+            expect(container.style.margin).toBe("0px");
             expect(container.style.fontSize).toBe("0.95em");
 
             // Verify that the container was created successfully
@@ -153,7 +153,7 @@ describe("createShownFilesList", () => {
             expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Container should have default styling and structure
-            expect(container.style.margin).toMatch(/^8px 0(px)?$/);
+            expect(container.style.margin).toBe("0px");
             expect(container.style.fontSize).toBe("0.95em");
 
             // Verify that the container was created successfully

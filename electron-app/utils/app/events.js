@@ -1,3 +1,5 @@
+import { buildDownloadFilename, sanitizeFileExtension } from "../files/sanitizeFilename.js";
+
 // Utility to set up all event listeners for the app
 /**
  * Sets up all event listeners for the FitFileViewer application UI and IPC.
@@ -291,7 +293,7 @@ export function setupListeners({
         });
         globalThis.electronAPI.onIpc("export-file", async (event, filePath) => {
             if (!globalThis.globalData) return;
-            const ext = filePath.split(".").pop().toLowerCase();
+            const ext = sanitizeFileExtension(filePath?.split(".").pop() ?? "");
             if (ext === "csv") {
                 const container = document.getElementById("content-summary");
                 if (globalThis.copyTableAsCSV && container) {
@@ -299,7 +301,10 @@ export function setupListeners({
                     const blob = new Blob([csv], { type: "text/csv" });
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(blob);
-                    a.download = filePath.split(/[/\\]/).pop();
+                    a.download = buildDownloadFilename(filePath, {
+                        defaultExtension: "csv",
+                        fallbackBase: "export",
+                    });
                     document.body.append(a);
                     a.click();
                     setTimeout(function () {
@@ -324,8 +329,10 @@ export function setupListeners({
                     return;
                 }
 
-                const sanitizedBaseName = trackName.replaceAll(/[\s\u0000-\u001F<>:"/\\|?*]+/gu, "_") || "export";
-                const downloadName = filePath.split(/[/\\]/).pop() || `${sanitizedBaseName}.gpx`;
+                const downloadName = buildDownloadFilename(filePath, {
+                    defaultExtension: "gpx",
+                    fallbackBase: trackName || "export",
+                });
                 const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);

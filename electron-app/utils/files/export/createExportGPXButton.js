@@ -1,5 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { buildDownloadFilename } from "../sanitizeFilename.js";
 import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "./gpxExport.js";
 
 /**
@@ -31,15 +32,21 @@ export function createExportGPXButton() {
             return;
         }
 
-        const downloadNameBase = trackName.replaceAll(/[\s\u0000-\u001F<>:"/\\|?*]+/gu, "_") || "track";
-        const a = document.createElement("a"),
-            blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" }),
-            url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = `${downloadNameBase}.gpx`;
-        a.click();
-        // Revoke the object URL after the download has started to avoid issues in some browsers
-        setTimeout(() => URL.revokeObjectURL(url), 100);
+        const downloadName = buildDownloadFilename(trackName, {
+            defaultExtension: "gpx",
+            fallbackBase: "track",
+        });
+
+        const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = downloadName;
+        document.body.append(link);
+        link.click();
+        setTimeout(() => {
+            URL.revokeObjectURL(link.href);
+            link.remove();
+        }, 100);
     });
     return exportBtn;
 }

@@ -1,4 +1,4 @@
-/*global */
+/* global */
 
 /**
  * @typedef {Object} RecordMessage
@@ -47,6 +47,7 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 import { getLapNumForIdx } from "../../data/processing/getLapNumForIdx.js";
 import { createExportGPXButton } from "../../files/export/createExportGPXButton.js";
 import { createPrintButton } from "../../files/export/createPrintButton.js";
+import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
 import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
@@ -70,14 +71,19 @@ import { addLapSelector } from "../controls/mapLapSelector.js";
  */
 import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
 import { baseLayers } from "../layers/mapBaseLayers.js";
-import { mapDrawLaps } from "../layers/mapDrawLaps.js";
-import { drawOverlayForFitFile } from "../layers/mapDrawLaps.js";
+import { drawOverlayForFitFile, mapDrawLaps } from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
 
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
     const windowExt = /** @type {WindowExtensions} */ (/** @type {any} */ (globalThis));
+    const LeafletLib = /** @type {any} */ (windowExt).L;
+    if (!LeafletLib) {
+        console.warn("[renderMap] Leaflet library unavailable; skipping map render.");
+        return;
+    }
+    const L = LeafletLib;
     windowExt._overlayPolylines = {};
 
     const mapContainer = document.querySelector("#content-map");
@@ -129,13 +135,12 @@ export function renderMap() {
     mapControlsDiv.append(primaryControlsContainer);
     mapContainer.append(mapControlsDiv);
 
-    const LeafletLib = /** @type {any} */ (windowExt).L,
-        map = LeafletLib.map("leaflet-map", {
-            center: [0, 0],
-            fullscreenControl: true,
-            layers: [baseLayers.OpenStreetMap],
-            zoom: 2,
-        });
+    const map = LeafletLib.map("leaflet-map", {
+        center: [0, 0],
+        fullscreenControl: true,
+        layers: [baseLayers.OpenStreetMap],
+        zoom: 2,
+    });
     windowExt._leafletMapInstance = map;
 
     LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" }).addTo(map);
@@ -281,8 +286,6 @@ export function renderMap() {
         leafletMapContainer.append(zoomSliderBar);
     }
 
-    /** @type {any} */
-    const L = LeafletLib;
     L.control.scale({ imperial: true, metric: true, position: "bottomleft" }).addTo(map);
 
     // --- Fullscreen control (if plugin loaded) ---
@@ -530,9 +533,8 @@ export function renderMap() {
             console.log("[renderMap] Restoring", savedDrawnLayers.length, "drawn items");
             for (const item of savedDrawnLayers) {
                 try {
-                    let layer;
                     if (item.geoJSON) {
-                        layer = L.geoJSON(item.geoJSON, {
+                        L.geoJSON(item.geoJSON, {
                             onEachFeature: (/** @type {any} */ _feature, /** @type {any} */ createdLayer) => {
                                 drawnItems.addLayer(createdLayer);
                             },
@@ -560,24 +562,25 @@ export function renderMap() {
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
                 chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
-            ),
-                fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
-                bounds = drawOverlayForFitFile({
-                    color,
-                    endIcon,
-                    fileName,
-                    fitData: fitFile.data,
-                    formatTooltipData: (
+            );
+            const rawOverlayName = (fitFile.filePath || "").split(/[/\\]/).pop() ?? "";
+            const fileName = sanitizeFilenameComponent(rawOverlayName, `overlay_${idx + 1}`);
+            const bounds = drawOverlayForFitFile({
+                color,
+                endIcon,
+                fileName,
+                fitData: fitFile.data,
+                formatTooltipData: (
                         /** @type {any} */ pointIdx,
                         /** @type {any} */ row,
                         /** @type {any} */ lapNum
-                    ) => formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
-                    getLapNumForIdx,
-                    map,
-                    markerClusterGroup,
-                    overlayIdx: idx,
-                    startIcon,
-                });
+                ) => formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                getLapNumForIdx,
+                map,
+                markerClusterGroup,
+                overlayIdx: idx,
+                startIcon,
+            });
             console.log(`[renderMap] Overlay idx=${idx} bounds:`, bounds);
         }
         // --- Bring overlay markers to front so they appear above all polylines ---
