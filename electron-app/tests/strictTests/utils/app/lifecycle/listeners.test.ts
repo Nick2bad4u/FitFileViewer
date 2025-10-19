@@ -1113,7 +1113,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         await electronAPI.emit("export-file", {} as any, "C:/tmp/out.gpx");
 
-        expect(showNotification).toHaveBeenCalledWith("No data available for GPX export.", "info", 3000);
+        expect(showNotification).not.toHaveBeenCalled();
+        expect(global.URL.createObjectURL).toHaveBeenCalled();
     });
 
     it("export-file: handles no globalData", async () => {

@@ -85,7 +85,8 @@ describe("createShownFilesList", () => {
             const container = createShownFilesList();
 
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Check that critical properties are set - jsdom may not preserve all styles
             expect(container.style.maxWidth).toBe("fit-content");
@@ -122,7 +123,8 @@ describe("createShownFilesList", () => {
             // Instead of checking if mock was called, verify the container was created with theme styles
             // The container should have proper styling applied
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Container should have styling applied (theme is applied automatically)
             expect(container.style.margin).toMatch(/^8px 0(px)?$/);
@@ -130,7 +132,8 @@ describe("createShownFilesList", () => {
 
             // Verify that the container was created successfully
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
         });
 
         it("handles missing theme properties with defaults", () => {
@@ -146,7 +149,8 @@ describe("createShownFilesList", () => {
 
             // Instead of checking if mock was called, verify container behavior
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Container should have default styling and structure
             expect(container.style.margin).toMatch(/^8px 0(px)?$/);
@@ -154,7 +158,8 @@ describe("createShownFilesList", () => {
 
             // Verify that the container was created successfully
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
         });
 
         it("sets up theme change event listener", () => {
@@ -1187,7 +1192,8 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify the container exists and can handle theme changes
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // The event handler should be set up without throwing errors
             expect(() => {
@@ -1319,7 +1325,8 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Theme change should not throw errors
             expect(() => {
@@ -1342,7 +1349,8 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Theme system should handle partial objects without errors
             expect(() => {
@@ -1373,7 +1381,8 @@ describe("createShownFilesList", () => {
 
             // Instead of checking mock calls, verify functionality
             expect(container).toBeInstanceOf(HTMLElement);
-            expect(container.className).toBe("shown-files-list");
+            expect(container.classList.contains("shown-files-list")).toBe(true);
+            expect(container.classList.contains("map-controls-secondary-card")).toBe(true);
 
             // Should handle theme persistence without errors
             expect(() => {

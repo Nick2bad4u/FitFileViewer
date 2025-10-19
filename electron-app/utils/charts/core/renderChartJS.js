@@ -279,6 +279,7 @@ import {
 } from "../plugins/addChartHoverEffects.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { renderEventMessagesChart } from "../rendering/renderEventMessagesChart.js";
+import { renderGPSTimeChart } from "../rendering/renderGPSTimeChart.js";
 import { renderGPSTrackChart } from "../rendering/renderGPSTrackChart.js";
 import { renderLapZoneCharts } from "../rendering/renderLapZoneCharts.js";
 import { renderPerformanceAnalysisCharts } from "../rendering/renderPerformanceAnalysisCharts.js";
@@ -420,6 +421,7 @@ function getRendererModulesSafe() {
         createChartCanvas,
         createEnhancedChart,
         renderEventMessagesChart,
+        renderGPSTimeChart,
         renderGPSTrackChart,
         renderLapZoneCharts,
         renderPerformanceAnalysisCharts,
@@ -445,27 +447,33 @@ function getRendererModulesSafe() {
             /* ignore */
         }
         try {
-            const m4 = g.require("../rendering/renderGPSTrackChart.js");
-            if (m4?.renderGPSTrackChart) result.renderGPSTrackChart = m4.renderGPSTrackChart;
+            const m4 = g.require("../rendering/renderGPSTimeChart.js");
+            if (m4?.renderGPSTimeChart) result.renderGPSTimeChart = m4.renderGPSTimeChart;
         } catch {
             /* ignore */
         }
         try {
-            const m5 = g.require("../rendering/renderLapZoneCharts.js");
-            if (m5?.renderLapZoneCharts) result.renderLapZoneCharts = m5.renderLapZoneCharts;
+            const m5 = g.require("../rendering/renderGPSTrackChart.js");
+            if (m5?.renderGPSTrackChart) result.renderGPSTrackChart = m5.renderGPSTrackChart;
         } catch {
             /* ignore */
         }
         try {
-            const m6 = g.require("../rendering/renderPerformanceAnalysisCharts.js");
-            if (m6?.renderPerformanceAnalysisCharts)
-                result.renderPerformanceAnalysisCharts = m6.renderPerformanceAnalysisCharts;
+            const m6 = g.require("../rendering/renderLapZoneCharts.js");
+            if (m6?.renderLapZoneCharts) result.renderLapZoneCharts = m6.renderLapZoneCharts;
         } catch {
             /* ignore */
         }
         try {
-            const m7 = g.require("../rendering/renderTimeInZoneCharts.js");
-            if (m7?.renderTimeInZoneCharts) result.renderTimeInZoneCharts = m7.renderTimeInZoneCharts;
+            const m7 = g.require("../rendering/renderPerformanceAnalysisCharts.js");
+            if (m7?.renderPerformanceAnalysisCharts)
+                result.renderPerformanceAnalysisCharts = m7.renderPerformanceAnalysisCharts;
+        } catch {
+            /* ignore */
+        }
+        try {
+            const m8 = g.require("../rendering/renderTimeInZoneCharts.js");
+            if (m8?.renderTimeInZoneCharts) result.renderTimeInZoneCharts = m8.renderTimeInZoneCharts;
         } catch {
             /* ignore */
         }
@@ -2133,6 +2141,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         createChartCanvas: createChartCanvasSafe,
         createEnhancedChart: createEnhancedChartSafe,
         renderEventMessagesChart: renderEventMessagesChartSafe,
+        renderGPSTimeChart: renderGPSTimeChartSafe,
         renderGPSTrackChart: renderGPSTrackChartSafe,
         renderLapZoneCharts: renderLapZoneChartsSafe,
         renderPerformanceAnalysisCharts: renderPerformanceAnalysisChartsSafe,
@@ -2401,6 +2410,15 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
         );
     } // Render GPS track chart if position data is available
     renderGPSTrackChartSafe(chartContainer, data, {
+        maxPoints: normalizedMaxPoints,
+        showGrid: boolSettings.showGrid,
+        showLegend: boolSettings.showLegend,
+        showPoints: boolSettings.showPoints,
+        showTitle: boolSettings.showTitle,
+    });
+
+    // Render GPS position vs time chart if position and timestamp data are available
+    renderGPSTimeChartSafe(chartContainer, data, {
         maxPoints: normalizedMaxPoints,
         showGrid: boolSettings.showGrid,
         showLegend: boolSettings.showLegend,

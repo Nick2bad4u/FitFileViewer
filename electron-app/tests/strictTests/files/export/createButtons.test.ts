@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("../../../../utils/charts/theming/getThemeColors.js", () => ({
     getThemeColors: () => ({ primary: "#000", primaryAlpha: "#111", surface: "#fff" }),
 }));
+vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
+    showNotification: vi.fn(),
+}));
 
 describe("export/print buttons", () => {
     beforeEach(() => {

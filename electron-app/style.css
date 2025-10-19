@@ -2262,7 +2262,7 @@ body[data-has-fit-file="true"] .tab-bar {
     box-shadow:
         0 32px 60px var(--c_rgb000_28p),
         inset 0 1px 0 rgb(var(--color-accent-rgb) / 8%);
-    padding: clamp(24px, 3.5vw, 36px) clamp(18px, 3vw, 32px) clamp(20px, 3vw, 30px);
+    padding: clamp(12px, 1.75vw, 18px) clamp(9px, 1.5vw, 16px) clamp(10px, 1.5vw, 15px);
     margin: 0 auto clamp(24px, 4vw, 40px);
     width: 98%;
     min-height: clamp(420px, 60vh, 900px);
@@ -3271,10 +3271,43 @@ body.theme-light .zone-color-preview:hover {
 
 #map-controls {
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 16px 20px;
+    background: var(--color-glass);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    width: 100%;
+}
+
+.map-controls-panel__primary {
+    display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 0;
-    margin-top: 8px;
+    gap: 12px;
+}
+
+.map-controls-panel__secondary {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+#map-controls .map-action-btn {
+    margin: 0;
+}
+
+.map-controls-secondary-card {
+    background: var(--color-glass);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
 }
 
 /* Make map control SVG elements use accent color */
@@ -4113,6 +4146,28 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     font-weight: 600;
 }
 
+.custom-fullscreen-control.leaflet-top.leaflet-left {
+    display: none;
+}
+
+.leaflet-touch .leaflet-bar a:last-child {
+    display: none;
+}
+
+.marker-count-select option {
+    margin-left: 2px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: var(--c_hex888);
+    border: 1px solid var(--c_hex888);
+        color: inherit;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.2;
+    font-size: 15px;
+    font-weight: 600;
+}
+
 /* =====================================================
    Loading Overlay - Professional Glass Design
    ===================================================== */
@@ -4809,10 +4864,15 @@ footer {
     border: 1px solid var(--color-glass-border);
     border-radius: var(--border-radius);
     box-shadow: var(--color-box-shadow-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
     text-align: center;
     font-size: 13px;
     color: var(--color-credits);
     position: relative;
+    overflow: hidden;
 }
 
 .credits-section::before {
@@ -4833,6 +4893,43 @@ footer {
     background: none;
     color: inherit;
     font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    transform: translateX(0);
+    --credits-scroll-distance: 0px;
+    --credits-scroll-duration: 18s;
+}
+
+.credits-section footer.credits-marquee {
+    animation: credits-marquee var(--credits-scroll-duration, 18s) linear infinite;
+}
+
+.credits-section footer.credits-marquee:hover {
+    animation-play-state: paused;
+}
+
+.credits-section.credits-section--marquee-active::after,
+.credits-section.credits-section--marquee-active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.credits-section.credits-section--marquee-active::before {
+    left: 0;
+    background: linear-gradient(to right, var(--color-glass) 0%, rgba(0 0 0 / 0) 100%);
+}
+
+.credits-section.credits-section--marquee-active::after {
+    right: 0;
+    background: linear-gradient(to left, var(--color-glass) 0%, rgba(0 0 0 / 0) 100%);
 }
 
 .credits-section a {
@@ -4864,6 +4961,17 @@ footer {
 .credits-section a:hover img {
     opacity: 1;
     transform: scale(1.1);
+}
+
+@keyframes credits-marquee {
+    0%,
+    10% {
+        transform: translateX(0);
+    }
+    90%,
+    100% {
+        transform: translateX(calc(-1 * var(--credits-scroll-distance, 0px)));
+    }
 }
 
 /* =====================================================

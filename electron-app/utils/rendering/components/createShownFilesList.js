@@ -14,12 +14,12 @@ import { setState } from "../../state/core/stateManager.js";
  */
 export function createShownFilesList() {
     const container = document.createElement("div");
-    container.className = "shown-files-list";
-    container.style.margin = "8px 0";
+    container.className = "shown-files-list map-controls-secondary-card";
+    container.style.margin = "0";
     container.style.fontSize = "0.95em";
     container.style.border = "1px solid #bbb";
     container.style.borderRadius = "6px";
-    container.style.padding = "6px 10px";
+    container.style.padding = "10px 14px";
     container.style.maxWidth = "fit-content";
     container.style.overflow = "auto";
     container.style.maxHeight = "fit-content";

@@ -104,6 +104,10 @@ export function renderMap() {
 
     const mapControlsDiv = document.createElement("div");
     mapControlsDiv.id = "map-controls";
+    mapControlsDiv.className = "map-controls-panel";
+    const primaryControlsContainer = document.createElement("div");
+    primaryControlsContainer.className = "map-controls-panel__primary";
+    mapControlsDiv.append(primaryControlsContainer);
     mapContainer.append(mapControlsDiv);
 
     const LeafletLib = /** @type {any} */ (windowExt).L,
@@ -216,9 +220,9 @@ export function renderMap() {
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            /** @type {EventListener} */ (
+            /** @type {EventListener} */(
                 debounce(
-                    /** @param {Event} e */ (e) => {
+                    /** @param {Event} e */(e) => {
                         isDragging = true;
                         const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
@@ -274,13 +278,26 @@ export function renderMap() {
 
     // --- Print/export button ---
     const controlsDiv = document.querySelector("#map-controls");
+    const primaryControls = controlsDiv?.querySelector(".map-controls-panel__primary") ?? controlsDiv;
+    const ensureSecondaryControls = () => {
+        if (!controlsDiv) {
+            return null;
+        }
+        let secondary = controlsDiv.querySelector(".map-controls-panel__secondary");
+        if (!secondary) {
+            secondary = document.createElement("div");
+            secondary.className = "map-controls-panel__secondary";
+            controlsDiv.append(secondary);
+        }
+        return secondary;
+    };
 
-    if (controlsDiv) {
-        controlsDiv.append(createPrintButton());
-        controlsDiv.append(createMapThemeToggle());
-        controlsDiv.append(createExportGPXButton());
-        controlsDiv.append(createElevationProfileButton());
-        controlsDiv.append(
+    if (controlsDiv && primaryControls) {
+        primaryControls.append(createPrintButton());
+        primaryControls.append(createMapThemeToggle());
+        primaryControls.append(createExportGPXButton());
+        primaryControls.append(createElevationProfileButton());
+        primaryControls.append(
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
                 if (windowExt.globalData && windowExt.globalData.recordMesgs) {
@@ -291,11 +308,14 @@ export function renderMap() {
                 }
             })
         );
-        addSimpleMeasureTool(map, controlsDiv);
-        controlsDiv.append(createAddFitFileToMapButton());
+        addSimpleMeasureTool(map, primaryControls);
+        primaryControls.append(createAddFitFileToMapButton());
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
             const shownFilesList = createShownFilesList();
-            controlsDiv.append(shownFilesList);
+            const secondaryControls = ensureSecondaryControls();
+            if (secondaryControls) {
+                secondaryControls.append(shownFilesList);
+            }
             if (windowExt.updateShownFilesList) {
                 windowExt.updateShownFilesList();
             }
@@ -311,11 +331,12 @@ export function renderMap() {
 
     // --- Marker cluster group (if available) ---
     /** @type {any} */
-    let markerClusterGroup = null;
-    if (windowExt.L && L.markerClusterGroup) {
-        markerClusterGroup = L.markerClusterGroup();
-        map.addLayer(markerClusterGroup);
-    }
+    const markerClusterGroup = null;
+    // TEMPORARILY DISABLED FOR DEBUGGING - markers not showing
+    // if (windowExt.L && L.markerClusterGroup) {
+    //     markerClusterGroup = L.markerClusterGroup();
+    //     map.addLayer(markerClusterGroup);
+    // }
 
     // --- Lap selection UI (moved to mapLapSelector.js) ---
     /**
@@ -389,8 +410,8 @@ export function renderMap() {
             }
             console.log(`[renderMap] Drawing overlay idx=${idx}, fileName=`, fitFile.filePath);
             const color = /** @type {string} */ (
-                    chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
-                ),
+                chartOverlayColorPalette[idx % chartOverlayColorPalette.length] || "#ff0000"
+            ),
                 fileName = (fitFile.filePath || "").split(/[/\\]/).pop(),
                 bounds = drawOverlayForFitFile({
                     color,
@@ -478,7 +499,7 @@ export function renderMap() {
         updateMapTheme();
         if (!windowExt._mapThemeListener) {
             windowExt._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
+            document.body.addEventListener("themechange", /** @type {EventListener} */(windowExt._mapThemeListener));
         }
     }
 }

@@ -27,6 +27,7 @@ export * from "./plugins/chartZoomResetPlugin.js";
 export * from "./rendering/renderAltitudeProfileChart.js";
 
 export * from "./rendering/renderEventMessagesChart.js";
+export * from "./rendering/renderGPSTimeChart.js";
 export * from "./rendering/renderGPSTrackChart.js";
 export * from "./rendering/renderLapZoneChart.js";
 // Removed wildcard export that re-exported LapZoneDatum / LapZoneEntry already exported by renderLapZoneChart.js
@@ -73,6 +74,7 @@ export default {
     renderChartJS: () => import("./core/renderChartJS.js"),
     renderEventMessagesChart: () => import("./rendering/renderEventMessagesChart.js"),
 
+    renderGPSTimeChart: () => import("./rendering/renderGPSTimeChart.js"),
     renderGPSTrackChart: () => import("./rendering/renderGPSTrackChart.js"),
     renderLapZoneChart: () => import("./rendering/renderLapZoneChart.js"),
 };

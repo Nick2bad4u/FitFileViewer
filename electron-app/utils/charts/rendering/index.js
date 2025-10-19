@@ -4,6 +4,7 @@
  */
 export * from "./renderAltitudeProfileChart.js";
 export * from "./renderEventMessagesChart.js";
+export * from "./renderGPSTimeChart.js";
 export * from "./renderGPSTrackChart.js";
 export * from "./renderLapZoneChart.js";
 export { renderLapZoneCharts } from "./renderLapZoneCharts.js";

@@ -1,3 +1,4 @@
+import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "../../files/export/gpxExport.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
 
 // Utility to set up all event listeners for the app
@@ -510,43 +511,33 @@ export function setupListeners({
                         }, 100);
                     }
                 } else if (ext === "gpx") {
-                    if (
-                        /** @type {any} */ (globalThis).createExportGPXButton &&
-                        globalThis.globalData.recordMesgs &&
-                        Array.isArray(globalThis.globalData.recordMesgs) &&
-                        globalThis.globalData.recordMesgs.length > 0
-                    ) {
-                        const coords = globalThis.globalData.recordMesgs
-                            .filter(
-                                (/** @type {{positionLat?:number, positionLong?:number}} */ row) =>
-                                    row.positionLat != null && row.positionLong != null
-                            )
-                            .map((/** @type {{positionLat:number, positionLong:number}} */ row) => [
-                                Number((row.positionLat / 2 ** 31) * 180),
-                                Number((row.positionLong / 2 ** 31) * 180),
-                            ]);
-                        if (coords.length > 0) {
-                            let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="FitFileViewer">\n<trk><name>Exported Track</name><trkseg>`;
-                            for (const c of coords) {
-                                gpx += `\n<trkpt lat="${c[0]}" lon="${c[1]}"/>`;
-                            }
-                            gpx += "\n</trkseg></trk></gpx>";
-                            const a = document.createElement("a"),
-                                blob = new Blob([gpx], { type: "application/gpx+xml" });
-                            a.href = URL.createObjectURL(blob);
-                            a.download = safePath.split(/[/\\]/).pop() || "export.gpx";
-                            document.body.append(a);
-                            a.click();
-                            setTimeout(() => {
-                                URL.revokeObjectURL(a.href);
-                                a.remove();
-                            }, 100);
-                        } else {
-                            showNotification("No valid coordinates found for GPX export.", "info", 3000);
-                        }
-                    } else {
+                    const records = Array.isArray(globalThis.globalData?.recordMesgs)
+                        ? globalThis.globalData.recordMesgs
+                        : null;
+                    if (!records || records.length === 0) {
                         showNotification("No data available for GPX export.", "info", 3000);
+                        return;
                     }
+
+                    const trackName = resolveTrackNameFromLoadedFiles(globalThis.loadedFitFiles);
+                    const gpx = buildGpxFromRecords(records, { trackName });
+                    if (!gpx) {
+                        showNotification("No valid coordinates found for GPX export.", "info", 3000);
+                        return;
+                    }
+
+                    const sanitizedBaseName = trackName.replace(/[\s\u0000-\u001f<>:"/\\|?*]+/gu, "_") || "export";
+                    const a = document.createElement("a"),
+                        blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" }),
+                        downloadName = safePath.split(/[/\\]/).pop() || `${sanitizedBaseName}.gpx`;
+                    a.href = URL.createObjectURL(blob);
+                    a.download = downloadName;
+                    document.body.append(a);
+                    a.click();
+                    setTimeout(() => {
+                        URL.revokeObjectURL(a.href);
+                        a.remove();
+                    }, 100);
                 }
             }
         );

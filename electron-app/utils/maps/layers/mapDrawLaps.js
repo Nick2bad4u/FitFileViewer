@@ -427,17 +427,15 @@ export function mapDrawLaps(
             }
 
             // Replace loops adding markers where c may be undefined
-            for (
-                let i = 0;
-                i < coords.length;
-                i +=
-                    /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                    !(/** @type {any} */ (getWin()).mapMarkerCount)
-                    ? 1
-                    : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
-            ) {
+            const markerCount = /** @type {any} */ (getWin()).mapMarkerCount;
+            const step = markerCount === 0 || !markerCount ? 1 : Math.max(1, Math.floor(coords.length / markerCount));
+            console.log(`[mapDrawLaps] Creating markers: markerCount=${markerCount}, step=${step}, coords.length=${coords.length}`);
+
+            let markersCreated = 0;
+            for (let i = 0; i < coords.length; i += step) {
                 const c = coords[i];
                 if (!c) {
+                    console.warn(`[mapDrawLaps] Skipping undefined coord at index ${i}`);
                     continue;
                 }
                 // c tuple: [lat, lng, ts, alt, hr, speed, idx, row, lap]
@@ -456,8 +454,10 @@ export function mapDrawLaps(
                     zIndexOffset: 1500,
                 });
                 markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-                marker.bindTooltip(formatTooltipData(idx, row, lapDisplay), { direction: "top", sticky: true });
+                marker.bindTooltip(formatTooltipData(idx, row, lapDisplay, recordMesgs), { direction: "top", sticky: true });
+                markersCreated++;
             }
+            console.log(`[mapDrawLaps] Created ${markersCreated} markers total`);
         }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
@@ -643,7 +643,7 @@ export function mapDrawLaps(
                         zIndexOffset: 1500,
                     });
                     markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-                    marker.bindTooltip(formatTooltipData(idx2, row2, lapDisplay), { direction: "top", sticky: true });
+                    marker.bindTooltip(formatTooltipData(idx2, row2, lapDisplay, recordMesgs), { direction: "top", sticky: true });
                 }
             }
 
@@ -808,7 +808,7 @@ export function mapDrawLaps(
                                 zIndexOffset: 1500,
                             });
                             markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-                            marker.bindTooltip(formatTooltipData(idx3, row3, lapDisplay), {
+                            marker.bindTooltip(formatTooltipData(idx3, row3, lapDisplay, recordMesgs), {
                                 direction: "top",
                                 sticky: true,
                             });
@@ -1028,7 +1028,7 @@ export function mapDrawLaps(
                 zIndexOffset: 1500,
             });
             markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
-            marker.bindTooltip(formatTooltipData(idx4, row4, lapDisplay), { direction: "top", sticky: true });
+            marker.bindTooltip(formatTooltipData(idx4, row4, lapDisplay, recordMesgs), { direction: "top", sticky: true });
         }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
