@@ -44,7 +44,7 @@ export default defineConfig([
             "no-inline-comments": "off",
             "no-magic-numbers": "off",
             // Complexity/size limits are not enforced right now; revisit later with targeted refactors
-            "max-lines": "off",
+            "max-lines": ["warn", { max: 600, skipBlankLines: true, skipComments: true }],
             "max-lines-per-function": "off",
             "max-statements": "off",
             complexity: "off",
@@ -198,6 +198,23 @@ export default defineConfig([
         rules: {
             // masterStateManager uses eval in controlled ways; avoid failing CI
             "no-eval": "off",
+        },
+    },
+    {
+        // Legacy modules pending modularisation; silence max-lines noise until refactors land.
+        files: [
+            "renderer.js",
+            "utils/app/menu/createAppMenu.js",
+            "utils/charts/core/renderChartJS.js",
+            "utils/files/export/exportUtils.js",
+            "utils/maps/layers/mapDrawLaps.js",
+            "utils/state/core/masterStateManager.js",
+            "utils/ui/components/createSettingsHeader.js",
+            "utils/ui/controls/createInlineZoneColorSelector.js",
+            "utils/ui/modals/injectModalStyles.js",
+        ],
+        rules: {
+            "max-lines": "off",
         },
     },
     // Merging browser and node globals to support environments where both are used, such as Electron.

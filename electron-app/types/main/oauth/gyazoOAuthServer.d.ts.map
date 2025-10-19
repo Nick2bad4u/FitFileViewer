@@ -1,0 +1,1 @@
+{"version":3,"file":"gyazoOAuthServer.d.ts","sourceRoot":"","sources":["../../../main/oauth/gyazoOAuthServer.js"],"names":[],"mappings":"AAKA;;;;;;GAMG;AACH,6CAHW,MAAM,GACJ,OAAO,CAAC;IAAE,OAAO,EAAE,OAAO,CAAC;IAAC,OAAO,EAAE,MAAM,CAAC;IAAC,IAAI,CAAC,EAAE,MAAM,CAAA;CAAE,CAAC,CAkKzE;AAED;;;;GAIG;AACH,wCAFa,OAAO,CAAC;IAAE,OAAO,EAAE,OAAO,CAAC;IAAC,OAAO,EAAE,MAAM,CAAA;CAAE,CAAC,CAsB1D"}

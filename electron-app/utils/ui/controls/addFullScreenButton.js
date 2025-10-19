@@ -87,11 +87,10 @@ export function addFullScreenButton() {
             const btn = document.createElement("button");
             btn.id = FULLSCREEN_BUTTON_ID;
             btn.className = "fullscreen-btn improved themed-btn";
-            btn.dataset.tooltip = "Load a file first";
+            btn.dataset.tooltip = "Fullscreen (F11)";
             btn.setAttribute("aria-label", "Toggle full screen mode");
             btn.setAttribute("role", "button");
-            btn.setAttribute("tabindex", "-1");
-            btn.disabled = true;
+            btn.setAttribute("tabindex", "0");
             btn.style.pointerEvents = "auto";
             btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
             btn.addEventListener("click", () => nativeToggleFullscreen());
@@ -110,11 +109,10 @@ export function addFullScreenButton() {
         const btn = document.createElement("button");
         btn.id = FULLSCREEN_BUTTON_ID;
         btn.className = "fullscreen-btn improved themed-btn";
-        btn.dataset.tooltip = "Load a file first";
+        btn.dataset.tooltip = "Fullscreen (F11)";
         btn.setAttribute("aria-label", "Toggle full screen mode");
         btn.setAttribute("role", "button");
-        btn.setAttribute("tabindex", "-1");
-        btn.disabled = true;
+        btn.setAttribute("tabindex", "0");
         btn.style.pointerEvents = "auto";
         btn.innerHTML = `<span class="fullscreen-icon" aria-hidden="true">${createEnterFullscreenIcon()}</span>`;
         btn.addEventListener("click", handleFullscreenToggle);
@@ -537,7 +535,6 @@ function updateFullscreenButtonState() {
 
     const hasFile = document.body.classList.contains("app-has-file");
 
-    btn.disabled = !hasFile;
     btn.setAttribute("tabindex", hasFile ? "0" : "-1");
     btn.dataset.tooltip = hasFile ? "Fullscreen (F11)" : "Load a file first";
 }

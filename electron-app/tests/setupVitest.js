@@ -21,7 +21,7 @@ let __clearListeners;
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
 function ensureConsoleAlive() {
     try {
-        const noop = () => {};
+        const noop = () => { };
         /** @type {any} */
         const current = /** @type {any} */ (globalThis.console);
         if (!current) {
@@ -547,35 +547,108 @@ try {
     /* Ignore errors */
 }
 
+/** @typedef {Record<string, string>} StorageRecord */
+
+const STORAGE_METHODS = ["getItem", "setItem", "removeItem", "clear", "key"];
+
+/**
+ * In-memory implementation of the Web Storage API used to polyfill environments where the
+ * experimental Node localStorage either throws or exposes incomplete prototypes.
+ */
+class StorageMock {
+    constructor() {
+        /** @type {StorageRecord} */
+        this.store = {};
+    }
+
+    get length() {
+        return Object.keys(this.store).length;
+    }
+
+    /**
+     * @param {string} key
+     * @returns {string | null}
+     */
+    getItem(key) {
+        return Object.prototype.hasOwnProperty.call(this.store, key) ? this.store[key] : null;
+    }
+
+    /**
+     * @param {string} key
+     * @param {unknown} value
+     * @returns {void}
+     */
+    setItem(key, value) {
+        this.store[key] = String(value);
+    }
+
+    /**
+     * @param {string} key
+     * @returns {void}
+     */
+    removeItem(key) {
+        delete this.store[key];
+    }
+
+    /**
+     * @returns {void}
+     */
+    clear() {
+        this.store = {};
+    }
+
+    /**
+     * @param {number} index
+     * @returns {string | null}
+     */
+    key(index) {
+        return Object.keys(this.store)[index] ?? null;
+    }
+}
+
+const spyFactory = typeof vi !== "undefined" && typeof vi.fn === "function" ? (fn) => vi.fn(fn) : (fn) => fn;
+
+STORAGE_METHODS.forEach((method) => {
+    const original = /** @type {(...args: any[]) => unknown} */ (StorageMock.prototype[method]);
+    if (typeof original === "function") {
+        Object.defineProperty(StorageMock.prototype, method, {
+            value: spyFactory(function (/** @type {unknown[]} */ ...args) {
+                return original.apply(this, args);
+            }),
+            configurable: true,
+            writable: true,
+        });
+    }
+});
+
+const storageLengthDescriptor = Object.getOwnPropertyDescriptor(StorageMock.prototype, "length");
+if (storageLengthDescriptor?.get) {
+    Object.defineProperty(StorageMock.prototype, "length", {
+        get: function () {
+            return storageLengthDescriptor.get.call(this);
+        },
+        configurable: true,
+    });
+}
+
 // Global localStorage mock setup (handles opaque origin throwing on access)
 function ensureSafeLocalStorage() {
     if (typeof window === "undefined") return;
     /** @type {any} */
     const w = window;
     const createMock = () => {
-        const localStorageMock = {
-            /** @type {Record<string, string>} */
-            store: {},
-            getItem: vi.fn((/** @type {string} */ key) => {
-                return Object.prototype.hasOwnProperty.call(localStorageMock.store, key)
-                    ? localStorageMock.store[key]
-                    : null;
-            }),
-            setItem: vi.fn((/** @type {string} */ key, /** @type {unknown} */ value) => {
-                localStorageMock.store[key] = String(value);
-            }),
-            removeItem: vi.fn((/** @type {string} */ key) => {
-                delete localStorageMock.store[key];
-            }),
-            clear: vi.fn(() => {
-                localStorageMock.store = {};
-            }),
-            key: vi.fn((/** @type {number} */ index) => Object.keys(localStorageMock.store)[index] || null),
-            get length() {
-                return Object.keys(localStorageMock.store).length;
-            },
-        };
-        return localStorageMock;
+        const mock = new StorageMock();
+        try {
+            globalThis.Storage = StorageMock;
+        } catch {
+            /** @type {any} */ (globalThis).Storage = /** @type {any} */ (StorageMock);
+        }
+        try {
+            w.Storage = /** @type {any} */ (StorageMock);
+        } catch {
+            /** @type {any} */ (w).Storage = /** @type {any} */ (StorageMock);
+        }
+        return mock;
     };
     let needsOverride = false;
     try {
@@ -584,6 +657,21 @@ function ensureSafeLocalStorage() {
         w.localStorage && w.localStorage.length;
     } catch {
         needsOverride = true;
+    }
+    if (!needsOverride) {
+        const storageCandidate = /** @type {any} */ (w.localStorage);
+        const hasStorageShape =
+            storageCandidate && typeof storageCandidate === "object" && !Array.isArray(storageCandidate);
+        const requiredFns = ["getItem", "setItem", "removeItem", "clear", "key"];
+        if (!hasStorageShape) {
+            needsOverride = true;
+        } else {
+            const missingFn = requiredFns.some((method) => typeof storageCandidate[method] !== "function");
+            const lengthIsNumber = typeof storageCandidate.length === "number";
+            if (missingFn || !lengthIsNumber) {
+                needsOverride = true;
+            }
+        }
     }
     if (needsOverride) {
         const mock = createMock();
@@ -617,31 +705,7 @@ function ensureSafeSessionStorage() {
     if (typeof window === "undefined") return;
     /** @type {any} */
     const w = window;
-    const createMock = () => {
-        const sessionStorageMock = {
-            /** @type {Record<string, string>} */
-            store: {},
-            getItem: vi.fn((/** @type {string} */ key) => {
-                return Object.prototype.hasOwnProperty.call(sessionStorageMock.store, key)
-                    ? sessionStorageMock.store[key]
-                    : null;
-            }),
-            setItem: vi.fn((/** @type {string} */ key, /** @type {unknown} */ value) => {
-                sessionStorageMock.store[key] = String(value);
-            }),
-            removeItem: vi.fn((/** @type {string} */ key) => {
-                delete sessionStorageMock.store[key];
-            }),
-            clear: vi.fn(() => {
-                sessionStorageMock.store = {};
-            }),
-            key: vi.fn((/** @type {number} */ index) => Object.keys(sessionStorageMock.store)[index] || null),
-            get length() {
-                return Object.keys(sessionStorageMock.store).length;
-            },
-        };
-        return sessionStorageMock;
-    };
+    const createMock = () => new StorageMock();
     let needsOverride = false;
     try {
         // Accessor can throw in jsdom for opaque origins

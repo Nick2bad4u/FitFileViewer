@@ -438,8 +438,9 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 	const themeSelect = modal.querySelector("#theme-select");
 	if (themeSelect) {
 		addEventListenerWithCleanup(themeSelect, "change", (/** @type {Event} */ e) => {
-			const target = /** @type {HTMLSelectElement} */ (e.target);
-			const newTheme = target.value;
+			const { target } = e;
+			const select = /** @type {HTMLSelectElement} */ (target);
+			const newTheme = select.value;
 			applyTheme(newTheme, true);
 
 			// Update effective theme for accent color
@@ -464,8 +465,9 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 	if (colorPicker && colorText) {
 		// Sync color picker and text input
 		addEventListenerWithCleanup(colorPicker, "input", (/** @type {Event} */ e) => {
-			const target = /** @type {HTMLInputElement} */ (e.target);
-			const color = target.value;
+			const { target } = e;
+			const input = /** @type {HTMLInputElement} */ (target);
+			const color = input.value;
 			/** @type {HTMLInputElement} */ (colorText).value = color;
 
 			if (isValidHexColor(color)) {
@@ -474,13 +476,14 @@ function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
 		});
 
 		addEventListenerWithCleanup(colorText, "input", (/** @type {Event} */ e) => {
-			const target = /** @type {HTMLInputElement} */ (e.target);
-			let color = target.value.trim();
+			const { target } = e;
+			const input = /** @type {HTMLInputElement} */ (target);
+			let color = input.value.trim();
 
 			// Auto-add # if missing
 			if (color && !color.startsWith("#")) {
 				color = `#${color}`;
-				target.value = color;
+				input.value = color;
 			}
 
 			if (isValidHexColor(color)) {
