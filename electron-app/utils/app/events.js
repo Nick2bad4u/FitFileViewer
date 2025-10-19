@@ -324,7 +324,7 @@ export function setupListeners({
                     return;
                 }
 
-                const sanitizedBaseName = trackName.replace(/[\s\u0000-\u001f<>:"/\\|?*]+/gu, "_") || "export";
+                const sanitizedBaseName = trackName.replaceAll(/[\s\u0000-\u001F<>:"/\\|?*]+/gu, "_") || "export";
                 const downloadName = filePath.split(/[/\\]/).pop() || `${sanitizedBaseName}.gpx`;
                 const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
                 const a = document.createElement("a");

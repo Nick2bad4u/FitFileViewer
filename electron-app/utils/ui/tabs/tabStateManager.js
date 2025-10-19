@@ -407,6 +407,16 @@ class TabStateManager {
             console.log("[TabStateManager] Rendering map for first time");
             /** @type {any} */ (globalThis).renderMap();
             getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab" });
+        } else {
+            // Map already rendered, just invalidate size to fix grey tiles after tab switch
+            const mapInstance = /** @type {any} */ (globalThis)._leafletMapInstance;
+            if (mapInstance && typeof mapInstance.invalidateSize === "function") {
+                // Small delay to ensure DOM has updated
+                setTimeout(() => {
+                    mapInstance.invalidateSize();
+                    console.log("[TabStateManager] Map size invalidated to fix grey tiles");
+                }, 50);
+            }
         }
     }
 

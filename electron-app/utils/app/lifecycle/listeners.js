@@ -526,7 +526,7 @@ export function setupListeners({
                         return;
                     }
 
-                    const sanitizedBaseName = trackName.replace(/[\s\u0000-\u001f<>:"/\\|?*]+/gu, "_") || "export";
+                    const sanitizedBaseName = trackName.replaceAll(/[\s\u0000-\u001F<>:"/\\|?*]+/gu, "_") || "export";
                     const a = document.createElement("a"),
                         blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" }),
                         downloadName = safePath.split(/[/\\]/).pop() || `${sanitizedBaseName}.gpx`;

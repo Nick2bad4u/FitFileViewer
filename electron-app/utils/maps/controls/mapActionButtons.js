@@ -234,17 +234,21 @@ function setupActiveFileNameMapActions() {
             try {
                 console.log("[mapActionButtons] Active file name clicked");
 
-                // Switch to map tab if not active
-                const mapTabBtn = document.querySelector('[data-tab="map"]');
-                if (mapTabBtn instanceof HTMLElement && !mapTabBtn.classList.contains("active")) {
+                // Always switch to map tab (even if already active, to ensure map is visible)
+                const mapTabBtn = document.querySelector('#tab-map');
+                if (mapTabBtn instanceof HTMLElement) {
                     console.log("[mapActionButtons] Switching to map tab");
                     mapTabBtn.click();
-                }
 
-                // Center on main file with a slight delay to ensure tab switch completes
-                setTimeout(() => {
+                    // Center on main file with a slight delay to ensure tab switch completes
+                    setTimeout(() => {
+                        _centerMapOnMainFile();
+                    }, 100);
+                } else {
+                    // If map tab button not found, still try to center
+                    console.warn("[mapActionButtons] Map tab button not found, attempting to center anyway");
                     _centerMapOnMainFile();
-                }, 100);
+                }
             } catch (error) {
                 console.error("[mapActionButtons] Error in active filename click:", error);
                 // Correct argument order: (message, type)

@@ -85,6 +85,25 @@ export function renderMap() {
         return;
     }
 
+    // Save drawn items before destroying map
+    let savedDrawnLayers = [];
+    if (windowExt._drawnItems && windowExt._drawnItems.getLayers) {
+        try {
+            savedDrawnLayers = windowExt._drawnItems.getLayers().map((/** @type {any} */ layer) => ({
+                geoJSON: layer.toGeoJSON ? layer.toGeoJSON() : null,
+                options: layer.options,
+                type: layer instanceof L.Circle ? "circle" :
+                    layer instanceof L.Marker ? "marker" :
+                        layer instanceof L.Polygon ? "polygon" :
+                            layer instanceof L.Polyline ? "polyline" :
+                                layer instanceof L.Rectangle ? "rectangle" : "unknown",
+            })).filter((item) => item.geoJSON !== null);
+            console.log("[renderMap] Saved", savedDrawnLayers.length, "drawn items");
+        } catch (error) {
+            console.warn("[renderMap] Failed to save drawn items:", error);
+        }
+    }
+
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
     if (windowExt._leafletMapInstance && windowExt._leafletMapInstance.remove) {
         windowExt._leafletMapInstance.remove();
@@ -367,15 +386,93 @@ export function renderMap() {
         // Always use a standard tile layer for the minimap
         const miniMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "",
+            maxZoom: 18,
+            minZoom: 0,
         });
-        new L.Control.MiniMap(miniMapLayer, {
+        const miniMap = new L.Control.MiniMap(miniMapLayer, {
+            aimingRectOptions: {
+                clickable: false,
+                color: "#ff7800",
+                fillColor: "#ff7800",
+                fillOpacity: 0.1,
+                opacity: 1,
+                weight: 2,
+            },
+            autoToggleDisplay: false,
+            centerFixed: false,
+            height: 150,
+            mapOptions: {
+                attributionControl: false,
+                zoomControl: false,
+            },
+            minimized: false,
+            position: "bottomright",
+            shadowRectOptions: {
+                clickable: true,
+                color: "#000000",
+                fillColor: "#000000",
+                fillOpacity: 0.2,
+                opacity: 0.4,
+                weight: 1,
+            },
             toggleDisplay: true,
-        }).addTo(map);
+            width: 150,
+            zoomAnimation: false,
+            zoomLevelFixed: false,
+            zoomLevelOffset: -5,
+        });
+        miniMap.addTo(map);
+
+        // Force minimap to update after a short delay to ensure proper rendering
+        setTimeout(() => {
+            if (miniMap._miniMap) {
+                miniMap._miniMap.invalidateSize();
+            }
+        }, 100);
+
+        // Keep minimap in sync when main map moves or zooms to prevent grey tiles
+        map.on("moveend", () => {
+            if (miniMap._miniMap) {
+                miniMap._miniMap.invalidateSize();
+            }
+        });
+
+        map.on("zoomend", () => {
+            if (miniMap._miniMap) {
+                miniMap._miniMap.invalidateSize();
+            }
+        });
     }
 
     // --- Measurement tool (if plugin available) ---
     if (windowExt.L && L.control && L.control.measure) {
-        L.control.measure({ position: "topleft" }).addTo(map);
+        const measureControl = L.control.measure({
+            activeColor: "#ff7800",
+            captureZIndex: 10_000,
+            clearMeasurementsOnStop: false,
+            completedColor: "#1976d2",
+            decPoint: ".",
+            popupOptions: {
+                autoPanPadding: [10, 10],
+                className: "leaflet-measure-resultpopup",
+            },
+            position: "topleft",
+            primaryAreaUnit: "sqmeters",
+            primaryLengthUnit: "meters",
+            secondaryAreaUnit: "acres",
+            secondaryLengthUnit: "miles",
+            thousandsSep: ",",
+        });
+        measureControl.addTo(map);
+        windowExt._measureControl = measureControl;
+
+        // Clear measurements when starting a new measurement
+        map.on("measurestart", () => {
+            // Clear previous completed measurements when starting new one
+            if (measureControl._measurementRunningTotal) {
+                measureControl._measurementRunningTotal = 0;
+            }
+        });
     }
 
     // --- Drawing/editing tool (if plugin available) ---
@@ -384,18 +481,70 @@ export function renderMap() {
         map.addLayer(drawnItems);
         const drawControl = new L.Control.Draw({
             draw: {
-                circle: true,
+                circle: {
+                    shapeOptions: {
+                        clickable: true,
+                        color: "#1976d2",
+                    },
+                },
                 marker: true,
-                polygon: true,
-                polyline: true,
-                rectangle: true,
+                polygon: {
+                    allowIntersection: false,
+                    shapeOptions: {
+                        clickable: true,
+                        color: "#1976d2",
+                    },
+                },
+                polyline: {
+                    shapeOptions: {
+                        clickable: true,
+                        color: "#1976d2",
+                    },
+                },
+                rectangle: {
+                    shapeOptions: {
+                        clickable: true,
+                        color: "#1976d2",
+                    },
+                },
             },
-            edt: false,
+            edit: {
+                edit: true,
+                featureGroup: drawnItems,
+                remove: true,
+            },
         });
         map.addControl(drawControl);
+
+        // Add drawn shapes to the layer so they persist
         map.on(L.Draw.Event.CREATED, (/** @type {any} */ e) => {
-            drawnItems.addLayer(e.layer);
+            const { layer } = e;
+            drawnItems.addLayer(layer);
         });
+
+        // Store reference to drawn items for persistence
+        windowExt._drawnItems = drawnItems;
+
+        // Restore previously drawn items
+        if (savedDrawnLayers && savedDrawnLayers.length > 0) {
+            console.log("[renderMap] Restoring", savedDrawnLayers.length, "drawn items");
+            for (const item of savedDrawnLayers) {
+                try {
+                    let layer;
+                    if (item.geoJSON) {
+                        layer = L.geoJSON(item.geoJSON, {
+                            onEachFeature: (/** @type {any} */ _feature, /** @type {any} */ createdLayer) => {
+                                drawnItems.addLayer(createdLayer);
+                            },
+                            pointToLayer: (/** @type {any} */ _feature, /** @type {any} */ latlng) => L.marker(latlng),
+                            style: item.options,
+                        });
+                    }
+                } catch (error) {
+                    console.warn("[renderMap] Failed to restore drawn item:", error);
+                }
+            }
+        }
     }
 
     // --- Overlay logic ---

@@ -80,10 +80,10 @@
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
-import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 // Avoid static import of AppActions because tests sometimes mock the module
 // Without exporting the named symbol. Always resolve via ensureCoreModules().
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
+import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 // Import domain-level appState for tests that mock this path explicitly
 // Note: app domain state functions are dynamically imported via ensureCoreModules()
 // Avoid static import of uiStateManager for the same reason as AppActions in tests

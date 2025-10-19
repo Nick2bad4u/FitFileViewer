@@ -1,6 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "./gpxExport.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "./gpxExport.js";
 
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
@@ -31,7 +31,7 @@ export function createExportGPXButton() {
             return;
         }
 
-        const downloadNameBase = trackName.replace(/[\s\u0000-\u001f<>:"/\\|?*]+/gu, "_") || "track";
+        const downloadNameBase = trackName.replaceAll(/[\s\u0000-\u001F<>:"/\\|?*]+/gu, "_") || "track";
         const a = document.createElement("a"),
             blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" }),
             url = URL.createObjectURL(blob);

@@ -1324,23 +1324,16 @@ body.theme-light .tab-button.active::after {
 
 .app-pill > * {
     position: relative;
-    z-index: 1;
+    z-index: 9999;
 }
 
 .pill-accent {
     color: rgb(var(--color-accent-rgb));
     letter-spacing: 0.18em;
     font-weight: 700;
+    overflow: overlay !important;
 }
 
-.app-pill:nth-child(2n) {
-    animation: pill-breathe 6s ease-in-out infinite;
-}
-
-.app-pill:nth-child(2n + 1) {
-    animation: pill-breathe 6s ease-in-out infinite;
-    animation-delay: 1.5s;
-}
 
 body.app-has-file .app-header,
 body[data-has-fit-file="true"] .app-header {
@@ -1428,6 +1421,9 @@ body[data-has-fit-file="true"] .header-bar::after {
     animation-duration: 18s;
 }
 
+.leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle, .leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle:hover {
+    display: none
+}
 body.app-has-file .header-bar #activeFileNameContainer,
 body[data-has-fit-file="true"] .header-bar #activeFileNameContainer {
     flex: 1 1 auto;
@@ -2050,7 +2046,7 @@ body.app-has-file .tab-bar,
 body[data-has-fit-file="true"] .tab-bar {
     margin-top: 0;
     padding-top: 5px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
 }
 
 .tab-bar::after {

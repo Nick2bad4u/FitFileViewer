@@ -93,7 +93,7 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
             tooltipParts.push(`<b>Time:</b> ${dateStr}`);
         }
         if (rideTime) {
-            tooltipParts.push(`<b>Ride Time:</b> ${rideTime}`);
+            tooltipParts.push(`<b>Elapsed Time:</b> ${rideTime}`);
         }
         if (distance) {
             tooltipParts.push(`<b>Distance:</b> ${distance.replace("<br>", "")}`);

@@ -66,12 +66,25 @@ export async function loadOverlayFiles(files) {
     }
 
     if (stateDirty) {
+        // Save current tab before syncing state (which might trigger tab switches)
+        const currentTabButton = document.querySelector('.tab-button.active');
+        const currentTabId = currentTabButton?.id;
+
         syncLoadedFitFilesState();
         if (globalThis.renderMap) {
             globalThis.renderMap();
         }
         if (/** @type {any} */ (globalThis).updateShownFilesList) {
             /** @type {any} */ globalThis.updateShownFilesList();
+        }
+
+        // Restore the original tab if it was changed
+        if (currentTabId && currentTabButton instanceof HTMLElement) {
+            const newActiveTab = document.querySelector('.tab-button.active');
+            if (newActiveTab?.id !== currentTabId) {
+                console.log('[loadOverlayFiles] Restoring tab to:', currentTabId);
+                currentTabButton.click();
+            }
         }
     }
 
