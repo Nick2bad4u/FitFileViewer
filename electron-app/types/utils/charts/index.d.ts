@@ -14,6 +14,7 @@ export * from "./plugins/chartOptionsConfig.js";
 export * from "./plugins/chartZoomResetPlugin.js";
 export * from "./rendering/renderAltitudeProfileChart.js";
 export * from "./rendering/renderEventMessagesChart.js";
+export * from "./rendering/renderGPSTimeChart.js";
 export * from "./rendering/renderGPSTrackChart.js";
 export * from "./rendering/renderLapZoneChart.js";
 export * from "./rendering/renderPerformanceAnalysisCharts.js";
@@ -41,6 +42,7 @@ declare namespace _default {
     function renderAltitudeProfileChart(): Promise<typeof import("./rendering/renderAltitudeProfileChart.js")>;
     function renderChartJS(): Promise<typeof import("./core/renderChartJS.js")>;
     function renderEventMessagesChart(): Promise<typeof import("./rendering/renderEventMessagesChart.js")>;
+    function renderGPSTimeChart(): Promise<typeof import("./rendering/renderGPSTimeChart.js")>;
     function renderGPSTrackChart(): Promise<typeof import("./rendering/renderGPSTrackChart.js")>;
     function renderLapZoneChart(): Promise<typeof import("./rendering/renderLapZoneChart.js")>;
 }

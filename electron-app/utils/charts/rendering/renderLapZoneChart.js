@@ -36,6 +36,9 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         if (!globalThis.Chart || !canvas || !Array.isArray(lapZoneData)) {
             throw new Error("Chart.js, canvas, or lapZoneData missing");
         }
+        if (!canvas.classList.contains("chart-canvas")) {
+            canvas.classList.add("chart-canvas");
+        }
         const themeConfig = /** @type {any} */ (getThemeConfig() || {});
         if (themeConfig && typeof themeConfig === "object" && "name" in themeConfig) {
             console.log("[renderLapZoneChart] Using theme config:", themeConfig.name);

@@ -14,9 +14,7 @@ async function getThemeFromRenderer(win) {
     }
 
     try {
-        const theme = await win.webContents.executeJavaScript(
-            `localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`
-        );
+        const theme = await win.webContents.executeJavaScript(`localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`);
         return theme || CONSTANTS.DEFAULT_THEME;
     } catch (error) {
         console.error("[main.js] Failed to get theme from renderer:", error);

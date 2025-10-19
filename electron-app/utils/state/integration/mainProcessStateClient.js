@@ -46,19 +46,14 @@ class MainProcessStateClient {
 
         // Verify electronAPI is available
         if (globalThis.window === undefined || !globalThis.electronAPI) {
-            console.warn(
-                "[MainProcessStateClient] electronAPI not available - client will be in degraded mode"
-            );
+            console.warn("[MainProcessStateClient] electronAPI not available - client will be in degraded mode");
             return;
         }
 
         this._isInitialized = true;
 
         // Safe check for development mode in renderer process
-        const isDevelopment =
-            typeof process !== "undefined" &&
-            process.env &&
-            process.env.NODE_ENV === "development";
+        const isDevelopment = typeof process !== "undefined" && process.env && process.env.NODE_ENV === "development";
 
         if (isDevelopment) {
             console.log("[MainProcessStateClient] Initialized successfully");
@@ -88,7 +83,11 @@ class MainProcessStateClient {
      * @returns {Promise<{errors: ErrorEntry[], operations: Record<string, Operation>, metrics: Metrics}>}
      */
     async getDiagnostics() {
-        const [errors, operations, metrics] = await Promise.all([this.getErrors(), this.getOperations(), this.getMetrics()]);
+        const [errors, operations, metrics] = await Promise.all([
+            this.getErrors(),
+            this.getOperations(),
+            this.getMetrics(),
+        ]);
 
         return { errors, operations, metrics };
     }
@@ -251,7 +250,7 @@ class MainProcessStateClient {
             if (!result) {
                 console.warn(
                     `[MainProcessStateClient] Failed to set "${path}" - path may be restricted. ` +
-                    `Only 'loadedFitFilePath' and 'operations.*' paths can be set from renderer.`
+                        `Only 'loadedFitFilePath' and 'operations.*' paths can be set from renderer.`
                 );
             }
             return result;

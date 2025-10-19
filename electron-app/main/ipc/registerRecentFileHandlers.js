@@ -22,22 +22,22 @@ function registerRecentFileHandlers({
     getAppState,
     logWithContext,
 }) {
-    if (typeof registerIpcHandle !== 'function') {
+    if (typeof registerIpcHandle !== "function") {
         return;
     }
 
-    registerIpcHandle('recentFiles:get', async () => {
+    registerIpcHandle("recentFiles:get", async () => {
         try {
             return loadRecentFiles();
         } catch (error) {
-            logWithContext?.('error', 'Error in recentFiles:get:', {
+            logWithContext?.("error", "Error in recentFiles:get:", {
                 error: /** @type {Error} */ (error)?.message,
             });
             throw error;
         }
     });
 
-    registerIpcHandle('recentFiles:add', async (_event, filePath) => {
+    registerIpcHandle("recentFiles:add", async (_event, filePath) => {
         try {
             addRecentFile(filePath);
             const win = resolveTargetWindow(browserWindowRef, mainWindow);
@@ -47,16 +47,16 @@ function registerRecentFileHandlers({
 
             try {
                 const theme = await getThemeFromRenderer(win);
-                safeCreateAppMenu(win, theme, getAppState('loadedFitFilePath'));
+                safeCreateAppMenu(win, theme, getAppState("loadedFitFilePath"));
             } catch (menuError) {
-                logWithContext?.('warn', 'Failed to refresh menu after recent file add', {
+                logWithContext?.("warn", "Failed to refresh menu after recent file add", {
                     error: /** @type {Error} */ (menuError)?.message,
                 });
             }
 
             return loadRecentFiles();
         } catch (error) {
-            logWithContext?.('error', 'Error in recentFiles:add:', {
+            logWithContext?.("error", "Error in recentFiles:add:", {
                 error: /** @type {Error} */ (error)?.message,
             });
             throw error;
@@ -71,8 +71,8 @@ function registerRecentFileHandlers({
  */
 function resolveTargetWindow(browserWindowRef, fallback) {
     try {
-        const api = typeof browserWindowRef === 'function' ? browserWindowRef() : null;
-        if (api && typeof api.getFocusedWindow === 'function') {
+        const api = typeof browserWindowRef === "function" ? browserWindowRef() : null;
+        if (api && typeof api.getFocusedWindow === "function") {
             const focused = api.getFocusedWindow();
             if (focused) {
                 return focused;

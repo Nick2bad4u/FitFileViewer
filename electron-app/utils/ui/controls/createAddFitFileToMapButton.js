@@ -31,8 +31,8 @@ export function createAddFitFileToMapButton() {
                 const data = getState("globalData");
                 const hasMainFile = Boolean(
                     data &&
-                    typeof data === "object" &&
-                    Array.isArray(/** @type {any} */(data).recordMesgs) &&
+                        typeof data === "object" &&
+                        Array.isArray(/** @type {any} */ (data).recordMesgs) &&
                         /** @type {any} */ (data).recordMesgs.length > 0
                 );
                 addOverlayBtn.disabled = !hasMainFile;

@@ -9,33 +9,33 @@
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
 function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, logWithContext }) {
-    if (typeof registerIpcHandle !== 'function') {
+    if (typeof registerIpcHandle !== "function") {
         return;
     }
 
     const handlers = {
         getAppVersion: async () => {
             const app = appRef();
-            return app && typeof app.getVersion === 'function' ? app.getVersion() : '';
+            return app && typeof app.getVersion === "function" ? app.getVersion() : "";
         },
         getChromeVersion: async () => process.versions.chrome,
         getElectronVersion: async () => process.versions.electron,
         getLicenseInfo: async () => {
             try {
                 const app = appRef();
-                const basePath = app && typeof app.getAppPath === 'function' ? app.getAppPath() : process.cwd();
-                if (!fs || typeof fs.readFileSync !== 'function') {
-                    throw new Error('Filesystem module unavailable');
+                const basePath = app && typeof app.getAppPath === "function" ? app.getAppPath() : process.cwd();
+                if (!fs || typeof fs.readFileSync !== "function") {
+                    throw new Error("Filesystem module unavailable");
                 }
-                const pkgPath = path.join(basePath, 'package.json');
+                const pkgPath = path.join(basePath, "package.json");
                 const packageJsonBuffer = fs.readFileSync(pkgPath);
-                const packageJson = JSON.parse(packageJsonBuffer.toString('utf8'));
-                return packageJson.license || 'Unknown';
+                const packageJson = JSON.parse(packageJsonBuffer.toString("utf8"));
+                return packageJson.license || "Unknown";
             } catch (error) {
-                logWithContext?.('error', 'Failed to read license from package.json:', {
+                logWithContext?.("error", "Failed to read license from package.json:", {
                     error: /** @type {Error} */ (error)?.message,
                 });
-                return 'Unknown';
+                return "Unknown";
             }
         },
         getNodeVersion: async () => process.versions.node,
@@ -43,15 +43,15 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
             arch: process.arch,
             platform: process.platform,
         }),
-        'map-tab:get': async () => {
-            const { Conf } = require('electron-conf');
+        "map-tab:get": async () => {
+            const { Conf } = require("electron-conf");
             const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get('selectedMapTab', 'map');
+            return conf.get("selectedMapTab", "map");
         },
-        'theme:get': async () => {
-            const { Conf } = require('electron-conf');
+        "theme:get": async () => {
+            const { Conf } = require("electron-conf");
             const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get('theme', CONSTANTS.DEFAULT_THEME);
+            return conf.get("theme", CONSTANTS.DEFAULT_THEME);
         },
     };
 
@@ -60,7 +60,7 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
             try {
                 return await /** @type {(event: any, ...rest: any[]) => Promise<any>} */ (handler)(...args);
             } catch (error) {
-                logWithContext?.('error', `Error in ${channel}:`, {
+                logWithContext?.("error", `Error in ${channel}:`, {
                     error: /** @type {Error} */ (error)?.message,
                 });
                 throw error;

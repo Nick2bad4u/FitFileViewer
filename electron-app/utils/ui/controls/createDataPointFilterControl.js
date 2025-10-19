@@ -21,9 +21,8 @@ export function createDataPointFilterControl(onFilterChange) {
     const container = document.createElement("div");
     container.className = "data-point-filter-control";
 
-    const scheduleMicrotask = typeof queueMicrotask === "function"
-        ? queueMicrotask
-        : (callback) => Promise.resolve().then(callback);
+    const scheduleMicrotask =
+        typeof queueMicrotask === "function" ? queueMicrotask : (callback) => Promise.resolve().then(callback);
 
     const toggleButton = document.createElement("button");
     toggleButton.type = "button";

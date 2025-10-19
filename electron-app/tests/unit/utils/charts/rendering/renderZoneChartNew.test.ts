@@ -121,10 +121,7 @@ describe("renderZoneChartNew", () => {
         const dataset = config.data.datasets[0];
         expect(dataset.data).toEqual([120, 60]);
         expect(dataset.backgroundColor).toEqual(["#123456", "#654321"]);
-        expect(dataset.hoverBackgroundColor).toEqual([
-            lightenColor("#123456", 30),
-            lightenColor("#654321", 30),
-        ]);
+        expect(dataset.hoverBackgroundColor).toEqual([lightenColor("#123456", 30), lightenColor("#654321", 30)]);
 
         expect((globalThis as any)._chartjsInstances).toHaveLength(1);
 
@@ -174,10 +171,7 @@ describe("renderZoneChartNew", () => {
 
         const dataset = config.data.datasets[0];
         expect(dataset.backgroundColor).toEqual(["#010203", "INVALID"]);
-        expect(dataset.hoverBackgroundColor).toEqual([
-            lightenColor("#010203", 20),
-            lightenColor("INVALID", 20),
-        ]);
+        expect(dataset.hoverBackgroundColor).toEqual([lightenColor("#010203", 20), lightenColor("INVALID", 20)]);
         expect(dataset.hoverBorderColor).toEqual(["#010203", "INVALID"]);
 
         const yTickResult = config.options.scales.y.ticks.callback(300);
@@ -206,10 +200,7 @@ describe("renderZoneChartNew", () => {
 
         renderZoneChart(container, "Errored Chart", zoneData, "error-chart");
 
-        expect(errorSpy).toHaveBeenCalledWith(
-            "[ChartJS] Failed to create zone chart",
-            expect.any(Error)
-        );
+        expect(errorSpy).toHaveBeenCalledWith("[ChartJS] Failed to create zone chart", expect.any(Error));
         expect((globalThis as any)._chartjsInstances).toBeUndefined();
 
         errorSpy.mockRestore();

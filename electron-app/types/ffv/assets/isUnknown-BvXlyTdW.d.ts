@@ -213,8 +213,8 @@ declare namespace m {
             72: string;
             74: string;
             77: string;
-            '0xF7': string;
-            '0xFE': string;
+            "0xF7": string;
+            "0xFE": string;
         };
         export let mesg_num: {
             0: string;
@@ -378,8 +378,8 @@ declare namespace m {
             398: string;
             409: string;
             428: string;
-            '0xFF00': string;
-            '0xFFFE': string;
+            "0xFF00": string;
+            "0xFFFE": string;
         };
         export let checksum: {
             0: string;
@@ -387,9 +387,9 @@ declare namespace m {
         };
         export let file_flags: {
             bitFlags: boolean;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
         };
         export let mesg_count: {
             0: string;
@@ -397,15 +397,15 @@ declare namespace m {
             2: string;
         };
         export let date_time: {
-            '0x10000000': string;
+            "0x10000000": string;
         };
         export let local_date_time: {
-            '0x10000000': string;
+            "0x10000000": string;
         };
         export let message_index: {
-            '0x8000': string;
-            '0x7000': string;
-            '0x0FFF': string;
+            "0x8000": string;
+            "0x7000": string;
+            "0x0FFF": string;
         };
         export let device_index: {
             0: string;
@@ -457,56 +457,56 @@ declare namespace m {
         };
         export let language_bits_0: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let language_bits_1: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let language_bits_2: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let language_bits_3: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let language_bits_4: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
         };
         export let time_zone: {
             0: string;
@@ -753,73 +753,73 @@ declare namespace m {
         };
         export let sport_bits_0: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let sport_bits_1: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let sport_bits_2: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let sport_bits_3: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let sport_bits_4: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let sport_bits_5: {
             bitFlags: boolean;
-            '0x01': string;
-            '0x02': string;
-            '0x04': string;
-            '0x08': string;
-            '0x10': string;
-            '0x20': string;
-            '0x40': string;
-            '0x80': string;
+            "0x01": string;
+            "0x02": string;
+            "0x04": string;
+            "0x08": string;
+            "0x10": string;
+            "0x20": string;
+            "0x40": string;
+            "0x80": string;
         };
         export let sport_bits_6: {
             bitFlags: boolean;
-            '0x01': string;
+            "0x01": string;
         };
         export let sub_sport: {
             0: string;
@@ -1073,8 +1073,8 @@ declare namespace m {
         };
         export let activity_class: {
             100: string;
-            '0x7F': string;
-            '0x80': string;
+            "0x7F": string;
+            "0x80": string;
         };
         export let hr_zone_calc: {
             0: string;
@@ -1888,8 +1888,8 @@ declare namespace m {
             65531: string;
             65532: string;
             65534: string;
-            ' 3927': string;
-            ' 4001': string;
+            " 3927": string;
+            " 4001": string;
         };
         export let antplus_device_type: {
             1: string;
@@ -1926,20 +1926,20 @@ declare namespace m {
         };
         export let workout_capabilities: {
             bitFlags: boolean;
-            '0x00000001': string;
-            '0x00000002': string;
-            '0x00000004': string;
-            '0x00000008': string;
-            '0x00000010': string;
-            '0x00000020': string;
-            '0x00000080': string;
-            '0x00000100': string;
-            '0x00000200': string;
-            '0x00000400': string;
-            '0x00000800': string;
-            '0x00001000': string;
-            '0x00002000': string;
-            '0x00004000': string;
+            "0x00000001": string;
+            "0x00000002": string;
+            "0x00000004": string;
+            "0x00000008": string;
+            "0x00000010": string;
+            "0x00000020": string;
+            "0x00000080": string;
+            "0x00000100": string;
+            "0x00000200": string;
+            "0x00000400": string;
+            "0x00000800": string;
+            "0x00001000": string;
+            "0x00002000": string;
+            "0x00004000": string;
         };
         export let battery_status: {
             1: string;
@@ -1956,21 +1956,21 @@ declare namespace m {
         };
         export let course_capabilities: {
             bitFlags: boolean;
-            '0x00000001': string;
-            '0x00000002': string;
-            '0x00000004': string;
-            '0x00000008': string;
-            '0x00000010': string;
-            '0x00000020': string;
-            '0x00000040': string;
-            '0x00000080': string;
-            '0x00000100': string;
-            '0x00000200': string;
-            '0x00000400': string;
-            '0x00001000': string;
+            "0x00000001": string;
+            "0x00000002": string;
+            "0x00000004": string;
+            "0x00000008": string;
+            "0x00000010": string;
+            "0x00000020": string;
+            "0x00000040": string;
+            "0x00000080": string;
+            "0x00000100": string;
+            "0x00000200": string;
+            "0x00000400": string;
+            "0x00001000": string;
         };
         export let weight: {
-            '0xFFFE': string;
+            "0xFFFE": string;
         };
         export let workout_hr: {
             100: string;
@@ -1987,12 +1987,12 @@ declare namespace m {
         };
         export let user_local_id: {
             bitFlags: boolean;
-            '0x0000': string;
-            '0x000F': string;
-            '0x0010': string;
-            '0x00FF': string;
-            '0x0100': string;
-            '0xFFFE': string;
+            "0x0000": string;
+            "0x000F": string;
+            "0x0010": string;
+            "0x00FF": string;
+            "0x0100": string;
+            "0xFFFE": string;
         };
         export let swim_stroke: {
             0: string;
@@ -2046,12 +2046,12 @@ declare namespace m {
             1: string;
         };
         export let left_right_balance: {
-            '0x7F': string;
-            '0x80': string;
+            "0x7F": string;
+            "0x80": string;
         };
         export let left_right_balance_100: {
-            '0x3FFF': string;
-            '0x8000': string;
+            "0x3FFF": string;
+            "0x8000": string;
         };
         export let length_type: {
             0: string;
@@ -2068,38 +2068,38 @@ declare namespace m {
         };
         export let connectivity_capabilities: {
             bitFlags: boolean;
-            '0x00000001': string;
-            '0x00000002': string;
-            '0x00000004': string;
-            '0x00000008': string;
-            '0x00000010': string;
-            '0x00000020': string;
-            '0x00000040': string;
-            '0x00000080': string;
-            '0x00000100': string;
-            '0x00000200': string;
-            '0x00000400': string;
-            '0x00000800': string;
-            '0x00001000': string;
-            '0x00002000': string;
-            '0x00004000': string;
-            '0x00008000': string;
-            '0x00010000': string;
-            '0x00020000': string;
-            '0x00040000': string;
-            '0x00080000': string;
-            '0x00100000': string;
-            '0x00200000': string;
-            '0x00400000': string;
-            '0x00800000': string;
-            '0x01000000': string;
-            '0x02000000': string;
-            '0x04000000': string;
-            '0x08000000': string;
-            '0x10000000': string;
-            '0x20000000': string;
-            '0x40000000': string;
-            '0x80000000': string;
+            "0x00000001": string;
+            "0x00000002": string;
+            "0x00000004": string;
+            "0x00000008": string;
+            "0x00000010": string;
+            "0x00000020": string;
+            "0x00000040": string;
+            "0x00000080": string;
+            "0x00000100": string;
+            "0x00000200": string;
+            "0x00000400": string;
+            "0x00000800": string;
+            "0x00001000": string;
+            "0x00002000": string;
+            "0x00004000": string;
+            "0x00008000": string;
+            "0x00010000": string;
+            "0x00020000": string;
+            "0x00040000": string;
+            "0x00080000": string;
+            "0x00100000": string;
+            "0x00200000": string;
+            "0x00400000": string;
+            "0x00800000": string;
+            "0x01000000": string;
+            "0x02000000": string;
+            "0x04000000": string;
+            "0x08000000": string;
+            "0x10000000": string;
+            "0x20000000": string;
+            "0x40000000": string;
+            "0x80000000": string;
         };
         export let weather_report: {
             0: string;
@@ -2334,10 +2334,10 @@ declare namespace m {
             7: string;
         };
         export let ant_channel_id: {
-            '0xF0000000': string;
-            '0x0F000000': string;
-            '0x00FF0000': string;
-            '0x0000FFFF': string;
+            "0xF0000000": string;
+            "0x0F000000": string;
+            "0x00FF0000": string;
+            "0x0000FFFF": string;
         };
         export let display_orientation: {
             0: string;
@@ -2429,19 +2429,19 @@ declare namespace m {
         };
         export let attitude_validity: {
             bitFlags: boolean;
-            '0x0001': string;
-            '0x0002': string;
-            '0x0004': string;
-            '0x0008': string;
-            '0x0010': string;
-            '0x0020': string;
-            '0x0040': string;
-            '0x0080': string;
-            '0x0100': string;
-            '0x0200': string;
-            '0x0400': string;
-            '0x0800': string;
-            '0x1000': string;
+            "0x0001": string;
+            "0x0002": string;
+            "0x0004": string;
+            "0x0008": string;
+            "0x0010": string;
+            "0x0020": string;
+            "0x0040": string;
+            "0x0080": string;
+            "0x0100": string;
+            "0x0200": string;
+            "0x0400": string;
+            "0x0800": string;
+            "0x1000": string;
         };
         export let auto_sync_frequency: {
             0: string;
@@ -2673,24 +2673,24 @@ declare namespace m {
         };
         export let auto_activity_detect: {
             bitFlags: boolean;
-            '0x00000000': string;
-            '0x00000001': string;
-            '0x00000002': string;
-            '0x00000004': string;
-            '0x00000008': string;
-            '0x00000020': string;
-            '0x00000400': string;
+            "0x00000000": string;
+            "0x00000001": string;
+            "0x00000002": string;
+            "0x00000004": string;
+            "0x00000008": string;
+            "0x00000020": string;
+            "0x00000400": string;
         };
         export let supported_exd_screen_layouts: {
             bitFlags: boolean;
-            '0x00000001': string;
-            '0x00000002': string;
-            '0x00000004': string;
-            '0x00000008': string;
-            '0x00000010': string;
-            '0x00000020': string;
-            '0x00000040': string;
-            '0x00000080': string;
+            "0x00000001": string;
+            "0x00000002": string;
+            "0x00000004": string;
+            "0x00000008": string;
+            "0x00000010": string;
+            "0x00000020": string;
+            "0x00000040": string;
+            "0x00000080": string;
         };
         export let fit_base_type: {
             0: string;
@@ -4315,15 +4315,15 @@ declare namespace m {
         };
         export let avoidances: {
             bitFlags: boolean;
-            '0x0001': string;
-            '0x0002': string;
-            '0x0004': string;
-            '0x0008': string;
-            '0x0010': string;
-            '0x0020': string;
-            '0x0040': string;
-            '0x0080': string;
-            '0x0100': string;
+            "0x0001": string;
+            "0x0002": string;
+            "0x0004": string;
+            "0x0008": string;
+            "0x0010": string;
+            "0x0020": string;
+            "0x0040": string;
+            "0x0080": string;
+            "0x0100": string;
         };
         export let benefit: {
             0: string;
@@ -4554,14 +4554,14 @@ declare namespace m {
         };
         export let gps_mode: {
             bitFlags: boolean;
-            '0x0001': string;
-            '0x0002': string;
-            '0x0010': string;
-            '0x0040': string;
-            '0x0080': string;
-            '0x0100': string;
-            '0x1C00': string;
-            '0x2000': string;
+            "0x0001": string;
+            "0x0002": string;
+            "0x0010": string;
+            "0x0040": string;
+            "0x0080": string;
+            "0x0100": string;
+            "0x1C00": string;
+            "0x2000": string;
         };
         export let gps_type: {
             11: string;
@@ -15255,7 +15255,7 @@ declare namespace m {
         multisport_activity: number;
         sensor_settings: number;
         metronome: number;
-        'mesg_162?': number;
+        "mesg_162?": number;
         connect_iq_field: number;
         clubs: number;
         golf_course: number;
@@ -15263,17 +15263,17 @@ declare namespace m {
         score: number;
         hole: number;
         shot: number;
-        'mesg_233?': number;
+        "mesg_233?": number;
         music_info: number;
-        'mesg_288?': number;
+        "mesg_288?": number;
         mtb_cx: number;
         race: number;
         split_time: number;
         power_mode: number;
-        'mesg_324?': number;
-        'mesg_325?': number;
+        "mesg_324?": number;
+        "mesg_325?": number;
         gps_event: number;
-        'mesg_327?': number;
+        "mesg_327?": number;
         race_event: number;
         sleep_schedule: number;
         cpe_status: number;

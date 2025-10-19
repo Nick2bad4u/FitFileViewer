@@ -16,9 +16,7 @@ export function createExportGPXButton() {
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.addEventListener("click", () => {
         const windowCtx = /** @type {any} */ (globalThis);
-        const records = Array.isArray(windowCtx?.globalData?.recordMesgs)
-            ? windowCtx.globalData.recordMesgs
-            : null;
+        const records = Array.isArray(windowCtx?.globalData?.recordMesgs) ? windowCtx.globalData.recordMesgs : null;
 
         if (!records || records.length === 0) {
             showNotification("No data available for GPX export.", "info", 3000);

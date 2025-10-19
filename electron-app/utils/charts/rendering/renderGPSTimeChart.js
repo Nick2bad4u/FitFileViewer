@@ -124,189 +124,189 @@ export function renderGPSTimeChart(container, data, options) {
         }
 
         const config = {
-            data: {
-                datasets: [
-                    {
-                        backgroundColor: themeConfig.colors.primaryAlpha,
-                        borderColor: themeConfig.colors.primary,
-                        borderWidth: 2,
-                        data: latitudeData,
-                        fill: false,
-                        label: "Latitude",
-                        pointHoverRadius: 6,
-                        pointRadius: options.showPoints ? 2 : 1,
-                        showLine: true,
-                        tension: 0.1,
-                        yAxisID: "y",
-                    },
-                    {
-                        backgroundColor: `${themeConfig.colors.success}33`,
-                        borderColor: themeConfig.colors.success,
-                        borderWidth: 2,
-                        data: longitudeData,
-                        fill: false,
-                        label: "Longitude",
-                        pointHoverRadius: 6,
-                        pointRadius: options.showPoints ? 2 : 1,
-                        showLine: true,
-                        tension: 0.1,
-                        yAxisID: "y1",
-                    },
-                ],
-            },
-            options: {
-                interaction: {
-                    intersect: false,
-                    mode: "index",
+                data: {
+                    datasets: [
+                        {
+                            backgroundColor: themeConfig.colors.primaryAlpha,
+                            borderColor: themeConfig.colors.primary,
+                            borderWidth: 2,
+                            data: latitudeData,
+                            fill: false,
+                            label: "Latitude",
+                            pointHoverRadius: 6,
+                            pointRadius: options.showPoints ? 2 : 1,
+                            showLine: true,
+                            tension: 0.1,
+                            yAxisID: "y",
+                        },
+                        {
+                            backgroundColor: `${themeConfig.colors.success}33`,
+                            borderColor: themeConfig.colors.success,
+                            borderWidth: 2,
+                            data: longitudeData,
+                            fill: false,
+                            label: "Longitude",
+                            pointHoverRadius: 6,
+                            pointRadius: options.showPoints ? 2 : 1,
+                            showLine: true,
+                            tension: 0.1,
+                            yAxisID: "y1",
+                        },
+                    ],
                 },
-                maintainAspectRatio: false,
-                plugins: {
-                    chartBackgroundColorPlugin: {
-                        backgroundColor: themeConfig.colors.chartBackground,
+                options: {
+                    interaction: {
+                        intersect: false,
+                        mode: "index",
                     },
-                    legend: {
-                        display: options.showLegend !== false,
-                        labels: { color: themeConfig.colors.text },
-                    },
-                    title: {
-                        color: themeConfig.colors.text,
-                        display: options.showTitle !== false,
-                        font: { size: 16, weight: "bold" },
-                        text: "GPS Position vs Time",
-                    },
-                    tooltip: {
-                        backgroundColor: themeConfig.colors.chartSurface,
-                        bodyColor: themeConfig.colors.text,
-                        borderColor: themeConfig.colors.chartBorder,
-                        borderWidth: 1,
-                        callbacks: {
-                            /** @param {any} context */
-                            label(context) {
-                                const point = context.raw,
-                                    isLatitude = context.datasetIndex === 0,
-                                    coordType = isLatitude ? "Latitude" : "Longitude";
+                    maintainAspectRatio: false,
+                    plugins: {
+                        chartBackgroundColorPlugin: {
+                            backgroundColor: themeConfig.colors.chartBackground,
+                        },
+                        legend: {
+                            display: options.showLegend !== false,
+                            labels: { color: themeConfig.colors.text },
+                        },
+                        title: {
+                            color: themeConfig.colors.text,
+                            display: options.showTitle !== false,
+                            font: { size: 16, weight: "bold" },
+                            text: "GPS Position vs Time",
+                        },
+                        tooltip: {
+                            backgroundColor: themeConfig.colors.chartSurface,
+                            bodyColor: themeConfig.colors.text,
+                            borderColor: themeConfig.colors.chartBorder,
+                            borderWidth: 1,
+                            callbacks: {
+                                /** @param {any} context */
+                                label(context) {
+                                    const point = context.raw,
+                                        isLatitude = context.datasetIndex === 0,
+                                        coordType = isLatitude ? "Latitude" : "Longitude";
 
-                                return [
-                                    `${coordType}: ${point.y.toFixed(6)}°`,
-                                    `Elapsed: ${formatElapsedTime(point.elapsedSeconds)}`,
-                                    `Point: ${point.pointIndex}`,
-                                ];
+                                    return [
+                                        `${coordType}: ${point.y.toFixed(6)}°`,
+                                        `Elapsed: ${formatElapsedTime(point.elapsedSeconds)}`,
+                                        `Point: ${point.pointIndex}`,
+                                    ];
+                                },
+                                /** @param {any[]} tooltipItems */
+                                title(tooltipItems) {
+                                    if (tooltipItems.length > 0) {
+                                        const point = tooltipItems[0].raw;
+                                        return new Date(point.timestamp).toLocaleString();
+                                    }
+                                    return "";
+                                },
                             },
-                            /** @param {any[]} tooltipItems */
-                            title(tooltipItems) {
-                                if (tooltipItems.length > 0) {
-                                    const point = tooltipItems[0].raw;
-                                    return new Date(point.timestamp).toLocaleString();
-                                }
-                                return "";
-                            },
-                        },
-                        titleColor: themeConfig.colors.text,
-                    },
-                    zoom: {
-                        limits: {
-                            x: {
-                                max: "original",
-                                min: "original",
-                            },
-                            y: {
-                                max: "original",
-                                min: "original",
-                            },
-                        },
-                        pan: {
-                            enabled: true,
-                            mode: "xy",
-                            modifierKey: null,
+                            titleColor: themeConfig.colors.text,
                         },
                         zoom: {
-                            drag: {
-                                backgroundColor: themeConfig.colors.primaryAlpha,
-                                borderColor: themeConfig.colors.primary,
-                                borderWidth: 2,
-                                enabled: true,
-                                modifierKey: "shift",
+                            limits: {
+                                x: {
+                                    max: "original",
+                                    min: "original",
+                                },
+                                y: {
+                                    max: "original",
+                                    min: "original",
+                                },
                             },
-                            mode: "xy",
-                            pinch: {
+                            pan: {
                                 enabled: true,
+                                mode: "xy",
+                                modifierKey: null,
                             },
-                            wheel: {
-                                enabled: true,
-                                speed: 0.1,
+                            zoom: {
+                                drag: {
+                                    backgroundColor: themeConfig.colors.primaryAlpha,
+                                    borderColor: themeConfig.colors.primary,
+                                    borderWidth: 2,
+                                    enabled: true,
+                                    modifierKey: "shift",
+                                },
+                                mode: "xy",
+                                pinch: {
+                                    enabled: true,
+                                },
+                                wheel: {
+                                    enabled: true,
+                                    speed: 0.1,
+                                },
                             },
+                        },
+                    },
+                    responsive: true,
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                color: themeConfig.colors.gridLines,
+                                display: options.showGrid !== false,
+                            },
+                            ticks: {
+                                /** @param {any} value */
+                                callback(value) {
+                                    return formatElapsedTime(value);
+                                },
+                                color: themeConfig.colors.textPrimary,
+                            },
+                            title: {
+                                color: themeConfig.colors.textPrimary,
+                                display: true,
+                                text: "Elapsed Time",
+                            },
+                            type: "linear",
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: themeConfig.colors.gridLines,
+                                display: options.showGrid !== false,
+                            },
+                            position: "left",
+                            ticks: {
+                                /** @param {any} value */
+                                callback(value) {
+                                    return `${value.toFixed(5)}°`;
+                                },
+                                color: themeConfig.colors.primary,
+                            },
+                            title: {
+                                color: themeConfig.colors.primary,
+                                display: true,
+                                text: "Latitude (°)",
+                            },
+                            type: "linear",
+                        },
+                        y1: {
+                            display: true,
+                            grid: {
+                                display: false,
+                                drawOnChartArea: false,
+                            },
+                            position: "right",
+                            ticks: {
+                                /** @param {any} value */
+                                callback(value) {
+                                    return `${value.toFixed(5)}°`;
+                                },
+                                color: themeConfig.colors.success,
+                            },
+                            title: {
+                                color: themeConfig.colors.success,
+                                display: true,
+                                text: "Longitude (°)",
+                            },
+                            type: "linear",
                         },
                     },
                 },
-                responsive: true,
-                scales: {
-                    x: {
-                        display: true,
-                        grid: {
-                            color: themeConfig.colors.gridLines,
-                            display: options.showGrid !== false,
-                        },
-                        ticks: {
-                            /** @param {any} value */
-                            callback(value) {
-                                return formatElapsedTime(value);
-                            },
-                            color: themeConfig.colors.textPrimary,
-                        },
-                        title: {
-                            color: themeConfig.colors.textPrimary,
-                            display: true,
-                            text: "Elapsed Time",
-                        },
-                        type: "linear",
-                    },
-                    y: {
-                        display: true,
-                        grid: {
-                            color: themeConfig.colors.gridLines,
-                            display: options.showGrid !== false,
-                        },
-                        position: "left",
-                        ticks: {
-                            /** @param {any} value */
-                            callback(value) {
-                                return `${value.toFixed(5)}°`;
-                            },
-                            color: themeConfig.colors.primary,
-                        },
-                        title: {
-                            color: themeConfig.colors.primary,
-                            display: true,
-                            text: "Latitude (°)",
-                        },
-                        type: "linear",
-                    },
-                    y1: {
-                        display: true,
-                        grid: {
-                            display: false,
-                            drawOnChartArea: false,
-                        },
-                        position: "right",
-                        ticks: {
-                            /** @param {any} value */
-                            callback(value) {
-                                return `${value.toFixed(5)}°`;
-                            },
-                            color: themeConfig.colors.success,
-                        },
-                        title: {
-                            color: themeConfig.colors.success,
-                            display: true,
-                            text: "Longitude (°)",
-                        },
-                        type: "linear",
-                    },
-                },
+                plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
+                type: "line",
             },
-            plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
-            type: "line",
-        },
             chart = new globalThis.Chart(canvas, config);
 
         if (chart) {

@@ -162,7 +162,7 @@ describe("addFullScreenButton", () => {
         // Switch to native fallback scenario
         delete (globalThis as any).screenfull;
         vi.resetModules();
-    document.body.innerHTML = "";
+        document.body.innerHTML = "";
         const nativeRequest = vi.fn();
         (document.documentElement as any).requestFullscreen = nativeRequest;
         getActiveTabContentMock.mockReturnValue(null);

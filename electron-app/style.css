@@ -1334,7 +1334,6 @@ body.theme-light .tab-button.active::after {
     overflow: overlay !important;
 }
 
-
 body.app-has-file .app-header,
 body[data-has-fit-file="true"] .app-header {
     max-height: 0;
@@ -1421,8 +1420,9 @@ body[data-has-fit-file="true"] .header-bar::after {
     animation-duration: 18s;
 }
 
-.leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle, .leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle:hover {
-    display: none
+.leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle,
+.leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle:hover {
+    display: none;
 }
 body.app-has-file .header-bar #activeFileNameContainer,
 body[data-has-fit-file="true"] .header-bar #activeFileNameContainer {
@@ -4156,7 +4156,7 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     border-radius: 4px;
     background: var(--c_hex888);
     border: 1px solid var(--c_hex888);
-        color: inherit;
+    color: inherit;
     display: inline-block;
     vertical-align: middle;
     line-height: 1.2;
@@ -4258,7 +4258,13 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     padding: 10px 12px;
     font-size: 14px;
     line-height: 1.4;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        border 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.data-point-filter-control__select option {
+    background: black;
 }
 
 .data-point-filter-control__select:focus,
@@ -4288,7 +4294,10 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     font-weight: 600;
     padding: 6px 14px;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border 0.2s ease;
 }
 
 .data-point-filter-control__apply {

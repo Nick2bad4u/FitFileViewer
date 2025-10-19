@@ -18,6 +18,9 @@ export function renderSingleHRZoneBar(canvas, zoneData, options = {}) {
         if (!(/** @type {any} */ (globalThis).Chart) || !canvas || !Array.isArray(zoneData)) {
             throw new Error("Chart.js, canvas, or zoneData missing");
         }
+        if (!canvas.classList.contains("chart-canvas")) {
+            canvas.classList.add("chart-canvas");
+        }
         const theme = detectCurrentTheme();
         console.log("[renderSingleHRZoneBar] Detected theme:", theme);
 

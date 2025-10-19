@@ -16,36 +16,36 @@ import { getThemeColors } from "../../charts/theming/getThemeColors.js";
  * @returns {HTMLButtonElement}
  */
 export function createElevationProfileButton() {
-	const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
-	btn.className = "map-action-btn";
-	const themeColorsInit = getThemeColors(),
-		// Use bracket notation because themeColorsInit comes from an index signature
-		p = themeColorsInit.primary || "#3b82f6";
-	btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
-	btn.title = "Show Elevation Profile";
+    const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+    btn.className = "map-action-btn";
+    const themeColorsInit = getThemeColors(),
+        // Use bracket notation because themeColorsInit comes from an index signature
+        p = themeColorsInit.primary || "#3b82f6";
+    btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
+    btn.title = "Show Elevation Profile";
 
-	btn.addEventListener("click", () => {
-		/** @type {Array<any>} */
-		let fitFiles = [];
-		const w = /** @type {any} */ (globalThis);
-		if (Array.isArray(w.loadedFitFiles) && w.loadedFitFiles.length > 0) {
-			fitFiles = w.loadedFitFiles;
-		} else if (w.globalData && Array.isArray(w.globalData.recordMesgs)) {
-			fitFiles = [
-				{
-					data: w.globalData,
-					filePath: w.globalData?.cachedFilePath,
-				},
-			];
-		}
-		const chartWin = window.open("", "Elevation Profile", "width=900,height=600"),
-			isDark = document.body.classList.contains("theme-dark"),
-			themeColors = getThemeColors();
-		if (!chartWin) {
-			// Popup likely blocked; fail silently or optionally notify
-			return;
-		}
-		const chartHtml = `
+    btn.addEventListener("click", () => {
+        /** @type {Array<any>} */
+        let fitFiles = [];
+        const w = /** @type {any} */ (globalThis);
+        if (Array.isArray(w.loadedFitFiles) && w.loadedFitFiles.length > 0) {
+            fitFiles = w.loadedFitFiles;
+        } else if (w.globalData && Array.isArray(w.globalData.recordMesgs)) {
+            fitFiles = [
+                {
+                    data: w.globalData,
+                    filePath: w.globalData?.cachedFilePath,
+                },
+            ];
+        }
+        const chartWin = window.open("", "Elevation Profile", "width=900,height=600"),
+            isDark = document.body.classList.contains("theme-dark"),
+            themeColors = getThemeColors();
+        if (!chartWin) {
+            // Popup likely blocked; fail silently or optionally notify
+            return;
+        }
+        const chartHtml = `
 		<html>
 		<head>
 			<title>Elevation Profiles</title>
@@ -150,25 +150,25 @@ export function createElevationProfileButton() {
 			<div id="elevChartsContainer"></div>
 			<script>
 				const fitFiles = ${JSON.stringify(
-			fitFiles.map((f, idx) => ({
-				altitudes:
-					f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
-						? /** @type {any[]} */ (f.data.recordMesgs)
-							.filter(
-								(r) =>
-									r && r.positionLat != null && r.positionLong != null && r.altitude != null
-							)
-							.map((r, i) => ({ x: i, y: r.altitude }))
-						: [],
-				color:
-					window.opener && window.opener.chartOverlayColorPalette
-						? window.opener.chartOverlayColorPalette[
-						idx % window.opener.chartOverlayColorPalette.length
-						]
-						: "#1976d2",
-				filePath: f.filePath || `File ${idx + 1}`,
-			}))
-		)};
+                    fitFiles.map((f, idx) => ({
+                        altitudes:
+                            f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
+                                ? /** @type {any[]} */ (f.data.recordMesgs)
+                                      .filter(
+                                          (r) =>
+                                              r && r.positionLat != null && r.positionLong != null && r.altitude != null
+                                      )
+                                      .map((r, i) => ({ x: i, y: r.altitude }))
+                                : [],
+                        color:
+                            window.opener && window.opener.chartOverlayColorPalette
+                                ? window.opener.chartOverlayColorPalette[
+                                      idx % window.opener.chartOverlayColorPalette.length
+                                  ]
+                                : "#1976d2",
+                        filePath: f.filePath || `File ${idx + 1}`,
+                    }))
+                )};
 				const isDark = ${isDark};
 				const container = document.getElementById('elevChartsContainer');
 				fitFiles.forEach((f, idx) => {
@@ -259,8 +259,8 @@ export function createElevationProfileButton() {
 		</body>
 		</html>
 		`;
-		chartWin.document.write(chartHtml);
-		chartWin.document.close();
-	});
-	return btn;
+        chartWin.document.write(chartHtml);
+        chartWin.document.close();
+    });
+    return btn;
 }

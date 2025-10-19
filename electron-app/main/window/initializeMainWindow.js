@@ -25,10 +25,10 @@ async function initializeMainWindow({
     setupAutoUpdater,
     logWithContext,
 }) {
-    if (process.env.NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === "test") {
         try {
-            const { app: __wa } = require('electron');
-            if (__wa && typeof __wa.whenReady === 'function') {
+            const { app: __wa } = require("electron");
+            if (__wa && typeof __wa.whenReady === "function") {
                 try {
                     __wa.whenReady();
                 } catch {
@@ -41,15 +41,15 @@ async function initializeMainWindow({
     }
 
     const BW = browserWindowRef();
-    const isConstructor = typeof BW === 'function';
+    const isConstructor = typeof BW === "function";
 
     let mainWindow;
-    if (process.env.NODE_ENV === 'test' || !isConstructor) {
+    if (process.env.NODE_ENV === "test" || !isConstructor) {
         try {
             let list;
             try {
-                const { BrowserWindow: __tBW } = require('electron');
-                if (__tBW && typeof __tBW.getAllWindows === 'function') {
+                const { BrowserWindow: __tBW } = require("electron");
+                if (__tBW && typeof __tBW.getAllWindows === "function") {
                     try {
                         list = __tBW.getAllWindows();
                     } catch {
@@ -59,7 +59,7 @@ async function initializeMainWindow({
             } catch {
                 /* Ignore errors */
             }
-            if ((!list || list.length === 0) && BW && typeof BW.getAllWindows === 'function') {
+            if ((!list || list.length === 0) && BW && typeof BW.getAllWindows === "function") {
                 try {
                     list = BW.getAllWindows();
                 } catch {
@@ -77,33 +77,33 @@ async function initializeMainWindow({
                 webContents: {
                     executeJavaScript: async () => CONSTANTS.DEFAULT_THEME,
                     isDestroyed: () => false,
-                    on: () => { },
-                    send: () => { },
+                    on: () => {},
+                    send: () => {},
                 },
             };
         }
     } else {
-        const { createWindow } = require('../windowStateUtils');
+        const { createWindow } = require("../windowStateUtils");
         mainWindow = createWindow();
     }
 
-    setAppState('mainWindow', mainWindow);
+    setAppState("mainWindow", mainWindow);
 
-    logWithContext('info', 'Calling createAppMenu after window selection/creation');
-    safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState('loadedFitFilePath'));
+    logWithContext("info", "Calling createAppMenu after window selection/creation");
+    safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
 
-    if (mainWindow && mainWindow.webContents && typeof mainWindow.webContents.on === 'function') {
-        mainWindow.webContents.on('did-finish-load', async () => {
-            logWithContext('info', 'did-finish-load event fired, syncing theme');
+    if (mainWindow && mainWindow.webContents && typeof mainWindow.webContents.on === "function") {
+        mainWindow.webContents.on("did-finish-load", async () => {
+            logWithContext("info", "did-finish-load event fired, syncing theme");
 
-            if (!getAppState('autoUpdaterInitialized')) {
+            if (!getAppState("autoUpdaterInitialized")) {
                 try {
                     const autoUpdater = await resolveAutoUpdater();
                     setupAutoUpdater(mainWindow, autoUpdater);
                     await autoUpdater.checkForUpdatesAndNotify();
-                    setAppState('autoUpdaterInitialized', true);
+                    setAppState("autoUpdaterInitialized", true);
                 } catch (error) {
-                    logWithContext('error', 'Failed to setup auto-updater:', {
+                    logWithContext("error", "Failed to setup auto-updater:", {
                         error: /** @type {Error} */ (error).message,
                     });
                 }
@@ -111,15 +111,15 @@ async function initializeMainWindow({
 
             try {
                 const theme = await getThemeFromRenderer(mainWindow);
-                logWithContext('info', 'Retrieved theme from renderer', { theme });
-                safeCreateAppMenu(mainWindow, theme, getAppState('loadedFitFilePath'));
-                sendToRenderer(mainWindow, 'set-theme', theme);
+                logWithContext("info", "Retrieved theme from renderer", { theme });
+                safeCreateAppMenu(mainWindow, theme, getAppState("loadedFitFilePath"));
+                sendToRenderer(mainWindow, "set-theme", theme);
             } catch (error) {
-                logWithContext('warn', 'Failed to get theme from renderer, using fallback', {
+                logWithContext("warn", "Failed to get theme from renderer, using fallback", {
                     error: /** @type {Error} */ (error).message,
                 });
-                safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState('loadedFitFilePath'));
-                sendToRenderer(mainWindow, 'set-theme', CONSTANTS.DEFAULT_THEME);
+                safeCreateAppMenu(mainWindow, CONSTANTS.DEFAULT_THEME, getAppState("loadedFitFilePath"));
+                sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
             }
         });
     }

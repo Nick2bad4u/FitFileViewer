@@ -6,10 +6,10 @@
  */
 
 import {
-	getEffectiveAccentColor,
-	isValidHexColor,
-	resetAccentColor,
-	setAccentColor,
+    getEffectiveAccentColor,
+    isValidHexColor,
+    resetAccentColor,
+    setAccentColor,
 } from "../theming/core/accentColor.js";
 import { applyTheme, getEffectiveTheme, loadTheme, THEME_MODES } from "../theming/core/theme.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
@@ -32,53 +32,53 @@ const ANIMATION_DURATION = 300;
  * Closes the settings modal
  */
 export function closeSettingsModal() {
-	const modal = document.getElementById(SETTINGS_MODAL_ID);
-	if (modal) {
-		modal.classList.remove("show");
-		setTimeout(() => {
-			modal.style.display = "none";
-		}, ANIMATION_DURATION);
-	}
+    const modal = document.getElementById(SETTINGS_MODAL_ID);
+    if (modal) {
+        modal.classList.remove("show");
+        setTimeout(() => {
+            modal.style.display = "none";
+        }, ANIMATION_DURATION);
+    }
 }
 
 /**
  * Shows the settings modal
  */
 export async function showSettingsModal() {
-	let modal = document.getElementById(SETTINGS_MODAL_ID);
+    let modal = document.getElementById(SETTINGS_MODAL_ID);
 
-	// Create modal if it doesn't exist
-	if (!modal) {
-		modal = document.createElement("div");
-		modal.id = SETTINGS_MODAL_ID;
-		modal.className = "modal fancy-modal";
-		modal.style.display = "none";
-		document.body.append(modal);
+    // Create modal if it doesn't exist
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = SETTINGS_MODAL_ID;
+        modal.className = "modal fancy-modal";
+        modal.style.display = "none";
+        document.body.append(modal);
 
-		// Inject styles (from aboutModal styles)
-		const { injectModalStyles } = await import("./modals/injectModalStyles.js");
-		injectModalStyles();
-	}
+        // Inject styles (from aboutModal styles)
+        const { injectModalStyles } = await import("./modals/injectModalStyles.js");
+        injectModalStyles();
+    }
 
-	// Inject settings-specific styles
-	injectSettingsModalStyles();
+    // Inject settings-specific styles
+    injectSettingsModalStyles();
 
-	// Get current theme and accent color
-	const currentTheme = loadTheme();
-	const effectiveTheme = getEffectiveTheme(currentTheme);
-	const currentAccent = getEffectiveAccentColor(effectiveTheme);
+    // Get current theme and accent color
+    const currentTheme = loadTheme();
+    const effectiveTheme = getEffectiveTheme(currentTheme);
+    const currentAccent = getEffectiveAccentColor(effectiveTheme);
 
-	// Set modal content
-	modal.innerHTML = createSettingsModalContent(currentTheme, currentAccent);
+    // Set modal content
+    modal.innerHTML = createSettingsModalContent(currentTheme, currentAccent);
 
-	// Show modal with animation
-	modal.style.display = "flex";
-	requestAnimationFrame(() => {
-		modal.classList.add("show");
-	});
+    // Show modal with animation
+    modal.style.display = "flex";
+    requestAnimationFrame(() => {
+        modal.classList.add("show");
+    });
 
-	// Setup event handlers
-	setupSettingsModalHandlers(modal, effectiveTheme);
+    // Setup event handlers
+    setupSettingsModalHandlers(modal, effectiveTheme);
 }
 
 // ============================================================================
@@ -92,7 +92,7 @@ export async function showSettingsModal() {
  * @returns {string} HTML content
  */
 function createSettingsModalContent(currentTheme, currentAccent) {
-	return `
+    return `
 		<div class="modal-backdrop">
 			<div class="modal-content" style="max-width: 600px;">
 				<div class="modal-header">
@@ -176,13 +176,13 @@ function createSettingsModalContent(currentTheme, currentAccent) {
  * Injects CSS styles for the settings modal
  */
 function injectSettingsModalStyles() {
-	if (document.querySelector("#settings-modal-styles")) {
-		return;
-	}
+    if (document.querySelector("#settings-modal-styles")) {
+        return;
+    }
 
-	const style = document.createElement("style");
-	style.id = "settings-modal-styles";
-	style.textContent = `
+    const style = document.createElement("style");
+    style.id = "settings-modal-styles";
+    style.textContent = `
 		#${SETTINGS_MODAL_ID} .settings-section {
 			margin: 24px 0;
 			padding: 20px;
@@ -387,7 +387,7 @@ function injectSettingsModalStyles() {
 		}
 	`;
 
-	document.head.append(style);
+    document.head.append(style);
 }
 
 /**
@@ -396,121 +396,121 @@ function injectSettingsModalStyles() {
  * @param {string} currentEffectiveTheme - Current effective theme
  */
 function setupSettingsModalHandlers(modal, currentEffectiveTheme) {
-	let effectiveTheme = currentEffectiveTheme;
+    let effectiveTheme = currentEffectiveTheme;
 
-	// Close button
-	const closeBtn = modal.querySelector("#settings-modal-close");
-	const closeFooterBtn = modal.querySelector("#settings-close-btn");
+    // Close button
+    const closeBtn = modal.querySelector("#settings-modal-close");
+    const closeFooterBtn = modal.querySelector("#settings-close-btn");
 
-	const closeModal = () => {
-		modal.classList.remove("show");
-		setTimeout(() => {
-			modal.style.display = "none";
-		}, ANIMATION_DURATION);
-	};
+    const closeModal = () => {
+        modal.classList.remove("show");
+        setTimeout(() => {
+            modal.style.display = "none";
+        }, ANIMATION_DURATION);
+    };
 
-	if (closeBtn) {
-		addEventListenerWithCleanup(closeBtn, "click", closeModal);
-	}
+    if (closeBtn) {
+        addEventListenerWithCleanup(closeBtn, "click", closeModal);
+    }
 
-	if (closeFooterBtn) {
-		addEventListenerWithCleanup(closeFooterBtn, "click", closeModal);
-	}
+    if (closeFooterBtn) {
+        addEventListenerWithCleanup(closeFooterBtn, "click", closeModal);
+    }
 
-	// Click outside to close
-	addEventListenerWithCleanup(modal, "click", (e) => {
-		if (e.target === modal) {
-			closeModal();
-		}
-	});
+    // Click outside to close
+    addEventListenerWithCleanup(modal, "click", (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
 
-	// Escape key to close
-	const handleEscape = (/** @type {KeyboardEvent} */ e) => {
-		if (e.key === "Escape") {
-			e.preventDefault();
-			closeModal();
-			document.removeEventListener("keydown", handleEscape);
-		}
-	};
-	document.addEventListener("keydown", handleEscape);
+    // Escape key to close
+    const handleEscape = (/** @type {KeyboardEvent} */ e) => {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            closeModal();
+            document.removeEventListener("keydown", handleEscape);
+        }
+    };
+    document.addEventListener("keydown", handleEscape);
 
-	// Theme selector
-	const themeSelect = modal.querySelector("#theme-select");
-	if (themeSelect) {
-		addEventListenerWithCleanup(themeSelect, "change", (/** @type {Event} */ e) => {
-			const { target } = e;
-			const select = /** @type {HTMLSelectElement} */ (target);
-			const newTheme = select.value;
-			applyTheme(newTheme, true);
+    // Theme selector
+    const themeSelect = modal.querySelector("#theme-select");
+    if (themeSelect) {
+        addEventListenerWithCleanup(themeSelect, "change", (/** @type {Event} */ e) => {
+            const { target } = e;
+            const select = /** @type {HTMLSelectElement} */ (target);
+            const newTheme = select.value;
+            applyTheme(newTheme, true);
 
-			// Update effective theme for accent color
-			effectiveTheme = getEffectiveTheme(newTheme);
+            // Update effective theme for accent color
+            effectiveTheme = getEffectiveTheme(newTheme);
 
-			// Reapply current accent color for the new theme
-			const colorPicker = modal.querySelector("#accent-color-picker");
-			if (colorPicker) {
-				const currentColor = /** @type {HTMLInputElement} */ (colorPicker).value;
-				if (isValidHexColor(currentColor)) {
-					setAccentColor(currentColor, effectiveTheme);
-				}
-			}
-		});
-	}
+            // Reapply current accent color for the new theme
+            const colorPicker = modal.querySelector("#accent-color-picker");
+            if (colorPicker) {
+                const currentColor = /** @type {HTMLInputElement} */ (colorPicker).value;
+                if (isValidHexColor(currentColor)) {
+                    setAccentColor(currentColor, effectiveTheme);
+                }
+            }
+        });
+    }
 
-	// Accent color picker
-	const colorPicker = modal.querySelector("#accent-color-picker");
-	const colorText = modal.querySelector("#accent-color-text");
-	const resetBtn = modal.querySelector("#reset-accent-color");
+    // Accent color picker
+    const colorPicker = modal.querySelector("#accent-color-picker");
+    const colorText = modal.querySelector("#accent-color-text");
+    const resetBtn = modal.querySelector("#reset-accent-color");
 
-	if (colorPicker && colorText) {
-		// Sync color picker and text input
-		addEventListenerWithCleanup(colorPicker, "input", (/** @type {Event} */ e) => {
-			const { target } = e;
-			const input = /** @type {HTMLInputElement} */ (target);
-			const color = input.value;
-			/** @type {HTMLInputElement} */ (colorText).value = color;
+    if (colorPicker && colorText) {
+        // Sync color picker and text input
+        addEventListenerWithCleanup(colorPicker, "input", (/** @type {Event} */ e) => {
+            const { target } = e;
+            const input = /** @type {HTMLInputElement} */ (target);
+            const color = input.value;
+            /** @type {HTMLInputElement} */ (colorText).value = color;
 
-			if (isValidHexColor(color)) {
-				setAccentColor(color, effectiveTheme);
-			}
-		});
+            if (isValidHexColor(color)) {
+                setAccentColor(color, effectiveTheme);
+            }
+        });
 
-		addEventListenerWithCleanup(colorText, "input", (/** @type {Event} */ e) => {
-			const { target } = e;
-			const input = /** @type {HTMLInputElement} */ (target);
-			let color = input.value.trim();
+        addEventListenerWithCleanup(colorText, "input", (/** @type {Event} */ e) => {
+            const { target } = e;
+            const input = /** @type {HTMLInputElement} */ (target);
+            let color = input.value.trim();
 
-			// Auto-add # if missing
-			if (color && !color.startsWith("#")) {
-				color = `#${color}`;
-				input.value = color;
-			}
+            // Auto-add # if missing
+            if (color && !color.startsWith("#")) {
+                color = `#${color}`;
+                input.value = color;
+            }
 
-			if (isValidHexColor(color)) {
-				/** @type {HTMLInputElement} */ (colorPicker).value = color;
-				setAccentColor(color, effectiveTheme);
-			}
-		});
-	}
+            if (isValidHexColor(color)) {
+                /** @type {HTMLInputElement} */ (colorPicker).value = color;
+                setAccentColor(color, effectiveTheme);
+            }
+        });
+    }
 
-	// Reset accent color
-	if (resetBtn) {
-		addEventListenerWithCleanup(resetBtn, "click", () => {
-			const defaultColor = resetAccentColor(effectiveTheme);
+    // Reset accent color
+    if (resetBtn) {
+        addEventListenerWithCleanup(resetBtn, "click", () => {
+            const defaultColor = resetAccentColor(effectiveTheme);
 
-			// Update UI
-			if (colorPicker) {
-				/** @type {HTMLInputElement} */ (colorPicker).value = defaultColor;
-			}
-			if (colorText) {
-				/** @type {HTMLInputElement} */ (colorText).value = defaultColor;
-			}
-		});
-	}
+            // Update UI
+            if (colorPicker) {
+                /** @type {HTMLInputElement} */ (colorPicker).value = defaultColor;
+            }
+            if (colorText) {
+                /** @type {HTMLInputElement} */ (colorText).value = defaultColor;
+            }
+        });
+    }
 }
 
 // Export globally for menu integration
 if (typeof globalThis !== "undefined") {
-	globalThis.showSettingsModal = showSettingsModal;
-	globalThis.closeSettingsModal = closeSettingsModal;
+    globalThis.showSettingsModal = showSettingsModal;
+    globalThis.closeSettingsModal = closeSettingsModal;
 }

@@ -215,7 +215,7 @@ export function showAboutModal(html = "") {
             const externalLinks = modal.querySelectorAll("[data-external-link]");
             for (const link of externalLinks) {
                 /** @type {HTMLElement} */ (link);
-                addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "click", (e) => {
+                addEventListenerWithCleanup(/** @type {HTMLElement} */ (link), "click", (e) => {
                     e.preventDefault();
                     const url = link.getAttribute("href");
                     if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
@@ -226,7 +226,7 @@ export function showAboutModal(html = "") {
                     }
                 });
 
-                addEventListenerWithCleanup(/** @type {HTMLElement} */(link), "keydown", (e) => {
+                addEventListenerWithCleanup(/** @type {HTMLElement} */ (link), "keydown", (e) => {
                     if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         const url = link.getAttribute("href");
@@ -250,7 +250,7 @@ export function showAboutModal(html = "") {
             // Prevent modal content clicks from closing modal
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
-                addEventListenerWithCleanup(/** @type {HTMLElement} */(modalContent), "click", (e) => {
+                addEventListenerWithCleanup(/** @type {HTMLElement} */ (modalContent), "click", (e) => {
                     e.stopPropagation();
                 });
             }
@@ -477,8 +477,8 @@ const devHelpers = {
     /**
      * Show modal with sample content for testing
      */ /**
-    * Reset all styles and recreate modal
-    */
+     * Reset all styles and recreate modal
+     */
     reset: () => {
         const existingModal = document.querySelector("#about-modal"),
             existingStyles = document.querySelector("#about-modal-styles");

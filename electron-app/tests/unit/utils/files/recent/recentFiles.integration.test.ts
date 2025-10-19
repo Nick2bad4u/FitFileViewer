@@ -98,12 +98,14 @@ describe("recentFiles integration coverage", () => {
     it("creates a temp-backed recent file when electron app is unavailable", () => {
         setElectronMock({});
         const exitHandlers: Array<() => void> = [];
-        const processOn = vi.spyOn(process, "on").mockImplementation((event: string | symbol, handler: (...args: unknown[]) => unknown) => {
-            if (event === "exit") {
-                exitHandlers.push(handler as () => void);
-            }
-            return process;
-        });
+        const processOn = vi
+            .spyOn(process, "on")
+            .mockImplementation((event: string | symbol, handler: (...args: unknown[]) => unknown) => {
+                if (event === "exit") {
+                    exitHandlers.push(handler as () => void);
+                }
+                return process;
+            });
         const recent = importRecentFiles();
         const originalWrite = fs.writeFileSync;
         const writeSpy = vi.spyOn(fs, "writeFileSync").mockImplementation((target, data, encoding) => {
@@ -160,10 +162,7 @@ describe("recentFiles integration coverage", () => {
         });
         const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
         importRecentFiles();
-        expect(errorSpy).toHaveBeenCalledWith(
-            "Failed to create temp directory for tests:",
-            expect.any(Error)
-        );
+        expect(errorSpy).toHaveBeenCalledWith("Failed to create temp directory for tests:", expect.any(Error));
         mkdirSpy.mockRestore();
         errorSpy.mockRestore();
         existsSpy.mockRestore();

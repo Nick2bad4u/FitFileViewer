@@ -1615,9 +1615,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Explicitly don't mock copyTableAsCSV function so it's undefined
         delete (window as any).copyTableAsCSV;
 
-    electronAPI.emit("export-file", "test.csv");
+        electronAPI.emit("export-file", "test.csv");
 
-    await Promise.resolve();
+        await Promise.resolve();
 
         // The function should complete without error - no else clause means no notification
         expect(showNotification).not.toHaveBeenCalled();
@@ -1987,9 +1987,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Remove copyTableAsCSV function to trigger fallback
         delete (globalThis as any).copyTableAsCSV;
 
-    electronAPI.emit("export-file", {} as any, "test-file.csv");
+        electronAPI.emit("export-file", {} as any, "test-file.csv");
 
-    await Promise.resolve();
+        await Promise.resolve();
 
         // Since there's no error message in the actual code for missing copyTableAsCSV,
         // we verify that nothing happens (no download link created)

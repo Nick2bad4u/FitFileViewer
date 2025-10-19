@@ -21,6 +21,9 @@
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
  */
+/**
+ * @typedef {[number, number, number|null, number|null, number|null, number|null, number, any, number]} CoordTuple
+ */
 export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatTooltipData, getLapNumForIdx, map, markerClusterGroup, overlayIdx, startIcon, }: {
     endIcon: any;
     fileName: any;
@@ -101,4 +104,5 @@ export type FitFile = {
      */
     filePath?: string;
 };
+export type CoordTuple = [number, number, number | null, number | null, number | null, number | null, number, any, number];
 //# sourceMappingURL=mapDrawLaps.d.ts.map

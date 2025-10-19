@@ -87,9 +87,8 @@ export function renderMap() {
     const L = LeafletLib;
     windowExt._overlayPolylines = {};
 
-    const scheduleMicrotask = typeof queueMicrotask === "function"
-        ? queueMicrotask
-        : (callback) => Promise.resolve().then(callback);
+    const scheduleMicrotask =
+        typeof queueMicrotask === "function" ? queueMicrotask : (callback) => Promise.resolve().then(callback);
 
     const mapContainer = document.querySelector("#content-map");
     if (!mapContainer) {
@@ -100,15 +99,25 @@ export function renderMap() {
     let savedDrawnLayers = [];
     if (windowExt._drawnItems && windowExt._drawnItems.getLayers) {
         try {
-            savedDrawnLayers = windowExt._drawnItems.getLayers().map((/** @type {any} */ layer) => ({
-                geoJSON: layer.toGeoJSON ? layer.toGeoJSON() : null,
-                options: layer.options,
-                type: layer instanceof L.Circle ? "circle" :
-                    layer instanceof L.Marker ? "marker" :
-                        layer instanceof L.Polygon ? "polygon" :
-                            layer instanceof L.Polyline ? "polyline" :
-                                layer instanceof L.Rectangle ? "rectangle" : "unknown",
-            })).filter((item) => item.geoJSON !== null);
+            savedDrawnLayers = windowExt._drawnItems
+                .getLayers()
+                .map((/** @type {any} */ layer) => ({
+                    geoJSON: layer.toGeoJSON ? layer.toGeoJSON() : null,
+                    options: layer.options,
+                    type:
+                        layer instanceof L.Circle
+                            ? "circle"
+                            : layer instanceof L.Marker
+                              ? "marker"
+                              : layer instanceof L.Polygon
+                                ? "polygon"
+                                : layer instanceof L.Polyline
+                                  ? "polyline"
+                                  : layer instanceof L.Rectangle
+                                    ? "rectangle"
+                                    : "unknown",
+                }))
+                .filter((item) => item.geoJSON !== null);
             console.log("[renderMap] Saved", savedDrawnLayers.length, "drawn items");
         } catch (error) {
             console.warn("[renderMap] Failed to save drawn items:", error);
@@ -249,9 +258,9 @@ export function renderMap() {
     if (zoomSlider && zoomSliderCurrent) {
         zoomSlider.addEventListener(
             "input",
-            /** @type {EventListener} */(
+            /** @type {EventListener} */ (
                 debounce(
-                    /** @param {Event} e */(e) => {
+                    /** @param {Event} e */ (e) => {
                         isDragging = true;
                         const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
@@ -606,11 +615,8 @@ export function renderMap() {
                 endIcon,
                 fileName,
                 fitData: fitFile.data,
-                formatTooltipData: (
-                        /** @type {any} */ pointIdx,
-                        /** @type {any} */ row,
-                        /** @type {any} */ lapNum
-                ) => formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
+                formatTooltipData: (/** @type {any} */ pointIdx, /** @type {any} */ row, /** @type {any} */ lapNum) =>
+                    formatTooltipData(pointIdx, row, lapNum, fitFile.data && fitFile.data.recordMesgs),
                 getLapNumForIdx,
                 map,
                 markerClusterGroup,
@@ -687,7 +693,7 @@ export function renderMap() {
         updateMapTheme();
         if (!windowExt._mapThemeListener) {
             windowExt._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", /** @type {EventListener} */(windowExt._mapThemeListener));
+            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
         }
     }
 }

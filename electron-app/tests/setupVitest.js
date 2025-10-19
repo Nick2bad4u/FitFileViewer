@@ -21,7 +21,7 @@ let __clearListeners;
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
 function ensureConsoleAlive() {
     try {
-        const noop = () => { };
+        const noop = () => {};
         /** @type {any} */
         const current = /** @type {any} */ (globalThis.console);
         if (!current) {

@@ -69,8 +69,7 @@ export function createShownFilesList() {
     const assignKeyboardFocus = (value) => {
         keyboardFocusIndex = value;
     };
-    const getOverlayItems = () =>
-        Array.from(container.querySelectorAll("li[data-overlay-index]"));
+    const getOverlayItems = () => Array.from(container.querySelectorAll("li[data-overlay-index]"));
 
     const focusOverlayItem = (index, options) => {
         const opts = options ?? { scrollIntoView: true };
@@ -156,11 +155,7 @@ export function createShownFilesList() {
             return;
         }
 
-        if (
-            (key === "Backspace" || key === "Delete") &&
-            keyboardFocusIndex >= 0 &&
-            keyboardFocusIndex < items.length
-        ) {
+        if ((key === "Backspace" || key === "Delete") && keyboardFocusIndex >= 0 && keyboardFocusIndex < items.length) {
             event.preventDefault();
             const removeButton = items[keyboardFocusIndex].querySelector(".overlay-remove-btn");
             if (removeButton instanceof HTMLElement) {
@@ -188,7 +183,7 @@ export function createShownFilesList() {
             if (hex.length === 3) {
                 hex = hex
                     .split("")
-                    .map(/** @param {string} x */(x) => x + x)
+                    .map(/** @param {string} x */ (x) => x + x)
                     .join("");
             }
             const num = Number.parseInt(hex, 16);

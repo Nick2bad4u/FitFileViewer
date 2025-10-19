@@ -7,9 +7,9 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 // Constants for better maintainability
 const BUTTON_TEXTS = {
-    LATER: "Later",
-    RESTART_UPDATE: "Restart & Update",
-},
+        LATER: "Later",
+        RESTART_UPDATE: "Restart & Update",
+    },
     LOG_PREFIX = "[ShowUpdateNotification]",
     NOTIFICATION_CONSTANTS = {
         BUTTON_CLASS: "themed-btn",

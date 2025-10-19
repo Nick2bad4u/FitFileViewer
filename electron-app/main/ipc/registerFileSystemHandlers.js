@@ -6,21 +6,21 @@
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
 function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
-    if (typeof registerIpcHandle !== 'function') {
+    if (typeof registerIpcHandle !== "function") {
         return;
     }
 
-    registerIpcHandle('file:read', async (_event, filePath) => {
+    registerIpcHandle("file:read", async (_event, filePath) => {
         try {
             return await new Promise((resolve, reject) => {
-                if (!fs || typeof fs.readFile !== 'function') {
-                    reject(new Error('Filesystem module unavailable'));
+                if (!fs || typeof fs.readFile !== "function") {
+                    reject(new Error("Filesystem module unavailable"));
                     return;
                 }
 
                 fs.readFile(filePath, (err, data) => {
                     if (err) {
-                        logWithContext?.('error', 'Error reading file:', {
+                        logWithContext?.("error", "Error reading file:", {
                             error: /** @type {Error} */ (err)?.message,
                             filePath,
                         });
@@ -32,7 +32,7 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                 });
             });
         } catch (error) {
-            logWithContext?.('error', 'Error in file:read:', {
+            logWithContext?.("error", "Error in file:read:", {
                 error: /** @type {Error} */ (error)?.message,
             });
             throw error;

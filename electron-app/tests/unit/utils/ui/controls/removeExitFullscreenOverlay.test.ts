@@ -16,7 +16,7 @@ describe("removeExitFullscreenOverlay", () => {
 
     it("throws when container is not a valid element", () => {
         expect(() => removeExitFullscreenOverlay(null as unknown as HTMLElement)).toThrowError(
-            "Container must be a valid DOM element",
+            "Container must be a valid DOM element"
         );
     });
 
@@ -34,9 +34,7 @@ describe("removeExitFullscreenOverlay", () => {
 
         const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
         removeExitFullscreenOverlay(container);
-        expect(debugSpy).toHaveBeenCalledWith(
-            expect.stringContaining("No exit fullscreen overlay found in container"),
-        );
+        expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining("No exit fullscreen overlay found in container"));
     });
 
     it("propagates removal errors with context", () => {
@@ -51,7 +49,7 @@ describe("removeExitFullscreenOverlay", () => {
         expect(() => removeExitFullscreenOverlay(container)).toThrowError("removal failed");
         expect(errorSpy).toHaveBeenCalledWith(
             expect.stringContaining("Failed to remove exit fullscreen overlay:"),
-            expect.any(Error),
+            expect.any(Error)
         );
     });
 

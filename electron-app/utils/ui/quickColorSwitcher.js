@@ -91,7 +91,7 @@ function createSwitcherElement() {
 			</div>
 			<div class="color-grid">
 				${COLOR_PRESETS.map(
-        (preset) => `
+                    (preset) => `
 					<button
 						class="color-option ${preset.color === currentColor ? "active" : ""}"
 						data-color="${preset.color}"
@@ -102,8 +102,8 @@ function createSwitcherElement() {
 						<span class="color-name">${preset.name}</span>
 						<span class="color-check">✓</span>
 					</button>
-				`,
-    ).join("")}
+				`
+                ).join("")}
 			</div>
 			<div class="switcher-footer">
 				<button class="open-settings-btn" id="open-full-settings" title="Advanced color settings">

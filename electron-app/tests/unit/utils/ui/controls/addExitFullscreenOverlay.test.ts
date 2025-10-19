@@ -17,7 +17,7 @@ describe("addExitFullscreenOverlay", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
         fullscreenElementRef = null;
-    exitFullscreenMock = vi.fn(async () => {});
+        exitFullscreenMock = vi.fn(async () => {});
         (document as any).exitFullscreen = exitFullscreenMock;
 
         Object.defineProperty(document, "fullscreenElement", {
@@ -106,9 +106,7 @@ describe("addExitFullscreenOverlay", () => {
         button?.dispatchEvent(event);
 
         expect(exitFullscreenMock).not.toHaveBeenCalled();
-        expect(warnSpy).toHaveBeenCalledWith(
-            "[addExitFullscreenOverlay] No element is currently in fullscreen mode."
-        );
+        expect(warnSpy).toHaveBeenCalledWith("[addExitFullscreenOverlay] No element is currently in fullscreen mode.");
     });
 
     it("logs an error when exiting fullscreen fails", async () => {

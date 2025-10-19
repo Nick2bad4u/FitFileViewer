@@ -5,6 +5,7 @@ This guide explains how to use the `mainProcessStateClient` to interact with the
 ## Overview
 
 The Main Process State Client provides a clean, type-safe API for the renderer process to:
+
 - Get and set main process state
 - Listen for state changes
 - Track operations and their progress
@@ -15,7 +16,7 @@ The Main Process State Client provides a clean, type-safe API for the renderer p
 ### Import the Client
 
 ```javascript
-import { mainProcessStateClient } from './utils/state/integration/index.js';
+import { mainProcessStateClient } from "./utils/state/integration/index.js";
 // Or directly:
 // import mainProcessStateClient from './utils/state/integration/mainProcessStateClient.js';
 ```
@@ -29,7 +30,7 @@ import { mainProcessStateClient } from './utils/state/integration/index.js';
 const allState = await mainProcessStateClient.get();
 
 // Get specific property
-const filePath = await mainProcessStateClient.get('loadedFitFilePath');
+const filePath = await mainProcessStateClient.get("loadedFitFilePath");
 
 // Convenience method
 const filePath = await mainProcessStateClient.getLoadedFilePath();
@@ -39,25 +40,25 @@ const filePath = await mainProcessStateClient.getLoadedFilePath();
 
 ```javascript
 // Set state (only allowed paths: 'loadedFitFilePath' and 'operations.*')
-await mainProcessStateClient.set('loadedFitFilePath', '/path/to/file.fit', {
-    source: 'file-open-handler'
+await mainProcessStateClient.set("loadedFitFilePath", "/path/to/file.fit", {
+ source: "file-open-handler",
 });
 
 // Convenience method
-await mainProcessStateClient.setLoadedFilePath('/path/to/file.fit');
+await mainProcessStateClient.setLoadedFilePath("/path/to/file.fit");
 ```
 
 #### Listen for Changes
 
 ```javascript
 // Listen for changes to a specific path
-const unsubscribe = await mainProcessStateClient.listen('loadedFitFilePath', (change) => {
-    console.log('File path changed:', {
-        path: change.path,
-        newValue: change.value,
-        oldValue: change.oldValue,
-        metadata: change.metadata
-    });
+const unsubscribe = await mainProcessStateClient.listen("loadedFitFilePath", (change) => {
+ console.log("File path changed:", {
+  path: change.path,
+  newValue: change.value,
+  oldValue: change.oldValue,
+  metadata: change.metadata,
+ });
 });
 
 // Later, when you want to stop listening:
@@ -72,14 +73,14 @@ Track long-running operations:
 
 ```javascript
 // Get a specific operation
-const operation = await mainProcessStateClient.getOperation('file-parse-123');
-console.log('Operation status:', operation.status);
-console.log('Progress:', operation.progress);
+const operation = await mainProcessStateClient.getOperation("file-parse-123");
+console.log("Operation status:", operation.status);
+console.log("Progress:", operation.progress);
 
 // Get all operations
 const operations = await mainProcessStateClient.getOperations();
 for (const [id, op] of Object.entries(operations)) {
-    console.log(`${id}: ${op.status} - ${op.progress}%`);
+ console.log(`${id}: ${op.status} - ${op.progress}%`);
 }
 ```
 
@@ -88,8 +89,8 @@ for (const [id, op] of Object.entries(operations)) {
 ```javascript
 // Get recent errors from main process
 const errors = await mainProcessStateClient.getErrors(10); // Get last 10 errors
-errors.forEach(error => {
-    console.error(`[${error.timestamp}] ${error.message}`, error.context);
+errors.forEach((error) => {
+ console.error(`[${error.timestamp}] ${error.message}`, error.context);
 });
 ```
 
@@ -98,8 +99,8 @@ errors.forEach(error => {
 ```javascript
 // Get performance metrics
 const metrics = await mainProcessStateClient.getMetrics();
-console.log('App uptime:', Date.now() - metrics.startTime);
-console.log('Operation times:', metrics.operationTimes);
+console.log("App uptime:", Date.now() - metrics.startTime);
+console.log("Operation times:", metrics.operationTimes);
 ```
 
 ### Diagnostics
@@ -107,9 +108,9 @@ console.log('Operation times:', metrics.operationTimes);
 ```javascript
 // Get comprehensive diagnostics
 const diagnostics = await mainProcessStateClient.getDiagnostics();
-console.log('Errors:', diagnostics.errors);
-console.log('Active operations:', diagnostics.operations);
-console.log('Performance:', diagnostics.metrics);
+console.log("Errors:", diagnostics.errors);
+console.log("Active operations:", diagnostics.operations);
+console.log("Performance:", diagnostics.metrics);
 ```
 
 ### Gyazo Server State
@@ -118,7 +119,7 @@ console.log('Performance:', diagnostics.metrics);
 // Check Gyazo server state
 const { server, port } = await mainProcessStateClient.getGyazoServerState();
 if (server && port) {
-    console.log(`Gyazo server running on port ${port}`);
+ console.log(`Gyazo server running on port ${port}`);
 }
 ```
 
@@ -128,10 +129,10 @@ The client gracefully handles cases where `electronAPI` is not available:
 
 ```javascript
 if (mainProcessStateClient.isAvailable()) {
-    // Safe to use client methods
-    const state = await mainProcessStateClient.get();
+ // Safe to use client methods
+ const state = await mainProcessStateClient.get();
 } else {
-    console.warn('Main process state client is not available');
+ console.warn("Main process state client is not available");
 }
 ```
 
@@ -141,15 +142,16 @@ All async methods throw errors that should be caught:
 
 ```javascript
 try {
-    await mainProcessStateClient.set('restrictedPath', 'value');
+ await mainProcessStateClient.set("restrictedPath", "value");
 } catch (error) {
-    console.error('Failed to set state:', error);
+ console.error("Failed to set state:", error);
 }
 ```
 
 ## Restricted Paths
 
 For security reasons, only certain paths can be set from the renderer process:
+
 - `loadedFitFilePath` - Path to the currently loaded FIT file
 - `operations.*` - Any operation-related state
 
@@ -160,54 +162,51 @@ Attempting to set other paths will return `false` and log a warning.
 Here's a complete example of integrating the client into your renderer code:
 
 ```javascript
-import { mainProcessStateClient } from './utils/state/integration/index.js';
+import { mainProcessStateClient } from "./utils/state/integration/index.js";
 
 class AppStateSync {
-    constructor() {
-        this.unsubscribers = [];
-    }
+ constructor() {
+  this.unsubscribers = [];
+ }
 
-    async initialize() {
-        if (!mainProcessStateClient.isAvailable()) {
-            console.warn('Main process state sync unavailable');
-            return;
-        }
+ async initialize() {
+  if (!mainProcessStateClient.isAvailable()) {
+   console.warn("Main process state sync unavailable");
+   return;
+  }
 
-        // Listen for file path changes
-        const unsubFile = await mainProcessStateClient.listen(
-            'loadedFitFilePath',
-            (change) => this.onFilePathChange(change)
-        );
-        this.unsubscribers.push(unsubFile);
+  // Listen for file path changes
+  const unsubFile = await mainProcessStateClient.listen("loadedFitFilePath", (change) => this.onFilePathChange(change));
+  this.unsubscribers.push(unsubFile);
 
-        // Get initial state
-        const filePath = await mainProcessStateClient.getLoadedFilePath();
-        if (filePath) {
-            console.log('Currently loaded file:', filePath);
-        }
-    }
+  // Get initial state
+  const filePath = await mainProcessStateClient.getLoadedFilePath();
+  if (filePath) {
+   console.log("Currently loaded file:", filePath);
+  }
+ }
 
-    onFilePathChange(change) {
-        console.log('File changed:', change.value);
-        // Update UI, reload data, etc.
-    }
+ onFilePathChange(change) {
+  console.log("File changed:", change.value);
+  // Update UI, reload data, etc.
+ }
 
-    async updateFilePath(newPath) {
-        try {
-            const success = await mainProcessStateClient.setLoadedFilePath(newPath);
-            if (success) {
-                console.log('File path updated successfully');
-            }
-        } catch (error) {
-            console.error('Failed to update file path:', error);
-        }
-    }
+ async updateFilePath(newPath) {
+  try {
+   const success = await mainProcessStateClient.setLoadedFilePath(newPath);
+   if (success) {
+    console.log("File path updated successfully");
+   }
+  } catch (error) {
+   console.error("Failed to update file path:", error);
+  }
+ }
 
-    cleanup() {
-        // Clean up listeners
-        this.unsubscribers.forEach(unsub => unsub());
-        this.unsubscribers = [];
-    }
+ cleanup() {
+  // Clean up listeners
+  this.unsubscribers.forEach((unsub) => unsub());
+  this.unsubscribers = [];
+ }
 }
 
 // Usage
@@ -236,6 +235,7 @@ await appStateSync.initialize();
 ## Behind the Scenes
 
 The client uses the `electronAPI` methods exposed by `preload.js`:
+
 - `electronAPI.getMainState(path)`
 - `electronAPI.setMainState(path, value, options)`
 - `electronAPI.listenToMainState(path, callback)`
@@ -245,6 +245,7 @@ The client uses the `electronAPI` methods exposed by `preload.js`:
 - `electronAPI.getMetrics()`
 
 These methods communicate with the main process via IPC channels:
+
 - `main-state:get`
 - `main-state:set`
 - `main-state:listen`

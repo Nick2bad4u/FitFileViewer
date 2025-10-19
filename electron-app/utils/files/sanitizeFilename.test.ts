@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-    buildDownloadFilename,
-    sanitizeFileExtension,
-    sanitizeFilenameComponent,
-} from "./sanitizeFilename.js";
+import { buildDownloadFilename, sanitizeFileExtension, sanitizeFilenameComponent } from "./sanitizeFilename.js";
 
 describe("sanitizeFilenameComponent", () => {
     it("replaces reserved characters and control codes with underscores", () => {

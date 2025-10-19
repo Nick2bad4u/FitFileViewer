@@ -17,8 +17,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
       <button id="openFileBtn">Open</button>
       <div id="content-summary"></div>
     `;
-    openFileSelectorMock.mockReset();
-    openFileSelectorMock.mockImplementation(() => {});
+        openFileSelectorMock.mockReset();
+        openFileSelectorMock.mockImplementation(() => {});
         // Clean any previous window properties
         Object.assign(window, {
             electronAPI: undefined,
@@ -107,7 +107,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         expect(entry).toBeDefined();
         const handler = entry ? (entry[1] as () => void) : undefined;
         handler?.();
-    expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
+        expect(openFileSelectorMock).toHaveBeenCalledTimes(1);
         expect(showNotification).not.toHaveBeenCalled();
     });
 

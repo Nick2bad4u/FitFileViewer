@@ -24,20 +24,20 @@ function registerDialogHandlers({
     logWithContext,
     mainWindow,
 }) {
-    if (typeof registerIpcHandle !== 'function') {
+    if (typeof registerIpcHandle !== "function") {
         return;
     }
 
-    registerIpcHandle('dialog:openFile', async () => {
+    registerIpcHandle("dialog:openFile", async () => {
         try {
-            const dialog = typeof dialogRef === 'function' ? dialogRef() : null;
-            if (!dialog || typeof dialog.showOpenDialog !== 'function') {
-                throw new Error('Dialog module unavailable');
+            const dialog = typeof dialogRef === "function" ? dialogRef() : null;
+            if (!dialog || typeof dialog.showOpenDialog !== "function") {
+                throw new Error("Dialog module unavailable");
             }
 
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS?.DIALOG_FILTERS?.FIT_FILES,
-                properties: ['openFile'],
+                properties: ["openFile"],
             });
 
             if (canceled || !Array.isArray(filePaths) || filePaths.length === 0) {
@@ -49,21 +49,21 @@ function registerDialogHandlers({
                 return null;
             }
 
-            if (typeof addRecentFile === 'function') {
+            if (typeof addRecentFile === "function") {
                 addRecentFile(firstPath);
             }
 
-            if (typeof setAppState === 'function') {
-                setAppState('loadedFitFilePath', firstPath);
+            if (typeof setAppState === "function") {
+                setAppState("loadedFitFilePath", firstPath);
             }
 
             const win = resolveTargetWindow(browserWindowRef, mainWindow);
-            if (win && typeof getThemeFromRenderer === 'function' && typeof safeCreateAppMenu === 'function') {
+            if (win && typeof getThemeFromRenderer === "function" && typeof safeCreateAppMenu === "function") {
                 try {
                     const theme = await getThemeFromRenderer(win);
                     safeCreateAppMenu(win, theme, firstPath);
                 } catch (menuError) {
-                    logWithContext?.('warn', 'Failed to refresh menu after file dialog selection', {
+                    logWithContext?.("warn", "Failed to refresh menu after file dialog selection", {
                         error: /** @type {Error} */ (menuError)?.message,
                     });
                 }
@@ -71,32 +71,32 @@ function registerDialogHandlers({
 
             return firstPath;
         } catch (error) {
-            logWithContext?.('error', 'Error in dialog:openFile', {
+            logWithContext?.("error", "Error in dialog:openFile", {
                 error: /** @type {Error} */ (error)?.message,
             });
             throw error;
         }
     });
 
-    registerIpcHandle('dialog:openOverlayFiles', async () => {
+    registerIpcHandle("dialog:openOverlayFiles", async () => {
         try {
-            const dialog = typeof dialogRef === 'function' ? dialogRef() : null;
-            if (!dialog || typeof dialog.showOpenDialog !== 'function') {
-                throw new Error('Dialog module unavailable');
+            const dialog = typeof dialogRef === "function" ? dialogRef() : null;
+            if (!dialog || typeof dialog.showOpenDialog !== "function") {
+                throw new Error("Dialog module unavailable");
             }
 
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 filters: CONSTANTS?.DIALOG_FILTERS?.FIT_FILES,
-                properties: ['openFile', 'multiSelections'],
+                properties: ["openFile", "multiSelections"],
             });
 
             if (canceled || !Array.isArray(filePaths) || filePaths.length === 0) {
                 return [];
             }
 
-            return filePaths.filter((entry) => typeof entry === 'string' && entry.trim().length > 0);
+            return filePaths.filter((entry) => typeof entry === "string" && entry.trim().length > 0);
         } catch (error) {
-            logWithContext?.('error', 'Error in dialog:openOverlayFiles', {
+            logWithContext?.("error", "Error in dialog:openOverlayFiles", {
                 error: /** @type {Error} */ (error)?.message,
             });
             throw error;
@@ -111,8 +111,8 @@ function registerDialogHandlers({
  */
 function resolveTargetWindow(browserWindowRef, fallback) {
     try {
-        const api = typeof browserWindowRef === 'function' ? browserWindowRef() : null;
-        if (api && typeof api.getFocusedWindow === 'function') {
+        const api = typeof browserWindowRef === "function" ? browserWindowRef() : null;
+        if (api && typeof api.getFocusedWindow === "function") {
             const focused = api.getFocusedWindow();
             if (focused) {
                 return focused;

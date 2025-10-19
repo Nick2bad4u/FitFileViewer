@@ -51,8 +51,7 @@ async function tryResolveVitestMock() {
         const { vi } = await import("vitest");
         if (vi && typeof vi.importMock === "function") {
             const mod = /** @type {any} */ (await vi.importMock("electron-updater"));
-            const resolved =
-                (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod || null;
+            const resolved = (mod && mod.autoUpdater) || (mod && mod.default && mod.default.autoUpdater) || mod || null;
             if (resolved) {
                 cachedMockedAutoUpdater = resolved;
                 return resolved;

@@ -24,7 +24,7 @@ function exposeDevHelpers() {
             const win = browserWindowRef().getFocusedWindow();
             if (validateWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
-                    /** @type {any} */(win),
+                    /** @type {any} */ (win),
                     theme || CONSTANTS.DEFAULT_THEME,
                     filePath || getAppState("loadedFitFilePath")
                 );

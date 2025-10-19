@@ -2,6 +2,7 @@ import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { renderSingleHRZoneBar } from "../../data/zones/renderSingleHRZoneBar.js";
 import { renderSinglePowerZoneBar } from "../../data/zones/renderSinglePowerZoneBar.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { createChartCanvas } from "../components/createChartCanvas.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 /**
  * @typedef {Object} LapZoneDatum
@@ -43,9 +44,8 @@ export function renderLapZoneCharts(container, options = {}) {
 
         const { timeInZoneMesgs } = globalThis.globalData,
             lapZoneMsgs = timeInZoneMesgs.filter((/** @type {any} */ msg) => msg.referenceMesg === "lap"),
-            // Get theme configuration
-            themeConfig = /** @type {any} */ (getThemeConfig() || {}),
-            themeColors = themeConfig.colors || { bgPrimary: "#ffffff", shadow: "none" };
+            // Get theme configuration (used for logging and downstream hover styling)
+            themeConfig = /** @type {any} */ (getThemeConfig() || {});
         if (themeConfig && typeof themeConfig === "object" && themeConfig.name) {
             console.log("[renderLapZoneCharts] Using theme config:", themeConfig.name);
         }
@@ -178,13 +178,8 @@ export function renderLapZoneCharts(container, options = {}) {
         console.log("[ChartJS] Power Zone filtering - meaningfulPowerZones:", meaningfulPowerZones);
         console.log("[ChartJS] Power Zone data after filtering:", pwrZoneData); // Chart 1: Lap Heart Rate Zone Lap Bar Stacked
         if (visibility.hrStackedVisible && hrZoneData.length > 0) {
-            const canvas1 = document.createElement("canvas");
+            const canvas1 = createChartCanvas("lap-hr-zones", 0);
             canvas1.id = "chartjs-canvas-lap-hr-zones";
-            canvas1.style.marginBottom = "32px";
-            canvas1.style.maxHeight = "400px";
-            canvas1.style.background = themeColors.bgPrimary;
-            canvas1.style.borderRadius = "12px";
-            canvas1.style.boxShadow = themeColors.shadow;
             container.append(canvas1);
 
             const hrChart = renderLapZoneChart(canvas1, hrZoneData, {
@@ -200,13 +195,8 @@ export function renderLapZoneCharts(container, options = {}) {
 
         // Chart 2: Lap Power Zone Distribution (Stacked Bar)
         if (visibility.powerStackedVisible && pwrZoneData.length > 0) {
-            const canvas2 = document.createElement("canvas");
+            const canvas2 = createChartCanvas("lap-power-zones", 0);
             canvas2.id = "chartjs-canvas-lap-power-zones";
-            canvas2.style.marginBottom = "32px";
-            canvas2.style.maxHeight = "400px";
-            canvas2.style.background = themeColors.bgPrimary;
-            canvas2.style.borderRadius = "12px";
-            canvas2.style.boxShadow = themeColors.shadow;
             container.append(canvas2);
             const pwrChart = renderLapZoneChart(canvas2, pwrZoneData, {
                 title: "Power Zone by Lap (Stacked)",
@@ -263,13 +253,8 @@ export function renderLapZoneCharts(container, options = {}) {
 
             if (sessionHRZones && sessionHRZones.length > 0) {
                 console.log("[ChartJS] Rendering HR zone bar with data:", sessionHRZones);
-                const canvas3 = document.createElement("canvas");
+                const canvas3 = createChartCanvas("single-lap-hr", 0);
                 canvas3.id = "chartjs-canvas-single-lap-hr";
-                canvas3.style.marginBottom = "32px";
-                canvas3.style.maxHeight = "350px";
-                canvas3.style.background = themeColors.bgPrimary;
-                canvas3.style.borderRadius = "12px";
-                canvas3.style.boxShadow = themeColors.shadow;
                 container.append(canvas3);
 
                 const singleHRChart = renderSingleHRZoneBar(canvas3, sessionHRZones, {
@@ -330,13 +315,8 @@ export function renderLapZoneCharts(container, options = {}) {
 
             if (sessionPowerZones && sessionPowerZones.length > 0) {
                 console.log("[ChartJS] Rendering Power zone bar with data:", sessionPowerZones);
-                const canvas4 = document.createElement("canvas");
+                const canvas4 = createChartCanvas("single-lap-power", 0);
                 canvas4.id = "chartjs-canvas-single-lap-power";
-                canvas4.style.marginBottom = "32px";
-                canvas4.style.maxHeight = "350px";
-                canvas4.style.background = themeColors.bgPrimary;
-                canvas4.style.borderRadius = "12px";
-                canvas4.style.boxShadow = themeColors.shadow;
                 container.append(canvas4);
 
                 const singlePwrChart = renderSinglePowerZoneBar(

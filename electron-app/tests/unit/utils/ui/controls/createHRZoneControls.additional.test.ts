@@ -1,14 +1,12 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 const inlineSelectorMock = vi.hoisted(() => ({
-    createInlineZoneColorSelector: vi.fn(
-        (prefix: string, container: HTMLElement): HTMLElement | null => {
-            const button = document.createElement("button");
-            button.dataset.zonePrefix = prefix;
-            container.append(button);
-            return button;
-        }
-    ),
+    createInlineZoneColorSelector: vi.fn((prefix: string, container: HTMLElement): HTMLElement | null => {
+        const button = document.createElement("button");
+        button.dataset.zonePrefix = prefix;
+        container.append(button);
+        return button;
+    }),
 }));
 
 vi.mock("../../../../../utils/ui/controls/createInlineZoneColorSelector.js", () => inlineSelectorMock);
@@ -23,12 +21,14 @@ describe("createHRZoneControls additional coverage", () => {
         localStorage.clear();
         vi.resetModules();
         inlineSelectorMock.createInlineZoneColorSelector.mockReset();
-        inlineSelectorMock.createInlineZoneColorSelector.mockImplementation((prefix: string, container: HTMLElement) => {
-            const button = document.createElement("button");
-            button.dataset.zonePrefix = prefix;
-            container.append(button);
-            return button;
-        });
+        inlineSelectorMock.createInlineZoneColorSelector.mockImplementation(
+            (prefix: string, container: HTMLElement) => {
+                const button = document.createElement("button");
+                button.dataset.zonePrefix = prefix;
+                container.append(button);
+                return button;
+            }
+        );
     });
 
     afterEach(() => {
@@ -36,11 +36,11 @@ describe("createHRZoneControls additional coverage", () => {
     });
 
     it("returns existing controls without creating a new section", async () => {
-    const existing = document.createElement("div");
-    existing.id = "hr-zone-controls";
-    const root = document.getElementById("root")!;
-    root.append(existing);
-    const { createHRZoneControls } = await loadModule();
+        const existing = document.createElement("div");
+        existing.id = "hr-zone-controls";
+        const root = document.getElementById("root")!;
+        root.append(existing);
+        const { createHRZoneControls } = await loadModule();
         const result = createHRZoneControls(root);
         expect(result).toBe(existing);
         expect(root.querySelectorAll("#hr-zone-controls").length).toBe(1);
@@ -105,15 +105,18 @@ describe("createHRZoneControls additional coverage", () => {
             wrapper.append(toggle);
             fields.append(wrapper);
         }
-    moveHRZoneControlsToSection();
-    expect(document.getElementById("fields")!.children.length).toBe(0);
-    expect(content.querySelectorAll("button[id^='field-toggle']").length).toBe(3);
-    const children = Array.from(content.children) as HTMLElement[];
-    expect(children).toHaveLength(5);
-    expect(children[1].style.marginTop).toBe("12px");
-    const inlineButton = content.querySelector("[data-zone-prefix='hr_zone']");
-    expect(inlineButton).toBeTruthy();
-    expect(inlineSelectorMock.createInlineZoneColorSelector).toHaveBeenCalledWith("hr_zone", expect.any(HTMLElement));
+        moveHRZoneControlsToSection();
+        expect(document.getElementById("fields")!.children.length).toBe(0);
+        expect(content.querySelectorAll("button[id^='field-toggle']").length).toBe(3);
+        const children = Array.from(content.children) as HTMLElement[];
+        expect(children).toHaveLength(5);
+        expect(children[1].style.marginTop).toBe("12px");
+        const inlineButton = content.querySelector("[data-zone-prefix='hr_zone']");
+        expect(inlineButton).toBeTruthy();
+        expect(inlineSelectorMock.createInlineZoneColorSelector).toHaveBeenCalledWith(
+            "hr_zone",
+            expect.any(HTMLElement)
+        );
         expect(logSpy).toHaveBeenCalledWith("[HRZoneControls] Successfully moved 3 HR zone controls");
         logSpy.mockRestore();
     });

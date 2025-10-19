@@ -12,9 +12,7 @@ function isWindowUsable(win) {
     try {
         const hasWebContents = Boolean(win.webContents);
         const webContentsDestroyed =
-            hasWebContents && typeof win.webContents.isDestroyed === "function"
-                ? win.webContents.isDestroyed()
-                : true;
+            hasWebContents && typeof win.webContents.isDestroyed === "function" ? win.webContents.isDestroyed() : true;
         const windowDestroyed = typeof win.isDestroyed === "function" ? win.isDestroyed() : true;
         return Boolean(!windowDestroyed && hasWebContents && !webContentsDestroyed);
     } catch {

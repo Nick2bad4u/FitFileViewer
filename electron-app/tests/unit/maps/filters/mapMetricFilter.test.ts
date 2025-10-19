@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createMetricFilter, getMetricDefinition, MAP_FILTER_METRICS } from "../../../../utils/maps/filters/mapMetricFilter.js";
+import {
+    createMetricFilter,
+    getMetricDefinition,
+    MAP_FILTER_METRICS,
+} from "../../../../utils/maps/filters/mapMetricFilter.js";
 
 describe("createMetricFilter", () => {
     it("returns inactive result when disabled", () => {
@@ -10,13 +14,7 @@ describe("createMetricFilter", () => {
     });
 
     it("selects the correct number of entries for the requested percentile", () => {
-        const records = [
-            { speed: 1 },
-            { speed: 5 },
-            { speed: 9 },
-            { speed: 13 },
-            { speed: 17 },
-        ];
+        const records = [{ speed: 1 }, { speed: 5 }, { speed: 9 }, { speed: 13 }, { speed: 17 }];
         const result = createMetricFilter(records, { enabled: true, metric: "speed", percent: 40 });
         expect(result.isActive).toBe(true);
         expect(result.reason).toBeNull();
@@ -33,14 +31,18 @@ describe("createMetricFilter", () => {
             [0, 0, null, null, null, null, 1, { speed: 15 }, 1],
             [0, 0, null, null, null, null, 2, { speed: 25 }, 1],
         ];
-        const result = createMetricFilter(coords as unknown as any[], { enabled: true, metric: "speed", percent: 50 }, {
-            valueExtractor: (coord: unknown) => {
-                if (!Array.isArray(coord)) {
-                    return null;
-                }
-                return metric?.resolver(coord[7] ?? {}) ?? null;
-            },
-        });
+        const result = createMetricFilter(
+            coords as unknown as any[],
+            { enabled: true, metric: "speed", percent: 50 },
+            {
+                valueExtractor: (coord: unknown) => {
+                    if (!Array.isArray(coord)) {
+                        return null;
+                    }
+                    return metric?.resolver(coord[7] ?? {}) ?? null;
+                },
+            }
+        );
         expect(result.isActive).toBe(true);
         expect(result.selectedCount).toBe(2);
         expect(result.orderedIndices).toEqual([2, 1]);

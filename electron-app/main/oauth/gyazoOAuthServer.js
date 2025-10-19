@@ -24,7 +24,7 @@ async function startGyazoOAuthServer(port = 3000) {
             }
 
             const server = http.createServer((req, res) => {
-                const parsedUrl = new URL(/** @type {string} */(req.url), `http://localhost:${port}`);
+                const parsedUrl = new URL(/** @type {string} */ (req.url), `http://localhost:${port}`);
 
                 res.setHeader("Access-Control-Allow-Origin", "*");
                 res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");

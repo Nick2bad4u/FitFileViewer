@@ -180,26 +180,26 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     /** @type {any[]} */
     const decoderOptionEmojis = {
-        applyScaleAndOffset: "📏",
-        convertDateTimesToDates: "📅",
-        convertTypesToStrings: "🔤",
-        expandComponents: "🔗",
-        expandSubFields: "🧩",
-        includeUnknownData: "❓",
-        mergeHeartRates: "❤️",
-    },
+            applyScaleAndOffset: "📏",
+            convertDateTimesToDates: "📅",
+            convertTypesToStrings: "🔤",
+            expandComponents: "🔗",
+            expandSubFields: "🧩",
+            includeUnknownData: "❓",
+            mergeHeartRates: "❤️",
+        },
         decoderOptions = getDecoderOptions(),
         recentMenuItems =
             recentFiles.length > 0
                 ? recentFiles.map((/** @type {string} */ file) => ({
-                    click: () => {
-                        if (!sendToRenderer("open-recent-file", file)) {
-                            console.warn("[createAppMenu] No active window available to open recent file.");
-                        }
-                    },
-                    label: recentUtils.getShortRecentName(file),
-                    tooltip: file,
-                }))
+                      click: () => {
+                          if (!sendToRenderer("open-recent-file", file)) {
+                              console.warn("[createAppMenu] No active window available to open recent file.");
+                          }
+                      },
+                      label: recentUtils.getShortRecentName(file),
+                      tooltip: file,
+                  }))
                 : [{ enabled: false, label: "No Recent Files" }];
     const clearRecentMenuItem = {
         click: () => {
@@ -216,7 +216,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                 win.webContents.send("show-notification", "Recent files cleared.", "info");
                 win.webContents.send("unload-fit-file");
             }
-            createAppMenu(win, /** @type {string} */(getTheme()));
+            createAppMenu(win, /** @type {string} */ (getTheme()));
         },
         enabled: recentFiles.length > 0,
         label: "🧹 Clear Recent Files",
@@ -229,8 +229,8 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         process.platform === "darwin"
             ? "Reveal in Finder"
             : process.platform === "linux"
-                ? "Reveal in File Manager"
-                : "Reveal in File Explorer";
+              ? "Reveal in File Manager"
+              : "Reveal in File Explorer";
     /**
      * @param {*} _decoderOptions
      * @param {*} _decoderOptionEmojis
@@ -738,7 +738,7 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
 
     if (!app || !app.isPackaged) {
         // Log only the menu labels for debugging, avoid full serialization
-        const menuLabels = template.map((item) => /** @type {Record<string, any>} */(item).label);
+        const menuLabels = template.map((item) => /** @type {Record<string, any>} */ (item).label);
         console.log("[createAppMenu] Setting application menu. Menu labels:", menuLabels);
         try {
             console.log(

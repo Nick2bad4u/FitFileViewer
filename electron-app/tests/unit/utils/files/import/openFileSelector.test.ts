@@ -75,8 +75,8 @@ describe("openFileSelector - behavior", () => {
             return originalCreateElement(tagName);
         });
 
-    const mod = await import(SUT_PATH);
-    await mod.openFileSelector();
+        const mod = await import(SUT_PATH);
+        await mod.openFileSelector();
         // Allow the async change handler to run
         await new Promise((r) => setTimeout(r, 0));
 
@@ -97,8 +97,8 @@ describe("openFileSelector - behavior", () => {
             return originalCreateElement(tagName);
         });
 
-    const mod = await import(SUT_PATH);
-    await mod.openFileSelector();
+        const mod = await import(SUT_PATH);
+        await mod.openFileSelector();
         await new Promise((r) => setTimeout(r, 0));
 
         expect(mockLoad).not.toHaveBeenCalled();
@@ -120,8 +120,8 @@ describe("openFileSelector - behavior", () => {
             return originalCreateElement(tagName);
         });
 
-    const mod = await import(SUT_PATH);
-    await mod.openFileSelector();
+        const mod = await import(SUT_PATH);
+        await mod.openFileSelector();
         await new Promise((r) => setTimeout(r, 0));
 
         const { showNotification } = await import(SHOW_NOTIFICATION_PATH);
@@ -132,7 +132,7 @@ describe("openFileSelector - behavior", () => {
 
     it("uses native overlay dialog when available", async () => {
         const loaderModule = await import(LOAD_OVERLAY_FILES_PATH);
-    const loadOverlayFilesMock = loaderModule.loadOverlayFiles as unknown as Mock;
+        const loadOverlayFilesMock = loaderModule.loadOverlayFiles as unknown as Mock;
         loadOverlayFilesMock.mockClear();
 
         const mockDialog = vi.fn().mockResolvedValue(["C:/rides/alpha.fit", "/tmp/beta.fit"]);

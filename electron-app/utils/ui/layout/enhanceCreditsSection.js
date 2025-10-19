@@ -68,9 +68,8 @@ export function setupCreditsMarquee() {
         const mutationObserver = new MutationObserver(() => updateMarquee());
         mutationObserver.observe(footer, { childList: true, characterData: true, subtree: true });
 
-        const animationHandle = typeof requestAnimationFrame === "function"
-            ? requestAnimationFrame(() => updateMarquee())
-            : null;
+        const animationHandle =
+            typeof requestAnimationFrame === "function" ? requestAnimationFrame(() => updateMarquee()) : null;
 
         cleanupCallbacks.push(() => {
             if (typeof cancelAnimationFrame === "function" && typeof animationHandle === "number") {

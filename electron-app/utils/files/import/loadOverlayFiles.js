@@ -67,7 +67,7 @@ export async function loadOverlayFiles(files) {
 
     if (stateDirty) {
         // Save current tab before syncing state (which might trigger tab switches)
-        const currentTabButton = document.querySelector('.tab-button.active');
+        const currentTabButton = document.querySelector(".tab-button.active");
         const currentTabId = currentTabButton?.id;
 
         syncLoadedFitFilesState();
@@ -80,9 +80,9 @@ export async function loadOverlayFiles(files) {
 
         // Restore the original tab if it was changed
         if (currentTabId && currentTabButton instanceof HTMLElement) {
-            const newActiveTab = document.querySelector('.tab-button.active');
+            const newActiveTab = document.querySelector(".tab-button.active");
             if (newActiveTab?.id !== currentTabId) {
-                console.log('[loadOverlayFiles] Restoring tab to:', currentTabId);
+                console.log("[loadOverlayFiles] Restoring tab to:", currentTabId);
                 currentTabButton.click();
             }
         }
@@ -124,7 +124,8 @@ function syncLoadedFitFilesState() {
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
 
 function createOverlayEntry(file, data, uniqueKey) {
-    const originalPath = getFileOriginalPath(file) || (typeof data?.cachedFilePath === "string" ? data.cachedFilePath : "");
+    const originalPath =
+        getFileOriginalPath(file) || (typeof data?.cachedFilePath === "string" ? data.cachedFilePath : "");
     const displayName = getFileDisplayName(file) || (originalPath ? getFileNameFromPath(originalPath) : "overlay.fit");
     if (originalPath && (!data.cachedFilePath || data.cachedFilePath !== originalPath)) {
         data.cachedFilePath = originalPath;
@@ -135,7 +136,11 @@ function createOverlayEntry(file, data, uniqueKey) {
         originalPath: originalPath || null,
         sourceKey:
             uniqueKey ||
-            (originalPath ? `path:${normalizePath(originalPath)}` : displayName ? `name:${displayName.toLowerCase()}` : null),
+            (originalPath
+                ? `path:${normalizePath(originalPath)}`
+                : displayName
+                  ? `name:${displayName.toLowerCase()}`
+                  : null),
     };
 }
 
@@ -147,7 +152,11 @@ function createPrimaryEntry() {
 
     const cachedPath = typeof baseData.cachedFilePath === "string" ? baseData.cachedFilePath : "";
     const displayName = cachedPath ? getFileNameFromPath(cachedPath) : baseData.fileName || "Primary activity";
-    const key = cachedPath ? `path:${normalizePath(cachedPath)}` : displayName ? `name:${displayName.toLowerCase()}` : null;
+    const key = cachedPath
+        ? `path:${normalizePath(cachedPath)}`
+        : displayName
+          ? `name:${displayName.toLowerCase()}`
+          : null;
 
     return {
         data: baseData,

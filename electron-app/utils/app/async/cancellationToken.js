@@ -64,7 +64,7 @@ export class CancellationToken {
             } catch (error) {
                 console.error("[CancellationToken] Error in immediate cancellation callback:", error);
             }
-            return () => { }; // No-op unsubscribe
+            return () => {}; // No-op unsubscribe
         }
 
         this._callbacks.push(callback);

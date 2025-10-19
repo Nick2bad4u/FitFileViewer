@@ -56,7 +56,8 @@ function primeTestEnvironment(initializeApplication) {
                 Promise.resolve().then(async () => {
                     try {
                         const esm = /** @type {any} */ (await import("electron"));
-                        const mod = esm && (esm.app || esm.BrowserWindow) ? esm : esm && esm.default ? esm.default : esm;
+                        const mod =
+                            esm && (esm.app || esm.BrowserWindow) ? esm : esm && esm.default ? esm.default : esm;
                         if (mod && (mod.app || mod.BrowserWindow)) {
                             setElectronOverride(mod);
                         }
@@ -102,8 +103,8 @@ function primeTestEnvironment(initializeApplication) {
                 electronModule && (electronModule.app || electronModule.BrowserWindow)
                     ? electronModule
                     : electronModule && electronModule.default
-                        ? electronModule.default
-                        : electronModule;
+                      ? electronModule.default
+                      : electronModule;
             try {
                 const a = resolved && resolved.app;
                 if (a && typeof a.whenReady === "function") {

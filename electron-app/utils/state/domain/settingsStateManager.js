@@ -411,7 +411,7 @@ class SettingsStateManager {
             } else {
                 // Reset all settings
                 for (const cat of Object.keys(SETTINGS_SCHEMA)) {
-                    this.resetSettings(/** @type {SettingCategory} */(cat));
+                    this.resetSettings(/** @type {SettingCategory} */ (cat));
                 }
             }
 

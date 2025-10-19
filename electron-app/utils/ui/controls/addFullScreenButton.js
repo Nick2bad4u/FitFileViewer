@@ -23,14 +23,20 @@ const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
 const REQUIRED_CONTENT_IDS = ["content-data", "content-map", "content-summary", "content-altfit"];
 const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
 const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";
-const NATIVE_FULLSCREEN_EVENTS = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"];
+const NATIVE_FULLSCREEN_EVENTS = [
+    "fullscreenchange",
+    "webkitfullscreenchange",
+    "mozfullscreenchange",
+    "MSFullscreenChange",
+];
 
 const getScreenfullInstance = () => {
     const { screenfull } = /** @type {any} */ (globalThis);
     return /** @type {import('screenfull').Screenfull | undefined} */ (screenfull);
 };
 
-const getStoredHandler = (key) => /** @type {(event: any) => void | null | undefined} */(/** @type {any} */ (globalThis)[key]);
+const getStoredHandler = (key) =>
+    /** @type {(event: any) => void | null | undefined} */ (/** @type {any} */ (globalThis)[key]);
 
 const setStoredHandler = (key, handler) => {
     Object.defineProperty(globalThis, key, {
@@ -49,10 +55,7 @@ const isFullscreenActive = () => {
 
     const doc = /** @type {any} */ (document);
     return Boolean(
-        document.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement
+        document.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
     );
 };
 
@@ -225,7 +228,10 @@ export function setupFullscreenListeners() {
             try {
                 handleFullscreenStateChange();
             } catch (error) {
-                logWithContext(`Error in native fullscreen change handler: ${/** @type {any} */ (error).message}`, "error");
+                logWithContext(
+                    `Error in native fullscreen change handler: ${/** @type {any} */ (error).message}`,
+                    "error"
+                );
             }
         };
 
@@ -323,7 +329,7 @@ function handleFullscreenStateChange() {
 
         if (isFullscreen) {
             if (activeContent) {
-                addExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
+                addExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Added exit overlay for: ${activeContent.id}`);
             }
 
@@ -337,7 +343,7 @@ function handleFullscreenStateChange() {
             }
         } else {
             if (activeContent) {
-                removeExitFullscreenOverlay(/** @type {HTMLElement} */(activeContent));
+                removeExitFullscreenOverlay(/** @type {HTMLElement} */ (activeContent));
                 logWithContext(`Removed exit overlay for: ${activeContent.id}`);
             }
 
@@ -467,9 +473,9 @@ function nativeToggleFullscreen(target) {
 
         const isFs = Boolean(
             document.fullscreenElement ||
-            doc.webkitFullscreenElement ||
-            doc.mozFullScreenElement ||
-            doc.msFullscreenElement
+                doc.webkitFullscreenElement ||
+                doc.mozFullScreenElement ||
+                doc.msFullscreenElement
         );
         if (isFs) {
             const exit =

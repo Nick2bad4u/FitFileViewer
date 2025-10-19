@@ -186,12 +186,10 @@ function setupMainLifecycle(deps) {
         const mainWindow = /** @type {WindowLike | undefined} */ (getAppState("mainWindow"));
         wireHandlers(mainWindow);
 
-        const fallbackWindow =
-            mainWindow ||
-            ({
-                isDestroyed: () => false,
-                webContents: { isDestroyed: () => false },
-            });
+        const fallbackWindow = mainWindow || {
+            isDestroyed: () => false,
+            webContents: { isDestroyed: () => false },
+        };
         wireHandlers(fallbackWindow);
 
         maybeExposeDevHelpers();

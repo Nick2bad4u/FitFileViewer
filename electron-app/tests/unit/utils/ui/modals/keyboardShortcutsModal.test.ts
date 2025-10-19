@@ -16,8 +16,7 @@ vi.stubGlobal("cancelAnimationFrame", cancelRafMock);
 
 function resolveModalExports(module: Partial<ModalExports> & { default?: Partial<ModalExports> }): ModalExports {
     const resolved = {
-        closeKeyboardShortcutsModal:
-            module.closeKeyboardShortcutsModal ?? module.default?.closeKeyboardShortcutsModal,
+        closeKeyboardShortcutsModal: module.closeKeyboardShortcutsModal ?? module.default?.closeKeyboardShortcutsModal,
         showKeyboardShortcutsModal: module.showKeyboardShortcutsModal ?? module.default?.showKeyboardShortcutsModal,
     } satisfies Partial<ModalExports>;
 

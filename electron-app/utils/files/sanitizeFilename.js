@@ -3,7 +3,7 @@
  * Electron's legacy renderer constraints (no additional dependencies).
  */
 
-const RESERVED_FILENAME_CHARACTERS = new Set(["\"", "*", "/", ":", "<", ">", "?", "\\", "|"]); // Sorted for lint rules
+const RESERVED_FILENAME_CHARACTERS = new Set(['"', "*", "/", ":", "<", ">", "?", "\\", "|"]); // Sorted for lint rules
 const RESERVED_DEVICE_NAMES = new Set([
     "AUX",
     "CLOCK$",

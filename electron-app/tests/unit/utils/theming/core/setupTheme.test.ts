@@ -54,7 +54,7 @@ describe("setupTheme", () => {
             externalListener = callback;
         });
 
-    const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await import(MODULE_SPECIFIER);
         const result = await setupTheme(applyTheme, listenForThemeChange);
 
         expect(result).toBe("light");
@@ -86,7 +86,7 @@ describe("setupTheme", () => {
         };
         localStorage.setItem("fitFileViewer_theme", "light");
 
-    const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await import(MODULE_SPECIFIER);
         const result = await setupTheme(applyTheme, undefined);
 
         expect(result).toBe("light");
@@ -134,7 +134,7 @@ describe("setupTheme", () => {
             getTheme: vi.fn().mockResolvedValue("light"),
         };
 
-    const { setupTheme } = await import(MODULE_SPECIFIER);
+        const { setupTheme } = await import(MODULE_SPECIFIER);
         const result = await setupTheme(undefined as unknown as (theme: string) => void);
 
         expect(result).toBe("dark");

@@ -187,8 +187,7 @@ export function isElementVisible(element, threshold = 0) {
     const viewportHeight = globalThis.innerHeight || document.documentElement.clientHeight;
     const viewportWidth = globalThis.innerWidth || document.documentElement.clientWidth;
 
-    const verticalVisible =
-        rect.bottom >= viewportHeight * threshold && rect.top <= viewportHeight * (1 - threshold);
+    const verticalVisible = rect.bottom >= viewportHeight * threshold && rect.top <= viewportHeight * (1 - threshold);
 
     const horizontalVisible = rect.right >= viewportWidth * threshold && rect.left <= viewportWidth * (1 - threshold);
 

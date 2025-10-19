@@ -83,8 +83,8 @@ function _centerMapOnMainFile() {
         }
         const hasValidBounds = Boolean(
             w._mainPolylineOriginalBounds &&
-            typeof w._mainPolylineOriginalBounds.isValid === "function" &&
-            w._mainPolylineOriginalBounds.isValid()
+                typeof w._mainPolylineOriginalBounds.isValid === "function" &&
+                w._mainPolylineOriginalBounds.isValid()
         );
 
         if (!mainPolyline) {
@@ -235,7 +235,7 @@ function setupActiveFileNameMapActions() {
                 console.log("[mapActionButtons] Active file name clicked");
 
                 // Always switch to map tab (even if already active, to ensure map is visible)
-                const mapTabBtn = document.querySelector('#tab-map');
+                const mapTabBtn = document.querySelector("#tab-map");
                 if (mapTabBtn instanceof HTMLElement) {
                     console.log("[mapActionButtons] Switching to map tab");
                     mapTabBtn.click();

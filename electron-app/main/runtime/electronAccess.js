@@ -17,7 +17,13 @@ function getElectron() {
 
         const mod = require("electron");
         const hasApis = (/** @type {any} */ candidate) =>
-            candidate && (candidate.app || candidate.BrowserWindow || candidate.ipcMain || candidate.Menu || candidate.shell || candidate.dialog);
+            candidate &&
+            (candidate.app ||
+                candidate.BrowserWindow ||
+                candidate.ipcMain ||
+                candidate.Menu ||
+                candidate.shell ||
+                candidate.dialog);
         if (hasApis(mod)) return mod;
         const def = /** @type {any} */ (mod).default;
         if (hasApis(def)) return def;
@@ -48,27 +54,27 @@ function setElectronOverride(override) {
 /**
  * @returns {any} Electron app reference (may be undefined when Electron is unavailable).
  */
-const appRef = () => /** @type {any} */(getElectron().app);
+const appRef = () => /** @type {any} */ (getElectron().app);
 /**
  * @returns {any} Electron BrowserWindow reference.
  */
-const browserWindowRef = () => /** @type {any} */(getElectron().BrowserWindow);
+const browserWindowRef = () => /** @type {any} */ (getElectron().BrowserWindow);
 /**
  * @returns {any} Electron dialog API reference.
  */
-const dialogRef = () => /** @type {any} */(getElectron().dialog);
+const dialogRef = () => /** @type {any} */ (getElectron().dialog);
 /**
  * @returns {any} Electron ipcMain reference.
  */
-const ipcMainRef = () => /** @type {any} */(getElectron().ipcMain);
+const ipcMainRef = () => /** @type {any} */ (getElectron().ipcMain);
 /**
  * @returns {any} Electron Menu reference.
  */
-const menuRef = () => /** @type {any} */(getElectron().Menu);
+const menuRef = () => /** @type {any} */ (getElectron().Menu);
 /**
  * @returns {any} Electron shell reference.
  */
-const shellRef = () => /** @type {any} */(getElectron().shell);
+const shellRef = () => /** @type {any} */ (getElectron().shell);
 
 module.exports = {
     appRef,

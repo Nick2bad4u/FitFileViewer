@@ -6,7 +6,7 @@
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
 function registerFitFileHandlers({ registerIpcHandle, ensureFitParserStateIntegration, logWithContext }) {
-    if (typeof registerIpcHandle !== 'function') {
+    if (typeof registerIpcHandle !== "function") {
         return;
     }
 
@@ -15,10 +15,10 @@ function registerFitFileHandlers({ registerIpcHandle, ensureFitParserStateIntegr
             try {
                 await ensureFitParserStateIntegration();
                 const buffer = Buffer.from(arrayBuffer);
-                const fitParser = require('../../fitParser');
+                const fitParser = require("../../fitParser");
                 return await fitParser.decodeFitFile(buffer);
             } catch (error) {
-                logWithContext?.('error', `Error in ${channel}:`, {
+                logWithContext?.("error", `Error in ${channel}:`, {
                     error: /** @type {Error} */ (error)?.message,
                 });
                 throw error;
@@ -26,8 +26,8 @@ function registerFitFileHandlers({ registerIpcHandle, ensureFitParserStateIntegr
         });
     };
 
-    registerHandler('fit:parse');
-    registerHandler('fit:decode');
+    registerHandler("fit:parse");
+    registerHandler("fit:decode");
 }
 
 module.exports = { registerFitFileHandlers };

@@ -55,8 +55,8 @@ export function buildGpxFromRecords(records, options = {}) {
         if (!record) {
             continue;
         }
-        const lat = semicirclesToDegrees(/** @type {number|undefined} */(record.positionLat));
-        const lon = semicirclesToDegrees(/** @type {number|undefined} */(record.positionLong));
+        const lat = semicirclesToDegrees(/** @type {number|undefined} */ (record.positionLat));
+        const lon = semicirclesToDegrees(/** @type {number|undefined} */ (record.positionLong));
         if (lat === null || lon === null || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
             continue;
         }
@@ -177,7 +177,10 @@ export function resolveTrackNameFromLoadedFiles(loadedFitFiles, fallback = "Expo
     const baseCandidates = [primary?.displayName, primary?.name];
     const fileName =
         typeof primary?.filePath === "string"
-            ? primary.filePath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/u, "") ?? ""
+            ? (primary.filePath
+                  .split(/[/\\]/)
+                  .pop()
+                  ?.replace(/\.[^.]+$/u, "") ?? "")
             : "";
 
     const resolved = [...baseCandidates, fileName].find(

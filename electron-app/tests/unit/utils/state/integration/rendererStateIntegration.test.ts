@@ -236,11 +236,7 @@ describe("rendererStateIntegration", () => {
 
         setStateMock.mockClear();
         componentHandler("map");
-        expect(setStateMock).toHaveBeenCalledWith(
-            "isLoading",
-            true,
-            expect.objectContaining({ source: "loadMapTab" })
-        );
+        expect(setStateMock).toHaveBeenCalledWith("isLoading", true, expect.objectContaining({ source: "loadMapTab" }));
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             false,

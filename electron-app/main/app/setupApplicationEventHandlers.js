@@ -116,7 +116,7 @@ function setupApplicationEventHandlers() {
                     const http = httpRef();
                     if (http && typeof http.createServer === "function") {
                         try {
-                            http.createServer(() => { });
+                            http.createServer(() => {});
                         } catch {
                             /* ignore */
                         }
