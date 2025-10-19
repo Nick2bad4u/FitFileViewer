@@ -4165,6 +4165,205 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 /* =====================================================
+   Map Metric Filter Control
+   ===================================================== */
+.data-point-filter-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    margin: 0;
+    min-height: 0;
+}
+
+.data-point-filter-control__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px 6px 12px;
+    line-height: 1.2;
+}
+
+.data-point-filter-control__toggle .icon {
+    margin: 0 6px 0 0;
+    flex-shrink: 0;
+}
+
+.data-point-filter-control__panel {
+    position: fixed;
+    inset: auto;
+    top: -9999px;
+    left: -9999px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: clamp(260px, 32vw, 340px);
+    max-width: min(360px, calc(100vw - 32px));
+    max-height: min(440px, calc(100vh - 48px));
+    padding: 18px 20px;
+    background: var(--color-bg-alt-solid, #111827);
+    color: var(--color-fg, #f8fafc);
+    border-radius: 14px;
+    border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.12));
+    box-shadow: var(--color-box-shadow, 0 18px 40px rgb(2 6 23 / 45%));
+    backdrop-filter: blur(16px);
+    z-index: 2400;
+    overflow-y: auto;
+    pointer-events: auto;
+    will-change: top, left;
+}
+
+.data-point-filter-control__panel::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: var(--data-point-filter-arrow-offset, 50%);
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-width: 0 10px 12px 10px;
+    border-style: solid;
+    border-color: transparent transparent var(--color-bg-alt-solid, #111827) transparent;
+    filter: drop-shadow(0 6px 6px rgb(2 6 23 / 32%));
+}
+
+.data-point-filter-control__panel--reverse::before {
+    top: auto;
+    bottom: -12px;
+    border-width: 12px 10px 0 10px;
+    border-color: var(--color-bg-alt-solid, #111827) transparent transparent transparent;
+    filter: drop-shadow(0 -6px 6px rgb(2 6 23 / 24%));
+}
+
+.data-point-filter-control__panel[hidden] {
+    display: none !important;
+}
+
+.data-point-filter-control__panel label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--c_rgb255255255_65p, rgba(255, 255, 255, 0.65));
+}
+
+.data-point-filter-control__select,
+.data-point-filter-control__input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.12));
+    background: rgba(255, 255, 255, 0.04);
+    color: inherit;
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.data-point-filter-control__select:focus,
+.data-point-filter-control__input:focus {
+    outline: none;
+    border-color: var(--color-accent, #3b82f6);
+    box-shadow: 0 0 0 2px rgb(59 130 246 / 25%);
+}
+
+.data-point-filter-control__summary {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--c_rgb255255255_65p, rgba(255, 255, 255, 0.65));
+}
+
+.data-point-filter-control__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.data-point-filter-control__apply,
+.data-point-filter-control__reset {
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.data-point-filter-control__apply {
+    background: var(--color-accent, #3b82f6);
+    border: 1px solid var(--color-accent, #3b82f6);
+    color: var(--c_hexfff);
+}
+
+.data-point-filter-control__apply:hover,
+.data-point-filter-control__apply:focus {
+    background: var(--color-accent-secondary, #2563eb);
+    border-color: var(--color-accent-secondary, #2563eb);
+}
+
+.data-point-filter-control__reset {
+    background: transparent;
+    border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.16));
+    color: var(--c_rgb255255255_65p, rgba(255, 255, 255, 0.65));
+}
+
+.data-point-filter-control__reset:hover,
+.data-point-filter-control__reset:focus {
+    border-color: var(--color-accent, #3b82f6);
+    color: var(--color-accent, #3b82f6);
+}
+
+.data-point-filter-control--open .data-point-filter-control__toggle,
+.data-point-filter-control__toggle:focus-visible {
+    background: var(--color-accent, #3b82f6);
+    color: var(--c_hexfff);
+    border-color: var(--color-accent, #3b82f6);
+}
+
+.data-point-filter-control--open .data-point-filter-control__toggle svg path {
+    stroke: currentColor;
+}
+
+body.theme-light .data-point-filter-control__panel {
+    background: var(--c_hexfff);
+    color: var(--c_hex222);
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 42px rgb(15 23 42 / 16%);
+}
+
+body.theme-light .data-point-filter-control__panel::before {
+    border-color: transparent transparent var(--c_hexfff) transparent;
+    filter: drop-shadow(0 4px 6px rgb(15 23 42 / 12%));
+}
+
+body.theme-light .data-point-filter-control__panel--reverse::before {
+    border-color: var(--c_hexfff) transparent transparent transparent;
+    filter: drop-shadow(0 -4px 6px rgb(15 23 42 / 12%));
+}
+
+body.theme-light .data-point-filter-control__panel label,
+body.theme-light .data-point-filter-control__summary,
+body.theme-light .data-point-filter-control__reset {
+    color: rgba(15, 23, 42, 0.72);
+}
+
+body.theme-light .data-point-filter-control__select,
+body.theme-light .data-point-filter-control__input {
+    background: rgba(15, 23, 42, 0.03);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 640px) {
+    .data-point-filter-control__panel {
+        min-width: min(280px, calc(100vw - 24px));
+        max-width: min(320px, calc(100vw - 24px));
+        padding: 16px 18px;
+    }
+}
+
+/* =====================================================
    Loading Overlay - Professional Glass Design
    ===================================================== */
 #loadingOverlay {

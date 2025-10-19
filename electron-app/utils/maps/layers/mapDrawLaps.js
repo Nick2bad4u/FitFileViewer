@@ -1,6 +1,7 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
 import { setState } from "../../state/core/stateManager.js";
+import { createMetricFilter, getMetricDefinition } from "../filters/mapMetricFilter.js";
 
 /**
  * @typedef {Object} RecordMesg
@@ -26,6 +27,10 @@ import { setState } from "../../state/core/stateManager.js";
  * @typedef {Object} FitFile
  * @property {Object} data - FIT file data
  * @property {string} [filePath] - File path
+ */
+
+/**
+ * @typedef {[number, number, number|null, number|null, number|null, number|null, number, any, number]} CoordTuple
  */
 export function drawOverlayForFitFile({
     endIcon,
@@ -116,13 +121,8 @@ export function drawOverlayForFitFile({
             eMarker.bindPopup("End");
         }
 
-        const stepOverlay =
-            /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)));
-        for (let i = 0; i < coords.length; i += stepOverlay) {
-            const c = coords[i];
-            if (!c) continue;
+        const markerCoords = selectMarkerCoordinatesForDataset(coords, false);
+        for (const c of markerCoords) {
             const marker = L.circleMarker([c[0], c[1]], {
                 color: paletteColor || "#1976d2",
                 fillColor: "#fff",
@@ -427,18 +427,16 @@ export function mapDrawLaps(
             }
 
             // Replace loops adding markers where c may be undefined
-            const markerCount = /** @type {any} */ (getWin()).mapMarkerCount;
-            const step = markerCount === 0 || !markerCount ? 1 : Math.max(1, Math.floor(coords.length / markerCount));
-            console.log(`[mapDrawLaps] Creating markers: markerCount=${markerCount}, step=${step}, coords.length=${coords.length}`);
+            const markerCoords = selectMarkerCoordinatesForDataset(coords);
+            console.log(
+                `[mapDrawLaps] Creating markers: requested=${/** @type {any} */ (getWin()).mapMarkerCount} actual=${markerCoords.length}, coords.length=${coords.length}`
+            );
 
             let markersCreated = 0;
-            for (let i = 0; i < coords.length; i += step) {
-                const c = coords[i];
+            for (const c of markerCoords) {
                 if (!c) {
-                    console.warn(`[mapDrawLaps] Skipping undefined coord at index ${i}`);
                     continue;
                 }
-                // c tuple: [lat, lng, ts, alt, hr, speed, idx, row, lap]
                 const tail = c.slice(6);
                 const [idx, row, lapVal] = tail;
                 let lapDisplay = lapVal;
@@ -614,17 +612,8 @@ export function mapDrawLaps(
                     endMarker2.bindPopup("End");
                 }
 
-                // Replace loops adding markers where c may be undefined
-                for (
-                    let i = 0;
-                    i < coords.length;
-                    i +=
-                        /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                        !(/** @type {any} */ (getWin()).mapMarkerCount)
-                        ? 1
-                        : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
-                ) {
-                    const c = coords[i];
+                const markerCoords = selectMarkerCoordinatesForDataset(coords);
+                for (const c of markerCoords) {
                     if (!c) {
                         continue;
                     }
@@ -780,16 +769,8 @@ export function mapDrawLaps(
                                 .bindPopup("End");
                         }
 
-                        const stepLap =
-                            /** @type {any} */ (getWin()).mapMarkerCount === 0 ||
-                                !(/** @type {any} */ (getWin()).mapMarkerCount)
-                                ? 1
-                                : Math.max(
-                                    1,
-                                    Math.floor(lapCoords.length / /** @type {any} */ (getWin().mapMarkerCount || 1))
-                                );
-                        for (let j = 0; j < lapCoords.length; j += stepLap) {
-                            const c = lapCoords[j];
+                        const markerCoords = selectMarkerCoordinatesForDataset(lapCoords);
+                        for (const c of markerCoords) {
                             if (!c) {
                                 continue;
                             }
@@ -1000,16 +981,8 @@ export function mapDrawLaps(
             L.marker([end[0], end[1]], { icon: endIcon, title: "End", zIndexOffset: 2000 }).addTo(map).bindPopup("End");
         }
 
-        // Replace loops adding markers where c may be undefined
-        for (
-            let i = 0;
-            i < coords.length;
-            i +=
-                /** @type {any} */ (getWin()).mapMarkerCount === 0 || !(/** @type {any} */ (getWin()).mapMarkerCount)
-                ? 1
-                : Math.max(1, Math.floor(coords.length / /** @type {any} */ (getWin().mapMarkerCount || 1)))
-        ) {
-            const c = coords[i];
+        const markerCoords = selectMarkerCoordinatesForDataset(coords);
+        for (const c of markerCoords) {
             if (!c) {
                 continue;
             }
@@ -1121,6 +1094,19 @@ function getLeaflet() {
 }
 
 /**
+ * Determine the marker limit configured by the user.
+ * @returns {number}
+ */
+function getMarkerLimit() {
+    const win = getWin();
+    const value = Number(win.mapMarkerCount);
+    if (!Number.isFinite(value) || value < 0) {
+        return 0;
+    }
+    return value;
+}
+
+/**
  * Resolve the active window dynamically to avoid stale references in tests.
  * @returns {Window & WindowExtensions}
  */
@@ -1155,6 +1141,119 @@ function patchLapIndices(lapMesgs, recordMesgs) {
         }
     }
 }
+
+/**
+ * Select marker coordinates using the default stepping logic.
+ * @param {Array<CoordTuple>} coordsArray
+ * @param {number} markerLimit
+ * @returns {Array<CoordTuple>}
+ */
+function selectDefaultMarkerCoordinates(coordsArray, markerLimit) {
+    if (!Array.isArray(coordsArray) || coordsArray.length === 0) {
+        return [];
+    }
+    const effectiveStep = markerLimit === 0
+        ? 1
+        : Math.max(1, Math.floor(coordsArray.length / markerLimit));
+    const selected = [];
+    for (let i = 0; i < coordsArray.length; i += effectiveStep) {
+        const [coord] = coordsArray.slice(i, i + 1);
+        if (coord) {
+            selected.push(coord);
+        }
+    }
+    if (selected.length === 0) {
+        const [first] = coordsArray;
+        if (first) {
+            selected.push(first);
+        }
+    }
+    return selected;
+}
+
+/* eslint-disable prefer-destructuring */
+/**
+ * Determine which coordinates should render markers based on current filter.
+ * @param {Array<CoordTuple>} coordsArray
+ * @param {boolean} [shouldUpdateSummary=true]
+ * @returns {Array<CoordTuple>}
+ */
+function selectMarkerCoordinatesForDataset(coordsArray, shouldUpdateSummary = true) {
+    const markerLimit = getMarkerLimit();
+    const win = getWin();
+    const filterConfig = /** @type {import("../filters/mapMetricFilter.js").MapDataPointFilterConfig | undefined} */ (
+        win.mapDataPointFilter
+    );
+
+    const updateSummary = (summary) => {
+        if (!shouldUpdateSummary) {
+            return;
+        }
+        try {
+            win.mapDataPointFilterLastResult = summary;
+        } catch {
+            /* ignore summary persistence errors */
+        }
+    };
+
+    if (!filterConfig || !filterConfig.enabled) {
+        updateSummary(null);
+        return selectDefaultMarkerCoordinates(coordsArray, markerLimit);
+    }
+
+    const metricDef = getMetricDefinition(filterConfig.metric);
+    if (!metricDef) {
+        updateSummary({ applied: false, reason: `Unknown metric: ${filterConfig.metric}` });
+        return selectDefaultMarkerCoordinates(coordsArray, markerLimit);
+    }
+
+    const filterResult = createMetricFilter(coordsArray, filterConfig, {
+        valueExtractor: (coord) => {
+            if (!Array.isArray(coord)) {
+                return null;
+            }
+            const row = coord[7];
+            return metricDef.resolver(row);
+        },
+    });
+
+    if (!filterResult.isActive || filterResult.reason || filterResult.selectedCount === 0) {
+        updateSummary({ applied: false, reason: filterResult.reason ?? "No qualifying data" });
+        return selectDefaultMarkerCoordinates(coordsArray, markerLimit);
+    }
+
+    const { orderedIndices, metric, metricLabel, threshold } = filterResult;
+    const { percent } = filterConfig;
+    const selected = orderedIndices.reduce(
+        (accumulator, index) => {
+            const [coord] = coordsArray.slice(index, index + 1);
+            if (coord) {
+                accumulator.push(coord);
+            }
+            return accumulator;
+        },
+        /** @type {Array<CoordTuple>} */([])
+    );
+
+    if (selected.length === 0) {
+        updateSummary({ applied: false, reason: "Filter produced no coordinates" });
+        return selectDefaultMarkerCoordinates(coordsArray, markerLimit);
+    }
+
+    const limit = markerLimit > 0 ? Math.min(markerLimit, selected.length) : selected.length;
+    const finalSelection = selected.slice(0, limit);
+    updateSummary({
+        applied: true,
+        metric,
+        metricLabel,
+        percent,
+        selectedCount: finalSelection.length,
+        totalCandidates: coordsArray.length,
+        threshold,
+    });
+    return finalSelection;
+}
+/* eslint-enable prefer-destructuring */
 
 // Add global function to update overlay highlights without redrawing the map
 // Install a stable reference that won't be replaced accidentally

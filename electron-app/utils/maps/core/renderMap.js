@@ -52,6 +52,7 @@ import { formatTooltipData } from "../../formatting/display/formatTooltipData.js
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
 import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
+import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
 import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
 import { createMapThemeToggle } from "../controls/mapActionButtons.js";
@@ -85,6 +86,10 @@ export function renderMap() {
     }
     const L = LeafletLib;
     windowExt._overlayPolylines = {};
+
+    const scheduleMicrotask = typeof queueMicrotask === "function"
+        ? queueMicrotask
+        : (callback) => Promise.resolve().then(callback);
 
     const mapContainer = document.querySelector("#content-map");
     if (!mapContainer) {
@@ -314,11 +319,33 @@ export function renderMap() {
         return secondary;
     };
 
+    /** @type {(HTMLElement & { refreshSummary?: () => void }) | undefined} */
+    let filterControl;
+
     if (controlsDiv && primaryControls) {
         primaryControls.append(createPrintButton());
         primaryControls.append(createMapThemeToggle());
         primaryControls.append(createExportGPXButton());
         primaryControls.append(createElevationProfileButton());
+        filterControl = createDataPointFilterControl(({ action }) => {
+            if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+                mapDrawLapsWrapper("all");
+            }
+            if (typeof windowExt.updateShownFilesList === "function") {
+                windowExt.updateShownFilesList();
+            }
+            console.log(`[renderMap] Map metric filter change handled, action=${action}`);
+            if (filterControl && typeof filterControl.refreshSummary === "function") {
+                scheduleMicrotask(() => {
+                    try {
+                        filterControl?.refreshSummary?.();
+                    } catch {
+                        /* ignore */
+                    }
+                });
+            }
+        });
+        primaryControls.append(filterControl);
         primaryControls.append(
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
@@ -378,6 +405,15 @@ export function renderMap() {
             markerClusterGroup,
             startIcon,
         });
+        if (filterControl && typeof filterControl.refreshSummary === "function") {
+            scheduleMicrotask(() => {
+                try {
+                    filterControl?.refreshSummary?.();
+                } catch {
+                    /* ignore */
+                }
+            });
+        }
     }
     const leafletMapElement = document.querySelector("#leaflet-map");
     if (leafletMapElement) {
