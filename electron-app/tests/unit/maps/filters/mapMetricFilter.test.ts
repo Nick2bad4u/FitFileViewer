@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+    computeMetricStatistics,
     createMetricFilter,
     getMetricDefinition,
     MAP_FILTER_METRICS,
@@ -60,5 +61,52 @@ describe("MAP_FILTER_METRICS", () => {
     it("exposes a speed metric by default", () => {
         const metricKeys = MAP_FILTER_METRICS.map((metric) => metric.key);
         expect(metricKeys).toContain("speed");
+    });
+});
+
+describe("createMetricFilter range mode", () => {
+    it("selects entries within the requested value range", () => {
+        const records = [{ speed: 2 }, { speed: 4 }, { speed: 6 }];
+        const result = createMetricFilter(records, {
+            enabled: true,
+            maxValue: 6,
+            metric: "speed",
+            minValue: 3,
+            mode: "valueRange",
+        });
+        expect(result.isActive).toBe(true);
+        expect(result.mode).toBe("valueRange");
+        expect(result.selectedCount).toBe(2);
+        expect([...result.allowedIndices]).toEqual([2, 1]);
+        expect(result.appliedMin).toBe(3);
+        expect(result.appliedMax).toBe(6);
+    });
+
+    it("returns a reason when the range excludes all data", () => {
+        const records = [{ power: 100 }, { power: 150 }];
+        const result = createMetricFilter(records, {
+            enabled: true,
+            maxValue: 130,
+            metric: "power",
+            minValue: 120,
+            mode: "valueRange",
+        });
+        expect(result.isActive).toBe(false);
+        expect(result.reason).toMatch(/no data points/i);
+    });
+});
+
+describe("computeMetricStatistics", () => {
+    it("computes bounds and averages for a metric", () => {
+        const stats = computeMetricStatistics(
+            [{ speed: 1.5 }, { speed: 2.25 }, { speed: 3.75 }],
+            "speed"
+        );
+        expect(stats).toBeTruthy();
+        expect(stats?.min).toBeCloseTo(1.5);
+        expect(stats?.max).toBeCloseTo(3.75);
+        expect(stats?.average).toBeCloseTo((1.5 + 2.25 + 3.75) / 3);
+        expect(stats?.count).toBe(3);
+        expect(stats?.step).toBeGreaterThan(0);
     });
 });

@@ -4248,6 +4248,134 @@ body.theme-dark .custom-fullscreen-bar button:focus {
     color: var(--c_rgb255255255_65p, rgba(255, 255, 255, 0.65));
 }
 
+.data-point-filter-control__group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.data-point-filter-control__group--mode {
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.data-point-filter-control__mode-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.78;
+}
+
+.data-point-filter-control__mode-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+        border 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.data-point-filter-control__mode-option[data-checked="true"] {
+    border-color: var(--color-accent, #3b82f6);
+    background: rgba(59, 130, 246, 0.14);
+    color: var(--c_hexfff);
+}
+
+.data-point-filter-control__mode-option:hover,
+.data-point-filter-control__mode-option:focus-within {
+    border-color: var(--color-accent, #3b82f6);
+}
+
+.data-point-filter-control__mode-radio {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition:
+        border 0.2s ease,
+        background 0.2s ease;
+}
+
+.data-point-filter-control__mode-radio::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent, #3b82f6);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.data-point-filter-control__mode-radio:checked {
+    border-color: var(--color-accent, #3b82f6);
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.data-point-filter-control__mode-radio:checked::after {
+    opacity: 1;
+}
+
+.data-point-filter-control__mode-text {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.data-point-filter-control__percent {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.data-point-filter-control__range {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px 18px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    align-items: center;
+}
+
+.data-point-filter-control__range[data-disabled="true"] {
+    opacity: 0.55;
+}
+
+.data-point-filter-control__range-label {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.78;
+}
+
+.data-point-filter-control__range-slider {
+    width: 100%;
+    accent-color: var(--color-accent, #3b82f6);
+}
+
+.data-point-filter-control__range-values {
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c_hexfff);
+}
+
 .data-point-filter-control__select,
 .data-point-filter-control__input {
     width: 100%;
@@ -4362,6 +4490,26 @@ body.theme-light .data-point-filter-control__select,
 body.theme-light .data-point-filter-control__input {
     background: rgba(15, 23, 42, 0.03);
     border-color: rgba(15, 23, 42, 0.12);
+}
+
+body.theme-light .data-point-filter-control__group--mode,
+body.theme-light .data-point-filter-control__range {
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+body.theme-light .data-point-filter-control__mode-option[data-checked="true"] {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--c_hex222);
+}
+
+body.theme-light .data-point-filter-control__mode-radio {
+    border-color: rgba(15, 23, 42, 0.4);
+    background: rgba(15, 23, 42, 0.04);
+}
+
+body.theme-light .data-point-filter-control__range-values {
+    color: rgba(15, 23, 42, 0.85);
 }
 
 @media (max-width: 640px) {

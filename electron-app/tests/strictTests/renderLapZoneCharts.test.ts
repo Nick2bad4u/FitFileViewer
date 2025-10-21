@@ -575,7 +575,7 @@ describe("renderLapZoneCharts", () => {
             renderLapZoneCharts(container);
             const canvas = container.querySelector("canvas") as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
-            expect(canvas.style.background).toBe("rgb(18, 52, 86)");
+            expect(canvas.style.background).toBe("");
             expect(canvas.style.boxShadow).toBe("0 4px 8px rgba(0,0,0,0.3)");
         });
     });

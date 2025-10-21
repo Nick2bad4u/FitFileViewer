@@ -13,10 +13,17 @@
  */
 
 /**
+ * @typedef {"topPercent"|"valueRange"} MapFilterMode
+ */
+
+/**
  * @typedef {Object} MapDataPointFilterConfig
  * @property {boolean} enabled
  * @property {string} metric
- * @property {number} percent
+ * @property {MapFilterMode} [mode]
+ * @property {number} [percent]
+ * @property {number} [minValue]
+ * @property {number} [maxValue]
  */
 
 /**
@@ -63,6 +70,7 @@ export const MAP_FILTER_METRICS = [
  * @property {boolean} isActive
  * @property {string|null} metric
  * @property {string|null} metricLabel
+ * @property {MapFilterMode} mode
  * @property {number} percent
  * @property {number|null} threshold
  * @property {number} totalCandidates
@@ -70,6 +78,10 @@ export const MAP_FILTER_METRICS = [
  * @property {Set<number>} allowedIndices
  * @property {number[]} orderedIndices
  * @property {string|null} reason
+ * @property {number|null} minCandidate
+ * @property {number|null} maxCandidate
+ * @property {number|null} appliedMin
+ * @property {number|null} appliedMax
  */
 
 /**
@@ -92,6 +104,67 @@ export function buildMetricFilterPredicate(result) {
 }
 
 /**
+ * Compute descriptive statistics for a metric across record messages.
+ * @param {Array<any>} recordMesgs
+ * @param {string} metricKey
+ * @param {MetricFilterOptions} [options]
+ * @returns {{metric:string,metricLabel:string,min:number,max:number,average:number,count:number,decimals:number,step:number}|null}
+ */
+export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
+    const metricDef = getMetricDefinition(metricKey);
+    if (!metricDef) {
+        return null;
+    }
+
+    const valueExtractor = typeof options.valueExtractor === "function" ? options.valueExtractor : metricDef.resolver;
+
+    /** @type {number[]} */
+    const values = [];
+    let hasDecimal = false;
+
+    for (const row of recordMesgs) {
+        const value = valueExtractor(row);
+        if (typeof value === "number" && Number.isFinite(value)) {
+            values.push(value);
+            if (!Number.isInteger(value)) {
+                hasDecimal = true;
+            }
+        }
+    }
+
+    if (values.length === 0) {
+        return null;
+    }
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const sum = values.reduce((accumulator, current) => accumulator + current, 0);
+    const average = sum / values.length;
+    const decimals = hasDecimal ? 2 : 0;
+    const range = Math.abs(max - min);
+    let step;
+    if (decimals === 0) {
+        const raw = Math.round(range / 200) || 1;
+        step = Math.max(1, raw);
+    } else {
+        const base = range / 200;
+        const minimumStep = 1 / 10 ** decimals;
+        step = Number(Number.isFinite(base) && base > minimumStep ? base.toFixed(decimals) : minimumStep.toFixed(decimals));
+    }
+
+    return {
+        average,
+        count: values.length,
+        decimals,
+        max,
+        metric: metricDef.key,
+        metricLabel: metricDef.label,
+        min,
+        step,
+    };
+}
+
+/**
  * Compute the indices belonging to the requested top percentile for a metric.
  *
  * @param {Array<any>} recordMesgs
@@ -100,17 +173,24 @@ export function buildMetricFilterPredicate(result) {
  * @returns {MetricFilterResult}
  */
 export function createMetricFilter(recordMesgs, config, options = {}) {
+    const mode = config?.mode === "valueRange" ? "valueRange" : "topPercent";
+
     const disabledResult = {
+        appliedMax: null,
+        appliedMin: null,
+        allowedIndices: new Set(),
         isActive: false,
+        maxCandidate: null,
         metric: null,
         metricLabel: null,
+        minCandidate: null,
+        mode,
+        orderedIndices: [],
         percent: 0,
+        reason: null,
+        selectedCount: 0,
         threshold: null,
         totalCandidates: 0,
-        selectedCount: 0,
-        allowedIndices: new Set(),
-        orderedIndices: [],
-        reason: null,
     };
 
     if (!config || !config.enabled) {
@@ -126,14 +206,6 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
     }
 
     const valueExtractor = typeof options.valueExtractor === "function" ? options.valueExtractor : metricDef.resolver;
-
-    const pct = clamp(Number(config.percent) || 0, 0, 100);
-    if (pct <= 0) {
-        return {
-            ...disabledResult,
-            reason: "Percent must be greater than zero for filtering",
-        };
-    }
 
     /** @type {{ index:number, value:number }[]} */
     const entries = [];
@@ -153,6 +225,76 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
 
     entries.sort((a, b) => b.value - a.value);
 
+    const minCandidate = entries.at(-1)?.value ?? entries[0].value;
+    const maxCandidate = entries[0].value;
+
+    if (mode === "valueRange") {
+        const appliedMin = clampValue(
+                typeof config?.minValue === "number" ? config.minValue : minCandidate,
+                minCandidate,
+                maxCandidate
+            ),
+            appliedMax = clampValue(
+                typeof config?.maxValue === "number" ? config.maxValue : maxCandidate,
+                minCandidate,
+                maxCandidate
+            );
+
+        const normalizedMin = Math.min(appliedMin, appliedMax);
+        const normalizedMax = Math.max(appliedMin, appliedMax);
+
+        /** @type {number[]} */
+        const orderedIndices = [];
+        const allowedIndices = new Set();
+
+        for (const entry of entries) {
+            if (entry.value >= normalizedMin && entry.value <= normalizedMax) {
+                allowedIndices.add(entry.index);
+                orderedIndices.push(entry.index);
+            }
+        }
+
+        if (orderedIndices.length === 0) {
+            return {
+                ...disabledResult,
+                appliedMax: normalizedMax,
+                appliedMin: normalizedMin,
+                maxCandidate,
+                minCandidate,
+                mode,
+                reason: `No data points fall between ${normalizedMin} and ${normalizedMax}`,
+            };
+        }
+
+        return {
+            appliedMax: normalizedMax,
+            appliedMin: normalizedMin,
+            allowedIndices,
+            isActive: true,
+            maxCandidate,
+            metric: metricDef.key,
+            metricLabel: metricDef.label,
+            minCandidate,
+            mode,
+            orderedIndices,
+            percent: (orderedIndices.length / entries.length) * 100,
+            reason: null,
+            selectedCount: orderedIndices.length,
+            threshold: null,
+            totalCandidates: entries.length,
+        };
+    }
+
+    const pct = clamp(Number(config?.percent) || 0, 0, 100);
+    if (pct <= 0) {
+        return {
+            ...disabledResult,
+            maxCandidate,
+            minCandidate,
+            reason: "Percent must be greater than zero for filtering",
+        };
+    }
+
     const requestedCount = Math.ceil((entries.length * pct) / 100);
     const selectionCount = clamp(requestedCount, 1, entries.length);
     const thresholdEntry = entries.at(selectionCount - 1) ?? entries.at(-1);
@@ -171,16 +313,21 @@ export function createMetricFilter(recordMesgs, config, options = {}) {
     }
 
     return {
+        appliedMax: null,
+        appliedMin: null,
+        allowedIndices,
         isActive: true,
+        maxCandidate,
         metric: metricDef.key,
         metricLabel: metricDef.label,
+        minCandidate,
+        mode,
+        orderedIndices,
         percent: pct,
+        reason: null,
+        selectedCount: orderedIndices.length,
         threshold: thresholdValue,
         totalCandidates: entries.length,
-        selectedCount: orderedIndices.length,
-        allowedIndices,
-        orderedIndices,
-        reason: null,
     };
 }
 
@@ -193,15 +340,21 @@ export function getMetricDefinition(metricKey) {
     return MAP_FILTER_METRICS.find((metric) => metric.key === metricKey) ?? null;
 }
 
-/**
- * Clamp helper for numeric ranges.
- * @param {number} value
- * @param {number} min
- * @param {number} max
- * @returns {number}
- */
 function clamp(value, min, max) {
     if (Number.isNaN(value)) {
+        return min;
+    }
+    if (value < min) {
+        return min;
+    }
+    if (value > max) {
+        return max;
+    }
+    return value;
+}
+
+function clampValue(value, min, max) {
+    if (!Number.isFinite(value)) {
         return min;
     }
     if (value < min) {

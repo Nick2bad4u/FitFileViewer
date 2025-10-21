@@ -409,13 +409,43 @@ class TabStateManager {
             getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab" });
         } else {
             // Map already rendered, just invalidate size to fix grey tiles after tab switch
-            const mapInstance = /** @type {any} */ (globalThis)._leafletMapInstance;
+            const mapInstance = /** @type {any} */ (globalThis)._leafletMapInstance,
+                renderMapFn = /** @type {any} */ (globalThis).renderMap;
+
             if (mapInstance && typeof mapInstance.invalidateSize === "function") {
-                // Small delay to ensure DOM has updated
-                setTimeout(() => {
-                    mapInstance.invalidateSize();
-                    console.log("[TabStateManager] Map size invalidated to fix grey tiles");
-                }, 50);
+                /**
+                 * Attempt to reflow the map safely. If the underlying container has been detached,
+                 * we fall back to a full re-render to avoid Leaflet accessing undefined properties.
+                 */
+                const executeInvalidation = () => {
+                    const container = typeof mapInstance.getContainer === "function" ? mapInstance.getContainer() : null;
+
+                    if (!container || !container.isConnected) {
+                        console.warn("[TabStateManager] Map container missing; re-rendering map instance");
+                        if (typeof renderMapFn === "function") {
+                            renderMapFn();
+                            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab.reRender" });
+                        }
+                        return;
+                    }
+
+                    try {
+                        mapInstance.invalidateSize({ pan: false });
+                        console.log("[TabStateManager] Map size invalidated to fix grey tiles");
+                    } catch (error) {
+                        console.warn("[TabStateManager] Map invalidation failed; re-rendering map", error);
+                        if (typeof renderMapFn === "function") {
+                            renderMapFn();
+                            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab.recover" });
+                        }
+                    }
+                };
+
+                if (typeof requestAnimationFrame === "function") {
+                    requestAnimationFrame(() => requestAnimationFrame(executeInvalidation));
+                } else {
+                    setTimeout(executeInvalidation, 75);
+                }
             }
         }
     }

@@ -1230,8 +1230,18 @@ function selectMarkerCoordinatesForDataset(coordsArray, shouldUpdateSummary = tr
         return selectDefaultMarkerCoordinates(coordsArray, markerLimit);
     }
 
-    const { orderedIndices, metric, metricLabel, threshold } = filterResult;
-    const { percent } = filterConfig;
+    const {
+        appliedMax,
+        appliedMin,
+        maxCandidate,
+        metric,
+        metricLabel,
+        minCandidate,
+        mode,
+        orderedIndices,
+        percent,
+        threshold,
+    } = filterResult;
     const selected = orderedIndices.reduce((accumulator, index) => {
         const [coord] = coordsArray.slice(index, index + 1);
         if (coord) {
@@ -1249,12 +1259,18 @@ function selectMarkerCoordinatesForDataset(coordsArray, shouldUpdateSummary = tr
     const finalSelection = selected.slice(0, limit);
     updateSummary({
         applied: true,
+        appliedMax,
+        appliedMin,
+        coverage: percent,
+        maxCandidate,
         metric,
         metricLabel,
-        percent,
+        minCandidate,
+        mode,
+        percent: mode === "topPercent" ? filterConfig.percent ?? percent : percent,
         selectedCount: finalSelection.length,
-        totalCandidates: coordsArray.length,
         threshold,
+        totalCandidates: coordsArray.length,
     });
     return finalSelection;
 }
