@@ -7,9 +7,60 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[68b58de](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)...
+[68b58de](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68b58de4388883ac95aa4cca4c27507ca1a6a9f4...68b58de4388883ac95aa4cca4c27507ca1a6a9f4))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.5.0 [`(68b58de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)
+
+
+
+
+
+
+## [28.5.0] - 2025-10-21
+
+
 [[6e0d4cc](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)...
-[6e0d4cc](https://github.com/Nick2bad4u/FitFileViewer/commit/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9...6e0d4cc4a3e1e78ce1c0821242c47156718f73b9))
+[ff0303c](https://github.com/Nick2bad4u/FitFileViewer/commit/ff0303c7ffff8dcc2eef7387883623dceac901a9)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/6e0d4cc4a3e1e78ce1c0821242c47156718f73b9...ff0303c7ffff8dcc2eef7387883623dceac901a9))
+
+
+### 💼 Other
+
+- ✨ [feat] Implement data point filtering by range
+
+Adds the ability to filter map data points by a value range, in addition to the existing percentile filtering.
+
+- Introduces UI elements for selecting a metric, choosing between percentile and range filtering, and setting the range values.
+ - ➕ Adds new CSS classes for styling the new range filter UI elements in both light and dark themes.
+ - The UI dynamically updates to show either the percentile input or the range selection sliders based on the selected mode.
+ - Range selection includes min/max sliders and displayes the range values.
+ - Adds logic to compute metric statistics (min, max, average) to populate the range sliders with appropriate values. 📊
+ - Introduces `computeMetricStatistics` to calculate bounds and averages for metrics.
+ - Global filter is updated with either percentile or range values depending on user selection.
+ - Adds functions to clamp values to within a range. ⚙️
+
+- Updates map drawing logic to handle both percentile and range filtering, and displays the applied range in the summary. 🗺️
+ - Modifies `selectMarkerCoordinatesForDataset` to handle new range filter properties.
+
+- Fixes a map re-render issue by adding a check to ensure the map container is connected before invalidating size. 🐛
+ - Updates `TabStateManager` to re-render the map if the container is detached.
+
+- Adds unit tests for the new range filtering functionality. 🧪
+ - Adds tests for `createMetricFilter` range mode and `computeMetricStatistics`.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(ff0303c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff0303c7ffff8dcc2eef7387883623dceac901a9)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.4.0 [skip ci] [`(87a8732)`](https://github.com/Nick2bad4u/FitFileViewer/commit/87a87329051bce8c23d87b223d1accc4f2960db2)
+
 
 
 ### 📦 Dependencies
