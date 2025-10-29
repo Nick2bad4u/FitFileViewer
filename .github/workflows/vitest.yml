@@ -68,17 +68,25 @@ jobs:
                   npm run test:ci -- --reporter=junit --outputFile=test-report.junit.xml
               continue-on-error: true
 
-            - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v5
-              env:
-                  PYTHONIOENCODING: utf-8
-                  PYTHONUTF8: 1
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  slug: Nick2bad4u/FitFileViewer
-                  files: electron-app/coverage/lcov.info
-                  flags: electron_app
-                  fail_ci_if_error: true
+            - name: Run vitest with coverage
+              run: |
+                  cd electron-app
+                  $env:CODECOV_TOKEN = "${{ secrets.CODECOV_TOKEN }}"
+                  .\codecov.exe upload-coverage --file ./coverage/lcov.info
+              continue-on-error: true
+
+
+            # - name: Upload coverage reports to Codecov
+            #   uses: codecov/codecov-action@v5
+            #   env:
+            #       PYTHONIOENCODING: utf-8
+            #       PYTHONUTF8: 1
+            #   with:
+            #       token: ${{ secrets.CODECOV_TOKEN }}
+            #       slug: Nick2bad4u/FitFileViewer
+            #       files: electron-app/coverage/lcov.info
+            #       flags: electron_app
+            #       fail_ci_if_error: true
 
             - name: Upload test results to Codecov
               if: ${{ !cancelled() }}

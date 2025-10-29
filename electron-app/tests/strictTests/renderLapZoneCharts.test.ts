@@ -305,8 +305,8 @@ describe("renderLapZoneCharts", () => {
             expect(canvas.style.marginBottom).toBe("20px");
             expect(canvas.style.maxHeight).toBe("400px");
             expect(canvas.style.background).toBe("");
-            expect(canvas.style.borderRadius).toBe("12px");
-            expect(canvas.style.boxShadow).toBe("0 2px 4px rgba(0,0,0,0.1)");
+            expect(canvas.style.borderRadius).toBe("8px");
+            expect(canvas.style.boxShadow).toBe("0 2px 8px rgba(0,0,0,0.1)");
         });
 
         it("should create canvas for Power stacked chart", () => {
