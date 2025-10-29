@@ -20,6 +20,7 @@ export default defineConfig({
             setupFiles: "list",
         },
         coverage: {
+            cwd: path.resolve(__dirname, ".."),
             // Focus coverage collection on a curated, consistently testable set
             // To enforce a strict 100% coverage gate without counting
             // Integration-heavy or environment-coupled modules.
@@ -32,27 +33,27 @@ export default defineConfig({
             exclude: [
                 "node_modules/**",
                 // Exclude built artifacts and generated output
-                "dist/**",
-                "tests/**",
+                "electron-app/dist/**",
+                "electron-app/tests/**",
                 "**/*.d.ts",
-                "coverage/**",
+                "electron-app/coverage/**",
                 // Barrels (pure re-export index files)
                 "**/index.js",
                 // Test mocks and stubs
                 "**/__mocks__/**",
                 // Tooling and configuration files (relative to electron-app)
-                "jest.config.cjs",
-                "vitest.config.enhanced.js",
-                "vitest.config.js",
-                "stylelint.config.js",
+                "electron-app/jest.config.cjs",
+                "electron-app/vitest.config.enhanced.js",
+                "electron-app/vitest.config.js",
+                "electron-app/stylelint.config.js",
                 // Dev-only and debugging utilities
-                "utils/debug/**",
-                "debug-electron-mock.js",
+                "electron-app/utils/debug/**",
+                "electron-app/debug-electron-mock.js",
                 // Performance monitoring (dev tooling)
-                "utils/performance/**",
+                "electron-app/utils/performance/**",
                 // Constants-only modules
-                "utils/charts/theming/chartOverlayColorPalette.js",
-                "utils/maps/core/mapColors.js",
+                "electron-app/utils/charts/theming/chartOverlayColorPalette.js",
+                "electron-app/utils/maps/core/mapColors.js",
                 ...coverageConfigDefaults.exclude,
             ],
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
@@ -60,8 +61,8 @@ export default defineConfig({
             ignoreEmptyLines: true, // Ignore empty lines, comments, and TypeScript interfaces
             // Curated include set: target modules with stable, complete unit tests
             // So that a strict ≥95% gate is meaningful and consistently achievable.
-            // Paths are relative to the electron-app directory.
-            include: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
+            // Paths are relative to the repo root.
+            include: ["electron-app/**/*.js", "electron-app/**/*.ts", "electron-app/**/*.jsx", "electron-app/**/*.tsx"],
             provider: "v8",
             reporter: ["text", "html", "json", "lcov"],
             reportOnFailure: true,
@@ -76,7 +77,7 @@ export default defineConfig({
                 if (isWin && inDropbox) {
                     return path.join(os.tmpdir(), "ffv-vitest-coverage");
                 }
-                return "./coverage";
+                return "electron-app/coverage";
             })(),
             skipFull: false, // Don't skip full coverage collection
             thresholds: {
@@ -101,7 +102,7 @@ export default defineConfig({
         exclude: [
             "**/node_modules/**",
             // Exclude any compiled artifacts accidentally picked up
-            "dist/**",
+            "electron-app/dist/**",
             "**/dist/**",
             "node_modules/table/node_modules/json-schema-traverse/spec/index.spec.js",
         ],
@@ -118,9 +119,9 @@ export default defineConfig({
         },
         fileParallelism: true,
         globals: true, // Enable global test functions (describe, it, expect)
-        globalSetup: ["./tests/globalSetup.js"],
+        globalSetup: ["electron-app/tests/globalSetup.js"],
         // Only collect tests from the source tests directory
-        include: ["tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+        include: ["electron-app/tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 
         isolate: true,
         logHeapUsage: true,
@@ -167,10 +168,10 @@ export default defineConfig({
                 ],
             },
         },
-        setupFiles: ["./tests/setupVitest.js"],
+        setupFiles: ["electron-app/tests/setupVitest.js"],
         // Ensure server-side transform for modules that require('electron') so SSR mocks are applied
         testTransformMode: {
-            ssr: ["**/main.js", "**/utils/app/menu/createAppMenu.js", "**/preload.js"],
+            ssr: ["electron-app/**/main.js", "electron-app/**/utils/app/menu/createAppMenu.js", "electron-app/**/preload.js"],
         },
         typecheck: {
             allowJs: false,
@@ -178,13 +179,13 @@ export default defineConfig({
             enabled: true,
             exclude: ["**/dist*/**", "**/html/**", "**/.{idea,git,cache,output,temp}/**", ...defaultExclude],
             ignoreSourceErrors: false,
-            include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
+            include: ["electron-app/**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,
             spawnTimeout: 10_000,
             tsconfig: "./tsconfig.vitest.json",
         },
         watch: false,
         // Force rerun triggers - these files will trigger full test suite
-        forceRerunTriggers: ["**/package.json", "**/vitest.config.js", "**/vitest.config.ts"],
+        forceRerunTriggers: ["electron-app/**/package.json", "electron-app/**/vitest.config.js", "electron-app/**/vitest.config.ts"],
     },
 });
