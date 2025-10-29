@@ -17,6 +17,13 @@ on:
             - "!electron-app"
             - "**/CHANGELOG.md"
             - "CHANGELOG.md"
+            - "electron-app/scripts/**"
+            - "electron-app/scripts"
+            - "electron-app/tests/**"
+            - "electron-app/tests"
+            - "electron-app/assets/**"
+            - "electron-app/assets"
+            - "electron-app/vite.config.js"
     workflow_dispatch:
         inputs:
             branch:

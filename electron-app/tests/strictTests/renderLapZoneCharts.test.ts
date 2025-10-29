@@ -302,11 +302,11 @@ describe("renderLapZoneCharts", () => {
             renderLapZoneCharts(container);
             const canvas = container.querySelector("#chartjs-canvas-lap-hr-zones") as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
-            expect(canvas.style.marginBottom).toBe("32px");
+            expect(canvas.style.marginBottom).toBe("20px");
             expect(canvas.style.maxHeight).toBe("400px");
-            expect(canvas.style.background).toBe("rgb(255, 255, 255)");
-            expect(canvas.style.borderRadius).toBe("12px");
-            expect(canvas.style.boxShadow).toBe("0 2px 4px rgba(0,0,0,0.1)");
+            expect(canvas.style.background).toBe("");
+            expect(canvas.style.borderRadius).toBe("8px");
+            expect(canvas.style.boxShadow).toBe("0 2px 8px rgba(0,0,0,0.1)");
         });
 
         it("should create canvas for Power stacked chart", () => {
@@ -358,7 +358,7 @@ describe("renderLapZoneCharts", () => {
 
             // Verify renderLapZoneChart was called for HR chart
             const hrCalls = renderLapZoneChart.mock.calls.filter(
-                (call) => call[2]?.title === "HR Zone by Lap (Stacked)"
+                (call: { title: string; }[]) => call[2]?.title === "HR Zone by Lap (Stacked)"
             );
             expect(hrCalls).toHaveLength(1);
 
@@ -568,7 +568,7 @@ describe("renderLapZoneCharts", () => {
             (getThemeConfig as any).mockReturnValue({
                 colors: {
                     bgPrimary: "#123456",
-                    shadow: "0 4px 8px rgba(0,0,0,0.3)",
+                    shadow: "0 2px 8px rgba(0,0,0,0.1)",
                 },
             });
 
@@ -576,7 +576,7 @@ describe("renderLapZoneCharts", () => {
             const canvas = container.querySelector("canvas") as HTMLCanvasElement;
             expect(canvas).toBeTruthy();
             expect(canvas.style.background).toBe("");
-            expect(canvas.style.boxShadow).toBe("0 4px 8px rgba(0,0,0,0.3)");
+            expect(canvas.style.boxShadow).toBe("0 2px 8px rgba(0,0,0,0.1)");
         });
     });
 

@@ -63,7 +63,12 @@ export default defineConfig({
             // Paths are relative to the electron-app directory.
             include: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
             provider: "v8",
-            reporter: ["text", "html", "json", "lcov"],
+            reporter: [
+                "text",
+                "html",
+                "json",
+                ["lcov", { projectRoot: path.resolve(__dirname, "..") }],
+            ],
             reportOnFailure: true,
             // Work around Windows/Dropbox file locking on coverage temp folder by writing
             // Reports to the OS temp directory when running inside a Dropbox path.

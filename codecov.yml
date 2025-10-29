@@ -46,7 +46,7 @@ component_management:
                 type: patch
         # === RENDERER AND UI (Medium-High Coverage) ===
         - component_id: renderer_ui
-          name: "🖥️ Renderer & UI"
+          name: "Renderer & UI"
           paths:
               - electron-app/renderer.js
               - electron-app/main-ui.js
@@ -61,7 +61,7 @@ component_management:
                 type: patch
         # === UTILITIES (High Coverage - Easy to Test) ===
         - component_id: utilities
-          name: "🛠️ Utilities"
+          name: "Utilities"
           paths:
               - electron-app/utils/**
           statuses:
@@ -73,7 +73,7 @@ component_management:
                 type: patch
         # === FIT PARSING (Core Business Logic) ===
         - component_id: fit_parsing
-          name: "📊 FIT Parsing"
+          name: "FIT Parsing"
           paths:
               - electron-app/fitParser.js
           statuses:
@@ -85,7 +85,7 @@ component_management:
                 type: patch
         # === WINDOW STATE MANAGEMENT (Medium Coverage) ===
         - component_id: window_state
-          name: "🪟 Window State Management"
+          name: "Window State Management"
           paths:
               - electron-app/windowStateUtils.js
           statuses:
