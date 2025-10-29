@@ -69,17 +69,27 @@ jobs:
               continue-on-error: true
 
             - name: Upload coverage reports to Codecov
-              run: |
-                  bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }} -f ./coverage/lcov.info -F electron_app -F unit
-
-            - name: Upload test results to Codecov
-              shell: cmd
-              run: |
-                  chcp 65001
-                  codecov.exe test-results --token ${{ secrets.CODECOV_TOKEN }} --file test-report.junit.xml
+              uses: codecov/codecov-action@v5
               env:
                   PYTHONIOENCODING: utf-8
                   PYTHONUTF8: 1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  slug: Nick2bad4u/FitFileViewer
+                  working-directory: electron-app
+                  files: ./coverage/lcov.info
+                  flags: electron_app,unit
+                  fail_ci_if_error: true
+
+            - name: Upload test results to Codecov
+              if: ${{ !cancelled() }}
+              uses: codecov/test-results-action@v1
+              env:
+                  PYTHONIOENCODING: utf-8
+                  PYTHONUTF8: 1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  file: test-report.junit.xml
 
             - name: Upload coverage artifact
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
