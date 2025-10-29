@@ -7,9 +7,45 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[3a7b135](https://github.com/Nick2bad4u/FitFileViewer/commit/3a7b1351f772294bbb4cb7b53a494a2dcca455d2)...
+[3a7b135](https://github.com/Nick2bad4u/FitFileViewer/commit/3a7b1351f772294bbb4cb7b53a494a2dcca455d2)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3a7b1351f772294bbb4cb7b53a494a2dcca455d2...3a7b1351f772294bbb4cb7b53a494a2dcca455d2))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.6.0 [`(3a7b135)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a7b1351f772294bbb4cb7b53a494a2dcca455d2)
+
+
+
+
+
+
+## [28.6.0] - 2025-10-29
+
+
 [[68b58de](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)...
-[68b58de](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68b58de4388883ac95aa4cca4c27507ca1a6a9f4...68b58de4388883ac95aa4cca4c27507ca1a6a9f4))
+[845262b](https://github.com/Nick2bad4u/FitFileViewer/commit/845262b29b05324df2d70c68196c39add9519407)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68b58de4388883ac95aa4cca4c27507ca1a6a9f4...845262b29b05324df2d70c68196c39add9519407))
+
+
+### 💼 Other
+
+- 👷 [ci][skip-ci][ci-skip] Use dot reporter and silence Vitest output in CI test script
+
+ - 👷 [ci] Update electron-app/package.json "test:ci" script to add --reporter=dot and --silent to the vitest invocation
+ - 🧪 [test] Preserve existing behavior: NODE_OPTIONS=--max-old-space-size=8192 and --coverage remain unchanged; only output format and verbosity are affected
+ - 🧹 [chore] Rationale: produce concise, progress-style output in CI and reduce noisy logs to make failures easier to scan and triage
+ - 📝 [docs] No runtime or test logic changes; consider documenting CI log preferences if teams rely on different vitest reporters
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(845262b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/845262b29b05324df2d70c68196c39add9519407)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.5.0 [skip ci] [`(47c81dc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/47c81dc093a36579d209999fe7e5f6d21a8e5187)
+
 
 
 ### 📦 Dependencies

@@ -7,9 +7,56 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[3a7b135](https://github.com/Nick2bad4u/FitFileViewer/commit/3a7b1351f772294bbb4cb7b53a494a2dcca455d2)...
+[c5bf4ef](https://github.com/Nick2bad4u/FitFileViewer/commit/c5bf4ef92639adc3c0f8e7495e2b333a98cb326f)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3a7b1351f772294bbb4cb7b53a494a2dcca455d2...c5bf4ef92639adc3c0f8e7495e2b333a98cb326f))
+
+
+### 🛠️ GitHub Actions
+
+- 👷 [ci] Replace Codecov GH Actions with script-based uploads and normalize Codecov config names
+ - 👷 [ci] Replace codecov/codecov-action and codecov/test-results-action steps in .github/workflows/vitest.yml with direct uploads: use bash uploader for lcov and run codecov.exe in Windows cmd for JUnit results to improve reliability and control on Windows runners
+ - 🧹 [chore] Add electron-app/codecov.exe to .gitignore to avoid tracking the CI binary artifact
+ - 📝 [docs] Remove emoji glyphs from component names in codecov.yml (Renderer & UI, Utilities, FIT Parsing, Window State Management) to prevent encoding/display issues in dashboards
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c5bf4ef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c5bf4ef92639adc3c0f8e7495e2b333a98cb326f)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.6.0 [`(3a7b135)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3a7b1351f772294bbb4cb7b53a494a2dcca455d2)
+
+
+
+
+
+
+## [28.6.0] - 2025-10-29
+
+
 [[68b58de](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)...
-[68b58de](https://github.com/Nick2bad4u/FitFileViewer/commit/68b58de4388883ac95aa4cca4c27507ca1a6a9f4)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68b58de4388883ac95aa4cca4c27507ca1a6a9f4...68b58de4388883ac95aa4cca4c27507ca1a6a9f4))
+[845262b](https://github.com/Nick2bad4u/FitFileViewer/commit/845262b29b05324df2d70c68196c39add9519407)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/68b58de4388883ac95aa4cca4c27507ca1a6a9f4...845262b29b05324df2d70c68196c39add9519407))
+
+
+### 💼 Other
+
+- 👷 [ci][skip-ci][ci-skip] Use dot reporter and silence Vitest output in CI test script
+
+ - 👷 [ci] Update electron-app/package.json "test:ci" script to add --reporter=dot and --silent to the vitest invocation
+ - 🧪 [test] Preserve existing behavior: NODE_OPTIONS=--max-old-space-size=8192 and --coverage remain unchanged; only output format and verbosity are affected
+ - 🧹 [chore] Rationale: produce concise, progress-style output in CI and reduce noisy logs to make failures easier to scan and triage
+ - 📝 [docs] No runtime or test logic changes; consider documenting CI log preferences if teams rely on different vitest reporters
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(845262b)`](https://github.com/Nick2bad4u/FitFileViewer/commit/845262b29b05324df2d70c68196c39add9519407)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.5.0 [skip ci] [`(47c81dc)`](https://github.com/Nick2bad4u/FitFileViewer/commit/47c81dc093a36579d209999fe7e5f6d21a8e5187)
+
 
 
 ### 📦 Dependencies
