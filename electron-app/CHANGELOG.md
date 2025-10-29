@@ -7,9 +7,56 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[bf4743f](https://github.com/Nick2bad4u/FitFileViewer/commit/bf4743ff6c81a48c13b52426962c2a2493ccde9d)...
+[bf4743f](https://github.com/Nick2bad4u/FitFileViewer/commit/bf4743ff6c81a48c13b52426962c2a2493ccde9d)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/bf4743ff6c81a48c13b52426962c2a2493ccde9d...bf4743ff6c81a48c13b52426962c2a2493ccde9d))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 29.0.0 [`(bf4743f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bf4743ff6c81a48c13b52426962c2a2493ccde9d)
+
+
+
+
+
+
+## [29.0.0] - 2025-10-29
+
+
 [[829fc75](https://github.com/Nick2bad4u/FitFileViewer/commit/829fc755b087e8baeb5c9f2cedbcf6c28a61e858)...
-[829fc75](https://github.com/Nick2bad4u/FitFileViewer/commit/829fc755b087e8baeb5c9f2cedbcf6c28a61e858)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/829fc755b087e8baeb5c9f2cedbcf6c28a61e858...829fc755b087e8baeb5c9f2cedbcf6c28a61e858))
+[d61402d](https://github.com/Nick2bad4u/FitFileViewer/commit/d61402dd469ea49740ca294c85206a3cb3d7ea87)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/829fc755b087e8baeb5c9f2cedbcf6c28a61e858...d61402dd469ea49740ca294c85206a3cb3d7ea87))
+
+
+### 🛠️ GitHub Actions
+
+- 👷 [ci] Fix Codecov uploads on Windows and normalize LCOV paths
+ - Add electron-app/codecov.exe and invoke it in the Vitest workflow to upload ./coverage/lcov.info (Windows-friendly upload step; continue-on-error to avoid CI hard-fail)
+ - Keep codecov action as a fallback; remove codecov.exe from .gitignore so the binary is tracked
+
+🔧 [build] Add LCOV normalization script to produce repo-root-relative paths
+ - Add electron-app/scripts/normalize-coverage-lcov.mjs which copies coverage from temp dirs and rewrites SF: entries to POSIX, repo-root-relative paths, then writes normalized lcov back to electron-app/coverage/lcov.info
+ - This ensures Codecov receives consistent, repo-relative file paths and fixes unusable reports
+
+🔧 [build] Standardize Vitest coverage output and path handling
+ - Update electron-app/vitest.config.js to use repo-local globs (remove redundant electron-app/ prefixes), set coverage.dir to ./coverage, and add an lcov reporter configured with projectRoot: path.resolve(__dirname, "..")
+ - Adjust include/exclude, setupFiles, SSR transform patterns, typecheck includes and forceRerunTriggers to use generic repo-relative globs for consistent discovery across platforms
+
+🧪 [test] Update renderLapZoneCharts expectations to match current canvas styling
+ - Adjust test assertions in electron-app/tests/strictTests/renderLapZoneCharts.test.ts: borderRadius 12px → 8px and boxShadow "0 2px 4px rgba(0,0,0,0.1)" → "0 2px 8px rgba(0,0,0,0.1)"
+
+👷 [ci] Tweak Build workflow path-ignore rules
+ - Update .github/workflows/Build.yml paths-ignore to include scripts, tests, assets and vite.config.js so workflow trigger logic treats these files as intended
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(d61402d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/d61402dd469ea49740ca294c85206a3cb3d7ea87)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.9.0 [skip ci] [`(6af7c41)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6af7c410464ceba6be13d14151c9e7c9ac0362fb)
+
 
 
 ### 📦 Dependencies
