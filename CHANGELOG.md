@@ -7,9 +7,88 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[829fc75](https://github.com/Nick2bad4u/FitFileViewer/commit/829fc755b087e8baeb5c9f2cedbcf6c28a61e858)...
+[829fc75](https://github.com/Nick2bad4u/FitFileViewer/commit/829fc755b087e8baeb5c9f2cedbcf6c28a61e858)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/829fc755b087e8baeb5c9f2cedbcf6c28a61e858...829fc755b087e8baeb5c9f2cedbcf6c28a61e858))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.9.0 [`(829fc75)`](https://github.com/Nick2bad4u/FitFileViewer/commit/829fc755b087e8baeb5c9f2cedbcf6c28a61e858)
+
+
+
+
+
+
+## [28.9.0] - 2025-10-29
+
+
+[[ca8b5a6](https://github.com/Nick2bad4u/FitFileViewer/commit/ca8b5a6a40c16c2d549aefda19813950f3f40fc5)...
+[44ac043](https://github.com/Nick2bad4u/FitFileViewer/commit/44ac043643f7319d11e095d067470cc484e2128e)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/ca8b5a6a40c16c2d549aefda19813950f3f40fc5...44ac043643f7319d11e095d067470cc484e2128e))
+
+
+### 💼 Other
+
+- Fix Codecov unusable report by adjusting paths to be relative to repo root
+
+- Set coverage.cwd to repo root in vitest.config.js
+- Updated all paths in config to be relative to repo root
+- Removed working-directory from Codecov upload steps
+- Changed file paths in workflow to electron-app/coverage/lcov.info etc.
+
+This ensures lcov paths are electron-app/utils/file.js, matching the repo structure.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(44ac043)`](https://github.com/Nick2bad4u/FitFileViewer/commit/44ac043643f7319d11e095d067470cc484e2128e)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.8.0 [`(ca8b5a6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca8b5a6a40c16c2d549aefda19813950f3f40fc5)
+
+
+
+
+
+
+## [28.8.0] - 2025-10-29
+
+
+[[f1ce68a](https://github.com/Nick2bad4u/FitFileViewer/commit/f1ce68a09c238093cdc9c3c4b7b094a43e33b35b)...
+[f758ee4](https://github.com/Nick2bad4u/FitFileViewer/commit/f758ee4f1a4d3db729641b25a8035e6b61583c66)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/f1ce68a09c238093cdc9c3c4b7b094a43e33b35b...f758ee4f1a4d3db729641b25a8035e6b61583c66))
+
+
+### 💼 Other
+
+- [ci-skip][skip-ci] 🧪 [test] Update renderLapZoneCharts tests to match current canvas styling
+ - Expect canvas.style.background to be empty string (was "rgb(255, 255, 255)")
+ - Align mocked theme shadow and expected boxShadow to "0 2px 8px rgba(0,0,0,0.1)" (was "0 4px 8px rgba(0,0,0,0.1)")
+
+👷 [ci] Remove "unit" flag from Codecov upload in vitest workflow
+ - Use only "electron_app" flag for coverage uploads (replace previous "electron_app,unit") to align with normalized Codecov config names
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(f758ee4)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f758ee4f1a4d3db729641b25a8035e6b61583c66)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 28.7.0 [`(f1ce68a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f1ce68a09c238093cdc9c3c4b7b094a43e33b35b)
+
+
+
+
+
+
+## [28.7.0] - 2025-10-29
+
+
 [[3a7b135](https://github.com/Nick2bad4u/FitFileViewer/commit/3a7b1351f772294bbb4cb7b53a494a2dcca455d2)...
-[c5bf4ef](https://github.com/Nick2bad4u/FitFileViewer/commit/c5bf4ef92639adc3c0f8e7495e2b333a98cb326f)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3a7b1351f772294bbb4cb7b53a494a2dcca455d2...c5bf4ef92639adc3c0f8e7495e2b333a98cb326f))
+[9a2a7da](https://github.com/Nick2bad4u/FitFileViewer/commit/9a2a7da10628a652f8c0b5bb1b115f4b08487a74)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/3a7b1351f772294bbb4cb7b53a494a2dcca455d2...9a2a7da10628a652f8c0b5bb1b115f4b08487a74))
 
 
 ### 🛠️ GitHub Actions
@@ -20,6 +99,28 @@ All notable changes to this project will be documented in this file.
  - 📝 [docs] Remove emoji glyphs from component names in codecov.yml (Renderer & UI, Utilities, FIT Parsing, Window State Management) to prevent encoding/display issues in dashboards
 
 Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c5bf4ef)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c5bf4ef92639adc3c0f8e7495e2b333a98cb326f)
+
+
+
+### 💼 Other
+
+- 👷 [ci] Use Codecov GitHub Actions for uploads (replace legacy scripts)
+ - Replace curl/bash and codecov.exe uploads with codecov/codecov-action@v5 for coverage and codecov/test-results-action@v1 for test results
+ - Configure action with token, working-directory=electron-app, files=./coverage/lcov.info and flags=electron_app,unit
+ - Add PYTHONIOENCODING/PYTHONUTF8 env, enable fail_ci_if_error and guard test-results upload with if: ${{ !cancelled() }} to skip uploads on cancelled runs
+
+🧪 [test] Update renderLapZoneCharts tests to match styling and typing changes
+ - Expect canvas marginBottom to be "20px" (was "32px")
+ - Reduce mocked theme shadow alpha from 0.3 to 0.1 and update boxShadow expectation accordingly
+ - Add explicit type annotation for renderLapZoneChart mock filter callback to satisfy TypeScript
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(9a2a7da)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9a2a7da10628a652f8c0b5bb1b115f4b08487a74)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v28.6.0 [skip ci] [`(9636299)`](https://github.com/Nick2bad4u/FitFileViewer/commit/9636299955912c61b02b24978802ca5be30c4686)
 
 
 
