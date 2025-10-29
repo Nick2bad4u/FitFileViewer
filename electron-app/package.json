@@ -228,7 +228,7 @@
     "test:unit": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/unit",
     "test:integration": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run tests/integration",
     "test:e2e": "jest --testPathPattern=e2e",
-    "test:ci": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --coverage",
+    "test:ci": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --coverage --reporter=dot --silent",
     "test:tabs": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vitest --run --reporter=verbose tests/unit/tabs",
     "build:prod": "cross-env NODE_ENV=production electron-builder",
     "build:dev": "cross-env NODE_ENV=development electron-builder",
