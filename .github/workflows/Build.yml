@@ -107,7 +107,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Upload bumped package.json to repo
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
               with:
                   name: bumped-package-json
                   path: electron-app/package.json
@@ -167,13 +167,13 @@ jobs:
                   ref: ${{ github.event.inputs.branch || github.ref }}
 
             - name: Download bumped package.json from bump-version job
-              uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
                   name: bumped-package-json
                   path: ./electron-app
 
             - name: Setup Node.js environment (v20)
-              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
               with:
                   node-version: 20
 
@@ -323,7 +323,7 @@ jobs:
 
             - name: Upload build dist files as artifact
               id: upload_artifact
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
               with:
                   name: dist-${{ matrix.os }}-${{ matrix.arch }}
                   path: |
@@ -363,7 +363,7 @@ jobs:
                   ref: ${{ github.event.inputs.branch || github.ref }}
 
             - name: Download all build artifacts from build job
-              uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
                   path: ./artifacts
 
@@ -641,7 +641,7 @@ jobs:
 
             - name: Create or update release with distributable builds
               id: release
-              uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
+              uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
               with:
                   tag_name: v${{ needs.bump-version.outputs.new_version }}
                   name: FitFileViewer v${{ needs.bump-version.outputs.new_version }}
@@ -803,7 +803,7 @@ jobs:
                   echo "CHECKID=$CHECKID" >> "$GITHUB_ENV"
 
             - name: Set up Node.js
-              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
               with:
                   node-version: "20"
 
