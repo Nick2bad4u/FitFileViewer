@@ -464,14 +464,25 @@ async function decodeFitFile(fileBuffer, options = {}, fitsdk = null) {
         if (fitFileStateManager) {
             try {
                 fitFileStateManager.updateLoadingProgress(100);
-                fitFileStateManager.handleFileLoaded({
-                    messages: processedMessages,
-                    metadata: {
-                        decodingOptions: readOptions,
-                        processingTime: performanceMonitor ? performanceMonitor.getOperationTime(operationId) : null,
-                        recordCount: fitFileStateManager.getRecordCount(processedMessages),
+                fitFileStateManager.handleFileLoaded(
+                    {
+                        messages: processedMessages,
+                        metadata: {
+                            decodingOptions: readOptions,
+                            processingTime: performanceMonitor
+                                ? performanceMonitor.getOperationTime(operationId)
+                                : null,
+                            recordCount: fitFileStateManager.getRecordCount(processedMessages),
+                        },
                     },
-                });
+                    {
+                        filePath:
+                            typeof readOptions?.filePath === "string" && readOptions.filePath.length > 0
+                                ? readOptions.filePath
+                                : null,
+                        source: "fitParser.decodeFitFile",
+                    }
+                );
             } catch (error) {
                 console.warn("[FitParser] Failed to update success state:", error);
             }

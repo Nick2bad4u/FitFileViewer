@@ -99,18 +99,23 @@ const setState = vi.fn((key: string, value: any) => {
         }
     }
 });
-vi.mock("../../../utils/state/core/stateManager.js", () => ({ getState, setState }));
+const subscribe = vi.fn();
+vi.mock("../../../utils/state/core/stateManager.js", () => ({ getState, setState, subscribe }));
 
 const UIActions = { showTab: vi.fn(), setTheme: vi.fn() };
 vi.mock("../../../utils/state/domain/uiStateManager.js", () => ({ UIActions }));
 
 const AppActions = { setFileOpening: vi.fn(), clearData: vi.fn() };
 vi.mock("../../../utils/app/lifecycle/appActions.js", () => ({ AppActions }));
+AppActions.clearData.mockImplementation(() => {
+    fitFileStateManager.clearFileState();
+});
 
 const fitFileStateManager = {
     startFileLoading: vi.fn(),
     handleFileLoaded: vi.fn(),
     handleFileLoadingError: vi.fn(),
+    clearFileState: vi.fn(),
 };
 vi.mock("../../../utils/state/domain/fitFileState.js", () => ({ fitFileStateManager }));
 
@@ -136,9 +141,9 @@ function installBaseDOM() {
     <button id="${"unloadFileBtn"}"></button>
     <div id="${"loading-indicator"}"></div>
     <div id="${"file-loading-progress"}"></div>
-    <div id="${"tab-chart"}" class="tab"></div>
-    <button id="${"tab-summary"}" class="tab"></button>
-    <button id="${"tab-map"}" class="tab"></button>
+    <div id="${"tab-chart"}"></div>
+    <button id="${"tab-summary"}"></button>
+    <button id="${"tab-map"}"></button>
     <div id="${"content-map"}"></div>
     <div id="${"content-data"}"></div>
     <div id="${"content-chart"}"></div>
@@ -209,6 +214,9 @@ describe("main-ui.js core flows", () => {
         btn.click();
         // IPC effect to main process
         expect(api.send).toHaveBeenCalledWith("fit-file-loaded", null);
+        expect(AppActions.clearData).toHaveBeenCalledTimes(1);
+        expect(fitFileStateManager.clearFileState).toHaveBeenCalledTimes(1);
+        expect(fitFileStateManager.handleFileLoaded).not.toHaveBeenCalled();
 
         // From IPC
         (window as any).electronAPI.emit("unload-fit-file");
@@ -292,19 +300,22 @@ describe("main-ui.js core flows", () => {
         api.decodeFitFile.mockResolvedValue({ ok: true });
         const sendAltSpy = vi.spyOn(window as any, "sendFitFileToAltFitReader").mockResolvedValue(undefined);
 
-        await handler.processDroppedFile({ name: "activity.fit" });
+        const absoluteFile = { name: "activity.fit", path: "C:/rides/activity.fit" };
+        await handler.processDroppedFile(absoluteFile);
         expect(api.decodeFitFile).toHaveBeenCalled();
         expect(sendAltSpy).toHaveBeenCalled();
+        expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith("C:/rides/activity.fit");
+        expect(showFitData).toHaveBeenCalledWith(expect.anything(), "C:/rides/activity.fit");
 
         // Error path
         api.decodeFitFile.mockResolvedValue({ error: "bad file" });
-        await handler.processDroppedFile({ name: "bad.fit" });
+        await handler.processDroppedFile({ name: "bad.fit", path: "C:/rides/bad.fit" });
         // error path should be handled gracefully
 
         // Exception path
         const err = new Error("boom");
         api.decodeFitFile.mockRejectedValue(err);
-        await handler.processDroppedFile({ name: "oops.fit" });
+        await handler.processDroppedFile({ name: "oops.fit", path: "C:/rides/oops.fit" });
         // exception path should be handled gracefully
 
         // No throws

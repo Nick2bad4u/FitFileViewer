@@ -8,7 +8,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 const mockStateManager = {
     getState: vi.fn(),
     setState: vi.fn(),
-    subscribe: vi.fn(),
+    subscribe: vi.fn((key, cb) => {
+        return () => {
+            /* noop */
+        };
+    }),
 };
 
 // Mock the global state

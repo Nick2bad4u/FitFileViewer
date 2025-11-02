@@ -29,6 +29,12 @@ const h = vi.hoisted(() => {
         mockSubscribe,
         subscribeCallbacks,
         mockShowNotification: vi.fn(),
+        mockFitManager: {
+            startFileLoading: vi.fn(),
+            handleFileLoaded: vi.fn(),
+            isLoading: vi.fn(() => false),
+            clearFileState: vi.fn(),
+        },
     };
 });
 
@@ -41,6 +47,10 @@ vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
 
 vi.mock("../../../../../utils/ui/notifications/showNotification.js", () => ({
     showNotification: h.mockShowNotification,
+}));
+
+vi.mock("../../../../../utils/state/domain/fitFileState.js", () => ({
+    fitFileStateManager: h.mockFitManager,
 }));
 
 // Import after mocks
@@ -68,6 +78,11 @@ const itHasAssertions = (name: string, fn: () => any | Promise<any>, timeout?: n
             h.mockUpdateState.mockReset();
             h.mockSubscribe.mockReset();
             h.mockShowNotification.mockReset();
+            h.mockFitManager.startFileLoading.mockReset();
+            h.mockFitManager.handleFileLoaded.mockReset();
+            h.mockFitManager.isLoading.mockReset();
+            h.mockFitManager.isLoading.mockReturnValue(false);
+            h.mockFitManager.clearFileState.mockReset();
             for (const k of Object.keys(h.subscribeCallbacks)) delete h.subscribeCallbacks[k];
             try {
                 expect.hasAssertions();
@@ -93,45 +108,62 @@ describe("AppActions", () => {
         for (const k of keys) {
             expect(h.mockSetState).toHaveBeenCalledWith(k, k.includes("isRendered") ? false : null, expect.any(Object));
         }
+        expect(h.mockFitManager.clearFileState).toHaveBeenCalledTimes(1);
         expect(h.mockShowNotification).toHaveBeenCalledWith("Data cleared", "info");
     });
 
-    itHasAssertions(
-        "loadFile should set loading, update state, performance, notify, and always clear loading",
-        async () => {
-            await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
+    itHasAssertions("loadFile delegates to fitFileStateManager when available", async () => {
+        await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
 
-            // isLoading true and false
-            expect(h.mockSetState).toHaveBeenCalledWith("isLoading", true, expect.any(Object));
-            expect(h.mockSetState).toHaveBeenCalledWith("isLoading", false, expect.any(Object));
-            // file and component reset
-            expect(h.mockSetState).toHaveBeenCalledWith("globalData", { foo: "bar" }, expect.any(Object));
-            expect(h.mockSetState).toHaveBeenCalledWith("currentFile", "path/fit.fit", expect.any(Object));
-            expect(h.mockSetState).toHaveBeenCalledWith("charts.isRendered", false, expect.any(Object));
-            expect(h.mockSetState).toHaveBeenCalledWith("map.isRendered", false, expect.any(Object));
-            expect(h.mockSetState).toHaveBeenCalledWith("tables.isRendered", false, expect.any(Object));
-            // performance timestamp set (Date.now mocked)
-            expect(h.mockSetState).toHaveBeenCalledWith(
-                "performance.lastLoadTime",
-                expect.any(Number),
-                expect.any(Object)
-            );
-            expect(h.mockShowNotification).toHaveBeenCalledWith("File loaded successfully", "success");
-        }
-    );
+        expect(h.mockFitManager.startFileLoading).toHaveBeenCalledWith("path/fit.fit");
+        expect(h.mockFitManager.isLoading).toHaveBeenCalled();
+        expect(h.mockFitManager.handleFileLoaded).toHaveBeenCalledWith(
+            { foo: "bar" },
+            expect.objectContaining({ filePath: "path/fit.fit", source: "AppActions.loadFile" })
+        );
+        expect(h.mockShowNotification).not.toHaveBeenCalled();
+        expect(h.mockSetState).not.toHaveBeenCalled();
+    });
 
-    itHasAssertions("loadFile should propagate errors and still clear loading", async () => {
-        // Make the first inner setState throw to simulate failure
-        const originalImpl = h.mockSetState.mockImplementation((path: string) => {
-            if (path === "globalData") throw new Error("boom");
+    itHasAssertions("loadFile falls back to legacy flow when domain manager is unavailable", async () => {
+        const originalHandle = h.mockFitManager.handleFileLoaded;
+        const originalStart = h.mockFitManager.startFileLoading;
+        const originalIsLoading = h.mockFitManager.isLoading;
+
+        // Simulate unavailable manager by clearing capabilities
+        // @ts-expect-error test override
+        h.mockFitManager.handleFileLoaded = undefined;
+        // @ts-expect-error test override
+        h.mockFitManager.startFileLoading = undefined;
+        // @ts-expect-error test override
+        h.mockFitManager.isLoading = undefined;
+
+        await AppActions.loadFile({ foo: "bar" }, "path/fit.fit");
+
+        expect(h.mockSetState).toHaveBeenCalledWith("isLoading", true, expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("globalData", { foo: "bar" }, expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("currentFile", "path/fit.fit", expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("charts.isRendered", false, expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("map.isRendered", false, expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("tables.isRendered", false, expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("performance.lastLoadTime", expect.any(Number), expect.any(Object));
+        expect(h.mockSetState).toHaveBeenCalledWith("isLoading", false, expect.any(Object));
+        expect(h.mockShowNotification).toHaveBeenCalledWith("File loaded successfully", "success");
+
+        // Restore mocks for subsequent tests
+        h.mockFitManager.handleFileLoaded = originalHandle;
+        h.mockFitManager.startFileLoading = originalStart;
+        h.mockFitManager.isLoading = originalIsLoading;
+    });
+
+    itHasAssertions("loadFile surfaces delegated errors and clears loading", async () => {
+        h.mockFitManager.handleFileLoaded.mockImplementation(() => {
+            throw new Error("boom");
         });
 
         await expect(AppActions.loadFile({} as any, "x")).rejects.toThrow("boom");
-        // finally should set loading false
         expect(h.mockSetState).toHaveBeenCalledWith("isLoading", false, expect.any(Object));
-
-        // restore
-        originalImpl.mockReset();
+        expect(h.mockShowNotification).toHaveBeenCalledWith("Failed to load file", "error");
     });
 
     itHasAssertions("renderChart should update charts slice and performance", () => {

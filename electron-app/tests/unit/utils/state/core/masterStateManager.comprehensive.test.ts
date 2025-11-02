@@ -88,7 +88,7 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
             getStateHistory: vi.fn().mockReturnValue([]),
             getSubscriptions: vi.fn().mockReturnValue({}),
             setState: vi.fn(),
-            subscribe: vi.fn(),
+            subscribe: vi.fn(() => () => {}),
         };
 
         const mockStateMiddleware = {

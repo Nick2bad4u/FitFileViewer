@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 // Mock stateManager functions
 const mockGetState = vi.fn();
 const mockSetState = vi.fn();
-const mockSubscribe = vi.fn();
+const mockSubscribe = vi.fn(() => () => {});
 
 // Mock showNotification
 const mockShowNotification = vi.fn();

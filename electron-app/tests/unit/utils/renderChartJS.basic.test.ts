@@ -69,7 +69,7 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
         };
     }),
     setState: vi.fn(),
-    subscribe: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
     updateState: vi.fn(),
 }));
 

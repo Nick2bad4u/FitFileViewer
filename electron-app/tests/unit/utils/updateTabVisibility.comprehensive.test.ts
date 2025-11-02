@@ -17,7 +17,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
-    subscribe: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
 }));
 
 // Import functions after mocking

@@ -15,7 +15,7 @@ import { getState, setState, subscribe } from "../../../../../utils/state/core/s
 vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
-    subscribe: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
 }));
 
 // Get the mocked functions

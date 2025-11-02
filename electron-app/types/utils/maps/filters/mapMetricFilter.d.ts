@@ -3,6 +3,7 @@
  * @property {boolean} isActive
  * @property {string|null} metric
  * @property {string|null} metricLabel
+ * @property {MapFilterMode} mode
  * @property {number} percent
  * @property {number|null} threshold
  * @property {number} totalCandidates
@@ -10,6 +11,10 @@
  * @property {Set<number>} allowedIndices
  * @property {number[]} orderedIndices
  * @property {string|null} reason
+ * @property {number|null} minCandidate
+ * @property {number|null} maxCandidate
+ * @property {number|null} appliedMin
+ * @property {number|null} appliedMax
  */
 /**
  * @typedef {Object} MetricFilterOptions
@@ -23,6 +28,23 @@
  * @returns {(recordIndex:number)=>boolean}
  */
 export function buildMetricFilterPredicate(result: MetricFilterResult): (recordIndex: number) => boolean;
+/**
+ * Compute descriptive statistics for a metric across record messages.
+ * @param {Array<any>} recordMesgs
+ * @param {string} metricKey
+ * @param {MetricFilterOptions} [options]
+ * @returns {{metric:string,metricLabel:string,min:number,max:number,average:number,count:number,decimals:number,step:number}|null}
+ */
+export function computeMetricStatistics(recordMesgs: Array<any>, metricKey: string, options?: MetricFilterOptions): {
+    metric: string;
+    metricLabel: string;
+    min: number;
+    max: number;
+    average: number;
+    count: number;
+    decimals: number;
+    step: number;
+} | null;
 /**
  * Compute the indices belonging to the requested top percentile for a metric.
  *
@@ -51,10 +73,16 @@ export function getMetricDefinition(metricKey: string): MetricDefinition | null;
  * @property {number} [altitude]
  */
 /**
+ * @typedef {"topPercent"|"valueRange"} MapFilterMode
+ */
+/**
  * @typedef {Object} MapDataPointFilterConfig
  * @property {boolean} enabled
  * @property {string} metric
- * @property {number} percent
+ * @property {MapFilterMode} [mode]
+ * @property {number} [percent]
+ * @property {number} [minValue]
+ * @property {number} [maxValue]
  */
 /**
  * @typedef {Object} MetricDefinition
@@ -71,6 +99,7 @@ export type MetricFilterResult = {
     isActive: boolean;
     metric: string | null;
     metricLabel: string | null;
+    mode: MapFilterMode;
     percent: number;
     threshold: number | null;
     totalCandidates: number;
@@ -78,6 +107,10 @@ export type MetricFilterResult = {
     allowedIndices: Set<number>;
     orderedIndices: number[];
     reason: string | null;
+    minCandidate: number | null;
+    maxCandidate: number | null;
+    appliedMin: number | null;
+    appliedMax: number | null;
 };
 export type MetricFilterOptions = {
     valueExtractor?: (row: any) => number | null;
@@ -89,10 +122,14 @@ export type MetricRecord = {
     heartRate?: number;
     altitude?: number;
 };
+export type MapFilterMode = "topPercent" | "valueRange";
 export type MapDataPointFilterConfig = {
     enabled: boolean;
     metric: string;
-    percent: number;
+    mode?: MapFilterMode;
+    percent?: number;
+    minValue?: number;
+    maxValue?: number;
 };
 export type MetricDefinition = {
     key: string;

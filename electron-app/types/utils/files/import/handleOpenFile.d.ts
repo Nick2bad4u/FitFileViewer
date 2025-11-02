@@ -32,13 +32,7 @@ export function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, show
     timeout?: number | undefined;
     validateFileSize?: boolean | undefined;
 }): Promise<boolean>;
-/**
- * Logs messages with context for file open operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
- */
-export function logWithContext(message: string, level?: string, context?: Record<string, any>): void;
+export function logWithContext(message: any, level?: string, context?: {}): void;
 /**
  * Updates UI state during file opening process
  * @param {Object} uiElements - UI elements to update
@@ -48,9 +42,8 @@ export function logWithContext(message: string, level?: string, context?: Record
  */
 export function updateUIState(uiElements: Object, isLoading: boolean, isOpening: boolean): void;
 /**
- * Validates that all required Electron API methods are available
- * @returns {boolean} True if all required APIs are available
- * @private
+ * Validates that all required Electron API methods are available.
+ * @returns {boolean}
  */
 export function validateElectronAPI(): boolean;
 import * as stateManager from "../../state/core/stateManager.js";

@@ -162,7 +162,7 @@ export class FitFileStateManager {
      * Handle successful file loading
      * @param {Object} fileData - Loaded file data
      */
-    handleFileLoaded(fileData: RawFitData): void;
+    handleFileLoaded(fileData: RawFitData, options?: {}): void;
     /**
      * Handle file loading errors
      * @param {Error} error - Loading error

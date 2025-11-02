@@ -20,7 +20,7 @@ declare global {
 vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
-    subscribe: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
     initializeStateManager: vi.fn(() => console.log("mock initializeStateManager called")),
 }));
 vi.mock("../../../../../utils/state/domain/uiStateManager.js", () => ({

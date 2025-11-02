@@ -4,6 +4,7 @@
  */
 
 import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
+import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 /**
@@ -46,6 +47,14 @@ export const AppActions = {
      * Clear all data and reset to initial state
      */
     clearData() {
+        if (fitFileStateManager && typeof fitFileStateManager.clearFileState === "function") {
+            try {
+                fitFileStateManager.clearFileState();
+            } catch (error) {
+                console.warn("[AppActions] Failed to clear fit file domain state", error);
+            }
+        }
+
         setState("globalData", null, { source: "AppActions.clearData" });
         setState("currentFile", null, { source: "AppActions.clearData" });
         setState("charts.isRendered", false, { source: "AppActions.clearData" });
@@ -62,6 +71,39 @@ export const AppActions = {
      * @param {string} filePath - Path to the loaded file
      */
     async loadFile(fileData, filePath) {
+        const manager =
+            fitFileStateManager && typeof fitFileStateManager.handleFileLoaded === "function"
+                ? fitFileStateManager
+                : null;
+
+        if (manager) {
+            const normalizedPath = typeof filePath === "string" && filePath.length > 0 ? filePath : null;
+
+            if (
+                normalizedPath &&
+                typeof manager.startFileLoading === "function" &&
+                typeof manager.isLoading === "function" &&
+                !manager.isLoading()
+            ) {
+                try {
+                    manager.startFileLoading(normalizedPath);
+                } catch (error) {
+                    console.warn("[AppActions] Failed to start fit file loading state", error);
+                }
+            }
+
+            try {
+                manager.handleFileLoaded(fileData, { filePath: normalizedPath, source: "AppActions.loadFile" });
+            } catch (error) {
+                console.error("[AppActions] Error delegating file load to fitFileStateManager", error);
+                showNotification("Failed to load file", "error");
+                setState("isLoading", false, { source: "AppActions.loadFile" });
+                throw error;
+            }
+
+            return;
+        }
+
         try {
             setState("isLoading", true, { source: "AppActions.loadFile" });
 

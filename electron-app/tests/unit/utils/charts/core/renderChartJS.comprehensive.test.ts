@@ -146,7 +146,7 @@ function injectRenderChartJSMocks() {
         stateManager: {
             getState: vi.fn(),
             setState: vi.fn(),
-            subscribe: vi.fn(),
+            subscribe: vi.fn(() => () => {}),
             updateState: vi.fn(),
         },
         stateMiddleware: {

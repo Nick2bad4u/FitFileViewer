@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as stateManager from "../../../../../utils/state/core/stateManager.js";
-import { AppActions } from "../../../../../utils/app/lifecycle/appActions.js";
 import * as rendererUtils from "../../../../../utils/app/initialization/rendererUtils.js";
 import { FitFileSelectors, FitFileStateManager } from "../../../../../utils/state/domain/fitFileState.js";
 
@@ -124,24 +123,39 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         const spy = vi.spyOn(stateManager, "setState");
         mgr.startFileLoading("C:/file.fit");
         expect(spy).toHaveBeenCalledWith("fitFile.isLoading", true, expect.any(Object));
+        expect(spy).toHaveBeenCalledWith("isLoading", true, expect.any(Object));
         expect(spy).toHaveBeenCalledWith("fitFile.currentFile", "C:/file.fit", expect.any(Object));
         expect(spy).toHaveBeenCalledWith("fitFile.loadingProgress", 0, expect.any(Object));
     });
 
-    it("handleFileLoaded updates states, calls AppActions and notifies", () => {
+    it("handleFileLoaded updates domain + legacy slices and notifies", () => {
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
-        const act = vi.spyOn(AppActions, "loadFile").mockResolvedValue(undefined);
+        const gs = vi.spyOn(stateManager, "getState").mockImplementation((key: string) => {
+            if (key === "fitFile.currentFile") {
+                return "existing.fit";
+            }
+            return undefined;
+        });
         const notif = vi.spyOn(rendererUtils, "showNotification").mockImplementation(() => {});
 
         const data = { recordMesgs: [{}] };
-        mgr.handleFileLoaded(/** @type any */ data);
+        mgr.handleFileLoaded(/** @type any */ data, { filePath: "C:/demo.fit" });
 
         expect(ss).toHaveBeenCalledWith("fitFile.isLoading", false, expect.any(Object));
         expect(ss).toHaveBeenCalledWith("fitFile.loadingProgress", 100, expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("fitFile.loadingError", null, expect.any(Object));
         expect(ss).toHaveBeenCalledWith("fitFile.rawData", data, expect.any(Object));
-        expect(act).toHaveBeenCalled();
+        expect(ss).toHaveBeenCalledWith("globalData", data, expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("currentFile", "C:/demo.fit", expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("fitFile.currentFile", "C:/demo.fit", expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("charts.isRendered", false, expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("map.isRendered", false, expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("tables.isRendered", false, expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("performance.lastLoadTime", expect.any(Number), expect.any(Object));
+        expect(ss).toHaveBeenCalledWith("isLoading", false, expect.any(Object));
         expect(notif).toHaveBeenCalledWith("FIT file loaded successfully", "success", 3000);
+        gs.mockRestore();
     });
 
     it("handleFileLoadingError records error and notifies", () => {

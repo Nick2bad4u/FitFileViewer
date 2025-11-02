@@ -134,6 +134,18 @@ function clearContentAreas() {
     }
 }
 
+function clearFitFileDomainState() {
+    if (!fitFileStateManager || typeof fitFileStateManager.clearFileState !== "function") {
+        return;
+    }
+
+    try {
+        fitFileStateManager.clearFileState();
+    } catch (error) {
+        console.warn("[main-ui] Failed to clear fit file domain state", error);
+    }
+}
+
 // Utility functions for file operations
 function unloadFitFile() {
     const operationId = `unload_file_${Date.now()}`;
@@ -157,10 +169,8 @@ function unloadFitFile() {
             AppActions.clearData();
         }
 
-        // Update file state
-        if (fitFileStateManager) {
-            fitFileStateManager.handleFileLoaded(/** @type {any} */ (null));
-        }
+        // Ensure domain-level fit state is cleared as well
+        clearFitFileDomainState();
 
         setState(
             "ui.fileInfo",
@@ -396,13 +406,19 @@ class DragDropHandler {
             return;
         }
 
+        const filePath =
+            typeof /** @type {File & { path?: string }} */ (file).path === "string" &&
+            /** @type {File & { path?: string }} */ (file).path.trim().length > 0
+                ? /** @type {File & { path?: string }} */ (file).path
+                : file.name;
+
         try {
             // Update loading state
             AppActions.setFileOpening(true);
 
             // Start file loading in state manager
             if (fitFileStateManager) {
-                fitFileStateManager.startFileLoading(file.name);
+                fitFileStateManager.startFileLoading(filePath);
             }
 
             const arrayBuffer = await this.readFileAsArrayBuffer(file);
@@ -418,7 +434,7 @@ class DragDropHandler {
 
             const fitData = await globalThis.electronAPI.decodeFitFile(arrayBuffer);
             if (fitData && !fitData.error) {
-                showFitData(fitData, file.name);
+                showFitData(fitData, filePath);
                 // @ts-ignore ensured above
                 globalThis.sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(`File "${file.name}" loaded successfully`, "success");

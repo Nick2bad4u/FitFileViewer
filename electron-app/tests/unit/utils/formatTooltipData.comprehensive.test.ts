@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // Mock the state manager
 vi.mock("../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
 }));
 
 describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {

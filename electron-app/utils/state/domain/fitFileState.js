@@ -4,7 +4,6 @@
  */
 
 import { showNotification } from "../../app/initialization/rendererUtils.js";
-import { AppActions } from "../../app/lifecycle/appActions.js";
 import * as stateCore from "../core/stateManager.js";
 
 const subscribe = (
@@ -332,13 +331,29 @@ export class FitFileStateManager {
      * Handle successful file loading
      * @param {Object} fileData - Loaded file data
      */
-    handleFileLoaded(/** @type {RawFitData} */ fileData) {
-        stateCore.setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoaded" });
-        stateCore.setState("fitFile.loadingProgress", 100, { source: "FitFileStateManager.handleFileLoaded" });
-        stateCore.setState("fitFile.rawData", fileData, { source: "FitFileStateManager.handleFileLoaded" });
+    handleFileLoaded(/** @type {RawFitData} */ fileData, options = {}) {
+        const source = "FitFileStateManager.handleFileLoaded";
+        const safeData = fileData ?? null;
 
-        // Set global data for backward compatibility
-        AppActions.loadFile(fileData, stateCore.getState("fitFile.currentFile"));
+        stateCore.setState("fitFile.isLoading", false, { source });
+        stateCore.setState("fitFile.loadingProgress", 100, { source });
+        stateCore.setState("fitFile.loadingError", null, { source });
+        stateCore.setState("fitFile.rawData", safeData, { source });
+
+        const providedPath =
+            typeof options?.filePath === "string" && options.filePath.trim().length > 0 ? options.filePath : null;
+        const resolvedPath = providedPath ?? stateCore.getState("fitFile.currentFile") ?? null;
+
+        stateCore.setState("globalData", safeData, { source });
+        stateCore.setState("currentFile", resolvedPath, { source });
+        stateCore.setState("fitFile.currentFile", resolvedPath, { source });
+
+        stateCore.setState("charts.isRendered", false, { source });
+        stateCore.setState("map.isRendered", false, { source });
+        stateCore.setState("tables.isRendered", false, { source });
+
+        stateCore.setState("performance.lastLoadTime", Date.now(), { source });
+        stateCore.setState("isLoading", false, { source });
 
         showNotification("FIT file loaded successfully", "success", 3000);
         console.log("[FitFileState] File loaded successfully");
@@ -456,10 +471,12 @@ export class FitFileStateManager {
      * @param {string} filePath - Path to the FIT file
      */
     startFileLoading(/** @type {string} */ filePath) {
-        stateCore.setState("fitFile.isLoading", true, { source: "FitFileStateManager.startFileLoading" });
-        stateCore.setState("fitFile.currentFile", filePath, { source: "FitFileStateManager.startFileLoading" });
-        stateCore.setState("fitFile.loadingProgress", 0, { source: "FitFileStateManager.startFileLoading" });
-        stateCore.setState("fitFile.loadingError", null, { source: "FitFileStateManager.startFileLoading" });
+        const source = "FitFileStateManager.startFileLoading";
+        stateCore.setState("fitFile.isLoading", true, { source });
+        stateCore.setState("isLoading", true, { source });
+        stateCore.setState("fitFile.currentFile", filePath, { source });
+        stateCore.setState("fitFile.loadingProgress", 0, { source });
+        stateCore.setState("fitFile.loadingError", null, { source });
 
         console.log(`[FitFileState] Started loading: ${filePath}`);
     }

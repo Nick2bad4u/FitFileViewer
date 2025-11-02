@@ -280,7 +280,7 @@ function integrateFitState(data, filePath) {
                 }
             }
 
-            manager.handleFileLoaded(data);
+            manager.handleFileLoaded(data, { filePath: filePath ?? null });
             return;
         }
 

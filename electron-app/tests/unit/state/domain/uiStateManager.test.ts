@@ -22,7 +22,7 @@ vi.mock("../../../../utils/ui/notifications/showNotification.js", () => ({
 vi.mock("../../../../utils/state/core/stateManager.js", () => ({
     getState: vi.fn(),
     setState: vi.fn(),
-    subscribe: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
     updateState: vi.fn(),
 }));
 

@@ -17,5 +17,8 @@ export {
     movePowerZoneControlsToSection as movePowerZoneControlsToSectionSimple,
     updatePowerZoneControlsVisibility as updatePowerZoneControlsVisibilitySimple,
 } from "./createPowerZoneControlsSimple.js";
+export * from "./dataPointFilterControl/elementFactory.js";
+export * from "./dataPointFilterControl/metricsPreview.js";
+export * from "./dataPointFilterControl/stateHelpers.js";
 export * from "./enableTabButtons.js";
 export * from "./removeExitFullscreenOverlay.js";

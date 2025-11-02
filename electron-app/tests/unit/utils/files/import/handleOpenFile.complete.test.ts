@@ -8,6 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 const stateManagerMock = {
     setState: vi.fn(),
     getState: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
     clearAllListeners: vi.fn(),
     resetState: vi.fn(),
     __resetStateManagerForTests: vi.fn(),
@@ -18,6 +19,7 @@ const stateManagerMock = {
 vi.mock("../../../../../utils/state/core/stateManager.js", () => ({
     setState: stateManagerMock.setState,
     getState: stateManagerMock.getState,
+    subscribe: stateManagerMock.subscribe,
     clearAllListeners: stateManagerMock.clearAllListeners,
     resetState: stateManagerMock.resetState,
     __resetStateManagerForTests: stateManagerMock.__resetStateManagerForTests,

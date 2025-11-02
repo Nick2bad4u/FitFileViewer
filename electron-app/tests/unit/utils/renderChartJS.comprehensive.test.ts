@@ -51,9 +51,7 @@ vi.mock("../../../utils/state/core/stateManager.js", () => ({
     }),
     setState: vi.fn((path: string, value: any) => {}),
     updateState: vi.fn((path: string, value: any) => {}),
-    subscribe: vi.fn((path: string, callback: any) => {
-        return () => {};
-    }),
+    subscribe: vi.fn(() => () => {}),
 }));
 
 // Mock all the complex dependencies to isolate renderChartJS functions
