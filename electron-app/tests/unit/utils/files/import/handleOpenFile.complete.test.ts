@@ -34,6 +34,7 @@ describe("handleOpenFile Module", () => {
         vi.clearAllMocks();
 
         // Mock console methods
+        vi.spyOn(console, "info").mockImplementation(() => {});
         vi.spyOn(console, "log").mockImplementation(() => {});
         vi.spyOn(console, "warn").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
@@ -85,22 +86,22 @@ describe("handleOpenFile Module", () => {
     describe("logWithContext", () => {
         it("should log info messages", () => {
             handleOpenFileModule.logWithContext("info message");
-            expect(console.log).toHaveBeenCalledWith("[HandleOpenFile] info message");
+            expect(console.info).toHaveBeenCalledWith(expect.stringContaining("HandleOpenFile: info message"));
         });
 
         it("should log warning messages", () => {
             handleOpenFileModule.logWithContext("warn message", "warn");
-            expect(console.warn).toHaveBeenCalledWith("[HandleOpenFile] warn message");
+            expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("HandleOpenFile: warn message"));
         });
 
         it("should log error messages", () => {
             handleOpenFileModule.logWithContext("error message", "error");
-            expect(console.error).toHaveBeenCalledWith("[HandleOpenFile] error message");
+            expect(console.error).toHaveBeenCalledWith(expect.stringContaining("HandleOpenFile: error message"));
         });
 
         it("should handle exceptions when logging fails", () => {
             // Force console.log to throw an error
-            console.log = vi.fn().mockImplementationOnce(() => {
+            console.info = vi.fn().mockImplementationOnce(() => {
                 throw new Error("Logging error");
             });
 

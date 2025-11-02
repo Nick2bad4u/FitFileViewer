@@ -1,6 +1,23 @@
 ---
-description: Beast Mode 3.1 [Custom]
-tools: ['createFile', 'createDirectory', 'editFiles', 'fileSearch', 'textSearch', 'listDirectory', 'readFile', 'codebase', 'runInTerminal', 'getTerminalOutput', 'runTask', 'getTaskOutput', 'usages', 'think', 'problems', 'changes', 'testFailure', 'fetch', 'todos', 'get_diagnostics', 'get_references', 'get_symbol_lsp_info', 'rename_symbol', 'ask_question', 'tavily_extract', 'tavily_search', 'websearch']
+name: BeastMode
+description: Beast Mode 3.1 (Custom)
+argument-hint: "💻 🤖 😈 Beast Mode agent ready. 👿 🤖 💻"
+model: GPT-5-Codex (Preview) (copilot)
+tools: ['edit/createFile', 'edit/createDirectory', 'edit/editFiles', 'search/fileSearch', 'search/textSearch', 'search/listDirectory', 'search/readFile', 'search/codebase', 'runCommands/getTerminalOutput', 'runCommands/terminalLastCommand', 'runCommands/runInTerminal', 'runTasks/runTask', 'runTasks/getTaskOutput', 'electron-mcp-server/get_electron_window_info', 'electron-mcp-server/send_command_to_electron', 'electron-mcp-server/take_screenshot', 'Tavily-Remote-MCP/tavily_extract', 'Tavily-Remote-MCP/tavily_search', 'vscode-mcp/get_diagnostics', 'vscode-mcp/get_references', 'vscode-mcp/get_symbol_lsp_info', 'vscode-mcp/rename_symbol', 'runSubagent', 'usages', 'problems', 'changes', 'testFailure', 'fetch', 'ms-vscode.vscode-websearchforcopilot/websearch', 'todos', 'runTests']
+handoffs:
+ - label: Consistency
+   agent: BeastMode
+   prompt: Review and follow the plan in .github/prompts/Consistency-Check.prompt.md
+   send: false
+ - label: Unit
+   agent: BeastMode
+   prompt: Generate unit tests for the implemented features to achieve maximum coverage, follow the plan in .github/prompts/Generate-100%-Test-Coverage.prompt.md
+   send: false
+ - label: Add to ToDo and Finish ToDo
+   agent: BeastMode
+   prompt: Add findings to the ToDo list (if any new findings) and complete any outstanding tasks on the todo list. Follow the plan in .github/prompts/Do-ToDo.prompt.md
+   send: false
+target: vscode
 ---
 
 # Beast Mode 3.1

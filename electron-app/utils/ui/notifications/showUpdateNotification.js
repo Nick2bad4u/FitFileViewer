@@ -3,6 +3,7 @@
  * Specialized utility for showing update-related notifications with actions
  */
 
+import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 
 // Constants for better maintainability
@@ -10,7 +11,7 @@ const BUTTON_TEXTS = {
         LATER: "Later",
         RESTART_UPDATE: "Restart & Update",
     },
-    LOG_PREFIX = "[ShowUpdateNotification]",
+    LOG_SCOPE = "ShowUpdateNotification",
     NOTIFICATION_CONSTANTS = {
         BUTTON_CLASS: "themed-btn",
         BUTTON_MARGIN: "10px",
@@ -19,6 +20,8 @@ const BUTTON_TEXTS = {
         NOTIFICATION_ID: "notification",
         UPDATE_DOWNLOADED: "update-downloaded",
     };
+
+const log = createRendererLogger(LOG_SCOPE);
 
 /**
  * Shows update notifications with enhanced features and error handling
@@ -48,7 +51,7 @@ export function showUpdateNotification(
     withAction = false
 ) {
     try {
-        logWithContext("info", "Showing update notification", {
+        log("info", "Showing update notification", {
             duration,
             message,
             type,
@@ -85,9 +88,9 @@ export function showUpdateNotification(
             setupAutoHide(notification, duration);
         }
 
-        logWithContext("info", "Update notification displayed successfully");
+        log("info", "Update notification displayed successfully");
     } catch (error) {
-        logWithContext("error", "Failed to show update notification", {
+        log("error", "Failed to show update notification", {
             duration,
             error: /** @type {Error} */ (error).message,
             message,
@@ -107,7 +110,7 @@ function clearNotificationContent(notification) {
             notification.firstChild.remove();
         }
     } catch (error) {
-        logWithContext("error", "Failed to clear notification content", {
+        log("error", "Failed to clear notification content", {
             error: /** @type {Error} */ (error).message,
         });
     }
@@ -132,7 +135,7 @@ function createThemedButton(text, clickHandler, styles = {}) {
 
         return button;
     } catch (error) {
-        logWithContext("error", "Failed to create themed button", {
+        log("error", "Failed to create themed button", {
             error: /** @type {Error} */ (error).message,
             text,
         });
@@ -150,10 +153,10 @@ function createUpdateActionButton(notification) {
 
         if (button) {
             notification.append(button);
-            logWithContext("info", "Update action button created");
+            log("info", "Update action button created");
         }
     } catch (error) {
-        logWithContext("error", "Failed to create update action button", {
+        log("error", "Failed to create update action button", {
             error: /** @type {Error} */ (error).message,
         });
     }
@@ -175,10 +178,10 @@ function createUpdateDownloadedButtons(notification) {
         if (restartBtn && laterBtn) {
             notification.append(restartBtn);
             notification.append(laterBtn);
-            logWithContext("info", "Update downloaded buttons created");
+            log("info", "Update downloaded buttons created");
         }
     } catch (error) {
-        logWithContext("error", "Failed to create update downloaded buttons", {
+        log("error", "Failed to create update downloaded buttons", {
             error: /** @type {Error} */ (error).message,
         });
     }
@@ -191,7 +194,7 @@ function createUpdateDownloadedButtons(notification) {
 function getNotificationElement() {
     const notification = document.getElementById(NOTIFICATION_CONSTANTS.NOTIFICATION_ID);
     if (!notification) {
-        logWithContext("error", "Notification element not found in DOM");
+        log("error", "Notification element not found in DOM");
         return null;
     }
     return notification;
@@ -203,13 +206,13 @@ function getNotificationElement() {
 function handleUpdateInstall() {
     try {
         if (validateElectronAPI()) {
-            logWithContext("info", "Initiating update installation");
+            log("info", "Initiating update installation");
             /** @type {any} */ (globalThis).electronAPI.installUpdate();
         } else {
-            logWithContext("error", "Cannot install update - electronAPI not available");
+            log("error", "Cannot install update - electronAPI not available");
         }
     } catch (error) {
-        logWithContext("error", "Failed to install update", { error: /** @type {Error} */ (error).message });
+        log("error", "Failed to install update", { error: /** @type {Error} */ (error).message });
     }
 }
 
@@ -221,10 +224,10 @@ function hideNotification(notification) {
     try {
         if (notification && notification.style) {
             notification.style.display = "none";
-            logWithContext("info", "Notification hidden");
+            log("info", "Notification hidden");
         }
     } catch (error) {
-        logWithContext("error", "Failed to hide notification", { error: /** @type {Error} */ (error).message });
+        log("error", "Failed to hide notification", { error: /** @type {Error} */ (error).message });
     }
 }
 
@@ -234,31 +237,15 @@ function hideNotification(notification) {
  * @param {string} message - Log message
  * @param {Object} context - Additional context
  */
-function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString(),
-        logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
-
-    if (context && Object.keys(context).length > 0) {
-        /** @type {Record<string, any>} */ (console)[level](logMessage, context);
-    } else {
-        /** @type {Record<string, any>} */ (console)[level](logMessage);
-    }
-}
-
-/**
- * Set up auto-hide timeout for notification
- * @param {HTMLElement} notification - Notification element
- * @param {number} duration - Timeout duration in milliseconds
- */
 function setupAutoHide(notification, duration) {
     try {
         setTimeout(() => {
             hideNotification(notification);
         }, duration);
 
-        logWithContext("info", "Auto-hide timeout set", { duration });
+        log("info", "Auto-hide timeout set", { duration });
     } catch (error) {
-        logWithContext("error", "Failed to setup auto-hide", {
+        log("error", "Failed to setup auto-hide", {
             duration,
             error: /** @type {Error} */ (error).message,
         });
@@ -274,7 +261,7 @@ function validateElectronAPI() {
         /** @type {any} */ (globalThis).electronAPI &&
         typeof (/** @type {any} */ (globalThis).electronAPI.installUpdate) === "function";
     if (!hasAPI) {
-        logWithContext("warn", "electronAPI.installUpdate not available");
+        log("warn", "electronAPI.installUpdate not available");
     }
     return hasAPI;
 }

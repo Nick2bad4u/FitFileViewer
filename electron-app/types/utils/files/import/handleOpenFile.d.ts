@@ -38,7 +38,7 @@ export function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, show
  * @param {string} level - Log level ('info', 'warn', 'error')
  * @private
  */
-export function logWithContext(message: string, level?: string): void;
+export function logWithContext(message: string, level?: string, context?: Record<string, any>): void;
 /**
  * Updates UI state during file opening process
  * @param {Object} uiElements - UI elements to update

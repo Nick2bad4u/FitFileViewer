@@ -5,7 +5,11 @@
 
 import { showNotification } from "../../app/initialization/rendererUtils.js";
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { getState, setState, subscribe, updateState } from "../core/stateManager.js";
+import * as stateCore from "../core/stateManager.js";
+
+const subscribe = (
+    /** @type {Parameters<typeof stateCore.subscribe>} */ ...args
+) => (typeof stateCore.subscribe === "function" ? stateCore.subscribe(...args) : () => {});
 
 /**
  * Record message from FIT file (highly simplified subset)
@@ -235,14 +239,14 @@ export class FitFileStateManager {
      * Clear all file-related state
      */
     clearFileState() {
-        setState("fitFile.isLoading", false, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.currentFile", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.rawData", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.processedData", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.validation", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.metrics", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.loadingError", null, { source: "FitFileStateManager.clearFileState" });
-        setState("fitFile.processingError", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.isLoading", false, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.currentFile", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.rawData", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.processedData", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.validation", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.metrics", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.loadingError", null, { source: "FitFileStateManager.clearFileState" });
+        stateCore.setState("fitFile.processingError", null, { source: "FitFileStateManager.clearFileState" });
 
         console.log("[FitFileState] File state cleared");
     }
@@ -329,12 +333,12 @@ export class FitFileStateManager {
      * @param {Object} fileData - Loaded file data
      */
     handleFileLoaded(/** @type {RawFitData} */ fileData) {
-        setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoaded" });
-        setState("fitFile.loadingProgress", 100, { source: "FitFileStateManager.handleFileLoaded" });
-        setState("fitFile.rawData", fileData, { source: "FitFileStateManager.handleFileLoaded" });
+        stateCore.setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoaded" });
+        stateCore.setState("fitFile.loadingProgress", 100, { source: "FitFileStateManager.handleFileLoaded" });
+        stateCore.setState("fitFile.rawData", fileData, { source: "FitFileStateManager.handleFileLoaded" });
 
         // Set global data for backward compatibility
-        AppActions.loadFile(fileData, getState("fitFile.currentFile"));
+        AppActions.loadFile(fileData, stateCore.getState("fitFile.currentFile"));
 
         showNotification("FIT file loaded successfully", "success", 3000);
         console.log("[FitFileState] File loaded successfully");
@@ -347,8 +351,8 @@ export class FitFileStateManager {
     handleFileLoadingError(/** @type {unknown} */ error) {
         const err = /** @type {{message?: string}} */ (error) || {},
             message = err.message || "Unknown error";
-        setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
-        setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
+        stateCore.setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
+        stateCore.setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
 
         showNotification(`Failed to load FIT file: ${message}`, "error", 5000);
         console.error("[FitFileState] File loading failed:", error);
@@ -383,12 +387,12 @@ export class FitFileStateManager {
                 sessionInfo: this.extractSessionInfo(data),
             };
 
-            setState("fitFile.processedData", processedData, { source: "FitFileStateManager.processFileData" });
+            stateCore.setState("fitFile.processedData", processedData, { source: "FitFileStateManager.processFileData" });
             console.log("[FitFileState] Data processed successfully");
         } catch (error) {
             const err = /** @type {{message?: string}} */ (error);
             console.error("[FitFileState] Error processing data:", error);
-            setState("fitFile.processingError", err?.message || "Unknown error", {
+            stateCore.setState("fitFile.processingError", err?.message || "Unknown error", {
                 source: "FitFileStateManager.processFileData",
             });
         }
@@ -452,10 +456,10 @@ export class FitFileStateManager {
      * @param {string} filePath - Path to the FIT file
      */
     startFileLoading(/** @type {string} */ filePath) {
-        setState("fitFile.isLoading", true, { source: "FitFileStateManager.startFileLoading" });
-        setState("fitFile.currentFile", filePath, { source: "FitFileStateManager.startFileLoading" });
-        setState("fitFile.loadingProgress", 0, { source: "FitFileStateManager.startFileLoading" });
-        setState("fitFile.loadingError", null, { source: "FitFileStateManager.startFileLoading" });
+        stateCore.setState("fitFile.isLoading", true, { source: "FitFileStateManager.startFileLoading" });
+        stateCore.setState("fitFile.currentFile", filePath, { source: "FitFileStateManager.startFileLoading" });
+        stateCore.setState("fitFile.loadingProgress", 0, { source: "FitFileStateManager.startFileLoading" });
+        stateCore.setState("fitFile.loadingError", null, { source: "FitFileStateManager.startFileLoading" });
 
         console.log(`[FitFileState] Started loading: ${filePath}`);
     }
@@ -468,7 +472,7 @@ export class FitFileStateManager {
         if (!processedData) {
             return;
         }
-        updateState(
+        stateCore.updateState(
             "fitFile.metrics",
             {
                 dataQualityScore: processedData.dataQuality?.completeness || 0,
@@ -491,7 +495,9 @@ export class FitFileStateManager {
             progress,
         };
 
-        updateState("ui.loadingIndicator", indicatorState, { source: "FitFileStateManager.updateLoadingProgress" });
+        stateCore.updateState("ui.loadingIndicator", indicatorState, {
+            source: "FitFileStateManager.updateLoadingProgress",
+        });
 
         console.log(`[FitFileState] Loading progress state updated: ${progress}%`);
     }
@@ -532,7 +538,7 @@ export class FitFileStateManager {
             validation.errors.push("No data provided");
         }
 
-        setState("fitFile.validation", validation, { source: "FitFileStateManager.validateFileData" });
+        stateCore.setState("fitFile.validation", validation, { source: "FitFileStateManager.validateFileData" });
 
         // Show validation results
         if (!validation.isValid) {
@@ -554,7 +560,7 @@ export const FitFileSelectors = {
      * @returns {string|null} Current file path
      */
     getCurrentFile() {
-        return getState("fitFile.currentFile");
+        return stateCore.getState("fitFile.currentFile");
     },
 
     /**
@@ -572,7 +578,7 @@ export const FitFileSelectors = {
      * @returns {string|null} Error message
      */
     getLoadingError() {
-        return getState("fitFile.loadingError");
+        return stateCore.getState("fitFile.loadingError");
     },
 
     /**
@@ -580,7 +586,7 @@ export const FitFileSelectors = {
      * @returns {number} Loading progress (0-100)
      */
     getLoadingProgress() {
-        return getState("fitFile.loadingProgress") || 0;
+        return stateCore.getState("fitFile.loadingProgress") || 0;
     },
 
     /**
@@ -588,7 +594,7 @@ export const FitFileSelectors = {
      * @returns {Object|null} File metrics
      */
     getMetrics() {
-        return getState("fitFile.metrics");
+        return stateCore.getState("fitFile.metrics");
     },
 
     /**
@@ -596,7 +602,7 @@ export const FitFileSelectors = {
      * @returns {Object|null} Processed data
      */
     getProcessedData() {
-        return getState("fitFile.processedData");
+        return stateCore.getState("fitFile.processedData");
     },
 
     /**
@@ -604,7 +610,7 @@ export const FitFileSelectors = {
      * @returns {string|null} Error message
      */
     getProcessingError() {
-        return getState("fitFile.processingError");
+        return stateCore.getState("fitFile.processingError");
     },
 
     /**
@@ -612,7 +618,7 @@ export const FitFileSelectors = {
      * @returns {Object|null} Validation object
      */
     getValidation() {
-        return getState("fitFile.validation");
+        return stateCore.getState("fitFile.validation");
     },
 
     /**
@@ -660,9 +666,18 @@ export const FitFileSelectors = {
      * @returns {boolean} True if loading
      */
     isLoading() {
-        return getState("fitFile.isLoading") || false;
+        return stateCore.getState("fitFile.isLoading") || false;
     },
 };
 
 // Create global instance
 export const fitFileStateManager = new FitFileStateManager();
+
+if (typeof globalThis !== "undefined") {
+    Object.defineProperty(globalThis, "__FFV_fitFileStateManager", {
+        configurable: true,
+        enumerable: false,
+        writable: true,
+        value: fitFileStateManager,
+    });
+}

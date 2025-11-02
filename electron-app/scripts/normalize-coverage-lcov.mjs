@@ -3,20 +3,16 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const electronAppDir = path.resolve(__dirname, "..");
-const repoRoot = path.resolve(electronAppDir, "..");
+const electronAppDir = fileURLToPath(new URL("..", import.meta.url));
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
+const repoRootPosix = repoRoot.replaceAll("\\", "/");
 const coverageTargetDir = path.join(electronAppDir, "coverage");
 
-const candidateDirs = [];
-
-if (process.env.VITEST_COVERAGE_DIR) {
-    candidateDirs.push(path.resolve(process.env.VITEST_COVERAGE_DIR));
-}
-
-candidateDirs.push(path.join(os.tmpdir(), "ffv-vitest-coverage"));
-candidateDirs.push(coverageTargetDir);
+const candidateDirs = [
+    process.env.VITEST_COVERAGE_DIR ? path.resolve(process.env.VITEST_COVERAGE_DIR) : null,
+    path.join(os.tmpdir(), "ffv-vitest-coverage"),
+    coverageTargetDir,
+].filter(Boolean);
 
 /**
  * Determine the directory that actually contains the generated lcov report.
@@ -44,46 +40,52 @@ function findSourceDir() {
     return null;
 }
 
-const sourceDir = findSourceDir();
+function normalizeCoverage() {
+    const sourceDir = findSourceDir();
 
-if (!sourceDir) {
-    console.warn("normalize-coverage-lcov: no coverage directory found. Skipping normalization.");
-    process.exit(0);
+    if (!sourceDir) {
+        console.warn("normalize-coverage-lcov: no coverage directory found. Skipping normalization.");
+        return;
+    }
+
+    if (!fs.existsSync(coverageTargetDir)) {
+        fs.mkdirSync(coverageTargetDir, { recursive: true });
+    }
+
+    if (path.resolve(sourceDir) !== path.resolve(coverageTargetDir)) {
+        fs.cpSync(sourceDir, coverageTargetDir, { recursive: true, force: true });
+    }
+
+    const lcovPath = path.join(coverageTargetDir, "lcov.info");
+    if (!fs.existsSync(lcovPath)) {
+        console.warn(`normalize-coverage-lcov: ${lcovPath} not found. Nothing to normalize.`);
+        return;
+    }
+
+    const rawLcov = fs.readFileSync(lcovPath, "utf8");
+    const normalized = rawLcov
+        .split(/\r?\n/)
+        .map((line) => {
+            if (!line.startsWith("SF:")) {
+                return line;
+            }
+
+            const filePath = line.slice(3).replaceAll("\\", "/");
+            const absolutePosixPath = path.resolve(repoRoot, filePath).replaceAll("\\", "/");
+            const relativePath = path.posix.relative(repoRootPosix, absolutePosixPath);
+            const normalizedPosixPath = path.posix.normalize(relativePath);
+
+            return `SF:${normalizedPosixPath}`;
+        })
+        .join("\n");
+
+    fs.writeFileSync(lcovPath, normalized, "utf8");
 }
 
-if (!fs.existsSync(coverageTargetDir)) {
-    fs.mkdirSync(coverageTargetDir, { recursive: true });
+try {
+    normalizeCoverage();
+} catch (error) {
+    console.error("normalize-coverage-lcov: failed to normalize coverage report", error);
+    process.exitCode = 1;
 }
-
-if (path.resolve(sourceDir) !== path.resolve(coverageTargetDir)) {
-    fs.cpSync(sourceDir, coverageTargetDir, { recursive: true, force: true });
-}
-
-const lcovPath = path.join(coverageTargetDir, "lcov.info");
-if (!fs.existsSync(lcovPath)) {
-    console.warn(`normalize-coverage-lcov: ${lcovPath} not found. Nothing to normalize.`);
-    process.exit(0);
-}
-
-const rawLcov = fs.readFileSync(lcovPath, "utf8");
-const normalized = rawLcov
-    .split(/\r?\n/)
-    .map((line) => {
-        if (line.startsWith("SF:")) {
-            const filePath = line.slice(3).replace(/\\/g, "/");
-            const normalizedPath = path.posix.normalize(filePath);
-            const resolved = path.posix.join(
-                // Ensure the path is relative to the repository root using POSIX separators
-                path.posix.relative(
-                    repoRoot.replace(/\\/g, "/"),
-                    path.resolve(repoRoot, filePath).replace(/\\/g, "/")
-                )
-            );
-            return `SF:${resolved}`;
-        }
-        return line;
-    })
-    .join("\n");
-
-fs.writeFileSync(lcovPath, normalized, "utf8");
 ``

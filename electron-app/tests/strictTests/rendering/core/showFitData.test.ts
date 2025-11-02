@@ -46,8 +46,9 @@ describe("showFitData", () => {
         expect(callPaths).toEqual(
             expect.arrayContaining([
                 "globalData",
-                "ui.isMapRendered",
-                "ui.isChartRendered",
+                "map.isRendered",
+                "charts.isRendered",
+                "tables.isRendered",
                 "ui.fileInfo",
                 "ui.unloadButtonVisible",
                 "currentFile",

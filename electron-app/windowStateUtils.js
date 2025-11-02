@@ -45,6 +45,8 @@ const fs = require("node:fs");
  */
 const path = require("node:path");
 
+const { logWithContext } = require("./main/logging/logWithContext");
+
 // Enhanced path resolution with error handling
 /**
  * Resolve the path to the window state settings file.
@@ -168,25 +170,6 @@ function getWindowState() {
             path: settingsPath,
         });
         return { ...CONSTANTS.DEFAULTS.WINDOW };
-    }
-}
-
-/**
- * Contextual logger with leveled output.
- * @param {"log"|"info"|"warn"|"error"} level
- * @param {string} message
- * @param {Record<string, any>} [context]
- */
-function logWithContext(level, message, context = {}) {
-    const timestamp = new Date().toISOString(),
-        logMessage = `[${timestamp}] [windowStateUtils] ${message}`;
-
-    if (context && Object.keys(context).length > 0) {
-        // @ts-ignore - dynamic console indexing with validated level string
-        console[level](logMessage, context);
-    } else {
-        // @ts-ignore
-        console[level](logMessage);
     }
 }
 

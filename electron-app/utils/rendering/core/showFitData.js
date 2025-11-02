@@ -15,8 +15,10 @@
  * @property {boolean} [updateUI=true] - Whether to update UI elements
  */
 
+import { AppActions } from "../../app/lifecycle/appActions.js";
 import { deferUntilIdle } from "../../app/performance/lazyRenderingUtils.js";
 import { createGlobalChartStatusIndicator } from "../../charts/components/createGlobalChartStatusIndicator.js";
+import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { setState } from "../../state/core/stateManager.js";
 
 // Constants for better maintainability
@@ -29,7 +31,7 @@ const DISPLAY_CONSTANTS = {
         FIT_FILE_LOADED: "fitfile-loaded",
         FIT_FILE_LOADED_IPC: "fit-file-loaded",
     },
-    LOG_PREFIX: "[ShowFitData]",
+    LOG_PREFIX: "ShowFitData",
     SELECTORS: {
         ACTIVE_FILE_NAME: "activeFileName",
         FILE_NAME_CONTAINER: "activeFileNameContainer",
@@ -37,6 +39,8 @@ const DISPLAY_CONSTANTS = {
     },
     TITLE_PREFIX: "Fit File Viewer",
 };
+
+const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
 
 /**
  * Shows FIT data in the UI and updates application state
@@ -71,16 +75,19 @@ export function showFitData(data, filePath, options = {}) {
             throw new Error("Invalid data: expected object");
         }
 
-        logWithContext("Displaying FIT data", "info");
+        log("info", "Displaying FIT data", {
+            filePath,
+            hasData: Boolean(data),
+        });
 
-        // Set global data and update state
+        integrateFitState(data, filePath);
+
+        // Set global data for legacy compatibility
         globalThis.globalData = data;
-        console.log("[ShowFitData] Setting globalData state", data ? "with data" : "null");
-        setState("globalData", data, { source: "showFitData" });
 
         // Reset rendering states if requested
         if (config.resetRenderStates) {
-            resetRenderingStates();
+            log("info", "resetRenderStates option is deprecated and now handled by AppActions");
         }
 
         // Handle file path and UI updates
@@ -92,9 +99,6 @@ export function showFitData(data, filePath, options = {}) {
 
             // Enable tabs and send notifications
             enableTabsAndNotify(filePath);
-
-            // Use central state management for file information
-            setState("currentFile", filePath, { source: "showFitData" });
 
             try {
                 if (typeof globalThis.scrollTo === "function") {
@@ -123,20 +127,31 @@ export function showFitData(data, filePath, options = {}) {
                     indicatorError instanceof Error
                         ? indicatorError.message
                         : "Unknown error creating chart status indicator";
-                logWithContext(`Error creating chart status indicator: ${errorMessage}`, "warn");
+                log("warn", "Error creating chart status indicator", { error: errorMessage });
             }
         }
 
-        logWithContext(`FIT data displayed successfully${filePath ? ` for file: ${extractFileName(filePath)}` : ""}`);
+        log("info", "FIT data displayed successfully", {
+            filePath,
+        });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error showing FIT data";
-        logWithContext(`Error showing FIT data: ${errorMessage}`, "error");
+        log("error", "Error showing FIT data", {
+            error: errorMessage,
+            filePath,
+        });
 
         // Let the central error handling system manage this error
         // instead of writing directly to state
         console.error("[ShowFitData] Error:", error);
 
         throw error;
+    } finally {
+        try {
+            AppActions.setFileOpening(false);
+        } catch {
+            /* ignore */
+        }
     }
 
     // Create tables if available
@@ -201,10 +216,10 @@ function enableTabsAndNotify(filePath) {
         });
         globalThis.dispatchEvent(event);
 
-        logWithContext("Tabs enabled and notifications sent");
+        log("info", "Tabs enabled and notifications sent", { filePath });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error enabling tabs and notifications";
-        logWithContext(`Error enabling tabs and notifications: ${errorMessage}`, "error");
+        log("error", "Error enabling tabs and notifications", { error: errorMessage, filePath });
     }
 }
 
@@ -246,35 +261,34 @@ function getCachedFileName(data, filePath) {
         return fileName;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error managing file name cache";
-        logWithContext(`Error managing file name cache: ${errorMessage}`, "error");
+        log("error", "Error managing file name cache", { error: errorMessage, filePath });
         return extractFileName(filePath);
     }
 }
 
-/**
- * Logs messages with context for data display operations
- * @param {string} message - The message to log
- * @param {string} level - Log level ('info', 'warn', 'error')
- * @private
- */
-function logWithContext(message, level = "info") {
+function integrateFitState(data, filePath) {
     try {
-        const prefix = DISPLAY_CONSTANTS.LOG_PREFIX;
-        switch (level) {
-            case "error": {
-                console.error(`${prefix} ${message}`);
-                break;
+        const manager = resolveFitFileStateManager();
+
+        if (manager && typeof manager.handleFileLoaded === "function") {
+            if (filePath && typeof manager.startFileLoading === "function") {
+                try {
+                    manager.startFileLoading(filePath);
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    log("warn", "Unable to start file loading state", { error: message, filePath });
+                }
             }
-            case "warn": {
-                console.warn(`${prefix} ${message}`);
-                break;
-            }
-            default: {
-                console.log(`${prefix} ${message}`);
-            }
+
+            manager.handleFileLoaded(data);
+            return;
         }
-    } catch {
-        // Silently fail if logging encounters an error
+
+        AppActions.loadFile(data, filePath ?? null);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log("error", "Failed to integrate FIT state", { error: message, filePath });
+        AppActions.loadFile(data, filePath ?? null);
     }
 }
 
@@ -291,14 +305,14 @@ function preRenderChartsInBackground(data) {
             return;
         }
 
-        logWithContext("Scheduling background chart pre-rendering");
+        log("info", "Scheduling background chart pre-rendering");
 
         // Use deferUntilIdle to render during browser idle time
         // This ensures it doesn't interfere with UI rendering or user interactions
         deferUntilIdle(
             async () => {
                 try {
-                    logWithContext("Starting background chart pre-rendering");
+                    log("info", "Starting background chart pre-rendering");
 
                     // Set a flag to indicate this is background pre-rendering
                     // This can be used by the rendering logic to skip certain operations
@@ -308,10 +322,12 @@ function preRenderChartsInBackground(data) {
                     // The state system will cache the results
                     await globalThis.renderChartsWithData(data, isBackgroundRender);
 
-                    logWithContext("Background chart pre-rendering completed");
+                    log("info", "Background chart pre-rendering completed");
                 } catch (error) {
                     // Silently fail - this is a performance optimization, not critical
-                    logWithContext(`Background chart pre-rendering failed: ${error}`, "warn");
+                    log("warn", "Background chart pre-rendering failed", {
+                        error: error instanceof Error ? error.message : String(error),
+                    });
                 }
             },
             {
@@ -322,32 +338,31 @@ function preRenderChartsInBackground(data) {
         );
     } catch (error) {
         // Silently fail - this is a performance optimization
-        logWithContext(`Error scheduling background chart pre-rendering: ${error}`, "warn");
+        log("warn", "Error scheduling background chart pre-rendering", {
+            error: error instanceof Error ? error.message : String(error),
+        });
     }
+}
+
+function resolveFitFileStateManager() {
+    const candidate = /** @type {unknown} */ (globalThis.__FFV_fitFileStateManager);
+
+    if (
+        candidate &&
+        typeof candidate === "object" &&
+        "handleFileLoaded" in candidate &&
+        typeof /** @type {{ handleFileLoaded?: unknown }} */ (candidate).handleFileLoaded === "function"
+    ) {
+        return /** @type {{ handleFileLoaded: Function; startFileLoading?: (filePath: string) => void }} */ (candidate);
+    }
+
+    return null;
 }
 
 /**
  * Resets rendering states to ensure proper re-rendering with new data
  * @private
  */
-function resetRenderingStates() {
-    try {
-        // Reset rendering flags - use type assertion for window extensions
-        /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (globalThis).isMapRendered = false;
-        /** @type {Window & {isMapRendered?: boolean, isChartRendered?: boolean}} */ (globalThis).isChartRendered =
-            false;
-
-        // Update state management
-        setState("ui.isMapRendered", false, { source: "showFitData" });
-        setState("ui.isChartRendered", false, { source: "showFitData" });
-
-        logWithContext("Rendering states reset");
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error resetting rendering states";
-        logWithContext(`Error resetting rendering states: ${errorMessage}`, "error");
-    }
-}
-
 /**
  * Updates UI elements to show active file information
  * @param {string} fileName - Name of the active file
@@ -371,9 +386,9 @@ function updateFileState(fileName) {
         );
         setState("ui.unloadButtonVisible", hasFile, { source: "showFitData.updateFileState" });
 
-        logWithContext(`File state updated for display: ${sanitizedName}`);
+        log("info", "File state updated for display", { fileName: sanitizedName, hasFile });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error updating file display";
-        logWithContext(`Error updating file display: ${errorMessage}`, "error");
+        log("error", "Error updating file display", { error: errorMessage, fileName });
     }
 }
