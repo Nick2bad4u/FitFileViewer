@@ -21,7 +21,7 @@ jobs:
                   egress-policy: audit
 
             - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-            - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+            - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
               with:
                   node-version: "20"
             - uses: doyensec/electronegativity-action@0a76b0251ac45f08eaaf49fdc26c75d1951f82b6 # v2.0
@@ -29,6 +29,6 @@ jobs:
                   input: .
                   version: latest
             - name: Upload SARIF results
-              uses: github/codeql-action/upload-sarif@3599b3baa15b485a2e49ef411a7a4bb2452e7f93 # v3.29.5
+              uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v3.29.5
               with:
                   sarif_file: ../electronegativity_results

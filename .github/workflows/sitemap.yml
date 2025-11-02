@@ -32,7 +32,7 @@ jobs:
             # Step to generate the sitemap using the cicirello/generate-sitemap action
             - name: Generate the sitemap
               id: sitemap
-              uses: cicirello/generate-sitemap@19e22284988faa5b31ee7f8f6976ace7beacf23f # v1.10.3
+              uses: cicirello/generate-sitemap@6a56a20238e631d653600cf792c3596722b78259 # v1.10.4
               with:
                   base-url-path: https://fitfileviewer.typpi.online/
                   additional-extensions: doc docx ppt pptx js css json xml xlsx xls pdf md markdown txt lua yaml yml png

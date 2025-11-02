@@ -26,7 +26,7 @@ jobs:
 
             - name: Retrieve VSCode dependency versions
               id: vscode-versions
-              uses: EcksDy/vscode-version-matrix@ea57d0731e1d2b1e0040240d64e68496edd8d165 # v1.0.0
+              uses: EcksDy/vscode-version-matrix@1ea27c0280bf15ba66008d7890a84091b721aca7 # v1.0.1
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   version: latest
