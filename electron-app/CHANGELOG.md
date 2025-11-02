@@ -7,9 +7,101 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[56f0487](https://github.com/Nick2bad4u/FitFileViewer/commit/56f048711d1b2970113ea2ff32f56e075077f389)...
+[56f0487](https://github.com/Nick2bad4u/FitFileViewer/commit/56f048711d1b2970113ea2ff32f56e075077f389)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/56f048711d1b2970113ea2ff32f56e075077f389...56f048711d1b2970113ea2ff32f56e075077f389))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 29.1.0 [`(56f0487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/56f048711d1b2970113ea2ff32f56e075077f389)
+
+
+
+
+
+
+## [29.1.0] - 2025-11-02
+
+
 [[bf4743f](https://github.com/Nick2bad4u/FitFileViewer/commit/bf4743ff6c81a48c13b52426962c2a2493ccde9d)...
-[bf4743f](https://github.com/Nick2bad4u/FitFileViewer/commit/bf4743ff6c81a48c13b52426962c2a2493ccde9d)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/bf4743ff6c81a48c13b52426962c2a2493ccde9d...bf4743ff6c81a48c13b52426962c2a2493ccde9d))
+[7f56273](https://github.com/Nick2bad4u/FitFileViewer/commit/7f562733a8a47bf0670539f1de49f76d156c8fa2)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/bf4743ff6c81a48c13b52426962c2a2493ccde9d...7f562733a8a47bf0670539f1de49f76d156c8fa2))
+
+
+### 💼 Other
+
+- 🚜 [refactor] Centralize FIT file domain state, propagate file paths, and unify lifecycle flows
+ - Delegate AppActions.loadFile to fitFileStateManager when available (startFileLoading + handleFileLoaded with { filePath, source }) and fall back to legacy slices when not present
+ - decodeFitFile and showFitData now pass filePath + source to fitFileStateManager.handleFileLoaded
+ - Add clearFitFileDomainState and use it from unloadFitFile; DragDropHandler prefers file.path and reports that path to state manager and showFitData
+
+🚜 [refactor] Harden FitFileStateManager API and legacy compatibility
+ - handleFileLoaded(fileData, options?) now updates both domain and legacy slices (fitFile.*, globalData, currentFile, charts/map/tables.isRendered), clears errors, sets progress and lastLoadTime
+ - startFileLoading(...) mirrors legacy isLoading state and initializes loadingProgress
+
+🚜 [refactor] Modularize data-point filter control for testability
+ - Extract DOM wiring, preview logic and state utilities into elementFactory.js, metricsPreview.js and stateHelpers.js
+ - Update createDataPointFilterControl to consume the helpers and keep existing UX while simplifying internals
+
+🧪 [test] Stabilize and extend tests
+ - Update many suites to mock stateManager.subscribe as vi.fn(() => () => {}) to provide unsubscribe no-ops and avoid leaks
+ - Adjust tests to assert delegation to fitFileStateManager (startFileLoading, handleFileLoaded, clearFileState) and add coverage for new data-point filter modules (metricsPreview/stateHelpers)
+
+📝 [docs] Add/update TypeScript declarations & sourcemaps
+ - Add d.ts entries and maps for new modules (elementFactory, metricsPreview, stateHelpers, rendererLogger, control elements) and update fitFileState.d.ts signature for handleFileLoaded
+
+🛠️ [fix] Minor UX/robustness tweaks
+ - Ensure unload/clear flows call domain clearFileState instead of misusing handleFileLoaded(null)
+ - Improve error handling around delegation to domain manager (try/catch + notifications)
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7f56273)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7f562733a8a47bf0670539f1de49f76d156c8fa2)
+
+
+- 🚜 [refactor] Consolidate renderer logging, standardize state + file-open flows, add UI control elements and internal prompts
+
+ - 🧹 [chore] Add renderer logging helper and unify logging
+   - Add electron-app/utils/logging/rendererLogger.js and replace ad-hoc logWithContext usage across renderer modules (showFitData, showUpdateNotification, handleOpenFile); standardize log prefixes and structured context payloads.
+ - 🛠️ [fix] Harden file-open flow (handleOpenFile)
+   - Use AppActions for file-opening lifecycle, robustly manage isOpeningFileRef, validate showNotification, improve error messages and structured logging, propagate load errors to fit-file state manager via notifyFileLoadError/resolveFitFileStateManager, and ensure proper finalization (AppActions.setFileOpening toggle).
+ - 🚜 [refactor] Centralize fit-file state integration
+   - Replace direct stateManager imports with namespaced stateCore in utils/state/domain/fitFileState.js, consistently use stateCore.getState/setState/updateState, add typed subscribe wrapper, and expose globalThis.__FFV_fitFileStateManager for renderer integration.
+ - ✨ [feat] Modularize data-point filter UI elements
+   - Add electron-app/utils/ui/controls/dataPointFilterControlElements.js to build DOM for the map filter control and add eslint max-lines exemption in createDataPointFilterControl.js to support planned modularization.
+ - ⚡ [perf] Improve LCOV normalization script
+   - Update electron-app/scripts/normalize-coverage-lcov.mjs to use fileURLToPath, repoRoot POSIX normalization, filtered candidateDirs, safer copy/normalize logic and non-fatal behavior (return vs process.exit; set process.exitCode on failure).
+ - 🧪 [test] Align tests and types to changes
+   - Update test expectations and spies to match renamed state keys and logging behavior (showFitData.test.ts, handleOpenFile.complete.test.ts) and update handleOpenFile.d.ts to include optional context parameter.
+ - 📝 [docs] Add internal agent prompts for auditing & TODO workflow
+   - Add .github/agents/BeastMode.agent.md and prompts (.github/PROMPTS/Consistency-Check.prompt.md, .github/PROMPTS/Do-ToDo.prompt.md) to drive consistency audits and automated todo creation.
+ - 🧹 [chore] Misc cleanup and consolidation
+   - Remove duplicate local logWithContext from windowStateUtils.js and import central main logger, and apply minor integration/formatting adjustments across affected modules.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(6622506)`](https://github.com/Nick2bad4u/FitFileViewer/commit/6622506a37aee2fbb04592be7dc52f5510bad0a4)
+
+
+- 🔧 [build] [dependency] Update package manager and upgrade dependencies
+ - packageManager: npm@11.6.1 → npm@11.6.2
+ - Upgrade core/runtime deps: electron 38.2.0 → 39.0.0, maplibre-gl → 5.10.0, chart.js → 4.5.1
+ - Upgrade test/tooling deps: vitest & @vitest/ui → 4.0.6, @vitest/coverage-v8 → 4.0.6
+ - Upgrade lint/format tooling and plugins (eslint, @typescript-eslint, @eslint/js/@eslint/css, prettier plugins, stylelint-config-standard)
+ - Upgrade GitHub Actions libs and other dev deps (e.g. @actions/artifact, @actions/attest, @actions/http-client, @actions/io, jsdom, globals)
+ - See electron-app/package.json for full list of version bumps and alignment
+
+🧹 [chore] Add updateDeps script
+ - Add "updateDeps": "npx ncu -i --install never && npm install --force" to electron-app/package.json to simplify automated dependency updates
+
+🧹 [chore] Update .gitignore
+ - Ignore todo.md to prevent local TODO notes from being committed
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(39dd904)`](https://github.com/Nick2bad4u/FitFileViewer/commit/39dd9045fd3db18ec27457636387d9a325254abd)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v29.0.0 [skip ci] [`(76c3c4a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/76c3c4aa52e835461da615e5bb8edfa4e84e23b2)
+
 
 
 ### 📦 Dependencies
