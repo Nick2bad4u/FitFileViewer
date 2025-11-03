@@ -17,6 +17,10 @@ handoffs:
    agent: BeastMode
    prompt: Add findings to the ToDo list (if any new findings) and complete any outstanding tasks on the todo list. Follow the plan in .github/prompts/Do-ToDo.prompt.md
    send: false
+ - label: Review Work
+   agent: BeastMode
+   prompt: Review the recent work and ToDo list to ensure all tasks are complete. Follow the plan in .github/prompts/Review.prompt.md - If everything is complete, clear the todo list.
+   send: true
 target: vscode
 ---
 
