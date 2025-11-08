@@ -117,7 +117,7 @@ describe("ChartStateManager", () => {
         });
 
         it("should clear existing timeout when called multiple times", () => {
-            const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
+            const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
 
             chartStateManager.debouncedRender("reason1");
             chartStateManager.debouncedRender("reason2");
@@ -140,7 +140,7 @@ describe("ChartStateManager", () => {
         });
 
         it("should clear existing timeout when force rendering", () => {
-            const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
+            const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
 
             chartStateManager.debouncedRender("reason");
             chartStateManager.forceRender("force");
@@ -418,6 +418,14 @@ describe("ChartStateManager", () => {
         it("should handle chart render failure", async () => {
             vi.mocked(renderChartJS).mockResolvedValue(false);
             const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const isActiveSpy = vi.spyOn(chartStateManager, "isChartTabActive").mockReturnValue(true);
+
+            vi.mocked(getState).mockImplementation((path: string) => {
+                if (path === "globalData") {
+                    return { recordMesgs: [{}] } as any;
+                }
+                return undefined;
+            });
 
             await chartStateManager.performChartRender("Test reason");
 
@@ -427,6 +435,37 @@ describe("ChartStateManager", () => {
             });
 
             consoleWarnSpy.mockRestore();
+            isActiveSpy.mockRestore();
+            vi.mocked(getState).mockReset();
+        });
+
+        it("should downgrade logging when render is skipped intentionally", async () => {
+            vi.mocked(renderChartJS).mockResolvedValue(false);
+            const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+            const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+            const isActiveSpy = vi.spyOn(chartStateManager, "isChartTabActive").mockReturnValue(false);
+
+            vi.mocked(getState).mockImplementation((path: string) => {
+                if (path === "globalData") {
+                    return { recordMesgs: [] } as any;
+                }
+                return undefined;
+            });
+
+            await chartStateManager.performChartRender("Integration refresh");
+
+            expect(consoleInfoSpy).toHaveBeenCalledWith(
+                "[ChartStateManager] Skipped chart render (Integration refresh): chart tab inactive, no chartable data"
+            );
+            expect(consoleWarnSpy).not.toHaveBeenCalled();
+            expect(setState).toHaveBeenCalledWith("charts.isRendering", false, {
+                source: "ChartStateManager.performChartRender",
+            });
+
+            consoleInfoSpy.mockRestore();
+            consoleWarnSpy.mockRestore();
+            isActiveSpy.mockRestore();
+            vi.mocked(getState).mockReset();
         });
 
         it("should handle chart render errors", async () => {
@@ -497,7 +536,7 @@ describe("ChartStateManager", () => {
         });
 
         it("should destroy properly", () => {
-            const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
+            const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
             const clearChartStateSpy = vi.spyOn(chartStateManager, "clearChartState").mockImplementation(() => {});
 
             (chartStateManager as any).renderTimeout = setTimeout(() => {}, 1000);

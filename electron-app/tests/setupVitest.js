@@ -1,5 +1,7 @@
 // @ts-nocheck
 // Mock Leaflet global L for all Vitest tests
+// eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
+import "./shims/nodeWebStorage";
 import { vi, afterEach as vitestAfterEach, beforeEach as vitestBeforeEach, afterAll as vitestAfterAll } from "vitest";
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
 /** @type {undefined | (() => void)} */

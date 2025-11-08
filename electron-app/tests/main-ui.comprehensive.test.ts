@@ -1,6 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
+ import "./shims/nodeWebStorage";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock the DOM elements and utilities that main-ui.js depends on

@@ -364,13 +364,31 @@ export class FitFileStateManager {
      * @param {Error} error - Loading error
      */
     handleFileLoadingError(/** @type {unknown} */ error) {
-        const err = /** @type {{message?: string}} */ (error) || {},
-            message = err.message || "Unknown error";
+        if (error === null || error === undefined || error === "") {
+            return;
+        }
+
+        const previousMessage = stateCore.getState("fitFile.loadingError"),
+            err = /** @type {{ message?: string }} */ (error),
+            message =
+                typeof error === "string" && error.trim().length > 0
+                    ? error
+                    : typeof err?.message === "string" && err.message.trim().length > 0
+                      ? err.message
+                      : "Unknown error";
+
+        if (typeof error === "string" && previousMessage === message) {
+            return;
+        }
+
         stateCore.setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
-        stateCore.setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
+
+        if (previousMessage !== message) {
+            stateCore.setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
+        }
 
         showNotification(`Failed to load FIT file: ${message}`, "error", 5000);
-        console.error("[FitFileState] File loading failed:", error);
+        console.error("[FitFileState] File loading failed:", error instanceof Error ? error : message);
     }
 
     /**
@@ -449,7 +467,7 @@ export class FitFileStateManager {
         });
 
         // Handle file loading errors
-        subscribe("fitFile.loadingError", (/** @type {Error} */ error) => {
+        subscribe("fitFile.loadingError", (/** @type {unknown} */ error) => {
             this.handleFileLoadingError(error); // Error originates from fit parser integration
         });
     }

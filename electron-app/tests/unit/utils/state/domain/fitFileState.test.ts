@@ -158,15 +158,43 @@ describe("FitFileStateManager - domain logic and selectors", () => {
         gs.mockRestore();
     });
 
-    it("handleFileLoadingError records error and notifies", () => {
+    it("handleFileLoadingError records error once and notifies", () => {
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
         const notif = vi.spyOn(rendererUtils, "showNotification").mockImplementation(() => {});
 
         mgr.handleFileLoadingError(new Error("oops"));
         expect(ss).toHaveBeenCalledWith("fitFile.isLoading", false, expect.any(Object));
-        expect(ss).toHaveBeenCalledWith("fitFile.loadingError", "oops", expect.any(Object));
+        const loadingErrorCalls = ss.mock.calls.filter((call) => call[0] === "fitFile.loadingError");
+        expect(loadingErrorCalls).toHaveLength(1);
+        expect(loadingErrorCalls[0]).toEqual(["fitFile.loadingError", "oops", expect.any(Object)]);
         expect(notif).toHaveBeenCalled();
+    });
+
+    it("handleFileLoadingError ignores nullish and duplicate normalized values", () => {
+        const mgr = new FitFileStateManager();
+        const ss = vi.spyOn(stateManager, "setState");
+        const notif = vi.spyOn(rendererUtils, "showNotification").mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        mgr.handleFileLoadingError(null as any);
+        expect(ss).not.toHaveBeenCalled();
+        expect(notif).not.toHaveBeenCalled();
+        expect(consoleSpy).not.toHaveBeenCalled();
+
+        // Seed state with an existing normalized message and ensure duplicate notifications are skipped.
+        stateManager.setState("fitFile.loadingError", "dupe", { source: "test" });
+        ss.mockClear();
+        notif.mockClear();
+        consoleSpy.mockClear();
+
+        mgr.handleFileLoadingError("dupe");
+
+        expect(ss).not.toHaveBeenCalled();
+        expect(notif).not.toHaveBeenCalled();
+        expect(consoleSpy).not.toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
     });
 
     it("processFileData sets processedData; error path sets processingError", () => {

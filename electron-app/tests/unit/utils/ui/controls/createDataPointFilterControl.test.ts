@@ -554,12 +554,66 @@ describe("createDataPointFilterControl", () => {
         expect(rangeRadio?.checked).toBe(true);
         expect(topPercentRadio?.checked).toBe(false);
         expect(rangeValues?.textContent).toContain("260");
+        expect(maxSlider?.value).toBe("260");
 
         minSlider!.value = "350";
         minSlider!.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
         expect(maxSlider!.value).toBe("300");
         expect(rangeValues?.textContent).toContain("300");
+    });
+
+    it("falls back to Promise microtasks when queueMicrotask is unavailable", async () => {
+        computeRangeState.mockImplementation(() => ({
+            rangeValues: { min: 110, max: 190 },
+            sliderValues: { min: "110", max: "190" },
+            stats: {
+                decimals: 0,
+                max: 210,
+                metric: "power",
+                metricLabel: "W",
+                min: 90,
+                step: 5,
+            },
+        }));
+
+        const originalMicrotask = globalThis.queueMicrotask;
+        // Simulate environments (older Safari/Electron) that lack queueMicrotask.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore -- intentionally assigning undefined for coverage branch
+        globalThis.queueMicrotask = undefined;
+
+        const container = appendControl(createDataPointFilterControl());
+        openPanel(container);
+        await Promise.resolve();
+
+        const summary = document.body.querySelector<HTMLParagraphElement>(
+            ".data-point-filter-control__summary"
+        );
+        expect(summary).toBeTruthy();
+        if (!summary) {
+            globalThis.queueMicrotask = originalMicrotask;
+            return;
+        }
+
+        summary.textContent = "Original summary";
+        globalThis.mapDataPointFilterLastResult = {
+            applied: false,
+            reason: "Fallback microtask refresh",
+        } as any;
+
+        const metricSelect = document.body.querySelector<HTMLSelectElement>(
+            ".data-point-filter-control__select"
+        );
+        metricSelect!.dispatchEvent(new Event("change", { bubbles: true }));
+
+        // The fallback uses Promise.resolve().then(...); flush twice to cover chained jobs.
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(summary.textContent).toBe("Fallback microtask refresh");
+
+        globalThis.queueMicrotask = originalMicrotask;
     });
 
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {
@@ -712,6 +766,10 @@ describe("createDataPointFilterControl", () => {
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
         await Promise.resolve();
+
+        const rangeRadio = document.body.querySelector<HTMLInputElement>("input[value='valueRange']");
+        rangeRadio!.checked = true;
+        rangeRadio!.dispatchEvent(new Event("change", { bubbles: true }));
 
         const applyButton = document.body.querySelector<HTMLButtonElement>(".data-point-filter-control__apply");
         const summary = document.body.querySelector<HTMLParagraphElement>(".data-point-filter-control__summary");
@@ -963,6 +1021,82 @@ describe("createDataPointFilterControl", () => {
         window.dispatchEvent(new Event("resize"));
         await Promise.resolve();
         expect(panel?.classList.contains("data-point-filter-control__panel--reverse")).toBe(true);
+    });
+
+    it("clamps the panel arrow offset when positioned near viewport edges", async () => {
+        const originalWidth = window.innerWidth;
+        const originalHeight = window.innerHeight;
+
+        const container = appendControl(createDataPointFilterControl());
+        const toggle = container.querySelector<HTMLButtonElement>(".data-point-filter-control__toggle");
+
+        Object.defineProperty(window, "innerWidth", { value: 720, configurable: true });
+        Object.defineProperty(window, "innerHeight", { value: 640, configurable: true });
+
+        toggle!.getBoundingClientRect = () => ({
+            bottom: 160,
+            height: 32,
+            left: 0,
+            right: 32,
+            top: 128,
+            width: 32,
+            x: 0,
+            y: 128,
+        } as DOMRect);
+
+        openPanel(container);
+        await Promise.resolve();
+
+        const panel = document.body.querySelector<HTMLDivElement>(".data-point-filter-control__panel");
+        expect(panel).toBeTruthy();
+        if (!panel) {
+            Object.defineProperty(window, "innerWidth", { value: originalWidth, configurable: true });
+            Object.defineProperty(window, "innerHeight", { value: originalHeight, configurable: true });
+            return;
+        }
+
+        panel.getBoundingClientRect = () => ({
+            bottom: 240,
+            height: 160,
+            left: 0,
+            right: 320,
+            top: 80,
+            width: 320,
+            x: 0,
+            y: 80,
+        } as DOMRect);
+
+        window.dispatchEvent(new Event("resize"));
+        await Promise.resolve();
+
+        const leftClamp = Number.parseInt(
+            panel.style.getPropertyValue("--data-point-filter-arrow-offset"),
+            10
+        );
+        expect(leftClamp).toBe(14);
+
+        toggle!.getBoundingClientRect = () => ({
+            bottom: 160,
+            height: 32,
+            left: 700,
+            right: 732,
+            top: 128,
+            width: 32,
+            x: 700,
+            y: 128,
+        } as DOMRect);
+
+        window.dispatchEvent(new Event("resize"));
+        await Promise.resolve();
+
+        const rightClamp = Number.parseInt(
+            panel.style.getPropertyValue("--data-point-filter-arrow-offset"),
+            10
+        );
+        expect(rightClamp).toBe(306);
+
+        Object.defineProperty(window, "innerWidth", { value: originalWidth, configurable: true });
+        Object.defineProperty(window, "innerHeight", { value: originalHeight, configurable: true });
     });
 
     it("skips repositioning when the panel reports zero dimensions", async () => {

@@ -5,7 +5,7 @@
  * This module provides a reliable JSDOM setup for tests that require DOM manipulation.
  * It patches JSDOM's missing or incomplete functionality to ensure DOM tests work correctly.
  */
-
+import "./shims/nodeWebStorage";
 import { vi } from "vitest";
 
 /**

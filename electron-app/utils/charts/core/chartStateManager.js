@@ -269,7 +269,26 @@ class ChartStateManager {
                 setState("charts.lastRenderTime", Date.now(), { source: "ChartStateManager.performChartRender" });
                 console.log(`[ChartStateManager] Charts rendered successfully: ${reason}`);
             } else {
-                console.warn(`[ChartStateManager] Chart rendering failed: ${reason}`);
+                const skipReasons = [];
+
+                if (!this.isChartTabActive()) {
+                    skipReasons.push("chart tab inactive");
+                }
+
+                const globalData = getState("globalData"),
+                    hasRecords = Array.isArray(globalData?.recordMesgs) && globalData.recordMesgs.length > 0;
+
+                if (!hasRecords) {
+                    skipReasons.push("no chartable data");
+                }
+
+                if (skipReasons.length > 0) {
+                    console.info(
+                        `[ChartStateManager] Skipped chart render (${reason}): ${skipReasons.join(", ")}`
+                    );
+                } else {
+                    console.warn(`[ChartStateManager] Chart rendering failed: ${reason}`);
+                }
             }
         } catch (error) {
             console.error("[ChartStateManager] Error during chart rendering:", error);

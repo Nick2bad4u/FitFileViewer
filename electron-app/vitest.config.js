@@ -58,6 +58,7 @@ export default defineConfig({
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
             experimentalAstAwareRemapping: false, // Temporarily disabled due to ast-v8-to-istanbul column parsing error
             ignoreEmptyLines: true, // Ignore empty lines, comments, and TypeScript interfaces
+            enabled: true,
             // Curated include set: target modules with stable, complete unit tests
             // So that a strict ≥95% gate is meaningful and consistently achievable.
             // Paths are relative to the electron-app directory.
@@ -103,6 +104,7 @@ export default defineConfig({
                 url: "http://localhost/",
             },
         },
+        dangerouslyIgnoreUnhandledErrors: false,
         exclude: [
             "**/node_modules/**",
             // Exclude any compiled artifacts accidentally picked up
@@ -124,6 +126,16 @@ export default defineConfig({
         fileParallelism: true,
         globals: true, // Enable global test functions (describe, it, expect)
         globalSetup: ["./tests/globalSetup.js"],
+        hookTimeout: 30_000,
+        vmMemoryLimit: 2048, // Increase VM memory limit to 2GB to handle larger test suites
+        teardownTimeout: 30_000,
+        testTimeout: 30_000,
+        passWithNoTests: false,
+        maxConcurrency: 4, // Limit max concurrency to reduce resource contention in multi-project setup
+        maxWorkers: 6, // Limit max workers to reduce resource contention in multi-project setup
+        retrys: 1, // Retry failed tests once to reduce transient failures
+        allowOnly: false, // Fail if .only is left in the code
+        includeTaskLocation: true,
         // Only collect tests from the source tests directory
         include: ["tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
 

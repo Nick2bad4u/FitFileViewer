@@ -233,14 +233,20 @@ export function createDataPointFilterControl(onFilterChange) {
                 max: clampRangeValue(preview.appliedMax ?? maxValue, currentStats),
             };
 
+            const nextMin = currentRangeValues.min ?? minValue;
+            const nextMax = currentRangeValues.max ?? maxValue;
+            rangeSliderMin.value = toSliderString(nextMin, currentStats.decimals);
+            rangeSliderMax.value = toSliderString(nextMax, currentStats.decimals);
+            updateRangeDisplay();
+
             updateGlobalFilter(config);
             closePanel();
             const summaryText = buildSummaryText(preview, config, currentStats);
             if (summaryText) {
                 summary.textContent = summaryText;
             }
-            const minLabel = formatMetricValue(currentRangeValues.min ?? minValue);
-            const maxLabel = formatMetricValue(currentRangeValues.max ?? maxValue);
+            const minLabel = formatMetricValue(nextMin, currentStats);
+            const maxLabel = formatMetricValue(nextMax, currentStats);
             const coverage = formatPercent(preview.percent ?? 0);
             showNotification(
                 `Showing ${preview.metricLabel ?? preview.metric} between ${minLabel} and ${maxLabel} (${coverage}% coverage)`,

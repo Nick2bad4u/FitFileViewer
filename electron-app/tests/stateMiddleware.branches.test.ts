@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // We will import fresh modules in some tests to control module-level flags
-
+import "./shims/nodeWebStorage";
 describe("stateMiddleware additional branches", () => {
     afterEach(() => {
         vi.restoreAllMocks();
