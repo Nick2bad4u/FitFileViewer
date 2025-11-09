@@ -149,7 +149,9 @@ export function computeMetricStatistics(recordMesgs, metricKey, options = {}) {
     } else {
         const base = range / 200;
         const minimumStep = 1 / 10 ** decimals;
-        step = Number(Number.isFinite(base) && base > minimumStep ? base.toFixed(decimals) : minimumStep.toFixed(decimals));
+        step = Number(
+            Number.isFinite(base) && base > minimumStep ? base.toFixed(decimals) : minimumStep.toFixed(decimals)
+        );
     }
 
     return {

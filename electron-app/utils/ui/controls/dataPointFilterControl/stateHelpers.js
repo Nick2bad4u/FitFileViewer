@@ -36,10 +36,8 @@ export function computeRangeState(metricKey, currentRangeValues, options = {}) {
         }
 
         const preserveSelection = Boolean(options?.preserveSelection);
-        let minValue =
-            preserveSelection && currentRangeValues?.min !== undefined ? currentRangeValues.min : stats.min;
-        let maxValue =
-            preserveSelection && currentRangeValues?.max !== undefined ? currentRangeValues.max : stats.max;
+        let minValue = preserveSelection && currentRangeValues?.min !== undefined ? currentRangeValues.min : stats.min;
+        let maxValue = preserveSelection && currentRangeValues?.max !== undefined ? currentRangeValues.max : stats.max;
 
         minValue = clampRangeValue(minValue, stats);
         maxValue = clampRangeValue(maxValue, stats);
@@ -66,7 +64,7 @@ export function formatMetricValue(value, stats, decimalsOverride) {
     const decimalsRaw =
         typeof decimalsOverride === "number"
             ? decimalsOverride
-            : stats?.decimals ?? (Number.isInteger(value) ? 0 : 2);
+            : (stats?.decimals ?? (Number.isInteger(value) ? 0 : 2));
     const decimals = Math.min(4, Math.max(0, decimalsRaw));
     const formatter = new Intl.NumberFormat(undefined, {
         maximumFractionDigits: decimals,

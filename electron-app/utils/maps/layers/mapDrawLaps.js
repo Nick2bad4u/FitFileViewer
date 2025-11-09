@@ -1267,7 +1267,7 @@ function selectMarkerCoordinatesForDataset(coordsArray, shouldUpdateSummary = tr
         metricLabel,
         minCandidate,
         mode,
-        percent: mode === "topPercent" ? filterConfig.percent ?? percent : percent,
+        percent: mode === "topPercent" ? (filterConfig.percent ?? percent) : percent,
         selectedCount: finalSelection.length,
         threshold,
         totalCandidates: coordsArray.length,

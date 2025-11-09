@@ -507,10 +507,14 @@ export function createDataPointFilterControl(onFilterChange) {
             const last = win.mapDataPointFilterLastResult;
             if (last && last.applied) {
                 if (last.mode === "valueRange") {
-                    const appliedMin = typeof last.appliedMin === "number" ? last.appliedMin : last.minCandidate ?? 0;
-                    const appliedMax = typeof last.appliedMax === "number" ? last.appliedMax : last.maxCandidate ?? 0;
+                    const appliedMin = typeof last.appliedMin === "number" ? last.appliedMin : (last.minCandidate ?? 0);
+                    const appliedMax = typeof last.appliedMax === "number" ? last.appliedMax : (last.maxCandidate ?? 0);
                     const coverageValue =
-                        typeof last.coverage === "number" ? last.coverage : typeof last.percent === "number" ? last.percent : 0;
+                        typeof last.coverage === "number"
+                            ? last.coverage
+                            : typeof last.percent === "number"
+                              ? last.percent
+                              : 0;
                     summary.textContent = `Showing ${last.selectedCount} of ${last.totalCandidates} points between ${formatMetricValue(
                         appliedMin,
                         null

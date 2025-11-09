@@ -175,7 +175,7 @@ describe("renderZoneChartNew", () => {
         expect(chartConstructorMock).toHaveBeenCalledTimes(1);
 
         expect(chartCalls.length).toBeGreaterThan(0);
-        const { config } = chartCalls[0]!
+        const { config } = chartCalls[0]!;
         expect(config.type).toBe("bar");
         expect(config.plugins).toEqual([chartBackgroundColorPluginStub]);
 

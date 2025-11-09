@@ -31,9 +31,16 @@ vi.mock("../../../../../utils/ui/notifications/showNotification.js", () => ({
 
 import { createDataPointFilterControl } from "../../../../../utils/ui/controls/createDataPointFilterControl.js";
 import { showNotification } from "../../../../../utils/ui/notifications/showNotification.js";
-import { computeRangeState, resolveInitialConfig, updateGlobalFilter } from "../../../../../utils/ui/controls/dataPointFilterControl/stateHelpers.js";
+import {
+    computeRangeState,
+    resolveInitialConfig,
+    updateGlobalFilter,
+} from "../../../../../utils/ui/controls/dataPointFilterControl/stateHelpers.js";
 import * as stateHelpersModule from "../../../../../utils/ui/controls/dataPointFilterControl/stateHelpers.js";
-import { buildSummaryText, previewFilterResult } from "../../../../../utils/ui/controls/dataPointFilterControl/metricsPreview.js";
+import {
+    buildSummaryText,
+    previewFilterResult,
+} from "../../../../../utils/ui/controls/dataPointFilterControl/metricsPreview.js";
 
 let actualStateHelpers: any;
 let actualMetricsPreview: any;
@@ -43,8 +50,12 @@ let originalQueueMicrotask: typeof globalThis.queueMicrotask;
 let rafId = 0;
 
 beforeAll(async () => {
-    actualStateHelpers = await vi.importActual("../../../../../utils/ui/controls/dataPointFilterControl/stateHelpers.js");
-    actualMetricsPreview = await vi.importActual("../../../../../utils/ui/controls/dataPointFilterControl/metricsPreview.js");
+    actualStateHelpers = await vi.importActual(
+        "../../../../../utils/ui/controls/dataPointFilterControl/stateHelpers.js"
+    );
+    actualMetricsPreview = await vi.importActual(
+        "../../../../../utils/ui/controls/dataPointFilterControl/metricsPreview.js"
+    );
 });
 
 beforeEach(() => {
@@ -142,7 +153,9 @@ describe("createDataPointFilterControl", () => {
 
         expect(panel?.hidden).toBe(true);
         expect(container.classList.contains("data-point-filter-control--open")).toBe(false);
-        expect(container.querySelector(".data-point-filter-control__toggle")?.getAttribute("aria-expanded")).toBe("false");
+        expect(container.querySelector(".data-point-filter-control__toggle")?.getAttribute("aria-expanded")).toBe(
+            "false"
+        );
     });
 
     it("applies top percent filters successfully", async () => {
@@ -241,9 +254,7 @@ describe("createDataPointFilterControl", () => {
         const applyButton = document.body.querySelector<HTMLButtonElement>(".data-point-filter-control__apply");
         applyButton!.click();
 
-        const summary = document.body.querySelector<HTMLParagraphElement>(
-            ".data-point-filter-control__summary"
-        );
+        const summary = document.body.querySelector<HTMLParagraphElement>(".data-point-filter-control__summary");
         expect(summary?.textContent).toBe("Filter disabled due to insufficient data.");
         expect(showNotification).toHaveBeenCalledWith("No data points available for that metric.", "info");
         expect(onChange.mock.calls.at(-1)).toEqual([
@@ -298,10 +309,7 @@ describe("createDataPointFilterControl", () => {
         expect(updateGlobalFilter).toHaveBeenLastCalledWith(
             expect.objectContaining({ enabled: true, mode: "valueRange", minValue: 200, maxValue: 500 })
         );
-        expect(showNotification).toHaveBeenCalledWith(
-            expect.stringContaining("Watts"),
-            "success"
-        );
+        expect(showNotification).toHaveBeenCalledWith(expect.stringContaining("Watts"), "success");
         expect(onChange).toHaveBeenCalledWith(
             expect.objectContaining({ action: "apply", result: expect.objectContaining({ mode: "valueRange" }) })
         );
@@ -373,9 +381,7 @@ describe("createDataPointFilterControl", () => {
         rangeRadio!.checked = true;
         rangeRadio!.dispatchEvent(new Event("change", { bubbles: true }));
 
-        const applyButton = document.body.querySelector<HTMLButtonElement>(
-            ".data-point-filter-control__apply"
-        );
+        const applyButton = document.body.querySelector<HTMLButtonElement>(".data-point-filter-control__apply");
         showNotification.mockClear();
         const callsBefore = updateGlobalFilter.mock.calls.length;
         applyButton!.click();
@@ -417,14 +423,10 @@ describe("createDataPointFilterControl", () => {
         rangeRadio!.checked = true;
         rangeRadio!.dispatchEvent(new Event("change", { bubbles: true }));
 
-        const applyButton = document.body.querySelector<HTMLButtonElement>(
-            ".data-point-filter-control__apply"
-        );
+        const applyButton = document.body.querySelector<HTMLButtonElement>(".data-point-filter-control__apply");
         applyButton!.click();
 
-        const summary = document.body.querySelector<HTMLParagraphElement>(
-            ".data-point-filter-control__summary"
-        );
+        const summary = document.body.querySelector<HTMLParagraphElement>(".data-point-filter-control__summary");
         expect(summary?.textContent).toBe("Filter disabled due to insufficient data.");
         expect(showNotification).toHaveBeenCalledWith("No data points available for that range.", "info");
         expect(updateGlobalFilter).toHaveBeenLastCalledWith(
@@ -587,9 +589,7 @@ describe("createDataPointFilterControl", () => {
         openPanel(container);
         await Promise.resolve();
 
-        const summary = document.body.querySelector<HTMLParagraphElement>(
-            ".data-point-filter-control__summary"
-        );
+        const summary = document.body.querySelector<HTMLParagraphElement>(".data-point-filter-control__summary");
         expect(summary).toBeTruthy();
         if (!summary) {
             globalThis.queueMicrotask = originalMicrotask;
@@ -602,9 +602,7 @@ describe("createDataPointFilterControl", () => {
             reason: "Fallback microtask refresh",
         } as any;
 
-        const metricSelect = document.body.querySelector<HTMLSelectElement>(
-            ".data-point-filter-control__select"
-        );
+        const metricSelect = document.body.querySelector<HTMLSelectElement>(".data-point-filter-control__select");
         metricSelect!.dispatchEvent(new Event("change", { bubbles: true }));
 
         // The fallback uses Promise.resolve().then(...); flush twice to cover chained jobs.
@@ -725,10 +723,7 @@ describe("createDataPointFilterControl", () => {
             expect.objectContaining({ mode: "valueRange", minValue: 170, maxValue: 330 })
         );
         expect(summary?.textContent).toBe("Power between 160 and 310");
-        expect(showNotification).toHaveBeenLastCalledWith(
-            expect.stringContaining("160"),
-            "success"
-        );
+        expect(showNotification).toHaveBeenLastCalledWith(expect.stringContaining("160"), "success");
 
         // Sliders retain the preview-adjusted bounds after applying.
         expect(minSlider?.value).toBe("160");
@@ -800,7 +795,9 @@ describe("createDataPointFilterControl", () => {
         metricSelect!.dispatchEvent(new Event("change", { bubbles: true }));
 
         expect(metricCalls.some((call) => call.options?.preserveSelection === false)).toBe(true);
-        expect(metricCalls.some((call) => call.current?.min === undefined && call.current?.max === undefined)).toBe(true);
+        expect(metricCalls.some((call) => call.current?.min === undefined && call.current?.max === undefined)).toBe(
+            true
+        );
     });
 
     it("disables range controls when stats are unavailable", async () => {
@@ -827,9 +824,9 @@ describe("createDataPointFilterControl", () => {
     });
 
     it("handles non-numeric slider input gracefully", async () => {
-        const clampMock = vi.spyOn(stateHelpersModule, "clampRangeValue").mockImplementation(
-            /** @type {any} */ ((value, stats) => actualStateHelpers.clampRangeValue(value, stats))
-        );
+        const clampMock = vi
+            .spyOn(stateHelpersModule, "clampRangeValue")
+            .mockImplementation(/** @type {any} */ (value, stats) => actualStateHelpers.clampRangeValue(value, stats));
         computeRangeState.mockImplementation(() => ({
             rangeValues: { min: 175, max: 300 },
             sliderValues: { min: "175", max: "300" },
@@ -981,16 +978,17 @@ describe("createDataPointFilterControl", () => {
     it("repositions the panel based on viewport constraints", async () => {
         const container = appendControl(createDataPointFilterControl());
         const toggle = container.querySelector<HTMLButtonElement>(".data-point-filter-control__toggle");
-        toggle!.getBoundingClientRect = () => ({
-            bottom: 700,
-            height: 40,
-            left: 200,
-            right: 240,
-            top: 660,
-            width: 40,
-            x: 200,
-            y: 660,
-        } as DOMRect);
+        toggle!.getBoundingClientRect = () =>
+            ({
+                bottom: 700,
+                height: 40,
+                left: 200,
+                right: 240,
+                top: 660,
+                width: 40,
+                x: 200,
+                y: 660,
+            }) as DOMRect;
         Object.defineProperty(window, "innerWidth", { value: 800, configurable: true });
         Object.defineProperty(window, "innerHeight", { value: 720, configurable: true });
 
@@ -998,16 +996,17 @@ describe("createDataPointFilterControl", () => {
         await Promise.resolve();
 
         const panel = document.body.querySelector<HTMLDivElement>(".data-point-filter-control__panel");
-        panel!.getBoundingClientRect = () => ({
-            bottom: 680,
-            height: 120,
-            left: 0,
-            right: 0,
-            top: 560,
-            width: 320,
-            x: 0,
-            y: 560,
-        } as DOMRect);
+        panel!.getBoundingClientRect = () =>
+            ({
+                bottom: 680,
+                height: 120,
+                left: 0,
+                right: 0,
+                top: 560,
+                width: 320,
+                x: 0,
+                y: 560,
+            }) as DOMRect;
 
         window.dispatchEvent(new Event("resize"));
         await Promise.resolve();
@@ -1033,16 +1032,17 @@ describe("createDataPointFilterControl", () => {
         Object.defineProperty(window, "innerWidth", { value: 720, configurable: true });
         Object.defineProperty(window, "innerHeight", { value: 640, configurable: true });
 
-        toggle!.getBoundingClientRect = () => ({
-            bottom: 160,
-            height: 32,
-            left: 0,
-            right: 32,
-            top: 128,
-            width: 32,
-            x: 0,
-            y: 128,
-        } as DOMRect);
+        toggle!.getBoundingClientRect = () =>
+            ({
+                bottom: 160,
+                height: 32,
+                left: 0,
+                right: 32,
+                top: 128,
+                width: 32,
+                x: 0,
+                y: 128,
+            }) as DOMRect;
 
         openPanel(container);
         await Promise.resolve();
@@ -1055,44 +1055,40 @@ describe("createDataPointFilterControl", () => {
             return;
         }
 
-        panel.getBoundingClientRect = () => ({
-            bottom: 240,
-            height: 160,
-            left: 0,
-            right: 320,
-            top: 80,
-            width: 320,
-            x: 0,
-            y: 80,
-        } as DOMRect);
+        panel.getBoundingClientRect = () =>
+            ({
+                bottom: 240,
+                height: 160,
+                left: 0,
+                right: 320,
+                top: 80,
+                width: 320,
+                x: 0,
+                y: 80,
+            }) as DOMRect;
 
         window.dispatchEvent(new Event("resize"));
         await Promise.resolve();
 
-        const leftClamp = Number.parseInt(
-            panel.style.getPropertyValue("--data-point-filter-arrow-offset"),
-            10
-        );
+        const leftClamp = Number.parseInt(panel.style.getPropertyValue("--data-point-filter-arrow-offset"), 10);
         expect(leftClamp).toBe(14);
 
-        toggle!.getBoundingClientRect = () => ({
-            bottom: 160,
-            height: 32,
-            left: 700,
-            right: 732,
-            top: 128,
-            width: 32,
-            x: 700,
-            y: 128,
-        } as DOMRect);
+        toggle!.getBoundingClientRect = () =>
+            ({
+                bottom: 160,
+                height: 32,
+                left: 700,
+                right: 732,
+                top: 128,
+                width: 32,
+                x: 700,
+                y: 128,
+            }) as DOMRect;
 
         window.dispatchEvent(new Event("resize"));
         await Promise.resolve();
 
-        const rightClamp = Number.parseInt(
-            panel.style.getPropertyValue("--data-point-filter-arrow-offset"),
-            10
-        );
+        const rightClamp = Number.parseInt(panel.style.getPropertyValue("--data-point-filter-arrow-offset"), 10);
         expect(rightClamp).toBe(306);
 
         Object.defineProperty(window, "innerWidth", { value: originalWidth, configurable: true });
@@ -1102,16 +1098,17 @@ describe("createDataPointFilterControl", () => {
     it("skips repositioning when the panel reports zero dimensions", async () => {
         const container = appendControl(createDataPointFilterControl());
         const toggle = container.querySelector<HTMLButtonElement>(".data-point-filter-control__toggle");
-        toggle!.getBoundingClientRect = () => ({
-            bottom: 200,
-            height: 32,
-            left: 100,
-            right: 132,
-            top: 168,
-            width: 32,
-            x: 100,
-            y: 168,
-        } as DOMRect);
+        toggle!.getBoundingClientRect = () =>
+            ({
+                bottom: 200,
+                height: 32,
+                left: 100,
+                right: 132,
+                top: 168,
+                width: 32,
+                x: 100,
+                y: 168,
+            }) as DOMRect;
 
         openPanel(container);
         await Promise.resolve();
@@ -1119,16 +1116,17 @@ describe("createDataPointFilterControl", () => {
         const panel = document.body.querySelector<HTMLDivElement>(".data-point-filter-control__panel");
         panel!.style.left = "10px";
         panel!.style.top = "20px";
-        panel!.getBoundingClientRect = () => ({
-            bottom: 0,
-            height: 0,
-            left: 0,
-            right: 0,
-            top: 0,
-            width: 0,
-            x: 0,
-            y: 0,
-        } as DOMRect);
+        panel!.getBoundingClientRect = () =>
+            ({
+                bottom: 0,
+                height: 0,
+                left: 0,
+                right: 0,
+                top: 0,
+                width: 0,
+                x: 0,
+                y: 0,
+            }) as DOMRect;
 
         window.dispatchEvent(new Event("resize"));
         await Promise.resolve();

@@ -98,10 +98,7 @@ describe("createMetricFilter range mode", () => {
 
 describe("computeMetricStatistics", () => {
     it("computes bounds and averages for a metric", () => {
-        const stats = computeMetricStatistics(
-            [{ speed: 1.5 }, { speed: 2.25 }, { speed: 3.75 }],
-            "speed"
-        );
+        const stats = computeMetricStatistics([{ speed: 1.5 }, { speed: 2.25 }, { speed: 3.75 }], "speed");
         expect(stats).toBeTruthy();
         expect(stats?.min).toBeCloseTo(1.5);
         expect(stats?.max).toBeCloseTo(3.75);

@@ -418,13 +418,16 @@ class TabStateManager {
                  * we fall back to a full re-render to avoid Leaflet accessing undefined properties.
                  */
                 const executeInvalidation = () => {
-                    const container = typeof mapInstance.getContainer === "function" ? mapInstance.getContainer() : null;
+                    const container =
+                        typeof mapInstance.getContainer === "function" ? mapInstance.getContainer() : null;
 
                     if (!container || !container.isConnected) {
                         console.warn("[TabStateManager] Map container missing; re-rendering map instance");
                         if (typeof renderMapFn === "function") {
                             renderMapFn();
-                            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab.reRender" });
+                            getStateMgr().setState("map.isRendered", true, {
+                                source: "TabStateManager.handleMapTab.reRender",
+                            });
                         }
                         return;
                     }
@@ -436,7 +439,9 @@ class TabStateManager {
                         console.warn("[TabStateManager] Map invalidation failed; re-rendering map", error);
                         if (typeof renderMapFn === "function") {
                             renderMapFn();
-                            getStateMgr().setState("map.isRendered", true, { source: "TabStateManager.handleMapTab.recover" });
+                            getStateMgr().setState("map.isRendered", true, {
+                                source: "TabStateManager.handleMapTab.recover",
+                            });
                         }
                     }
                 };

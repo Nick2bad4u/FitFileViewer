@@ -7,10 +7,7 @@
         "config-type": "error",
         "cpu-type": "error",
         "dependencies-type": "error",
-        "description-format": [
-            "error",
-            {}
-        ],
+        "description-format": ["error", {}],
         "description-type": "error",
         "devDependencies-type": "error",
         "directories-type": "error",
@@ -27,30 +24,10 @@
         "no-absolute-version-devDependencies": "error",
         "no-caret-version-dependencies": "off",
         "no-caret-version-devDependencies": "off",
-        "no-restricted-dependencies": [
-            "error",
-            [
-                "gulping-npm-package-json-lint"
-            ]
-        ],
-        "no-restricted-devDependencies": [
-            "error",
-            [
-                "gulping-npm-package-json-lint"
-            ]
-        ],
-        "no-restricted-pre-release-dependencies": [
-            "error",
-            [
-                "gulping-npm-package-json-lint"
-            ]
-        ],
-        "no-restricted-pre-release-devDependencies": [
-            "error",
-            [
-                "gulping-npm-package-json-lint"
-            ]
-        ],
+        "no-restricted-dependencies": ["error", ["gulping-npm-package-json-lint"]],
+        "no-restricted-devDependencies": ["error", ["gulping-npm-package-json-lint"]],
+        "no-restricted-pre-release-dependencies": ["error", ["gulping-npm-package-json-lint"]],
+        "no-restricted-pre-release-devDependencies": ["error", ["gulping-npm-package-json-lint"]],
         "no-tilde-version-dependencies": "error",
         "no-tilde-version-devDependencies": "error",
         "optionalDependencies-type": "error",
@@ -67,9 +44,7 @@
         "prefer-caret-version-devDependencies": [
             "error",
             {
-                "exceptions": [
-                    "vitest-environment-browser"
-                ]
+                "exceptions": ["vitest-environment-browser"]
             }
         ],
         "prefer-no-engineStrict": "error",
@@ -164,23 +139,9 @@
             ]
         ],
         "valid-values-engines": "off",
-        "valid-values-license": [
-            "error",
-            [
-                "MIT",
-                "Unlicense",
-                "UnLicense",
-                "UNLICENSED"
-            ]
-        ],
+        "valid-values-license": ["error", ["MIT", "Unlicense", "UnLicense", "UNLICENSED"]],
         "valid-values-name-scope": "off",
-        "valid-values-private": [
-            "error",
-            [
-                false,
-                true
-            ]
-        ],
+        "valid-values-private": ["error", [false, true]],
         "valid-values-publishConfig": "off",
         "version-format": "error",
         "version-type": "error"

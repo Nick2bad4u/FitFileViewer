@@ -64,11 +64,7 @@ describe("stateHelpers", () => {
 
     it("computeRangeState returns normalized stats and slider strings for available data", () => {
         globalThis.globalData = {
-            recordMesgs: [
-                { speed: 10 },
-                { speed: 30.25 },
-                { speed: 25.5 },
-            ],
+            recordMesgs: [{ speed: 10 }, { speed: 30.25 }, { speed: 25.5 }],
         };
 
         const { stats, rangeValues, sliderValues } = computeRangeState("speed", null);

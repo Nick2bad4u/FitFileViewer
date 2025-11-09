@@ -6,9 +6,8 @@
 import { showNotification } from "../../app/initialization/rendererUtils.js";
 import * as stateCore from "../core/stateManager.js";
 
-const subscribe = (
-    /** @type {Parameters<typeof stateCore.subscribe>} */ ...args
-) => (typeof stateCore.subscribe === "function" ? stateCore.subscribe(...args) : () => {});
+const subscribe = (/** @type {Parameters<typeof stateCore.subscribe>} */ ...args) =>
+    typeof stateCore.subscribe === "function" ? stateCore.subscribe(...args) : () => {};
 
 /**
  * Record message from FIT file (highly simplified subset)
@@ -384,7 +383,9 @@ export class FitFileStateManager {
         stateCore.setState("fitFile.isLoading", false, { source: "FitFileStateManager.handleFileLoadingError" });
 
         if (previousMessage !== message) {
-            stateCore.setState("fitFile.loadingError", message, { source: "FitFileStateManager.handleFileLoadingError" });
+            stateCore.setState("fitFile.loadingError", message, {
+                source: "FitFileStateManager.handleFileLoadingError",
+            });
         }
 
         showNotification(`Failed to load FIT file: ${message}`, "error", 5000);
@@ -420,7 +421,9 @@ export class FitFileStateManager {
                 sessionInfo: this.extractSessionInfo(data),
             };
 
-            stateCore.setState("fitFile.processedData", processedData, { source: "FitFileStateManager.processFileData" });
+            stateCore.setState("fitFile.processedData", processedData, {
+                source: "FitFileStateManager.processFileData",
+            });
             console.log("[FitFileState] Data processed successfully");
         } catch (error) {
             const err = /** @type {{message?: string}} */ (error);

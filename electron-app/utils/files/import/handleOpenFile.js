@@ -32,7 +32,7 @@ const resolveFitFileStateManager = () => {
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoadingError" in candidate &&
-        typeof /** @type {{ handleFileLoadingError?: unknown }} */ (candidate).handleFileLoadingError === "function"
+        typeof (/** @type {{ handleFileLoadingError?: unknown }} */ (candidate).handleFileLoadingError) === "function"
     ) {
         return /** @type {{ handleFileLoadingError: (error: Error) => void }} */ (candidate);
     }

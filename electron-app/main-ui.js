@@ -407,7 +407,7 @@ class DragDropHandler {
         }
 
         const filePath =
-            typeof /** @type {File & { path?: string }} */ (file).path === "string" &&
+            typeof (/** @type {File & { path?: string }} */ (file).path) === "string" &&
             /** @type {File & { path?: string }} */ (file).path.trim().length > 0
                 ? /** @type {File & { path?: string }} */ (file).path
                 : file.name;

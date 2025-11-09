@@ -32,7 +32,7 @@ function findSourceDir() {
                 return dir;
             }
         } catch (error) {
-            if ((error)?.code !== "ENOENT") {
+            if (error?.code !== "ENOENT") {
                 console.warn(`normalize-coverage-lcov: failed to inspect ${dir}:`, error);
             }
         }
@@ -88,4 +88,4 @@ try {
     console.error("normalize-coverage-lcov: failed to normalize coverage report", error);
     process.exitCode = 1;
 }
-``
+``;

@@ -283,9 +283,7 @@ class ChartStateManager {
                 }
 
                 if (skipReasons.length > 0) {
-                    console.info(
-                        `[ChartStateManager] Skipped chart render (${reason}): ${skipReasons.join(", ")}`
-                    );
+                    console.info(`[ChartStateManager] Skipped chart render (${reason}): ${skipReasons.join(", ")}`);
                 } else {
                     console.warn(`[ChartStateManager] Chart rendering failed: ${reason}`);
                 }

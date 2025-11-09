@@ -54,12 +54,7 @@ describe("metricsPreview", () => {
 
     it("previewFilterResult derives a filter result from global records", () => {
         globalThis.globalData = {
-            recordMesgs: [
-                { speed: 5 },
-                { speed: 10 },
-                { speed: 15 },
-                { speed: 20 },
-            ],
+            recordMesgs: [{ speed: 5 }, { speed: 10 }, { speed: 15 }, { speed: 20 }],
         };
         updateGlobalFilter({ enabled: true, metric: "speed", mode: "topPercent", percent: 50 });
         const result = previewFilterResult({ enabled: true, metric: "speed", mode: "topPercent", percent: 50 });

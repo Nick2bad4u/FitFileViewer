@@ -351,7 +351,7 @@ function resolveFitFileStateManager() {
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoaded" in candidate &&
-        typeof /** @type {{ handleFileLoaded?: unknown }} */ (candidate).handleFileLoaded === "function"
+        typeof (/** @type {{ handleFileLoaded?: unknown }} */ (candidate).handleFileLoaded) === "function"
     ) {
         return /** @type {{ handleFileLoaded: Function; startFileLoading?: (filePath: string) => void }} */ (candidate);
     }

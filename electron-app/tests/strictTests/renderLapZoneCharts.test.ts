@@ -358,7 +358,7 @@ describe("renderLapZoneCharts", () => {
 
             // Verify renderLapZoneChart was called for HR chart
             const hrCalls = renderLapZoneChart.mock.calls.filter(
-                (call: { title: string; }[]) => call[2]?.title === "HR Zone by Lap (Stacked)"
+                (call: { title: string }[]) => call[2]?.title === "HR Zone by Lap (Stacked)"
             );
             expect(hrCalls).toHaveLength(1);
 
