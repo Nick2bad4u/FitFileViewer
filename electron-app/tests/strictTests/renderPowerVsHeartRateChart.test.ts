@@ -54,7 +54,9 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             getDatasetAtEvent: vi.fn(() => []),
         };
 
-        Chart = vi.fn(() => chartInstanceMock);
+        Chart = vi.fn(function ChartConstructor() {
+            return chartInstanceMock;
+        });
         (global.window as any).Chart = Chart;
         (global as any).globalThis.Chart = Chart;
         (global.window as any)._chartjsInstances = [];

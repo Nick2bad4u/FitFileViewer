@@ -1,5 +1,6 @@
 // Ensure a safe console is available before Vitest workers initialize.
 import "./shims/nodeWebStorage";
+
 export default async function globalSetup() {
     try {
         const noop = () => {};

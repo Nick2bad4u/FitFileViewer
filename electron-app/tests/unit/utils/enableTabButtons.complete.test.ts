@@ -349,11 +349,13 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             // Mock both global and window MutationObserver (implementation checks both)
             const originalMutationObserver = global.MutationObserver;
             const originalWindowMutationObserver = global.window.MutationObserver;
-            const MutationObserverSpy = vi.fn().mockImplementation(() => mockObserver);
+            const MutationObserverSpy = vi.fn().mockImplementation(function MutationObserverMock() {
+                return mockObserver;
+            });
 
             // Mock both scopes to ensure the implementation finds our spy
-            global.MutationObserver = MutationObserverSpy;
-            global.window.MutationObserver = MutationObserverSpy;
+            global.MutationObserver = MutationObserverSpy as any;
+            global.window.MutationObserver = MutationObserverSpy as any;
 
             initializeTabButtonState();
 
@@ -644,7 +646,7 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
             const originalWindowMutationObserver = global.window.MutationObserver;
 
             // Mock both global and window scope MutationObserver to capture callback
-            const MockObserverClass = vi.fn().mockImplementation((callback) => {
+            const MockObserverClass = vi.fn().mockImplementation(function MutationObserverMock(callback) {
                 mutationCallback = callback;
                 return {
                     observe: vi.fn(),
@@ -652,8 +654,8 @@ describe("enableTabButtons.js - Complete Test Suite", () => {
                 };
             });
 
-            global.MutationObserver = MockObserverClass;
-            global.window.MutationObserver = MockObserverClass;
+            global.MutationObserver = MockObserverClass as any;
+            global.window.MutationObserver = MockObserverClass as any;
             (global as any).window.tabButtonsCurrentlyEnabled = true;
 
             initializeTabButtonState();

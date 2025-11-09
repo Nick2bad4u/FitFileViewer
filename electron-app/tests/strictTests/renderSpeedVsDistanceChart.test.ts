@@ -54,7 +54,9 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             getDatasetAtEvent: vi.fn(() => []),
         };
 
-        Chart = vi.fn(() => chartInstanceMock);
+        Chart = vi.fn(function ChartConstructor() {
+            return chartInstanceMock;
+        });
         (global.window as any).Chart = Chart;
         (global as any).globalThis.Chart = Chart;
 
@@ -612,7 +614,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
             // Mock window.Chart to throw an error when instantiated
-            const mockChart = vi.fn().mockImplementation(() => {
+            const mockChart = vi.fn().mockImplementation(function ChartMock() {
                 throw new Error("Chart creation failed");
             });
 

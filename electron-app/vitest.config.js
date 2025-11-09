@@ -53,6 +53,7 @@ export default defineConfig({
                 // Constants-only modules
                 "utils/charts/theming/chartOverlayColorPalette.js",
                 "utils/maps/core/mapColors.js",
+                "**/assets/**",
                 ...coverageConfigDefaults.exclude,
             ],
             excludeAfterRemap: true, // Exclude files after remapping for accuracy
@@ -193,7 +194,7 @@ export default defineConfig({
             allowJs: false,
             checker: "tsc",
             enabled: true,
-            exclude: ["**/dist*/**", "**/html/**", "**/.{idea,git,cache,output,temp}/**", ...defaultExclude],
+            exclude: ["**/dist*/**", "**/{html,dist,assets}/**", "**/.{idea,git,cache,output,temp}/**", ...defaultExclude],
             ignoreSourceErrors: false,
             include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
             only: false,

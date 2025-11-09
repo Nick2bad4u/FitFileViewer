@@ -57,7 +57,9 @@ describe("renderGPSTrackChart", () => {
         // Type assertion for global window
         (global as any).window = {
             ...global.window,
-            Chart: vi.fn(() => mockChart),
+            Chart: vi.fn(function ChartMock() {
+                return mockChart;
+            }),
             _chartjsInstances: [],
         };
 
@@ -632,7 +634,7 @@ describe("renderGPSTrackChart", () => {
     describe("Error Handling", () => {
         it("should handle chart creation errors gracefully", () => {
             const globalWindow = (global as any).window;
-            globalWindow.Chart = vi.fn(() => {
+            globalWindow.Chart = vi.fn(function ChartMock() {
                 throw new Error("Chart creation failed");
             });
             (global as any).globalThis.Chart = globalWindow.Chart;

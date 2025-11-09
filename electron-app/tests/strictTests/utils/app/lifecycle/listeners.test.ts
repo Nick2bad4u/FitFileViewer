@@ -1651,12 +1651,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         global.URL.createObjectURL = vi.fn().mockReturnValue("blob:test-url");
         global.URL.revokeObjectURL = vi.fn();
 
-        // Mock Blob constructor
-        global.Blob = vi.fn().mockImplementation((parts: any[], options: any) => ({
-            parts,
-            options,
-            type: options?.type || "",
-        }));
+        // Mock Blob constructor - must be a proper constructor function
+        (global as any).Blob = vi.fn().mockImplementation(function BlobMock(parts: any[], options: any) {
+            return {
+                parts,
+                options,
+                type: options?.type || "",
+            };
+        });
 
         // Mock document.body.append and createElement
         const mockAnchorElement = {

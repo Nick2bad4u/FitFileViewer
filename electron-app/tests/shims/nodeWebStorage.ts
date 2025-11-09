@@ -126,7 +126,7 @@ const installStorage = (name: StorageName): void => {
         configurable: true,
         enumerable: true,
         value: storage,
-        writable: false,
+        writable: true,
     };
 
     Reflect.defineProperty(globalThis, name, descriptor);

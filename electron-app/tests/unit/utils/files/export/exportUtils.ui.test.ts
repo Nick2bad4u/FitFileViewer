@@ -10,10 +10,18 @@ function installBaseMocks() {
     reg.set("/utils/charts/theming/chartThemeUtils.js", { detectCurrentTheme: vi.fn(() => "light") });
 
     // Provide URL, Clipboard, and minimal canvas APIs used by exportUtils
-    vi.stubGlobal("URL", {
-        createObjectURL: vi.fn(() => "blob:export"),
-        revokeObjectURL: vi.fn(),
-    });
+    const URLMock = function URLMock(this: any, input?: string, base?: string) {
+        if (!(this instanceof URLMock)) {
+            return new (URLMock as any)(input, base);
+        }
+        this.href = input || "https://localhost/mock";
+        this.protocol = "https:";
+        this.host = "localhost";
+        this.pathname = "/mock";
+    } as unknown as typeof URL;
+    (URLMock as any).createObjectURL = vi.fn(() => "blob:export");
+    (URLMock as any).revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", URLMock);
 
     const ctx = {
         fillStyle: "#fff",

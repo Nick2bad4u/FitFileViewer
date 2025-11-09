@@ -63,7 +63,9 @@ describe("renderLapZoneChart", () => {
             destroy: vi.fn(),
         };
 
-        (window as any).Chart = vi.fn(() => mockChart);
+        (window as any).Chart = vi.fn(function ChartMock() {
+            return mockChart;
+        });
         (window as any).showNotification = vi.fn();
     });
 

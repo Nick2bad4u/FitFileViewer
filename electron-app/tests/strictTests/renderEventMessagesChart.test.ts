@@ -81,7 +81,9 @@ beforeEach(() => {
 
     // Ensure window and global.window reference the same object
     Object.assign(window, {
-        Chart: vi.fn(() => mockChart),
+        Chart: vi.fn(function ChartMock() {
+            return mockChart;
+        }),
         _chartjsInstances: [],
         globalData: {
             eventMesgs: [
@@ -593,7 +595,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
     describe("Error Handling", () => {
         test("should handle Chart.js constructor throwing error", () => {
-            (global.window as any).Chart = vi.fn(() => {
+            (global.window as any).Chart = vi.fn(function ChartErrorMock() {
                 throw new Error("Chart creation failed");
             });
 
@@ -632,7 +634,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
         test("should handle null Chart.js instance", () => {
             // Mock Chart constructor to throw an error or simulate failure
-            const mockChartConstructor = vi.fn(() => {
+            const mockChartConstructor = vi.fn(function ChartErrorMock() {
                 throw new Error("Chart construction failed");
             });
             (global.window as any).Chart = mockChartConstructor;

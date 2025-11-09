@@ -10,11 +10,13 @@ describe("renderZoneChart", () => {
         document.body.innerHTML = '<div id="root"></div>';
         (window as any)._chartjsInstances = [];
         originalChart = (window as any).Chart;
-        (window as any).Chart = vi.fn().mockImplementation((_canvas, _config) => ({
-            update: vi.fn(),
-            destroy: vi.fn(),
-            getDatasetMeta: vi.fn().mockReturnValue({ data: [{}, {}, {}] }),
-        }));
+        (window as any).Chart = vi.fn().mockImplementation(function ChartMock(_canvas, _config) {
+            return {
+                update: vi.fn(),
+                destroy: vi.fn(),
+                getDatasetMeta: vi.fn().mockReturnValue({ data: [{}, {}, {}] }),
+            };
+        });
         // theme
         document.body.classList.add("theme-light");
         (window as any).matchMedia = vi

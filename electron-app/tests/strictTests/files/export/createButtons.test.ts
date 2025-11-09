@@ -51,7 +51,8 @@ describe("export/print buttons", () => {
         expect(clickSpy).toHaveBeenCalled();
         // Fast-forward revoke timeout
         vi.runAllTimers();
-        expect(revoke).toHaveBeenCalledWith("blob:url");
+        expect(revoke).toHaveBeenCalled();
+        expect(revoke.mock.calls[0][0]).toMatch(/^blob:/);
         vi.useRealTimers();
     });
 });

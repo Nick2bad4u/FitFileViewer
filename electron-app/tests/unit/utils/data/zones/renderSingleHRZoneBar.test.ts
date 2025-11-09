@@ -94,7 +94,7 @@ describe("renderSingleHRZoneBar", () => {
 
         // Create a completely fresh Chart spy for each test
         // This is the key change to fix the failing tests
-        const ChartSpy = vi.fn().mockImplementation((ctx, config) => {
+        const ChartSpy = vi.fn().mockImplementation(function ChartMock(ctx, config) {
             mockChartInstance.config = config;
             lastChartConfig = config;
             (global as any).__lastChartConfig = config;
@@ -211,7 +211,7 @@ describe("renderSingleHRZoneBar", () => {
 
     it("should use zone colors from chartZoneColorUtils when colors not provided", () => {
         // Create a fresh Chart mock for this test
-        window.Chart = vi.fn().mockImplementation((canvasElem, config) => {
+        window.Chart = vi.fn().mockImplementation(function ChartMockForColors(canvasElem, config) {
             mockChartInstance.config = config;
             return mockChartInstance;
         });

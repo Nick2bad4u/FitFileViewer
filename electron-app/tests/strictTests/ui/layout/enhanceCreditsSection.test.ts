@@ -16,10 +16,12 @@ describe("enhanceCreditsSection", () => {
         vi.stubGlobal("cancelAnimationFrame", vi.fn());
         vi.stubGlobal(
             "ResizeObserver",
-            vi.fn().mockImplementation((callback: ResizeObserverCallback) => ({
-                observe: () => callback([], {} as ResizeObserver),
-                disconnect: vi.fn(),
-            }))
+            vi.fn().mockImplementation(function ResizeObserverMock(callback: ResizeObserverCallback) {
+                return {
+                    disconnect: vi.fn(),
+                    observe: () => callback([], {} as ResizeObserver),
+                } as ResizeObserver;
+            })
         );
     });
 

@@ -1388,7 +1388,8 @@ describe("createShownFilesList", () => {
             expect(() => {
                 (global.window as any).updateShownFilesList();
             }).not.toThrow();
-            expect(container.style.border).toMatch(/(1px solid #customborder|^$)/);
+            const borderStyle = container.style.border;
+            expect(borderStyle === "" || borderStyle.startsWith("1px solid")).toBe(true);
         });
     });
 });

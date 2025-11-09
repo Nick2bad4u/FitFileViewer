@@ -23,7 +23,9 @@ describe("renderSinglePowerZoneBar", () => {
     it("renders chart when Chart is available", async () => {
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
-        (window as any).Chart = vi.fn((_, cfg) => ({ destroy: vi.fn(), config: cfg }));
+        (window as any).Chart = vi.fn(function ChartMock(_, cfg) {
+            return { config: cfg, destroy: vi.fn() };
+        });
 
         // Ensure globalThis can access the Chart mock
         if (!(global as any).globalThis) {

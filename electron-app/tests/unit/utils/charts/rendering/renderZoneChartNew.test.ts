@@ -35,7 +35,8 @@ vi.mock("../../../../../utils/formatting/formatters/formatTime.js", () => ({
 }));
 
 async function loadModule() {
-    await vi.resetModules();
+    // Don't reset modules - let beforeEach handle cleanup
+    // await vi.resetModules();
     return import("../../../../../utils/charts/rendering/renderZoneChartNew.js");
 }
 
@@ -72,7 +73,7 @@ beforeEach(() => {
     getChartZoneColorsMock.mockReturnValue(["#123456", "#789abc", "#def012"]);
     formatTimeMock.mockImplementation((value: unknown) => `formatted-${value}`);
 
-    chartConstructorMock = vi.fn((canvas: HTMLCanvasElement, config: any) => {
+    chartConstructorMock = vi.fn().mockImplementation(function Chart(canvas: HTMLCanvasElement, config: any) {
         chartCalls.push({ canvas, config });
         return { destroy: vi.fn(), data: config.data };
     });
@@ -85,6 +86,7 @@ beforeEach(() => {
 afterEach(() => {
     document.body.innerHTML = "";
     delete (globalThis as any)._chartjsInstances;
+    vi.clearAllMocks();
 });
 
 describe("renderZoneChartNew", () => {
@@ -111,9 +113,16 @@ describe("renderZoneChartNew", () => {
 
         expect(createChartCanvasMock).toHaveBeenCalledWith("hr-zone-chart", 0);
         expect(container.querySelector("canvas")).toBeTruthy();
+
+        // Debug: check if Chart was called
+        console.log("Chart constructor called:", chartConstructorMock.mock.calls.length);
+        console.log("chartCalls array length:", chartCalls.length);
+        console.log("globalThis.Chart is:", typeof (globalThis as any).Chart);
+
         expect(chartConstructorMock).toHaveBeenCalledTimes(1);
 
-        const { canvas, config } = chartCalls[0];
+        expect(chartCalls.length).toBeGreaterThan(0);
+        const { canvas, config } = chartCalls[0]!;
         expect(config.type).toBe("doughnut");
         expect(canvas.style.borderRadius).toBe("12px");
         expect(canvas.style.boxShadow).toBe("0 2px 16px 0 rgba(0, 0, 0, 0.15)");
@@ -165,7 +174,8 @@ describe("renderZoneChartNew", () => {
         expect(createChartCanvasMock).toHaveBeenCalledWith("power-zone-chart", 0);
         expect(chartConstructorMock).toHaveBeenCalledTimes(1);
 
-        const { config } = chartCalls[0];
+        expect(chartCalls.length).toBeGreaterThan(0);
+        const { config } = chartCalls[0]!
         expect(config.type).toBe("bar");
         expect(config.plugins).toEqual([chartBackgroundColorPluginStub]);
 

@@ -52,7 +52,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             toBase64Image: vi.fn(),
         };
 
-        Chart = vi.fn().mockImplementation(() => chartInstanceMock);
+        Chart = vi.fn().mockImplementation(function ChartConstructor() {
+            return chartInstanceMock;
+        });
         (global as any).window.Chart = Chart;
         (global as any).window._chartjsInstances = [];
 

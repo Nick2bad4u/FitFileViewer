@@ -90,7 +90,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
         // Primary mock via vi.doMock
         vi.doMock("electron-conf", () => {
-            const ConfMock = vi.fn().mockImplementation(() => mockConf);
+            const ConfMock = vi.fn(function ConfMockCtor() {
+                return mockConf;
+            });
             return { Conf: ConfMock };
         });
 
@@ -99,11 +101,14 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             const req = createRequire(import.meta.url);
             const resolved = req.resolve("electron-conf");
             // Minimal export shape expected by fitParser.getConf()
+            const ConfMock = vi.fn(function ConfMockCtor() {
+                return mockConf;
+            });
             (req as any).cache[resolved] = {
                 id: resolved,
                 filename: resolved,
                 loaded: true,
-                exports: { Conf: vi.fn().mockImplementation(() => mockConf) },
+                exports: { Conf: ConfMock },
             } as any;
         } catch {
             // ignore if resolution fails; vi.doMock fallback should handle it
@@ -126,7 +131,9 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             buffer: Buffer.from([1, 2, 3, 4]),
         };
 
-        mockFitSDK.Decoder.mockImplementation(() => mockDecoder);
+        mockFitSDK.Decoder.mockImplementation(function MockDecoder() {
+            return mockDecoder;
+        });
         mockFitSDK.Stream.fromBuffer.mockReturnValue(mockStream);
 
         // Setup default conf behavior
@@ -506,7 +513,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
             // Mock import failure by providing a mock SDK that throws
             const failingSDK = {
-                Decoder: vi.fn().mockImplementation(() => {
+                Decoder: vi.fn(function FailingDecoder() {
                     throw new Error("SDK initialization failed");
                 }),
                 Stream: mockFitSDK.Stream,
@@ -552,7 +559,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
         it("should handle generic exceptions", async () => {
             const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
-            mockFitSDK.Decoder.mockImplementation(() => {
+            mockFitSDK.Decoder.mockImplementation(function ThrowingDecoder() {
                 throw new Error("Unexpected error");
             });
 
@@ -565,7 +572,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
 
         it("should handle exceptions without message or stack", async () => {
             const buffer = Buffer.from([0x0e, 0x10, 0x43, 0x08]);
-            mockFitSDK.Decoder.mockImplementation(() => {
+            mockFitSDK.Decoder.mockImplementation(function StringErrorDecoder() {
                 throw "String error";
             });
 
@@ -626,7 +633,7 @@ describe("fitParser.js - Comprehensive Coverage", () => {
             const stateError = new Error("State update failed");
 
             // Mock decoder to throw error
-            mockFitSDK.Decoder.mockImplementation(() => {
+            mockFitSDK.Decoder.mockImplementation(function FailingDecoder() {
                 throw decodingError;
             });
 

@@ -393,8 +393,8 @@ describe("main.js - Complete Coverage Test", () => {
         globalMocks.mockNativeTheme.emit("updated");
 
         // Window events simulation
-        const mockWindow = globalMocks.MockBrowserWindow.mock.results[0]?.value;
-        if (mockWindow) {
+        const mockWindow = globalMocks.MockBrowserWindow.mock.results[0]?.value || mockWebContents;
+        if (mockWindow && typeof mockWindow.emit === "function") {
             mockWindow.emit("ready-to-show");
             mockWindow.emit("closed");
             mockWindow.emit("focus");

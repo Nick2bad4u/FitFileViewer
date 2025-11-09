@@ -31,10 +31,31 @@ function installCanvasMocks() {
 }
 
 function installURLMocks() {
-    vi.stubGlobal("URL", {
-        createObjectURL: vi.fn(() => "blob:export"),
-        revokeObjectURL: vi.fn(),
-    });
+    const OriginalURL = globalThis.URL;
+    if (typeof OriginalURL === "function") {
+        class URLMock extends (OriginalURL as any) {
+            constructor(input?: string | URL, base?: string | URL) {
+                super(input ?? "https://localhost/mock", base);
+            }
+
+            static createObjectURL = vi.fn(() => "blob:url");
+            static revokeObjectURL = vi.fn();
+        }
+
+        vi.stubGlobal("URL", URLMock as unknown as typeof URL);
+    } else {
+        const createObjectURL = vi.fn(() => "blob:url");
+        const revokeObjectURL = vi.fn();
+        const URLMock = function URLMock(this: any, input?: string) {
+            if (!(this instanceof URLMock)) {
+                return new (URLMock as any)(input);
+            }
+            this.href = input ?? "https://localhost/mock";
+        } as unknown as typeof URL;
+        (URLMock as any).createObjectURL = createObjectURL;
+        (URLMock as any).revokeObjectURL = revokeObjectURL;
+        vi.stubGlobal("URL", URLMock);
+    }
 }
 
 function installClipboardMock() {

@@ -244,8 +244,8 @@ describe("StateMiddlewareManager - comprehensive coverage", () => {
     it("persistence middleware saves specific paths to localStorage (happy and error paths)", async () => {
         // Register only the persistence middleware for this test
         registerMiddleware("persistence", persistenceMiddleware, 40);
-        // Spy on Storage.prototype to capture calls from localStorage
-        const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+        // Spy on localStorage.setItem directly since our mock might not use Storage.prototype
+        const setItemSpy = vi.spyOn(localStorage, "setItem");
 
         await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, {
             path: "settings.theme",
