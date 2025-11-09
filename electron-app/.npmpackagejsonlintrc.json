@@ -1,0 +1,188 @@
+{
+    "$schema": "https://www.schemastore.org/npmpackagejsonlintrc.json",
+    "extends": "",
+    "rules": {
+        "bin-type": "error",
+        "bundledDependencies-type": "error",
+        "config-type": "error",
+        "cpu-type": "error",
+        "dependencies-type": "error",
+        "description-format": [
+            "error",
+            {}
+        ],
+        "description-type": "error",
+        "devDependencies-type": "error",
+        "directories-type": "error",
+        "engines-type": "error",
+        "files-type": "error",
+        "homepage-type": "error",
+        "keywords-type": "error",
+        "license-type": "error",
+        "main-type": "error",
+        "man-type": "error",
+        "name-format": "error",
+        "name-type": "error",
+        "no-absolute-version-dependencies": "error",
+        "no-absolute-version-devDependencies": "error",
+        "no-caret-version-dependencies": "off",
+        "no-caret-version-devDependencies": "off",
+        "no-restricted-dependencies": [
+            "error",
+            [
+                "gulping-npm-package-json-lint"
+            ]
+        ],
+        "no-restricted-devDependencies": [
+            "error",
+            [
+                "gulping-npm-package-json-lint"
+            ]
+        ],
+        "no-restricted-pre-release-dependencies": [
+            "error",
+            [
+                "gulping-npm-package-json-lint"
+            ]
+        ],
+        "no-restricted-pre-release-devDependencies": [
+            "error",
+            [
+                "gulping-npm-package-json-lint"
+            ]
+        ],
+        "no-tilde-version-dependencies": "error",
+        "no-tilde-version-devDependencies": "error",
+        "optionalDependencies-type": "error",
+        "os-type": "error",
+        "peerDependencies-type": "error",
+        "prefer-absolute-version-dependencies": "off",
+        "prefer-absolute-version-devDependencies": "off",
+        "prefer-alphabetical-bundledDependencies": "error",
+        "prefer-alphabetical-dependencies": "error",
+        "prefer-alphabetical-devDependencies": "error",
+        "prefer-alphabetical-optionalDependencies": "error",
+        "prefer-alphabetical-peerDependencies": "error",
+        "prefer-caret-version-dependencies": "error",
+        "prefer-caret-version-devDependencies": [
+            "error",
+            {
+                "exceptions": [
+                    "vitest-environment-browser"
+                ]
+            }
+        ],
+        "prefer-no-engineStrict": "error",
+        "prefer-no-version-zero-dependencies": "off",
+        "prefer-no-version-zero-devDependencies": "off",
+        "prefer-property-order": [
+            "error",
+            [
+                "$schema",
+                "name",
+                "version",
+                "private",
+                "description",
+                "keywords",
+                "homepage",
+                "bugs",
+                "repository",
+                "license",
+                "author",
+                "maintainers",
+                "contributors",
+                "type",
+                "main",
+                "bin",
+                "man",
+                "directories",
+                "files",
+                "scripts",
+                "config",
+                "eslintConfig",
+                "overrides",
+                "dependencies",
+                "devDependencies",
+                "peerDependencies",
+                "optionalDependencies",
+                "bundledDependencies",
+                "packageManager",
+                "engines",
+                "os",
+                "cpu",
+                "preferGlobal",
+                "icon",
+                "appid",
+                "build",
+                "msw",
+                "readme"
+            ]
+        ],
+        "prefer-tilde-version-dependencies": "off",
+        "prefer-tilde-version-devDependencies": "off",
+        "preferGlobal-type": "error",
+        "private-type": "error",
+        "repository-type": "error",
+        "require-author": "error",
+        "require-bin": "off",
+        "require-bugs": "error",
+        "require-bundledDependencies": "off",
+        "require-config": "error",
+        "require-contributors": "error",
+        "require-cpu": "error",
+        "require-dependencies": "error",
+        "require-description": "error",
+        "require-devDependencies": "error",
+        "require-directories": "off",
+        "require-engines": "error",
+        "require-files": "off",
+        "require-homepage": "error",
+        "require-keywords": "error",
+        "require-license": "error",
+        "require-main": "error",
+        "require-man": "off",
+        "require-module": "off",
+        "require-name": "error",
+        "require-optionalDependencies": "off",
+        "require-os": "error",
+        "require-peerDependencies": "error",
+        "require-preferGlobal": "error",
+        "require-private": "error",
+        "require-publishConfig": "error",
+        "require-repository": "error",
+        "require-scripts": "error",
+        "require-version": "error",
+        "scripts-type": "error",
+        "valid-values-author": [
+            "error",
+            [
+                "Nick2bad4u",
+                "Typpi",
+                "Nick",
+                "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://nick2bad4u.github.io/Uptime-Watcher/)",
+                "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://fitfileviewer.typpi.online)"
+            ]
+        ],
+        "valid-values-engines": "off",
+        "valid-values-license": [
+            "error",
+            [
+                "MIT",
+                "Unlicense",
+                "UnLicense",
+                "UNLICENSED"
+            ]
+        ],
+        "valid-values-name-scope": "off",
+        "valid-values-private": [
+            "error",
+            [
+                false,
+                true
+            ]
+        ],
+        "valid-values-publishConfig": "off",
+        "version-format": "error",
+        "version-type": "error"
+    }
+}
