@@ -206,6 +206,8 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   choco install -y 7zip.install
+                  # Install NSIS (makensis) to avoid issues with NSIS target building on some runners
+                  choco install -y nsis
 
             - name: Cache node modules (Windows)
               id: cache_node_modules_windows
@@ -472,7 +474,7 @@ jobs:
                     platform_arch=${artifact_name#dist-}
                     mkdir -p "release-dist/$platform_arch"
                     echo "Copying main files from $artifact_dir to release-dist/$platform_arch/"
-                    cp -v "$artifact_dir"/Fit-File-Viewer-* "$artifact_dir"/*.yml "release-dist/$platform_arch/" 2>/dev/null || true
+                    cp -v "$artifact_dir"/Fit-File-Viewer-* "$artifact_dir"/fitfileviewer-* "$artifact_dir"/*.yml "release-dist/$platform_arch/" 2>/dev/null || true
                     # Rename latest-mac.yml if it exists
                     if [ -f "$artifact_dir/latest-mac.yml" ]; then
                       cp "$artifact_dir/latest-mac.yml" "release-dist/$platform_arch/latest-$platform_arch.yml"

@@ -743,6 +743,296 @@ function ensureSafeSessionStorage() {
 
 ensureSafeSessionStorage();
 
+/**
+ * Resolve a URL-like input against a fallback href, mirroring the browser's navigation resolution rules.
+ * Throws when the candidate cannot be parsed so that tests still exercise invalid-navigation paths.
+ * @param {unknown} value
+ * @param {string} fallbackHref
+ * @returns {URL}
+ */
+function resolveUrlValue(value, fallbackHref) {
+    const base = typeof fallbackHref === "string" && fallbackHref.length > 0 ? fallbackHref : "http://localhost/";
+    if (value instanceof URL) {
+        return new URL(value.href);
+    }
+    if (value && typeof value === "object" && typeof /** @type {any} */ (value).href === "string") {
+        return new URL(/** @type {any} */ (value).href, base);
+    }
+    const raw = value == null ? base : String(value);
+    // Allow relative URLs by providing the fallback as the base parameter
+    return raw.includes("://") || raw.startsWith("about:") ? new URL(raw) : new URL(raw, base);
+}
+
+/**
+ * Build a lightweight Location-like object for secondary windows or fallbacks.
+ * @param {string | undefined} initialHref
+ */
+function createLocationSnapshot(initialHref) {
+    const fallback = typeof initialHref === "string" && initialHref.length > 0 ? initialHref : "http://localhost/";
+    /** @type {URL} */
+    let current;
+    try {
+        current = resolveUrlValue(initialHref ?? fallback, fallback);
+    } catch {
+        current = new URL("http://localhost/");
+    }
+
+    const update = (value) => {
+        current = resolveUrlValue(value ?? current.href, current.href);
+        return current.href;
+    };
+
+    const snapshot = {
+        get href() {
+            return current.href;
+        },
+        set href(value) {
+            update(value);
+        },
+        assign: spyFactory((value) => update(value)),
+        replace: spyFactory((value) => update(value)),
+        reload: spyFactory(() => {}),
+        toString: () => current.href,
+        valueOf: () => current.href,
+    };
+
+    ["protocol", "host", "hostname", "port", "pathname", "search", "hash", "origin"].forEach((prop) => {
+        Object.defineProperty(snapshot, prop, {
+            configurable: true,
+            enumerable: true,
+            get() {
+                return /** @type {any} */ (current)[prop];
+            },
+            set(value) {
+                try {
+                    /** @type {any} */ (current)[prop] = value;
+                    update(current.href);
+                } catch {
+                    /* ignore */
+                }
+            },
+        });
+    });
+
+    return snapshot;
+}
+
+/**
+ * Install navigation shims directly onto the native Location object to prevent jsdom from attempting real navigations.
+ * @param {Window & typeof globalThis} win
+ */
+function installWindowNavigationShim(win) {
+    if (!win || typeof win !== "object") return undefined;
+    /** @type {Location | undefined} */
+    const nativeLocation = (() => {
+        try {
+            return win.location;
+        } catch {
+            return undefined;
+        }
+    })();
+    if (!nativeLocation || typeof nativeLocation !== "object") return undefined;
+
+    const initialHref = (() => {
+        try {
+            return nativeLocation.href;
+        } catch {
+            return "http://localhost/";
+        }
+    })();
+
+    /** @type {URL} */
+    let currentUrl;
+    try {
+        currentUrl = resolveUrlValue(initialHref, initialHref);
+    } catch {
+        currentUrl = new URL("http://localhost/");
+    }
+
+    const update = (value, reason = "direct") => {
+        try {
+            currentUrl = resolveUrlValue(value ?? currentUrl.href, currentUrl.href);
+        } catch (error) {
+            throw error;
+        }
+        try {
+            /** @type {any} */ (nativeLocation).__ffvNavigationHistory ??= [];
+            /** @type {Array<{href: string; reason: string; timestamp: number}>} */ (nativeLocation.__ffvNavigationHistory).push(
+                { href: currentUrl.href, reason, timestamp: Date.now() }
+            );
+        } catch {
+            /* ignore */
+        }
+        return currentUrl.href;
+    };
+
+    const defineLocationProp = (prop, descriptor) => {
+        try {
+            Object.defineProperty(nativeLocation, prop, {
+                configurable: true,
+                enumerable: true,
+                ...descriptor,
+            });
+        } catch {
+            /* ignore */
+        }
+    };
+
+    defineLocationProp("href", {
+        get() {
+            return currentUrl.href;
+        },
+        set(value) {
+            update(value, "set-href");
+        },
+    });
+
+    ["protocol", "host", "hostname", "port", "pathname", "search", "hash", "origin"].forEach((prop) => {
+        defineLocationProp(prop, {
+            get() {
+                return /** @type {any} */ (currentUrl)[prop];
+            },
+            set(value) {
+                try {
+                    /** @type {any} */ (currentUrl)[prop] = value;
+                    update(currentUrl.href, `set-${String(prop)}`);
+                } catch {
+                    /* ignore */
+                }
+            },
+        });
+    });
+
+    defineLocationProp("assign", {
+        value: spyFactory((value) => update(value, "assign")),
+        writable: true,
+    });
+    defineLocationProp("replace", {
+        value: spyFactory((value) => update(value, "replace")),
+        writable: true,
+    });
+    defineLocationProp("reload", {
+        value: spyFactory(() => undefined),
+        writable: true,
+    });
+    defineLocationProp("toString", {
+        value: () => currentUrl.href,
+    });
+    defineLocationProp(Symbol.toPrimitive, {
+        value: () => currentUrl.href,
+    });
+
+    const ensureAccessor = (target, reason) => {
+        if (!target || typeof target !== "object") return;
+        try {
+            Object.defineProperty(target, "location", {
+                configurable: true,
+                enumerable: true,
+                get() {
+                    return nativeLocation;
+                },
+                set(value) {
+                    update(value, reason);
+                },
+            });
+        } catch {
+            try {
+                target.location = /** @type {any} */ (nativeLocation);
+            } catch {
+                /* ignore */
+            }
+        }
+    };
+
+    ensureAccessor(win, "set-window-location");
+    ensureAccessor(win.document, "set-document-location");
+    ensureAccessor(globalThis, "set-global-location");
+
+    return nativeLocation;
+}
+
+/**
+ * Provide jsdom-friendly implementations for browser APIs that commonly emit "Not implemented" warnings.
+ * @param {Window & typeof globalThis} win
+ */
+function ensureWindowWarningFreeAPIs(win) {
+    if (!win || typeof win !== "object") return;
+    const navigationShim = installWindowNavigationShim(win);
+    const baseHref = (() => {
+        try {
+            return win.location?.href || "http://localhost/";
+        } catch {
+            return "http://localhost/";
+        }
+    })();
+
+    const assignOrSet = (target, key, value) => {
+        try {
+            Object.defineProperty(target, key, {
+                configurable: true,
+                writable: true,
+                value,
+            });
+        } catch {
+            target[key] = /** @type {any} */ (value);
+        }
+    };
+
+    const mirrorToGlobal = (key, value) => {
+        assignOrSet(win, key, value);
+        assignOrSet(globalThis, key, value);
+    };
+
+    const alertImpl = spyFactory((message) => {
+        const text = message == null ? "" : String(message);
+        try {
+            win.console?.warn?.(`[window.alert] ${text}`);
+        } catch {
+            /* ignore */
+        }
+        return undefined;
+    });
+    mirrorToGlobal("alert", alertImpl);
+
+    const confirmImpl = spyFactory(() => true);
+    mirrorToGlobal("confirm", confirmImpl);
+
+    const promptImpl = spyFactory(() => "");
+    mirrorToGlobal("prompt", promptImpl);
+
+    const scrollImpl = spyFactory(() => undefined);
+    mirrorToGlobal("scrollTo", scrollImpl);
+    mirrorToGlobal("scroll", scrollImpl);
+
+    const openImpl = spyFactory((url, target = "_blank", features = "") => {
+        let href = baseHref;
+        try {
+            const rel = navigationShim && typeof navigationShim.href === "string" ? navigationShim.href : href;
+            href = resolveUrlValue(url ?? rel, rel).href;
+        } catch {
+            href = typeof url === "string" && url.length > 0 ? url : href;
+        }
+        const childLocation = createLocationSnapshot(href);
+        const childWindow = {
+            closed: false,
+            close: spyFactory(() => {
+                childWindow.closed = true;
+            }),
+            focus: spyFactory(() => {}),
+            blur: spyFactory(() => {}),
+            print: spyFactory(() => {}),
+            location: childLocation,
+            document: win.document,
+            opener: win,
+            parent: win,
+            name: target,
+            features,
+        };
+        return /** @type {any} */ (childWindow);
+    });
+    mirrorToGlobal("open", openImpl);
+}
+
 // Global mocks for Electron application testing
 // These mocks provide comprehensive testing infrastructure for the Electron app
 
@@ -1078,19 +1368,37 @@ function installDocumentGuards(doc) {
 }
 
 // Make sure JSDOM is properly initialized for tests and guards are installed
-if (typeof window !== "undefined" && typeof document !== "undefined") {
+function applyBrowserGuardsIfReady() {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+        return false;
+    }
     if (!document.body) {
         const body = document.createElement("body");
         document.appendChild(body);
     }
-    if (typeof window.alert !== "function") {
-        window.alert = vi.fn();
-    }
+    ensureWindowWarningFreeAPIs(window);
     // Install guards on current document only. Some tests replace global document
     // and rely on direct mocking of its methods; intercepting assignments here
     // can break JSDOM invariants. If a test replaces document, it can call
     // installDocumentGuards(document) manually if needed.
     installDocumentGuards(document);
+    return true;
+}
+
+if (!applyBrowserGuardsIfReady()) {
+    let attempts = 0;
+    const maxAttempts = 20;
+    const retryInstall = () => {
+        if (applyBrowserGuardsIfReady()) return;
+        attempts += 1;
+        if (attempts >= maxAttempts) return;
+        if (typeof setTimeout === "function") {
+            setTimeout(retryInstall, 5);
+        }
+    };
+    if (typeof setTimeout === "function") {
+        setTimeout(retryInstall, 0);
+    }
 }
 
 // Prevent replacing core constructors with non-functions which breaks instanceof checks in Vitest

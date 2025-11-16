@@ -54,9 +54,9 @@
         "isolatedDeclarations": false,
         "isolatedModules": true,
         "noCheck": false,
-        // We use extensive JSDoc across many .js files; enable JS in the program
-        // but disable checkJs for the standalone typecheck to avoid noisy errors.
-        // Vitest integration still performs per-file type assertions where needed.
+        // We use extensive JSDoc across many .js files; keep them in the program via allowJs
+        // but disable checkJs so the project typecheck focuses on TypeScript sources.
+        // Vitest integration and ESLint will continue to validate JS files incrementally.
         "checkJs": false,
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": true,
@@ -114,7 +114,8 @@
         "**/tests/**",
         // Exclude test mocks and debug helper from project typecheck
         "__mocks__/**",
-        "debug-electron-mock.js"
+        "debug-electron-mock.js",
+        "**/assets/**"
     ],
     "include": [
         "**/*.js",
@@ -133,7 +134,8 @@
         "vite/client",
         "vitest.config.ts",
         "vitest.shared.config.ts",
-        "tailwind.config.mjs"
+        "tailwind.config.mjs",
+        "fitsdk.d.ts"
     ],
     "typeAcquisition": {
         "enable": true

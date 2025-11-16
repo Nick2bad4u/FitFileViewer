@@ -105,6 +105,22 @@ class MemoryStorage implements StorageLike {
     }
 }
 
+const safeGet = <T>(target: unknown, property: PropertyKey): T | undefined => {
+    if (target === null || target === undefined) {
+        return undefined;
+    }
+
+    if (typeof target !== "object" && typeof target !== "function") {
+        return undefined;
+    }
+
+    try {
+        return Reflect.get(target as object, property) as T;
+    } catch {
+        return undefined;
+    }
+};
+
 /**
  * Installs an in-memory storage shim when the global scope lacks a native
  * implementation.
@@ -114,7 +130,7 @@ const installStorage = (name: StorageName): void => {
         return;
     }
 
-    const existing = Reflect.get(globalThis, name) as MaybeStorage;
+    const existing = safeGet<MaybeStorage>(globalThis, name);
     if (isStorageLike(existing)) {
         return;
     }
@@ -130,10 +146,10 @@ const installStorage = (name: StorageName): void => {
 
     Reflect.defineProperty(globalThis, name, descriptor);
 
-    const windowCandidate = Reflect.get(globalThis, "window");
+    const windowCandidate = safeGet<object>(globalThis, "window");
     // eslint-disable-next-line sonarjs/different-types-comparison, @typescript-eslint/no-unnecessary-condition -- null check is required for DOM Storage parity
     if (typeof windowCandidate === "object" && windowCandidate !== null) {
-        const maybeStorage = Reflect.get(windowCandidate, name) as MaybeStorage;
+        const maybeStorage = safeGet<MaybeStorage>(windowCandidate, name);
         if (!isStorageLike(maybeStorage)) {
             Reflect.defineProperty(windowCandidate, name, descriptor);
         }
