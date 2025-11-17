@@ -223,7 +223,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <sub> - Most Windows users should download the "Installer EXE", "MSI" or "Portable" versions </sub>
 
 | Platform | Architecture | Format        | Filename Example                        |
-|----------|--------------|---------------|-----------------------------------------|
+| -------- | ------------ | ------------- | --------------------------------------- |
 | :------- | :----------- | :------------ | :-------------------------------------- |
 | Windows  | x64          | Installer EXE | Fit-File-Viewer-nsis-x64-X.X.X.exe      |
 | Windows  | x64          | Installer Web | Fit-File-Viewer-nsis-web-x64-X.X.X.exe  |
@@ -251,7 +251,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <details><summary>🗂️ Update Files (Nupkg &amp; Blockmap)</summary>
 
 | Platform | Architecture | Format            | Filename Example                             |
-|----------|--------------|-------------------|----------------------------------------------|
+| -------- | ------------ | ----------------- | -------------------------------------------- |
 | :------- | :----------- | :---------------- | :------------------------------------------- |
 | Windows  | x64          | Blockmap          | Fit-File-Viewer-nsis-x64-X.X.X.exe.blockmap  |
 | Windows  | ia32 / win32 | Blockmap          | Fit-File-Viewer-nsis-ia32-X.X.X.exe.blockmap |
@@ -273,7 +273,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <sub> - Most Mac users should download the "DMG" or "PKG" versions </sub>
 
 | Platform | Architecture | Format  | Filename Example                               |
-|----------|--------------|---------|------------------------------------------------|
+| -------- | ------------ | ------- | ---------------------------------------------- |
 | :------- | :----------- | :------ | :--------------------------------------------- |
 | macOS    | x64          | DMG     | Fit-File-Viewer-dmg-x64-X.X.X.dmg              |
 | macOS    | x64          | PKG     | Fit-File-Viewer-pkg-x64-X.X.X.pkg              |
@@ -296,7 +296,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <details><summary>🗂️ Update Files (Blockmap)</summary>
 
 | Platform | Architecture | Format       | Filename Example                                    |
-|----------|--------------|--------------|-----------------------------------------------------|
+| -------- | ------------ | ------------ | --------------------------------------------------- |
 | :------- | :----------- | :----------- | :-------------------------------------------------- |
 | macOS    | x64          | DMG Blockmap | Fit-File-Viewer-dmg-x64-X.X.X.dmg.blockmap          |
 | macOS    | universal    | DMG Blockmap | Fit-File-Viewer-dmg-universal-X.X.X.dmg.blockmap    |
@@ -317,7 +317,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 <sub> - Most Linux users should download the "AppImage" or "DEB" versions </sub>
 
 | Platform | Architecture | Format       | Filename Example                               |
-|----------|--------------|--------------|------------------------------------------------|
+| -------- | ------------ | ------------ | ---------------------------------------------- |
 | :------- | :----------- | :----------- | :--------------------------------------------- |
 | Linux    | x64          | AppImage     | Fit-File-Viewer-appimage-x86_64-X.X.X.AppImage |
 | Linux    | x64          | DEB          | Fit-File-Viewer-deb-amd64-X.X.X.deb            |

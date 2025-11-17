@@ -38,13 +38,41 @@ class FitDecodeError extends Error {
 ```javascript
 // New decoder options schema with validation
 const DECODER_OPTIONS_SCHEMA = {
- applyScaleAndOffset: { type: "boolean", default: true, description: "Apply scale and offset transformations" },
- expandSubFields: { type: "boolean", default: true, description: "Expand sub-fields in messages" },
- expandComponents: { type: "boolean", default: true, description: "Expand component fields" },
- convertTypesToStrings: { type: "boolean", default: true, description: "Convert enum types to strings" },
- convertDateTimesToDates: { type: "boolean", default: true, description: "Convert timestamps to Date objects" },
- includeUnknownData: { type: "boolean", default: true, description: "Include unknown message types" },
- mergeHeartRates: { type: "boolean", default: true, description: "Merge heart rate data from multiple sources" },
+ applyScaleAndOffset: {
+  type: "boolean",
+  default: true,
+  description: "Apply scale and offset transformations",
+ },
+ expandSubFields: {
+  type: "boolean",
+  default: true,
+  description: "Expand sub-fields in messages",
+ },
+ expandComponents: {
+  type: "boolean",
+  default: true,
+  description: "Expand component fields",
+ },
+ convertTypesToStrings: {
+  type: "boolean",
+  default: true,
+  description: "Convert enum types to strings",
+ },
+ convertDateTimesToDates: {
+  type: "boolean",
+  default: true,
+  description: "Convert timestamps to Date objects",
+ },
+ includeUnknownData: {
+  type: "boolean",
+  default: true,
+  description: "Include unknown message types",
+ },
+ mergeHeartRates: {
+  type: "boolean",
+  default: true,
+  description: "Merge heart rate data from multiple sources",
+ },
 };
 ```
 
@@ -202,7 +230,9 @@ try {
 }
 
 // Validation errors
-const updateResult = fitParser.updateDecoderOptions({ invalidOption: "invalid" });
+const updateResult = fitParser.updateDecoderOptions({
+ invalidOption: "invalid",
+});
 if (!updateResult.success) {
  console.log("Validation errors:", updateResult.errors);
 }

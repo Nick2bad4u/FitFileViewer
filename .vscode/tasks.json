@@ -1,5 +1,4 @@
 {
-    "version": "2.0.0",
     "tasks": [
         {
             "type": "npm",
@@ -18,10 +17,15 @@
             "label": "run vitest in electron-app",
             "type": "shell",
             "command": "npm",
-            "args": ["--prefix", "electron-app", "test"],
+            "args": [
+                "--prefix",
+                "electron-app",
+                "test"
+            ],
             "isBackground": false,
             "problemMatcher": ["$eslint-stylish"],
             "group": "build"
         }
-    ]
+    ],
+    "version": "2.0.0"
 }

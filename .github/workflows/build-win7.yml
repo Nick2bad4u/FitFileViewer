@@ -1,0 +1,115 @@
+name: Build Windows 7 Compatibility Artifact
+
+on:
+    workflow_dispatch:
+        inputs:
+            ref:
+                description: "Branch, tag, or commit to build"
+                required: false
+                default: "main"
+    workflow_run:
+        workflows: ["Build and Release Electron App"]
+        types:
+            - completed
+
+concurrency:
+    group: win7-build-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+    cancel-in-progress: false
+
+permissions:
+    contents: write
+
+jobs:
+    win7-build:
+        name: Win7 Portable Build
+        runs-on: windows-latest
+        if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+        defaults:
+            run:
+                shell: pwsh
+                working-directory: electron-app
+        steps:
+            - name: Harden the runner (audit only)
+              uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+              with:
+                  egress-policy: audit
+
+            - name: Checkout repository
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+              with:
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event.inputs.ref || github.ref }}
+
+            - name: Setup Node.js 20.x
+              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+              with:
+                  node-version: 20
+                  cache: "npm"
+                  cache-dependency-path: electron-app/package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build Win7 portable artifact
+              env:
+                  CI: true
+              run: npm run build:win7
+
+            - name: Upload Win7 artifact
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+              with:
+                  name: win7-dist-${{ github.run_id }}
+                  path: electron-app/dist/win7
+                  if-no-files-found: error
+
+            - name: Get latest release tag
+              if: github.event_name == 'workflow_run'
+              id: get_release
+              uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+              with:
+                  script: |
+                      const releases = await github.rest.repos.listReleases({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                      });
+                      if (releases.data.length === 0) {
+                        throw new Error('No releases found');
+                      }
+                      return releases.data[0].tag_name;
+                  result-encoding: string
+
+            - name: Prepare Win7 artifact for release
+              if: github.event_name == 'workflow_run'
+              id: prepare_release
+              run: |
+                  $releaseTag = "${{ steps.get_release.outputs.result }}"
+                  $distDir = Join-Path (Get-Location) "dist" "win7"
+                  if (-not (Test-Path $distDir)) {
+                      throw "Win7 dist directory not found: $distDir"
+                  }
+
+                  $exe = Get-ChildItem -Path $distDir -Filter *.exe | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                  if (-not $exe) {
+                      throw "No Win7 portable executable found in $distDir"
+                  }
+
+                  $releaseExe = Join-Path $distDir "Fit-File-Viewer-win7-$releaseTag.exe"
+                  Copy-Item $exe.FullName $releaseExe -Force
+
+                  $zipPath = "$releaseExe.zip"
+                  if (Test-Path $zipPath) {
+                      Remove-Item $zipPath -Force
+                  }
+                  Compress-Archive -Path $releaseExe -DestinationPath $zipPath -Force
+
+                  "exe_path=$releaseExe" >> $env:GITHUB_OUTPUT
+                  "zip_path=$zipPath" >> $env:GITHUB_OUTPUT
+
+            - name: Upload Win7 artifact to release
+              if: github.event_name == 'workflow_run'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RELEASE_TAG: ${{ steps.get_release.outputs.result }}
+                  RELEASE_EXE: ${{ steps.prepare_release.outputs.exe_path }}
+                  RELEASE_ZIP: ${{ steps.prepare_release.outputs.zip_path }}
+              run: |
+                  gh release upload "$env:RELEASE_TAG" "$env:RELEASE_EXE" "$env:RELEASE_ZIP" --clobber

@@ -87,12 +87,12 @@ FitFileViewer is a cross-platform desktop Electron application for viewing and a
 
 ### 1. Entry Points
 
-| File | Role | Description |
-|------|------|-------------|
-| `main.js` | Main Process | Application lifecycle, window management, IPC handlers |
-| `renderer.js` | Renderer Process | UI initialization, module loading, error boundaries |
-| `preload.js` | Security Bridge | Secure IPC communication, context isolation |
-| `main-ui.js` | UI Manager | Tab management, user interactions |
+| File          | Role             | Description                                            |
+| ------------- | ---------------- | ------------------------------------------------------ |
+| `main.js`     | Main Process     | Application lifecycle, window management, IPC handlers |
+| `renderer.js` | Renderer Process | UI initialization, module loading, error boundaries    |
+| `preload.js`  | Security Bridge  | Secure IPC communication, context isolation            |
+| `main-ui.js`  | UI Manager       | Tab management, user interactions                      |
 
 ### 2. Utility Module System (50+ modules)
 
@@ -160,26 +160,26 @@ utils/
 ```javascript
 // main.js architecture
 const MainProcess = {
-    lifecycle: {
-        initialization: 'App startup, window creation',
-        eventHandling: 'System events, app events',
-        cleanup: 'Graceful shutdown, resource cleanup'
-    },
-    windowManagement: {
-        creation: 'BrowserWindow configuration',
-        state: 'Position, size, visibility persistence',
-        security: 'Context isolation, sandboxing'
-    },
-    fileSystem: {
-        dialogs: 'File open/save dialogs',
-        access: 'Secure file system operations',
-        monitoring: 'File change detection'
-    },
-    ipc: {
-        handlers: 'IPC message routing',
-        security: 'Message validation',
-        responses: 'Async response handling'
-    }
+ lifecycle: {
+  initialization: "App startup, window creation",
+  eventHandling: "System events, app events",
+  cleanup: "Graceful shutdown, resource cleanup",
+ },
+ windowManagement: {
+  creation: "BrowserWindow configuration",
+  state: "Position, size, visibility persistence",
+  security: "Context isolation, sandboxing",
+ },
+ fileSystem: {
+  dialogs: "File open/save dialogs",
+  access: "Secure file system operations",
+  monitoring: "File change detection",
+ },
+ ipc: {
+  handlers: "IPC message routing",
+  security: "Message validation",
+  responses: "Async response handling",
+ },
 };
 ```
 
@@ -188,26 +188,26 @@ const MainProcess = {
 ```javascript
 // renderer.js + modules architecture
 const RendererProcess = {
-    initialization: {
-        moduleLoading: 'Dynamic utility loading',
-        errorBoundaries: 'Global error handling',
-        themeSetup: 'UI theme initialization'
-    },
-    uiManagement: {
-        tabSystem: 'Multi-tab interface',
-        interactions: 'User event handling',
-        updates: 'Dynamic UI updates'
-    },
-    dataVisualization: {
-        charts: 'Chart.js + Vega-Lite rendering',
-        maps: 'Leaflet map management',
-        tables: 'DataTables integration'
-    },
-    stateBinding: {
-        reactivity: 'UI state synchronization',
-        persistence: 'Local state storage',
-        validation: 'Data consistency checks'
-    }
+ initialization: {
+  moduleLoading: "Dynamic utility loading",
+  errorBoundaries: "Global error handling",
+  themeSetup: "UI theme initialization",
+ },
+ uiManagement: {
+  tabSystem: "Multi-tab interface",
+  interactions: "User event handling",
+  updates: "Dynamic UI updates",
+ },
+ dataVisualization: {
+  charts: "Chart.js + Vega-Lite rendering",
+  maps: "Leaflet map management",
+  tables: "DataTables integration",
+ },
+ stateBinding: {
+  reactivity: "UI state synchronization",
+  persistence: "Local state storage",
+  validation: "Data consistency checks",
+ },
 };
 ```
 
@@ -218,33 +218,33 @@ const RendererProcess = {
 ```javascript
 // Barrel exports for clean imports
 import {
-    formatDistance,
-    formatDuration,
-    formatTime
-} from './utils/formatting/index.js';
+ formatDistance,
+ formatDuration,
+ formatTime,
+} from "./utils/formatting/index.js";
 
 // Lazy loading for performance
-const { renderMap } = await import('./utils/maps/renderMap.js');
+const { renderMap } = await import("./utils/maps/renderMap.js");
 
 // Centralized configuration
-import { DISTANCE_UNITS, CONVERSION_FACTORS } from './utils/config/index.js';
+import { DISTANCE_UNITS, CONVERSION_FACTORS } from "./utils/config/index.js";
 ```
 
 ### Module Categories
 
-| Category | Purpose | Key Modules |
-|----------|---------|-------------|
-| **App** | Application-level functionality | aboutModal, appMenu, notifications |
-| **Charts** | Data visualization | chartSpec, renderChartJS, vegaLite |
-| **Config** | Configuration management | constants, settings |
-| **Data** | Data processing | createTables, formatUtils, validation |
-| **Errors** | Error handling | errorHandling, recovery, logging |
-| **Files** | File operations | openFile, recentFiles, validation |
-| **Formatting** | Data formatting | converters, formatters, units |
-| **Maps** | Geographic visualization | renderMap, themes, interactions |
-| **State** | State management | core state, managers, persistence |
-| **Theming** | Visual themes | setup, switching, persistence |
-| **UI** | User interface | tabs, fullscreen, windows |
+| Category       | Purpose                         | Key Modules                           |
+| -------------- | ------------------------------- | ------------------------------------- |
+| **App**        | Application-level functionality | aboutModal, appMenu, notifications    |
+| **Charts**     | Data visualization              | chartSpec, renderChartJS, vegaLite    |
+| **Config**     | Configuration management        | constants, settings                   |
+| **Data**       | Data processing                 | createTables, formatUtils, validation |
+| **Errors**     | Error handling                  | errorHandling, recovery, logging      |
+| **Files**      | File operations                 | openFile, recentFiles, validation     |
+| **Formatting** | Data formatting                 | converters, formatters, units         |
+| **Maps**       | Geographic visualization        | renderMap, themes, interactions       |
+| **State**      | State management                | core state, managers, persistence     |
+| **Theming**    | Visual themes                   | setup, switching, persistence         |
+| **UI**         | User interface                  | tabs, fullscreen, windows             |
 
 ## Data Flow
 
@@ -295,12 +295,12 @@ import { DISTANCE_UNITS, CONVERSION_FACTORS } from './utils/config/index.js';
 ```javascript
 // Unified state management
 const stateFlow = {
-    input: 'User action or data change',
-    validation: 'Input validation and sanitization',
-    processing: 'Business logic and transformations',
-    storage: 'State persistence and caching',
-    notification: 'Component update notifications',
-    rendering: 'UI component re-rendering'
+ input: "User action or data change",
+ validation: "Input validation and sanitization",
+ processing: "Business logic and transformations",
+ storage: "State persistence and caching",
+ notification: "Component update notifications",
+ rendering: "UI component re-rendering",
 };
 ```
 
@@ -311,26 +311,26 @@ const stateFlow = {
 ```javascript
 // Security configuration
 const securityModel = {
-    processIsolation: {
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: true
-    },
-    ipcSecurity: {
-        channelValidation: 'Whitelist-based IPC channels',
-        messageValidation: 'Payload validation and sanitization',
-        responseHandling: 'Secure response processing'
-    },
-    fileSystemSecurity: {
-        pathValidation: 'Secure path handling',
-        extensionFiltering: '.fit file format only',
-        sandboxAccess: 'Controlled file system access'
-    },
-    urlRestrictions: {
-        navigationBlocking: 'Prevent external navigation',
-        protocolFiltering: 'Allowed protocols only',
-        contentValidation: 'Safe content loading'
-    }
+ processIsolation: {
+  contextIsolation: true,
+  nodeIntegration: false,
+  sandbox: true,
+ },
+ ipcSecurity: {
+  channelValidation: "Whitelist-based IPC channels",
+  messageValidation: "Payload validation and sanitization",
+  responseHandling: "Secure response processing",
+ },
+ fileSystemSecurity: {
+  pathValidation: "Secure path handling",
+  extensionFiltering: ".fit file format only",
+  sandboxAccess: "Controlled file system access",
+ },
+ urlRestrictions: {
+  navigationBlocking: "Prevent external navigation",
+  protocolFiltering: "Allowed protocols only",
+  contentValidation: "Safe content loading",
+ },
 };
 ```
 
@@ -338,19 +338,19 @@ const securityModel = {
 
 ```javascript
 // Secure IPC implementation
-contextBridge.exposeInMainWorld('electronAPI', {
-    // Validated, safe operations only
-    openFile: () => ipcRenderer.invoke('dialog:open-fit-file'),
-    saveData: (data) => ipcRenderer.invoke('file:save-data', sanitizeData(data)),
+contextBridge.exposeInMainWorld("electronAPI", {
+ // Validated, safe operations only
+ openFile: () => ipcRenderer.invoke("dialog:open-fit-file"),
+ saveData: (data) => ipcRenderer.invoke("file:save-data", sanitizeData(data)),
 
-    // Event listeners with validation
-    onFileOpened: (callback) => {
-        ipcRenderer.on('file:opened', (event, data) => {
-            if (validateFileData(data)) {
-                callback(data);
-            }
-        });
-    }
+ // Event listeners with validation
+ onFileOpened: (callback) => {
+  ipcRenderer.on("file:opened", (event, data) => {
+   if (validateFileData(data)) {
+    callback(data);
+   }
+  });
+ },
 });
 ```
 
@@ -361,24 +361,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
 ```javascript
 // Central state management system
 const StateArchitecture = {
-    core: {
-        unifiedManager: 'Single interface for all state operations',
-        validation: 'Input validation and consistency checks',
-        persistence: 'localStorage integration',
-        reactivity: 'Change notification system'
-    },
-    managers: {
-        appState: 'Application-level state',
-        fileState: 'Current file data and metadata',
-        uiState: 'User interface preferences',
-        themeState: 'Visual theme configuration'
-    },
-    patterns: {
-        facade: 'Unified interface hiding complexity',
-        observer: 'Component state synchronization',
-        strategy: 'Multiple storage backends',
-        command: 'State change operations'
-    }
+ core: {
+  unifiedManager: "Single interface for all state operations",
+  validation: "Input validation and consistency checks",
+  persistence: "localStorage integration",
+  reactivity: "Change notification system",
+ },
+ managers: {
+  appState: "Application-level state",
+  fileState: "Current file data and metadata",
+  uiState: "User interface preferences",
+  themeState: "Visual theme configuration",
+ },
+ patterns: {
+  facade: "Unified interface hiding complexity",
+  observer: "Component state synchronization",
+  strategy: "Multiple storage backends",
+  command: "State change operations",
+ },
 };
 ```
 
@@ -389,24 +389,24 @@ const StateArchitecture = {
 ```javascript
 // Comprehensive error handling
 const ErrorHandling = {
-    levels: {
-        application: 'Global error boundaries',
-        module: 'Module-specific error handling',
-        function: 'Function-level validation',
-        ui: 'User-friendly error display'
-    },
-    patterns: {
-        resilient: 'Graceful degradation',
-        recovery: 'Automatic error recovery',
-        logging: 'Comprehensive error logging',
-        notification: 'User error communication'
-    },
-    types: {
-        validation: 'Input validation errors',
-        processing: 'Data processing errors',
-        io: 'File system operation errors',
-        network: 'External service errors'
-    }
+ levels: {
+  application: "Global error boundaries",
+  module: "Module-specific error handling",
+  function: "Function-level validation",
+  ui: "User-friendly error display",
+ },
+ patterns: {
+  resilient: "Graceful degradation",
+  recovery: "Automatic error recovery",
+  logging: "Comprehensive error logging",
+  notification: "User error communication",
+ },
+ types: {
+  validation: "Input validation errors",
+  processing: "Data processing errors",
+  io: "File system operation errors",
+  network: "External service errors",
+ },
 };
 ```
 
@@ -417,26 +417,26 @@ const ErrorHandling = {
 ```javascript
 // Performance architecture
 const PerformanceStrategy = {
-    loading: {
-        lazyModules: 'Dynamic module imports',
-        codesplitting: 'Split large utilities',
-        assetOptimization: 'Optimized static assets'
-    },
-    processing: {
-        streaming: 'Large file streaming',
-        webWorkers: 'Background data processing',
-        caching: 'Processed data caching'
-    },
-    rendering: {
-        virtualizeation: 'Virtual scrolling for large tables',
-        debouncing: 'Debounced user interactions',
-        requestAnimationFrame: 'Smooth animations'
-    },
-    memory: {
-        cleanup: 'Automatic resource cleanup',
-        pooling: 'Object pooling for frequently used objects',
-        monitoring: 'Memory usage tracking'
-    }
+ loading: {
+  lazyModules: "Dynamic module imports",
+  codesplitting: "Split large utilities",
+  assetOptimization: "Optimized static assets",
+ },
+ processing: {
+  streaming: "Large file streaming",
+  webWorkers: "Background data processing",
+  caching: "Processed data caching",
+ },
+ rendering: {
+  virtualizeation: "Virtual scrolling for large tables",
+  debouncing: "Debounced user interactions",
+  requestAnimationFrame: "Smooth animations",
+ },
+ memory: {
+  cleanup: "Automatic resource cleanup",
+  pooling: "Object pooling for frequently used objects",
+  monitoring: "Memory usage tracking",
+ },
 };
 ```
 
@@ -445,21 +445,21 @@ const PerformanceStrategy = {
 ```javascript
 // Memory management patterns
 class ResourceManager {
-    constructor() {
-        this.resources = new Map();
-        this.cleanupTasks = new Set();
-    }
+ constructor() {
+  this.resources = new Map();
+  this.cleanupTasks = new Set();
+ }
 
-    register(id, resource, cleanup) {
-        this.resources.set(id, resource);
-        this.cleanupTasks.add(cleanup);
-    }
+ register(id, resource, cleanup) {
+  this.resources.set(id, resource);
+  this.cleanupTasks.add(cleanup);
+ }
 
-    cleanup() {
-        this.cleanupTasks.forEach(task => task());
-        this.resources.clear();
-        this.cleanupTasks.clear();
-    }
+ cleanup() {
+  this.cleanupTasks.forEach((task) => task());
+  this.resources.clear();
+  this.cleanupTasks.clear();
+ }
 }
 ```
 

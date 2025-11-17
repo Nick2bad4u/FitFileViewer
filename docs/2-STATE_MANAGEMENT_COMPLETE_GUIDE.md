@@ -157,7 +157,12 @@ UIActions.setTheme("dark");
 ### Settings Management
 
 ```javascript
-import { getThemeSetting, setThemeSetting, getChartSetting, setChartSetting } from "./utils/settingsStateManager.js";
+import {
+ getThemeSetting,
+ setThemeSetting,
+ getChartSetting,
+ setChartSetting,
+} from "./utils/settingsStateManager.js";
 
 // Theme settings
 const currentTheme = getThemeSetting(); // 'dark', 'light', or 'auto'
@@ -177,7 +182,11 @@ import { addComputed, getComputed } from "./utils/computedStateManager.js";
 const cleanup = addComputed(
  "hasValidData",
  (state) => {
-  return state.globalData && state.globalData.recordMesgs && state.globalData.recordMesgs.length > 0;
+  return (
+   state.globalData &&
+   state.globalData.recordMesgs &&
+   state.globalData.recordMesgs.length > 0
+  );
  },
  ["globalData.recordMesgs"]
 );

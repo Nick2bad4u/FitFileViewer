@@ -1,13 +1,33 @@
 {
-    "LanguageRuleIgnoreMap": {},
-    "OutputFile": "",
-    "Rules": [],
-    "RuleIds": [],
-    "IgnoreRuleIds": [],
-    "LanguagesPath": "",
+    "AbsolutePaths": false,
+    "BasePath": "",
     "CommentsPath": "",
-    "OutputTextFormat": "",
+    "Confidences": [
+        "High",
+        "Medium"
+    ],
+    "ConsoleVerbosityLevel": "Information",
+    "CrawlArchives": false,
+    "DisableConsoleOutput": false,
+    "DisableParallel": false,
+    "DisableSuppression": false,
+    "ExitCodeIsNumIssues": false,
+    "Globs": [
+        "**/.git/**",
+        "**/megalinter-reports/**"
+    ],
+    "IgnoreDefaultRules": false,
+    "IgnoreRuleIds": [],
+    "LanguageRuleIgnoreMap": {},
+    "LanguagesPath": "",
+    "LogFileLevel": "Error",
+    "LogFilePath": null,
+    "OutputFile": "",
     "OutputFileFormat": "",
+    "OutputTextFormat": "",
+    "RespectGitIgnore": false,
+    "RuleIds": [],
+    "Rules": [],
     "Severities": [
         "Critical",
         "Important",
@@ -15,14 +35,7 @@
         "BestPractice",
         "ManualReview"
     ],
-    "Confidences": [
-        "High",
-        "Medium"
-    ],
-    "Globs": [
-        "**/.git/**",
-        "**/megalinter-reports/**"
-    ],
+    "SkipExcerpts": false,
     "Suppressions": [
         {
             "Justification": "False positive: localhost redirect URI is required for OAuth dev flow (only present in development builds, not production)",
@@ -48,18 +61,5 @@
             "LineNumber": 59,
             "RuleId": "DS162092"
         }
-    ],
-    "DisableSuppression": false,
-    "DisableParallel": false,
-    "IgnoreDefaultRules": false,
-    "CrawlArchives": false,
-    "ExitCodeIsNumIssues": false,
-    "BasePath": "",
-    "AbsolutePaths": false,
-    "RespectGitIgnore": false,
-    "SkipExcerpts": false,
-    "ConsoleVerbosityLevel": "Information",
-    "DisableConsoleOutput": false,
-    "LogFileLevel": "Error",
-    "LogFilePath": null
+    ]
 }

@@ -755,7 +755,7 @@ function resolveUrlValue(value, fallbackHref) {
     if (value instanceof URL) {
         return new URL(value.href);
     }
-    if (value && typeof value === "object" && typeof /** @type {any} */ (value).href === "string") {
+    if (value && typeof value === "object" && typeof (/** @type {any} */ (value).href) === "string") {
         return new URL(/** @type {any} */ (value).href, base);
     }
     const raw = value == null ? base : String(value);
@@ -857,9 +857,9 @@ function installWindowNavigationShim(win) {
         }
         try {
             /** @type {any} */ (nativeLocation).__ffvNavigationHistory ??= [];
-            /** @type {Array<{href: string; reason: string; timestamp: number}>} */ (nativeLocation.__ffvNavigationHistory).push(
-                { href: currentUrl.href, reason, timestamp: Date.now() }
-            );
+            /** @type {Array<{href: string; reason: string; timestamp: number}>} */ (
+                nativeLocation.__ffvNavigationHistory
+            ).push({ href: currentUrl.href, reason, timestamp: Date.now() });
         } catch {
             /* ignore */
         }

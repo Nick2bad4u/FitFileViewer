@@ -1,8 +1,10 @@
 {
-    "version": "0.2",
-    "ignorePaths": [],
-    "dictionaryDefinitions": [],
     "dictionaries": [],
+    "dictionaryDefinitions": [],
+    "ignorePaths": [],
+    "ignoreWords": [],
+    "import": [],
+    "version": "0.2",
     "words": [
         "Btn",
         "bufbuild",
@@ -28,7 +30,5 @@
         "protoc",
         "Wboq",
         "zwiftmap"
-    ],
-    "ignoreWords": [],
-    "import": []
+    ]
 }

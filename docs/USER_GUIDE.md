@@ -120,13 +120,13 @@ The application uses a tabbed interface with four main sections:
 
 #### Map Controls
 
-| Control | Function |
-|---------|----------|
-| **Zoom In/Out** | `+` / `-` buttons or mouse wheel |
-| **Pan** | Click and drag the map |
-| **Fullscreen** | 📱 button for fullscreen map view |
-| **Layers** | 🗂️ button to change map style |
-| **Measure Tool** | 📏 button to measure distances |
+| Control          | Function                          |
+| ---------------- | --------------------------------- |
+| **Zoom In/Out**  | `+` / `-` buttons or mouse wheel  |
+| **Pan**          | Click and drag the map            |
+| **Fullscreen**   | 📱 button for fullscreen map view |
+| **Layers**       | 🗂️ button to change map style     |
+| **Measure Tool** | 📏 button to measure distances    |
 
 #### Available Map Styles
 
@@ -177,15 +177,15 @@ The tables show detailed record-by-record data from your FIT file:
 
 #### Column Descriptions
 
-| Column | Description |
-|--------|-------------|
-| **Timestamp** | Date and time of the data record |
-| **Latitude/Longitude** | GPS coordinates |
-| **Distance** | Cumulative distance traveled |
-| **Speed** | Current speed |
-| **Heart Rate** | Heart rate (if sensor connected) |
-| **Elevation** | Current elevation/altitude |
-| **Cadence** | Steps per minute or pedal RPM |
+| Column                 | Description                      |
+| ---------------------- | -------------------------------- |
+| **Timestamp**          | Date and time of the data record |
+| **Latitude/Longitude** | GPS coordinates                  |
+| **Distance**           | Cumulative distance traveled     |
+| **Speed**              | Current speed                    |
+| **Heart Rate**         | Heart rate (if sensor connected) |
+| **Elevation**          | Current elevation/altitude       |
+| **Cadence**            | Steps per minute or pedal RPM    |
 
 ### Summary View (📄 Tab)
 
@@ -194,18 +194,21 @@ The tables show detailed record-by-record data from your FIT file:
 The summary tab provides key statistics about your activity:
 
 **Basic Information**
+
 - Activity type and date
 - Total duration and distance
 - Average and maximum speed
 - Calories burned (if available)
 
 **Performance Metrics**
+
 - Heart rate zones (if heart rate data available)
 - Elevation gain and loss
 - Average pace or speed
 - Training effect (if supported by device)
 
 **GPS Information**
+
 - Start and end coordinates
 - Total GPS points recorded
 - Data recording interval
@@ -216,11 +219,13 @@ The summary tab provides key statistics about your activity:
 ### File Management
 
 #### Recent Files
+
 - Access recently opened files from the File menu
 - Files are automatically added to recent list when opened
 - Clear recent files list from preferences
 
 #### File Information
+
 - View file metadata and creation date
 - See file size and number of data records
 - Check GPS data quality and completeness
@@ -245,6 +250,7 @@ The summary tab provides key statistics about your activity:
 ### Measurement Tools
 
 #### Distance Measurement
+
 1. Open the Map tab
 2. Click the Measure tool (📏)
 3. Click points on the map to measure distances
@@ -252,6 +258,7 @@ The summary tab provides key statistics about your activity:
 5. Measurements show in both metric and imperial units
 
 #### Elevation Analysis
+
 - View elevation changes along your route
 - See climbing and descending statistics
 - Identify steepest sections
@@ -259,11 +266,13 @@ The summary tab provides key statistics about your activity:
 ### Data Analysis
 
 #### Performance Analysis
+
 - Compare different segments of your activity
 - Identify best and worst performing sections
 - Analyze pacing strategies
 
 #### Route Analysis
+
 - See detailed route information
 - Identify turns, hills, and flat sections
 - Compare different routes (if multiple activities loaded)
@@ -298,22 +307,26 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 ### Keyboard Shortcuts
 
 #### File Operations
+
 - `Ctrl+O` / `Cmd+O`: Open FIT file
 - `Ctrl+R` / `Cmd+R`: Reload current file
 - `Ctrl+Q` / `Cmd+Q`: Quit application
 
 #### Navigation
+
 - `Ctrl+1-4`: Switch between tabs (Map, Charts, Tables, Summary)
 - `F11`: Toggle fullscreen
 - `Ctrl+=` / `Cmd+=`: Zoom in
 - `Ctrl+-` / `Cmd+-`: Zoom out
 
 #### View Options
+
 - `Ctrl+T` / `Cmd+T`: Toggle theme (light/dark)
 - `F5`: Refresh current view
 - `Ctrl+F` / `Cmd+F`: Find/search in tables
 
 #### Tools
+
 - `Ctrl+M` / `Cmd+M`: Activate measure tool
 - `Ctrl+E` / `Cmd+E`: Export current view
 - `Ctrl+P` / `Cmd+P`: Print current view
@@ -323,12 +336,14 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 ### Supported Export Formats
 
 #### Data Export
+
 - **CSV**: Spreadsheet-compatible comma-separated values
 - **GPX**: GPS Exchange Format for other mapping software
 - **TCX**: Training Center XML format
 - **JSON**: Raw data in JSON format
 
 #### Image Export
+
 - **PNG**: High-quality images for charts and maps
 - **JPEG**: Compressed images for sharing
 - **SVG**: Vector graphics for charts
@@ -358,6 +373,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 **Problem**: FIT file doesn't load or shows error message
 
 **Solutions**:
+
 1. Verify the file is a valid FIT file (not corrupted)
 2. Check file size (very large files may take time to load)
 3. Try closing other applications to free memory
@@ -368,6 +384,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 **Problem**: Map tab shows "No GPS data available"
 
 **Solutions**:
+
 1. Check if your device had GPS enabled during recording
 2. Verify the activity was recorded outdoors with GPS signal
 3. Some indoor activities (treadmill, trainer) don't have GPS data
@@ -377,6 +394,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 **Problem**: Application runs slowly or freezes
 
 **Solutions**:
+
 1. Close other applications to free system resources
 2. Try loading a smaller FIT file to test
 3. Check available system memory
@@ -388,6 +406,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 **Problem**: Interface looks incorrect or text is unreadable
 
 **Solutions**:
+
 1. Try switching themes (light/dark)
 2. Adjust system display scaling
 3. Update graphics drivers
@@ -396,11 +415,13 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 ### Getting Help
 
 #### Built-in Help
+
 - **Help Menu**: Access help topics from the Help menu
 - **Tooltips**: Hover over interface elements for quick help
 - **Status Bar**: Check the bottom status bar for information
 
 #### Online Resources
+
 - **GitHub Issues**: Report bugs or request features
 - **Documentation**: Read additional guides and tutorials
 - **Community**: Join discussions with other users
@@ -408,6 +429,7 @@ Access preferences through: **Edit** > **Preferences** (Windows/Linux) or **FitF
 #### Reporting Issues
 
 When reporting issues, please include:
+
 1. Your operating system and version
 2. FitFileViewer version number
 3. Steps to reproduce the problem

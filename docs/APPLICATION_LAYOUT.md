@@ -455,14 +455,14 @@ Root Level Files:
 
 ### Critical Application Files
 
-| File | Size/Complexity | Primary Responsibility |
-|------|-----------------|----------------------|
-| `main.js` | 2,000+ lines | Electron main process, app lifecycle |
-| `utils/config/index.js` | 500+ lines via `constants.js` | Centralized configuration |
-| `utils/errors/index.js` | 400+ lines | Unified error handling |
-| `utils/state/core/unifiedStateManager.js` | 300+ lines | State management facade |
-| `fitParser.js` | 200+ lines | FIT file parsing logic |
-| `main-ui.js` | 150+ lines | UI management and tabs |
+| File                                      | Size/Complexity               | Primary Responsibility               |
+| ----------------------------------------- | ----------------------------- | ------------------------------------ |
+| `main.js`                                 | 2,000+ lines                  | Electron main process, app lifecycle |
+| `utils/config/index.js`                   | 500+ lines via `constants.js` | Centralized configuration            |
+| `utils/errors/index.js`                   | 400+ lines                    | Unified error handling               |
+| `utils/state/core/unifiedStateManager.js` | 300+ lines                    | State management facade              |
+| `fitParser.js`                            | 200+ lines                    | FIT file parsing logic               |
+| `main-ui.js`                              | 150+ lines                    | UI management and tabs               |
 
 ### Module Distribution
 

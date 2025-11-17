@@ -75,7 +75,6 @@ jobs:
                   .\codecov.exe upload-coverage --file ./coverage/lcov.info
               continue-on-error: true
 
-
             # - name: Upload coverage reports to Codecov
             #   uses: codecov/codecov-action@v5
             #   env:
