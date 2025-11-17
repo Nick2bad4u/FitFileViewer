@@ -7,14 +7,230 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[81200de](https://github.com/Nick2bad4u/FitFileViewer/commit/81200de31e320db53fdba617d2d9ede662e6ff96)...
+[81200de](https://github.com/Nick2bad4u/FitFileViewer/commit/81200de31e320db53fdba617d2d9ede662e6ff96)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/81200de31e320db53fdba617d2d9ede662e6ff96...81200de31e320db53fdba617d2d9ede662e6ff96))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 29.2.0 [`(81200de)`](https://github.com/Nick2bad4u/FitFileViewer/commit/81200de31e320db53fdba617d2d9ede662e6ff96)
+
+
+
+
+
+
+## [29.2.0] - 2025-11-17
+
+
 [[56f0487](https://github.com/Nick2bad4u/FitFileViewer/commit/56f048711d1b2970113ea2ff32f56e075077f389)...
-[56f0487](https://github.com/Nick2bad4u/FitFileViewer/commit/56f048711d1b2970113ea2ff32f56e075077f389)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/56f048711d1b2970113ea2ff32f56e075077f389...56f048711d1b2970113ea2ff32f56e075077f389))
+[7a06220](https://github.com/Nick2bad4u/FitFileViewer/commit/7a062207e209b88737b27a6a7494972823aad1ff)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/56f048711d1b2970113ea2ff32f56e075077f389...7a062207e209b88737b27a6a7494972823aad1ff))
+
+
+### 🛠️ GitHub Actions
+
+- ✨ [feat] Add Windows 7 compatibility build process
+
+ - Introduced a new GitHub Actions workflow for building Windows 7 compatibility artifacts.
+ - Created `build-win7.yml` to define the build process for Windows 7 portable applications.
+ - Added `build:win7` script in `package.json` to trigger the Windows 7 build.
+ - Implemented `build-win7.mjs` script to handle the actual build process using Electron Builder.
+ - Updated `DEVELOPMENT_GUIDE.md` to include instructions for building and testing on Windows 7.
+ - Upgraded `electron-updater` dependency to version 6.7.1 for improved functionality.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7a06220)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7a062207e209b88737b27a6a7494972823aad1ff)
+
+
+
+### 💼 Other
+
+- 🔧 [build] Update TypeScript declaration maps for various components
+
+ - 🔧 Update `chartStateManager.d.ts.map` to reflect changes in source mappings
+ - 🔧 Update `mapMetricFilter.d.ts.map` for improved source mapping accuracy
+ - 🔧 Update `fitFileState.d.ts.map` to ensure correct source references
+ - 🔧 Update `createDataPointFilterControl.d.ts.map` for accurate source mapping
+ - 🔧 Update `stateHelpers.d.ts.map` to correct source mapping details
+ - 🔧 Update `tabStateManager.d.ts.map` for enhanced source mapping accuracy
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(77cf3ee)`](https://github.com/Nick2bad4u/FitFileViewer/commit/77cf3eec6354332a3bf130fe6f385723877f1a22)
+
+
+- 🎨 [style] Refactor code for improved readability and consistency
+ - 📝 Simplified function calls in `mapMetricFilter.test.ts` for better clarity
+ - 📝 Consolidated import statements in `createDataPointFilterControl.test.ts` for cleaner structure
+ - 📝 Streamlined object destructuring in `renderZoneChartNew.test.ts` for enhanced readability
+ - 📝 Adjusted formatting in various test files to maintain consistent style
+ - 📝 Reformatted console log statements in `chartStateManager.js` for better readability
+ - 📝 Improved formatting in `handleOpenFile.js` for clearer type checks
+ - 📝 Enhanced readability in `mapDrawLaps.js` by adjusting parameter formatting
+ - 📝 Updated function calls in `showFitData.js` to improve clarity
+ - 📝 Refined state management in `fitFileState.js` for better code organization
+ - 📝 Improved readability in `createDataPointFilterControl.js` by adjusting conditional statements
+ - 📝 Enhanced clarity in `stateHelpers.js` by simplifying variable assignments
+ - 📝 Reformatted `tabStateManager.js` for better readability and consistency
+ - 📝 Adjusted configuration in `vitest.config.js` for improved clarity
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(3c70dc8)`](https://github.com/Nick2bad4u/FitFileViewer/commit/3c70dc81e4aad9151befda8619721f7714d2abaa)
+
+
+- 🎨 [style] Refactor package.json for FitFileViewer
+
+ - ✨ [feat] Update application metadata:
+   - Updated version to 29.1.0
+   - Added detailed description and categories for better visibility
+   - Expanded keywords for improved searchability
+   - Set homepage, bugs, repository, and license information
+
+ - 🔧 [build] Enhance build configuration:
+   - Added various build scripts for development and production
+   - Configured exports for module resolution
+   - Specified dependencies and devDependencies for better package management
+
+ - 🧹 [chore] Clean up package-lock.json:
+   - Deleted outdated package-lock.json file to prevent conflicts
+
+ - ⚡ [perf] Optimize application structure:
+   - Organized scripts and utilities for better maintainability
+   - Improved engine requirements for compatibility
+   - Added CPU and OS specifications for broader support
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(2a6af8c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/2a6af8cb16c776f34c0f1177ab750602a53014bc)
+
+
+- 🛠️ [fix] Improve test coverage and stability across various modules
+
+ - 🧪 [test] Add comprehensive unit tests for event handling in `events.test.ts`
+   - Implement tests for file opening, recent file loading, and keyboard navigation in the context menu.
+   - Ensure proper notification handling for various scenarios including no recent files and file exports.
+   - Validate IPC event handling for menu actions and update notifications.
+
+ - 🧪 [test] Refactor chart rendering tests in `renderZoneChartNew.test.ts`
+   - Remove unnecessary module resets to improve test performance.
+   - Enhance chart constructor mock implementation for better clarity and debugging.
+   - Add checks to ensure chart constructor is called correctly.
+
+ - 🧪 [test] Update HR zone bar rendering tests in `renderSingleHRZoneBar.test.ts`
+   - Refactor chart mock implementations for clarity and consistency.
+   - Ensure that chart instances are reset properly between tests.
+
+ - 🧪 [test] Enhance tab button state tests in `enableTabButtons.complete.test.ts`
+   - Improve MutationObserver mocks to ensure accurate testing of DOM changes.
+
+ - 🧪 [test] Refine export utility tests in `exportUtils.ui.test.ts`
+   - Mock URL and clipboard APIs more effectively to simulate export functionality.
+
+ - 🧪 [test] Strengthen state middleware tests in `stateMiddleware.comprehensive.test.ts`
+   - Directly spy on `localStorage.setItem` for more accurate tracking of persistence middleware behavior.
+
+ - 🧪 [test] Update shown files list tests in `createShownFilesList.test.ts`
+   - Improve border style assertions for better test reliability.
+
+ - 🛠️ [refactor] Update TypeScript declaration maps for better compatibility
+   - Ensure all type definitions are correctly mapped and up-to-date.
+
+ - 🧹 [chore] Adjust vitest configuration for improved test coverage
+   - Include assets in the exclude patterns to streamline test runs.
+   - Refine exclusion patterns for clarity and efficiency.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(c1bb8bd)`](https://github.com/Nick2bad4u/FitFileViewer/commit/c1bb8bded0eea56d03f222d3ba4ee56c0db4fa88)
+
+
+- 🧹 [chore] Standardize prompt front-matter and unify tooling across prompts
+ - Normalize front-matter to use agent/model/tools and unify tool identifiers
+ - Updated: .github/PROMPTS/Consistency-Check.prompt.md, .github/PROMPTS/Do-ToDo.prompt.md, .github/PROMPTS/Generate-100%-Test-Coverage.prompt.md
+
+📝 [docs] Add Review.prompt.md to codify final review workflow
+ - New prompt describes reviewing TODO.md, running linters/tests/typechecks, and final review steps
+ - Provides argument-hint and tool list for automated review tasks
+
+✨ [feat] Add "Review Work" handoff to BeastMode agent
+ - .github/agents/BeastMode.agent.md: add "Review Work" handoff that runs Review.prompt.md and sends the result (send: true) to allow finishing/clearing the todo list
+
+🔧 [build] Exclude vendor/generated files from Electron ESLint
+ - electron-app/eslint.config.mjs: add ignores for vendor/leafletMeasure/**/* and scripts/extractLeafletTemplates.cjs to skip third-party/generated content during linting
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(f67dfd7)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f67dfd7d3f3da101e7cae345ed48d54c58763e05)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v29.1.0 [skip ci] [`(85d9e00)`](https://github.com/Nick2bad4u/FitFileViewer/commit/85d9e00d190cd6a160b53db7d13992c4a652ce39)
+
 
 
 ### 📦 Dependencies
 
 - [dependency] Update version 29.1.0 [`(56f0487)`](https://github.com/Nick2bad4u/FitFileViewer/commit/56f048711d1b2970113ea2ff32f56e075077f389)
+
+
+
+### 🛡️ Security
+
+- 🔧 [build] Update dependencies and improve package configuration
+ - 🔧 Update `@vitest/ui` from `^4.0.8` to `^4.0.9` for improved testing UI features
+ - 🔧 Update `datatables.net` and `datatables.net-dt` from `^2.3.4` to `^2.3.5` for bug fixes
+ - 🔧 Update `maplibre-gl` from `^5.11.0` to `^5.13.0` for enhanced mapping capabilities
+ - 🔧 Update `@typescript-eslint/eslint-plugin` from `^8.46.3` to `^8.46.4` for better TypeScript linting
+ - 🔧 Update `@vitest/coverage-v8` from `^4.0.8` to `^4.0.9` for improved coverage reporting
+ - 🔧 Update `color` from `^5.0.2` to `^5.0.3` for color manipulation improvements
+ - 🔧 Update `electron` from `^39.1.1` to `^39.2.1` for security and performance enhancements
+ - 🔧 Update `electron-builder` and `electron-builder-squirrel-windows` to `^26.2.0` for better packaging
+ - 🔧 Update `jsdom` from `^27.1.0` to `^27.2.0` for improved DOM emulation
+ - 🔧 Update `vitest` from `^4.0.8` to `^4.0.9` for better testing capabilities
+ - 🔧 Add additional build targets in `package.json` for more flexible distribution options
+
+🧪 [test] Enhance jsdom warning suppression in test environment
+ - 🧪 Implement a mechanism to suppress known jsdom warnings in `env-setup.js`
+ - 🧪 Add patterns for common jsdom warnings to improve test output clarity
+
+🧪 [test] Improve navigation handling in tests
+ - 🧪 Introduce `resolveUrlValue` and `createLocationSnapshot` functions to simulate browser navigation
+ - 🧪 Implement `installWindowNavigationShim` to prevent jsdom from executing real navigations
+ - 🧪 Ensure window APIs like `alert`, `confirm`, and `prompt` are properly mocked for tests
+
+🧪 [test] Improve storage shim robustness
+ - 🧪 Add `safeGet` utility function to safely access properties on objects in `nodeWebStorage.ts`
+ - 🧪 Ensure storage installation checks for existing implementations more safely
+
+📝 [docs] Update TypeScript configuration for clarity
+ - 📝 Clarify comments in `tsconfig.json` regarding the use of JSDoc and TypeScript checks
+ - 📝 Exclude additional asset directories from type checking to streamline the build process
+
+🎨 [style] Clean up vitest configuration for readability
+ - 🎨 Format the `reporter` section in `vitest.config.js` for better readability
+ - 🎨 Consolidate exclusion patterns in `vitest.config.js` for clarity
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(7b3934f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/7b3934fa1a100147da7ba8e8693df872b6f99ecb)
+
+
+- 🔧 [build] Update dependencies in package.json
+ - Updated ESLint and related packages to latest versions for improved linting capabilities.
+ - Upgraded Electron to version 39.1.1 for better performance and security.
+ - Updated Vitest and related packages to latest versions for enhanced testing features.
+ - Updated maplibre-gl to version 5.11.0 for improved mapping functionalities.
+
+🛠️ [fix] Enhance global setup for Vitest tests
+ - Added a Web Storage shim to ensure localStorage and sessionStorage are available in Node-based environments.
+ - Updated globalSetup and jsdomSetup files to import the new storage shim.
+
+🧪 [test] Improve test coverage and reliability
+ - Added tests to ensure proper handling of file loading errors in FitFileStateManager.
+ - Enhanced ChartStateManager tests to verify logging behavior when rendering is skipped.
+ - Updated createDataPointFilterControl tests to ensure proper behavior when queueMicrotask is unavailable.
+ - Added tests for clamping panel arrow offset when positioned near viewport edges.
+
+🚜 [refactor] Refactor error handling in FitFileStateManager
+ - Improved handleFileLoadingError method to ignore nullish and duplicate error messages.
+ - Enhanced logging to provide clearer feedback on loading errors.
+
+⚡ [perf] Optimize chart rendering logic
+ - Updated ChartStateManager to log skipped renders with specific reasons for better debugging.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(0de79af)`](https://github.com/Nick2bad4u/FitFileViewer/commit/0de79af774a3f5a8ab72d3a8fb085df3c20e26e2)
 
 
 
