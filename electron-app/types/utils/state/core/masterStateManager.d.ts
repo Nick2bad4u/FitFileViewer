@@ -38,9 +38,9 @@ export class MasterStateManager {
     /**
      * Initialize core state management
      */ /**
-    * Get active subscriptions for debugging
-    * @returns {Object} Subscription information
-    */
+     * Get active subscriptions for debugging
+     * @returns {Object} Subscription information
+     */
     getSubscriptions(): Object;
     /**
      * Initialize all state management components in proper order

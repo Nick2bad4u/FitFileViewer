@@ -28,7 +28,11 @@ export function updateChartsForDataChange(newData: Object): Promise<boolean>;
  * @param {HTMLElement} [container] - Optional container element
  * @returns {Promise<boolean>}
  */
-export function updateChartsForSettingChange(settingName: string, newValue: any, container?: HTMLElement): Promise<boolean>;
+export function updateChartsForSettingChange(
+    settingName: string,
+    newValue: any,
+    container?: HTMLElement
+): Promise<boolean>;
 /**
  * Handle tab activation with proper chart updates
  * @returns {Promise<boolean>}

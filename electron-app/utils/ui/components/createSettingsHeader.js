@@ -239,7 +239,7 @@ export function createExportSection(/** @type {HTMLElement} */ wrapper) {
                 }
                 exportUtils.exportAllAsZip(charts);
             },
-            icon: "�",
+            icon: "📁",
             text: "Export ZIP",
         },
         {

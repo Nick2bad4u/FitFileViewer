@@ -21,7 +21,11 @@
  * @param {LapZoneChartOptions} [options]
  * @returns {any|null}
  */
-export function renderLapZoneChart(canvas: HTMLCanvasElement, lapZoneData: LapZoneEntry[], options?: LapZoneChartOptions): any | null;
+export function renderLapZoneChart(
+    canvas: HTMLCanvasElement,
+    lapZoneData: LapZoneEntry[],
+    options?: LapZoneChartOptions
+): any | null;
 export type LapZoneDatum = {
     /**
      * - Zone label (e.g., "HR Zone 1")

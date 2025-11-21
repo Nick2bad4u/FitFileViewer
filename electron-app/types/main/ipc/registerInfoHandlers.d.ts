@@ -8,7 +8,14 @@
  * @param {{ DEFAULT_THEME: string, SETTINGS_CONFIG_NAME: string }} options.CONSTANTS
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
-export function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, logWithContext }: {
+export function registerInfoHandlers({
+    registerIpcHandle,
+    appRef,
+    fs,
+    path,
+    CONSTANTS,
+    logWithContext,
+}: {
     registerIpcHandle: (channel: string, handler: Function) => void;
     appRef: () => any;
     fs: {

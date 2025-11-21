@@ -19,6 +19,7 @@
 
 import { describe, test, expect, beforeEach, vi, afterEach } from "vitest";
 import { renderEventMessagesChart } from "../../utils/charts/rendering/renderEventMessagesChart.js";
+import { getChartSetting } from "../../utils/state/domain/settingsStateManager.js";
 
 // Mock all external dependencies
 vi.mock("../../utils/theming/core/theme.js", () => ({
@@ -65,7 +66,14 @@ vi.mock("../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
 // Global test setup
 let mockChart: any;
 let mockConsoleError: any;
-let mockLocalStorage: any;
+
+// Mock chart settings to provide custom event color
+vi.mock("../../utils/state/domain/settingsStateManager.js", () => ({
+    getChartSetting: vi.fn((key: string) => {
+        if (key === "color_event_messages") return "#ff5722";
+        return undefined;
+    }),
+}));
 
 beforeEach(() => {
     // Reset DOM
@@ -114,21 +122,8 @@ beforeEach(() => {
     // Mock console.error
     mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    // Mock localStorage
-    mockLocalStorage = {
-        getItem: vi.fn((key: string) => {
-            if (key === "chartjs_color_event_messages") return "#ff5722";
-            return null;
-        }),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
-    };
-
-    Object.defineProperty(window, "localStorage", {
-        value: mockLocalStorage,
-        writable: true,
-    });
+    // We no longer rely on window.localStorage directly for event color;
+    // color is provided by getChartSetting mock above.
 });
 
 afterEach(() => {
@@ -356,8 +351,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(dataset.pointHoverRadius).toBe(8);
         });
 
-        test("should use default color when localStorage color is not available", () => {
-            mockLocalStorage.getItem.mockReturnValue(null);
+        test("should use default color when no custom color setting is available", () => {
+            // Override mocked getChartSetting so that no custom color is provided
+            (getChartSetting as unknown as vi.Mock).mockImplementationOnce(() => undefined);
+
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());

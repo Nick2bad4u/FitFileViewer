@@ -19,5 +19,10 @@
  * // Simple update available with action
  * showUpdateNotification("Update ready", "info", 6000, true);
  */
-export function showUpdateNotification(message: string, type?: string, duration?: number, withAction?: boolean | string): void;
+export function showUpdateNotification(
+    message: string,
+    type?: string,
+    duration?: number,
+    withAction?: boolean | string
+): void;
 //# sourceMappingURL=showUpdateNotification.d.ts.map

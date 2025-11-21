@@ -49,11 +49,13 @@ export class UIStateManager {
      * Update active file display elements based on state
      * @param {{displayName?: string, hasFile?: boolean, title?: string}|null} fileInfo - File info state
      */
-    updateFileDisplayUI(fileInfo: {
-        displayName?: string;
-        hasFile?: boolean;
-        title?: string;
-    } | null): void;
+    updateFileDisplayUI(
+        fileInfo: {
+            displayName?: string;
+            hasFile?: boolean;
+            title?: string;
+        } | null
+    ): void;
     /**
      * Update loading indicator visibility
      * @param {boolean} isLoading - Whether the app is loading
@@ -63,10 +65,12 @@ export class UIStateManager {
      * Update loading progress UI based on indicator state
      * @param {{progress?: number, active?: boolean}|null} indicator - Loading indicator state
      */
-    updateLoadingProgressUI(indicator: {
-        progress?: number;
-        active?: boolean;
-    } | null): void;
+    updateLoadingProgressUI(
+        indicator: {
+            progress?: number;
+            active?: boolean;
+        } | null
+    ): void;
     /**
      * Update measurement mode UI
      * @param {*} isActive - Whether measurement mode is active

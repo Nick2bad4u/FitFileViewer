@@ -8,22 +8,26 @@ export type Operation = {
     progress: number;
     message: string;
     result?: Object;
-    error?: {
-        message: string;
-        stack?: string;
-        name?: string;
-    } | undefined;
+    error?:
+        | {
+              message: string;
+              stack?: string;
+              name?: string;
+          }
+        | undefined;
     lastUpdate?: number;
 };
 export type OperationUpdate = {
     progress?: number;
     message?: string;
     result?: Object;
-    error?: {
-        message: string;
-        stack?: string;
-        name?: string;
-    } | undefined;
+    error?:
+        | {
+              message: string;
+              stack?: string;
+              name?: string;
+          }
+        | undefined;
 };
 export type ErrorEntry = {
     id: string;
@@ -35,11 +39,14 @@ export type ErrorEntry = {
 };
 export type Metrics = {
     startTime: number;
-    operationTimes: Map<string, {
-        value: number;
-        timestamp: number;
-        metadata: Object;
-    }>;
+    operationTimes: Map<
+        string,
+        {
+            value: number;
+            timestamp: number;
+            metadata: Object;
+        }
+    >;
 };
 export type HandlerInfo = {
     emitter: {

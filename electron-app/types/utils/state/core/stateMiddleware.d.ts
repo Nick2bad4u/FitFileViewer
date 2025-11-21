@@ -81,9 +81,11 @@ export type MiddlewareContext = {
     /**
      * - Options passed to the state operation (shape is dynamic)
      */
-    options?: {
-        [x: string]: any;
-    } | undefined;
+    options?:
+        | {
+              [x: string]: any;
+          }
+        | undefined;
     /**
      * - Internal timing marker
      */
@@ -93,22 +95,31 @@ export type MiddlewareContext = {
  * A middleware phase handler. It may mutate and return the context, return a new context object,
  * return false to halt further middleware in the chain, or return void to continue.
  */
-export type MiddlewarePhaseHandler = (context: MiddlewareContext) => Promise<MiddlewareContext | false | void> | MiddlewareContext | false | void;
+export type MiddlewarePhaseHandler = (
+    context: MiddlewareContext
+) => Promise<MiddlewareContext | false | void> | MiddlewareContext | false | void;
 export type MiddlewareDefinition = {
-    metadata?: {
-        [x: string]: any;
-    } | undefined;
+    metadata?:
+        | {
+              [x: string]: any;
+          }
+        | undefined;
     beforeSet?: MiddlewarePhaseHandler | undefined;
     afterSet?: MiddlewarePhaseHandler | undefined;
     beforeGet?: MiddlewarePhaseHandler | undefined;
     afterGet?: MiddlewarePhaseHandler | undefined;
     onSubscribe?: MiddlewarePhaseHandler | undefined;
     onUnsubscribe?: MiddlewarePhaseHandler | undefined;
-    onError?: ((error: Error, errorContext?: {
-        middleware: string;
-        phase: string;
-        context: MiddlewareContext;
-    }) => (Promise<void> | void)) | undefined;
+    onError?:
+        | ((
+              error: Error,
+              errorContext?: {
+                  middleware: string;
+                  phase: string;
+                  context: MiddlewareContext;
+              }
+          ) => Promise<void> | void)
+        | undefined;
 };
 export type RegisteredMiddleware = {
     name: string;
@@ -157,11 +168,14 @@ declare class StateMiddlewareManager {
      * @param {Error} error
      * @param {{middleware: string, phase: string, context: MiddlewareContext}} errorContext
      */
-    executeErrorHandlers(error: Error, errorContext: {
-        middleware: string;
-        phase: string;
-        context: MiddlewareContext;
-    }): Promise<void>;
+    executeErrorHandlers(
+        error: Error,
+        errorContext: {
+            middleware: string;
+            phase: string;
+            context: MiddlewareContext;
+        }
+    ): Promise<void>;
     /**
      * Get middleware information
      * @returns {Array} List of registered middleware with metadata

@@ -8,7 +8,10 @@
  * @param {GpxBuildOptions} [options] - GPX document metadata options
  * @returns {string|null} GPX document compatible with third-party viewers or null when invalid
  */
-export function buildGpxFromRecords(records: Array<Partial<FitFileRecord>> | undefined | null, options?: GpxBuildOptions): string | null;
+export function buildGpxFromRecords(
+    records: Array<Partial<FitFileRecord>> | undefined | null,
+    options?: GpxBuildOptions
+): string | null;
 /**
  * Resolves a user-friendly track name based on loaded FIT file context.
  *
@@ -17,11 +20,17 @@ export function buildGpxFromRecords(records: Array<Partial<FitFileRecord>> | und
  * @param {string} [fallback="Exported Track"] - Fallback value when no contextual name exists
  * @returns {string} Resolved track name suitable for metadata
  */
-export function resolveTrackNameFromLoadedFiles(loadedFitFiles: Array<{
-    filePath?: string;
-    displayName?: string;
-    name?: string;
-}> | undefined | null, fallback?: string): string;
+export function resolveTrackNameFromLoadedFiles(
+    loadedFitFiles:
+        | Array<{
+              filePath?: string;
+              displayName?: string;
+              name?: string;
+          }>
+        | undefined
+        | null,
+    fallback?: string
+): string;
 export namespace __testUtils {
     export { escapeXml };
     export { formatCoordinate };

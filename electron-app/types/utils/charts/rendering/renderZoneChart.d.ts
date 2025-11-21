@@ -7,8 +7,14 @@
  * @param {{ chartType?: string, showLegend?: boolean }} [options]
  * @returns {void}
  */
-export function renderZoneChart(container: HTMLElement, title: string, zoneData: import("../../types/sharedChartTypes.d.ts").ZoneData[], chartId: string, options?: {
-    chartType?: string;
-    showLegend?: boolean;
-}): void;
+export function renderZoneChart(
+    container: HTMLElement,
+    title: string,
+    zoneData: import("../../types/sharedChartTypes.d.ts").ZoneData[],
+    chartId: string,
+    options?: {
+        chartType?: string;
+        showLegend?: boolean;
+    }
+): void;
 //# sourceMappingURL=renderZoneChart.d.ts.map

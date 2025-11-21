@@ -46,9 +46,12 @@ export function makeResilient(fn: Function, fallback: any, options?: Object): Fu
  * @param {boolean} [options.logErrors=true] - Whether to log errors
  * @returns {Function} Safe function
  */
-export function makeSafe(fn: Function, options?: {
-    logErrors?: boolean | undefined;
-}): Function;
+export function makeSafe(
+    fn: Function,
+    options?: {
+        logErrors?: boolean | undefined;
+    }
+): Function;
 export namespace ERROR_CODES {
     let INVALID_INPUT: string;
     let FILE_NOT_FOUND: string;
@@ -93,10 +96,13 @@ export class ValidationError extends AppError {
      * @param {string[]} details.errors - Validation errors
      * @param {string[]} [details.warnings=[]] - Validation warnings
      */
-    constructor(message: string, details: {
-        errors: string[];
-        warnings?: string[] | undefined;
-    });
+    constructor(
+        message: string,
+        details: {
+            errors: string[];
+            warnings?: string[] | undefined;
+        }
+    );
     errors: string[];
     warnings: string[];
 }

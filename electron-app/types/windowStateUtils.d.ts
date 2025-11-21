@@ -71,19 +71,21 @@ declare namespace devHelpers {
         settingsPath: string;
     };
     function resetState(): boolean;
-    function validateSettings(): {
-        exists: boolean;
-        isValid: boolean;
-        path: string;
-        state: WindowState;
-        error?: never;
-    } | {
-        error: string;
-        exists: boolean;
-        isValid: boolean;
-        path: string;
-        state?: never;
-    };
+    function validateSettings():
+        | {
+              exists: boolean;
+              isValid: boolean;
+              path: string;
+              state: WindowState;
+              error?: never;
+          }
+        | {
+              error: string;
+              exists: boolean;
+              isValid: boolean;
+              path: string;
+              state?: never;
+          };
 }
 declare namespace CONSTANTS {
     namespace DEFAULTS {

@@ -12,7 +12,18 @@
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  * @param {any} options.mainWindow
  */
-export function registerDialogHandlers({ registerIpcHandle, dialogRef, CONSTANTS, addRecentFile, setAppState, browserWindowRef, getThemeFromRenderer, safeCreateAppMenu, logWithContext, mainWindow, }: {
+export function registerDialogHandlers({
+    registerIpcHandle,
+    dialogRef,
+    CONSTANTS,
+    addRecentFile,
+    setAppState,
+    browserWindowRef,
+    getThemeFromRenderer,
+    safeCreateAppMenu,
+    logWithContext,
+    mainWindow,
+}: {
     registerIpcHandle: (channel: string, handler: Function) => void;
     dialogRef: () => any;
     CONSTANTS: {

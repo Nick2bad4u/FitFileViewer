@@ -11,26 +11,30 @@ export function testFaveroStringCase(): {
 /**
  * Test the new formatting with sample data
  */
-export function testNewFormatting(): ({
-    name: string;
-    sensor: {
-        manufacturer: number;
-        product: number;
-        garminProduct?: never;
-    };
-} | {
-    name: string;
-    sensor: {
-        manufacturer: string;
-        product: string;
-        garminProduct?: never;
-    };
-} | {
-    name: string;
-    sensor: {
-        garminProduct: string;
-        manufacturer?: never;
-        product?: never;
-    };
-})[];
+export function testNewFormatting(): (
+    | {
+          name: string;
+          sensor: {
+              manufacturer: number;
+              product: number;
+              garminProduct?: never;
+          };
+      }
+    | {
+          name: string;
+          sensor: {
+              manufacturer: string;
+              product: string;
+              garminProduct?: never;
+          };
+      }
+    | {
+          name: string;
+          sensor: {
+              garminProduct: string;
+              manufacturer?: never;
+              product?: never;
+          };
+      }
+)[];
 //# sourceMappingURL=debugChartFormatting.d.ts.map

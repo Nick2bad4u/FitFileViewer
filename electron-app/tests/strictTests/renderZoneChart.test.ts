@@ -35,7 +35,9 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         chartInstanceMock = {
             update: vi.fn(),
         };
-        Chart = vi.fn(() => chartInstanceMock);
+        Chart = vi.fn().mockImplementation(function ChartConstructor() {
+            return chartInstanceMock;
+        });
         (globalThis as any).Chart = Chart;
         (globalThis as any)._chartjsInstances = [];
 

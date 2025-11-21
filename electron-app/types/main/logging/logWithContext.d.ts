@@ -7,5 +7,9 @@
  * @param {string} message - Message to log.
  * @param {Record<string, unknown>} [context={}] - Optional context payload serialized to JSON.
  */
-export function logWithContext(level: "info" | "warn" | "error" | string, message: string, context?: Record<string, unknown>): void;
+export function logWithContext(
+    level: "info" | "warn" | "error" | string,
+    message: string,
+    context?: Record<string, unknown>
+): void;
 //# sourceMappingURL=logWithContext.d.ts.map

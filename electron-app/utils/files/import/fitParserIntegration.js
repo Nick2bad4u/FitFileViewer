@@ -158,9 +158,9 @@ export async function initializeFitParserIntegration() {
  * @param {import('electron').IpcMain} ipcMain
  */
 export function setupFitParserIPC(ipcMain) {
-    // Handle file decoding requests from renderer
+    // Handle file decoding requests from renderer using canonical fit:decode channel
     ipcMain.handle(
-        "decode-fit-file",
+        "fit:decode",
         /**
          * @param {import('electron').IpcMainInvokeEvent} _event
          * @param {ArrayBuffer|Uint8Array|Buffer} fileBuffer
@@ -238,7 +238,7 @@ export function setupFitParserPreload(/** @type {any} */ contextBridge, /** @typ
                 if (fileBuffer instanceof ArrayBuffer) {
                     normalized = new Uint8Array(fileBuffer);
                 }
-                return ipcRenderer.invoke("decode-fit-file", normalized, options);
+                return ipcRenderer.invoke("fit:decode", normalized, options);
             },
             /**
              * Get current decoder options

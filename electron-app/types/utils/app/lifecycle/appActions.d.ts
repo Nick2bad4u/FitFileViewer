@@ -11,7 +11,10 @@
  * @param {string[]} [dependencies]
  * @returns {(() => T) & { cleanup: () => void }}
  */
-export function useComputed<T>(computeFn: () => T, dependencies?: string[]): (() => T) & {
+export function useComputed<T>(
+    computeFn: () => T,
+    dependencies?: string[]
+): (() => T) & {
     cleanup: () => void;
 };
 /**

@@ -10,10 +10,7 @@ export function addShutdownHook(hook: Function): void;
  * @param {string} [filter.owner] - Owner to cleanup resources for
  * @returns {number} Number of resources cleaned up
  */
-export function cleanup(filter?: {
-    type?: ResourceType | undefined;
-    owner?: string | undefined;
-}): number;
+export function cleanup(filter?: { type?: ResourceType | undefined; owner?: string | undefined }): number;
 /**
  * Cleanup all registered resources
  * @returns {number} Number of resources cleaned up
@@ -43,11 +40,15 @@ export function list(): Array<{
  * @param {string} [options.id] - Custom ID (auto-generated if not provided)
  * @returns {string} Resource ID for later cleanup
  */
-export function register(type: ResourceType, cleanup: Function, options?: {
-    owner?: string | undefined;
-    instance?: any;
-    id?: string | undefined;
-}): string;
+export function register(
+    type: ResourceType,
+    cleanup: Function,
+    options?: {
+        owner?: string | undefined;
+        instance?: any;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Register a chart for automatic cleanup
  * @param {any} chart - ChartJS instance
@@ -56,10 +57,13 @@ export function register(type: ResourceType, cleanup: Function, options?: {
  * @param {string} [options.id] - Custom ID
  * @returns {string} Resource ID
  */
-export function registerChart(chart: any, options?: {
-    owner?: string | undefined;
-    id?: string | undefined;
-}): string;
+export function registerChart(
+    chart: any,
+    options?: {
+        owner?: string | undefined;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Register an interval for automatic cleanup
  * @param {number} intervalId - Interval ID from setInterval
@@ -68,10 +72,13 @@ export function registerChart(chart: any, options?: {
  * @param {string} [options.id] - Custom ID
  * @returns {string} Resource ID
  */
-export function registerInterval(intervalId: number, options?: {
-    owner?: string | undefined;
-    id?: string | undefined;
-}): string;
+export function registerInterval(
+    intervalId: number,
+    options?: {
+        owner?: string | undefined;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Register a map for automatic cleanup
  * @param {any} map - Leaflet map instance
@@ -80,10 +87,13 @@ export function registerInterval(intervalId: number, options?: {
  * @param {string} [options.id] - Custom ID
  * @returns {string} Resource ID
  */
-export function registerMap(map: any, options?: {
-    owner?: string | undefined;
-    id?: string | undefined;
-}): string;
+export function registerMap(
+    map: any,
+    options?: {
+        owner?: string | undefined;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Register an observer for automatic cleanup
  * @param {any} observer - Observer instance (MutationObserver, IntersectionObserver, etc.)
@@ -92,10 +102,13 @@ export function registerMap(map: any, options?: {
  * @param {string} [options.id] - Custom ID
  * @returns {string} Resource ID
  */
-export function registerObserver(observer: any, options?: {
-    owner?: string | undefined;
-    id?: string | undefined;
-}): string;
+export function registerObserver(
+    observer: any,
+    options?: {
+        owner?: string | undefined;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Register a timer for automatic cleanup
  * @param {number} timerId - Timer ID from setTimeout
@@ -104,10 +117,13 @@ export function registerObserver(observer: any, options?: {
  * @param {string} [options.id] - Custom ID
  * @returns {string} Resource ID
  */
-export function registerTimer(timerId: number, options?: {
-    owner?: string | undefined;
-    id?: string | undefined;
-}): string;
+export function registerTimer(
+    timerId: number,
+    options?: {
+        owner?: string | undefined;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Register a web worker for automatic cleanup
  * @param {Worker} worker - Web Worker instance
@@ -116,10 +132,13 @@ export function registerTimer(timerId: number, options?: {
  * @param {string} [options.id] - Custom ID
  * @returns {string} Resource ID
  */
-export function registerWorker(worker: Worker, options?: {
-    owner?: string | undefined;
-    id?: string | undefined;
-}): string;
+export function registerWorker(
+    worker: Worker,
+    options?: {
+        owner?: string | undefined;
+        id?: string | undefined;
+    }
+): string;
 /**
  * Execute shutdown sequence
  * @returns {Promise<void>}
@@ -216,11 +235,15 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID (auto-generated if not provided)
      * @returns {string} Resource ID for later cleanup
      */
-    register(type: ResourceType, cleanup: Function, options?: {
-        owner?: string | undefined;
-        instance?: any;
-        id?: string | undefined;
-    }): string;
+    register(
+        type: ResourceType,
+        cleanup: Function,
+        options?: {
+            owner?: string | undefined;
+            instance?: any;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Unregister and cleanup a specific resource
      * @param {string} id - Resource ID to cleanup
@@ -234,10 +257,7 @@ declare class ResourceManager {
      * @param {string} [filter.owner] - Owner to cleanup resources for
      * @returns {number} Number of resources cleaned up
      */
-    cleanup(filter?: {
-        type?: ResourceType | undefined;
-        owner?: string | undefined;
-    }): number;
+    cleanup(filter?: { type?: ResourceType | undefined; owner?: string | undefined }): number;
     /**
      * Cleanup all registered resources
      * @returns {number} Number of resources cleaned up
@@ -270,10 +290,13 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID
      * @returns {string} Resource ID
      */
-    registerChart(chart: any, options?: {
-        owner?: string | undefined;
-        id?: string | undefined;
-    }): string;
+    registerChart(
+        chart: any,
+        options?: {
+            owner?: string | undefined;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Register an interval for automatic cleanup
      * @param {number} intervalId - Interval ID from setInterval
@@ -282,10 +305,13 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID
      * @returns {string} Resource ID
      */
-    registerInterval(intervalId: number, options?: {
-        owner?: string | undefined;
-        id?: string | undefined;
-    }): string;
+    registerInterval(
+        intervalId: number,
+        options?: {
+            owner?: string | undefined;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Register a map for automatic cleanup
      * @param {any} map - Leaflet map instance
@@ -294,10 +320,13 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID
      * @returns {string} Resource ID
      */
-    registerMap(map: any, options?: {
-        owner?: string | undefined;
-        id?: string | undefined;
-    }): string;
+    registerMap(
+        map: any,
+        options?: {
+            owner?: string | undefined;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Register an observer for automatic cleanup
      * @param {any} observer - Observer instance (MutationObserver, IntersectionObserver, etc.)
@@ -306,10 +335,13 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID
      * @returns {string} Resource ID
      */
-    registerObserver(observer: any, options?: {
-        owner?: string | undefined;
-        id?: string | undefined;
-    }): string;
+    registerObserver(
+        observer: any,
+        options?: {
+            owner?: string | undefined;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Register a timer for automatic cleanup
      * @param {number} timerId - Timer ID from setTimeout
@@ -318,10 +350,13 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID
      * @returns {string} Resource ID
      */
-    registerTimer(timerId: number, options?: {
-        owner?: string | undefined;
-        id?: string | undefined;
-    }): string;
+    registerTimer(
+        timerId: number,
+        options?: {
+            owner?: string | undefined;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Register a web worker for automatic cleanup
      * @param {Worker} worker - Web Worker instance
@@ -330,10 +365,13 @@ declare class ResourceManager {
      * @param {string} [options.id] - Custom ID
      * @returns {string} Resource ID
      */
-    registerWorker(worker: Worker, options?: {
-        owner?: string | undefined;
-        id?: string | undefined;
-    }): string;
+    registerWorker(
+        worker: Worker,
+        options?: {
+            owner?: string | undefined;
+            id?: string | undefined;
+        }
+    ): string;
     /**
      * Remove a shutdown hook
      * @param {Function} hook - Function to remove

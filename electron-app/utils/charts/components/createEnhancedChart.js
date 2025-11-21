@@ -46,13 +46,19 @@ export function createEnhancedChart(canvas, options) {
             return timeUnits === "hours" ? "h" : timeUnits === "minutes" ? "min" : "s";
         }
         if (f === "distance" || f === "altitude" || f === "enhancedAltitude") {
-            return distanceUnits === "miles" ? "mi" : distanceUnits === "feet" ? "ft" : distanceUnits === "meters" ? "m" : "km";
+            return distanceUnits === "miles"
+                ? "mi"
+                : distanceUnits === "feet"
+                  ? "ft"
+                  : distanceUnits === "meters"
+                    ? "m"
+                    : "km";
         }
         if (f === "temperature") {
             return temperatureUnits === "fahrenheit" ? "°F" : "°C";
         }
         if (f === "speed" || f === "enhancedSpeed") {
-            return (distanceUnits === "miles" || distanceUnits === "feet") ? "mph" : "km/h";
+            return distanceUnits === "miles" || distanceUnits === "feet" ? "mph" : "km/h";
         }
         return getUnitSymbol(f);
     }
@@ -60,7 +66,7 @@ export function createEnhancedChart(canvas, options) {
     try {
         // Get theme using robust detection
         // If theme param is provided and not 'auto', use it. Otherwise detect.
-        const currentTheme = (theme && theme !== "auto") ? theme : detectCurrentTheme();
+        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
         console.log("[ChartJS] Theme debugging for field:", field);
         console.log("[ChartJS] - theme param:", theme);
         console.log("[ChartJS] - resolved theme:", currentTheme);
@@ -118,22 +124,22 @@ export function createEnhancedChart(canvas, options) {
                 datasets: [dataset],
             },
             options: {
-                                animation: {
-                                        duration:
-                                                animationStyle === "none"
-                                                        ? 0
-                                                        : animationStyle === "fast"
-                                                            ? 500
-                                                            : animationStyle === "slow"
-                                                                ? 2000
-                                                                : 1000,
-                                        easing:
-                                                animationStyle === "fast"
-                                                        ? "easeInOut"
-                                                        : animationStyle === "none" || animationStyle === "normal" || !animationStyle
-                                                            ? "linear"
-                                                            : "easeOutQuart",
-                                },
+                animation: {
+                    duration:
+                        animationStyle === "none"
+                            ? 0
+                            : animationStyle === "fast"
+                              ? 500
+                              : animationStyle === "slow"
+                                ? 2000
+                                : 1000,
+                    easing:
+                        animationStyle === "fast"
+                            ? "easeInOut"
+                            : animationStyle === "none" || animationStyle === "normal" || !animationStyle
+                              ? "linear"
+                              : "easeOutQuart",
+                },
                 interaction: {
                     intersect: false,
                     mode: "index",
@@ -179,50 +185,66 @@ export function createEnhancedChart(canvas, options) {
                              */
                             label(context) {
                                 const value = context.parsed.y;
+
+                                // Values in chartData have already been converted to user units
+                                // via convertValueToUserUnits in renderChartJS. For distance,
+                                // altitude, speed and temperature we need to convert back to
+                                // canonical raw units before delegating to formatTooltipWithUnits,
+                                // which expects raw values.
                                 let rawValue = value;
 
                                 switch (field) {
-                                case "altitude":
-                                case "distance":
-                                case "enhancedAltitude": {
-                                    switch (distanceUnits) {
-                                        case "feet": {
-                                            rawValue = value / 3.280_84;
-                                            break;
+                                    case "altitude":
+                                    case "distance":
+                                    case "enhancedAltitude": {
+                                        switch (distanceUnits) {
+                                            case "feet": {
+                                                // value is in feet, convert back to meters
+                                                rawValue = value / 3.280_84;
+                                                break;
+                                            }
+                                            case "kilometers": {
+                                                // value is in kilometers, convert back to meters
+                                                rawValue = value * 1000;
+                                                break;
+                                            }
+                                            case "miles": {
+                                                // value is in miles, convert back to meters
+                                                rawValue = value * 1609.344;
+                                                break;
+                                            }
+                                            default: {
+                                                // meters or unknown
+                                                rawValue = value;
+                                            }
                                         }
-                                        case "kilometers": {
-                                            rawValue = value * 1000;
-                                            break;
-                                        }
-                                        case "miles": {
-                                            rawValue = value * 1609.344;
-                                            break;
-                                        }
-                                        default: {
-                                            rawValue = value;
-                                        }
+                                        break;
                                     }
-
-                                break;
-                                }
-                                case "enhancedSpeed":
-                                case "speed": {
-                                    if (distanceUnits === "miles" || distanceUnits === "feet") {
-                                        rawValue = value / 2.236_936;
-                                    } else {
-                                        rawValue = value / 3.6;
+                                    case "enhancedSpeed":
+                                    case "speed": {
+                                        // chartData speed is in km/h or mph depending on distance units.
+                                        // Convert back to m/s which is the raw canonical unit.
+                                        if (distanceUnits === "miles" || distanceUnits === "feet") {
+                                            // value is mph
+                                            rawValue = value / 2.236_936;
+                                        } else {
+                                            // value is km/h
+                                            rawValue = value / 3.6;
+                                        }
+                                        break;
                                     }
-
-                                break;
-                                }
-                                case "temperature": {
-                                    if (temperatureUnits === "fahrenheit") {
-                                        rawValue = ((value - 32) * 5) / 9;
+                                    case "temperature": {
+                                        // chartData temperature is in Celsius or Fahrenheit.
+                                        // Convert back to Celsius for tooltip helper.
+                                        if (temperatureUnits === "fahrenheit") {
+                                            rawValue = ((value - 32) * 5) / 9;
+                                        }
+                                        break;
                                     }
-
-                                break;
-                                }
-                                // No default
+                                    // Other fields already store canonical raw values
+                                    default: {
+                                        rawValue = value;
+                                    }
                                 }
 
                                 return `${context.dataset.label}: ${formatTooltipWithUnits(rawValue, field)}`;

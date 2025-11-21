@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
+import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
 // Mock Chart.js
 let Chart: any;
@@ -133,9 +134,7 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(container.children.length).toBe(0);
         });
 
-        it("should return early when localStorage field visibility is hidden", () => {
-            mockLocalStorage.getItem.mockReturnValue("hidden");
-
+        it("should return early when field visibility is hidden", () => {
             const container = document.createElement("div");
             const data = [
                 { speed: 5.5, distance: 1000 },
@@ -143,9 +142,11 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             ];
             const options = { maxPoints: 1000, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
 
+            const visibilitySpy = vi.spyOn(chartSettingsManager, "getFieldVisibility").mockReturnValue("hidden" as any);
+
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_field_speed_vs_distance");
+            expect(visibilitySpy).toHaveBeenCalledWith("speed_vs_distance");
             expect(Chart).not.toHaveBeenCalled();
             expect(container.children.length).toBe(0);
         });

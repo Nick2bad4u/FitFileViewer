@@ -7,7 +7,13 @@
  * @param {() => Promise<any>} options.stopGyazoOAuthServer
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  */
-export function registerExternalHandlers({ registerIpcHandle, shellRef, startGyazoOAuthServer, stopGyazoOAuthServer, logWithContext, }: {
+export function registerExternalHandlers({
+    registerIpcHandle,
+    shellRef,
+    startGyazoOAuthServer,
+    stopGyazoOAuthServer,
+    logWithContext,
+}: {
     registerIpcHandle: (channel: string, handler: Function) => void;
     shellRef: () => any;
     startGyazoOAuthServer: (port?: number) => Promise<any>;

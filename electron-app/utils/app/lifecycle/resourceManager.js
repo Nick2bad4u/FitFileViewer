@@ -427,8 +427,8 @@ class ResourceManager {
 // Create singleton instance
 const resourceManager = new ResourceManager();
 
-// Setup window cleanup handler
-if (globalThis.window !== undefined) {
+// Setup window cleanup handler (only when addEventListener is available)
+if (globalThis.window !== undefined && typeof globalThis.window.addEventListener === "function") {
     globalThis.window.addEventListener("beforeunload", () => {
         console.log("[ResourceManager] Window unload detected, cleaning up resources...");
         resourceManager.cleanupAll();

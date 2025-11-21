@@ -10,7 +10,15 @@
  * @param {Function} params.showUpdateNotification - Function to display update notifications.
  * @param {Function} params.showAboutModal - Function to display the About modal dialog.
  */
-export function setupListeners({ openFileBtn, isOpeningFileRef, setLoading, showNotification, handleOpenFile, showUpdateNotification, showAboutModal, }: {
+export function setupListeners({
+    openFileBtn,
+    isOpeningFileRef,
+    setLoading,
+    showNotification,
+    handleOpenFile,
+    showUpdateNotification,
+    showAboutModal,
+}: {
     openFileBtn: HTMLButtonElement;
     isOpeningFileRef: Object;
     setLoading: Function;

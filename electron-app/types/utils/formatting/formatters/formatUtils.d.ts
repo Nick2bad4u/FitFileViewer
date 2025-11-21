@@ -22,8 +22,12 @@
  * // With custom options
  * formatArray([1.234, 2.567], 3, { separator: " | " }) // "1.234 | 2.567"
  */
-export function formatArray(val: number[] | string | any, digits?: number, options?: {
-    separator?: string | undefined;
-    strictValidation?: boolean | undefined;
-}): string | any;
+export function formatArray(
+    val: number[] | string | any,
+    digits?: number,
+    options?: {
+        separator?: string | undefined;
+        strictValidation?: boolean | undefined;
+    }
+): string | any;
 //# sourceMappingURL=formatUtils.d.ts.map

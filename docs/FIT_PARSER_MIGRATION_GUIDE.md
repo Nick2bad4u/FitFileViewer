@@ -6,6 +6,13 @@ The `fitParser.js` module has been successfully migrated to integrate with the F
 
 ## Key Changes
 
+> **Canonical IPC Channels**
+>
+> - `fit:decode` – primary channel for decoding FIT files from the renderer.
+> - `fit:parse` – alternative channel used by some internal flows/tests.
+>
+> The legacy `decode-fit-file` channel has been fully replaced by `fit:decode` in the integration helpers. Any new code should use `fit:decode` / `fit:parse` only.
+
 ### 1. State Management Integration
 
 The FIT parser now integrates with:
@@ -100,44 +107,36 @@ import { initializeFitParserIntegration } from "./utils/fitParserIntegration.js"
 await initializeFitParserIntegration();
 ```
 
-### Step 2: Set Up IPC Handlers (Main Process)
+### Step 2: IPC Handlers (Main Process)
+
+In the current architecture, `electron-app/main/ipc/setupIPCHandlers.js` is responsible for wiring the canonical FIT IPC channels:
 
 ```javascript
-import { setupFitParserIPC } from "./utils/fitParserIntegration.js";
-import { ipcMain } from "electron";
-
-// Set up IPC handlers for FIT parser operations
-setupFitParserIPC(ipcMain);
-```
-
-### Step 3: Set Up Preload Script
-
-```javascript
-import { setupFitParserPreload } from "./utils/fitParserIntegration.js";
-import { contextBridge, ipcRenderer } from "electron";
-
-// Expose FIT parser functions to renderer
-setupFitParserPreload(contextBridge, ipcRenderer);
-```
-
-### Step 4: Use in Renderer Process
-
-```javascript
-// Decode a FIT file with progress tracking
-const result = await window.fitParser.decodeFitFile(fileBuffer);
-
-// Update decoder options with validation
-const updateResult = await window.fitParser.updateDecoderOptions({
- applyScaleAndOffset: false,
- includeUnknownData: true,
+registerIpcHandle("fit:parse", async (_event, arrayBuffer) => {
+    // ... calls fitParser.decodeFitFile(buffer)
 });
 
-// Get current options
-const options = await window.fitParser.getDecoderOptions();
-
-// Reset to defaults
-const resetResult = await window.fitParser.resetDecoderOptions();
+registerIpcHandle("fit:decode", async (_event, arrayBuffer) => {
+    // ... calls fitParser.decodeFitFile(buffer)
+});
 ```
+
+The optional `setupFitParserIPC(ipcMain)` helper in `utils/files/import/fitParserIntegration.js` also uses `fit:decode` to provide an advanced, state-aware decoding surface for specialized embedding scenarios and tests.
+
+### Step 3: Preload Script
+
+The canonical renderer API is exposed via `preload.js` through the `electronAPI` bridge, not `window.fitParser`:
+
+```javascript
+// In preload.js
+const electronAPI = {
+    decodeFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_DECODE, "decodeFitFile"),
+    parseFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_PARSE, "parseFitFile"),
+    // ...
+};
+```
+
+The `setupFitParserPreload(contextBridge, ipcRenderer)` helper remains available for legacy or embedded use cases and now invokes `fit:decode` under the hood instead of `decode-fit-file`.
 
 ## New API Functions
 
@@ -167,7 +166,7 @@ const defaults = fitParser.getDefaultDecoderOptions();
 const schema = fitParser.DECODER_OPTIONS_SCHEMA;
 ```
 
-### Integration Functions (ES6 Modules)
+### Integration Functions (ES6 Modules / Advanced)
 
 ```javascript
 import {

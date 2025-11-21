@@ -5,11 +5,15 @@
  * @param {{title?: string}} [options={}] - Chart options (theme, title, etc.)
  * @returns {*|null} Chart.js instance or null on error
  */
-export function renderSinglePowerZoneBar(canvas: HTMLCanvasElement, zoneData: Array<{
-    label: string;
-    value: number;
-    color?: string;
-}>, options?: {
-    title?: string;
-}): any | null;
+export function renderSinglePowerZoneBar(
+    canvas: HTMLCanvasElement,
+    zoneData: Array<{
+        label: string;
+        value: number;
+        color?: string;
+    }>,
+    options?: {
+        title?: string;
+    }
+): any | null;
 //# sourceMappingURL=renderSinglePowerZoneBar.d.ts.map

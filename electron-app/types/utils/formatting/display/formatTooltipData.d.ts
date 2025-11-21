@@ -18,7 +18,12 @@
  *
  * @public
  */
-export function formatTooltipData(idx: number, row: RecordMessage, lapNum: number, recordMesgsOverride?: RecordMessage[]): string;
+export function formatTooltipData(
+    idx: number,
+    row: RecordMessage,
+    lapNum: number,
+    recordMesgsOverride?: RecordMessage[]
+): string;
 export type RecordMessage = {
     /**
      * - Message timestamp

@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
 // Mock dependencies
 vi.mock("../../../utils/theming/core/theme.js", () => ({
@@ -246,12 +247,11 @@ describe("renderGPSTrackChart", () => {
             const data = [{ positionLat: 429496730, positionLong: -859993460 }];
             const options = { maxPoints: "all" };
 
-            const mockLocalStorage = (global as any).localStorage;
-            mockLocalStorage.getItem.mockReturnValue("hidden");
+            const visibilitySpy = vi.spyOn(chartSettingsManager, "getFieldVisibility").mockReturnValue("hidden" as any);
 
             renderGPSTrackChart(container, data, options);
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_field_gps_track");
+            expect(visibilitySpy).toHaveBeenCalledWith("gps_track");
             expect((global as any).window.Chart).not.toHaveBeenCalled();
         });
 
@@ -259,8 +259,7 @@ describe("renderGPSTrackChart", () => {
             const data = [{ positionLat: 429496730, positionLong: -859993460 }];
             const options = { maxPoints: "all" };
 
-            const mockLocalStorage = (global as any).localStorage;
-            mockLocalStorage.getItem.mockReturnValue("visible");
+            vi.spyOn(chartSettingsManager, "getFieldVisibility").mockReturnValue("visible" as any);
 
             renderGPSTrackChart(container, data, options);
 
@@ -271,8 +270,7 @@ describe("renderGPSTrackChart", () => {
             const data = [{ positionLat: 429496730, positionLong: -859993460 }];
             const options = { maxPoints: "all" };
 
-            const mockLocalStorage = (global as any).localStorage;
-            mockLocalStorage.getItem.mockReturnValue(null);
+            vi.spyOn(chartSettingsManager, "getFieldVisibility").mockReturnValue(null as any);
 
             renderGPSTrackChart(container, data, options);
 

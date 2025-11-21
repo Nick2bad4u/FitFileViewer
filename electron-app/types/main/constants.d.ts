@@ -5,23 +5,30 @@
 export const CONSTANTS: Readonly<{
     DEFAULT_THEME: "dark";
     DIALOG_FILTERS: Readonly<{
-        ALL_FILES: readonly (Readonly<{
-            extensions: string[];
-            name: "FIT Files";
-        }> | Readonly<{
-            extensions: string[];
-            name: "All Files";
-        }>)[];
-        EXPORT_FILES: readonly (Readonly<{
-            extensions: string[];
-            name: "CSV (Summary Table)";
-        }> | Readonly<{
-            extensions: string[];
-            name: "GPX (Track)";
-        }> | Readonly<{
-            extensions: string[];
-            name: "All Files";
-        }>)[];
+        ALL_FILES: readonly (
+            | Readonly<{
+                  extensions: string[];
+                  name: "FIT Files";
+              }>
+            | Readonly<{
+                  extensions: string[];
+                  name: "All Files";
+              }>
+        )[];
+        EXPORT_FILES: readonly (
+            | Readonly<{
+                  extensions: string[];
+                  name: "CSV (Summary Table)";
+              }>
+            | Readonly<{
+                  extensions: string[];
+                  name: "GPX (Track)";
+              }>
+            | Readonly<{
+                  extensions: string[];
+                  name: "All Files";
+              }>
+        )[];
         FIT_FILES: readonly Readonly<{
             extensions: string[];
             name: "FIT Files";

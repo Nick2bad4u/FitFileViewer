@@ -7,10 +7,13 @@
  * @param {{ defaultExtension?: string, fallbackBase?: string }} [options]
  * @returns {string}
  */
-export function buildDownloadFilename(candidatePath: string, options?: {
-    defaultExtension?: string;
-    fallbackBase?: string;
-}): string;
+export function buildDownloadFilename(
+    candidatePath: string,
+    options?: {
+        defaultExtension?: string;
+        fallbackBase?: string;
+    }
+): string;
 /**
  * Normalises file extensions by removing leading dots/whitespace and any
  * characters that are not alphanumeric, dashes or underscores. Extensions are

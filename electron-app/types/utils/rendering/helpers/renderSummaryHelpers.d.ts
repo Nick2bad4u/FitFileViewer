@@ -13,7 +13,10 @@ export function getRowLabel(rowIdx: number, isLap: boolean): string;
  * @param {string[]|undefined} [_allKeys] - Ignored (legacy compatibility)
  * @returns {string}
  */
-export function getStorageKey(data: FitSummaryData | GenericRecord | null | undefined, _allKeys?: string[] | undefined): string;
+export function getStorageKey(
+    data: FitSummaryData | GenericRecord | null | undefined,
+    _allKeys?: string[] | undefined
+): string;
 /**
  * Load persisted visible column preferences.
  * Accepts unused second parameter allKeys for legacy compatibility (old signature loadColPrefs(key, allKeys)).
@@ -33,7 +36,13 @@ export function loadColPrefs(key: string, _allKeys?: string[] | undefined): stri
  * }} params
  * @returns {void}
  */
-export function renderTable({ container, data, gearBtn, setVisibleColumns, visibleColumns }: {
+export function renderTable({
+    container,
+    data,
+    gearBtn,
+    setVisibleColumns,
+    visibleColumns,
+}: {
     container: HTMLElement;
     data: FitSummaryData;
     visibleColumns: string[];
@@ -59,7 +68,12 @@ export function saveColPrefs(key: string, visibleColumns: string[], _allKeys?: s
  * }} params
  * @returns {void}
  */
-export function showColModal({ allKeys, renderTable: reRenderTable, setVisibleColumns, visibleColumns: initialVisibleColumns, }: {
+export function showColModal({
+    allKeys,
+    renderTable: reRenderTable,
+    setVisibleColumns,
+    visibleColumns: initialVisibleColumns,
+}: {
     allKeys: string[];
     visibleColumns: string[];
     setVisibleColumns: (cols: string[]) => void;

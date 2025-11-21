@@ -1,5 +1,7 @@
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { createManagedChart } from "../core/createManagedChart.js";
+import { chartSettingsManager } from "../core/renderChartJS.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
@@ -29,13 +31,13 @@ export function renderPowerVsHeartRateChart(container, data, options) {
             return;
         }
 
-        const visibility = localStorage.getItem("chartjs_field_power_vs_hr");
+        const visibility = chartSettingsManager.getFieldVisibility("power_vs_hr");
         if (visibility === "hidden") {
             return;
         }
 
         // Determine theme
-        const currentTheme = (theme && theme !== "auto") ? theme : detectCurrentTheme();
+        const currentTheme = theme && theme !== "auto" ? theme : detectCurrentTheme();
         /** @type {any} */
         const themeConfig = getThemeConfig();
         const { colors } = themeConfig || {};
@@ -70,139 +72,136 @@ export function renderPowerVsHeartRateChart(container, data, options) {
         canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
         if (colors?.shadow) {
-             canvas.style.boxShadow = `0 2px 16px 0 ${colors.shadow}`;
+            canvas.style.boxShadow = `0 2px 16px 0 ${colors.shadow}`;
         }
         container.append(canvas);
 
         const config = {
-                data: {
-                    datasets: [
-                        {
-                            backgroundColor: `${colors.warning}99`, // Orange with alpha
-                            borderColor: colors.warning,
-                            data: chartData,
-                            label: "Power vs Heart Rate",
-                            pointHoverRadius: 4,
-                            pointRadius: showPoints ? 2 : 1,
-                        },
-                    ],
-                },
-                options: {
-                    animation: {
-                        duration:
-                            animationStyle === "none"
-                                ? 0
-                                : animationStyle === "fast"
-                                  ? 500
-                                  : animationStyle === "slow"
-                                    ? 2000
-                                    : 1000,
-                        easing: "easeOutQuart",
+            data: {
+                datasets: [
+                    {
+                        backgroundColor: `${colors.warning}99`, // Orange with alpha
+                        borderColor: colors.warning,
+                        data: chartData,
+                        label: "Power vs Heart Rate",
+                        pointHoverRadius: 4,
+                        pointRadius: showPoints ? 2 : 1,
                     },
-                    maintainAspectRatio: false,
-                    plugins: {
-                        chartBackgroundColorPlugin: {
-                            backgroundColor: bgColor,
-                        },
-                        legend: {
-                            display: showLegend,
-                            labels: { color: textColor },
-                        },
-                        title: {
-                            color: textColor,
-                            display: showTitle,
-                            font: { size: 16, weight: "bold" },
-                            text: "Power vs Heart Rate",
-                        },
-                        tooltip: {
-                            backgroundColor: isDark ? "#222" : "#fff",
-                            bodyColor: textColor,
-                            borderColor: isDark ? "#555" : "#ddd",
-                            borderWidth: 1,
-                            callbacks: {
-                                /** @param {any} context */
-                                label(context) {
-                                    return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
-                                },
+                ],
+            },
+            options: {
+                animation: {
+                    duration:
+                        animationStyle === "none"
+                            ? 0
+                            : animationStyle === "fast"
+                              ? 500
+                              : animationStyle === "slow"
+                                ? 2000
+                                : 1000,
+                    easing: "easeOutQuart",
+                },
+                maintainAspectRatio: false,
+                plugins: {
+                    chartBackgroundColorPlugin: {
+                        backgroundColor: bgColor,
+                    },
+                    legend: {
+                        display: showLegend,
+                        labels: { color: textColor },
+                    },
+                    title: {
+                        color: textColor,
+                        display: showTitle,
+                        font: { size: 16, weight: "bold" },
+                        text: "Power vs Heart Rate",
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? "#222" : "#fff",
+                        bodyColor: textColor,
+                        borderColor: isDark ? "#555" : "#ddd",
+                        borderWidth: 1,
+                        callbacks: {
+                            /** @param {any} context */
+                            label(context) {
+                                return [`Heart Rate: ${context.parsed.x} bpm`, `Power: ${context.parsed.y} W`];
                             },
-                            titleColor: textColor,
+                        },
+                        titleColor: textColor,
+                    },
+                    zoom: {
+                        limits: {
+                            x: {
+                                max: "original",
+                                min: "original",
+                            },
+                            y: {
+                                max: "original",
+                                min: "original",
+                            },
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: "xy",
+                            modifierKey: null,
                         },
                         zoom: {
-                            limits: {
-                                x: {
-                                    max: "original",
-                                    min: "original",
-                                },
-                                y: {
-                                    max: "original",
-                                    min: "original",
-                                },
-                            },
-                            pan: {
+                            drag: {
+                                backgroundColor: colors.primaryAlpha,
+                                borderColor: `${colors.primary}CC`, // Primary with more opacity
+                                borderWidth: 2,
                                 enabled: true,
-                                mode: "xy",
-                                modifierKey: null,
+                                modifierKey: "shift",
                             },
-                            zoom: {
-                                drag: {
-                                    backgroundColor: colors.primaryAlpha,
-                                    borderColor: `${colors.primary}CC`, // Primary with more opacity
-                                    borderWidth: 2,
-                                    enabled: true,
-                                    modifierKey: "shift",
-                                },
-                                mode: "xy",
-                                pinch: {
-                                    enabled: true,
-                                },
-                                wheel: {
-                                    enabled: true,
-                                    speed: 0.1,
-                                },
+                            mode: "xy",
+                            pinch: {
+                                enabled: true,
                             },
-                        },
-                    },
-                    responsive: true,
-                    scales: {
-                        x: {
-                            display: true,
-                            grid: {
-                                color: gridColor,
-                                display: showGrid,
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
                             },
-                            ticks: { color: textColor },
-                            title: {
-                                color: textColor,
-                                display: true,
-                                text: "Heart Rate (bpm)",
-                            },
-                            type: "linear",
-                        },
-                        y: {
-                            display: true,
-                            grid: {
-                                color: gridColor,
-                                display: showGrid,
-                            },
-                            ticks: { color: textColor },
-                            title: {
-                                color: textColor,
-                                display: true,
-                                text: "Power (W)",
-                            },
-                            type: "linear",
                         },
                     },
                 },
-                plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
-                type: "scatter",
+                responsive: true,
+                scales: {
+                    x: {
+                        display: true,
+                        grid: {
+                            color: gridColor,
+                            display: showGrid,
+                        },
+                        ticks: { color: textColor },
+                        title: {
+                            color: textColor,
+                            display: true,
+                            text: "Heart Rate (bpm)",
+                        },
+                        type: "linear",
+                    },
+                    y: {
+                        display: true,
+                        grid: {
+                            color: gridColor,
+                            display: showGrid,
+                        },
+                        ticks: { color: textColor },
+                        title: {
+                            color: textColor,
+                            display: true,
+                            text: "Power (W)",
+                        },
+                        type: "linear",
+                    },
+                },
             },
-            chart = new /** @type {any} */ (globalThis).Chart(canvas, config);
+            plugins: [chartZoomResetPlugin, chartBackgroundColorPlugin],
+            type: "scatter",
+        };
+
+        const chart = createManagedChart(canvas, config);
         if (chart) {
-            if (!(/** @type {any} */ (globalThis)._chartjsInstances)) {
-                /** @type {any} */ globalThis._chartjsInstances = [];
-            }
-            /** @type {any} */ (globalThis)._chartjsInstances.push(chart);
             console.log("[ChartJS] Power vs Heart Rate chart created successfully");
         }
     } catch (error) {

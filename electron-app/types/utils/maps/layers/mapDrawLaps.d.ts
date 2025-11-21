@@ -24,7 +24,17 @@
 /**
  * @typedef {[number, number, number|null, number|null, number|null, number|null, number, any, number]} CoordTuple
  */
-export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatTooltipData, getLapNumForIdx, map, markerClusterGroup, overlayIdx, startIcon, }: {
+export function drawOverlayForFitFile({
+    endIcon,
+    fileName,
+    fitData,
+    formatTooltipData,
+    getLapNumForIdx,
+    map,
+    markerClusterGroup,
+    overlayIdx,
+    startIcon,
+}: {
     endIcon: any;
     fileName: any;
     fitData: any;
@@ -41,7 +51,20 @@ export function drawOverlayForFitFile({ endIcon, fileName, fitData, formatToolti
  * @param {string|number|Array<string|number>} lapIdx - Lap index or array of indices or "all"
  * @param {MapDrawOptions} options - Map drawing options
  */
-export function mapDrawLaps(lapIdx: string | number | Array<string | number>, { baseLayers, endIcon, formatTooltipData, getLapColor, getLapNumForIdx, map, mapContainer, markerClusterGroup, startIcon, }: MapDrawOptions): void;
+export function mapDrawLaps(
+    lapIdx: string | number | Array<string | number>,
+    {
+        baseLayers,
+        endIcon,
+        formatTooltipData,
+        getLapColor,
+        getLapNumForIdx,
+        map,
+        mapContainer,
+        markerClusterGroup,
+        startIcon,
+    }: MapDrawOptions
+): void;
 export type RecordMesg = {
     /**
      * - Position latitude
@@ -104,5 +127,15 @@ export type FitFile = {
      */
     filePath?: string;
 };
-export type CoordTuple = [number, number, number | null, number | null, number | null, number | null, number, any, number];
+export type CoordTuple = [
+    number,
+    number,
+    number | null,
+    number | null,
+    number | null,
+    number | null,
+    number,
+    any,
+    number,
+];
 //# sourceMappingURL=mapDrawLaps.d.ts.map

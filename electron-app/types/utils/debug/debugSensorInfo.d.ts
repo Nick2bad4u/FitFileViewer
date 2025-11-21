@@ -29,7 +29,10 @@ export function testManufacturerId(manufacturerId: number | string): {
  * @param {number|string} manufacturerId - Manufacturer ID
  * @param {number|string} productId - Product ID to test
  */
-export function testProductId(manufacturerId: number | string, productId: number | string): {
+export function testProductId(
+    manufacturerId: number | string,
+    productId: number | string
+): {
     formattedProduct: string;
     manufacturerId: number;
     manufacturerName: string;

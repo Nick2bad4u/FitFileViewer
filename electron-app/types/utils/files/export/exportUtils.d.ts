@@ -20,16 +20,16 @@ export namespace exportUtils {
      * @param {ChartJSInstance} chart - Chart.js instance
      * @param {string} filename - Download filename
      */ /**
-    * Clears the stored Gyazo access token
-    */
+     * Clears the stored Gyazo access token
+     */
     function clearGyazoAccessToken(): void;
     /**
      * Creates a combined image of all charts
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      * @param {string} filename - Download filename
      */ /**
-    * Clears all Gyazo configuration and tokens
-    */
+     * Clears all Gyazo configuration and tokens
+     */
     function clearGyazoConfig(): void;
     /**
      * Copies chart image to clipboard with theme background
@@ -50,7 +50,13 @@ export namespace exportUtils {
      * @param {boolean} useServer - Whether to use server
      * @returns {HTMLElement} Modal element
      */
-    function createGyazoAuthModal(authUrl: string, _state: any, resolve: Function, reject: Function, useServer?: boolean): HTMLElement;
+    function createGyazoAuthModal(
+        authUrl: string,
+        _state: any,
+        resolve: Function,
+        reject: Function,
+        useServer?: boolean
+    ): HTMLElement;
     function downloadChartAsPNG(chart: any, filename?: string): Promise<void>;
     /**
      * Exchanges authorization code for access token
@@ -127,10 +133,10 @@ export namespace exportUtils {
      * Prints the chart with theme background
      * @param {ChartJSInstance} chart - Chart.js instance
      */ /**
-    * Saves Gyazo configuration to user settings
-    * @param {string} clientId - Gyazo client ID
-    * @param {string} clientSecret - Gyazo client secret
-    */
+     * Saves Gyazo configuration to user settings
+     * @param {string} clientId - Gyazo client ID
+     * @param {string} clientSecret - Gyazo client secret
+     */
     function setGyazoConfig(clientId: string, clientSecret: string): void;
     /**
      * Shares charts as URL with image upload to Imgur

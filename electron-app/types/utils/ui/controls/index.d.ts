@@ -11,5 +11,10 @@ export * from "./dataPointFilterControl/metricsPreview.js";
 export * from "./dataPointFilterControl/stateHelpers.js";
 export * from "./enableTabButtons.js";
 export * from "./removeExitFullscreenOverlay.js";
-export { createPowerZoneControls as createPowerZoneControlsSimple, getPowerZoneVisibilitySettings as getPowerZoneVisibilitySettingsSimple, movePowerZoneControlsToSection as movePowerZoneControlsToSectionSimple, updatePowerZoneControlsVisibility as updatePowerZoneControlsVisibilitySimple } from "./createPowerZoneControlsSimple.js";
+export {
+    createPowerZoneControls as createPowerZoneControlsSimple,
+    getPowerZoneVisibilitySettings as getPowerZoneVisibilitySettingsSimple,
+    movePowerZoneControlsToSection as movePowerZoneControlsToSectionSimple,
+    updatePowerZoneControlsVisibility as updatePowerZoneControlsVisibilitySimple,
+} from "./createPowerZoneControlsSimple.js";
 //# sourceMappingURL=index.d.ts.map

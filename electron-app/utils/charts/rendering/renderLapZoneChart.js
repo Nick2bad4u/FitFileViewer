@@ -2,6 +2,7 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { createManagedChart } from "../core/createManagedChart.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 /**
@@ -99,7 +100,7 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
         // Labels are lap names
         const lapLabels = lapZoneData.map((lap) => (lap && typeof lap.lapLabel === "string" ? lap.lapLabel : "Lap")),
             /** @type {any} */
-            chart = new globalThis.Chart(canvas, {
+            config = {
                 data: {
                     datasets,
                     labels: lapLabels,
@@ -240,7 +241,9 @@ export function renderLapZoneChart(canvas, lapZoneData, options = {}) {
                     },
                 ],
                 type: "bar",
-            });
+            };
+
+        const chart = createManagedChart(canvas, config);
         return chart;
     } catch (error) {
         if (globalThis.showNotification) {

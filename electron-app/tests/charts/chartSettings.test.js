@@ -81,7 +81,10 @@ describe("createEnhancedChart Settings", () => {
     });
 
     const defaultOptions = {
-        chartData: [{ x: 1, y: 10 }, { x: 2, y: 20 }],
+        chartData: [
+            { x: 1, y: 10 },
+            { x: 2, y: 20 },
+        ],
         field: "speed",
         fieldLabels: { speed: "Speed" },
         customColors: {},

@@ -52,7 +52,10 @@ declare const _default: {
         id: number;
         resolved: string;
     };
-    testProductId(manufacturerId: number | string, productId: number | string): {
+    testProductId(
+        manufacturerId: number | string,
+        productId: number | string
+    ): {
         formattedProduct: string;
         manufacturerId: number;
         manufacturerName: string;
@@ -69,28 +72,32 @@ declare const _default: {
         expected: string;
         success: boolean;
     };
-    testNewFormatting(): ({
-        name: string;
-        sensor: {
-            manufacturer: number;
-            product: number;
-            garminProduct?: never;
-        };
-    } | {
-        name: string;
-        sensor: {
-            manufacturer: string;
-            product: string;
-            garminProduct?: never;
-        };
-    } | {
-        name: string;
-        sensor: {
-            garminProduct: string;
-            manufacturer?: never;
-            product?: never;
-        };
-    })[];
+    testNewFormatting(): (
+        | {
+              name: string;
+              sensor: {
+                  manufacturer: number;
+                  product: number;
+                  garminProduct?: never;
+              };
+          }
+        | {
+              name: string;
+              sensor: {
+                  manufacturer: string;
+                  product: string;
+                  garminProduct?: never;
+              };
+          }
+        | {
+              name: string;
+              sensor: {
+                  garminProduct: string;
+                  manufacturer?: never;
+                  product?: never;
+              };
+          }
+    )[];
 };
 export default _default;
 import * as stateDevTools from "./stateDevTools.js";

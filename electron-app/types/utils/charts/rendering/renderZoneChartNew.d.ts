@@ -17,7 +17,13 @@
  * @param {string} chartId
  * @param {RenderZoneChartOptions} [options]
  */
-export function renderZoneChart(container: HTMLElement, title: string, zoneData: ZoneDataItem[], chartId: string, options?: RenderZoneChartOptions): void;
+export function renderZoneChart(
+    container: HTMLElement,
+    title: string,
+    zoneData: ZoneDataItem[],
+    chartId: string,
+    options?: RenderZoneChartOptions
+): void;
 export type ZoneDataItem = {
     zone?: number;
     label?: string;

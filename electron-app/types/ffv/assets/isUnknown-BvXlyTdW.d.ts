@@ -5864,25 +5864,28 @@ declare namespace m {
                 2: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                     undocumented: boolean;
                 };
                 3: {
@@ -5919,37 +5922,41 @@ declare namespace m {
                 3: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                        offset?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        offset?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        offset: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                              offset?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              offset?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              offset: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                    )[];
                     undocumented: boolean;
                 };
                 4: {
@@ -5960,37 +5967,41 @@ declare namespace m {
                 5: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                        offset?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        offset?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        offset: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                              offset?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              offset?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              offset: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                    )[];
                     undocumented: boolean;
                 };
             };
@@ -8334,66 +8345,72 @@ declare namespace m {
                 3: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        offset: number;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                        units?: never;
-                        components?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        offset?: never;
-                        scale?: never;
-                        units?: never;
-                        components?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        offset?: never;
-                        components?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        offset?: never;
-                        scale?: never;
-                        components?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        components: {
-                            fieldDefNumber: number;
-                            scale: number;
-                            bits: number;
-                        }[];
-                        offset?: never;
-                        scale?: never;
-                        units?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              offset: number;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                              units?: never;
+                              components?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              offset?: never;
+                              scale?: never;
+                              units?: never;
+                              components?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              offset?: never;
+                              components?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              offset?: never;
+                              scale?: never;
+                              components?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              components: {
+                                  fieldDefNumber: number;
+                                  scale: number;
+                                  bits: number;
+                              }[];
+                              offset?: never;
+                              scale?: never;
+                              units?: never;
+                          }
+                    )[];
                     undocumented: boolean;
                 };
                 4: {
@@ -8651,34 +8668,38 @@ declare namespace m {
                 10: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                        units?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                              units?: never;
+                          }
+                    )[];
                     undocumented: boolean;
                 };
                 11: {
@@ -8741,34 +8762,38 @@ declare namespace m {
                 2: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                        units?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                              units?: never;
+                          }
+                    )[];
                 };
                 3: {
                     fieldName: string;
@@ -8777,80 +8802,90 @@ declare namespace m {
                 4: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                        units?: never;
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                              units?: never;
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                 };
                 5: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                 };
                 6: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                 };
                 7: {
                     fieldName: string;
@@ -8901,48 +8936,54 @@ declare namespace m {
                 21: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                 };
                 22: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                 };
                 31: {
                     fieldName: string;
@@ -10305,25 +10346,28 @@ declare namespace m {
                 5: {
                     fieldName: string;
                     fieldType: string;
-                    subfields: ({
-                        fieldName: string;
-                        fieldType: string;
-                        scale: number;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                    } | {
-                        fieldName: string;
-                        fieldType: string;
-                        units: string;
-                        map: {
-                            name: string;
-                            value: string;
-                        }[];
-                        scale?: never;
-                    })[];
+                    subfields: (
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              scale: number;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                          }
+                        | {
+                              fieldName: string;
+                              fieldType: string;
+                              units: string;
+                              map: {
+                                  name: string;
+                                  value: string;
+                              }[];
+                              scale?: never;
+                          }
+                    )[];
                     undocumented: boolean;
                 };
             };
@@ -10547,19 +10591,22 @@ declare namespace m {
                     fieldName: string;
                     fieldType: string;
                     array: string;
-                    components: ({
-                        fieldDefNumber: number;
-                        scale: number;
-                        units: string;
-                        bits: number;
-                        accumulate: number;
-                    } | {
-                        fieldDefNumber: number;
-                        scale: number;
-                        bits: number;
-                        accumulate: number;
-                        units?: never;
-                    })[];
+                    components: (
+                        | {
+                              fieldDefNumber: number;
+                              scale: number;
+                              units: string;
+                              bits: number;
+                              accumulate: number;
+                          }
+                        | {
+                              fieldDefNumber: number;
+                              scale: number;
+                              bits: number;
+                              accumulate: number;
+                              units?: never;
+                          }
+                    )[];
                 };
                 253: {
                     fieldName: string;
@@ -15281,5 +15328,28 @@ declare namespace m {
     };
 }
 declare function x(i: any): string;
-export { e as B, h as C, p as D, s as F, N as I, n as N, y as R, g as S, f as T, w as a, T as b, z as c, l as d, b as e, u as f, o as g, v as h, r as i, c as j, k as n, m as p, x as u };
+export {
+    e as B,
+    h as C,
+    p as D,
+    s as F,
+    N as I,
+    n as N,
+    y as R,
+    g as S,
+    f as T,
+    w as a,
+    T as b,
+    z as c,
+    l as d,
+    b as e,
+    u as f,
+    o as g,
+    v as h,
+    r as i,
+    c as j,
+    k as n,
+    m as p,
+    x as u,
+};
 //# sourceMappingURL=isUnknown-BvXlyTdW.d.ts.map

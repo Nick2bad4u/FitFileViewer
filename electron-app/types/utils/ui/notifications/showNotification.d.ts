@@ -26,14 +26,24 @@ export function clearAllNotifications(): void;
  * @param {NotificationOptions} [options]
  * @returns {Promise<void>}
  */
-export function showNotification(message: string, type?: keyof typeof NOTIFICATION_TYPES, duration?: number, options?: NotificationOptions): Promise<void>;
+export function showNotification(
+    message: string,
+    type?: keyof typeof NOTIFICATION_TYPES,
+    duration?: number,
+    options?: NotificationOptions
+): Promise<void>;
 export namespace notify {
     function error(message: string, duration?: number, options?: Object): Promise<void>;
     function info(message: string, duration?: number, options?: Object): Promise<void>;
     function persistent(message: string, type?: string, options?: Object): Promise<void>;
     function success(message: string, duration?: number, options?: Object): Promise<void>;
     function warning(message: string, duration?: number, options?: Object): Promise<void>;
-    function withActions(message: string, type?: string, actions?: NotificationAction[], options?: Object): Promise<void>;
+    function withActions(
+        message: string,
+        type?: string,
+        actions?: NotificationAction[],
+        options?: Object
+    ): Promise<void>;
 }
 export type NotificationTypeConfig = {
     icon: string;

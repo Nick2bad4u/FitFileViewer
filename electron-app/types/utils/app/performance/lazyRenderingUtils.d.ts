@@ -25,11 +25,15 @@ export function batchDOMWrites(writeCallback: () => void): Promise<void>;
  * @param {boolean} [options.once=true] - Only trigger once
  * @returns {{ disconnect: () => void, observe: () => void }} Observer controls
  */
-export function createLazyRenderer(element: HTMLElement, renderCallback: () => void | Promise<void>, options?: {
-    threshold?: number | undefined;
-    rootMargin?: string | undefined;
-    once?: boolean | undefined;
-}): {
+export function createLazyRenderer(
+    element: HTMLElement,
+    renderCallback: () => void | Promise<void>,
+    options?: {
+        threshold?: number | undefined;
+        rootMargin?: string | undefined;
+        once?: boolean | undefined;
+    }
+): {
     disconnect: () => void;
     observe: () => void;
 };
@@ -40,9 +44,12 @@ export function createLazyRenderer(element: HTMLElement, renderCallback: () => v
  * @param {number} [options.timeout=2000] - Maximum timeout
  * @returns {number} Request ID
  */
-export function deferUntilIdle(callback: () => void | Promise<void>, options?: {
-    timeout?: number | undefined;
-}): number;
+export function deferUntilIdle(
+    callback: () => void | Promise<void>,
+    options?: {
+        timeout?: number | undefined;
+    }
+): number;
 /**
  * Check if element is visible in viewport
  * @param {HTMLElement} element - Element to check

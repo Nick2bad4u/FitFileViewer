@@ -65,9 +65,7 @@ describe("renderTimeInZoneCharts.js - Time in Zone Composite Renderer", () => {
             { zone: 1, label: "Z1", time: 120 },
             { zone: 2, label: "Z2", time: 240 },
         ];
-        const powerZones = [
-            { zone: 1, label: "Endurance", time: 300 },
-        ];
+        const powerZones = [{ zone: 1, label: "Endurance", time: 300 }];
         (globalThis as any).heartRateZones = hrZones;
         (globalThis as any).powerZones = powerZones;
 

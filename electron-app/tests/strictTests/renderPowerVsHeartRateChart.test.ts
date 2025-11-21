@@ -1,214 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-
-let renderPowerVsHeartRateChart: any;
-let Chart: any;
-let chartInstanceMock: any;
-let mockLocalStorage: any;
-let detectCurrentThemeMock: ReturnType<typeof vi.fn>;
-let getThemeConfigMock: ReturnType<typeof vi.fn>;
-let createChartCanvasMock: ReturnType<typeof vi.fn>;
-
-describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", () => {
-    beforeEach(async () => {
-        vi.resetModules();
-
-        const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
-            url: "http://localhost",
-            pretendToBeVisual: true,
-            resources: "usable",
-        });
-
-        (globalThis as any).window = dom.window as any;
-        (globalThis as any).document = dom.window.document as any;
-        (globalThis as any).HTMLCanvasElement = dom.window.HTMLCanvasElement as any;
-        (globalThis as any).HTMLElement = dom.window.HTMLElement as any;
-
-        (globalThis as any).console = {
-            log: vi.fn(),
-            error: vi.fn(),
-            warn: vi.fn(),
-        };
-
-        mockLocalStorage = {
-            getItem: vi.fn(() => null),
-            setItem: vi.fn(),
-            removeItem: vi.fn(),
-            clear: vi.fn(),
-        };
-        (globalThis as any).localStorage = mockLocalStorage;
-
-        chartInstanceMock = {
-            destroy: vi.fn(),
-            update: vi.fn(),
-            resize: vi.fn(),
-            reset: vi.fn(),
-            render: vi.fn(),
-            stop: vi.fn(),
-            clear: vi.fn(),
-            toBase64Image: vi.fn(),
-            generateLegend: vi.fn(),
-            getDatasetMeta: vi.fn(() => ({ data: [] })),
-        };
-
-        Chart = vi.fn(function ChartConstructor() {
-            return chartInstanceMock;
-        });
-        (globalThis as any).Chart = Chart;
-        (globalThis as any)._chartjsInstances = [];
-
-        detectCurrentThemeMock = vi.fn(() => "light");
-        getThemeConfigMock = vi.fn(() => ({
-            colors: {
-                warning: "#ffaa00",
-                primary: "#0055ff",
-                primaryAlpha: "rgba(0,85,255,0.25)",
-                shadow: "rgba(0,0,0,0.2)",
-            },
-        }));
-        createChartCanvasMock = vi.fn(() => document.createElement("canvas"));
-
-        vi.doMock("../../utils/charts/theming/chartThemeUtils.js", () => ({
-            detectCurrentTheme: detectCurrentThemeMock,
-        }));
-        vi.doMock("../../utils/theming/core/theme.js", () => ({
-            getThemeConfig: getThemeConfigMock,
-        }));
-        vi.doMock("../../utils/charts/components/createChartCanvas.js", () => ({
-            createChartCanvas: createChartCanvasMock,
-        }));
-        vi.doMock("../../utils/charts/plugins/chartBackgroundColorPlugin.js", () => ({
-            chartBackgroundColorPlugin: { id: "background-color" },
-        }));
-        vi.doMock("../../utils/charts/plugins/chartZoomResetPlugin.js", () => ({
-            chartZoomResetPlugin: { id: "zoom-reset" },
-        }));
-
-        const module = await import("../../utils/charts/rendering/renderPowerVsHeartRateChart.js");
-        renderPowerVsHeartRateChart = module.renderPowerVsHeartRateChart;
-    });
-
-    afterEach(() => {
-        vi.resetModules();
-        vi.clearAllMocks();
-        if ((globalThis as any)._chartjsInstances) {
-            (globalThis as any)._chartjsInstances = [];
-        }
-        delete (globalThis as any).Chart;
-        delete (globalThis as any).window;
-        delete (globalThis as any).document;
-        delete (globalThis as any).HTMLCanvasElement;
-        delete (globalThis as any).HTMLElement;
-        delete (globalThis as any).localStorage;
-    });
-
-    it("should exit early when either power or heart rate data is missing", () => {
-        const container = document.createElement("div");
-        const data = [{ heartRate: 150 }, { heartRate: 148 }];
-        const options = { maxPoints: 100, showPoints: true, showLegend: true, showTitle: true, showGrid: true };
-
-        renderPowerVsHeartRateChart(container, data, options);
-
-        expect(Chart).not.toHaveBeenCalled();
-        expect(container.children.length).toBe(0);
-    });
-
-    it("should respect field visibility preference stored in localStorage", () => {
-        mockLocalStorage.getItem.mockReturnValueOnce("hidden");
-
-        const container = document.createElement("div");
-        const data = [
-            { heartRate: 150, power: 250 },
-            { heartRate: 152, power: 255 },
-        ];
-        const options = { maxPoints: "all", showPoints: true, showLegend: true, showTitle: true, showGrid: true };
-
-        renderPowerVsHeartRateChart(container, data, options);
-
-        expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_field_power_vs_hr");
-        expect(Chart).not.toHaveBeenCalled();
-        expect(container.children.length).toBe(0);
-    });
-
-    it("should create a scatter chart with filtered dataset and fast animation", () => {
-        const container = document.createElement("div");
-        const data = [
-            { heartRate: 150, power: 250 },
-            { heartRate: 160, power: 270 },
-            { heartRate: null as any, power: 280 },
-            { heartRate: 158, power: null as any },
-        ];
-        const options = {
-            maxPoints: "all",
-            showPoints: true,
-            showLegend: false,
-            showTitle: true,
-            showGrid: false,
-            animationStyle: "fast",
-        };
-
-        renderPowerVsHeartRateChart(container, data, options);
-
-        expect(createChartCanvasMock).toHaveBeenCalledWith("power-vs-hr", 0);
-        expect(Chart).toHaveBeenCalledTimes(1);
-        const config = Chart.mock.calls[0][1];
-        expect(config.type).toBe("scatter");
-        expect(config.data.datasets[0].data).toEqual([
-            { x: 150, y: 250 },
-            { x: 160, y: 270 },
-        ]);
-        expect(config.data.datasets[0].pointRadius).toBe(2);
-        expect(config.options.animation.duration).toBe(500);
-        expect(config.options.plugins.legend.display).toBe(false);
-        expect(container.querySelector("canvas")).not.toBeNull();
-    });
-
-    it("should limit data points according to maxPoints option", () => {
-        const container = document.createElement("div");
-        const data = [
-            { heartRate: 140, power: 200 },
-            { heartRate: 145, power: 205 },
-            { heartRate: 150, power: 210 },
-            { heartRate: 155, power: 215 },
-            { heartRate: 160, power: 220 },
-        ];
-        const options = { maxPoints: 2, showPoints: false, showLegend: true, showTitle: true, showGrid: true };
-
-        renderPowerVsHeartRateChart(container, data, options);
-
-        const config = Chart.mock.calls[0][1];
-        expect(config.data.datasets[0].data).toEqual([
-            { x: 140, y: 200 },
-            { x: 155, y: 215 },
-        ]);
-        expect(config.data.datasets[0].pointRadius).toBe(1);
-    });
-
-    it("should apply dark theme specific styling", () => {
-        detectCurrentThemeMock.mockReturnValue("dark");
-
-        const container = document.createElement("div");
-        const data = [
-            { heartRate: 150, power: 250 },
-            { heartRate: 152, power: 255 },
-        ];
-        const options = { maxPoints: "all", showPoints: true, showLegend: true, showTitle: true, showGrid: true };
-
-        renderPowerVsHeartRateChart(container, data, options);
-
-        const config = Chart.mock.calls[0][1];
-        expect(config.options.plugins.tooltip.backgroundColor).toBe("#222");
-        expect(config.options.plugins.tooltip.bodyColor).toBe("#fff");
-        expect(config.options.plugins.title.color).toBe("#fff");
-        expect(config.options.scales.x.ticks.color).toBe("#fff");
-        expect(config.plugins).toEqual([{ id: "zoom-reset" }, { id: "background-color" }]);
-
-        const canvas = createChartCanvasMock.mock.results[0].value as HTMLCanvasElement;
-        expect(canvas.style.background).toBe("#181c24");
-    });
-});
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { JSDOM } from "jsdom";
+import { chartSettingsManager } from "../../utils/charts/core/renderChartJS.js";
 
 // Mock Chart.js
 let Chart: any;
@@ -329,8 +121,8 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
             expect(container.children.length).toBe(0);
         });
 
-        it("should return early when localStorage field visibility is hidden", () => {
-            mockLocalStorage.getItem.mockReturnValue("hidden");
+        it("should return early when field visibility is hidden", () => {
+            const visibilitySpy = vi.spyOn(chartSettingsManager, "getFieldVisibility").mockReturnValue("hidden" as any);
 
             const container = document.createElement("div");
             const data = [
@@ -341,7 +133,7 @@ describe("renderPowerVsHeartRateChart.js - Power vs Heart Rate Chart Utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_field_power_vs_hr");
+            expect(visibilitySpy).toHaveBeenCalledWith("power_vs_hr");
             expect(Chart).not.toHaveBeenCalled();
             expect(container.children.length).toBe(0);
         });

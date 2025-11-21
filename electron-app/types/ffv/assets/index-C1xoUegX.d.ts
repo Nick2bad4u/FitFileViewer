@@ -1,5 +1,9 @@
 export { hs as default };
-declare function hs(e: any, t: any, i: any): Promise<{
+declare function hs(
+    e: any,
+    t: any,
+    i: any
+): Promise<{
     errors: never[];
     devErrors: never[];
     messages: {};

@@ -217,7 +217,7 @@ export function debugSensorInfo() {
         console.log(`    🎨 Formatted Name: "${formattedName}"`);
         console.log(`    🏭 Formatted Manufacturer: "${formattedManufacturer}"`);
         if (formattedProduct && formattedProduct !== productField) {
-            console.log(`    � Formatted Product: "${formattedProduct}"`);
+            console.log(`    📦 Formatted Product: "${formattedProduct}"`);
         }
     }
 

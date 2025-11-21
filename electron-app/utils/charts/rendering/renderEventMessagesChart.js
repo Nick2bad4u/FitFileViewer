@@ -1,7 +1,9 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { createManagedChart } from "../core/createManagedChart.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
@@ -18,10 +20,11 @@ export function renderEventMessagesChart(container, options, startTime) {
             return;
         }
 
-        // Get theme configuration
+        // Get theme configuration and user-preferred event color (if set)
         /** @type {any} */
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("events", 0)),
-            eventColor = localStorage.getItem("chartjs_color_event_messages") || "#9c27b0",
+            rawColor = /** @type {string|null|undefined} */ (getChartSetting("color_event_messages")),
+            eventColor = typeof rawColor === "string" && rawColor.length > 0 ? rawColor : "#9c27b0",
             themeConfig = getThemeConfig(),
             defaultThemeColors = {
                 backgroundAlt: "#ffffff",
@@ -165,14 +168,11 @@ export function renderEventMessagesChart(container, options, startTime) {
                 },
                 plugins: [chartZoomResetPlugin, "chartBackgroundColorPlugin"],
                 type: "scatter",
-            },
-            chart = new globalThis.Chart(canvas, config);
+            };
+
+        const chart = createManagedChart(canvas, config);
         if (chart) {
             updateChartAnimations(chart, "Event Messages");
-            if (!globalThis._chartjsInstances) {
-                globalThis._chartjsInstances = [];
-            }
-            globalThis._chartjsInstances.push(chart);
         }
     } catch (error) {
         console.error("[ChartJS] Error rendering event messages chart:", error);

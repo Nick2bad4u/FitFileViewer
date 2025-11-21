@@ -23,15 +23,23 @@ export const __TEST_ONLY_exposedStateManager: typeof stateManager;
  *
  * @public
  */
-export function handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification }: {
-    isOpeningFileRef: Object;
-    openFileBtn: HTMLElement;
-    setLoading: Function;
-    showNotification: Function;
-}, options?: {
-    timeout?: number | undefined;
-    validateFileSize?: boolean | undefined;
-}): Promise<boolean>;
+export function handleOpenFile(
+    {
+        isOpeningFileRef,
+        openFileBtn,
+        setLoading,
+        showNotification,
+    }: {
+        isOpeningFileRef: Object;
+        openFileBtn: HTMLElement;
+        setLoading: Function;
+        showNotification: Function;
+    },
+    options?: {
+        timeout?: number | undefined;
+        validateFileSize?: boolean | undefined;
+    }
+): Promise<boolean>;
 export function logWithContext(message: any, level?: string, context?: {}): void;
 /**
  * Updates UI state during file opening process

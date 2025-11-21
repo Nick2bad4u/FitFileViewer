@@ -41,7 +41,11 @@ export function showInfo(message: string, timeout?: number): void;
  * @param {'error'|'success'|'info'|'warning'} [type='error'] - The type of notification, which determines its styling.
  * @param {number} [timeout=5000] - Duration in milliseconds before the notification disappears. Set to 0 to keep it visible.
  */
-export function showNotification(message: string, type?: "error" | "success" | "info" | "warning", timeout?: number): void;
+export function showNotification(
+    message: string,
+    type?: "error" | "success" | "info" | "warning",
+    timeout?: number
+): void;
 /**
  * Show success notification with standard styling
  * @param {string} message - Success message

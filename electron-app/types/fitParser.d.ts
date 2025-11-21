@@ -6,10 +6,14 @@ export type SettingsStateManager = {
     /**
      * Update a settings category
      */
-    updateCategory: (category: string, value: any, opts?: {
-        silent?: boolean;
-        source?: string;
-    }) => void;
+    updateCategory: (
+        category: string,
+        value: any,
+        opts?: {
+            silent?: boolean;
+            source?: string;
+        }
+    ) => void;
 };
 export type FitFileStateManager = {
     /**
@@ -23,10 +27,7 @@ export type FitFileStateManager = {
     /**
      * Record successful load
      */
-    handleFileLoaded: (payload: {
-        messages: FitMessages;
-        metadata: any;
-    }) => void;
+    handleFileLoaded: (payload: { messages: FitMessages; metadata: any }) => void;
     /**
      * Derive record count for metadata
      */
@@ -44,7 +45,7 @@ export type PerformanceMonitor = {
     /**
      * Get elapsed ms
      */
-    getOperationTime: (id: string) => (number | null);
+    getOperationTime: (id: string) => number | null;
     /**
      * Optional flag for enablement
      */
@@ -122,10 +123,17 @@ export function applyUnknownMessageLabels(messages: FitMessages): FitMessages;
  * @param {any=} fitsdk Optional injected sdk for tests (should expose Decoder & Stream)
  * @returns {Promise<FitMessages|{error:string, details:any}>}
  */
-export function decodeFitFile(fileBuffer: Buffer | Uint8Array, options?: Partial<DecoderOptions> | undefined, fitsdk?: any | undefined): Promise<FitMessages | {
-    error: string;
-    details: any;
-}>;
+export function decodeFitFile(
+    fileBuffer: Buffer | Uint8Array,
+    options?: Partial<DecoderOptions> | undefined,
+    fitsdk?: any | undefined
+): Promise<
+    | FitMessages
+    | {
+          error: string;
+          details: any;
+      }
+>;
 /**
  * Default decoder options schema for state management validation
  */
@@ -215,6 +223,8 @@ export function updateDecoderOptions(newOptions: Object): Object;
  * @param {Partial<DecoderOptions>|null|undefined} options
  * @returns {DecoderOptionsValidationResult}
  */
-export function validateDecoderOptions(options: Partial<DecoderOptions> | null | undefined): DecoderOptionsValidationResult;
+export function validateDecoderOptions(
+    options: Partial<DecoderOptions> | null | undefined
+): DecoderOptionsValidationResult;
 import { Buffer } from "buffer";
 //# sourceMappingURL=fitParser.d.ts.map

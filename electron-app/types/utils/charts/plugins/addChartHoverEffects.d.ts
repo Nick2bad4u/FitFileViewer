@@ -7,21 +7,24 @@
  * @param {HTMLElement} chartContainer
  * @param {{ colors: { [k:string]: string, border?:string, surface?:string, shadowLight?:string, primaryShadowLight?:string, primary?:string, accent?:string, textPrimary?:string, shadow?:string, primaryShadowHeavy?:string, surfaceSecondary?:string } }} themeConfig
  */
-export function addChartHoverEffects(chartContainer: HTMLElement, themeConfig: {
-    colors: {
-        [k: string]: string;
-        border?: string;
-        surface?: string;
-        shadowLight?: string;
-        primaryShadowLight?: string;
-        primary?: string;
-        accent?: string;
-        textPrimary?: string;
-        shadow?: string;
-        primaryShadowHeavy?: string;
-        surfaceSecondary?: string;
-    };
-}): void;
+export function addChartHoverEffects(
+    chartContainer: HTMLElement,
+    themeConfig: {
+        colors: {
+            [k: string]: string;
+            border?: string;
+            surface?: string;
+            shadowLight?: string;
+            primaryShadowLight?: string;
+            primary?: string;
+            accent?: string;
+            textPrimary?: string;
+            shadow?: string;
+            primaryShadowHeavy?: string;
+            surfaceSecondary?: string;
+        };
+    }
+): void;
 export function addHoverEffectsToExistingCharts(): void; /**
  * Development helper function to manually add hover effects to existing charts
  * This can be called from the browser console for testing

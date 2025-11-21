@@ -43,33 +43,53 @@ declare class TabStateManager {
      * @param {Object} globalData - Current global data
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    handleChartTab(globalData: {
-        recordMesgs?: any[];
-    } | null | undefined): Promise<void>;
+    handleChartTab(
+        globalData:
+            | {
+                  recordMesgs?: any[];
+              }
+            | null
+            | undefined
+    ): Promise<void>;
     /**
      * Handle data tables tab activation
      * @param {Object} globalData - Current global data
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    handleDataTab(globalData: {
-        recordMesgs?: any[];
-    } | null | undefined): Promise<void>;
+    handleDataTab(
+        globalData:
+            | {
+                  recordMesgs?: any[];
+              }
+            | null
+            | undefined
+    ): Promise<void>;
     /**
      * Handle map tab activation
      * @param {Object} globalData - Current global data
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    handleMapTab(globalData: {
-        recordMesgs?: any[];
-    } | null | undefined): Promise<void>;
+    handleMapTab(
+        globalData:
+            | {
+                  recordMesgs?: any[];
+              }
+            | null
+            | undefined
+    ): Promise<void>;
     /**
      * Handle summary tab activation
      * @param {Object} globalData - Current global data
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    handleSummaryTab(globalData: {
-        recordMesgs?: any[];
-    } | null | undefined): Promise<void>;
+    handleSummaryTab(
+        globalData:
+            | {
+                  recordMesgs?: any[];
+              }
+            | null
+            | undefined
+    ): Promise<void>;
     /**
      * Handle tab button click events
      * @param {Event} event - Click event
@@ -92,9 +112,14 @@ declare class TabStateManager {
      * @returns {string} Simple hash string
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} data */
-    hashData(data: {
-        recordMesgs?: any[];
-    } | null | undefined): string;
+    hashData(
+        data:
+            | {
+                  recordMesgs?: any[];
+              }
+            | null
+            | undefined
+    ): string;
     /**
      * Initialize state subscriptions for reactive tab management
      */
@@ -118,9 +143,14 @@ declare class TabStateManager {
      * @param {Object} globalData - Current global data
      */
     /** @param {{recordMesgs?: any[]}|null|undefined} globalData */
-    updateTabAvailability(globalData: {
-        recordMesgs?: any[];
-    } | null | undefined): void;
+    updateTabAvailability(
+        globalData:
+            | {
+                  recordMesgs?: any[];
+              }
+            | null
+            | undefined
+    ): void;
     /**
      * Update tab button visual states
      * @param {string} activeTab - Currently active tab name

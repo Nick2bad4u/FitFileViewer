@@ -34,10 +34,14 @@ declare class TabRenderingManager {
      * @param {boolean} [options.debounce=true] - Debounce the operation
      * @returns {Promise<any>}
      */
-    executeRenderOperation(tabName: string, operation: (token: import("../../app/async/cancellationToken.js").CancellationToken) => Promise<any>, options?: {
-        skipIfRecent?: boolean | undefined;
-        debounce?: boolean | undefined;
-    }): Promise<any>;
+    executeRenderOperation(
+        tabName: string,
+        operation: (token: import("../../app/async/cancellationToken.js").CancellationToken) => Promise<any>,
+        options?: {
+            skipIfRecent?: boolean | undefined;
+            debounce?: boolean | undefined;
+        }
+    ): Promise<any>;
     /**
      * Get current active tab
      * @returns {string|null}

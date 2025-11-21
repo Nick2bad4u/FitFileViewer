@@ -10,34 +10,43 @@ export function computeMetricStats(metricKey: any): {
     decimals: number;
     step: number;
 } | null;
-export function computeRangeState(metricKey: any, currentRangeValues: any, options?: {}): {
-    stats: null;
-    rangeValues: null;
-    sliderValues: null;
-} | {
-    stats: {
-        metric: string;
-        metricLabel: string;
-        min: number;
-        max: number;
-        average: number;
-        count: number;
-        decimals: number;
-        step: number;
-    };
-    rangeValues: {
-        min: any;
-        max: any;
-    };
-    sliderValues: {
-        min: any;
-        max: any;
-    };
-};
+export function computeRangeState(
+    metricKey: any,
+    currentRangeValues: any,
+    options?: {}
+):
+    | {
+          stats: null;
+          rangeValues: null;
+          sliderValues: null;
+      }
+    | {
+          stats: {
+              metric: string;
+              metricLabel: string;
+              min: number;
+              max: number;
+              average: number;
+              count: number;
+              decimals: number;
+              step: number;
+          };
+          rangeValues: {
+              min: any;
+              max: any;
+          };
+          sliderValues: {
+              min: any;
+              max: any;
+          };
+      };
 export function formatMetricValue(value: any, stats: any, decimalsOverride: any): string;
 export function formatPercent(value: any): string;
 export function getGlobalRecords(): any;
-export function resolveInitialConfig(defaultMetric: any, defaultPercent: any): {
+export function resolveInitialConfig(
+    defaultMetric: any,
+    defaultPercent: any
+): {
     enabled: boolean;
     maxValue: any;
     metric: any;

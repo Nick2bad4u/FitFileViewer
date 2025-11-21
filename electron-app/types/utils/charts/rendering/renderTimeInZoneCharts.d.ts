@@ -5,9 +5,12 @@
  * @param {HTMLElement} container parent element to append charts into
  * @param {{ chartType?: string } & Record<string,any>} [options] optional chart options forwarded to renderZoneChart
  */
-export function renderTimeInZoneCharts(container: HTMLElement, options?: {
-    chartType?: string;
-} & Record<string, any>): void;
+export function renderTimeInZoneCharts(
+    container: HTMLElement,
+    options?: {
+        chartType?: string;
+    } & Record<string, any>
+): void;
 export type ZoneInfo = import("../../../global").ZoneInfo;
 export type ZoneVisibilitySettings = {
     doughnutVisible?: boolean;

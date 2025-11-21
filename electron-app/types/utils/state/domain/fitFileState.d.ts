@@ -181,8 +181,8 @@ export class FitFileStateManager {
      * @param {RawFitData} data
      * @returns {SessionInfo|null}
      */ /**
-    * Set up listeners for data processing events
-    */
+     * Set up listeners for data processing events
+     */
     setupDataProcessingListeners(): void;
     /**
      * Set up listeners for file loading events

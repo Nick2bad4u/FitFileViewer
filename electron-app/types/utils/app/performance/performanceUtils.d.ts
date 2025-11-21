@@ -11,10 +11,13 @@
  * @param {number} [options.maxItems=100] - Maximum items to batch
  * @returns {(item: T) => void} Function to add items to batch
  */
-export function batchOperations<T>(callback: (items: T[]) => void, options?: {
-    maxWait?: number | undefined;
-    maxItems?: number | undefined;
-}): (item: T) => void;
+export function batchOperations<T>(
+    callback: (items: T[]) => void,
+    options?: {
+        maxWait?: number | undefined;
+        maxItems?: number | undefined;
+    }
+): (item: T) => void;
 /**
  * Cancel idle callback
  * @param {number} id - Request ID
@@ -30,10 +33,14 @@ export function cancelIdleCallback(id: number): void;
  * @param {boolean} [options.trailing=true] - Execute on trailing edge
  * @returns {T & { cancel: () => void, flush: () => void }} Debounced function with cancel and flush methods
  */
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number, options?: {
-    leading?: boolean | undefined;
-    trailing?: boolean | undefined;
-}): T & {
+export function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number,
+    options?: {
+        leading?: boolean | undefined;
+        trailing?: boolean | undefined;
+    }
+): T & {
     cancel: () => void;
     flush: () => void;
 };
@@ -44,7 +51,10 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
  * @param {(...args: any[]) => string} [keyGenerator] - Optional key generator
  * @returns {T & { cache: Map<string, any>, clear: () => void }} Memoized function
  */
-export function memoize<T extends (...args: any[]) => any>(func: T, keyGenerator?: (...args: any[]) => string): T & {
+export function memoize<T extends (...args: any[]) => any>(
+    func: T,
+    keyGenerator?: (...args: any[]) => string
+): T & {
     cache: Map<string, any>;
     clear: () => void;
 };
@@ -58,11 +68,14 @@ export function memoize<T extends (...args: any[]) => any>(func: T, keyGenerator
  * @param {number} [options.debounce] - Debounce delay
  * @returns {(event: T) => void} Optimized handler
  */
-export function optimizeEventHandler<T extends Event>(handler: (event: T) => void, options?: {
-    passive?: boolean | undefined;
-    throttle?: number | undefined;
-    debounce?: number | undefined;
-}): (event: T) => void;
+export function optimizeEventHandler<T extends Event>(
+    handler: (event: T) => void,
+    options?: {
+        passive?: boolean | undefined;
+        throttle?: number | undefined;
+        debounce?: number | undefined;
+    }
+): (event: T) => void;
 /**
  * Request idle callback with fallback to setTimeout
  * @param {() => void} callback - Callback to execute
@@ -70,9 +83,12 @@ export function optimizeEventHandler<T extends Event>(handler: (event: T) => voi
  * @param {number} [options.timeout] - Maximum time to wait
  * @returns {number} Request ID
  */
-export function requestIdleCallback(callback: () => void, options?: {
-    timeout?: number | undefined;
-}): number;
+export function requestIdleCallback(
+    callback: () => void,
+    options?: {
+        timeout?: number | undefined;
+    }
+): number;
 /**
  * Throttle a function
  * @template {(...args: any[]) => any} T
@@ -80,7 +96,10 @@ export function requestIdleCallback(callback: () => void, options?: {
  * @param {number} wait - Wait time in milliseconds
  * @returns {T & { cancel: () => void }} Throttled function
  */
-export function throttle<T extends (...args: any[]) => any>(func: T, wait: number): T & {
+export function throttle<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+): T & {
     cancel: () => void;
 };
 //# sourceMappingURL=performanceUtils.d.ts.map

@@ -22,7 +22,7 @@ export default defineConfig([
             "./.temp*/**",
             "node_modules/**",
             "dist/**",
-            "**/*.d.ts"
+            "**/*.d.ts",
         ],
     },
     {

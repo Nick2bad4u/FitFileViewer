@@ -24,6 +24,12 @@ export function setupListeners({
     showNotification,
     showUpdateNotification,
 }) {
+    // If the open file button is not present (e.g. during unit tests or in
+    // partial render contexts), safely return without wiring any listeners.
+    if (!openFileBtn || typeof openFileBtn.addEventListener !== "function") {
+        return;
+    }
+
     // Open File button click
     openFileBtn.addEventListener("click", () =>
         handleOpenFile({

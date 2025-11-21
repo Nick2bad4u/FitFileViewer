@@ -13,7 +13,18 @@
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
  * @returns {Promise<any>}
  */
-export function bootstrapMainWindow({ browserWindowRef, getAppState, setAppState, safeCreateAppMenu, CONSTANTS, getThemeFromRenderer, sendToRenderer, resolveAutoUpdaterAsync, setupAutoUpdater, logWithContext, }: {
+export function bootstrapMainWindow({
+    browserWindowRef,
+    getAppState,
+    setAppState,
+    safeCreateAppMenu,
+    CONSTANTS,
+    getThemeFromRenderer,
+    sendToRenderer,
+    resolveAutoUpdaterAsync,
+    setupAutoUpdater,
+    logWithContext,
+}: {
     browserWindowRef: () => any;
     getAppState: (key: string, value?: any) => any;
     setAppState: (key: string, value: any) => void;

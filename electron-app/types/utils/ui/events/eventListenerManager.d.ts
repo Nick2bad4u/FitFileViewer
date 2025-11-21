@@ -9,12 +9,15 @@
  * @param {EventTarget} target - The target element (defaults to window)
  * @returns {Function} Cleanup function to remove all drag and drop listeners
  */
-export function addDragDropListeners(handlers: {
-    onDragEnter: EventListener;
-    onDragLeave: EventListener;
-    onDragOver: EventListener;
-    onDrop: EventListener;
-}, target?: EventTarget): Function;
+export function addDragDropListeners(
+    handlers: {
+        onDragEnter: EventListener;
+        onDragLeave: EventListener;
+        onDragOver: EventListener;
+        onDrop: EventListener;
+    },
+    target?: EventTarget
+): Function;
 /**
  * Adds an event listener with automatic cleanup tracking
  *
@@ -24,7 +27,12 @@ export function addDragDropListeners(handlers: {
  * @param {boolean|AddEventListenerOptions} options - Optional parameters for addEventListener
  * @returns {Function} A function to remove this specific event listener
  */
-export function addEventListenerWithCleanup(element: EventTarget, eventType: string, handler: EventListener, options?: boolean | AddEventListenerOptions): Function;
+export function addEventListenerWithCleanup(
+    element: EventTarget,
+    eventType: string,
+    handler: EventListener,
+    options?: boolean | AddEventListenerOptions
+): Function;
 /**
  * Removes all tracked event listeners
  *

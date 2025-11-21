@@ -18,10 +18,14 @@
  *
  * @public
  */
-export function showFitData(data: Object, filePath?: string, options?: {
-    resetRenderStates?: boolean | undefined;
-    updateUI?: boolean | undefined;
-}): void;
+export function showFitData(
+    data: Object,
+    filePath?: string,
+    options?: {
+        resetRenderStates?: boolean | undefined;
+        updateUI?: boolean | undefined;
+    }
+): void;
 export type FitDataObject = {
     /**
      * - Cached filename for performance

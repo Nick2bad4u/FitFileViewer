@@ -7,11 +7,15 @@
  * @param {any[]} data - Array of record messages with position and timestamp data
  * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options - Chart configuration options
  */
-export function renderGPSTimeChart(container: HTMLElement, data: any[], options: {
-    maxPoints: number | "all";
-    showPoints?: boolean;
-    showLegend?: boolean;
-    showTitle?: boolean;
-    showGrid?: boolean;
-}): void;
+export function renderGPSTimeChart(
+    container: HTMLElement,
+    data: any[],
+    options: {
+        maxPoints: number | "all";
+        showPoints?: boolean;
+        showLegend?: boolean;
+        showTitle?: boolean;
+        showGrid?: boolean;
+    }
+): void;
 //# sourceMappingURL=renderGPSTimeChart.d.ts.map

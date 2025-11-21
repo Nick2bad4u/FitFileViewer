@@ -14,7 +14,10 @@
  * formatCapitalize("FIT"); // "Fit"
  * formatCapitalize("mcdonald", { lowercaseRest: false }); // "Mcdonald"
  */
-export function formatCapitalize(str: string, options?: {
-    lowercaseRest?: boolean | undefined;
-}): string;
+export function formatCapitalize(
+    str: string,
+    options?: {
+        lowercaseRest?: boolean | undefined;
+    }
+): string;
 //# sourceMappingURL=formatCapitalize.d.ts.map

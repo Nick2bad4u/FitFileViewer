@@ -27,7 +27,7 @@ describe("fitParserIntegration IPC wiring", () => {
         const handlers = Object.fromEntries(ipcMain.handle.mock.calls.map(([channel, handler]) => [channel, handler]));
 
         const arrayBuffer = new ArrayBuffer(8);
-        await expect(handlers["decode-fit-file"]({}, arrayBuffer, { flag: true })).resolves.toBeDefined();
+        await expect(handlers["fit:decode"]({}, arrayBuffer, { flag: true })).resolves.toBeDefined();
 
         const updateResult = await handlers["update-decoder-options"]({}, { foo: 1 });
         expect(updateResult).toMatchObject({ success: expect.any(Boolean) });
@@ -53,7 +53,7 @@ describe("fitParserIntegration IPC wiring", () => {
 
         const arrayBuffer = new ArrayBuffer(4);
         await api.decodeFitFile(arrayBuffer, { test: true });
-        expect(invokeSpy).toHaveBeenNthCalledWith(1, "decode-fit-file", expect.any(Uint8Array), { test: true });
+        expect(invokeSpy).toHaveBeenNthCalledWith(1, "fit:decode", expect.any(Uint8Array), { test: true });
 
         await api.getDecoderOptions();
         expect(invokeSpy).toHaveBeenNthCalledWith(2, "get-decoder-options");

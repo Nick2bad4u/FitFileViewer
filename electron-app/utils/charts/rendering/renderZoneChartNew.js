@@ -2,6 +2,7 @@ import { getChartZoneColors, getZoneTypeFromField } from "../../data/zones/chart
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { createManagedChart } from "../core/createManagedChart.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
@@ -75,12 +76,8 @@ export function renderZoneChart(container, title, zoneData, chartId, options = {
         const config = createChartConfig(chartType, zoneData, colors, title, options, currentTheme);
 
         console.log(`[ChartJS] Creating ${chartType} zone chart with config:`, config);
-        const chart = new globalThis.Chart(canvas, config);
+        const chart = createManagedChart(canvas, config);
         if (chart) {
-            if (!globalThis._chartjsInstances) {
-                globalThis._chartjsInstances = [];
-            }
-            globalThis._chartjsInstances.push(chart);
             console.log(`[ChartJS] Zone chart created successfully for ${title}`);
         }
     } catch (error) {

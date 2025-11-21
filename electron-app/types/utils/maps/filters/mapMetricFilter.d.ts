@@ -35,7 +35,11 @@ export function buildMetricFilterPredicate(result: MetricFilterResult): (recordI
  * @param {MetricFilterOptions} [options]
  * @returns {{metric:string,metricLabel:string,min:number,max:number,average:number,count:number,decimals:number,step:number}|null}
  */
-export function computeMetricStatistics(recordMesgs: Array<any>, metricKey: string, options?: MetricFilterOptions): {
+export function computeMetricStatistics(
+    recordMesgs: Array<any>,
+    metricKey: string,
+    options?: MetricFilterOptions
+): {
     metric: string;
     metricLabel: string;
     min: number;
@@ -53,7 +57,11 @@ export function computeMetricStatistics(recordMesgs: Array<any>, metricKey: stri
  * @param {MetricFilterOptions} [options]
  * @returns {MetricFilterResult}
  */
-export function createMetricFilter(recordMesgs: Array<any>, config: MapDataPointFilterConfig | undefined | null, options?: MetricFilterOptions): MetricFilterResult;
+export function createMetricFilter(
+    recordMesgs: Array<any>,
+    config: MapDataPointFilterConfig | undefined | null,
+    options?: MetricFilterOptions
+): MetricFilterResult;
 /**
  * Resolve metric definition by key.
  * @param {string} metricKey

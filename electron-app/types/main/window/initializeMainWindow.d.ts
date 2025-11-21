@@ -13,7 +13,18 @@
  * @param {Function} options.logWithContext
  * @returns {Promise<any>}
  */
-export function initializeMainWindow({ browserWindowRef, getAppState, setAppState, safeCreateAppMenu, CONSTANTS, getThemeFromRenderer, sendToRenderer, resolveAutoUpdater, setupAutoUpdater, logWithContext, }: {
+export function initializeMainWindow({
+    browserWindowRef,
+    getAppState,
+    setAppState,
+    safeCreateAppMenu,
+    CONSTANTS,
+    getThemeFromRenderer,
+    sendToRenderer,
+    resolveAutoUpdater,
+    setupAutoUpdater,
+    logWithContext,
+}: {
     browserWindowRef: Function;
     getAppState: Function;
     setAppState: Function;

@@ -24,8 +24,12 @@
  *
  * @public
  */
-export function setupTheme(applyTheme: Function, listenForThemeChange?: Function, options?: {
-    fallbackTheme?: string | undefined;
-    useLocalStorage?: boolean | undefined;
-}): Promise<string>;
+export function setupTheme(
+    applyTheme: Function,
+    listenForThemeChange?: Function,
+    options?: {
+        fallbackTheme?: string | undefined;
+        useLocalStorage?: boolean | undefined;
+    }
+): Promise<string>;
 //# sourceMappingURL=setupTheme.d.ts.map
