@@ -5,21 +5,34 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
+import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Speed vs Distance chart
 /**
  * @param {HTMLElement} container
  * @param {any[]} data
- * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ * @param {{ maxPoints: number|"all", showPoints?: boolean, showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, smoothing?: number, interpolation?: string, animationStyle?: string, theme?: string, distanceUnits?: string }} options
  */
 export function renderSpeedVsDistanceChart(container, data, options) {
     try {
-        const hasDistance = data.some((row) => row.distance !== undefined && row.distance !== null),
-            hasSpeed = data.some(
-                (row) =>
-                    (row.speed !== undefined && row.speed !== null) ||
-                    (row.enhancedSpeed !== undefined && row.enhancedSpeed !== null)
-            );
+        const {
+            animationStyle = "normal",
+            distanceUnits = "kilometers",
+            interpolation = "linear",
+            smoothing = 0.1,
+            theme = "auto",
+            maxPoints = "all",
+            showGrid,
+            showLegend,
+            showPoints,
+            showTitle,
+        } = options;
+
+        const hasDistance = data.some(({ distance }) => distance !== undefined && distance !== null),
+            hasSpeed = data.some(({ speed, enhancedSpeed }) => {
+                const preferredSpeed = enhancedSpeed ?? speed;
+                return preferredSpeed !== undefined && preferredSpeed !== null;
+            });
 
         if (!hasSpeed || !hasDistance) {
             return;
@@ -30,21 +43,30 @@ export function renderSpeedVsDistanceChart(container, data, options) {
             return;
         }
 
+        // Determine theme
+        const currentTheme = (theme && theme !== "auto") ? theme : detectCurrentTheme();
         /** @type {any} */
         const themeConfig = getThemeConfig();
-        let chartData = data
-            .map((row) => {
-                const speed = row.enhancedSpeed || row.speed,
-                    { distance } = row;
+        const { colors } = themeConfig || {};
+        // Override colors if theme is forced and doesn't match config (simplified)
+        const isDark = currentTheme === "dark";
+        const textColor = isDark ? "#fff" : "#000";
+        const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+        const bgColor = isDark ? "#181c24" : "#ffffff";
 
-                if (speed !== undefined && speed !== null && distance !== undefined && distance !== null) {
+        let chartData = data
+            .map(({ distance, enhancedSpeed, speed }) => {
+                const preferredSpeed = enhancedSpeed ?? speed;
+
+                if (preferredSpeed !== undefined && preferredSpeed !== null && distance !== undefined && distance !== null) {
                     // Apply unit conversion based on user preferences
                     const convertedDistance = convertValueToUserUnits(distance, "distance"),
-                        convertedSpeed = convertValueToUserUnits(speed, "speed");
+                        convertedSpeed = convertValueToUserUnits(preferredSpeed, "speed"),
+                        roundedSpeed = Math.round((convertedSpeed + Number.EPSILON) * 100) / 100;
 
                     return {
                         x: convertedDistance,
-                        y: convertedSpeed,
+                        y: roundedSpeed,
                     };
                 }
                 return null;
@@ -56,90 +78,122 @@ export function renderSpeedVsDistanceChart(container, data, options) {
         }
 
         // Apply data point limiting
-        if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
-            const step = Math.ceil(chartData.length / options.maxPoints);
+        if (maxPoints !== "all" && chartData.length > maxPoints) {
+            const step = Math.ceil(chartData.length / maxPoints);
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("speed-vs-distance", 0));
-        if (themeConfig?.colors) {
-            canvas.style.background = themeConfig.colors.chartBackground || "#000";
-            canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
-        }
+        canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
+        if (colors?.shadow) {
+             canvas.style.boxShadow = `0 2px 16px 0 ${colors.shadow}`;
+        }
         container.append(canvas);
+
+        // Configure interpolation
+        let tension = smoothing;
+        let stepped = false;
+        let cubicInterpolationMode = "default";
+
+        if (interpolation === "step") {
+            stepped = true;
+            tension = 0;
+        } else if (interpolation === "monotone") {
+            cubicInterpolationMode = "monotone";
+        } else {
+            stepped = false;
+            cubicInterpolationMode = "default";
+        }
 
         const config = {
                 data: {
                     datasets: [
                         {
-                            backgroundColor: `${themeConfig.colors.warning}99`, // Yellow with alpha
-                            borderColor: themeConfig.colors.warning,
+                            backgroundColor: `${colors.warning}99`, // Yellow with alpha
+                            borderColor: colors.warning,
                             borderWidth: 2,
+                            cubicInterpolationMode,
                             data: chartData,
                             fill: false,
                             label: "Speed vs Distance",
                             pointHoverRadius: 4,
-                            pointRadius: options.showPoints ? 2 : 1,
+                            pointRadius: showPoints ? 2 : 1,
                             showLine: true,
-                            tension: 0.1,
+                            stepped,
+                            tension,
                         },
                     ],
                 },
                 options: {
+                    animation: {
+                        duration:
+                            animationStyle === "none"
+                                ? 0
+                                : animationStyle === "fast"
+                                  ? 500
+                                  : animationStyle === "slow"
+                                    ? 2000
+                                    : 1000,
+                        easing: "easeOutQuart",
+                    },
                     maintainAspectRatio: false,
                     plugins: {
                         chartBackgroundColorPlugin: {
-                            backgroundColor: themeConfig.colors.chartBackground,
+                            backgroundColor: bgColor,
                         },
                         legend: {
-                            display: options.showLegend,
-                            labels: { color: themeConfig.colors.text },
+                            display: showLegend,
+                            labels: { color: textColor },
                         },
                         title: {
-                            color: themeConfig.colors.text,
-                            display: options.showTitle,
+                            color: textColor,
+                            display: showTitle,
                             font: { size: 16, weight: "bold" },
                             text: "Speed vs Distance",
                         },
                         tooltip: {
-                            backgroundColor: themeConfig.colors.chartSurface,
-                            bodyColor: themeConfig.colors.text,
-                            borderColor: themeConfig.colors.chartBorder,
+                            backgroundColor: isDark ? "#222" : "#fff",
+                            bodyColor: textColor,
+                            borderColor: isDark ? "#555" : "#ddd",
                             borderWidth: 1,
                             callbacks: {
                                 /** @param {any} context */
                                 label(context) {
                                     // Chart values are in user's preferred units, but we need raw values for tooltip
                                     // Reverse convert to get raw meters/mps for the formatTooltipWithUnits function
-                                    const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
+                                    // Use passed distanceUnits option instead of localStorage
                                     let rawDistance = context.parsed.x;
                                     switch (distanceUnits) {
                                         case "feet": {
                                             rawDistance = context.parsed.x / 3.280_84; // Convert feet back to meters
-
                                             break;
                                         }
                                         case "kilometers": {
                                             rawDistance = context.parsed.x * 1000; // Convert km back to meters
-
                                             break;
                                         }
                                         case "miles": {
                                             rawDistance = context.parsed.x * 1609.344; // Convert miles back to meters
-
                                             break;
                                         }
                                         // No default
                                     }
 
+                                    let rawSpeed = context.parsed.y;
+                                    if (distanceUnits === "miles" || distanceUnits === "feet") {
+                                        rawSpeed = context.parsed.y / 2.236_936;
+                                    } else {
+                                        rawSpeed = context.parsed.y / 3.6;
+                                    }
+
                                     return [
                                         `Distance: ${formatTooltipWithUnits(rawDistance, "distance")}`,
-                                        `Speed: ${formatTooltipWithUnits(context.parsed.y, "speed")}`,
+                                        `Speed: ${formatTooltipWithUnits(rawSpeed, "speed")}`,
                                     ];
                                 },
                             },
-                            titleColor: themeConfig.colors.text,
+                            titleColor: textColor,
                         },
                         zoom: {
                             limits: {
@@ -159,8 +213,8 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                             },
                             zoom: {
                                 drag: {
-                                    backgroundColor: `${themeConfig.colors.warning}33`, // Yellow with alpha
-                                    borderColor: `${themeConfig.colors.warning}CC`, // Yellow with more opacity
+                                    backgroundColor: `${colors.warning}33`, // Yellow with alpha
+                                    borderColor: `${colors.warning}CC`, // Yellow with more opacity
                                     borderWidth: 2,
                                     enabled: true,
                                     modifierKey: "shift",
@@ -181,12 +235,12 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         x: {
                             display: true,
                             grid: {
-                                color: themeConfig.colors.chartGrid,
-                                display: options.showGrid,
+                                color: gridColor,
+                                display: showGrid,
                             },
-                            ticks: { color: themeConfig.colors?.text },
+                            ticks: { color: textColor },
                             title: {
-                                color: themeConfig.colors.text,
+                                color: textColor,
                                 display: true,
                                 text: `Distance (${getUnitSymbol("distance")})`,
                             },
@@ -195,12 +249,12 @@ export function renderSpeedVsDistanceChart(container, data, options) {
                         y: {
                             display: true,
                             grid: {
-                                color: themeConfig.colors.chartGrid,
-                                display: options.showGrid,
+                                color: gridColor,
+                                display: showGrid,
                             },
-                            ticks: { color: themeConfig.colors?.text },
+                            ticks: { color: textColor },
                             title: {
-                                color: themeConfig.colors.text,
+                                color: textColor,
                                 display: true,
                                 text: `Speed (${getUnitSymbol("speed")})`,
                             },

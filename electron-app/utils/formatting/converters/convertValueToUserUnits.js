@@ -1,4 +1,6 @@
 import { convertDistanceUnits, DISTANCE_UNITS } from "./convertDistanceUnits.js";
+import { convertMpsToKmh } from "./convertMpsToKmh.js";
+import { convertMpsToMph } from "./convertMpsToMph.js";
 import { convertTemperatureUnits, TEMPERATURE_UNITS } from "./convertTemperatureUnits.js";
 
 /**
@@ -12,6 +14,7 @@ const /**
     FIELD_CATEGORIES = {
         DISTANCE: ["distance", "altitude", "enhancedAltitude"],
         TEMPERATURE: ["temperature"],
+        SPEED: ["speed", "enhancedSpeed"],
     },
     UNIT_STORAGE_KEYS = {
         DISTANCE: "chartjs_distanceUnits",
@@ -55,6 +58,15 @@ export function convertValueToUserUnits(value, field) {
         if (FIELD_CATEGORIES.TEMPERATURE.includes(field)) {
             const temperatureUnits = localStorage.getItem(UNIT_STORAGE_KEYS.TEMPERATURE) || TEMPERATURE_UNITS.CELSIUS;
             return convertTemperatureUnits(value, temperatureUnits);
+        }
+
+        // Speed fields (assuming input is in m/s)
+        if (FIELD_CATEGORIES.SPEED.includes(field)) {
+            const distanceUnits = localStorage.getItem(UNIT_STORAGE_KEYS.DISTANCE) || DISTANCE_UNITS.KILOMETERS;
+            if (distanceUnits === "miles" || distanceUnits === "feet") {
+                return convertMpsToMph(value);
+            }
+            return convertMpsToKmh(value);
         }
 
         // No conversion needed for other fields

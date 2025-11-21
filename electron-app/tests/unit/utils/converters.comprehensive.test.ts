@@ -387,9 +387,9 @@ describe("Converter Utilities", () => {
                 expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
             });
 
-            it("should return original value for speed field", () => {
+            it("should return converted value for speed field (default km/h)", () => {
                 const result = convertValueToUserUnits(50, "speed");
-                expect(result).toBe(50);
+                expect(result).toBe(180);
             });
 
             it("should return original value for cadence field", () => {

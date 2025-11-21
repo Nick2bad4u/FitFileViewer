@@ -14,10 +14,6 @@ vi.mock("../../../utils/formatting/converters/convertValueToUserUnits.js", () =>
     convertValueToUserUnits: vi.fn(),
 }));
 
-vi.mock("../../../utils/formatting/display/formatSpeedTooltip.js", () => ({
-    formatSpeedTooltip: vi.fn(),
-}));
-
 vi.mock("../../../utils/data/lookups/getUnitSymbol.js", () => ({
     getUnitSymbol: vi.fn(),
 }));
@@ -26,7 +22,6 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
     let mockConvertDistanceUnits: any;
     let mockConvertTemperatureUnits: any;
     let mockConvertValueToUserUnits: any;
-    let mockFormatSpeedTooltip: any;
     let mockGetUnitSymbol: any;
 
     beforeEach(async () => {
@@ -40,9 +35,6 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
         );
         mockConvertValueToUserUnits = vi.mocked(
             (await import("../../../utils/formatting/converters/convertValueToUserUnits.js")).convertValueToUserUnits
-        );
-        mockFormatSpeedTooltip = vi.mocked(
-            (await import("../../../utils/formatting/display/formatSpeedTooltip.js")).formatSpeedTooltip
         );
         mockGetUnitSymbol = vi.mocked((await import("../../../utils/data/lookups/getUnitSymbol.js")).getUnitSymbol);
     });
@@ -146,53 +138,57 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
 
     describe("Speed Fields", () => {
         describe("Speed Field", () => {
-            it("should delegate to formatSpeedTooltip for speed field", () => {
-                mockFormatSpeedTooltip.mockReturnValue("25.0 m/s (90.0 km/h, 55.9 mph)");
+            it("should format speed with user units", () => {
+                mockConvertValueToUserUnits.mockReturnValue(25.0);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 const result = formatTooltipWithUnits(25.0, "speed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledTimes(1);
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledWith(25.0);
-                expect(result).toBe("25.0 m/s (90.0 km/h, 55.9 mph)");
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledWith(25.0, "speed");
+                expect(mockGetUnitSymbol).toHaveBeenCalledWith("speed");
+                expect(result).toBe("25.00 km/h");
             });
 
             it("should handle zero speed", () => {
-                mockFormatSpeedTooltip.mockReturnValue("0.00 m/s (0.00 km/h, 0.00 mph)");
+                mockConvertValueToUserUnits.mockReturnValue(0.0);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 const result = formatTooltipWithUnits(0, "speed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledWith(0);
-                expect(result).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledWith(0, "speed");
+                expect(result).toBe("0.00 km/h");
             });
 
             it("should handle high speed values", () => {
-                mockFormatSpeedTooltip.mockReturnValue("50.0 m/s (180.0 km/h, 111.8 mph)");
+                mockConvertValueToUserUnits.mockReturnValue(180.0);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 const result = formatTooltipWithUnits(50.0, "speed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledWith(50.0);
-                expect(result).toBe("50.0 m/s (180.0 km/h, 111.8 mph)");
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledWith(50.0, "speed");
+                expect(result).toBe("180.00 km/h");
             });
         });
 
         describe("Enhanced Speed Field", () => {
-            it("should delegate to formatSpeedTooltip for enhanced speed field", () => {
-                mockFormatSpeedTooltip.mockReturnValue("12.5 m/s (45.0 km/h, 28.0 mph)");
+            it("should format enhanced speed with user units", () => {
+                mockConvertValueToUserUnits.mockReturnValue(45.0);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 const result = formatTooltipWithUnits(12.5, "enhancedSpeed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledTimes(1);
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledWith(12.5);
-                expect(result).toBe("12.5 m/s (45.0 km/h, 28.0 mph)");
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledWith(12.5, "enhancedSpeed");
+                expect(result).toBe("45.00 km/h");
             });
 
             it("should handle decimal enhanced speed values", () => {
-                mockFormatSpeedTooltip.mockReturnValue("8.33 m/s (29.99 km/h, 18.63 mph)");
+                mockConvertValueToUserUnits.mockReturnValue(29.99);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 const result = formatTooltipWithUnits(8.33, "enhancedSpeed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledWith(8.33);
-                expect(result).toBe("8.33 m/s (29.99 km/h, 18.63 mph)");
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledWith(8.33, "enhancedSpeed");
+                expect(result).toBe("29.99 km/h");
             });
         });
     });
@@ -387,12 +383,13 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
             });
 
             it("should handle undefined value for speed field", () => {
-                mockFormatSpeedTooltip.mockReturnValue("0.00 m/s (0.00 km/h, 0.00 mph)");
+                mockConvertValueToUserUnits.mockReturnValue(0.0);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 const result = formatTooltipWithUnits(undefined as any, "speed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledWith(undefined);
-                expect(result).toBe("0.00 m/s (0.00 km/h, 0.00 mph)");
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledWith(undefined, "speed");
+                expect(result).toBe("0.00 km/h");
             });
 
             it("should handle NaN value for temperature field", () => {
@@ -463,15 +460,15 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
             });
 
             it("should make single call for speed fields", () => {
-                mockFormatSpeedTooltip.mockReturnValue("speed result");
+                mockConvertValueToUserUnits.mockReturnValue(25.0);
+                mockGetUnitSymbol.mockReturnValue("km/h");
 
                 formatTooltipWithUnits(10, "speed");
 
-                expect(mockFormatSpeedTooltip).toHaveBeenCalledTimes(1);
+                expect(mockConvertValueToUserUnits).toHaveBeenCalledTimes(1);
+                expect(mockGetUnitSymbol).toHaveBeenCalledTimes(1);
                 expect(mockConvertDistanceUnits).not.toHaveBeenCalled();
                 expect(mockConvertTemperatureUnits).not.toHaveBeenCalled();
-                expect(mockConvertValueToUserUnits).not.toHaveBeenCalled();
-                expect(mockGetUnitSymbol).not.toHaveBeenCalled();
             });
 
             it("should make single temperature conversion call for temperature fields", () => {
@@ -481,7 +478,6 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
 
                 expect(mockConvertTemperatureUnits).toHaveBeenCalledTimes(1);
                 expect(mockConvertDistanceUnits).not.toHaveBeenCalled();
-                expect(mockFormatSpeedTooltip).not.toHaveBeenCalled();
                 expect(mockConvertValueToUserUnits).not.toHaveBeenCalled();
                 expect(mockGetUnitSymbol).not.toHaveBeenCalled();
             });
@@ -496,7 +492,6 @@ describe("formatTooltipWithUnits.js - Tooltip Formatting with Units", () => {
                 expect(mockGetUnitSymbol).toHaveBeenCalledTimes(1);
                 expect(mockConvertDistanceUnits).not.toHaveBeenCalled();
                 expect(mockConvertTemperatureUnits).not.toHaveBeenCalled();
-                expect(mockFormatSpeedTooltip).not.toHaveBeenCalled();
             });
         });
 

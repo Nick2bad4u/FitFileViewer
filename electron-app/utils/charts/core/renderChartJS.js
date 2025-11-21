@@ -616,6 +616,7 @@ export const chartSettingsManager = {
             animation: settings.animation || "normal",
             chartType: settings.chartType || "line",
             colors: settings.colors || [],
+            exportTheme: settings.exportTheme || "auto",
             interpolation: settings.interpolation || "linear",
             maxpoints: settings.maxpoints || "all",
             showFill: settings.showFill === true,
@@ -2203,6 +2204,7 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             animation: animationStyle = "normal",
             chartType = "line",
             colors: customColors = [],
+            exportTheme = "auto",
             interpolation = "linear",
             maxpoints: maxPoints = "all",
             showFill = false,
@@ -2211,6 +2213,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
             showPoints = false,
             showTitle = true,
             smoothing = 0.1,
+            timeUnits = "seconds",
+            distanceUnits = "kilometers",
+            temperatureUnits = "celsius",
         } = settings,
         // Convert boolean settings from strings (maintain backward compatibility)
         boolSettings = {
@@ -2354,7 +2359,11 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
                 showTitle: boolSettings.showTitle,
                 smoothing,
                 tickSampleSize: performanceTuning.tickSampleSize,
+                theme: exportTheme,
                 zoomPluginConfig,
+                timeUnits,
+                distanceUnits,
+                temperatureUnits,
             })
         );
         if (chart) {

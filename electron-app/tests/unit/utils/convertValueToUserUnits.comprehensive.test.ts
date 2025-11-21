@@ -280,11 +280,11 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
         });
 
-        it("should return value unchanged for speed field", () => {
+        it("should return converted value for speed field (default km/h)", () => {
             const result = convertValueToUserUnits(15.5, "speed");
 
-            expect(result).toBe(15.5);
-            expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+            expect(result).toBeCloseTo(55.8, 1);
+            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("chartjs_distanceUnits");
         });
 
         it("should return value unchanged for heartRate field", () => {
@@ -500,7 +500,7 @@ describe("convertValueToUserUnits.js - Value to User Units Converter Utility", (
             expect(fitRecord.altitude).toBeCloseTo(0.3106863683249033, 4);
             expect(fitRecord.temperature).toBeCloseTo(71.6, 1);
             expect(fitRecord.heartRate).toBe(150);
-            expect(fitRecord.speed).toBe(5.5);
+            expect(fitRecord.speed).toBeCloseTo(12.3, 1);
             expect(fitRecord.power).toBe(250);
         });
 

@@ -442,6 +442,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 animation: "normal",
                 chartType: "line",
                 colors: [],
+                exportTheme: "auto",
                 interpolation: "linear",
                 maxpoints: "all",
                 showFill: false,

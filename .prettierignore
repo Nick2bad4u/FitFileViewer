@@ -15,3 +15,5 @@ coverage/
 electron-app/package-lock.json
 html/
 .github/PROMPTS/
+types/
+**/*.d.ts

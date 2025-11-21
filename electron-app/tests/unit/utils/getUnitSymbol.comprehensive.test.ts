@@ -207,20 +207,20 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
     });
 
     describe("Speed Fields", () => {
-        it("should always return m/s for speed field regardless of preferences", () => {
+        it("should return km/h for speed field by default", () => {
             const result = getUnitSymbol("speed");
-            expect(result).toBe("m/s");
+            expect(result).toBe("km/h");
         });
 
-        it("should always return m/s for enhancedSpeed field regardless of preferences", () => {
+        it("should return km/h for enhancedSpeed field by default", () => {
             const result = getUnitSymbol("enhancedSpeed");
-            expect(result).toBe("m/s");
+            expect(result).toBe("km/h");
         });
 
-        it("should return m/s for speed even with distance unit preferences set", () => {
+        it("should return mph for speed when distance unit is miles", () => {
             mockLocalStorage.store.set("chartjs_distanceUnits", "miles");
             const result = getUnitSymbol("speed");
-            expect(result).toBe("m/s");
+            expect(result).toBe("mph");
         });
     });
 
@@ -450,7 +450,7 @@ describe("getUnitSymbol.js - Unit Symbol Utility", () => {
                 getUnitSymbol("unknownField"),
             ];
 
-            expect(results).toEqual(["km", "°C", "m/s", "bpm", ""]);
+            expect(results).toEqual(["km", "°C", "km/h", "bpm", ""]);
         });
     });
 });

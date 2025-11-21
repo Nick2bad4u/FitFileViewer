@@ -1,24 +1,38 @@
-import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
+import { convertTimeUnits } from "../../formatting/converters/convertTimeUnits.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
+import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 
 // Altitude profile with gradient visualization
 /**
  * @param {HTMLElement} container
  * @param {any[]} data
  * @param {number[]} labels
- * @param {{ maxPoints: number|"all", showLegend?: boolean, showTitle?: boolean, showGrid?: boolean }} options
+ * @param {{ maxPoints: number|"all", showLegend?: boolean, showTitle?: boolean, showGrid?: boolean, showFill?: boolean, smoothing?: number, interpolation?: string, animationStyle?: string, theme?: string, distanceUnits?: string, timeUnits?: string }} options
  */
 export function renderAltitudeProfileChart(container, data, labels, options) {
     try {
-        const hasAltitude = data.some(
-            (row) =>
-                (row.altitude !== undefined && row.altitude !== null) ||
-                (row.enhancedAltitude !== undefined && row.enhancedAltitude !== null)
-        );
+        const {
+            animationStyle = "normal",
+            distanceUnits = "kilometers",
+            interpolation = "linear",
+            maxPoints = "all",
+            showFill = true,
+            showGrid,
+            showLegend,
+            showTitle,
+            smoothing = 0.1,
+            theme = "auto",
+            timeUnits = "seconds",
+        } = options;
+
+        const hasAltitude = data.some(({ altitude, enhancedAltitude }) => {
+            const preferredAltitude = enhancedAltitude ?? altitude;
+            return preferredAltitude !== undefined && preferredAltitude !== null;
+        });
 
         if (!hasAltitude) {
             return;
@@ -29,17 +43,30 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
             return;
         }
 
+        // Determine theme
+        const currentTheme = (theme && theme !== "auto") ? theme : detectCurrentTheme();
         /** @type {any} */
         const themeConfig = getThemeConfig();
+        const { colors } = themeConfig || {};
+        const isDark = currentTheme === "dark";
+        const textColor = isDark ? "#fff" : "#000000";
+        const gridColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+        const bgColor = isDark ? "#181c24" : "#ffffff";
 
         let chartData = data
-            .map((row, index) => {
-                const altitude = row.enhancedAltitude || row.altitude;
+            .map(({ altitude, enhancedAltitude }, index) => {
+                const preferredAltitude = enhancedAltitude ?? altitude;
 
-                if (altitude !== undefined && altitude !== null) {
+                if (preferredAltitude !== undefined && preferredAltitude !== null) {
+                    // Convert altitude if needed
+                    let yVal = preferredAltitude;
+                    if (distanceUnits === "feet" || distanceUnits === "miles") {
+                        yVal = preferredAltitude * 3.280_84; // Convert meters to feet
+                    }
+
                     return {
                         x: labels[index],
-                        y: altitude,
+                        y: yVal,
                     };
                 }
                 return null;
@@ -51,67 +78,101 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
         }
 
         // Apply data point limiting
-        if (options.maxPoints !== "all" && chartData.length > options.maxPoints) {
-            const step = Math.ceil(chartData.length / options.maxPoints);
+        if (maxPoints !== "all" && chartData.length > maxPoints) {
+            const step = Math.ceil(chartData.length / maxPoints);
             chartData = chartData.filter((_, i) => i % step === 0);
         }
 
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("altitude-profile", 0));
-        if (themeConfig?.colors) {
-            canvas.style.background = themeConfig.colors.chartBackground || "#000";
-            canvas.style.boxShadow = themeConfig.colors.shadow ? `0 2px 16px 0 ${themeConfig.colors.shadow}` : "";
-        }
+        canvas.style.background = bgColor;
         canvas.style.borderRadius = "12px";
+        if (colors?.shadow) {
+             canvas.style.boxShadow = `0 2px 16px 0 ${colors.shadow}`;
+        }
         container.append(canvas);
+
+        // Configure interpolation
+        let tension = smoothing;
+        let stepped = false;
+        let cubicInterpolationMode = "default";
+
+        if (interpolation === "step") {
+            stepped = true;
+            tension = 0;
+        } else if (interpolation === "monotone") {
+            cubicInterpolationMode = "monotone";
+        } else {
+            stepped = false;
+            cubicInterpolationMode = "default";
+        }
+
+        const altUnit = (distanceUnits === "feet" || distanceUnits === "miles") ? "ft" : "m";
 
         const config = {
                 data: {
                     datasets: [
                         {
-                            backgroundColor: `${themeConfig.colors.success}4D`, // Green with alpha
-                            borderColor: themeConfig.colors.success,
+                            backgroundColor: `${colors.success}4D`, // Green with alpha
+                            borderColor: colors.success,
                             borderWidth: 2,
+                            cubicInterpolationMode,
                             data: chartData,
-                            fill: "origin",
+                            fill: showFill ? "origin" : false,
                             label: "Altitude Profile",
                             pointHoverRadius: 4,
                             pointRadius: 0,
-                            tension: 0.1,
+                            stepped,
+                            tension,
                         },
                     ],
                 },
                 options: {
+                    animation: {
+                        duration:
+                            animationStyle === "none"
+                                ? 0
+                                : animationStyle === "fast"
+                                  ? 500
+                                  : animationStyle === "slow"
+                                    ? 2000
+                                    : 1000,
+                        easing: "easeOutQuart",
+                    },
                     maintainAspectRatio: false,
                     plugins: {
                         chartBackgroundColorPlugin: {
-                            backgroundColor: themeConfig.colors.chartBackground,
+                            backgroundColor: bgColor,
                         },
                         legend: {
-                            display: options.showLegend,
-                            labels: { color: themeConfig.colors.textPrimary },
+                            display: showLegend,
+                            labels: { color: textColor },
                         },
                         title: {
-                            color: themeConfig.colors.textPrimary,
-                            display: options.showTitle,
+                            color: textColor,
+                            display: showTitle,
                             font: { size: 16, weight: "bold" },
                             text: "Altitude Profile",
                         },
                         tooltip: {
-                            backgroundColor: themeConfig.colors.chartSurface,
-                            bodyColor: themeConfig.colors.textPrimary,
-                            borderColor: themeConfig.colors.chartBorder,
+                            backgroundColor: isDark ? "#222" : "#f5f5f5",
+                            bodyColor: textColor,
+                            borderColor: isDark ? "#555" : "#cccccc",
                             borderWidth: 1,
                             callbacks: {
                                 /** @param {any} context */
                                 label(context) {
-                                    return `Altitude: ${context.parsed.y.toFixed(1)} m`;
+                                    return `Altitude: ${context.parsed.y.toFixed(1)} ${altUnit}`;
                                 },
                                 /** @param {any[]} context */
                                 title(context) {
-                                    return `Time: ${formatTime(context[0].parsed.x)}`;
+                                    const val = context[0].parsed.x;
+                                    const converted = convertTimeUnits(val, timeUnits);
+                                    if (timeUnits === "hours") return `Time: ${converted.toFixed(2)}h`;
+                                    if (timeUnits === "minutes") return `Time: ${converted.toFixed(1)}m`;
+                                    return `Time: ${formatTime(val)}`;
                                 },
                             },
-                            titleColor: themeConfig.colors.textPrimary,
+                            titleColor: textColor,
                         },
                         zoom: {
                             limits: {
@@ -131,8 +192,8 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                             },
                             zoom: {
                                 drag: {
-                                    backgroundColor: themeConfig.colors.primaryAlpha,
-                                    borderColor: `${themeConfig.colors.primary}CC`, // Primary with more opacity
+                                    backgroundColor: colors.primaryAlpha,
+                                    borderColor: `${colors.primary}CC`, // Primary with more opacity
                                     borderWidth: 2,
                                     enabled: true,
                                     modifierKey: "shift",
@@ -153,34 +214,37 @@ export function renderAltitudeProfileChart(container, data, labels, options) {
                         x: {
                             display: true,
                             grid: {
-                                color: themeConfig.colors.chartGrid,
-                                display: options.showGrid,
+                                color: gridColor,
+                                display: showGrid,
                             },
                             ticks: {
                                 /** @param {any} value */
                                 callback(value) {
+                                    const converted = convertTimeUnits(value, timeUnits);
+                                    if (timeUnits === "hours") return `${converted.toFixed(2)}h`;
+                                    if (timeUnits === "minutes") return `${converted.toFixed(1)}m`;
                                     return formatTime(value, true);
                                 },
-                                color: themeConfig.colors.textPrimary,
+                                color: textColor,
                             },
                             title: {
-                                color: themeConfig.colors.textPrimary,
+                                color: textColor,
                                 display: true,
-                                text: `Time (${getUnitSymbol("time", "time")})`,
+                                text: `Time (${timeUnits === "hours" ? "h" : timeUnits === "minutes" ? "min" : "s"})`,
                             },
                             type: "linear",
                         },
                         y: {
                             display: true,
                             grid: {
-                                color: themeConfig.colors.chartGrid,
-                                display: options.showGrid,
+                                color: gridColor,
+                                display: showGrid,
                             },
-                            ticks: { color: themeConfig.colors.textPrimary },
+                            ticks: { color: textColor },
                             title: {
-                                color: themeConfig.colors.textPrimary,
+                                color: textColor,
                                 display: true,
-                                text: "Altitude (m)",
+                                text: `Altitude (${altUnit})`,
                             },
                             type: "linear",
                         },

@@ -14,7 +14,16 @@ import globals from "globals";
 
 export default defineConfig([
     {
-        ignores: ["vendor/leafletMeasure/**/*", "scripts/extractLeafletTemplates.cjs"],
+        ignores: [
+            "vendor/leafletMeasure/**/*",
+            "scripts/extractLeafletTemplates.cjs",
+            "./temp**",
+            "./.temp**",
+            "./.temp*/**",
+            "node_modules/**",
+            "dist/**",
+            "**/*.d.ts"
+        ],
     },
     {
         files: ["**/*.{js,mjs,cjs,ts}"],

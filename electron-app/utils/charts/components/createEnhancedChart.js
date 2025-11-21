@@ -36,13 +36,50 @@ export function createEnhancedChart(canvas, options) {
         tickSampleSize,
         theme,
         zoomPluginConfig,
+        timeUnits = "seconds",
+        distanceUnits = "kilometers",
+        temperatureUnits = "celsius",
     } = options;
+
+    function getLocalUnitSymbol(f, type) {
+        if (type === "time") {
+            return timeUnits === "hours" ? "h" : timeUnits === "minutes" ? "min" : "s";
+        }
+        if (f === "distance" || f === "altitude" || f === "enhancedAltitude") {
+            return distanceUnits === "miles" ? "mi" : distanceUnits === "feet" ? "ft" : distanceUnits === "meters" ? "m" : "km";
+        }
+        if (f === "temperature") {
+            return temperatureUnits === "fahrenheit" ? "°F" : "°C";
+        }
+        if (f === "speed" || f === "enhancedSpeed") {
+            return (distanceUnits === "miles" || distanceUnits === "feet") ? "mph" : "km/h";
+        }
+        return getUnitSymbol(f);
+    }
+
     try {
         // Get theme using robust detection
-        const currentTheme = detectCurrentTheme();
+        // If theme param is provided and not 'auto', use it. Otherwise detect.
+        const currentTheme = (theme && theme !== "auto") ? theme : detectCurrentTheme();
         console.log("[ChartJS] Theme debugging for field:", field);
         console.log("[ChartJS] - theme param:", theme);
-        console.log("[ChartJS] - detectCurrentTheme():", currentTheme);
+        console.log("[ChartJS] - resolved theme:", currentTheme);
+
+        // Configure dataset interpolation
+        let tension = smoothing / 100;
+        let stepped = false;
+        let cubicInterpolationMode = "default";
+
+        if (interpolation === "step") {
+            stepped = true;
+            tension = 0;
+        } else if (interpolation === "monotone") {
+            cubicInterpolationMode = "monotone";
+        } else {
+            // linear / default
+            stepped = false;
+            cubicInterpolationMode = "default";
+        }
 
         // Get field color
         const fieldColor = customColors[field] || getFieldColor(field),
@@ -51,6 +88,7 @@ export function createEnhancedChart(canvas, options) {
                 backgroundColor: showFill ? hexToRgba(fieldColor, 0.2) : "transparent",
                 borderColor: fieldColor,
                 borderWidth: 2,
+                cubicInterpolationMode,
                 data: chartData,
                 parsing: false,
                 fill: showFill,
@@ -60,13 +98,15 @@ export function createEnhancedChart(canvas, options) {
                 pointHoverRadius: 5,
                 pointRadius: showPoints ? 3 : 0,
                 spanGaps: enableSpanGaps,
-                tension: smoothing / 100,
+                stepped,
+                tension,
             };
 
         // Adjust dataset for chart type
         if (chartType === "bar") {
             dataset.backgroundColor = fieldColor;
             dataset.borderWidth = 1;
+            // Bar charts don't use tension/stepped in the same way, but it's fine to have them
         } else if (chartType === "scatter") {
             /** @type {any} */ (dataset).showLine = false;
             dataset.pointRadius = 4;
@@ -78,17 +118,22 @@ export function createEnhancedChart(canvas, options) {
                 datasets: [dataset],
             },
             options: {
-                animation: {
-                    duration:
-                        animationStyle === "none"
-                            ? 0
-                            : animationStyle === "fast"
-                              ? 500
-                              : animationStyle === "slow"
-                                ? 2000
-                                : 1000,
-                    easing: interpolation,
-                },
+                                animation: {
+                                        duration:
+                                                animationStyle === "none"
+                                                        ? 0
+                                                        : animationStyle === "fast"
+                                                            ? 500
+                                                            : animationStyle === "slow"
+                                                                ? 2000
+                                                                : 1000,
+                                        easing:
+                                                animationStyle === "fast"
+                                                        ? "easeInOut"
+                                                        : animationStyle === "none" || animationStyle === "normal" || !animationStyle
+                                                            ? "linear"
+                                                            : "easeOutQuart",
+                                },
                 interaction: {
                     intersect: false,
                     mode: "index",
@@ -121,7 +166,7 @@ export function createEnhancedChart(canvas, options) {
                             weight: "bold",
                         },
                         padding: 20,
-                        text: `${fieldLabels[field] || field} (${getUnitSymbol(field)})`,
+                        text: `${fieldLabels[field] || field} (${getLocalUnitSymbol(field)})`,
                     },
                     tooltip: {
                         backgroundColor: currentTheme === "dark" ? "#222" : "#fff",
@@ -134,41 +179,52 @@ export function createEnhancedChart(canvas, options) {
                              */
                             label(context) {
                                 const value = context.parsed.y;
-
-                                // Use enhanced tooltip formatting with unit conversion
-                                // For chart data, we need to get the original raw value for tooltip
-                                // Since chart data is already converted, we need to convert back for tooltip display
                                 let rawValue = value;
 
-                                // Convert chart value back to raw value for tooltip formatting
-                                if (field === "distance" || field === "altitude" || field === "enhancedAltitude") {
-                                    const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
+                                switch (field) {
+                                case "altitude":
+                                case "distance":
+                                case "enhancedAltitude": {
                                     switch (distanceUnits) {
                                         case "feet": {
-                                            rawValue = value / 3.280_84; // Convert feet back to meters
+                                            rawValue = value / 3.280_84;
                                             break;
                                         }
                                         case "kilometers": {
-                                            rawValue = value * 1000; // Convert km back to meters
+                                            rawValue = value * 1000;
                                             break;
                                         }
                                         case "miles": {
-                                            rawValue = value * 1609.344; // Convert miles back to meters
+                                            rawValue = value * 1609.344;
                                             break;
                                         }
                                         default: {
                                             rawValue = value;
-                                        } // Already in meters
+                                        }
                                     }
-                                } else if (field === "temperature") {
-                                    const temperatureUnits =
-                                        localStorage.getItem("chartjs_temperatureUnits") || "celsius";
+
+                                break;
+                                }
+                                case "enhancedSpeed":
+                                case "speed": {
+                                    if (distanceUnits === "miles" || distanceUnits === "feet") {
+                                        rawValue = value / 2.236_936;
+                                    } else {
+                                        rawValue = value / 3.6;
+                                    }
+
+                                break;
+                                }
+                                case "temperature": {
                                     if (temperatureUnits === "fahrenheit") {
-                                        rawValue = ((value - 32) * 5) / 9; // Convert F back to C
+                                        rawValue = ((value - 32) * 5) / 9;
                                     }
+
+                                break;
+                                }
+                                // No default
                                 }
 
-                                // Use the enhanced tooltip formatting
                                 return `${context.dataset.label}: ${formatTooltipWithUnits(rawValue, field)}`;
                             },
                             /**
@@ -197,17 +253,13 @@ export function createEnhancedChart(canvas, options) {
                              * @param {any} value
                              */
                             callback(value) {
-                                // Convert time based on user preference for display
-                                const timeUnits = localStorage.getItem("chartjs_timeUnits") || "seconds",
-                                    convertedValue = convertTimeUnits(value, timeUnits);
+                                const convertedValue = convertTimeUnits(value, timeUnits);
 
-                                // Format based on selected units
                                 if (timeUnits === "hours") {
                                     return `${convertedValue.toFixed(2)}h`;
                                 } else if (timeUnits === "minutes") {
                                     return `${convertedValue.toFixed(1)}m`;
                                 }
-                                // For seconds, use the formatTime function for MM:SS display
                                 return formatTime(value);
                             },
                             color: currentTheme === "dark" ? "#fff" : "#000",
@@ -220,7 +272,7 @@ export function createEnhancedChart(canvas, options) {
                                 size: 12,
                                 weight: "bold",
                             },
-                            text: `Time (${getUnitSymbol("time", "time")})`,
+                            text: `Time (${getLocalUnitSymbol("time", "time")})`,
                         },
                         type: "linear",
                         ...(axisRanges &&
@@ -254,7 +306,7 @@ export function createEnhancedChart(canvas, options) {
                                 size: 12,
                                 weight: "bold",
                             },
-                            text: `${fieldLabels[field] || field} (${getUnitSymbol(field)})`,
+                            text: `${fieldLabels[field] || field} (${getLocalUnitSymbol(field)})`,
                         },
                         ...(axisRanges &&
                         axisRanges.y &&
@@ -296,3 +348,10 @@ export function createEnhancedChart(canvas, options) {
         return null;
     }
 }
+
+/**
+ * Helper function to determine unit symbol based on passed options.
+ * @param {string} f - The field for which to get the unit symbol.
+ * @param {string} type - The type of unit, e.g., "time".
+ * @returns {string} - The unit symbol.
+ */

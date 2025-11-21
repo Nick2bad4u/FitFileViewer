@@ -13,7 +13,7 @@
  * @example
  * getUnitSymbol("distance");           // "km" (if user prefers kilometers)
  * getUnitSymbol("temperature");        // "°C" (if user prefers celsius)
- * getUnitSymbol("speed");              // "m/s" (always m/s for speed)
+ * getUnitSymbol("speed");              // "km/h" or "mph" based on distance units
  * getUnitSymbol("time", "time");       // "s" (if user prefers seconds)
  * getUnitSymbol("heartRate");          // "bpm" (fixed for heart rate)
  */

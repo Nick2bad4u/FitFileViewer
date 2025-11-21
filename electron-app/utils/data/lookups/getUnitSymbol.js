@@ -48,7 +48,9 @@ const // Default unit preferences
             miles: "mi",
         },
         SPEED: {
-            default: "m/s", // Always show m/s for speed fields
+            default: "m/s", // Fallback
+            kmh: "km/h",
+            mph: "mph",
         },
         TEMPERATURE: {
             celsius: "°C",
@@ -76,7 +78,7 @@ const // Default unit preferences
  * @example
  * getUnitSymbol("distance");           // "km" (if user prefers kilometers)
  * getUnitSymbol("temperature");        // "°C" (if user prefers celsius)
- * getUnitSymbol("speed");              // "m/s" (always m/s for speed)
+ * getUnitSymbol("speed");              // "km/h" or "mph" based on distance units
  * getUnitSymbol("time", "time");       // "s" (if user prefers seconds)
  * getUnitSymbol("heartRate");          // "bpm" (fixed for heart rate)
  */
@@ -103,9 +105,13 @@ export function getUnitSymbol(field, unitType) {
             return getTemperatureUnitSymbol();
         }
 
-        // Handle speed fields (always m/s for consistency in tooltips)
+        // Handle speed fields
         if (isSpeedField(field)) {
-            return UNIT_SYMBOLS.SPEED.default;
+            const distanceUnits = getUserPreference(STORAGE_KEYS.DISTANCE_UNITS, DEFAULT_UNITS.DISTANCE);
+            if (distanceUnits === "miles" || distanceUnits === "feet") {
+                return UNIT_SYMBOLS.SPEED.mph;
+            }
+            return UNIT_SYMBOLS.SPEED.kmh;
         }
 
         // Fallback to predefined field labels for fitness metrics

@@ -168,9 +168,9 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(Chart).toHaveBeenCalled();
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.data.datasets[0].data).toEqual([
-                { x: 1, y: 5.5 }, // Distance converted from meters to km, speed stays same (no conversion)
-                { x: 2, y: 6.0 },
-                { x: 2.5, y: 5.2 },
+                { x: 1, y: 19.8 }, // Distance converted from meters to km, speed converted to km/h
+                { x: 2, y: 21.6 },
+                { x: 2.5, y: 18.72 },
             ]);
         });
 
@@ -189,8 +189,8 @@ describe("renderSpeedVsDistanceChart.js - Speed vs Distance Chart Utility", () =
             expect(Chart).toHaveBeenCalled();
             const chartConfig = Chart.mock.calls[0][1];
             expect(chartConfig.data.datasets[0].data).toEqual([
-                { x: 1, y: 5.8 }, // enhancedSpeed used instead of speed, no conversion
-                { x: 2, y: 6.2 },
+                { x: 1, y: 20.88 }, // enhancedSpeed used instead of speed, converted to km/h
+                { x: 2, y: 22.32 },
             ]);
         });
 

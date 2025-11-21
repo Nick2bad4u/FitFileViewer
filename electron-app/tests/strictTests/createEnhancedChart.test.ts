@@ -644,6 +644,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 zoomPluginConfig: {},
                 fieldLabels: { temperature: "Temperature" },
                 theme: "light",
+                temperatureUnits: "fahrenheit",
             };
 
             createEnhancedChart(canvas, options);
@@ -770,6 +771,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 zoomPluginConfig: {},
                 fieldLabels: {},
                 theme: "light",
+                timeUnits: "minutes",
             };
 
             createEnhancedChart(canvas, options);
@@ -801,6 +803,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 zoomPluginConfig: {},
                 fieldLabels: {},
                 theme: "light",
+                timeUnits: "hours",
             };
 
             createEnhancedChart(canvas, options);
@@ -832,6 +835,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
                 zoomPluginConfig: {},
                 fieldLabels: {},
                 theme: "light",
+                timeUnits: "seconds",
             };
 
             createEnhancedChart(canvas, options);

@@ -2,7 +2,6 @@ import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { convertDistanceUnits } from "../converters/convertDistanceUnits.js";
 import { convertTemperatureUnits } from "../converters/convertTemperatureUnits.js";
 import { convertValueToUserUnits } from "../converters/convertValueToUserUnits.js";
-import { formatSpeedTooltip } from "./formatSpeedTooltip.js";
 
 /**
  * Formats tooltip with units based on user preferences
@@ -13,25 +12,30 @@ import { formatSpeedTooltip } from "./formatSpeedTooltip.js";
 export function formatTooltipWithUnits(value, field) {
     // Distance fields - show both metric and imperial
     if (field === "distance" || field === "altitude" || field === "enhancedAltitude") {
-        const km = convertDistanceUnits(value, "kilometers"),
-            miles = convertDistanceUnits(value, "miles");
-        return `${km.toFixed(2)} km (${miles.toFixed(2)} mi)`;
-    }
+        const distanceUnits = localStorage.getItem("chartjs_distanceUnits") || "kilometers";
+        const km = convertDistanceUnits(value, "kilometers");
+        const miles = convertDistanceUnits(value, "miles");
 
-    // Speed fields - show all three units
-    if (field === "speed" || field === "enhancedSpeed") {
-        return formatSpeedTooltip(value);
+        if (distanceUnits === "miles" || distanceUnits === "feet") {
+            return `${miles.toFixed(2)} mi (${km.toFixed(2)} km)`;
+        }
+        return `${km.toFixed(2)} km (${miles.toFixed(2)} mi)`;
     }
 
     // Temperature fields - show both scales
     if (field === "temperature") {
-        const celsius = value, // Assuming input is Celsius
-            fahrenheit = convertTemperatureUnits(celsius, "fahrenheit");
+        const temperatureUnits = localStorage.getItem("chartjs_temperatureUnits") || "celsius";
+        const celsius = value; // Assuming input is Celsius
+        const fahrenheit = convertTemperatureUnits(celsius, "fahrenheit");
+
+        if (temperatureUnits === "fahrenheit") {
+            return `${fahrenheit.toFixed(1)}°F (${celsius.toFixed(1)}°C)`;
+        }
         return `${celsius.toFixed(1)}°C (${fahrenheit.toFixed(1)}°F)`;
     }
 
-    // Default formatting for other fields
-    const convertedValue = convertValueToUserUnits(value, field),
-        unitSymbol = getUnitSymbol(field);
+    // Default formatting for other fields (including speed)
+    const convertedValue = convertValueToUserUnits(value, field);
+    const unitSymbol = getUnitSymbol(field);
     return `${convertedValue.toFixed(2)}${unitSymbol ? ` ${unitSymbol}` : ""}`;
 }
