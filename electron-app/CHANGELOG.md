@@ -7,9 +7,64 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[63dc97f](https://github.com/Nick2bad4u/FitFileViewer/commit/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1)...
+[63dc97f](https://github.com/Nick2bad4u/FitFileViewer/commit/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1...63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 29.3.0 [`(63dc97f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1)
+
+
+
+
+
+
+## [29.3.0] - 2025-11-21
+
+
 [[81200de](https://github.com/Nick2bad4u/FitFileViewer/commit/81200de31e320db53fdba617d2d9ede662e6ff96)...
-[81200de](https://github.com/Nick2bad4u/FitFileViewer/commit/81200de31e320db53fdba617d2d9ede662e6ff96)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/81200de31e320db53fdba617d2d9ede662e6ff96...81200de31e320db53fdba617d2d9ede662e6ff96))
+[98de7af](https://github.com/Nick2bad4u/FitFileViewer/commit/98de7af734ad2f57a111337718f69983da815de0)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/81200de31e320db53fdba617d2d9ede662e6ff96...98de7af734ad2f57a111337718f69983da815de0))
+
+
+### 💼 Other
+
+- ✨ [feat] Refactor chart rendering and improve IPC handling
+
+ - 🔧 [fix] Fixed bug with chart conversion between km/meter/feet/miles
+ - 🔧 [build] Introduced `createManagedChart` utility for consistent chart management across multiple chart rendering functions.
+ - 🛠️ [fix] Updated `renderLapZoneChart`, `renderPowerVsHeartRateChart`, `renderSpeedVsDistanceChart`, and `renderZoneChartNew` to utilize `createManagedChart` for better chart instance management.
+ - 🔧 [build] Enhanced `renderPowerVsHeartRateChart` and `renderSpeedVsDistanceChart` to use `chartSettingsManager` for field visibility instead of localStorage.
+ - 🎨 [style] Improved code readability by restructuring conditional statements and ensuring consistent formatting.
+ - 🔧 [build] Changed IPC channel for FIT file decoding from `"decode-fit-file"` to `"fit:decode"` for better clarity and consistency.
+ - 🎨 [style] Updated debug logging in `debugSensorInfo` to use a more appropriate emoji for formatted product output.
+ - 🎨 [style] Changed the icon for the export ZIP functionality in settings to a folder emoji for better visual representation.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(98de7af)`](https://github.com/Nick2bad4u/FitFileViewer/commit/98de7af734ad2f57a111337718f69983da815de0)
+
+
+- ✨ [feat] Enhance chart rendering with unit preferences and theme detection
+ - 🔧 [build] Introduce unit preferences for time, distance, temperature, and speed in chart options
+ - 🛠️ [fix] Update `createEnhancedChart` to use local unit symbols based on user preferences
+ - 🎨 [style] Improve tooltip formatting to display values in user-selected units
+ - ⚡ [perf] Optimize dataset interpolation settings for smoother rendering
+ - 🔧 [build] Add theme detection logic to apply user-defined or auto themes in charts
+ - 📝 [docs] Update documentation for new options in chart rendering functions
+ - 🎨 [style] Refactor rendering functions for altitude, power vs heart rate, and speed vs distance charts to support unit preferences
+ - 🔧 [build] Modify `getUnitSymbol` to return appropriate speed units based on distance preferences
+ - 🛠️ [fix] Adjust `convertValueToUserUnits` to handle speed conversions correctly
+ - 📝 [docs] Enhance tooltip display for distance and speed to show both metric and imperial units
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(17bed1a)`](https://github.com/Nick2bad4u/FitFileViewer/commit/17bed1ae788d8847ba272c0434dc22fc4290d0d4)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v29.2.0 [skip ci] [`(60f3f77)`](https://github.com/Nick2bad4u/FitFileViewer/commit/60f3f770f6d680c4435b56601d1ff845c5e34ff4)
+
 
 
 ### 📦 Dependencies
