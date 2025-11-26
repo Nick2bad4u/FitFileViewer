@@ -7,9 +7,66 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
+[[dfa4751](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)...
+[dfa4751](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5...dfa4751657b6944937d5ccbbd7c5ab89c42a4da5))
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 29.4.0 [`(dfa4751)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)
+
+
+
+
+
+
+## [29.4.0] - 2025-11-26
+
+
 [[63dc97f](https://github.com/Nick2bad4u/FitFileViewer/commit/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1)...
-[63dc97f](https://github.com/Nick2bad4u/FitFileViewer/commit/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1...63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1))
+[466fa4c](https://github.com/Nick2bad4u/FitFileViewer/commit/466fa4c2bb31ab6c0f7ebdfbe64f2f04f0755236)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/63dc97f1847bf07e48a1f99eb4dba4cf003f0cb1...466fa4c2bb31ab6c0f7ebdfbe64f2f04f0755236))
+
+
+### 💼 Other
+
+- 🔧 [build] Update dependencies and package manager version
+ - Updated `@vitest/ui` from `^4.0.13` to `^4.0.14`
+ - Updated `@typescript-eslint/eslint-plugin` from `^8.47.0` to `^8.48.0`
+ - Updated `@vitest/coverage-v8` from `^4.0.13` to `^4.0.14`
+ - Updated `vitest` from `^4.0.13` to `^4.0.14`
+ - Updated `npm` version from `11.6.3` to `11.6.4`
+
+📝 [docs] Improve parameter documentation in rendererUtils.js
+ - Changed parameter name from `isLoading` to `loading` in `setLoading` function for clarity
+
+📝 [docs] Enhance documentation in chartOverlayColorPalette.js
+ - Updated parameter description from `array` to `inputArray` for better understanding
+
+📝 [docs] Clarify error handling initialization documentation
+ - Added details about the `_options` parameter in `initializeErrorHandling` function
+
+📝 [docs] Refine logging function documentation
+ - Added typedef for `RendererLogger` and clarified the purpose of `createRendererLogger`
+
+📝 [docs] Update state management documentation
+ - Changed parameter name from `options` to `_options` in `setLegacyState` for consistency
+
+📝 [docs] Improve state validator documentation
+ - Updated typedef for `StateValidator` to include parameter types
+
+🎨 [style] Add Mermaid configuration file
+ - Created `mermaid.config.json` with dark theme and customized theme variables for better visualization
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(466fa4c)`](https://github.com/Nick2bad4u/FitFileViewer/commit/466fa4c2bb31ab6c0f7ebdfbe64f2f04f0755236)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v29.3.0 [skip ci] [`(13462a9)`](https://github.com/Nick2bad4u/FitFileViewer/commit/13462a91235d3be7b17be7137b17ad4f8d798426)
+
 
 
 ### 📦 Dependencies
