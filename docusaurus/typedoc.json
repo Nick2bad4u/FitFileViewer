@@ -1,0 +1,186 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "categoryOrder": [
+        "UI Components",
+        "Visualization",
+        "Maps",
+        "Charts",
+        "Tables",
+        "Data Processing",
+        "Formatting",
+        "State Management",
+        "File Operations",
+        "Utilities",
+        "Constants",
+        "*"
+    ],
+    "cleanOutputDir": true,
+    "commentStyle": "all",
+    "entryPointStrategy": "expand",
+    "entryPoints": [
+    "../electron-app/**/*.{ts,mts,cts,tsx,js,jsx}"
+    ],
+    "tsconfig": "../electron-app/tsconfig.json",
+    "skipErrorChecking": true,
+    "emit": "docs",
+    "exclude": [
+        "**/dist/**",
+        "**/node_modules/**",
+        "**/coverage/**",
+        "**/build/**",
+        "**/out/**",
+        "**/tmp/**",
+        "**/test/**",
+        "**/tests/**",
+        "**/spec/**",
+        "**/specs/**",
+        "**/examples/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/mock*",
+        "**/test-*",
+        "**/setupTests*",
+        "**/vendor/**",
+        "**/types/**",
+        "**/*.d.ts",
+        "**/html/**",
+        "**/assets/**",
+        "**/__mocks__/**",
+        "**/utils/files/export/gpxExport.js"
+    ],
+    "blockTags": [
+        "@fileoverview",
+        "@version",
+        "@ts-nocheck",
+        "@ts-check",
+        "@defaultValue",
+        "@description",
+        "@deprecated",
+        "@example",
+        "@jsx",
+        "@param",
+        "@privateRemarks",
+        "@remarks",
+        "@returns",
+        "@see",
+        "@throws",
+        "@typeParam",
+        "@author",
+        "@callback",
+        "@category",
+        "@categoryDescription",
+        "@default",
+        "@document",
+        "@extends",
+        "@augments",
+        "@yields",
+        "@group",
+        "@groupDescription",
+        "@import",
+        "@inheritDoc",
+        "@license",
+        "@module",
+        "@mergeModuleWith",
+        "@prop",
+        "@property",
+        "@return",
+        "@satisfies",
+        "@since",
+        "@sortStrategy",
+        "@template",
+        "@this",
+        "@type",
+        "@typedef",
+        "@summary",
+        "@preventInline",
+        "@inlineType",
+        "@preventExpand",
+        "@expandType",
+        "@exports"
+    ],
+    "excludeInternal": false,
+    "excludeNotDocumented": false,
+    "excludePrivate": false,
+    "excludeProtected": false,
+    "expandObjects": true,
+    "expandParameters": true,
+    "externalSymbolLinkMappings": {
+        "electron": {
+            "BrowserWindow": "https://www.electronjs.org/docs/latest/api/browser-window",
+            "Menu": "https://www.electronjs.org/docs/latest/api/menu",
+            "app": "https://www.electronjs.org/docs/latest/api/app",
+            "dialog": "https://www.electronjs.org/docs/latest/api/dialog",
+            "ipcMain": "https://www.electronjs.org/docs/latest/api/ipc-main",
+            "ipcRenderer": "https://www.electronjs.org/docs/latest/api/ipc-renderer"
+        },
+        "chart.js": {
+            "Chart": "https://www.chartjs.org/docs/latest/getting-started/"
+        },
+        "leaflet": {
+            "L": "https://leafletjs.com/reference.html",
+            "Map": "https://leafletjs.com/reference.html#map"
+        },
+        "javascript": {
+            "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+            "Date": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+            "Error": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+            "Map": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+            "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+            "Set": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set"
+        },
+        "node": {
+            "Buffer": "https://nodejs.org/docs/latest/api/buffer.html#class-buffer",
+            "fs": "https://nodejs.org/docs/latest/api/fs.html",
+            "path": "https://nodejs.org/docs/latest/api/path.html"
+        }
+    },
+    "gitRevision": "main",
+    "githubPages": true,
+    "hideGenerator": false,
+    "includeVersion": true,
+    "jsDocCompatibility": {
+        "defaultTag": true,
+        "exampleTag": true,
+        "ignoreUnescapedBraces": true,
+        "inheritDocTag": true
+    },
+    "kindSortOrder": [
+        "Document",
+        "Module",
+        "Namespace",
+        "Class",
+        "Interface",
+        "TypeAlias",
+        "Function",
+        "Variable",
+        "Property",
+        "Method"
+    ],
+    "name": "FitFileViewer - API Documentation",
+    "out": "docs/api",
+    "plugin": [
+        "typedoc-plugin-markdown"
+    ],
+    "preserveLinkText": true,
+    "pretty": true,
+    "readme": "none",
+    "searchInComments": true,
+    "sort": [
+        "source-order",
+        "alphabetical"
+    ],
+    "treatWarningsAsErrors": false,
+    "intentionallyNotExported": [
+        "FitFileRecord"
+    ],
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "noErrorTruncation": false
+    },
+    "validation": {
+        "invalidLink": false,
+        "notDocumented": false,
+        "notExported": false
+    }
+}

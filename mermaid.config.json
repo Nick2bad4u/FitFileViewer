@@ -1,0 +1,30 @@
+{
+    "mermaid": {
+        "theme": "dark",
+        "themeVariables": {
+            "primaryColor": "#4ade80",
+            "primaryTextColor": "#fff",
+            "primaryBorderColor": "#22c55e",
+            "lineColor": "#4ade80",
+            "secondaryColor": "#3b82f6",
+            "tertiaryColor": "#1a1a2e",
+            "background": "#1a1a2e",
+            "mainBkg": "#16162a",
+            "secondBkg": "#0f0f1e",
+            "fontFamily": "system-ui, sans-serif"
+        },
+        "flowchart": {
+            "curve": "basis",
+            "padding": 15
+        },
+        "sequence": {
+            "diagramMarginX": 50,
+            "diagramMarginY": 10,
+            "actorMargin": 50,
+            "width": 150,
+            "height": 65,
+            "boxMargin": 10,
+            "useMaxWidth": true
+        }
+    }
+}

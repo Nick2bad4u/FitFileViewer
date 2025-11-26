@@ -1,0 +1,52 @@
+.features {
+  padding: 4rem 0;
+  background: var(--ifm-background-color);
+}
+
+.featuresTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+}
+
+.featureCard {
+  background: var(--ifm-background-surface-color);
+  border-radius: var(--ifm-global-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  height: 100%;
+  transition: all 0.3s ease;
+  border: 1px solid rgb(255 255 255 / 5%);
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 15%);
+  border-color: var(--ifm-color-primary);
+}
+
+.featureIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.featureTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.featureDescription {
+  color: var(--ifm-font-color-secondary);
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (width <= 996px) {
+  .features {
+    padding: 2rem 0;
+  }
+}

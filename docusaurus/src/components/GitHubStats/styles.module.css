@@ -1,0 +1,27 @@
+.githubStats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.statBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  color: var(--ifm-font-color-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.statBadge:hover {
+  background: rgb(255 255 255 / 10%);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  border-color: var(--ifm-color-primary);
+}

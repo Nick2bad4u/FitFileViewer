@@ -703,6 +703,7 @@ jobs:
                       | Windows  | ia32 / win32 | MSI TAR.XZ       | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.xz](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.tar.xz) |
                       | Windows  | ia32 / win32 | MSI ZIP          | [Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-msi-ia32-${{ needs.bump-version.outputs.new_version }}.zip) |
                       | Windows  | ia32 / win32 | Portable         | [Fit-File-Viewer-portable-ia32-${{ needs.bump-version.outputs.new_version }}.exe](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/Fit-File-Viewer-portable-ia32-${{ needs.bump-version.outputs.new_version }}.exe) |
+                      | Windows  | Win7 (legacy)| Portable EXE / ZIP| [Fit-File-Viewer-win7-v${{ needs.bump-version.outputs.new_version }}.exe / .exe.zip](https://github.com/${{ github.repository }}/releases/download/v${{ needs.bump-version.outputs.new_version }}/) |
 
                       | Mac      | Builds       | Format           | Download Link |
                       |----------|--------------|------------------|---------------|

@@ -55,7 +55,7 @@ export function isLoading() {
 /**
  * Shows or hides the loading overlay and updates the cursor style with state integration.
  *
- * @param {boolean} isLoading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
+ * @param {boolean} loading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
  */
 export function setLoading(loading) {
     // Update state first

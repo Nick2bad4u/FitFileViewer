@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">FitFileViewer Map View (Placeholder)</title>
+  <desc id="desc">Stylized placeholder illustration representing the FitFileViewer map view with a route line and waypoints.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="route" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="640" height="360" fill="url(#bg)" />
+
+  <!-- Grid -->
+  <g stroke="#1f2937" stroke-width="1">
+    <path d="M80 40 V320" />
+    <path d="M200 40 V320" />
+    <path d="M320 40 V320" />
+    <path d="M440 40 V320" />
+    <path d="M560 40 V320" />
+
+    <path d="M40 80 H600" />
+    <path d="M40 160 H600" />
+    <path d="M40 240 H600" />
+    <path d="M40 320 H600" />
+  </g>
+
+  <!-- Route path -->
+  <path d="M70 300
+           C 120 260 150 240 190 230
+           C 240 215 260 200 290 180
+           C 340 150 360 130 400 120
+           C 450 110 480 130 520 100
+           C 550 80 580 70 600 60"
+        fill="none" stroke="url(#route)" stroke-width="6" stroke-linecap="round" />
+
+  <!-- Waypoints -->
+  <g fill="#0f172a" stroke-width="3">
+    <circle cx="70" cy="300" r="8" stroke="#22c55e" />
+    <circle cx="220" cy="220" r="7" stroke="#22c55e" />
+    <circle cx="320" cy="170" r="7" stroke="#3b82f6" />
+    <circle cx="430" cy="125" r="7" stroke="#3b82f6" />
+    <circle cx="600" cy="60" r="8" stroke="#f97316" />
+  </g>
+
+  <!-- Labels -->
+  <text x="56" y="322" fill="#e5e7eb" font-size="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Start</text>
+  <text x="582" y="52" fill="#e5e7eb" font-size="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Finish</text>
+
+  <!-- Overlay card -->
+  <rect x="36" y="24" width="200" height="72" rx="10" ry="10" fill="#020617" opacity="0.9" stroke="#1f2937" />
+  <text x="52" y="46" fill="#e5e7eb" font-size="14" font-weight="600" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    Afternoon Ride
+  </text>
+  <text x="52" y="66" fill="#9ca3af" font-size="12" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    25.4 km · 1:15:23 · 540 m+
+  </text>
+  <text x="52" y="82" fill="#6b7280" font-size="11" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    Placeholder map preview
+  </text>
+</svg>

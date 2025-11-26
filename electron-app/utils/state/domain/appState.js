@@ -24,7 +24,9 @@
  */
 
 /**
- * @typedef {function(*, *): boolean} StateValidator
+ * State validator function signature.
+ *
+ * @typedef {(value: object, context: object) => boolean} StateValidator
  */
 
 /**

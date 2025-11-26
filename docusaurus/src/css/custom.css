@@ -1,0 +1,699 @@
+/**
+ * Custom CSS for FitFileViewer documentation site
+ * Built with Docusaurus theming system
+ */
+
+/* ============================================
+   CSS Custom Properties (Theme Variables)
+   ============================================ */
+
+:root {
+  /* Primary brand colors - fitness/activity inspired */
+  --ifm-color-primary: #4ade80;
+  --ifm-color-primary-dark: #22c55e;
+  --ifm-color-primary-darker: #16a34a;
+  --ifm-color-primary-darkest: #15803d;
+  --ifm-color-primary-light: #86efac;
+  --ifm-color-primary-lighter: #bbf7d0;
+  --ifm-color-primary-lightest: #dcfce7;
+
+  /* Secondary accent colors */
+  --ifm-color-secondary: #3b82f6;
+  --ifm-color-secondary-dark: #2563eb;
+  --ifm-color-secondary-light: #60a5fa;
+
+  /* Code font settings */
+  --ifm-code-font-size: 95%;
+
+  /* Border radius */
+  --ifm-global-radius: 0.5rem;
+  --ifm-code-border-radius: 0.375rem;
+
+  /* Fonts */
+  --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --ifm-font-family-monospace: "JetBrains Mono", "Fira Code", Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  /* Documentation specific */
+  --docusaurus-highlighted-code-line-bg: rgb(72 77 91 / 40%);
+}
+
+/* Dark mode variables */
+[data-theme="dark"] {
+  --ifm-color-primary: #4ade80;
+  --ifm-color-primary-dark: #22c55e;
+  --ifm-color-primary-darker: #16a34a;
+  --ifm-color-primary-darkest: #15803d;
+  --ifm-color-primary-light: #86efac;
+  --ifm-color-primary-lighter: #bbf7d0;
+  --ifm-color-primary-lightest: #dcfce7;
+
+  --ifm-background-color: #1a1a2e;
+  --ifm-background-surface-color: #16162a;
+  --ifm-navbar-background-color: #0f0f1e;
+  --ifm-footer-background-color: #0f0f1e;
+
+  --docusaurus-highlighted-code-line-bg: rgb(100 115 125 / 30%);
+}
+
+/* ============================================
+   Global Styles
+   ============================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Navbar Styles
+   ============================================ */
+
+.navbar {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
+  backdrop-filter: blur(12px);
+}
+
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.navbar__item.persistent {
+  font-weight: 600;
+}
+
+.navbar__link:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* ============================================
+   Hero Section Styles
+   ============================================ */
+
+.heroSection {
+  padding: 4rem 0;
+  background: linear-gradient(180deg, var(--ifm-background-color) 0%, var(--ifm-background-surface-color) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.heroSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgb(74 222 128 / 10%) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.heroContent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+}
+
+.heroText {
+  flex: 1;
+  min-width: 300px;
+  max-width: 600px;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle .accent {
+  color: var(--ifm-color-primary);
+  display: block;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--ifm-font-color-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.heroCta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.heroDemo {
+  flex: 1;
+  min-width: 350px;
+  max-width: 500px;
+}
+
+/* Hide copy-page button on the homepage only */
+.page-home .copy-page-button__container,
+.home-page .copy-page-button__container {
+  display: none !important;
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+
+.button--primary,
+.primaryButton {
+  background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
+  border: none;
+  color: #1a1a2e;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--ifm-global-radius);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.button--primary:hover,
+.primaryButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgb(74 222 128 / 20%);
+  color: #1a1a2e;
+  text-decoration: none;
+}
+
+.secondaryButton {
+  background: transparent;
+  border: 2px solid var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--ifm-global-radius);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.secondaryButton:hover {
+  background: var(--ifm-color-primary);
+  color: #1a1a2e;
+  text-decoration: none;
+}
+
+/* ============================================
+   App Window Demo Styles
+   ============================================ */
+
+.appWindow {
+  background: var(--ifm-background-surface-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgb(0 0 0 / 20%);
+  gap: 0.75rem;
+}
+
+.appButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.appButtonRed,
+.appButtonYellow,
+.appButtonGreen {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.appButtonRed {
+  background: #ff5f57;
+}
+
+.appButtonYellow {
+  background: #febc2e;
+}
+
+.appButtonGreen {
+  background: #28c840;
+}
+
+.appTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.appBody {
+  padding: 1rem;
+}
+
+.appToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.addButton {
+  background: var(--ifm-color-primary);
+  color: #1a1a2e;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ifm-code-border-radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  transform: scale(1.02);
+}
+
+.statusCount {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.siteList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.siteItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgb(255 255 255 / 5%);
+  border-radius: var(--ifm-code-border-radius);
+}
+
+.siteStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.statusDot[data-status="up"] {
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+.statusDot[data-status="down"] {
+  background: #f87171;
+  box-shadow: 0 0 8px #f87171;
+}
+
+.siteUrl {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.875rem;
+}
+
+.siteMetrics {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* ============================================
+   Feature Cards
+   ============================================ */
+
+.featuresSection {
+  padding: 4rem 0;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.featureCard {
+  background: var(--ifm-background-surface-color);
+  border-radius: var(--ifm-global-radius);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgb(255 255 255 / 5%);
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 15%);
+  border-color: var(--ifm-color-primary);
+}
+
+.featureIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.featureTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.featureDescription {
+  color: var(--ifm-font-color-secondary);
+  line-height: 1.6;
+}
+
+/* ============================================
+   Status Section
+   ============================================ */
+
+.statusSection {
+  padding: 4rem 0;
+  background: var(--ifm-background-surface-color);
+}
+
+.sectionTitle {
+  text-align: center;
+  margin-bottom: 3rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.statusCard {
+  background: var(--ifm-background-color);
+  border-radius: var(--ifm-global-radius);
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 5%);
+}
+
+.statusHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.statusIndicator {
+  font-size: 1.25rem;
+}
+
+.statusText {
+  font-weight: 600;
+}
+
+.statusDescription {
+  color: var(--ifm-font-color-secondary);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ============================================
+   Tech Section
+   ============================================ */
+
+.techSection {
+  padding: 4rem 0;
+}
+
+.techContent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.techInfo {
+  flex: 1;
+  min-width: 300px;
+}
+
+.techFeatures {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.techFeature strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.techFeature p {
+  margin: 0;
+  color: var(--ifm-font-color-secondary);
+}
+
+.techCode {
+  flex: 1;
+  min-width: 350px;
+}
+
+.codeBlock {
+  background: #0d0d1a;
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgb(255 255 255 / 5%);
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.codeActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.copyButton,
+.viewButton {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 20%);
+  color: var(--ifm-font-color-base);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--ifm-code-border-radius);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.copyButton:hover,
+.viewButton:hover {
+  background: var(--ifm-color-primary);
+  color: #1a1a2e;
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.codeContent {
+  padding: 1rem;
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+/* ============================================
+   Scroll Reveal Animations
+   ============================================ */
+
+.scrollReveal,
+.scrollRevealLeft,
+.scrollRevealRight {
+  opacity: 0;
+  transition: all 0.6s ease-out;
+}
+
+.scrollReveal {
+  transform: translateY(30px);
+}
+
+.scrollRevealLeft {
+  transform: translateX(-30px);
+}
+
+.scrollRevealRight {
+  transform: translateX(30px);
+}
+
+.scrollReveal.visible,
+.scrollRevealLeft.visible,
+.scrollRevealRight.visible {
+  opacity: 1;
+  transform: translate(0);
+}
+
+/* ============================================
+   Gradient Text Animation
+   ============================================ */
+
+.gradient-text-animated {
+  background: linear-gradient(90deg, var(--ifm-font-color-base), var(--ifm-color-primary), var(--ifm-font-color-base));
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% center;
+  }
+
+  50% {
+    background-position: 100% center;
+  }
+
+  100% {
+    background-position: 0% center;
+  }
+}
+
+/* ============================================
+   GitHub Stats Component
+   ============================================ */
+
+.githubStats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.statBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  color: var(--ifm-font-color-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.statBadge:hover {
+  background: rgb(255 255 255 / 10%);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+
+/* ============================================
+   Footer Styles
+   ============================================ */
+
+.footer {
+  background: var(--ifm-footer-background-color);
+}
+
+.footer__title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* ============================================
+   Sidebar Styles
+   ============================================ */
+
+.menu__link--active {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* Category badges */
+.sb-cat-getting-started .menu__link,
+.sb-cat-user-guide .menu__link,
+.sb-cat-visualization .menu__link,
+.sb-cat-architecture .menu__link,
+.sb-cat-development .menu__link,
+.sb-cat-api .menu__link,
+.sb-cat-advanced .menu__link {
+  position: relative;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (width <= 768px) {
+  .heroContent {
+    flex-direction: column;
+  }
+
+  .heroText,
+  .heroDemo {
+    max-width: 100%;
+  }
+
+  .techContent {
+    flex-direction: column;
+  }
+
+  .heroTitle {
+    font-size: 2rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .navbar,
+  .footer,
+  .announcementBar,
+  .theme-toggle,
+  .pagination-nav {
+    display: none !important;
+  }
+}

@@ -1,0 +1,73 @@
+{
+    "name": "fitfileviewer-docs",
+    "version": "1.0.0",
+    "description": "Documentation website for FitFileViewer - Cross-platform .fit file viewer and analyzer",
+    "private": true,
+    "scripts": {
+        "docusaurus": "docusaurus",
+        "start": "docusaurus start",
+        "build": "npm run docs:typedoc && docusaurus build",
+        "build:local": "npm run docs:typedoc:local && docusaurus build",
+        "swizzle": "docusaurus swizzle",
+        "deploy": "docusaurus deploy",
+        "clear": "docusaurus clear",
+        "serve": "docusaurus serve",
+        "write-translations": "docusaurus write-translations",
+        "write-heading-ids": "docusaurus write-heading-ids",
+        "typecheck": "tsc --project tsconfig.json",
+        "docs:typedoc": "typedoc --options typedoc.json && node scripts/generate-api-categories.mjs",
+        "docs:typedoc:local": "typedoc --options typedoc.local.json && node scripts/generate-api-categories.mjs"
+    },
+    "dependencies": {
+        "@docusaurus/core": "^3.9.2",
+        "@docusaurus/preset-classic": "^3.9.2",
+        "@docusaurus/theme-live-codeblock": "^3.9.2",
+        "@docusaurus/theme-mermaid": "^3.9.2",
+        "@easyops-cn/docusaurus-search-local": "^0.52.1",
+        "@mdx-js/react": "^3.1.1",
+        "docusaurus-plugin-copy-page-button": "^0.3.5",
+        "docusaurus-plugin-image-zoom": "^3.0.1",
+        "docusaurus-plugin-llms": "^0.2.2",
+        "docusaurus-plugin-typedoc": "^1.4.2",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0"
+    },
+    "devDependencies": {
+        "@docusaurus/eslint-plugin": "^3.9.2",
+        "@docusaurus/module-type-aliases": "^3.9.2",
+        "@docusaurus/tsconfig": "^3.9.2",
+        "@docusaurus/types": "^3.9.2",
+        "@types/node": "^24.10.1",
+        "@types/react": "^19.2.7",
+        "@types/react-dom": "^19.2.3",
+        "clsx": "^2.1.1",
+        "prism-react-renderer": "^2.4.1",
+        "typedoc": "^0.28.14",
+        "typedoc-docusaurus-theme": "^1.4.2",
+        "typedoc-plugin-coverage": "^4.0.2",
+        "typedoc-plugin-dt-links": "^2.0.30",
+        "typedoc-plugin-external-package-links": "^0.2.0",
+        "typedoc-plugin-markdown": "^4.9.0",
+        "typedoc-plugin-mdn-links": "^5.0.10",
+        "typedoc-plugin-missing-exports": "^4.1.2",
+        "typedoc-plugin-remark": "^2.0.1",
+        "typedoc-plugin-rename-defaults": "^0.7.3",
+        "typedoc-plugin-replace-text": "^4.2.0",
+        "typescript": "^5.9.3"
+    },
+    "browserslist": {
+        "production": [
+            ">0.5%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 3 chrome version",
+            "last 3 firefox version",
+            "last 5 safari version"
+        ]
+    },
+    "engines": {
+        "node": ">=18.0"
+    }
+}
