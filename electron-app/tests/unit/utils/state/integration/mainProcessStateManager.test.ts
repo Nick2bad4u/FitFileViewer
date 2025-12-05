@@ -589,12 +589,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         });
 
         test("should maintain singleton behavior", async () => {
-            const { mainProcessState: instance1 } = await import(
-                "../../../../../utils/state/integration/mainProcessStateManager.js"
-            );
-            const { mainProcessState: instance2 } = await import(
-                "../../../../../utils/state/integration/mainProcessStateManager.js"
-            );
+            const { mainProcessState: instance1 } =
+                await import("../../../../../utils/state/integration/mainProcessStateManager.js");
+            const { mainProcessState: instance2 } =
+                await import("../../../../../utils/state/integration/mainProcessStateManager.js");
 
             expect(instance1).toBe(instance2);
         });

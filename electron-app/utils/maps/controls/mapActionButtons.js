@@ -83,8 +83,8 @@ function _centerMapOnMainFile() {
         }
         const hasValidBounds = Boolean(
             w._mainPolylineOriginalBounds &&
-                typeof w._mainPolylineOriginalBounds.isValid === "function" &&
-                w._mainPolylineOriginalBounds.isValid()
+            typeof w._mainPolylineOriginalBounds.isValid === "function" &&
+            w._mainPolylineOriginalBounds.isValid()
         );
 
         if (!mainPolyline) {

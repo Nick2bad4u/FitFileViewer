@@ -17,9 +17,8 @@ describe("stateMiddleware additional branches", () => {
             .mockReturnValueOnce(10) // duration = 10ms
             .mockReturnValue(10);
 
-        const { registerMiddleware, executeMiddleware, cleanupMiddleware, MIDDLEWARE_PHASES } = await import(
-            "../utils/state/core/stateMiddleware.js"
-        );
+        const { registerMiddleware, executeMiddleware, cleanupMiddleware, MIDDLEWARE_PHASES } =
+            await import("../utils/state/core/stateMiddleware.js");
 
         registerMiddleware(
             "slowMW",
@@ -48,9 +47,8 @@ describe("stateMiddleware additional branches", () => {
             }
         });
 
-        const { registerMiddleware, executeMiddleware, cleanupMiddleware, MIDDLEWARE_PHASES } = await import(
-            "../utils/state/core/stateMiddleware.js"
-        );
+        const { registerMiddleware, executeMiddleware, cleanupMiddleware, MIDDLEWARE_PHASES } =
+            await import("../utils/state/core/stateMiddleware.js");
 
         // Middleware whose handler throws
         registerMiddleware(
@@ -186,9 +184,8 @@ describe("stateMiddleware additional branches", () => {
         vi.resetModules();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        const { initializeDefaultMiddleware, cleanupMiddleware } = await import(
-            "../utils/state/core/stateMiddleware.js"
-        );
+        const { initializeDefaultMiddleware, cleanupMiddleware } =
+            await import("../utils/state/core/stateMiddleware.js");
 
         // First call should initialize and log messages
         initializeDefaultMiddleware();

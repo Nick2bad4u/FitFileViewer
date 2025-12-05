@@ -15,9 +15,8 @@ describe("renderPerformanceAnalysisCharts", () => {
         const spd = await import("../../../../utils/charts/rendering/renderSpeedVsDistanceChart.js");
         const pvh = await import("../../../../utils/charts/rendering/renderPowerVsHeartRateChart.js");
         const alt = await import("../../../../utils/charts/rendering/renderAltitudeProfileChart.js");
-        const { renderPerformanceAnalysisCharts } = await import(
-            "../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js"
-        );
+        const { renderPerformanceAnalysisCharts } =
+            await import("../../../../utils/charts/rendering/renderPerformanceAnalysisCharts.js");
 
         const container = document.createElement("div");
         renderPerformanceAnalysisCharts(container, { points: [] }, [1, 2, 3], {});

@@ -371,10 +371,10 @@ export function initializeCommonComputedValues() {
             const records = state.globalData?.recordMesgs;
             return Boolean(
                 records &&
-                    records.some(
-                        /** @param {*} record */ (record) =>
-                            record.positionLat !== undefined && record.positionLong !== undefined
-                    )
+                records.some(
+                    /** @param {*} record */ (record) =>
+                        record.positionLat !== undefined && record.positionLong !== undefined
+                )
             );
         },
         ["globalData.recordMesgs"]

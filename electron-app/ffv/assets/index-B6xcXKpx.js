@@ -6039,7 +6039,6 @@ var Bd = /[ \f\n\r\t\v\u2028\u2029]+/,
                 x = 0,
                 S;
             b <= w && x <= l.length - 1;
-
         ) {
             var m = Math.floor((b + w) / 2),
                 g = m - 1,
@@ -7222,7 +7221,6 @@ function Wj(e, t) {
             i > 0 &&
             u > 0 &&
             (c + u + 1 > n && (u = Math.max(1, n - c)), a.push(r.substring((i -= u), i + u)), !((c += u + 1) > n));
-
         )
             u = e[(o = (o + 1) % e.length)];
         return a.reverse().join(t);
@@ -9295,7 +9293,6 @@ q.squareRoot = q.sqrt = function () {
             r = c.precision,
             i = o = r + 3;
         ;
-
     )
         if (((a = n), (n = a.plus(yt(u, a, o + 2)).times(0.5)), ot(a.d).slice(0, o) === (t = ot(n.d)).slice(0, o))) {
             if (((t = t.slice(o - 3, o + 1)), i == o && t == "4999")) {
@@ -9333,13 +9330,12 @@ q.times = q.mul = function (e) {
             o = c + s,
             n = o;
         n--;
-
     )
         a.push(0);
     for (n = s; --n >= 0; ) {
         for (t = 0, i = c + n; i > n; )
-            ((u = a[i] + h[n] * p[i - n - 1] + t), (a[i--] = u % _e | 0), (t = (u / _e) | 0));
-        a[i] = (a[i] + t) % _e | 0;
+            ((u = a[i] + h[n] * p[i - n - 1] + t), (a[i--] = (u % _e) | 0), (t = (u / _e) | 0));
+        a[i] = ((a[i] + t) % _e) | 0;
     }
     for (; !a[--o]; ) a.pop();
     return (t ? ++r : a.shift(), (e.d = a), (e.e = r), pe ? oe(e, l.precision) : e);
@@ -9410,7 +9406,6 @@ q.toPower = q.pow = function (e) {
             for (
                 i = new c(ze), t = Math.ceil(n / le + 4), pe = !1;
                 r % 2 && ((i = i.times(u)), Cf(i.d, t)), (r = Vr(r / 2)), r !== 0;
-
             )
                 ((u = u.times(u)), Cf(u.d, t));
             return ((pe = !0), e.s < 0 ? new c(ze).div(i) : oe(i, n));
@@ -9484,7 +9479,6 @@ function wv(e, t) {
                 a > u && ((a = u), (n.length = 1)),
                 n.reverse();
             a--;
-
         )
             n.push(0);
         n.reverse();
@@ -9516,7 +9510,7 @@ var yt = (function () {
         var a,
             o = 0,
             u = n.length;
-        for (n = n.slice(); u--; ) ((a = n[u] * i + o), (n[u] = a % _e | 0), (o = (a / _e) | 0));
+        for (n = n.slice(); u--; ) ((a = n[u] * i + o), (n[u] = (a % _e) | 0), (o = (a / _e) | 0));
         return (o && n.unshift(o), n);
     }
     function t(n, i, a, o) {
@@ -9568,7 +9562,7 @@ var yt = (function () {
             return new A(0);
         if (((w = (w / le + 2) | 0), (s = 0), O == 1))
             for (f = 0, T = T[0], w++; (s < m || f) && w--; s++)
-                ((x = f * _e + (P[s] || 0)), (d[s] = (x / T) | 0), (f = x % T | 0));
+                ((x = f * _e + (P[s] || 0)), (d[s] = (x / T) | 0), (f = (x % T) | 0));
         else {
             for (
                 f = (_e / (T[0] + 1)) | 0,
@@ -9577,7 +9571,6 @@ var yt = (function () {
                     v = P.slice(0, O),
                     y = v.length;
                 y < O;
-
             )
                 v[y++] = 0;
             ((_ = T.slice()), _.unshift(0), (g = T[0]), T[1] >= _e / 2 && ++g);
@@ -9700,7 +9693,6 @@ function Mf(e, t) {
                 : r < 0 && (r = t.length),
             n = 0;
         t.charCodeAt(n) === 48;
-
     )
         ++n;
     for (i = t.length; t.charCodeAt(i - 1) === 48; ) --i;
@@ -9736,7 +9728,7 @@ function oe(e, t, r) {
     if (
         (r !== void 0 &&
             ((a = Wt(10, o - i - 1)),
-            (u = (s / a) % 10 | 0),
+            (u = ((s / a) % 10) | 0),
             (c = t < 0 || l[f + 1] !== void 0 || s % a),
             (c =
                 r < 4
@@ -9745,7 +9737,7 @@ function oe(e, t, r) {
                       (u == 5 &&
                           (r == 4 ||
                               c ||
-                              (r == 6 && (n > 0 ? (i > 0 ? s / Wt(10, o - i) : 0) : l[f - 1]) % 10 & 1) ||
+                              (r == 6 && ((n > 0 ? (i > 0 ? s / Wt(10, o - i) : 0) : l[f - 1]) % 10) & 1) ||
                               r == (e.s < 0 ? 8 : 7))))),
         t < 1 || !l[0])
     )
@@ -9764,7 +9756,7 @@ function oe(e, t, r) {
             ? ((l.length = f), (a = 1), f--)
             : ((l.length = f + 1),
               (a = Wt(10, le - n)),
-              (l[f] = i > 0 ? ((s / Wt(10, o - i)) % Wt(10, i) | 0) * a : 0)),
+              (l[f] = i > 0 ? (((s / Wt(10, o - i)) % Wt(10, i)) | 0) * a : 0)),
         c)
     )
         for (;;)
@@ -9802,7 +9794,6 @@ function Sv(e, t) {
                 r.reverse(),
                 i = o;
             i--;
-
         )
             r.push(0);
         r.reverse();
@@ -18033,7 +18024,6 @@ function DR(e, t, r, n, i) {
             },
             p;
         s <= a.length;
-
     )
         if (((p = l()), p)) return p.v;
     return [];

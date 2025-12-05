@@ -121,7 +121,10 @@ export type StateValue = {
      */
     errors?: any;
 };
-export type StateValidator = (arg0: any, arg1: any) => boolean;
+/**
+ * State validator function signature.
+ */
+export type StateValidator = (value: object, context: object) => boolean;
 export const appState: AppStateManager;
 /**
  * Central application state with reactive properties

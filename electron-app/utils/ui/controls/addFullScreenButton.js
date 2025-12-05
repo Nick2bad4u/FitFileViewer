@@ -473,9 +473,9 @@ function nativeToggleFullscreen(target) {
 
         const isFs = Boolean(
             document.fullscreenElement ||
-                doc.webkitFullscreenElement ||
-                doc.mozFullScreenElement ||
-                doc.msFullscreenElement
+            doc.webkitFullscreenElement ||
+            doc.mozFullScreenElement ||
+            doc.msFullscreenElement
         );
         if (isFs) {
             const exit =

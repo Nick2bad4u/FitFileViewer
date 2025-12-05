@@ -217,9 +217,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should initialize complete state system (smoke)", async () => {
-            const { initializeCompleteStateSystem } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { initializeCompleteStateSystem } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -233,9 +232,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Integration functions", () => {
         it("should integrate with rendererUtils when available (smoke)", async () => {
-            const { integrateWithRendererUtils } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { integrateWithRendererUtils } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const mockSetGlobalData = vi.fn();
             const mockGetGlobalData = vi.fn().mockReturnValue({ test: "data" });
@@ -272,9 +270,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle missing rendererUtils gracefully", async () => {
-            const { integrateWithRendererUtils } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { integrateWithRendererUtils } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // No rendererUtils in globalThis
             integrateWithRendererUtils();
@@ -284,9 +281,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should migrate chartControlsState when available (smoke)", async () => {
-            const { migrateChartControlsState } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { migrateChartControlsState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             globalThis.chartControlsState = { isVisible: true };
 
@@ -314,9 +310,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         });
 
         it("should handle missing chartControlsState gracefully", async () => {
-            const { migrateChartControlsState } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { migrateChartControlsState } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // No chartControlsState in globalThis
             migrateChartControlsState();
@@ -330,9 +325,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         it("should set up performance monitoring with memory info (smoke)", async () => {
             vi.useFakeTimers();
 
-            const { setupStatePerformanceMonitoring } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { setupStatePerformanceMonitoring } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
             let subscribeCallback: any;
@@ -363,9 +357,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
             // Remove memory from performance mock
             delete (globalThis.performance as any).memory;
 
-            const { setupStatePerformanceMonitoring } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { setupStatePerformanceMonitoring } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             setupStatePerformanceMonitoring();
 
@@ -397,9 +390,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 return undefined;
             });
 
-            const { setupStatePersistence } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { setupStatePersistence } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -433,9 +425,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
                 throw new Error("localStorage not available");
             });
 
-            const { setupStatePersistence } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { setupStatePersistence } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -452,9 +443,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
         it("should handle JSON parsing errors gracefully", async () => {
             mockLocalStorage.getItem.mockReturnValue("invalid json");
 
-            const { setupStatePersistence } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { setupStatePersistence } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -471,9 +461,8 @@ describe("stateIntegration.js - Comprehensive Coverage", () => {
 
     describe("Utility functions", () => {
         it("should handle nested value operations correctly", async () => {
-            const { setupStatePersistence } = await import(
-                "../../../../../utils/state/integration/stateIntegration.js"
-            );
+            const { setupStatePersistence } =
+                await import("../../../../../utils/state/integration/stateIntegration.js");
 
             // Create a test object to test nested value operations
             const testObj = {};

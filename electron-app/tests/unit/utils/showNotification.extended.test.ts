@@ -8,9 +8,8 @@ import {
 
 // Access internal variables and functions for testing
 // @ts-ignore - Accessing internals for testing
-const { notificationQueue, isShowingNotification, processNotificationQueue } = await import(
-    "../../../utils/ui/notifications/showNotification.js"
-);
+const { notificationQueue, isShowingNotification, processNotificationQueue } =
+    await import("../../../utils/ui/notifications/showNotification.js");
 
 describe("showNotification.js - extended coverage", () => {
     const originalWarn = console.warn;

@@ -7,9 +7,8 @@ vi.mock("../../../utils/formatting/display/formatAntNames.js", () => ({
 }));
 
 // Import the module after mocking
-const { formatManufacturer, getAllManufacturerMappings, hasManufacturerMapping } = await import(
-    "../../../utils/formatting/formatters/formatManufacturer.js"
-);
+const { formatManufacturer, getAllManufacturerMappings, hasManufacturerMapping } =
+    await import("../../../utils/formatting/formatters/formatManufacturer.js");
 
 describe("formatManufacturer.js - Manufacturer Name Formatting", () => {
     beforeEach(() => {

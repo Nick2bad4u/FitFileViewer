@@ -931,9 +931,8 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 return stateMap[path];
             });
 
-            const { chartSettingsManager, getChartSeriesCacheStats, renderChartJS } = await import(
-                "../../../../../utils/charts/core/renderChartJS.js"
-            );
+            const { chartSettingsManager, getChartSeriesCacheStats, renderChartJS } =
+                await import("../../../../../utils/charts/core/renderChartJS.js");
 
             await renderChartJS();
 

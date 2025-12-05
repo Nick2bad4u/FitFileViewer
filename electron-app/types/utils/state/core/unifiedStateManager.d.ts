@@ -62,7 +62,7 @@ export class UnifiedStateManager {
      * @private
      * @param {string} path - State path
      * @param {*} value - Value to set
-     * @param {UnifiedStateOptions} options - Set options
+     * @param {UnifiedStateOptions} _options - Set options (currently unused)
      */
     private setLegacyState;
     /**

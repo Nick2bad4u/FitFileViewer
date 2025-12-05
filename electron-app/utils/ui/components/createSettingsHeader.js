@@ -882,8 +882,8 @@ function createFieldToggle(/** @type {string} */ field) {
             case "event_messages": {
                 hasValidData = Boolean(
                     /** @type {WindowExtensions} */ (globalThis).globalData?.eventMesgs &&
-                        Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
-                        /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
+                    Array.isArray(/** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs) &&
+                    /** @type {WindowExtensions} */ (globalThis).globalData.eventMesgs.length > 0
                 );
 
                 break;

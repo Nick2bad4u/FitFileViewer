@@ -164,7 +164,7 @@ export class UnifiedStateManager {
      * @private
      * @param {string} path - State path
      * @param {*} value - Value to set
-        * @param {UnifiedStateOptions} _options - Set options (currently unused)
+     * @param {UnifiedStateOptions} _options - Set options (currently unused)
      */
     setLegacyState(path, value, _options) {
         // Show deprecation warning once per path

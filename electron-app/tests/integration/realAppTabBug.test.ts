@@ -97,9 +97,8 @@ describe("Real App Integration: Tab Button Bug", () => {
 
     it("should simulate the exact real app initialization sequence", async () => {
         // Dynamic import after mocks are set up
-        const { setTabButtonsEnabled, initializeTabButtonState } = await import(
-            "../../utils/ui/controls/enableTabButtons.js"
-        );
+        const { setTabButtonsEnabled, initializeTabButtonState } =
+            await import("../../utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
         console.log("Starting real app simulation...");
@@ -157,9 +156,8 @@ describe("Real App Integration: Tab Button Bug", () => {
 
     it("should detect conflicts between multiple enable/disable calls", async () => {
         // Dynamic import after mocks are set up
-        const { setTabButtonsEnabled, initializeTabButtonState } = await import(
-            "../../utils/ui/controls/enableTabButtons.js"
-        );
+        const { setTabButtonsEnabled, initializeTabButtonState } =
+            await import("../../utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Set up mutation observer to track all changes
@@ -221,9 +219,8 @@ describe("Real App Integration: Tab Button Bug", () => {
 
     it("should test timing-sensitive scenarios", async () => {
         // Dynamic import after mocks are set up
-        const { setTabButtonsEnabled, initializeTabButtonState } = await import(
-            "../../utils/ui/controls/enableTabButtons.js"
-        );
+        const { setTabButtonsEnabled, initializeTabButtonState } =
+            await import("../../utils/ui/controls/enableTabButtons.js");
         const { initializeActiveTabState } = await import("../../utils/ui/tabs/updateActiveTab.js");
 
         // Initialize systems

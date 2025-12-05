@@ -697,9 +697,9 @@ describe("tabStateManager.js - Comprehensive Bug Detection Test Suite", () => {
                 // FIXED: Proper logic to check for valid data
                 const hasData = Boolean(
                     globalData &&
-                        globalData.recordMesgs &&
-                        Array.isArray(globalData.recordMesgs) &&
-                        globalData.recordMesgs.length > 0
+                    globalData.recordMesgs &&
+                    Array.isArray(globalData.recordMesgs) &&
+                    globalData.recordMesgs.length > 0
                 );
 
                 // BUG EXPOSED: The original logic would consider empty arrays as valid data

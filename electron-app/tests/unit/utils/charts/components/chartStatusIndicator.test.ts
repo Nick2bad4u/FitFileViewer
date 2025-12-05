@@ -137,9 +137,8 @@ describe("chartStatusIndicator.js", () => {
             document.body.appendChild(globalParent);
 
             // Import the module after setting up the DOM
-            const { updateAllChartStatusIndicators } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { updateAllChartStatusIndicators } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Call the function
             updateAllChartStatusIndicators();
@@ -161,12 +160,10 @@ describe("chartStatusIndicator.js", () => {
             document.body.appendChild(settingsParent);
 
             // Import the module after setting up the DOM
-            const { updateAllChartStatusIndicators } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
-            const { createGlobalChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js"
-            );
+            const { updateAllChartStatusIndicators } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
+            const { createGlobalChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/createGlobalChartStatusIndicator.js");
 
             // Call the function
             updateAllChartStatusIndicators();
@@ -177,9 +174,8 @@ describe("chartStatusIndicator.js", () => {
 
         it("should handle errors gracefully", async () => {
             // Import the module
-            const { updateAllChartStatusIndicators } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { updateAllChartStatusIndicators } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Mock getChartCounts to throw an error
             const { getChartCounts } = await import("../../../../../utils/charts/core/getChartCounts.js");
@@ -208,12 +204,10 @@ describe("chartStatusIndicator.js", () => {
             document.body.appendChild(parent);
 
             // Import the module
-            const { updateChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
-            const { createChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/createChartStatusIndicator.js"
-            );
+            const { updateChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
+            const { createChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/createChartStatusIndicator.js");
 
             // Call the function with a specific indicator
             updateChartStatusIndicator(indicator);
@@ -233,9 +227,8 @@ describe("chartStatusIndicator.js", () => {
             document.body.appendChild(parent);
 
             // Import the module
-            const { updateChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { updateChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Call the function without a specific indicator
             updateChartStatusIndicator();
@@ -247,12 +240,10 @@ describe("chartStatusIndicator.js", () => {
 
         it("should do nothing if no indicator exists", async () => {
             // Import the module
-            const { updateChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
-            const { createChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/createChartStatusIndicator.js"
-            );
+            const { updateChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
+            const { createChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/createChartStatusIndicator.js");
 
             // Call the function
             updateChartStatusIndicator();
@@ -263,12 +254,10 @@ describe("chartStatusIndicator.js", () => {
 
         it("should handle errors gracefully", async () => {
             // Import the module
-            const { updateChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
-            const { createChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/createChartStatusIndicator.js"
-            );
+            const { updateChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
+            const { createChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/createChartStatusIndicator.js");
 
             // Mock createChartStatusIndicator to throw an error
             vi.mocked(createChartStatusIndicator).mockImplementationOnce(() => {
@@ -294,9 +283,8 @@ describe("chartStatusIndicator.js", () => {
     describe("setupChartStatusUpdates", () => {
         it("should register all required event listeners", async () => {
             // Import the module
-            const { setupChartStatusUpdates } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { setupChartStatusUpdates } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Call the function
             setupChartStatusUpdates();
@@ -307,9 +295,8 @@ describe("chartStatusIndicator.js", () => {
             expect(document.addEventListener).toHaveBeenCalledWith("chartsRendered", expect.any(Function));
 
             // Assert that global indicator was created
-            const { createGlobalChartStatusIndicator } = await import(
-                "../../../../../utils/charts/components/createGlobalChartStatusIndicator.js"
-            );
+            const { createGlobalChartStatusIndicator } =
+                await import("../../../../../utils/charts/components/createGlobalChartStatusIndicator.js");
             expect(createGlobalChartStatusIndicator).toHaveBeenCalled();
 
             // Verify globalData property was modified
@@ -321,9 +308,8 @@ describe("chartStatusIndicator.js", () => {
             // without spying on the internal function call
 
             // Import the module
-            const { setupChartStatusUpdates } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { setupChartStatusUpdates } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Call the function
             setupChartStatusUpdates();
@@ -384,9 +370,8 @@ describe("chartStatusIndicator.js", () => {
             globalThis.addEventListener = errorMock;
 
             // Import the module
-            const { setupChartStatusUpdates } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { setupChartStatusUpdates } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Call the function
             setupChartStatusUpdates();
@@ -411,9 +396,8 @@ describe("chartStatusIndicator.js", () => {
             });
 
             // Import the module
-            const { setupChartStatusUpdates } = await import(
-                "../../../../../utils/charts/components/chartStatusIndicator.js"
-            );
+            const { setupChartStatusUpdates } =
+                await import("../../../../../utils/charts/components/chartStatusIndicator.js");
 
             // Call the function
             setupChartStatusUpdates();

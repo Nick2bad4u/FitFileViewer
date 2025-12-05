@@ -697,9 +697,8 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
         test("should export getMasterStateManager function", async () => {
             const mocks = injectMasterStateManagerMocks();
 
-            const { getMasterStateManager, masterStateManager } = await import(
-                "../../../../../utils/state/core/masterStateManager.js"
-            );
+            const { getMasterStateManager, masterStateManager } =
+                await import("../../../../../utils/state/core/masterStateManager.js");
 
             const manager = getMasterStateManager();
             expect(manager).toBe(masterStateManager);
@@ -708,9 +707,8 @@ describe("masterStateManager.js - Comprehensive Coverage with Module Cache Injec
         test("should export initializeFitFileViewerState function", async () => {
             const mocks = injectMasterStateManagerMocks();
 
-            const { initializeFitFileViewerState, masterStateManager } = await import(
-                "../../../../../utils/state/core/masterStateManager.js"
-            );
+            const { initializeFitFileViewerState, masterStateManager } =
+                await import("../../../../../utils/state/core/masterStateManager.js");
 
             const spy = vi.spyOn(masterStateManager, "initialize");
 

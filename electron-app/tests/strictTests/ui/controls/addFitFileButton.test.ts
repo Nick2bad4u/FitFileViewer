@@ -14,9 +14,8 @@ describe("createAddFitFileToMapButton", () => {
 
         const state = await import("../../../../utils/state/core/stateManager.js");
 
-        const { createAddFitFileToMapButton } = await import(
-            "../../../../utils/ui/controls/createAddFitFileToMapButton.js"
-        );
+        const { createAddFitFileToMapButton } =
+            await import("../../../../utils/ui/controls/createAddFitFileToMapButton.js");
         const btn = createAddFitFileToMapButton();
         expect(btn.tagName).toBe("BUTTON");
         expect(btn.disabled).toBe(true);

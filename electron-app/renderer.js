@@ -1064,9 +1064,8 @@ if (isDevelopmentMode()) {
                     testManufacturerId,
                     testProductId,
                 } = await import("./utils/debug/debugSensorInfo.js"),
-                { testFaveroCase, testFaveroStringCase, testNewFormatting } = await import(
-                    "./utils/debug/debugChartFormatting.js"
-                );
+                { testFaveroCase, testFaveroStringCase, testNewFormatting } =
+                    await import("./utils/debug/debugChartFormatting.js");
 
             // Expose sensor debug utilities globally
             /** @type {any} */ (globalThis).__sensorDebug = {

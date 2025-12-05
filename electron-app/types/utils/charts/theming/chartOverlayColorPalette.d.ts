@@ -4,10 +4,11 @@
  */
 /**
  * Returns a shuffled and filtered color palette with good visual separation.
- * @param {string[]} array - Array of color hex strings.
+ *
+ * @param {string[]} inputArray - Array of color hex strings.
  * @returns {string[]} Filtered and shuffled palette.
  */
-export function getChartOverlayColorPalette(inputArray: any): string[];
+export function getChartOverlayColorPalette(inputArray: string[]): string[];
 /**
  * Base color list for chart overlays, chosen for visual separation.
  * @type {string[]}

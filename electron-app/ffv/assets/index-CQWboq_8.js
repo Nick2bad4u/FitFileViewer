@@ -2131,7 +2131,6 @@ var xi = { exports: {} };
                     for (
                         var i = [], n, o = e === "mouseout" || e === "mouseover", s = t.target || t.srcElement, a = !1;
                         s;
-
                     ) {
                         if (
                             ((n = this._targets[v(s)]),

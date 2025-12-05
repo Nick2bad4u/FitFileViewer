@@ -19,9 +19,9 @@ export function isLoading(): boolean;
 /**
  * Shows or hides the loading overlay and updates the cursor style with state integration.
  *
- * @param {boolean} isLoading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
+ * @param {boolean} loading - If true, displays the loading overlay and sets the cursor to 'wait'. If false, hides the overlay and resets the cursor.
  */
-export function setLoading(loading: any): void;
+export function setLoading(loading: boolean): void;
 /**
  * Show error notification with standard styling
  * @param {string} message - Error message

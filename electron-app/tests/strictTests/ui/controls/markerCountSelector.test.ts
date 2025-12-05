@@ -14,9 +14,8 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("initializes with default and invokes onChange on select change", async () => {
-        const { createMarkerCountSelector } = await import(
-            "../../../../utils/ui/controls/createMarkerCountSelector.js"
-        );
+        const { createMarkerCountSelector } =
+            await import("../../../../utils/ui/controls/createMarkerCountSelector.js");
         const onChange = vi.fn();
         const el = createMarkerCountSelector(onChange);
         expect(el.querySelector("select")).toBeTruthy();
@@ -30,9 +29,8 @@ describe("createMarkerCountSelector", () => {
     });
 
     it("supports wheel to change selection up/down", async () => {
-        const { createMarkerCountSelector } = await import(
-            "../../../../utils/ui/controls/createMarkerCountSelector.js"
-        );
+        const { createMarkerCountSelector } =
+            await import("../../../../utils/ui/controls/createMarkerCountSelector.js");
         const el = createMarkerCountSelector();
         const select = el.querySelector("select")! as HTMLSelectElement;
         // Wheel down -> next option

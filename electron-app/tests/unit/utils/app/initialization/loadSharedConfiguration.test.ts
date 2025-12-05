@@ -98,9 +98,8 @@ describe("loadSharedConfiguration.js", () => {
         }));
 
         // Import the module under test with our freshly created mocks
-        const { loadSharedConfiguration } = await import(
-            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
         loadSharedConfiguration();
@@ -143,9 +142,8 @@ describe("loadSharedConfiguration.js", () => {
             renderChartJS: mockRenderChartJS,
         }));
 
-        const { loadSharedConfiguration } = await import(
-            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         loadSharedConfiguration();
         // Advance timers to trigger fallback render
@@ -176,9 +174,8 @@ describe("loadSharedConfiguration.js", () => {
         });
 
         // Import the module under test
-        const { loadSharedConfiguration } = await import(
-            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
         loadSharedConfiguration();
@@ -197,9 +194,8 @@ describe("loadSharedConfiguration.js", () => {
         });
 
         // Import module under test
-        const { loadSharedConfiguration } = await import(
-            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
         loadSharedConfiguration();
@@ -227,9 +223,8 @@ describe("loadSharedConfiguration.js", () => {
         });
 
         // Import module under test
-        const { loadSharedConfiguration } = await import(
-            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
         loadSharedConfiguration();
@@ -250,9 +245,8 @@ describe("loadSharedConfiguration.js", () => {
         }) as any;
 
         // Import module under test
-        const { loadSharedConfiguration } = await import(
-            "../../../../../utils/app/initialization/loadSharedConfiguration.js"
-        );
+        const { loadSharedConfiguration } =
+            await import("../../../../../utils/app/initialization/loadSharedConfiguration.js");
 
         // Call the function
         loadSharedConfiguration();

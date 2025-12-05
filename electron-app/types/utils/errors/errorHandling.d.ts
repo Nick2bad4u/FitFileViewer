@@ -20,10 +20,12 @@ export function validateInput(value: any, validators: Function[], fieldName?: st
  */
 export function withErrorHandling(fn: Function, options?: ErrorHandlingOptions): Function;
 /**
- * Initialize error handling system
- * @param {Object} [options={}] - Initialization options
+ * Initialize error handling system.
+ * Currently accepts an options object for future extensibility.
+ *
+ * @param {Object} [_options={}] - Initialization options (reserved for future use)
  */
-export function initializeErrorHandling(_options?: {}): void;
+export function initializeErrorHandling(_options?: Object): void;
 /**
  * Standardized error logging with consistent format
  * @param {Error} error - Error to log

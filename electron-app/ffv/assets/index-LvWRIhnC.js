@@ -1026,7 +1026,6 @@ function Ri(e, t) {
                     s = o.length - 1,
                     l = i.length - 1;
                 1 <= s && 0 <= l && o[s] !== i[l];
-
             )
                 l--;
             for (; 1 <= s && 0 <= l; s--, l--)
@@ -1386,7 +1385,6 @@ var Yr,
                     Yr.innerHTML = "<svg>" + t.valueOf().toString() + "</svg>",
                     t = Yr.firstChild;
                 e.firstChild;
-
             )
                 e.removeChild(e.firstChild);
             for (; t.firstChild; ) e.appendChild(t.firstChild);
@@ -5829,7 +5827,6 @@ function Vh(e, t, n) {
                                         r = n,
                                         n = t.child;
                                     n !== null;
-
                                 )
                                     ((i = n),
                                         (e = r),
@@ -6006,7 +6003,6 @@ function Hh(e, t) {
                                 f !== i || (r !== 0 && f.nodeType !== 3) || (u = s + r),
                                 f.nodeType === 3 && (s += f.nodeValue.length),
                                 (g = f.firstChild) !== null;
-
                         )
                             ((h = f), (f = g));
                         for (;;) {
@@ -7557,7 +7553,6 @@ uf = function (e, t, n) {
                                 n = hd(t, null, r, n),
                                 t.child = n;
                             n;
-
                         )
                             ((n.flags = (n.flags & -3) | 4096), (n = n.sibling));
                 else {

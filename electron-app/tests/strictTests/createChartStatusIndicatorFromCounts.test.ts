@@ -2,9 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
 // Mock the function import
-const { createChartStatusIndicatorFromCounts } = await import(
-    "../../utils/charts/components/createChartStatusIndicatorFromCounts.js"
-);
+const { createChartStatusIndicatorFromCounts } =
+    await import("../../utils/charts/components/createChartStatusIndicatorFromCounts.js");
 
 describe("createChartStatusIndicatorFromCounts", () => {
     let dom: JSDOM;

@@ -1555,9 +1555,9 @@ try {
     const ChartRef = windowAny.Chart;
     const hasRegistry = Boolean(
         ChartRef &&
-            ChartRef.registry &&
-            ChartRef.registry.plugins &&
-            typeof ChartRef.registry.plugins.get === "function"
+        ChartRef.registry &&
+        ChartRef.registry.plugins &&
+        typeof ChartRef.registry.plugins.get === "function"
     );
     const already = hasRegistry ? ChartRef.registry.plugins.get("chartBackgroundColorPlugin") : false;
     if (ChartRef && typeof ChartRef.register === "function" && !already) {
@@ -2570,9 +2570,9 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
     // Compute directly to avoid relying on chartState in tests that import during init
     const hasValidData = Boolean(
         getState("globalData") &&
-            getState("globalData").recordMesgs &&
-            Array.isArray(getState("globalData").recordMesgs) &&
-            getState("globalData").recordMesgs.length > 0
+        getState("globalData").recordMesgs &&
+        Array.isArray(getState("globalData").recordMesgs) &&
+        getState("globalData").recordMesgs.length > 0
     );
     try {
         const CE = /** @type {any} */ (globalThis).CustomEvent;
