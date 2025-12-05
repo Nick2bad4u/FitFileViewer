@@ -7,12 +7,99 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 
-[[dfa4751](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)...
-[dfa4751](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)]
-([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5...dfa4751657b6944937d5ccbbd7c5ab89c42a4da5))
+[[482ed73](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)...
+[482ed73](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/482ed734601d19030b1dbd3da60d32c278b274eb...482ed734601d19030b1dbd3da60d32c278b274eb))
 
 
 ### 📦 Dependencies
+
+- [dependency] Update version 29.6.0 [`(482ed73)`](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)
+
+
+
+
+
+
+## [29.6.0] - 2025-12-05
+
+
+[[dfa4751](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)...
+[f005a91](https://github.com/Nick2bad4u/FitFileViewer/commit/f005a91b8876632bab12a02987a1264426325e3e)]
+([compare](https://github.com/Nick2bad4u/FitFileViewer/compare/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5...f005a91b8876632bab12a02987a1264426325e3e))
+
+
+### 🔀 Merge Commits
+
+- [chore] Merge Branch 'main' of https://github.com/nick2bad4u/FitFileViewer
+
+* 'main' of https://github.com/nick2bad4u/FitFileViewer:
+  [ci](deps): [dependency] Update dependency group
+  Update metrics.repository.svg - [Skip GitHub Action]
+  chore: update changelogs for v29.4.0 [skip ci] [`(077f23d)`](https://github.com/Nick2bad4u/FitFileViewer/commit/077f23d7f736d2f6de8c8df4cc66d3860b2f207a)
+
+
+
+### 🛠️ GitHub Actions
+
+- Update Build.yml [`(f005a91)`](https://github.com/Nick2bad4u/FitFileViewer/commit/f005a91b8876632bab12a02987a1264426325e3e)
+
+
+
+### 💼 Other
+
+- Merge PR #169
+
+[ci](deps): [dependency] Update dependency group [`(42295e6)`](https://github.com/Nick2bad4u/FitFileViewer/commit/42295e6b6beef38aef4a5649b3d520a1461b8a7d)
+
+
+- Update metrics.repository.svg - [Skip GitHub Action] [`(dbab105)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dbab105efc28508d5c4de497003f4f02077f58e5)
+
+
+- 🎨 [style] Refactor import statements for consistency
+ - Adjusted import statements in multiple test files to use consistent formatting for better readability.
+ - Files affected:
+   - `renderChartJS.comprehensive.test.ts`
+   - `formatManufacturer.new.test.ts`
+   - `showNotification.extended.test.ts`
+   - `masterStateManager.comprehensive.test.ts`
+   - `mainProcessStateManager.test.ts`
+   - `stateIntegration.comprehensive.test.ts`
+   - `tabStateManager.comprehensive.test.ts`
+
+🛠️ [fix] Improve validation checks in core functions
+ - Enhanced validation logic in `tabStateManager` to ensure proper data checks.
+ - Updated checks in `renderChartJS` and `computedStateManager` to ensure valid data is processed correctly.
+
+📝 [docs] Update type definitions for clarity
+ - Revised type definitions in `rendererUtils.d.ts`, `chartOverlayColorPalette.d.ts`, and `errorHandling.d.ts` to improve clarity and accuracy.
+ - Added descriptions for parameters and return types to enhance developer understanding.
+
+⚡ [perf] Optimize state management functions
+ - Streamlined state management functions in `unifiedStateManager` and `appState` to improve performance and reduce unnecessary checks.
+ - Ensured that state checks are more efficient and maintainable.
+
+🚜 [refactor] Clean up UI control functions
+ - Refactored UI control functions in `createSettingsHeader.js`, `addFullScreenButton.js`, and `createAddFitFileToMapButton.js` for improved readability and maintainability.
+ - Removed redundant checks and ensured consistent use of Boolean conversions.
+
+Signed-off-by: Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> [`(1ac69e1)`](https://github.com/Nick2bad4u/FitFileViewer/commit/1ac69e14c3eb680745815a5c62e3575d3978caf5)
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelogs for v29.4.0 [skip ci] [`(bc8770f)`](https://github.com/Nick2bad4u/FitFileViewer/commit/bc8770f1b422653b88c1b51946d654386b6812fb)
+
+
+
+### 📦 Dependencies
+
+- [dependency] Update version 29.5.0 [`(47e2c51)`](https://github.com/Nick2bad4u/FitFileViewer/commit/47e2c51e9a3507cc66c3401c7dcbf741d71b1cc9)
+
+
+- *(deps)* [dependency] Update dependency group [`(cb2bb10)`](https://github.com/Nick2bad4u/FitFileViewer/commit/cb2bb10d12d20a9fbeb0afa1395614ebce677577)
+
 
 - [dependency] Update version 29.4.0 [`(dfa4751)`](https://github.com/Nick2bad4u/FitFileViewer/commit/dfa4751657b6944937d5ccbbd7c5ab89c42a4da5)
 
