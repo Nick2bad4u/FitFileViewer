@@ -61,16 +61,16 @@ jobs:
 
         steps:
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+              uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
               with:
                   egress-policy: audit
 
             - name: Checkout repository
-              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
             # Initializes the CodeQL tools for scanning.
             - name: Initialize CodeQL
-              uses: github/codeql-action/init@fe4161a26a8629af62121b670040955b330f9af2 # v3.29.5
+              uses: github/codeql-action/init@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v3.29.5
               with:
                   languages: ${{ matrix.language }}
                   # If you wish to specify custom queries, you can do so here or in a config file.
@@ -79,12 +79,12 @@ jobs:
                   source-root: electron-app
 
             - name: Set up Node.js
-              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+              uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
               with:
                   node-version: "20"
 
             - name: Cache node modules
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+              uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
               with:
                   path: electron-app/node_modules
                   key: ${{ runner.os }}-electron-app-node-modules-${{ hashFiles('electron-app/package-lock.json') }}
@@ -98,7 +98,7 @@ jobs:
             # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
             # If this step fails, then you should remove it and run the build manually (see below)
             - name: Autobuild
-              uses: github/codeql-action/autobuild@fe4161a26a8629af62121b670040955b330f9af2 # v3.29.5
+              uses: github/codeql-action/autobuild@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v3.29.5
               with:
                   working-directory: electron-app
 
@@ -113,6 +113,6 @@ jobs:
             #   ./location_of_script_within_repo/buildscript.sh
 
             - name: Perform CodeQL Analysis
-              uses: github/codeql-action/analyze@fe4161a26a8629af62121b670040955b330f9af2 # v3.29.5
+              uses: github/codeql-action/analyze@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v3.29.5
               with:
                   category: "/language:${{matrix.language}}"
