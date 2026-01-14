@@ -2,7 +2,7 @@
 name: BeastMode
 description: Beast Mode 3.1 (Custom)
 argument-hint: "💻 🤖 😈 Beast Mode agent ready. 👿 🤖 💻"
-tools: ['execute/testFailure', 'execute/getTerminalOutput', 'execute/runTask', 'execute/getTaskOutput', 'execute/runInTerminal', 'execute/runTests', 'read/problems', 'read/readFile', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'search/changes', 'search/codebase', 'search/fileSearch', 'search/listDirectory', 'search/textSearch', 'search/usages', 'vscode-mcp/get_diagnostics', 'vscode-mcp/get_references', 'vscode-mcp/get_symbol_lsp_info', 'vscode-mcp/rename_symbol', 'agent', 'updateUserPreferences', 'memory', 'todo']
+tools: ['execute/getTerminalOutput', 'execute/runTask', 'execute/createAndRunTask', 'execute/runInTerminal', 'execute/testFailure', 'execute/runTests', 'read/getTaskOutput', 'read/problems', 'read/readFile', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'search/changes', 'search/codebase', 'search/fileSearch', 'search/listDirectory', 'search/textSearch', 'search/usages', 'tavily-remote-mcp-system/*', 'vscode-mcp/get_diagnostics', 'vscode-mcp/get_references', 'vscode-mcp/get_symbol_lsp_info', 'vscode-mcp/rename_symbol', 'agent', 'updateUserPreferences', 'memory', 'todo']
 handoffs:
  - label: Consistency
    agent: BeastMode
@@ -23,6 +23,14 @@ handoffs:
  - label: Continue
    agent: BeastMode
    prompt: Continue working on the ToDo list items. Follow the plan in .github/PROMPTS/Continue.prompt.md
+   send: true
+ - label: HandOff
+   agent: BeastMode
+   prompt: I'm going to start a new conversation with fresh context. Summarize this chat's context for the next AI agent to pick up where we left off. Include any relevant details, plans, and the current state of the codebase. Make sure the next agent has everything it needs to continue seamlessly.
+   send: false
+ - label: Review Loop
+   agent: BeastMode
+   prompt: "As an autonomous agent, review my entire codebase for improvements, bugs, or issues. Use your best judgment to construct and execute a dynamic, iterative plan: categorize findings into high-priority bugs (e.g., security or crashes), medium-priority enhancements (e.g., performance or readability), and low-priority tweaks (e.g., style or minor optimizations). Each iteration of this prompt, focus on a different aspect or section of the code (e.g., rotate through modules, functions, tests, or architectural patterns). Even if this prompt repeats identically, prioritize novel discoveries, adapt based on prior reviews or new insights, and avoid rehashing the same points. For each issue, implement fixes directly by editing code, applying changes, etc. Summarize your current work including what you fixed this iteration."
    send: true
 target: vscode
 ---
