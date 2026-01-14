@@ -84,6 +84,8 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             transition: opacity 0.4s ease;
             pointer-events: none;
         `;
+        // Explicitly set key properties for environments (e.g., JSDOM) that may not fully reflect cssText parsing.
+        glowOverlay.style.opacity = "0";
         wrapper.append(glowOverlay);
 
         // Add chart title overlay for better visual hierarchy
@@ -105,8 +107,10 @@ export function addChartHoverEffects(chartContainer, themeConfig) {
             transition: all 0.3s ease;
             z-index: 10;
             pointer-events: none;
-            box-shadow: 0 2px 8px ${themeConfig.colors.shadowLight};
+            box-shadow: 0 2px 8px ${colors.shadowLight || "#00000033"};
         `;
+        titleOverlay.style.opacity = "0";
+        titleOverlay.style.transform = "translateY(-8px)";
         titleOverlay.textContent = chartTitle.replace("Chart for ", "").toUpperCase();
         wrapper.append(titleOverlay);
 

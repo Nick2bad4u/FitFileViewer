@@ -128,7 +128,7 @@ export default defineConfig({
         passWithNoTests: false,
         maxConcurrency: 4, // Limit max concurrency to reduce resource contention in multi-project setup
         maxWorkers: 6, // Limit max workers to reduce resource contention in multi-project setup
-        retrys: 1, // Retry failed tests once to reduce transient failures
+        retry: 1, // Retry failed tests once to reduce transient failures
         allowOnly: false, // Fail if .only is left in the code
         includeTaskLocation: true,
         // Only collect tests from the source tests directory
@@ -143,20 +143,8 @@ export default defineConfig({
         }, // Custom project name and color for Vitest
         // Use forks pool to avoid tinypool worker stdout requiring console before globalSetup
         pool: "forks",
-        poolOptions: {
-            threads: {
-                isolate: true, // Isolate tests for better reliability
-                maxThreads: 24, // Reduced from 24 to prevent resource contention in multi-project setup
-                minThreads: 1, // Ensure at least one thread
-                singleThread: false, // Enable multi-threading
-                useAtomics: true,
-            },
-            forks: {
-                minForks: 1,
-                maxForks: 6, // Limit forks to reduce resource contention
-                singleFork: false,
-            },
-        },
+        // Vitest v4 pool rework: poolOptions was removed.
+        // Parallelism is controlled via maxWorkers/maxConcurrency and fileParallelism.
         reporters: [
             "default",
             "json",

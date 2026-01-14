@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as getThemeColorsModule from "../../../../../utils/charts/theming/getThemeColors.js";
 import { createElevationProfileButton } from "../../../../../utils/ui/controls/createElevationProfileButton.js";
 
+type ElevationProfilePoint = { x: number; y: number };
+type ElevationProfileFileModel = { altitudes: ElevationProfilePoint[]; color: string; filePath: string };
+
 // Create a spy on getThemeColors that will be used in all tests
 vi.spyOn(getThemeColorsModule, "getThemeColors").mockReturnValue({
     primary: "#3b82f6",
@@ -73,7 +76,8 @@ describe("createElevationProfileButton", () => {
         // Verify document.write was called (with empty files array in HTML)
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
-        expect(mockWin.document.write.mock.calls[0][0]).toContain("const fitFiles = []");
+        expect(mockWin.document.write.mock.calls[0][0]).toContain("window.__ffvElevationFitFiles");
+        expect(mockWin.__ffvElevationFitFiles).toEqual([]);
         expect(mockWin.document.close).toHaveBeenCalled();
     });
 
@@ -101,9 +105,15 @@ describe("createElevationProfileButton", () => {
         // Verify document.write was called with correct data
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain("test-file.fit");
-        expect(writtenHtml).toContain("altitude");
+
+        // Data is passed via a window property (prevents script-breakout injection).
+        expect(Array.isArray(mockWin.__ffvElevationFitFiles)).toBe(true);
+        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("test-file.fit");
+        expect(mockWin.__ffvElevationFitFiles[0].altitudes).toEqual([
+            { x: 0, y: 100 },
+            { x: 1, y: 200 },
+        ]);
     });
 
     it("should handle globalData when no loadedFitFiles available", () => {
@@ -126,8 +136,8 @@ describe("createElevationProfileButton", () => {
         // Verify document.write was called with correct data
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain("global-test.fit");
+        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("global-test.fit");
     });
 
     it("should handle globalData without recordMesgs", () => {
@@ -153,7 +163,8 @@ describe("createElevationProfileButton", () => {
         const writtenHtml = mockWin.document.write.mock.calls[0][0];
         // Since there are no fitFiles in this case, we should have "0 file" in the header
         expect(writtenHtml).toContain('<span style="font-size:1.1em;opacity:0.7;">0 file');
-        expect(writtenHtml).toContain("const fitFiles = []");
+        expect(writtenHtml).toContain("window.__ffvElevationFitFiles");
+        expect(mockWin.__ffvElevationFitFiles).toEqual([]);
     });
     it("should handle popup window being blocked", () => {
         // Make window.open return null to simulate blocked popup
@@ -206,9 +217,9 @@ describe("createElevationProfileButton", () => {
         // Verify document.write was called with code for handling no data
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain("altitudes");
-        expect(writtenHtml).toContain("no-altitude.fit");
+        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("no-altitude.fit");
+        expect(mockWin.__ffvElevationFitFiles[0].altitudes).toEqual([]);
     });
 
     it("should use chartOverlayColorPalette from window.opener when available", () => {
@@ -222,24 +233,23 @@ describe("createElevationProfileButton", () => {
             },
         ];
 
-        // Setup window.opener with chartOverlayColorPalette
-        (window as any).opener = {
-            chartOverlayColorPalette: ["#ff0000", "#00ff00", "#0000ff"],
-        };
+        // Setup chartOverlayColorPalette in the current window.
+        // (The popup receives colors via the model, not by reading window.opener.)
+        (window as any).chartOverlayColorPalette = ["#ff0000", "#00ff00", "#0000ff"];
 
         // Create the button and click it
         const button = createElevationProfileButton();
         button.click();
 
-        // Verify document.write was called with color from chartOverlayColorPalette
+        // Verify model uses the palette
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
-        const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain("#ff0000"); // First color from the palette
-        expect(writtenHtml).toContain("test-with-colors.fit");
+        expect(mockWin.__ffvElevationFitFiles).toHaveLength(1);
+        expect(mockWin.__ffvElevationFitFiles[0].color).toBe("#ff0000");
+        expect(mockWin.__ffvElevationFitFiles[0].filePath).toBe("test-with-colors.fit");
 
         // Clean up the mock
-        delete (window as any).opener;
+        delete (window as any).chartOverlayColorPalette;
     });
 
     it("should handle a mix of files with and without altitude data", () => {
@@ -279,9 +289,13 @@ describe("createElevationProfileButton", () => {
         const mockWin = openSpy.mock.results[0].value;
         expect(mockWin.document.write).toHaveBeenCalled();
         const writtenHtml = mockWin.document.write.mock.calls[0][0];
-        expect(writtenHtml).toContain("with-altitude.fit");
-        expect(writtenHtml).toContain("without-altitude.fit");
-        expect(writtenHtml).toContain("partial-data.fit");
         expect(writtenHtml).toContain("3 files");
+
+        expect(mockWin.__ffvElevationFitFiles).toHaveLength(3);
+        expect((mockWin.__ffvElevationFitFiles as ElevationProfileFileModel[]).map((f) => f.filePath)).toEqual([
+            "with-altitude.fit",
+            "without-altitude.fit",
+            "partial-data.fit",
+        ]);
     });
 });

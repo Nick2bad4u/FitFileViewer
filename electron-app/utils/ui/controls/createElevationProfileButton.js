@@ -45,6 +45,29 @@ export function createElevationProfileButton() {
             // Popup likely blocked; fail silently or optionally notify
             return;
         }
+
+        /**
+         * Prepare a safe, serialisable model for the popup.
+         * IMPORTANT: Do not inline JSON into a <script> tag (e.g. const x = ${JSON.stringify(...)})
+         * because strings like "</script>" inside file paths can terminate the tag and enable injection.
+         */
+        const fitFilesModel = fitFiles.map((f, idx) => ({
+            altitudes:
+                f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
+                    ? /** @type {any[]} */ (f.data.recordMesgs)
+                          .filter((r) => r && r.positionLat != null && r.positionLong != null && r.altitude != null)
+                          .map((r, i) => ({ x: i, y: r.altitude }))
+                    : [],
+            color:
+                globalThis.chartOverlayColorPalette && Array.isArray(globalThis.chartOverlayColorPalette)
+                    ? globalThis.chartOverlayColorPalette[idx % globalThis.chartOverlayColorPalette.length]
+                    : "#1976d2",
+            filePath: f?.filePath || `File ${idx + 1}`,
+        }));
+
+        // Pass the model to the popup without embedding it into HTML.
+        /** @type {any} */ (chartWin).__ffvElevationFitFiles = fitFilesModel;
+
         const chartHtml = `
 		<html>
 		<head>
@@ -145,30 +168,11 @@ export function createElevationProfileButton() {
 		<body class="${isDark ? "theme-dark" : "theme-light"}">
 			<header>
 				<h2 style="margin:0;font-size:1.5em;font-weight:700;letter-spacing:0.01em;">Elevation Profiles</h2>
-				<span style="font-size:1.1em;opacity:0.7;">${fitFiles.length} file${fitFiles.length > 1 ? "s" : ""}</span>
+				<span style="font-size:1.1em;opacity:0.7;">${fitFilesModel.length} file${fitFilesModel.length > 1 ? "s" : ""}</span>
 			</header>
 			<div id="elevChartsContainer"></div>
 			<script>
-				const fitFiles = ${JSON.stringify(
-                    fitFiles.map((f, idx) => ({
-                        altitudes:
-                            f?.data?.recordMesgs && Array.isArray(f.data.recordMesgs)
-                                ? /** @type {any[]} */ (f.data.recordMesgs)
-                                      .filter(
-                                          (r) =>
-                                              r && r.positionLat != null && r.positionLong != null && r.altitude != null
-                                      )
-                                      .map((r, i) => ({ x: i, y: r.altitude }))
-                                : [],
-                        color:
-                            window.opener && window.opener.chartOverlayColorPalette
-                                ? window.opener.chartOverlayColorPalette[
-                                      idx % window.opener.chartOverlayColorPalette.length
-                                  ]
-                                : "#1976d2",
-                        filePath: f.filePath || `File ${idx + 1}`,
-                    }))
-                )};
+				const fitFiles = Array.isArray(window.__ffvElevationFitFiles) ? window.__ffvElevationFitFiles : [];
 				const isDark = ${isDark};
 				const container = document.getElementById('elevChartsContainer');
 				fitFiles.forEach((f, idx) => {

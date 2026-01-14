@@ -447,12 +447,11 @@ export function createShownFilesList() {
                         tooltip.style.padding = "6px 10px";
                         tooltip.style.fontSize = "0.95em";
                         tooltip.style.boxShadow = "0 2px 8px #0003";
-                        let html = `<b>File:</b> ${fullPath}`;
-                        if (showWarning) {
-                            html +=
-                                '<br><span style="color:#eab308;">⚠️ This color may be hard to read in this theme.</span>';
-                        }
-                        tooltip.innerHTML = html;
+                        tooltip.style.whiteSpace = "pre-line";
+
+                        // Avoid innerHTML (XSS risk) and avoid nested createElement() calls because
+                        // some unit tests mock document.createElement to always return the tooltip.
+                        tooltip.textContent = `File: ${String(fullPath)}${showWarning ? "\n⚠️ This color may be hard to read in this theme." : ""}`;
                         document.body.append(tooltip);
                         /** @param {MouseEvent} evt */
                         const moveTooltip = (evt) => {

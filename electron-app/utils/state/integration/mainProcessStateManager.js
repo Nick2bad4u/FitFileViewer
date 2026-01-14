@@ -37,6 +37,7 @@ class MainProcessState {
             metrics: {
                 operationTimes: new Map(),
                 startTime: Date.now(),
+                startTimePerf: monotonicNowMs(),
             },
 
             // Progress tracking
@@ -123,10 +124,18 @@ class MainProcessState {
             return;
         }
 
+        const endTime = Date.now();
+        const endTimePerf = monotonicNowMs();
+        const duration =
+            typeof operation.startTimePerf === "number"
+                ? Math.max(0, endTimePerf - operation.startTimePerf)
+                : Math.max(0, endTime - operation.startTime);
+
         const completedOp = {
             ...operation,
-            duration: Date.now() - operation.startTime,
-            endTime: Date.now(),
+            duration,
+            endTime,
+            endTimePerf,
             progress: 100,
             result,
             status: "completed",
@@ -156,6 +165,13 @@ class MainProcessState {
             return;
         }
 
+        const endTime = Date.now();
+        const endTimePerf = monotonicNowMs();
+        const duration =
+            typeof operation.startTimePerf === "number"
+                ? Math.max(0, endTimePerf - operation.startTimePerf)
+                : Math.max(0, endTime - operation.startTime);
+
         const errorObj =
                 error instanceof Error
                     ? {
@@ -166,8 +182,9 @@ class MainProcessState {
                     : { message: String(error) },
             failedOp = {
                 ...operation,
-                duration: Date.now() - operation.startTime,
-                endTime: Date.now(),
+                duration,
+                endTime,
+                endTimePerf,
                 error: errorObj,
                 status: "failed",
             };
@@ -218,13 +235,18 @@ class MainProcessState {
      * @returns {{state:MainProcessStateData,listeners:string[],eventHandlers:number,operations:string[],errors:number,uptime:number}}
      */
     getDevInfo() {
+        const metrics = this.get("metrics") || {};
+        const uptime =
+            typeof metrics.startTimePerf === "number"
+                ? Math.max(0, monotonicNowMs() - metrics.startTimePerf)
+                : Math.max(0, Date.now() - (metrics.startTime || Date.now()));
         return {
             errors: (this.get("errors") || []).length,
             eventHandlers: this.get("eventHandlers")?.size || 0,
             listeners: [...this.listeners.keys()],
             operations: Object.keys(this.get("operations") || {}),
             state: this.data,
-            uptime: Date.now() - (this.get("metrics")?.startTime || Date.now()),
+            uptime,
         };
     }
 
@@ -623,6 +645,7 @@ class MainProcessState {
             message: "",
             progress: 0,
             startTime: Date.now(),
+            startTimePerf: monotonicNowMs(),
             status: "running",
             ...operationData,
         };
@@ -725,7 +748,9 @@ class MainProcessState {
  * @typedef {Object} Operation
  * @property {string} id
  * @property {number} startTime
+ * @property {number} [startTimePerf] - Monotonic start timestamp for duration calculation (ms)
  * @property {number} [endTime]
+ * @property {number} [endTimePerf] - Monotonic end timestamp for duration calculation (ms)
  * @property {number} [duration]
  * @property {'running'|'completed'|'failed'} status
  * @property {number} progress
@@ -756,6 +781,7 @@ class MainProcessState {
 /**
  * @typedef {Object} Metrics
  * @property {number} startTime
+ * @property {number} [startTimePerf] - Monotonic start timestamp for uptime calculation (ms)
  * @property {Map<string,{value:number,timestamp:number,metadata:Object}>} operationTimes
  */
 
@@ -790,6 +816,18 @@ function logWithContext(level, message, context = {}) {
         timestamp = new Date().toISOString();
     // Narrowed level union keeps TS happy accessing console methods
     console[level](`[${timestamp}] [mainProcessStateManager] ${message}`, contextStr);
+}
+
+/**
+ * Monotonic time source for measuring durations.
+ * Uses performance.now when available to avoid issues with system clock changes.
+ * @returns {number}
+ */
+function monotonicNowMs() {
+    if (globalThis.performance && typeof globalThis.performance.now === "function") {
+        return globalThis.performance.now();
+    }
+    return Date.now();
 }
 
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs

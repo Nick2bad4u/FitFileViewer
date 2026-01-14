@@ -1,4 +1,3 @@
-/* eslint-env node */
 /**
  * Preload script exposes a typed, secure IPC API to the renderer via contextBridge.
  * Incremental typing is applied using JSDoc so strict TypeScript checking over allowJs passes.
@@ -357,15 +356,13 @@ const electronAPI = {
             console.error(`[preload.js] Error in invoke(${channel}):`, error);
             throw error;
         }
-    } /**
-     * Gets the platform and architecture.
-     * @returns {Promise<{platform: string, arch: string}>}
-     */,
+    },
     // Generic IPC Functions with enhanced validation
     /**
      * Registers a generic handler for any IPC event (for internal use).
      * @param {string} channel - The IPC channel to listen on
      * @param {Function} callback - Callback function to handle the event
+     * @returns {(() => void) | undefined} Unsubscribe function when registration succeeds
      */
     onIpc: (channel, callback) => {
         if (!validateString(channel, "channel", "onIpc")) {
@@ -376,13 +373,23 @@ const electronAPI = {
         }
 
         try {
-            ipcRenderer.on(channel, (event, ...args) => {
+            const wrapped = (event, ...args) => {
                 try {
                     callback(event, ...args);
                 } catch (error) {
                     console.error(`[preload.js] Error in onIpc(${channel}) callback:`, error);
                 }
-            });
+            };
+
+            ipcRenderer.on(channel, wrapped);
+
+            return () => {
+                try {
+                    ipcRenderer.removeListener(channel, wrapped);
+                } catch (error) {
+                    console.error(`[preload.js] Error removing onIpc(${channel}) listener:`, error);
+                }
+            };
         } catch (error) {
             console.error(`[preload.js] Error setting up onIpc(${channel}):`, error);
         }

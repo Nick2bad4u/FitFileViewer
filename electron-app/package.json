@@ -231,7 +231,7 @@
         "format:lint:fix": "npx eslint --ext .js,.jsx,.ts,.tsx --fix --ignore-path .gitignore .",
         "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache --fix && npm run typecheck && npm run prettier:fix",
         "lint:all": "npm run lint:fix && npm run typecheck && npm run prettier:fix",
-        "lint:fix": "npm run lint -- --fix",
+        "lint:fix": "npm run lint",
         "package": "electron-builder --dir",
         "prettier": "prettier . --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
         "prettier:fix": "prettier . --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",

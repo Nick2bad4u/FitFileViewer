@@ -28,7 +28,6 @@ const // Constants for better maintainability
     },
     { app, BrowserWindow } = require("electron");
 const fs = require("node:fs");
-/* eslint-env node */
 /**
  * Window state shape
  * @typedef {Object} WindowState
@@ -64,6 +63,23 @@ function getSettingsPath() {
     }
 }
 
+/**
+ * Determine whether webSecurity should remain enabled.
+ * Web security must stay enabled in production to prevent navigation and resource load risks.
+ * It can be explicitly disabled for local debugging via FFV_DISABLE_WEB_SECURITY=true.
+ * @returns {boolean}
+ */
+function resolveWebSecuritySetting() {
+    const isProduction = process.env.NODE_ENV === "production";
+    const disableWebSecurity = !isProduction && process.env.FFV_DISABLE_WEB_SECURITY === "true";
+
+    if (disableWebSecurity) {
+        logWithContext("warn", "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (development only)");
+    }
+
+    return !disableWebSecurity;
+}
+
 const settingsPath = getSettingsPath();
 
 /**
@@ -92,8 +108,8 @@ function createWindow() {
                 webPreferences: {
                     preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
                     ...CONSTANTS.WEB_PREFERENCES,
-                    // Enable remote debugging for development
-                    webSecurity: process.env.NODE_ENV !== "production",
+                    // Keep web security enabled in production. Allow explicit dev opt-out.
+                    webSecurity: resolveWebSecuritySetting(),
                 },
             };
 

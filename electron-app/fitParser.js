@@ -6,13 +6,11 @@
  * @version 2.0.0
  */
 
-/* eslint-env node */
 const { Buffer } = require("node:buffer");
 // Electron-conf imported dynamically in getConf() to avoid module loading issues in tests
 
 /**
  * ============================= Typedef Section =============================
- * These typedefs provide structure for the JSDoc-based type checking used by
  * the project (allowJs + checkJs). They intentionally model only the pieces
  * of each object this module relies on so we can progressively enrich them
  * without over‑committing to full shapes up front.

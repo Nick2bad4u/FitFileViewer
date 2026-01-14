@@ -41,6 +41,8 @@ export function getChartCounts() {
     }
 
     const data = globalThis.globalData.recordMesgs;
+    // Defensive: recordMesgs can contain null entries in some parsing / merge edge cases.
+    const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
 
     try {
         // Ensure formatChartFields is an array of strings; handle legacy cases where it might be a single string
@@ -57,8 +59,8 @@ export function getChartCounts() {
             counts.categories.metrics.total++;
 
             // Check if this field has valid numeric data (same logic as renderChartJS)
-            const numericData = data.map((/** @type {any} */ row) => {
-                    if (row[field] !== undefined && row[field] !== null) {
+            const numericData = safeData.map((/** @type {any} */ row) => {
+                    if (row && row[field] !== undefined && row[field] !== null) {
                         const value = Number.parseFloat(row[field]);
                         return isNaN(value) ? null : value;
                     }
@@ -79,6 +81,9 @@ export function getChartCounts() {
             }
         } // GPS track chart (counted separately from lat/long individual charts)
         const hasGPSData = data.some((/** @type {any} */ row) => {
+            if (!row || typeof row !== "object") {
+                return false;
+            }
             const lat = row.positionLat,
                 long = row.positionLong;
             return (

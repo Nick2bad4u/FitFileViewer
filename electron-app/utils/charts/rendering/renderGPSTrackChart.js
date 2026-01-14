@@ -14,9 +14,12 @@ export function renderGPSTrackChart(container, data, options) {
     try {
         console.log("[ChartJS] renderGPSTrackChart called");
 
+        // Defensive: FIT record arrays can contain null/undefined entries in edge cases.
+        const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
+
         // Check if GPS position data is available
-        const hasLatitude = data.some((row) => row.positionLat !== undefined && row.positionLat !== null),
-            hasLongitude = data.some((row) => row.positionLong !== undefined && row.positionLong !== null);
+        const hasLatitude = safeData.some((row) => row.positionLat !== undefined && row.positionLat !== null),
+            hasLongitude = safeData.some((row) => row.positionLong !== undefined && row.positionLong !== null);
 
         if (!hasLatitude || !hasLongitude) {
             console.log("[ChartJS] No GPS position data available");
@@ -33,7 +36,7 @@ export function renderGPSTrackChart(container, data, options) {
         const themeConfig = getThemeConfig();
 
         // Convert GPS positions to chart data
-        let gpsData = data
+        let gpsData = safeData
             .map((row, index) => {
                 if (
                     row.positionLat !== undefined &&
@@ -71,7 +74,9 @@ export function renderGPSTrackChart(container, data, options) {
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-track", 0));
         if (themeConfig?.colors) {
             canvas.style.background = themeConfig.colors.bgPrimary || themeConfig.colors.chartBackground || "#000";
-            canvas.style.boxShadow = themeConfig.colors.shadow || "";
+            if (typeof themeConfig.colors.shadow === "string" && themeConfig.colors.shadow.length > 0) {
+                canvas.style.boxShadow = themeConfig.colors.shadow;
+            }
         }
         canvas.style.borderRadius = "12px";
         container.append(canvas);

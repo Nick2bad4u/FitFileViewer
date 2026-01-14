@@ -10,8 +10,24 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
         return;
     }
 
+    /**
+     * Validate file path input for filesystem IPC calls.
+     * @param {unknown} filePath
+     * @returns {filePath is string}
+     */
+    const isValidFilePath = (filePath) => typeof filePath === "string" && filePath.trim().length > 0;
+
     registerIpcHandle("file:read", async (_event, filePath) => {
         try {
+            if (!isValidFilePath(filePath)) {
+                const error = new Error("Invalid file path provided");
+                logWithContext?.("error", "Error in file:read:", {
+                    error: error.message,
+                    filePath,
+                });
+                throw error;
+            }
+
             return await new Promise((resolve, reject) => {
                 if (!fs || typeof fs.readFile !== "function") {
                     reject(new Error("Filesystem module unavailable"));

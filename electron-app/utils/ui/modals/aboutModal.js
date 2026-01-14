@@ -1,6 +1,6 @@
 /**
  * Enhanced About Modal Dialog Utility
- * Provides modern design and animations with dynamic version l								<span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>ading
+ * Provides modern design and animations with dynamic version loading.
  */
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
@@ -90,7 +90,7 @@ export function getAboutModalContent() {
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Node.js</span>
-								<span class="system-info-value node-highlight">22.15.1</span>
+                                <span class="system-info-value node-highlight">${CONSTANTS.DEFAULT_VALUES.NODE}</span>
 							</div>
 							<div class="system-info-item">
 								<span class="system-info-label">Chrome</span>
@@ -171,7 +171,10 @@ export function showAboutModal(html = "") {
 
         if (body && closeBtn) {
             // Set content
-            body.innerHTML = html;
+            body.replaceChildren();
+            if (html) {
+                body.append(sanitizeAboutBodyHtml(html));
+            }
 
             // Save current focus
             lastFocusedElement = /** @type {HTMLElement} */ (document.activeElement);
@@ -413,6 +416,87 @@ function hideAboutModal() {
             document.removeEventListener("keydown", handleEscapeKey, true);
         }, modalAnimationDuration);
     }
+}
+
+/**
+ * Sanitize HTML inserted into the About modal body.
+ *
+ * Rationale:
+ * - The About modal accepts an HTML string (used by tests and internal helpers).
+ * - Avoid letting unexpected values (e.g., file paths or externally sourced strings) inject script
+ *   tags, inline event handlers, or javascript: URLs.
+ *
+ * This sanitizer is intentionally minimal and UI-friendly (keeps common formatting tags and
+ * inline styles), while blocking the common high-risk vectors.
+ *
+ * @param {string} html
+ * @returns {DocumentFragment}
+ */
+function sanitizeAboutBodyHtml(html) {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+
+    /** @type {Set<string>} */
+    const blockedTags = new Set(["EMBED", "IFRAME", "LINK", "META", "OBJECT", "SCRIPT"]);
+
+    const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
+    /** @type {Element[]} */
+    const nodesToRemove = [];
+
+    while (walker.nextNode()) {
+        const el = /** @type {Element} */ (walker.currentNode);
+        if (blockedTags.has(el.tagName)) {
+            nodesToRemove.push(el);
+            continue;
+        }
+
+        // Strip inline event handlers and dangerous URL-based attributes.
+        for (const attr of Array.from(el.attributes)) {
+            const name = attr.name.toLowerCase();
+            const value = String(attr.value);
+
+            if (name.startsWith("on")) {
+                el.removeAttribute(attr.name);
+                continue;
+            }
+
+            if (name === "href" || name === "src") {
+                const trimmed = value.trim();
+                const lower = trimmed.toLowerCase();
+                const isHttp = lower.startsWith("http://") || lower.startsWith("https://");
+                const isMailto = lower.startsWith("mailto:");
+
+                if (!isHttp && !isMailto) {
+                    el.removeAttribute(attr.name);
+                }
+
+                continue;
+            }
+
+            // Avoid CSS-based resource loading via url(...). Keep benign inline styles.
+            if (name === "style") {
+                const lower = value.toLowerCase();
+                if (lower.includes("url(") || lower.includes("expression(")) {
+                    el.removeAttribute(attr.name);
+                }
+            }
+        }
+
+        // Force http(s) links to be treated as external links handled by the modal.
+        if (el.tagName === "A") {
+            const href = el.getAttribute("href");
+            if (href && (href.startsWith("http://") || href.startsWith("https://") || href.startsWith("mailto:"))) {
+                el.dataset.externalLink = "";
+                el.setAttribute("rel", "noopener noreferrer");
+            }
+        }
+    }
+
+    for (const node of nodesToRemove) {
+        node.remove();
+    }
+
+    return template.content;
 }
 
 /**

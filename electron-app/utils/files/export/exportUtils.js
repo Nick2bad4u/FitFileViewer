@@ -178,9 +178,20 @@ export const exportUtils = {
             throw new Error("Gyazo credentials not configured. Please complete the setup first.");
         }
 
+        const { electronAPI } = globalThis;
+        if (
+            !electronAPI ||
+            typeof electronAPI.startGyazoServer !== "function" ||
+            typeof electronAPI.stopGyazoServer !== "function" ||
+            typeof electronAPI.onIpc !== "function"
+        ) {
+            // This module is renderer-side; tests or non-Electron environments may not expose electronAPI.
+            throw new Error("Gyazo OAuth is only available in the Electron desktop build (electronAPI unavailable)");
+        }
+
         try {
             // Start the OAuth callback server
-            const serverResult = await globalThis.electronAPI.startGyazoServer(3000);
+            const serverResult = await electronAPI.startGyazoServer(3000);
             if (!serverResult.success) {
                 throw new Error(`Failed to start OAuth server: ${serverResult.message}`);
             }
@@ -208,10 +219,12 @@ export const exportUtils = {
                             }
 
                             // Remove the listener
-                            globalThis.electronAPI.onIpc("gyazo-oauth-callback", () => {});
+                            if (typeof unsubscribe === "function") {
+                                unsubscribe();
+                            }
 
                             // Stop the server
-                            await globalThis.electronAPI.stopGyazoServer();
+                            await electronAPI.stopGyazoServer();
 
                             // Exchange code for token
                             const tokenData = await exportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
@@ -234,7 +247,11 @@ export const exportUtils = {
                             resolve(/** @type {any} */ (tokenData).access_token);
                         } catch (error) {
                             // Stop the server on error
-                            await globalThis.electronAPI.stopGyazoServer();
+                            try {
+                                await electronAPI.stopGyazoServer();
+                            } catch (stopError) {
+                                console.error("Failed to stop OAuth server:", stopError);
+                            }
 
                             // Close any open modal
                             const existingModal = document.querySelector(".gyazo-auth-modal-overlay");
@@ -247,7 +264,7 @@ export const exportUtils = {
                     };
 
                 // Set up the callback listener
-                globalThis.electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
+                const unsubscribe = electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
 
                 // Create a modal with OAuth instructions and link
                 const modal = exportUtils.createGyazoAuthModal(authUrl, state, resolve, reject, true);
@@ -256,7 +273,7 @@ export const exportUtils = {
         } catch (error) {
             // Stop the server if it was started
             try {
-                await globalThis.electronAPI.stopGyazoServer();
+                await electronAPI.stopGyazoServer();
             } catch (stopError) {
                 console.error("Failed to stop OAuth server:", stopError);
             }

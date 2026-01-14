@@ -1,4 +1,3 @@
-/* eslint-env node */
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
 /** @type {any|null} */
 let __electronCached = null;

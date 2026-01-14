@@ -17,10 +17,13 @@ export function renderGPSTimeChart(container, data, options) {
     try {
         console.log("[ChartJS] renderGPSTimeChart called");
 
+        // Defensive: FIT record arrays can contain null/undefined entries in edge cases.
+        const safeData = Array.isArray(data) ? data.filter((row) => row && typeof row === "object") : [];
+
         // Check if GPS position and timestamp data are available
-        const hasLatitude = data.some((row) => row.positionLat !== undefined && row.positionLat !== null),
-            hasLongitude = data.some((row) => row.positionLong !== undefined && row.positionLong !== null),
-            hasTimestamp = data.some((row) => row.timestamp !== undefined && row.timestamp !== null);
+        const hasLatitude = safeData.some((row) => row.positionLat !== undefined && row.positionLat !== null),
+            hasLongitude = safeData.some((row) => row.positionLong !== undefined && row.positionLong !== null),
+            hasTimestamp = safeData.some((row) => row.timestamp !== undefined && row.timestamp !== null);
 
         if (!hasLatitude || !hasLongitude || !hasTimestamp) {
             console.log("[ChartJS] No GPS position or timestamp data available");
@@ -37,7 +40,7 @@ export function renderGPSTimeChart(container, data, options) {
         const themeConfig = getThemeConfig();
 
         // Find the first valid timestamp to use as reference time
-        const firstTimestamp = data.find((row) => row.timestamp)?.timestamp;
+        const firstTimestamp = safeData.find((row) => row.timestamp)?.timestamp;
         if (!firstTimestamp) {
             console.log("[ChartJS] No valid timestamp found");
             return;
@@ -48,7 +51,7 @@ export function renderGPSTimeChart(container, data, options) {
         // Convert GPS positions and timestamps to chart data
         let latitudeData = [],
             longitudeData = [];
-        for (const [index, row] of data.entries()) {
+        for (const [index, row] of safeData.entries()) {
             if (
                 row.positionLat !== undefined &&
                 row.positionLat !== null &&
@@ -99,7 +102,9 @@ export function renderGPSTimeChart(container, data, options) {
         const canvas = /** @type {HTMLCanvasElement} */ (createChartCanvas("gps-time", 0));
         if (themeConfig?.colors) {
             canvas.style.background = themeConfig.colors.bgPrimary || themeConfig.colors.chartBackground || "#000";
-            canvas.style.boxShadow = themeConfig.colors.shadow || "";
+            if (typeof themeConfig.colors.shadow === "string" && themeConfig.colors.shadow.length > 0) {
+                canvas.style.boxShadow = themeConfig.colors.shadow;
+            }
         }
         canvas.style.borderRadius = "12px";
         container.append(canvas);

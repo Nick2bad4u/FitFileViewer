@@ -2464,7 +2464,8 @@ async function renderChartsWithData(targetContainer, recordMesgs, startTime) {
 
     // Performance logging with state updates using updateState
     const endTime = performance.now(),
-        renderTime = endTime - (startTime || performance.now());
+        resolvedStartTime = typeof startTime === "number" ? startTime : endTime,
+        renderTime = endTime - resolvedStartTime;
     console.log(`[ChartJS] Rendered ${totalChartsRendered} charts in ${renderTime.toFixed(2)}ms`);
 
     // Update performance metrics in state using updateState for efficiency

@@ -13,6 +13,15 @@ const { registerDialogHandlers } = require("./registerDialogHandlers");
 const { registerRecentFileHandlers } = require("./registerRecentFileHandlers");
 
 /**
+ * Validate file path input for filesystem IPC calls.
+ * @param {unknown} filePath
+ * @returns {filePath is string}
+ */
+function isValidFilePath(filePath) {
+    return typeof filePath === "string" && filePath.trim().length > 0;
+}
+
+/**
  * Registers all IPC handlers for the main process. The structure mirrors the legacy implementation
  * but lives in a dedicated module to keep main.js lean.
  *
@@ -67,6 +76,19 @@ function setupIPCHandlers(mainWindow) {
 
     registerIpcHandle("file:read", async (_event, filePath) => {
         try {
+            if (!isValidFilePath(filePath)) {
+                const error = new Error("Invalid file path provided");
+                logWithContext("error", "Error in file:read:", {
+                    error: error.message,
+                    filePath,
+                });
+                throw error;
+            }
+
+            if (!fs || typeof fs.readFile !== "function") {
+                throw new Error("Filesystem module unavailable");
+            }
+
             return new Promise((resolve, reject) => {
                 fs.readFile(filePath, (err, data) => {
                     if (err) {

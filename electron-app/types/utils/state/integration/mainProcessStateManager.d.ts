@@ -2,7 +2,15 @@ export type ConsoleLevel = "log" | "info" | "warn" | "error" | "debug";
 export type Operation = {
     id: string;
     startTime: number;
+    /**
+     * - Monotonic start timestamp for duration calculation (ms)
+     */
+    startTimePerf?: number;
     endTime?: number;
+    /**
+     * - Monotonic end timestamp for duration calculation (ms)
+     */
+    endTimePerf?: number;
     duration?: number;
     status: "running" | "completed" | "failed";
     progress: number;
@@ -39,6 +47,10 @@ export type ErrorEntry = {
 };
 export type Metrics = {
     startTime: number;
+    /**
+     * - Monotonic start timestamp for uptime calculation (ms)
+     */
+    startTimePerf?: number;
     operationTimes: Map<
         string,
         {

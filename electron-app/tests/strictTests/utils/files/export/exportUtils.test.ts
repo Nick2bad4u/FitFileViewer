@@ -659,26 +659,13 @@ describe("exportUtils core flows", () => {
         it("uploadToGyazo throws when not authenticated", async () => {
             const { exportUtils } = await import(modPath);
 
-            // Mock authenticateWithGyazo to fail
-            vi.doMock(modPath, async () => {
-                const actual = await vi.importActual(modPath);
-                return {
-                    ...actual,
-                    exportUtils: {
-                        ...(actual as any).exportUtils,
-                        authenticateWithGyazo: vi
-                            .fn()
-                            .mockRejectedValue(
-                                new Error("Cannot read properties of undefined (reading 'startGyazoServer')")
-                            ),
-                    },
-                };
-            });
+            // Provide credentials so uploadToGyazo attempts OAuth flow.
+            // In tests / non-Electron environments electronAPI is absent, so authentication should fail cleanly.
+            localStorage.setItem("gyazo_client_id", "test-client");
+            localStorage.setItem("gyazo_client_secret", "test-secret");
 
-            const { exportUtils: mockedExportUtils } = await import(modPath);
-
-            await expect(mockedExportUtils.uploadToGyazo("fake-base64")).rejects.toThrow(
-                "Gyazo authentication required: Cannot read properties of undefined (reading 'startGyazoServer')"
+            await expect(exportUtils.uploadToGyazo("fake-base64")).rejects.toThrow(
+                /Gyazo authentication required: Gyazo OAuth is only available in the Electron desktop build/i
             );
         });
 
