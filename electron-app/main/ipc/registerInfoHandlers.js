@@ -7,8 +7,9 @@
  * @param {{ join: Function }} options.path
  * @param {{ DEFAULT_THEME: string, SETTINGS_CONFIG_NAME: string }} options.CONSTANTS
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {{ Conf: new (...args: any[]) => { get: (key: string, fallback?: any) => any } }} [options.confModule] Optional injected electron-conf module for testing
  */
-function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, logWithContext }) {
+function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, logWithContext, confModule }) {
     if (typeof registerIpcHandle !== "function") {
         return;
     }
@@ -44,12 +45,12 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
             platform: process.platform,
         }),
         "map-tab:get": async () => {
-            const { Conf } = require("electron-conf");
+            const { Conf } = confModule ?? require("electron-conf");
             const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("selectedMapTab", "map");
         },
         "theme:get": async () => {
-            const { Conf } = require("electron-conf");
+            const { Conf } = confModule ?? require("electron-conf");
             const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
             return conf.get("theme", CONSTANTS.DEFAULT_THEME);
         },

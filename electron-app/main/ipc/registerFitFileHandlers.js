@@ -4,8 +4,14 @@
  * @param {(channel: string, handler: Function) => void} options.registerIpcHandle
  * @param {() => Promise<void>} options.ensureFitParserStateIntegration
  * @param {(level: 'error' | 'warn' | 'info', message: string, context?: Record<string, any>) => void} options.logWithContext
+ * @param {{ decodeFitFile: (buffer: Buffer) => Promise<any> }} [options.fitParserModule] Optional injected FIT parser for testing
  */
-function registerFitFileHandlers({ registerIpcHandle, ensureFitParserStateIntegration, logWithContext }) {
+function registerFitFileHandlers({
+    registerIpcHandle,
+    ensureFitParserStateIntegration,
+    logWithContext,
+    fitParserModule,
+}) {
     if (typeof registerIpcHandle !== "function") {
         return;
     }
@@ -15,7 +21,7 @@ function registerFitFileHandlers({ registerIpcHandle, ensureFitParserStateIntegr
             try {
                 await ensureFitParserStateIntegration();
                 const buffer = Buffer.from(arrayBuffer);
-                const fitParser = require("../../fitParser");
+                const fitParser = fitParserModule ?? require("../../fitParser");
                 return await fitParser.decodeFitFile(buffer);
             } catch (error) {
                 logWithContext?.("error", `Error in ${channel}:`, {
