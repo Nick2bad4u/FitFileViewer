@@ -92,4 +92,16 @@ describe("registerInfoHandlers", () => {
             error: "fs failure",
         });
     });
+
+    it("normalizes corrupted persisted theme/map-tab values", async () => {
+        mockConfGet = vi.fn((key, fallback) => {
+            if (key === "selectedMapTab") return "<img src=x onerror=alert(1)>";
+            if (key === "theme") return "neon";
+            return fallback;
+        });
+
+        const handlers = getHandlers();
+        await expect(handlers["map-tab:get"]()).resolves.toBe("map");
+        await expect(handlers["theme:get"]()).resolves.toBe(CONSTANTS.DEFAULT_THEME);
+    });
 });

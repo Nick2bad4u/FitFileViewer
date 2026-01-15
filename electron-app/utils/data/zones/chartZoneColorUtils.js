@@ -59,6 +59,40 @@ const FALLBACK_POWER_ZONE_COLORS = [
 const zoneColorCache = new Map();
 const chartSpecificZoneColorCache = new Map();
 
+/**
+ * Conservative CSS color-token validation.
+ *
+ * These values can be persisted in localStorage and later interpolated into CSS.
+ * We explicitly reject characters/patterns that could break out of a property
+ * value (e.g., semicolons) or trigger remote resource loads.
+ *
+ * @param {unknown} value
+ * @returns {value is string}
+ */
+function isSafeCssColorToken(value) {
+    if (typeof value !== "string") return false;
+    const v = value.trim();
+    if (v.length === 0 || v.length > 64) return false;
+    // Prevent injection into cssText or style attribute.
+    if (/[;{}\n\r]/u.test(v)) return false;
+    if (/url\(/iu.test(v)) return false;
+
+    // Accept common safe formats.
+    if (/^#[\da-f]{3,4}$/iu.test(v)) return true; // #RGB / #RGBA
+    if (/^#[\da-f]{6}([\da-f]{2})?$/iu.test(v)) return true; // #RRGGBB / #RRGGBBAA
+    if (/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/iu.test(v)) return true;
+
+    return false;
+}
+
+/**
+ * @param {unknown} value
+ * @returns {string | null}
+ */
+function normalizeStoredColor(value) {
+    return isSafeCssColorToken(value) ? value.trim() : null;
+}
+
 export const clearCachedChartZoneColor = (chartField, zoneIndex) => {
     chartSpecificZoneColorCache.delete(`${chartField}:${zoneIndex}`);
 };
@@ -148,12 +182,22 @@ export function getChartSpecificZoneColor(chartField, zoneIndex) {
         return cachedValue;
     }
 
-    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`,
-        savedColor = localStorage.getItem(storageKey);
+    const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
+    const savedColor = localStorage.getItem(storageKey);
+    const normalized = normalizeStoredColor(savedColor);
 
+    if (normalized) {
+        chartSpecificZoneColorCache.set(cacheKey, normalized);
+        return normalized;
+    }
+
+    // Self-heal corrupted values.
     if (savedColor) {
-        chartSpecificZoneColorCache.set(cacheKey, savedColor);
-        return savedColor;
+        try {
+            localStorage.removeItem(storageKey);
+        } catch {
+            /* ignore */
+        }
     }
 
     // Fallback to generic zone color if chart-specific color doesn't exist
@@ -235,12 +279,21 @@ export function getZoneColor(zoneType, zoneIndex) {
         return /** @type {string} */ (zoneColorCache.get(cacheKey));
     }
 
-    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`,
-        savedColor = localStorage.getItem(storageKey);
+    const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
+    const savedColor = localStorage.getItem(storageKey);
+    const normalized = normalizeStoredColor(savedColor);
+
+    if (normalized) {
+        zoneColorCache.set(cacheKey, normalized);
+        return normalized;
+    }
 
     if (savedColor) {
-        zoneColorCache.set(cacheKey, savedColor);
-        return savedColor;
+        try {
+            localStorage.removeItem(storageKey);
+        } catch {
+            /* ignore */
+        }
     }
 
     // Return default color
@@ -333,12 +386,18 @@ export function resetZoneColors(zoneType, zoneCount) {
  * @param {string} color - Hex color code
  */
 export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
+    const normalized = normalizeStoredColor(color);
+    if (!normalized) {
+        console.warn("[ZoneColors] Refusing to persist invalid color token", { chartField, zoneIndex, color });
+        return;
+    }
+
     const storageKey = `chartjs_${chartField}_zone_${zoneIndex + 1}_color`;
     const existing = localStorage.getItem(storageKey);
-    if (existing !== color) {
-        localStorage.setItem(storageKey, color);
+    if (existing !== normalized) {
+        localStorage.setItem(storageKey, normalized);
     }
-    chartSpecificZoneColorCache.set(`${chartField}:${zoneIndex}`, color);
+    chartSpecificZoneColorCache.set(`${chartField}:${zoneIndex}`, normalized);
 }
 
 /**
@@ -348,10 +407,16 @@ export function saveChartSpecificZoneColor(chartField, zoneIndex, color) {
  * @param {string} color - Hex color code
  */
 export function saveZoneColor(zoneType, zoneIndex, color) {
+    const normalized = normalizeStoredColor(color);
+    if (!normalized) {
+        console.warn("[ZoneColors] Refusing to persist invalid color token", { zoneType, zoneIndex, color });
+        return;
+    }
+
     const storageKey = `chartjs_${zoneType}_zone_${zoneIndex + 1}_color`;
     const existing = localStorage.getItem(storageKey);
-    if (existing !== color) {
-        localStorage.setItem(storageKey, color);
+    if (existing !== normalized) {
+        localStorage.setItem(storageKey, normalized);
     }
-    zoneColorCache.set(`${zoneType}:${zoneIndex}`, color);
+    zoneColorCache.set(`${zoneType}:${zoneIndex}`, normalized);
 }

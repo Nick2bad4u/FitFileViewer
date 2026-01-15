@@ -1036,10 +1036,39 @@ function createFieldToggle(/** @type {string} */ field) {
         // Regular color picker for non-zone charts
         const colorPicker = document.createElement("input");
         colorPicker.type = "color";
-        colorPicker.value =
-            localStorage.getItem(`chartjs_color_${field}`) ||
-            /** @type {any} */ (fieldColors)[field] ||
-            /** @type {any} */ (themeConfig).colors?.primaryAlpha;
+
+        /**
+         * Normalize potentially-corrupted stored color values into a hex6 string
+         * that <input type="color"> can accept.
+         * @param {unknown} value
+         * @returns {string | null}
+         */
+        const normalizeColorInputHex = (value) => {
+            if (typeof value !== "string") return null;
+            const v = value.trim();
+            if (/^#[\da-f]{6}$/iu.test(v)) return v;
+            // #RRGGBBAA -> strip alpha
+            if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
+            // #RGB / #RGBA -> expand and strip alpha
+            if (/^#[\da-f]{3}$/iu.test(v)) {
+                const r = v[1],
+                    g = v[2],
+                    b = v[3];
+                return `#${r}${r}${g}${g}${b}${b}`;
+            }
+            if (/^#[\da-f]{4}$/iu.test(v)) {
+                const r = v[1],
+                    g = v[2],
+                    b = v[3];
+                return `#${r}${r}${g}${g}${b}${b}`;
+            }
+            return null;
+        };
+
+        const storedColor = localStorage.getItem(`chartjs_color_${field}`);
+        const candidate =
+            storedColor || /** @type {any} */ (fieldColors)[field] || /** @type {any} */ (themeConfig).colors?.accent;
+        colorPicker.value = normalizeColorInputHex(candidate) || "#3b82f6";
         colorPicker.style.cssText = `
 			width: 32px;
 			height: 32px;
@@ -1121,7 +1150,17 @@ function createRangeControl(/** @type {ChartOption} */ option) {
     slider.min = String(option.min || 0);
     slider.max = String(option.max || 100);
     slider.step = String(option.step || 1);
-    slider.value = localStorage.getItem(`chartjs_${option.id}`) || String(option.default || option.defaultValue || 0);
+
+    const minVal = typeof option.min === "number" ? option.min : 0;
+    const maxVal = typeof option.max === "number" ? option.max : 100;
+    const rawDefault = option.defaultValue ?? option.default ?? 0;
+    const defaultNum = typeof rawDefault === "number" ? rawDefault : Number(rawDefault);
+    const safeDefault = Number.isFinite(defaultNum) ? defaultNum : 0;
+    const stored = localStorage.getItem(`chartjs_${option.id}`);
+    const storedNum = stored === null ? Number.NaN : Number(stored);
+    const initial = Number.isFinite(storedNum) ? storedNum : safeDefault;
+    const clamped = Math.min(maxVal, Math.max(minVal, initial));
+    slider.value = String(clamped);
 
     slider.style.cssText = `
 		width: 100%;
@@ -1174,28 +1213,32 @@ function createRangeControl(/** @type {ChartOption} */ option) {
     slider.addEventListener("input", (/** @type {Event} */ e) => {
         const { target } = /** @type {HTMLInputElement} */ (e);
         if (target) {
-            valueDisplay.textContent = target.value;
-            localStorage.setItem(`chartjs_${option.id}`, target.value);
+            // input[type=range] should always produce a numeric string within min/max,
+            // but we clamp defensively in case of stored-state corruption or unexpected DOM.
+            const current = Number(target.value);
+            const safeCurrent = Number.isFinite(current) ? Math.min(maxVal, Math.max(minVal, current)) : clamped;
+            const safeValue = String(safeCurrent);
+
+            valueDisplay.textContent = safeValue;
+            localStorage.setItem(`chartjs_${option.id}`, safeValue);
 
             // Update slider background
-            const maxVal = option.max || 100,
-                minVal = option.min || 0,
-                percentage = ((Number(target.value) - minVal) / (maxVal - minVal)) * 100;
+            const range = maxVal - minVal;
+            const percentage = range > 0 ? ((safeCurrent - minVal) / range) * 100 : 0;
             slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
             // Debounced re-render using the same approach as the reset button
             clearTimeout(slider.timeout);
             slider.timeout = setTimeout(() => {
-                reRenderChartsAfterSettingChange(option.id, target.value);
+                reRenderChartsAfterSettingChange(option.id, safeValue);
             }, 300);
         }
     });
 
     // Initialize slider background
     // Set initial background
-    const maxVal = option.max || 100,
-        minVal = option.min || 0,
-        initialPercentage = ((Number(slider.value) - minVal) / (maxVal - minVal)) * 100;
+    const range = maxVal - minVal;
+    const initialPercentage = range > 0 ? ((Number(slider.value) - minVal) / range) * 100 : 0;
     slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${initialPercentage}%, var(--color-border) ${initialPercentage}%, var(--color-border) 100%)`;
 
     container.append(valueDisplay);
@@ -1250,7 +1293,10 @@ function createSelectControl(/** @type {ChartOption} */ option) {
         }
 
     const stored = localStorage.getItem(`chartjs_${option.id}`);
-    select.value = stored === null ? option.default : stored;
+    const allowed = Array.isArray(option.options) ? new Set(option.options.map(String)) : null;
+    const fallback = option.default === undefined ? String(option.options?.[0] ?? "") : String(option.default);
+    const candidate = stored === null ? fallback : String(stored);
+    select.value = allowed && !allowed.has(candidate) ? fallback : candidate;
 
     // Mouse wheel support for maxpoints
     if (option.id === "maxpoints") {

@@ -14,6 +14,53 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
         return;
     }
 
+    /**
+     * Safely read a value from electron-conf.
+     *
+     * electron-conf can throw during require/initialization depending on environment
+     * (e.g., missing Electron paths, corrupted config). These handlers should never
+     * crash the IPC surface; instead we fall back to defaults.
+     *
+     * @template T
+     * @param {string} key
+     * @param {T} fallback
+     * @param {(value: unknown) => T} normalize
+     * @returns {T}
+     */
+    const safeConfGet = (key, fallback, normalize) => {
+        try {
+            const { Conf } = confModule ?? require("electron-conf");
+            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            const value = conf.get(key, fallback);
+            return normalize(value);
+        } catch (error) {
+            logWithContext?.("warn", `Failed to read persisted setting: ${key}`, {
+                error: /** @type {Error} */ (error)?.message,
+            });
+            return normalize(fallback);
+        }
+    };
+
+    /**
+     * @param {unknown} value
+     * @returns {string}
+     */
+    const normalizeTheme = (value) => {
+        const t = typeof value === "string" ? value.trim().toLowerCase() : "";
+        return t === "dark" || t === "light" || t === "auto" ? t : CONSTANTS.DEFAULT_THEME;
+    };
+
+    /**
+     * @param {unknown} value
+     * @returns {string}
+     */
+    const normalizeMapTab = (value) => {
+        const t = typeof value === "string" ? value.trim() : "";
+        // Conservative: only allow simple identifier-like tab names.
+        if (/^[a-z0-9_-]{1,32}$/iu.test(t)) return t;
+        return "map";
+    };
+
     const handlers = {
         getAppVersion: async () => {
             const app = appRef();
@@ -44,16 +91,8 @@ function registerInfoHandlers({ registerIpcHandle, appRef, fs, path, CONSTANTS, 
             arch: process.arch,
             platform: process.platform,
         }),
-        "map-tab:get": async () => {
-            const { Conf } = confModule ?? require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get("selectedMapTab", "map");
-        },
-        "theme:get": async () => {
-            const { Conf } = confModule ?? require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get("theme", CONSTANTS.DEFAULT_THEME);
-        },
+        "map-tab:get": async () => safeConfGet("selectedMapTab", "map", normalizeMapTab),
+        "theme:get": async () => safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
     };
 
     for (const [channel, handler] of Object.entries(handlers)) {

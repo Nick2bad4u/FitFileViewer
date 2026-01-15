@@ -179,12 +179,15 @@ function setupIPCHandlers(mainWindow) {
                     const app = appRef();
                     return path.join(app && app.getAppPath ? app.getAppPath() : process.cwd(), "package.json");
                 })();
-                const packageJson = JSON.parse(fs.readFileSync(pkgPath));
+                const raw = fs.readFileSync(pkgPath);
+                const text = Buffer.isBuffer(raw) ? raw.toString("utf8") : String(raw);
+                const packageJson = JSON.parse(text);
                 return packageJson.license || "Unknown";
             } catch (error) {
                 logWithContext("error", "Failed to read license from package.json:", {
                     error: /** @type {Error} */ (error).message,
                 });
+                return "Unknown";
             }
         },
         getNodeVersion: async () => process.versions.node,
@@ -193,14 +196,26 @@ function setupIPCHandlers(mainWindow) {
             platform: process.platform,
         }),
         "map-tab:get": async () => {
-            const { Conf } = require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get("selectedMapTab", "map");
+            try {
+                const { Conf } = require("electron-conf");
+                const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+                const value = conf.get("selectedMapTab", "map");
+                const t = typeof value === "string" ? value.trim() : "";
+                return /^[a-z0-9_-]{1,32}$/iu.test(t) ? t : "map";
+            } catch {
+                return "map";
+            }
         },
         "theme:get": async () => {
-            const { Conf } = require("electron-conf");
-            const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
-            return conf.get("theme", CONSTANTS.DEFAULT_THEME);
+            try {
+                const { Conf } = require("electron-conf");
+                const conf = new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+                const value = conf.get("theme", CONSTANTS.DEFAULT_THEME);
+                const t = typeof value === "string" ? value.trim().toLowerCase() : "";
+                return t === "dark" || t === "light" || t === "auto" ? t : CONSTANTS.DEFAULT_THEME;
+            } catch {
+                return CONSTANTS.DEFAULT_THEME;
+            }
         },
     };
 

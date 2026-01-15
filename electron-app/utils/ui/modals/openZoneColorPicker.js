@@ -246,16 +246,41 @@ export function openZoneColorPicker(field) {
 							width: 32px;
 							height: 32px;
 							border-radius: 8px;
-							background: ${currentColor};
 							border: 2px solid rgba(255, 255, 255, 0.3);
 							cursor: pointer;
 							transition: all 0.3s ease;
 						`;
+            // Avoid embedding color strings into cssText.
+            colorPreview.style.background = currentColor;
+
+            /**
+             * Convert stored color tokens to a valid <input type="color"> value.
+             * @param {string} value
+             * @returns {string}
+             */
+            const toColorInputHex6 = (value) => {
+                const v = String(value).trim();
+                if (/^#[\da-f]{6}$/iu.test(v)) return v;
+                if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
+                if (/^#[\da-f]{3}$/iu.test(v)) {
+                    const r = v[1],
+                        g = v[2],
+                        b = v[3];
+                    return `#${r}${r}${g}${g}${b}${b}`;
+                }
+                if (/^#[\da-f]{4}$/iu.test(v)) {
+                    const r = v[1],
+                        g = v[2],
+                        b = v[3];
+                    return `#${r}${r}${g}${g}${b}${b}`;
+                }
+                return "#000000";
+            };
 
             // Color picker input (hidden)
             const colorPicker = document.createElement("input");
             colorPicker.type = "color";
-            colorPicker.value = currentColor;
+            colorPicker.value = toColorInputHex6(currentColor);
             colorPicker.style.cssText = `
 							opacity: 0;
 							position: absolute;

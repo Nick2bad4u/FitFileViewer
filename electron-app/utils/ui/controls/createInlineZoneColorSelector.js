@@ -706,10 +706,21 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
 
     const zoneName = /** @type {any} */ (zone).label || `Zone ${/** @type {any} */ (zone).zone || zoneIndex + 1}`,
         zoneTime = /** @type {any} */ (zone).time ? formatTime(/** @type {any} */ (zone).time, true) : "";
-    label.innerHTML = `
-        <div>${zoneName}</div>
-        ${zoneTime ? `<div style="font-size: 10px; color: var(--color-fg-alt); margin-top: 2px;">${zoneTime}</div>` : ""}
-    `;
+
+    // Security: do not use innerHTML with zone labels/times (these can be derived from file data).
+    // Build DOM nodes and use textContent to prevent injection.
+    label.replaceChildren();
+    const nameLine = document.createElement("div");
+    nameLine.textContent = String(zoneName);
+    label.append(nameLine);
+    if (zoneTime) {
+        const timeLine = document.createElement("div");
+        timeLine.textContent = String(zoneTime);
+        timeLine.style.fontSize = "10px";
+        timeLine.style.color = "var(--color-fg-alt)";
+        timeLine.style.marginTop = "2px";
+        label.append(timeLine);
+    }
 
     // Color preview
     const colorPreview = document.createElement("div");
@@ -718,14 +729,42 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         width: 24px;
         height: 24px;
         border-radius: 4px;
-        background-color: ${currentColor};
         border: 2px solid var(--color-border);
         cursor: pointer;
         transition: var(--transition-smooth);
-    `; // Hidden color input
+    `;
+    // Avoid embedding color strings into cssText.
+    colorPreview.style.backgroundColor = currentColor;
+
+    /**
+     * Normalize stored zone colors into a format accepted by <input type="color">.
+     * Stored tokens may be #RRGGBBAA for alpha; the input only supports #RRGGBB.
+     * @param {string} value
+     * @returns {string}
+     */
+    const toColorInputHex6 = (value) => {
+        const v = String(value).trim();
+        if (/^#[\da-f]{6}$/iu.test(v)) return v;
+        if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
+        if (/^#[\da-f]{3}$/iu.test(v)) {
+            const r = v[1],
+                g = v[2],
+                b = v[3];
+            return `#${r}${r}${g}${g}${b}${b}`;
+        }
+        if (/^#[\da-f]{4}$/iu.test(v)) {
+            const r = v[1],
+                g = v[2],
+                b = v[3];
+            return `#${r}${r}${g}${g}${b}${b}`;
+        }
+        return "#000000";
+    };
+
+    // Hidden color input
     const colorInput = document.createElement("input");
     colorInput.type = "color";
-    colorInput.value = currentColor;
+    colorInput.value = toColorInputHex6(currentColor);
     colorInput.className = "zone-color-input";
     colorInput.style.cssText = `
         opacity: 0;

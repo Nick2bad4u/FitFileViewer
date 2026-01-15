@@ -857,7 +857,9 @@ function getPlatformAppMenu(mainWindow) {
 }
 
 function getTheme() {
-    return getConf().get("theme", "dark");
+    const value = getConf().get("theme", "dark");
+    const t = typeof value === "string" ? value.trim().toLowerCase() : "";
+    return t === "dark" || t === "light" || t === "auto" ? t : "dark";
 }
 
 /**
