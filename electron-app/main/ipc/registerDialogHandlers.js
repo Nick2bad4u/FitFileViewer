@@ -28,6 +28,16 @@ function registerDialogHandlers({
         return;
     }
 
+    // Main-process allowlist for renderer-initiated file reads.
+    // This prevents arbitrary file disclosure via IPC if the renderer is compromised.
+    /** @type {null | { approveFilePath: (p: unknown, options?: { source?: string }) => string, approveFilePaths: (p: unknown, options?: { source?: string }) => void }} */
+    let fileAccessPolicy = null;
+    try {
+        fileAccessPolicy = require("../security/fileAccessPolicy");
+    } catch {
+        fileAccessPolicy = null;
+    }
+
     registerIpcHandle("dialog:openFile", async () => {
         try {
             const dialog = typeof dialogRef === "function" ? dialogRef() : null;
@@ -47,6 +57,15 @@ function registerDialogHandlers({
             const [firstPath] = filePaths;
             if (!firstPath) {
                 return null;
+            }
+
+            try {
+                fileAccessPolicy?.approveFilePath(firstPath, { source: "dialog:openFile" });
+            } catch (policyError) {
+                logWithContext?.("warn", "Failed to approve file path for reading", {
+                    error: /** @type {Error} */ (policyError)?.message,
+                    filePath: firstPath,
+                });
             }
 
             if (typeof addRecentFile === "function") {
@@ -94,7 +113,17 @@ function registerDialogHandlers({
                 return [];
             }
 
-            return filePaths.filter((entry) => typeof entry === "string" && entry.trim().length > 0);
+            const filtered = filePaths.filter((entry) => typeof entry === "string" && entry.trim().length > 0);
+
+            try {
+                fileAccessPolicy?.approveFilePaths(filtered, { source: "dialog:openOverlayFiles" });
+            } catch (policyError) {
+                logWithContext?.("warn", "Failed to approve overlay file paths for reading", {
+                    error: /** @type {Error} */ (policyError)?.message,
+                });
+            }
+
+            return filtered;
         } catch (error) {
             logWithContext?.("error", "Error in dialog:openOverlayFiles", {
                 error: /** @type {Error} */ (error)?.message,

@@ -121,6 +121,19 @@ const getStateMgr = () => {
 };
 
 /**
+ * Active-tab subscription handle.
+ *
+ * We intentionally keep this local to the module instead of relying on
+ * stateManager.subscribeSingleton() so:
+ * - unit tests can reliably mock `subscribe` and capture the callback
+ * - repeated initialization (e.g., re-render / hot reload) does not leak
+ *   subscriptions in production
+ *
+ * @type {(() => void) | null}
+ */
+let activeTabUnsubscribe = null;
+
+/**
  * Get the currently active tab
  * @returns {string} Currently active tab name
  */
@@ -143,10 +156,26 @@ export function initializeActiveTabState() {
                 /* Ignore */
             }
         };
-        if (typeof __StateMgr.subscribeSingleton === "function") {
+
+        // Idempotent subscription: unsubscribe any prior handler before re-subscribing.
+        // This prevents subscription leaks without requiring the state manager to expose
+        // a dedicated singleton API, and it keeps the behavior easy to mock in tests.
+        try {
+            if (typeof activeTabUnsubscribe === "function") activeTabUnsubscribe();
+        } catch {
+            /* ignore */
+        }
+        activeTabUnsubscribe = null;
+
+        const sm = getStateMgr();
+        if (typeof sm.subscribe === "function") {
+            const maybeUnsub = sm.subscribe("ui.activeTab", onActiveTabChange);
+            activeTabUnsubscribe = typeof maybeUnsub === "function" ? maybeUnsub : null;
+        } else if (typeof __StateMgr.subscribeSingleton === "function") {
+            // Safety fallback for unexpected environments.
             __StateMgr.subscribeSingleton("ui.activeTab", "ui:updateActiveTab:activeTab", onActiveTabChange);
         } else {
-            getStateMgr().subscribe("ui.activeTab", onActiveTabChange);
+            console.warn("[ActiveTab] No state subscription API available; active tab UI will not react to state");
         }
 
         // Set up click listeners for tab buttons

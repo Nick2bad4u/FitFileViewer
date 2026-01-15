@@ -3,7 +3,8 @@
 
 // Reuse central DOM helpers for safe narrowing
 import { isHTMLElement } from "../../dom/index.js";
-import { getState, setState, subscribe, subscribeSingleton } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe } from "../../state/core/stateManager.js";
+import * as StateManager from "../../state/core/stateManager.js";
 
 // Ensure console.trace exists for tests/environments where it's missing
 if (typeof console !== "undefined" && typeof console.trace !== "function") {
@@ -243,8 +244,21 @@ export function initializeTabButtonState() {
 
     // Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
-    if (typeof subscribeSingleton === "function") {
-        subscribeSingleton("globalData", "ui:tabButtons:globalData", (/** @type {any} */ data) => {
+    /** @type {undefined | ((path: string, id: string, callback: (data: any) => void) => void)} */
+    let subscribeSingletonFn;
+    try {
+        // In Vitest, accessing a missing export on a mocked ESM module can throw.
+        // Resolve it defensively so tests that mock only {getState,setState,subscribe}
+        // don't fail at runtime.
+        // @ts-ignore
+        subscribeSingletonFn =
+            typeof StateManager.subscribeSingleton === "function" ? StateManager.subscribeSingleton : undefined;
+    } catch {
+        subscribeSingletonFn = undefined;
+    }
+
+    if (typeof subscribeSingletonFn === "function") {
+        subscribeSingletonFn("globalData", "ui:tabButtons:globalData", (/** @type {any} */ data) => {
             const hasData = data !== null && data !== undefined;
             console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
             console.log(`[TabButtons] Updating tabs based on globalData: ${hasData ? "enabling" : "disabling"}`);

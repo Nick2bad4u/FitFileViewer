@@ -173,6 +173,17 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     const recentFiles = hasInjectedRecentFiles
         ? injectedRecentFiles
         : /** @type {string[]} */ (recentUtils.loadRecentFiles());
+
+    // Best-effort file access policy integration.
+    // This module is used in the main process; approving here ensures renderer readFile calls
+    // can be authorized after a user clicks a recent file menu item.
+    /** @type {null | { approveFilePath: (p: unknown, options?: { source?: string }) => string }} */
+    let fileAccessPolicy = null;
+    try {
+        fileAccessPolicy = require("../../../main/security/fileAccessPolicy");
+    } catch {
+        fileAccessPolicy = null;
+    }
     // If (!app.isPackaged) {
     //     Console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
     // }
@@ -192,6 +203,12 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
             recentFiles.length > 0
                 ? recentFiles.map((/** @type {string} */ file) => ({
                       click: () => {
+                          try {
+                              fileAccessPolicy?.approveFilePath(file, { source: "menu:openRecent" });
+                          } catch {
+                              // Non-fatal: if approval fails, the renderer may not be able to read
+                              // the file depending on security policy.
+                          }
                           if (!sendToRenderer("open-recent-file", file)) {
                               console.warn("[createAppMenu] No active window available to open recent file.");
                           }

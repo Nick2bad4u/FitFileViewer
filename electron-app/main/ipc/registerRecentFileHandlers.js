@@ -26,9 +26,31 @@ function registerRecentFileHandlers({
         return;
     }
 
+    /**
+     * Main-process file read policy (best-effort).
+     * If unavailable, we fall back to legacy behavior.
+     *
+     * @type {null | { approveFilePaths: (paths: unknown, options?: { source?: string }) => void, isApprovedFilePath: (path: unknown) => boolean }}
+     */
+    let fileAccessPolicy = null;
+    try {
+        fileAccessPolicy = require("../security/fileAccessPolicy");
+    } catch {
+        fileAccessPolicy = null;
+    }
+
     registerIpcHandle("recentFiles:get", async () => {
         try {
-            return loadRecentFiles();
+            const list = loadRecentFiles();
+            // Allow reading recent files (these are user-selected historically).
+            // NOTE: This does NOT allow adding arbitrary new paths; see recentFiles:add below.
+            try {
+                fileAccessPolicy?.approveFilePaths(list, { source: "recentFiles:get" });
+            } catch {
+                /* ignore policy seeding errors */
+            }
+
+            return list;
         } catch (error) {
             logWithContext?.("error", "Error in recentFiles:get:", {
                 error: /** @type {Error} */ (error)?.message,
@@ -39,6 +61,15 @@ function registerRecentFileHandlers({
 
     registerIpcHandle("recentFiles:add", async (_event, filePath) => {
         try {
+            // Security hardening: do not allow the renderer to arbitrarily add new file paths
+            // unless they've already been approved via a trusted flow (e.g., dialog selection).
+            if (fileAccessPolicy && !fileAccessPolicy.isApprovedFilePath(filePath)) {
+                logWithContext?.("warn", "Rejected recentFiles:add for unapproved path", {
+                    filePath,
+                });
+                return loadRecentFiles();
+            }
+
             addRecentFile(filePath);
             const win = resolveTargetWindow(browserWindowRef, mainWindow);
             if (!win) {

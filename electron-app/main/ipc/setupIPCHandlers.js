@@ -6,20 +6,14 @@ const { startGyazoOAuthServer, stopGyazoOAuthServer } = require("../oauth/gyazoO
 const { appRef, browserWindowRef, dialogRef, shellRef } = require("../runtime/electronAccess");
 const { ensureFitParserStateIntegration } = require("../runtime/fitParserIntegration");
 const { fs, path } = require("../runtime/nodeModules");
+const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
 const { getAppState, setAppState } = require("../state/appState");
 const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
 const { registerIpcHandle, registerIpcListener } = require("./ipcRegistry");
 const { registerDialogHandlers } = require("./registerDialogHandlers");
 const { registerRecentFileHandlers } = require("./registerRecentFileHandlers");
 
-/**
- * Validate file path input for filesystem IPC calls.
- * @param {unknown} filePath
- * @returns {filePath is string}
- */
-function isValidFilePath(filePath) {
-    return typeof filePath === "string" && filePath.trim().length > 0;
-}
+const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024; // 100 MB safety cap
 
 /**
  * Registers all IPC handlers for the main process. The structure mirrors the legacy implementation
@@ -60,7 +54,17 @@ function setupIPCHandlers(mainWindow) {
     });
 
     registerIpcListener("fit-file-loaded", async (event, filePath) => {
-        setAppState("loadedFitFilePath", filePath);
+        try {
+            // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
+            const approvedPath = assertFileReadAllowed(filePath);
+            setAppState("loadedFitFilePath", approvedPath);
+        } catch (error) {
+            logWithContext("warn", "Rejected fit-file-loaded with unapproved path", {
+                error: /** @type {Error} */ (error)?.message,
+                filePath,
+            });
+            return;
+        }
         const win = browserWindowRef().fromWebContents(event.sender);
         if (win) {
             try {
@@ -76,8 +80,13 @@ function setupIPCHandlers(mainWindow) {
 
     registerIpcHandle("file:read", async (_event, filePath) => {
         try {
-            if (!isValidFilePath(filePath)) {
-                const error = new Error("Invalid file path provided");
+            // Validate *and authorize* file reads.
+            // This blocks arbitrary local file disclosure via IPC.
+            let authorizedPath;
+            try {
+                authorizedPath = assertFileReadAllowed(filePath);
+            } catch (policyError) {
+                const error = policyError instanceof Error ? policyError : new Error(String(policyError));
                 logWithContext("error", "Error in file:read:", {
                     error: error.message,
                     filePath,
@@ -90,11 +99,11 @@ function setupIPCHandlers(mainWindow) {
             }
 
             return new Promise((resolve, reject) => {
-                fs.readFile(filePath, (err, data) => {
+                fs.readFile(authorizedPath, (err, data) => {
                     if (err) {
                         logWithContext("error", "Error reading file:", {
                             error: /** @type {Error} */ (err).message,
-                            filePath,
+                            filePath: authorizedPath,
                         });
                         reject(err);
                     } else {
@@ -113,6 +122,12 @@ function setupIPCHandlers(mainWindow) {
     registerIpcHandle("fit:parse", async (_event, arrayBuffer) => {
         try {
             await ensureFitParserStateIntegration();
+            if (!(arrayBuffer instanceof ArrayBuffer)) {
+                throw new TypeError("Invalid FIT data: expected ArrayBuffer");
+            }
+            if (arrayBuffer.byteLength > MAX_FIT_FILE_BYTES) {
+                throw new Error(`FIT data too large (${arrayBuffer.byteLength} bytes)`);
+            }
             const buffer = Buffer.from(arrayBuffer);
             const fitParser = require("../../fitParser");
             return await fitParser.decodeFitFile(buffer);
@@ -127,6 +142,12 @@ function setupIPCHandlers(mainWindow) {
     registerIpcHandle("fit:decode", async (_event, arrayBuffer) => {
         try {
             await ensureFitParserStateIntegration();
+            if (!(arrayBuffer instanceof ArrayBuffer)) {
+                throw new TypeError("Invalid FIT data: expected ArrayBuffer");
+            }
+            if (arrayBuffer.byteLength > MAX_FIT_FILE_BYTES) {
+                throw new Error(`FIT data too large (${arrayBuffer.byteLength} bytes)`);
+            }
             const buffer = Buffer.from(arrayBuffer);
             const fitParser = require("../../fitParser");
             return await fitParser.decodeFitFile(buffer);
@@ -195,11 +216,29 @@ function setupIPCHandlers(mainWindow) {
                 throw new Error("Invalid URL provided");
             }
 
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            const trimmedUrl = url.trim();
+            if (!trimmedUrl) {
+                throw new Error("Invalid URL provided");
+            }
+
+            let parsed;
+            try {
+                parsed = new URL(trimmedUrl);
+            } catch {
+                throw new Error("Invalid URL provided");
+            }
+
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
                 throw new Error("Only HTTP and HTTPS URLs are allowed");
             }
 
-            await shellRef().openExternal(url);
+            if (parsed.username || parsed.password) {
+                throw new Error("Credentials in URLs are not allowed");
+            }
+
+            // Preserve the original string (post-trim) to avoid surprising canonicalization
+            // like adding a trailing slash.
+            await shellRef().openExternal(trimmedUrl);
             return true;
         } catch (error) {
             logWithContext("error", "Error in shell:openExternal:", {
@@ -211,7 +250,11 @@ function setupIPCHandlers(mainWindow) {
 
     registerIpcHandle("gyazo:server:start", async (_event, port = 3000) => {
         try {
-            return await startGyazoOAuthServer(port);
+            const numericPort = typeof port === "number" ? port : Number(port);
+            if (!Number.isInteger(numericPort) || numericPort < 1 || numericPort > 65_535) {
+                throw new Error("Invalid port provided");
+            }
+            return await startGyazoOAuthServer(numericPort);
         } catch (error) {
             logWithContext("error", "Error in gyazo:server:start:", {
                 error: /** @type {Error} */ (error).message,

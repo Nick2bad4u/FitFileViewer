@@ -300,6 +300,13 @@ describe("main.js strict handlers and events", () => {
         expect(mockShell.openExternal).toHaveBeenCalledWith("https://example.com");
 
         // file:read returns ArrayBuffer
+        // file:read is protected by a main-process allowlist; approve the path as if it
+        // came from a trusted user flow (dialog/menu/recent list).
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const policy: any = require("../../../main/security/fileAccessPolicy");
+        policy.__resetForTests?.();
+        policy.approveFilePath?.("C:/x.fit", { source: "test" });
+
         // Override fs.readFile for this call using spy with loose typing
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const fsMod: any = require("fs");
