@@ -12,6 +12,8 @@ const mockDetectCurrentTheme = vi.fn().mockReturnValue("light");
 const mockElectronAPI = {
     startGyazoServer: vi.fn(),
     stopGyazoServer: vi.fn(),
+    // authenticateWithGyazo registers an IPC listener and expects an unsubscribe function.
+    onIpc: vi.fn(() => () => {}),
     saveFile: vi.fn(),
     copyToClipboard: vi.fn(),
     downloadFile: vi.fn(),

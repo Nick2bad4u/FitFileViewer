@@ -97,9 +97,21 @@ export type WindowExtensions = {
      */
     setupActiveFileNameMapActions?: Function;
     /**
-     * - Map theme change listener
+     * - Leaflet measure control (plugin)
      */
-    _mapThemeListener?: Function;
+    _measureControl?: any;
+    /**
+     * - Leaflet draw control (plugin)
+     */
+    _drawControl?: any;
+    /**
+     * - FeatureGroup containing user-drawn items
+     */
+    _drawnItems?: any;
+    /**
+     * - Leaflet minimap control (plugin)
+     */
+    _miniMapControl?: any;
     /**
      * - Leaflet library object
      */

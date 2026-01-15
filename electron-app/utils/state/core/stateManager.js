@@ -743,6 +743,57 @@ function subscribe(path, callback) {
 }
 
 /**
+ * Subscribe to state changes ensuring there is only one active subscription for a given id.
+ *
+ * This is intended for UI initializers that may run multiple times due to re-renders.
+ * It prevents leaking subscriptions across map/tab rebuilds.
+ *
+ * @param {string} path - Dot notation path to state property (e.g., 'ui.activeTab')
+ * @param {string} id - Unique identifier for this subscription (e.g., 'tabs:activeTab')
+ * @param {Function} callback - Function to call when state changes
+ * @returns {Function} Unsubscribe function
+ */
+function subscribeSingleton(path, id, callback) {
+    /** @type {any} */
+    const g = /** @type {any} */ (globalThis);
+    if (!g.__ffvSingletonStateSubscriptions || typeof g.__ffvSingletonStateSubscriptions !== "object") {
+        g.__ffvSingletonStateSubscriptions = Object.create(null);
+    }
+
+    const registry = /** @type {Record<string, Function>} */ (g.__ffvSingletonStateSubscriptions);
+    const key = typeof id === "string" ? id.trim() : "";
+
+    if (!key) {
+        // Fall back to normal subscription if caller didn't provide an id
+        return subscribe(path, callback);
+    }
+
+    // Best-effort unsubscribe any existing subscription for this id
+    try {
+        if (typeof registry[key] === "function") {
+            registry[key]();
+        }
+    } catch {
+        /* ignore */
+    }
+
+    const unsubscribe = subscribe(path, callback);
+    registry[key] = unsubscribe;
+
+    return () => {
+        try {
+            // Only delete if we're still the current subscription for this id
+            if (registry[key] === unsubscribe) {
+                delete registry[key];
+            }
+        } catch {
+            /* ignore */
+        }
+        unsubscribe();
+    };
+}
+
+/**
  * Update state by merging with existing object
  * @param {string} path - Dot notation path to state property
  * @param {Object} updates - Object to merge with existing state
@@ -772,6 +823,7 @@ export { persistState };
 export { resetState };
 export { setState };
 export { subscribe };
+export { subscribeSingleton };
 export { updateState };
 
 try {
@@ -792,6 +844,7 @@ try {
             resetState,
             setState,
             subscribe,
+            subscribeSingleton,
             updateState,
         };
 

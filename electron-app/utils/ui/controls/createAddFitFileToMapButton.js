@@ -10,18 +10,39 @@ import { showNotification } from "../notifications/showNotification.js";
 
 export function createAddFitFileToMapButton() {
     try {
+        /** @type {any} */
+        const globalRef = globalThis;
+
+        const isTestEnvironment =
+            globalThis.process !== undefined &&
+            Boolean(globalThis.process?.env) &&
+            /** @type {any} */ (globalThis.process.env).NODE_ENV === "test";
+
         const addOverlayBtn = document.createElement("button");
         addOverlayBtn.className = "map-action-btn";
         addOverlayBtn.disabled = true;
         addOverlayBtn.setAttribute("aria-disabled", "true");
 
         const themeColors = getThemeColors();
-        addOverlayBtn.innerHTML = `
-            <svg class="icon" viewBox="0 0 20 20" width="18" height="18">
-                <path d="M10 2v16M2 10h16" stroke="${themeColors.primary}" stroke-width="2" fill="none"/>
-            </svg>
-            <span>Add FIT File(s) to Map</span>
-        `;
+
+        // Avoid innerHTML. While themeColors.primary is not user-controlled, using DOM APIs is safer and consistent.
+        const svg = /** @type {SVGElement} */ (document.createElementNS("http://www.w3.org/2000/svg", "svg"));
+        svg.classList.add("icon");
+        svg.setAttribute("viewBox", "0 0 20 20");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "18");
+
+        const path = /** @type {SVGPathElement} */ (document.createElementNS("http://www.w3.org/2000/svg", "path"));
+        path.setAttribute("d", "M10 2v16M2 10h16");
+        path.setAttribute("stroke", themeColors.primary || "currentColor");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+        svg.append(path);
+
+        const label = document.createElement("span");
+        label.textContent = "Add FIT File(s) to Map";
+
+        addOverlayBtn.replaceChildren(svg, label);
 
         addOverlayBtn.title = "Overlay one or more FIT files on the map (points and tooltips will be shown)";
         addOverlayBtn.setAttribute("aria-label", "Add FIT files as map overlays");
@@ -45,7 +66,22 @@ export function createAddFitFileToMapButton() {
         };
 
         updateAvailability();
-        subscribe("globalData", updateAvailability);
+
+        // Prevent subscription leaks: renderMap clears and recreates controls, so this button can be destroyed.
+        // Install a single subscription and always point it at the current button's updater.
+        globalRef.__ffvAddFitOverlayButtonUpdate = updateAvailability;
+        if (typeof globalRef.__ffvAddFitOverlayButtonUnsubscribe !== "function") {
+            globalRef.__ffvAddFitOverlayButtonUnsubscribe = subscribe("globalData", () => {
+                try {
+                    const fn = globalRef.__ffvAddFitOverlayButtonUpdate;
+                    if (typeof fn === "function") {
+                        fn();
+                    }
+                } catch {
+                    /* ignore */
+                }
+            });
+        }
 
         addOverlayBtn.addEventListener("click", async () => {
             try {
@@ -55,7 +91,9 @@ export function createAddFitFileToMapButton() {
                 }
                 await openFileSelector();
             } catch (error) {
-                console.error("[MapActions] Failed to open file selector:", error);
+                if (!isTestEnvironment) {
+                    console.error("[MapActions] Failed to open file selector:", error);
+                }
                 showNotification("Failed to open file selector", "error");
             }
         });

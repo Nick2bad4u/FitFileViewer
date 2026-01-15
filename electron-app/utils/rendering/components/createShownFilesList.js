@@ -42,7 +42,52 @@ export function createShownFilesList() {
         container.style.border = `1px solid ${themeColors.border || "#cccccc"}`;
     }
     applyTheme();
-    document.body.addEventListener("themechange", applyTheme);
+
+    /** @type {EventListener} */
+    const themeChangeHandler = () => applyTheme();
+    document.body.addEventListener("themechange", themeChangeHandler);
+
+    /**
+     * Cleanup hook used by renderMap when it tears down the old map DOM.
+     * This prevents accumulating document/body listeners and any hovered-tooltip mousemove listeners.
+     */
+    // @ts-expect-error - custom property for lifecycle management
+    container._dispose = () => {
+        try {
+            document.body.removeEventListener("themechange", themeChangeHandler);
+        } catch {
+            /* ignore */
+        }
+
+        try {
+            // Clear any pending tooltip timers
+            // @ts-expect-error - _overlayTooltipTimeout exists on window
+            if (globalThis._overlayTooltipTimeout) {
+                // @ts-expect-error - _overlayTooltipTimeout exists on window
+                clearTimeout(globalThis._overlayTooltipTimeout);
+                // @ts-expect-error - _overlayTooltipTimeout exists on window
+                globalThis._overlayTooltipTimeout = null;
+            }
+
+            // Call any active tooltip remover (removes global mousemove listener)
+            for (const li of Array.from(container.querySelectorAll("li[data-overlay-index]"))) {
+                // @ts-expect-error - custom property on HTMLElement
+                if (li && typeof li._tooltipRemover === "function") {
+                    // @ts-expect-error - custom property on HTMLElement
+                    li._tooltipRemover();
+                }
+            }
+
+            // Remove any orphaned tooltip elements
+            for (const el of document.querySelectorAll(".overlay-filename-tooltip")) {
+                if (el instanceof HTMLElement) {
+                    el.remove();
+                }
+            }
+        } catch {
+            /* ignore */
+        }
+    };
 
     let pendingStateSync = false;
     const syncOverlayState = () => {

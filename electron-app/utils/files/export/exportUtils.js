@@ -197,6 +197,9 @@ export const exportUtils = {
             }
 
             return new Promise((resolve, reject) => {
+                /** @type {{ current: (() => void) | undefined }} */
+                const unsubscribeRef = { current: undefined };
+
                 // Generate a random state for CSRF protection
                 const state = Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
                 localStorage.setItem("gyazo_oauth_state", state);
@@ -219,8 +222,8 @@ export const exportUtils = {
                             }
 
                             // Remove the listener
-                            if (typeof unsubscribe === "function") {
-                                unsubscribe();
+                            if (typeof unsubscribeRef.current === "function") {
+                                unsubscribeRef.current();
                             }
 
                             // Stop the server
@@ -264,7 +267,7 @@ export const exportUtils = {
                     };
 
                 // Set up the callback listener
-                const unsubscribe = electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
+                unsubscribeRef.current = electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
 
                 // Create a modal with OAuth instructions and link
                 const modal = exportUtils.createGyazoAuthModal(authUrl, state, resolve, reject, true);

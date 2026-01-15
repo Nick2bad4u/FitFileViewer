@@ -655,6 +655,11 @@ resourceManager.addShutdownHook(() => {
 
 // External link handler for opening links in default browser
 function setupExternalLinkHandlers() {
+    const isTestEnvironment =
+        globalThis.process !== undefined &&
+        Boolean(globalThis.process?.env) &&
+        /** @type {any} */ (globalThis.process.env).NODE_ENV === "test";
+
     // Use event delegation to handle both existing and dynamically added external links
     document.addEventListener("click", (/** @type {MouseEvent} */ e) => {
         const target = e.target instanceof HTMLElement ? e.target : null,
@@ -686,7 +691,9 @@ function setupExternalLinkHandlers() {
         const url = link.getAttribute("href");
         if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
             globalThis.electronAPI.openExternal(url).catch((error) => {
-                console.error("Failed to open external link:", error);
+                if (!isTestEnvironment) {
+                    console.error("Failed to open external link:", error);
+                }
                 // Fallback to window.open if openExternal fails
                 window.open(url, "_blank", "noopener,noreferrer");
             });

@@ -30,6 +30,11 @@ export function setupListeners({
         return;
     }
 
+    const isTestEnvironment =
+        globalThis.process !== undefined &&
+        Boolean(globalThis.process?.env) &&
+        /** @type {any} */ (globalThis.process.env).NODE_ENV === "test";
+
     // Open File button click
     openFileBtn.addEventListener("click", () =>
         handleOpenFile({
@@ -573,7 +578,9 @@ export function setupListeners({
             try {
                 await openFileSelector();
             } catch (error) {
-                console.error("[Listeners] Failed to open overlay selector:", error);
+                if (!isTestEnvironment) {
+                    console.error("[Listeners] Failed to open overlay selector:", error);
+                }
                 showNotification("Failed to open overlay selector.", "error", 3000);
             }
         });

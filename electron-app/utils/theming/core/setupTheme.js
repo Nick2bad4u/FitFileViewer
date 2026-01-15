@@ -9,7 +9,10 @@ import { getState, setState, subscribe } from "../../state/core/stateManager.js"
 const THEME_CONSTANTS = {
     DEFAULT_THEME: "dark",
     LOG_PREFIX: "[ThemeSetup]",
-    STORAGE_KEY: "fitFileViewer_theme", // Standardized key to match masterStateManager
+    // Canonical key used across the renderer, charts, and main-process constants.
+    STORAGE_KEY: "ffv-theme",
+    // Legacy key used by older state-manager implementations.
+    LEGACY_STORAGE_KEY: "fitFileViewer_theme",
     SUPPORTED_THEMES: ["light", "dark", "auto"],
     TIMEOUT: {
         THEME_FETCH: 5000, // 5 seconds timeout for theme fetch
@@ -60,13 +63,31 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
         // Try to get theme from various sources in order of preference
         let theme = await fetchThemeFromMainProcess();
 
+        // Normalize legacy theme names from older state/UI code.
+        theme = normalizeThemeValue(theme) || THEME_CONSTANTS.DEFAULT_THEME;
+
         // Fallback to localStorage if main process fails
         if (theme === THEME_CONSTANTS.DEFAULT_THEME && config.useLocalStorage) {
             try {
                 const storedTheme = localStorage.getItem(THEME_CONSTANTS.STORAGE_KEY);
-                if (storedTheme && isValidTheme(storedTheme)) {
-                    theme = storedTheme;
+                const normalizedStored = normalizeThemeValue(storedTheme);
+                if (normalizedStored) {
+                    theme = normalizedStored;
                     logWithContext(`Using stored theme: ${theme}`);
+                } else {
+                    // Legacy migration: fitFileViewer_theme -> ffv-theme
+                    const legacyTheme = localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
+                    const normalizedLegacy = normalizeThemeValue(legacyTheme);
+                    if (normalizedLegacy) {
+                        theme = normalizedLegacy;
+                        try {
+                            localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, normalizedLegacy);
+                            localStorage.removeItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
+                        } catch {
+                            /* ignore */
+                        }
+                        logWithContext(`Migrated legacy stored theme: ${theme}`);
+                    }
                 }
             } catch (storageError) {
                 logWithContext(
@@ -119,7 +140,11 @@ export async function setupTheme(applyTheme, listenForThemeChange, options = {})
  */
 function applyAndTrackTheme(theme, applyTheme) {
     try {
-        if (!isValidTheme(theme)) {
+        const normalized = normalizeThemeValue(theme);
+
+        if (normalized) {
+            theme = normalized;
+        } else {
             logWithContext(`Invalid theme: ${theme}, using default`, "warn");
             theme = THEME_CONSTANTS.DEFAULT_THEME;
         }
@@ -139,6 +164,10 @@ function applyAndTrackTheme(theme, applyTheme) {
         // Store in localStorage for persistence
         try {
             localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
+            // Clean up legacy key if present (best effort)
+            if (localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY) !== null) {
+                localStorage.removeItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
+            }
         } catch (storageError) {
             logWithContext(
                 `Failed to store theme in localStorage: ${/** @type {Error} */ (storageError).message}`,
@@ -194,7 +223,7 @@ async function fetchThemeFromMainProcess() {
  * @private
  */
 function isValidTheme(theme) {
-    return typeof theme === "string" && THEME_CONSTANTS.SUPPORTED_THEMES.includes(theme);
+    return normalizeThemeValue(theme) !== null;
 }
 
 /**
@@ -222,6 +251,21 @@ function logWithContext(message, level = "info") {
     } catch {
         // Silently fail if logging encounters an error
     }
+}
+
+/**
+ * Normalize theme values to the canonical set.
+ * @param {unknown} theme
+ * @returns {string|null} "light" | "dark" | "auto" when valid, otherwise null
+ */
+function normalizeThemeValue(theme) {
+    if (typeof theme !== "string") {
+        return null;
+    }
+    if (theme === "system") {
+        return "auto";
+    }
+    return THEME_CONSTANTS.SUPPORTED_THEMES.includes(theme) ? theme : null;
 }
 
 /**

@@ -3,7 +3,7 @@
 
 // Reuse central DOM helpers for safe narrowing
 import { isHTMLElement } from "../../dom/index.js";
-import { getState, setState, subscribe } from "../../state/core/stateManager.js";
+import { getState, setState, subscribe, subscribeSingleton } from "../../state/core/stateManager.js";
 
 // Ensure console.trace exists for tests/environments where it's missing
 if (typeof console !== "undefined" && typeof console.trace !== "function") {
@@ -243,11 +243,17 @@ export function initializeTabButtonState() {
 
     // Subscribe to data loading to automatically enable/disable tabs
     // This is the ONLY controller of tab state to avoid conflicts
-    if (typeof subscribe === "function") {
-        subscribe("globalData", (/** @type {any} */ data) => {
+    if (typeof subscribeSingleton === "function") {
+        subscribeSingleton("globalData", "ui:tabButtons:globalData", (/** @type {any} */ data) => {
             const hasData = data !== null && data !== undefined;
             console.log(`[TabButtons] globalData changed, hasData: ${hasData}`, data ? "data present" : "no data");
             console.log(`[TabButtons] Updating tabs based on globalData: ${hasData ? "enabling" : "disabling"}`);
+            setTabButtonsEnabled(hasData);
+        });
+    } else if (typeof subscribe === "function") {
+        // Fallback for environments that don't expose subscribeSingleton
+        subscribe("globalData", (/** @type {any} */ data) => {
+            const hasData = data !== null && data !== undefined;
             setTabButtonsEnabled(hasData);
         });
     } else {

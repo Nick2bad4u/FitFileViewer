@@ -143,7 +143,11 @@ export function initializeActiveTabState() {
                 /* Ignore */
             }
         };
-        getStateMgr().subscribe("ui.activeTab", onActiveTabChange);
+        if (typeof __StateMgr.subscribeSingleton === "function") {
+            __StateMgr.subscribeSingleton("ui.activeTab", "ui:updateActiveTab:activeTab", onActiveTabChange);
+        } else {
+            getStateMgr().subscribe("ui.activeTab", onActiveTabChange);
+        }
 
         // Set up click listeners for tab buttons
         const tabButtons = getDoc().querySelectorAll(".tab-button");

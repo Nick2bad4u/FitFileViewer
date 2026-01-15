@@ -39,13 +39,19 @@ if (!globalThis._mapThemeListener) {
     };
 
     // Listen for both app theme changes and map theme preference changes
-    document.body.addEventListener("themechange", globalThis._mapThemeListener);
-    document.addEventListener("mapThemeChanged", globalThis._mapThemeListener);
+    // Guard for environments where document/body isn't available yet (tests/early imports).
+    if (typeof document !== "undefined" && document && document.body) {
+        document.body.addEventListener("themechange", globalThis._mapThemeListener);
+        document.addEventListener("mapThemeChanged", globalThis._mapThemeListener);
 
-    // Cleanup logic to remove the event listeners
-    window.addEventListener("beforeunload", () => {
-        document.body.removeEventListener("themechange", globalThis._mapThemeListener);
-        document.removeEventListener("mapThemeChanged", globalThis._mapThemeListener);
+        // Cleanup logic to remove the event listeners
+        window.addEventListener("beforeunload", () => {
+            document.body.removeEventListener("themechange", globalThis._mapThemeListener);
+            document.removeEventListener("mapThemeChanged", globalThis._mapThemeListener);
+            delete globalThis._mapThemeListener;
+        });
+    } else {
+        // If we can't attach listeners, don't retain the global sentinel.
         delete globalThis._mapThemeListener;
-    });
+    }
 }

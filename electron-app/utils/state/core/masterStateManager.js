@@ -387,7 +387,13 @@ export class MasterStateManager {
         dynInitControls();
 
         // Set up theme initialization
-        const savedTheme = localStorage.getItem("fitFileViewer_theme") || "system";
+        const savedThemeRaw =
+            localStorage.getItem("ffv-theme") || localStorage.getItem("fitFileViewer_theme") || "system";
+
+        // Canonicalize theme values for UI state:
+        // - persisted: "auto" (theme core)
+        // - UI/state layer historically: "system"
+        const savedTheme = savedThemeRaw === "auto" ? "system" : savedThemeRaw;
         const { UIActions: dynUI } = getUIStateModule();
         dynUI.setTheme(savedTheme);
     }

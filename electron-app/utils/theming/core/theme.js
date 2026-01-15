@@ -20,6 +20,37 @@ export const THEME_MODES = {
 };
 
 /**
+ * Canonical localStorage key for persisted theme.
+ * Many modules (main process IPC, charts, etc.) assume this key.
+ */
+const THEME_STORAGE_KEY = "ffv-theme";
+
+/**
+ * Legacy theme storage keys found in older state-manager implementations.
+ * We migrate these to {@link THEME_STORAGE_KEY} when discovered.
+ */
+const LEGACY_THEME_STORAGE_KEYS = ["fitFileViewer_theme"];
+
+/**
+ * Normalize a theme preference value.
+ *
+ * The codebase historically used both "auto" and "system" for the system theme.
+ * For persistence and theme core logic we canonicalize to "auto".
+ *
+ * @param {string|null|undefined} theme
+ * @returns {string} One of: "dark" | "light" | "auto"
+ */
+function normalizeThemePreference(theme) {
+    if (theme === "system") {
+        return THEME_MODES.AUTO;
+    }
+    if (theme === THEME_MODES.AUTO || theme === THEME_MODES.DARK || theme === THEME_MODES.LIGHT) {
+        return theme;
+    }
+    return THEME_MODES.DARK;
+}
+
+/**
  * Theme transition class for smooth transitions
  */
 const THEME_TRANSITION_CLASS = "theme-transitioning";
@@ -30,6 +61,9 @@ const THEME_TRANSITION_CLASS = "theme-transitioning";
  * @param {boolean} withTransition - Whether to animate the theme change
  */
 export function applyTheme(theme, withTransition = true) {
+    // Normalize legacy values ("system" -> "auto") and invalid values.
+    theme = normalizeThemePreference(theme);
+
     // Add transition class for smooth theme changes
     if (withTransition) {
         document.body.classList.add(THEME_TRANSITION_CLASS);
@@ -60,7 +94,18 @@ export function applyTheme(theme, withTransition = true) {
 
     // Persist theme preference
     try {
-        localStorage.setItem("ffv-theme", theme);
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+
+        // If legacy keys exist, migrate them away to avoid future mismatches.
+        for (const legacyKey of LEGACY_THEME_STORAGE_KEYS) {
+            try {
+                if (localStorage.getItem(legacyKey) !== null) {
+                    localStorage.removeItem(legacyKey);
+                }
+            } catch {
+                // Ignore legacy cleanup failures
+            }
+        }
 
         // Apply accent color for the current theme
         const effectiveTheme = getEffectiveTheme(theme);
@@ -367,10 +412,30 @@ export function listenForThemeChange(onThemeChange) {
  */
 export function loadTheme() {
     try {
-        return localStorage.getItem("ffv-theme") || "dark";
+        const current = localStorage.getItem(THEME_STORAGE_KEY);
+        if (current) {
+            return normalizeThemePreference(current);
+        }
+
+        // Legacy migration: if an older key exists, migrate it into the canonical key.
+        for (const legacyKey of LEGACY_THEME_STORAGE_KEYS) {
+            const legacyValue = localStorage.getItem(legacyKey);
+            if (legacyValue) {
+                const normalized = normalizeThemePreference(legacyValue);
+                localStorage.setItem(THEME_STORAGE_KEY, normalized);
+                try {
+                    localStorage.removeItem(legacyKey);
+                } catch {
+                    /* ignore */
+                }
+                return normalized;
+            }
+        }
+
+        return THEME_MODES.DARK;
     } catch (error) {
         console.error("Error loading theme from localStorage:", error);
-        return "dark";
+        return THEME_MODES.DARK;
     }
 }
 

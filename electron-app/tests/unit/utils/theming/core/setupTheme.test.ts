@@ -60,7 +60,7 @@ describe("setupTheme", () => {
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
         expect(stateManagerMocks.setState).toHaveBeenCalledWith("ui.theme", "light", { source: "setupTheme" });
-        expect(localStorage.getItem("fitFileViewer_theme")).toBe("light");
+        expect(localStorage.getItem("ffv-theme")).toBe("light");
         expect(stateManagerMocks.subscribe).toHaveBeenCalledWith("ui.theme", expect.any(Function));
         expect(listenForThemeChange).toHaveBeenCalledWith(expect.any(Function));
 
@@ -68,7 +68,7 @@ describe("setupTheme", () => {
         expect(externalListener).not.toBeNull();
         externalListener?.("dark");
         expect(applyTheme).toHaveBeenCalledWith("dark");
-        expect(localStorage.getItem("fitFileViewer_theme")).toBe("dark");
+        expect(localStorage.getItem("ffv-theme")).toBe("dark");
 
         // simulate state-driven change
         const handler = subscribeHandlers[0];
@@ -84,20 +84,20 @@ describe("setupTheme", () => {
         (globalThis as any).electronAPI = {
             getTheme: vi.fn().mockResolvedValue("dark"),
         };
-        localStorage.setItem("fitFileViewer_theme", "light");
+        localStorage.setItem("ffv-theme", "light");
 
         const { setupTheme } = await import(MODULE_SPECIFIER);
         const result = await setupTheme(applyTheme, undefined);
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
-        expect(localStorage.getItem("fitFileViewer_theme")).toBe("light");
+        expect(localStorage.getItem("ffv-theme")).toBe("light");
     });
 
     it("defaults to stored theme when electron API is unavailable", async () => {
         const applyTheme = vi.fn();
         (globalThis as any).electronAPI = undefined;
-        localStorage.setItem("fitFileViewer_theme", "light");
+        localStorage.setItem("ffv-theme", "light");
 
         const { setupTheme } = await import(MODULE_SPECIFIER);
         const result = await setupTheme(applyTheme, undefined);

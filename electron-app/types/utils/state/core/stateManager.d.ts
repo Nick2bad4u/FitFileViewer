@@ -196,6 +196,18 @@ export function setState(path: string, value: any, options?: StateUpdateOptions)
  */
 export function subscribe(path: string, callback: Function): Function;
 /**
+ * Subscribe to state changes ensuring there is only one active subscription for a given id.
+ *
+ * This is intended for UI initializers that may run multiple times due to re-renders.
+ * It prevents leaking subscriptions across map/tab rebuilds.
+ *
+ * @param {string} path - Dot notation path to state property (e.g., 'ui.activeTab')
+ * @param {string} id - Unique identifier for this subscription (e.g., 'tabs:activeTab')
+ * @param {Function} callback - Function to call when state changes
+ * @returns {Function} Unsubscribe function
+ */
+export function subscribeSingleton(path: string, id: string, callback: Function): Function;
+/**
  * Update state by merging with existing object
  * @param {string} path - Dot notation path to state property
  * @param {Object} updates - Object to merge with existing state

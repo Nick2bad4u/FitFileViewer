@@ -33,7 +33,10 @@
  * @property {Function} renderMap - Function to render map
  * @property {Function} [setupOverlayFileNameMapActions] - Function to setup overlay file name map actions
  * @property {Function} [setupActiveFileNameMapActions] - Function to setup active file name map actions
- * @property {Function} [_mapThemeListener] - Map theme change listener
+ * @property {any} [_measureControl] - Leaflet measure control (plugin)
+ * @property {any} [_drawControl] - Leaflet draw control (plugin)
+ * @property {any} [_drawnItems] - FeatureGroup containing user-drawn items
+ * @property {any} [_miniMapControl] - Leaflet minimap control (plugin)
  * @property {any} L - Leaflet library object
  */
 
@@ -75,6 +78,7 @@ import { baseLayers } from "../layers/mapBaseLayers.js";
 import { drawOverlayForFitFile, mapDrawLaps } from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
+import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
 
 export function renderMap() {
     // Reset overlay polylines to prevent stale references and memory leaks
@@ -93,6 +97,18 @@ export function renderMap() {
     const mapContainer = document.querySelector("#content-map");
     if (!mapContainer) {
         return;
+    }
+
+    // Defensive cleanup: overlay filename tooltips are appended to document.body and can become orphaned
+    // if the overlay list or map is re-rendered while a tooltip is visible.
+    try {
+        for (const el of document.querySelectorAll(".overlay-filename-tooltip")) {
+            if (el instanceof HTMLElement) {
+                el.remove();
+            }
+        }
+    } catch {
+        /* ignore tooltip cleanup errors */
     }
 
     // Save drawn items before destroying map
@@ -124,10 +140,54 @@ export function renderMap() {
         }
     }
 
+    // Cleanup old plugin controls/references to avoid retaining old map instances via control closures.
+    // Leaflet's map.remove() should handle most cleanup, but plugins occasionally attach document listeners.
+    try {
+        if (windowExt._measureControl && typeof windowExt._measureControl.remove === "function") {
+            windowExt._measureControl.remove();
+        }
+    } catch {
+        /* ignore */
+    }
+    windowExt._measureControl = null;
+
+    try {
+        if (windowExt._drawControl && typeof windowExt._drawControl.remove === "function") {
+            windowExt._drawControl.remove();
+        }
+    } catch {
+        /* ignore */
+    }
+    windowExt._drawControl = null;
+
+    // Clear old drawnItems reference now that we've snapshot the geoJSON.
+    windowExt._drawnItems = null;
+
+    try {
+        if (windowExt._miniMapControl && typeof windowExt._miniMapControl.remove === "function") {
+            windowExt._miniMapControl.remove();
+        }
+    } catch {
+        /* ignore */
+    }
+    windowExt._miniMapControl = null;
+
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
     if (windowExt._leafletMapInstance && windowExt._leafletMapInstance.remove) {
         windowExt._leafletMapInstance.remove();
         windowExt._leafletMapInstance = null;
+    }
+
+    // If an old shown-files list exists, invoke its cleanup hook before removing DOM.
+    try {
+        const oldShownFilesList = mapContainer.querySelector(".shown-files-list");
+        // @ts-expect-error - custom property for lifecycle management
+        if (oldShownFilesList && typeof oldShownFilesList._dispose === "function") {
+            // @ts-expect-error - custom property for lifecycle management
+            oldShownFilesList._dispose();
+        }
+    } catch {
+        /* ignore */
     }
     const oldMapDiv = document.querySelector("#leaflet-map");
     if (oldMapDiv) {
@@ -166,13 +226,17 @@ export function renderMap() {
     mapTypeBtn.style.top = "16px";
     mapTypeBtn.style.right = "60px";
     mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
-    mapTypeBtn.innerHTML = "🗺️ Change Map Type";
+    mapTypeBtn.textContent = "🗺️ Change Map Type";
     mapTypeBtn.title = "Click to change the map type";
     mapTypeBtn.addEventListener("click", handleMapTypeButtonClick);
     const leafletMapDiv2 = document.querySelector("#leaflet-map");
     if (leafletMapDiv2) {
         leafletMapDiv2.append(mapTypeBtn);
     }
+
+    // Update global reference for the map type button used by the shared document listener.
+    /** @type {any} */ (globalThis).__ffvMapTypeButton = mapTypeBtn;
+    ensureMapDocumentListenersInstalled();
 
     /**
      * Handle map type button click
@@ -195,18 +259,7 @@ export function renderMap() {
         }
     }
 
-    // When the user clicks outside the control, collapse it
-    document.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
-        const layersControlEl = document.querySelector(".leaflet-control-layers");
-        if (layersControlEl && layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
-            const { target } = /** @type {{ target: Node }} */ (e);
-            if (!layersControlEl.contains(target) && !mapTypeBtn.contains(target)) {
-                layersControlEl.classList.remove("leaflet-control-layers-expanded");
-                const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
-                layersControlElStyled.style.zIndex = "";
-            }
-        }
-    });
+    // (Outside-click collapse is handled by a shared document listener)
 
     // --- Add a custom zoom slider bar (normalized 0-100%) ---
     const zoomSliderBar = document.createElement("div");
@@ -237,8 +290,10 @@ export function renderMap() {
         zoomSlider.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
     }
 
-    // Fix jank: Only update map zoom on change, and update slider on zoomend
-    let isDragging = false;
+    // Fix jank: Only update map zoom on change, and update slider on zoomend.
+    // Use a shared ref so document-level end events can reset dragging without leaking listeners.
+    const zoomDraggingRef = { current: false };
+    /** @type {any} */ (globalThis).__ffvMapZoomDraggingRef = zoomDraggingRef;
     // Debounce function to limit the frequency of updates
     /**
      * @param {Function} func
@@ -261,7 +316,7 @@ export function renderMap() {
             /** @type {EventListener} */ (
                 debounce(
                     /** @param {Event} e */ (e) => {
-                        isDragging = true;
+                        zoomDraggingRef.current = true;
                         const { target } = /** @type {{ target: HTMLInputElement }} */ (e),
                             percent = Number(target.value);
                         zoomSliderCurrent.textContent = `${percent}%`;
@@ -275,19 +330,11 @@ export function renderMap() {
                 percent = Number(target.value),
                 newZoom = percentToZoom(percent);
             map.setZoom(Math.round(newZoom));
-            isDragging = false;
+            zoomDraggingRef.current = false;
         });
     }
-
-    // Reset isDragging flag if interaction is canceled
-    document.addEventListener("mouseup", () => {
-        isDragging = false;
-    });
-    document.addEventListener("touchend", () => {
-        isDragging = false;
-    });
     const updateZoomSlider = () => {
-        if (!isDragging && zoomSlider && zoomSliderCurrent) {
+        if (!zoomDraggingRef.current && zoomSlider && zoomSliderCurrent) {
             const percent = Math.round(zoomToPercent(map.getZoom()));
             zoomSlider.value = String(percent);
             zoomSliderCurrent.textContent = `${percent}%`;
@@ -470,6 +517,7 @@ export function renderMap() {
             zoomLevelOffset: -5,
         });
         miniMap.addTo(map);
+        windowExt._miniMapControl = miniMap;
 
         // Force minimap to update after a short delay to ensure proper rendering
         setTimeout(() => {
@@ -563,6 +611,7 @@ export function renderMap() {
             },
         });
         map.addControl(drawControl);
+        windowExt._drawControl = drawControl;
 
         // Add drawn shapes to the layer so they persist
         map.on(L.Draw.Event.CREATED, (/** @type {any} */ e) => {
@@ -691,9 +740,5 @@ export function renderMap() {
     // --- Theme support (dark/light) ---
     if (document.querySelector("#leaflet-map")) {
         updateMapTheme();
-        if (!windowExt._mapThemeListener) {
-            windowExt._mapThemeListener = () => updateMapTheme();
-            document.body.addEventListener("themechange", /** @type {EventListener} */ (windowExt._mapThemeListener));
-        }
     }
 }
