@@ -199,6 +199,16 @@ function primeTestEnvironment(initializeApplication) {
             (typeof globalThis !== "undefined" && /** @type {any} */ (globalThis).__electronHoistedMock)
         ) {
             const g = /** @type {any} */ (globalThis);
+            const PROBE_EVENT = "__test_probe__";
+
+            /**
+             * Single shared no-op handler used for the probe listener.
+             * @returns {void}
+             */
+            const probeHandler = () => {
+                /* no-op */
+            };
+
             const keepaliveTick = () => {
                 try {
                     const a = appRef();
@@ -211,9 +221,31 @@ function primeTestEnvironment(initializeApplication) {
                     }
                     if (a && typeof a.on === "function") {
                         try {
-                            a.on("__test_probe__", () => {
-                                /* no-op */
-                            });
+                            // IMPORTANT:
+                            // Avoid adding a new listener on every interval tick. The prior
+                            // behavior caused MaxListenersExceededWarning in coverage-heavy tests.
+                            // Install the listener once (idempotent), then simply emit the probe.
+                            const hasListenerCount = typeof a.listenerCount === "function";
+                            const alreadyInstalled =
+                                (hasListenerCount && a.listenerCount(PROBE_EVENT) > 0) ||
+                                /** @type {any} */ (a).__ffvTestProbeInstalled === true;
+
+                            if (!alreadyInstalled) {
+                                a.on(PROBE_EVENT, probeHandler);
+                                try {
+                                    /** @type {any} */ (a).__ffvTestProbeInstalled = true;
+                                } catch {
+                                    /* ignore */
+                                }
+                            }
+
+                            if (typeof a.emit === "function") {
+                                try {
+                                    a.emit(PROBE_EVENT);
+                                } catch {
+                                    /* ignore */
+                                }
+                            }
                         } catch {
                             /* ignore */
                         }

@@ -67,8 +67,8 @@ const // Constants for better maintainability
      */
     /**
      * @typedef {Object} ElectronAPI
-     * @property {() => Promise<string[]>} openFile
-     * @property {() => Promise<string[]>} openFileDialog
+     * @property {() => Promise<string|null>} openFile
+     * @property {() => Promise<string|null>} openFileDialog
      * @property {() => Promise<string[]>} openOverlayDialog
      * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} parseFitFile
@@ -296,6 +296,39 @@ const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set([
 ]);
 
 /**
+ * Restrict renderer->main IPC send() usage to a conservative set.
+ *
+ * Note: we intentionally do NOT allow arbitrary "menu-*" here.
+ * Only the channels that are known to be handled by main via registerIpcListener
+ * should be sendable from the renderer.
+ */
+const ALLOWED_GENERIC_SEND_CHANNELS = new Set([
+    CONSTANTS.EVENTS.FIT_FILE_LOADED,
+    CONSTANTS.EVENTS.INSTALL_UPDATE,
+    CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
+    CONSTANTS.EVENTS.SET_FULLSCREEN,
+    CONSTANTS.EVENTS.THEME_CHANGED,
+    // Legacy menu forwarders (renderer receives menu event then forwards back to main)
+    "menu-export",
+    "menu-save-as",
+]);
+
+/**
+ * Restrict renderer subscriptions to IPC channels to an explicit allowlist.
+ * This prevents a compromised renderer from attaching listeners to arbitrary
+ * main-process channels that were never meant to be exposed.
+ */
+const EXTRA_RENDERER_ON_IPC_CHANNELS =
+    "decoder-options-changed|export-file|gyazo-oauth-callback|menu-about|menu-export|menu-keyboard-shortcuts|menu-print|menu-restart-update|menu-save-as|open-accent-color-picker|set-font-size|set-high-contrast|show-notification".split(
+        "|"
+    );
+
+const ALLOWED_GENERIC_ON_IPC_CHANNELS = new Set([
+    ...EXTRA_RENDERER_ON_IPC_CHANNELS,
+    ...Object.values(CONSTANTS.EVENTS),
+]);
+
+/**
  * @param {string} channel
  */
 function isAllowedGenericInvokeChannel(channel) {
@@ -306,16 +339,7 @@ function isAllowedGenericInvokeChannel(channel) {
  * @param {string} channel
  */
 function isAllowedGenericSendChannel(channel) {
-    // Allow explicit documented events.
-    if (Object.values(CONSTANTS.EVENTS).includes(channel)) {
-        return true;
-    }
-    // Allow other menu-driven events that are used for renderer->main forwarding.
-    if (channel.startsWith("menu-")) {
-        return true;
-    }
-
-    return false;
+    return ALLOWED_GENERIC_SEND_CHANNELS.has(channel);
 }
 
 // Main API object
@@ -486,6 +510,11 @@ const electronAPI = {
             return;
         }
         if (!validateCallback(callback, "onIpc")) {
+            return;
+        }
+
+        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !ALLOWED_GENERIC_ON_IPC_CHANNELS.has(channel)) {
+            console.warn(`[preload.js] Blocked onIpc() subscription to non-allowlisted channel: ${channel}`);
             return;
         }
 

@@ -154,7 +154,9 @@ function isNonEmptyString(filePath) {
  * @returns {boolean}
  */
 function isWindowsStylePath(filePath) {
-    return /^[A-Za-z]:[/\\]/.test(filePath) || /^\\\\/.test(filePath);
+    // Drive-letter paths:  C:\x or C:/x
+    // UNC paths:           \\server\share\x   or //server/share/x
+    return /^[A-Za-z]:[/\\]/.test(filePath) || /^\\\\/.test(filePath) || /^\/\//.test(filePath);
 }
 
 /**
@@ -182,6 +184,19 @@ function validateFilePathInput(filePath) {
 
     // Reject NUL byte injection attempts.
     if (trimmed.includes("\0")) {
+        throw new Error("Invalid file path provided");
+    }
+
+    // Reject Windows device / extended-length path prefixes.
+    // These can bypass certain normalization assumptions and are unnecessary for FFV.
+    // Backslash form: \\?\C:\path or \\.\PhysicalDrive0
+    // Slash form (defense-in-depth): //?/C:/path or //./COM1
+    if (
+        /^\\\\\?\\/u.test(trimmed) ||
+        /^\\\\\.\\/u.test(trimmed) ||
+        /^\/\/\?\//u.test(trimmed) ||
+        /^\/\/\.\//u.test(trimmed)
+    ) {
         throw new Error("Invalid file path provided");
     }
 

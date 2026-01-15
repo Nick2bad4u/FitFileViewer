@@ -6,6 +6,7 @@ const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu");
 const { startGyazoOAuthServer, stopGyazoOAuthServer } = require("../oauth/gyazoOAuthServer");
 const { appRef, browserWindowRef, shellRef } = require("../runtime/electronAccess");
 const { httpRef, path } = require("../runtime/nodeModules");
+const { validateExternalUrl } = require("../security/externalUrlPolicy");
 const { getAppState, setAppState } = require("../state/appState");
 const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
 const { validateWindow } = require("../window/windowValidation");
@@ -247,10 +248,8 @@ function setupApplicationEventHandlers() {
                 logWithContext("warn", "Blocked navigation to untrusted URL:", { url });
 
                 // Best-effort user experience improvement: open external links in the OS browser.
-                // Only attempt for valid http(s) URLs.
-                if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
-                    tryOpenExternal(url);
-                }
+                // Validation happens inside tryOpenExternal to ensure a single policy.
+                if (typeof url === "string") tryOpenExternal(url);
             };
 
             contents.on("will-navigate", handleNavigationAttempt);
@@ -261,9 +260,7 @@ function setupApplicationEventHandlers() {
             contents.setWindowOpenHandler(({ url }) => {
                 if (!isAllowedInAppUrl(url)) {
                     logWithContext("warn", "Blocked opening untrusted URL in new window:", { url });
-                    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
-                        tryOpenExternal(url);
-                    }
+                    if (typeof url === "string") tryOpenExternal(url);
                     return { action: "deny" };
                 }
                 return { action: "allow" };
@@ -302,10 +299,13 @@ function setupApplicationEventHandlers() {
  */
 function tryOpenExternal(url) {
     try {
+        // Centralized validation (http/https only, no credentials).
+        // Returns the trimmed original string (no canonicalization).
+        const validated = validateExternalUrl(url);
         const shell = shellRef();
         if (shell && typeof shell.openExternal === "function") {
             // Fire-and-forget; do not block the navigation handler on the external browser.
-            Promise.resolve(shell.openExternal(url)).catch(() => {
+            Promise.resolve(shell.openExternal(validated)).catch(() => {
                 /* ignore */
             });
         }

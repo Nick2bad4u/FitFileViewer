@@ -103,10 +103,15 @@ describe("createShownFilesList", () => {
 
             expect(container.innerHTML).toContain("<b>Extra Files shown on map:</b>");
             expect(container.innerHTML).toContain('<ul id="shown-files-ul"');
-            expect(container.innerHTML).toContain("margin:0; padding-left:18px;");
 
             const ul = container.querySelector("#shown-files-ul");
             expect(ul).toBeTruthy();
+
+            // jsdom normalizes style serialization (e.g. adds spaces and px units), so we assert
+            // against intent rather than exact string formatting.
+            const style = String(ul?.getAttribute("style") ?? "");
+            expect(style).toMatch(/margin\s*:\s*0(px)?\s*;?/i);
+            expect(style).toMatch(/padding-left\s*:\s*18(px)?\s*;?/i);
         });
 
         it("applies theme styles on creation", () => {

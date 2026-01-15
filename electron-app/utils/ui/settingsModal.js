@@ -65,11 +65,13 @@ export async function showSettingsModal() {
 
     // Get current theme and accent color
     const currentTheme = loadTheme();
-    const effectiveTheme = getEffectiveTheme(currentTheme);
+    const safeTheme = Object.values(THEME_MODES).includes(currentTheme) ? currentTheme : THEME_MODES.AUTO;
+    const effectiveTheme = getEffectiveTheme(safeTheme);
     const currentAccent = getEffectiveAccentColor(effectiveTheme);
+    const safeAccent = isValidHexColor(currentAccent) ? currentAccent : getEffectiveAccentColor(effectiveTheme);
 
     // Set modal content
-    modal.innerHTML = createSettingsModalContent(currentTheme, currentAccent);
+    modal.innerHTML = createSettingsModalContent(safeTheme, safeAccent);
 
     // Show modal with animation
     modal.style.display = "flex";

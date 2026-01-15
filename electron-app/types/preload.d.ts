@@ -18,8 +18,8 @@ export type PlatformInfo = {
     arch: string;
 };
 export type ElectronAPI = {
-    openFile: () => Promise<string[]>;
-    openFileDialog: () => Promise<string[]>;
+    openFile: () => Promise<string | null>;
+    openFileDialog: () => Promise<string | null>;
     openOverlayDialog: () => Promise<string[]>;
     readFile: (filePath: string) => Promise<ArrayBuffer>;
     parseFitFile: (arrayBuffer: ArrayBuffer) => Promise<any>;

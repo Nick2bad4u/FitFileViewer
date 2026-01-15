@@ -354,6 +354,17 @@ export function setupListeners({
         globalThis.electronAPI.onIpc("menu-check-for-updates", () => {
             if (globalThis.electronAPI.send) globalThis.electronAPI.send("menu-check-for-updates");
         });
+        // "Restart and Update" is executed by the main process (quitAndInstall). The menu
+        // triggers a renderer event; call the explicit preload wrapper.
+        globalThis.electronAPI.onIpc("menu-restart-update", () => {
+            try {
+                if (globalThis.electronAPI && typeof globalThis.electronAPI.installUpdate === "function") {
+                    globalThis.electronAPI.installUpdate();
+                }
+            } catch {
+                /* ignore */
+            }
+        });
         ensureMenuForwarder("menu-save-as");
         ensureMenuForwarder("menu-export");
         globalThis.electronAPI.onIpc("menu-about", async () => {

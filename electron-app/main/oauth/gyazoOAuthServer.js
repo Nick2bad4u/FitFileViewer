@@ -4,6 +4,22 @@ const { getAppState, setAppState } = require("../state/appState");
 const { validateWindow } = require("../window/windowValidation");
 
 /**
+ * Minimal HTML escaping for user-controlled strings rendered into OAuth callback pages.
+ * This server is bound to localhost, but we still escape to prevent reflected injection.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtml(value) {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+/**
  * Starts the local OAuth callback server used for Gyazo integrations. The implementation mirrors the
  * previous main.js logic, including informative logging and defensive error handling for tests.
  *
@@ -24,11 +40,21 @@ async function startGyazoOAuthServer(port = 3000) {
             }
 
             const server = http.createServer((req, res) => {
-                const parsedUrl = new URL(/** @type {string} */ (req.url), `http://localhost:${port}`);
+                /** @type {URL | null} */
+                let parsedUrl = null;
+                try {
+                    const raw = typeof req.url === "string" ? req.url : "";
+                    parsedUrl = new URL(raw, `http://localhost:${port}`);
+                } catch {
+                    res.writeHead(400, { "Content-Type": "text/plain", "X-Content-Type-Options": "nosniff" });
+                    res.end("Bad Request");
+                    return;
+                }
 
                 res.setHeader("Access-Control-Allow-Origin", "*");
                 res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                 res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+                res.setHeader("X-Content-Type-Options", "nosniff");
 
                 if (req.method === "OPTIONS") {
                     res.writeHead(200);
@@ -60,7 +86,7 @@ async function startGyazoOAuthServer(port = 3000) {
                                     <div class="container">
                                         <h1>❌ Authorization Failed</h1>
                                         <div class="error">
-                                            <strong>Error:</strong> ${error}
+                                            <strong>Error:</strong> ${escapeHtml(String(error))}
                                         </div>
                                         <p>Please close this window and try again from the FitFileViewer application.</p>
                                     </div>

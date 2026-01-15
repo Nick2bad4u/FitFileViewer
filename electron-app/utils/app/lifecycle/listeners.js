@@ -238,6 +238,17 @@ export function setupListeners({
                 globalThis.electronAPI.send("menu-check-for-updates");
             }
         });
+        // "Restart and Update" is a main-process action (quitAndInstall). The menu triggers
+        // a renderer event; handle it here by calling the explicit preload wrapper.
+        globalThis.electronAPI.onIpc("menu-restart-update", () => {
+            try {
+                if (globalThis.electronAPI && typeof globalThis.electronAPI.installUpdate === "function") {
+                    globalThis.electronAPI.installUpdate();
+                }
+            } catch {
+                /* ignore */
+            }
+        });
         globalThis.electronAPI.onIpc("menu-open-overlay", async () => {
             try {
                 await openFileSelector();

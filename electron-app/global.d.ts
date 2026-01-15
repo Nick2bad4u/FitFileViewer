@@ -29,8 +29,12 @@ interface ChannelInfo {
 
 interface ElectronAPI {
     // File operations
-    openFile(): Promise<string[]>;
-    openFileDialog(): Promise<string[]>;
+    /** Opens the native single-file FIT dialog; returns selected path or null when cancelled. */
+    openFile(): Promise<string | null>;
+    /** Alias for openFile; returns selected path or null when cancelled. */
+    openFileDialog(): Promise<string | null>;
+    /** Opens the native multi-select overlay dialog; returns selected paths (possibly empty). */
+    openOverlayDialog(): Promise<string[]>;
     readFile(filePath: string): Promise<ArrayBuffer>;
     parseFitFile(arrayBuffer: ArrayBuffer): Promise<any>;
     decodeFitFile(arrayBuffer: ArrayBuffer): Promise<any>;

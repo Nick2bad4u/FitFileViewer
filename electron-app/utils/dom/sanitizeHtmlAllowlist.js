@@ -37,7 +37,9 @@ export function sanitizeHtmlAllowlist(html, options) {
     const template = document.createElement("template");
     template.innerHTML = html;
 
-    const allowedTags = new Set(options.allowedTags);
+    // DOM Element.tagName is always uppercase in HTML documents.
+    // Normalizing here makes the sanitizer resilient to caller-provided casing.
+    const allowedTags = new Set(options.allowedTags.map((t) => String(t).toUpperCase()));
     const allowedAttributes = new Set(options.allowedAttributes.map((a) => a.toLowerCase()));
     const stripUrlInStyle = options.stripUrlInStyle !== false;
 

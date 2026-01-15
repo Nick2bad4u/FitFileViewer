@@ -61,9 +61,27 @@ function registerRecentFileHandlers({
 
     registerIpcHandle("recentFiles:add", async (_event, filePath) => {
         try {
+            if (typeof filePath !== "string" || filePath.trim().length === 0) {
+                logWithContext?.("warn", "Rejected recentFiles:add for invalid path", {
+                    filePath,
+                });
+                return loadRecentFiles();
+            }
+
+            // Security boundary:
+            // recentFiles:get seeds approved file paths for file:read. If we allowed adding
+            // arbitrary paths here (especially when the policy module is missing), a compromised
+            // renderer could escalate into arbitrary local file reads.
+            if (!fileAccessPolicy) {
+                logWithContext?.("warn", "Rejected recentFiles:add because file access policy is unavailable", {
+                    filePath,
+                });
+                return loadRecentFiles();
+            }
+
             // Security hardening: do not allow the renderer to arbitrarily add new file paths
             // unless they've already been approved via a trusted flow (e.g., dialog selection).
-            if (fileAccessPolicy && !fileAccessPolicy.isApprovedFilePath(filePath)) {
+            if (!fileAccessPolicy.isApprovedFilePath(filePath)) {
                 logWithContext?.("warn", "Rejected recentFiles:add for unapproved path", {
                     filePath,
                 });

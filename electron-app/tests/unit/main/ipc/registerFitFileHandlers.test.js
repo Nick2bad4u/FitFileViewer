@@ -65,4 +65,18 @@ describe("registerFitFileHandlers", () => {
             error: "decode failed",
         });
     });
+
+    it("rejects non-ArrayBuffer payloads", async () => {
+        registerFitFileHandlers({
+            registerIpcHandle,
+            ensureFitParserStateIntegration,
+            logWithContext,
+            fitParserModule: { decodeFitFile: decodeFitFileMock },
+        });
+
+        const handler = registerIpcHandle.mock.calls[0][1];
+
+        await expect(handler({}, "not-a-buffer")).rejects.toThrow("Invalid FIT data: expected ArrayBuffer");
+        expect(decodeFitFileMock).not.toHaveBeenCalled();
+    });
 });

@@ -16,11 +16,32 @@ function registerFitFileHandlers({
         return;
     }
 
+    /**
+     * Normalizes IPC payloads into a Node Buffer.
+     *
+     * Electron IPC commonly transports ArrayBuffer from the renderer. We defensively
+     * validate the input here so a compromised renderer cannot feed unexpected types
+     * into the FIT decoder.
+     *
+     * @param {unknown} value
+     * @returns {Buffer}
+     */
+    const toBuffer = (value) => {
+        if (value instanceof ArrayBuffer) {
+            return Buffer.from(value);
+        }
+        if (value && typeof value === "object" && ArrayBuffer.isView(value) && value.buffer instanceof ArrayBuffer) {
+            // @ts-ignore - ArrayBufferView typing
+            return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+        }
+        throw new TypeError("Invalid FIT data: expected ArrayBuffer");
+    };
+
     const registerHandler = (channel) => {
         registerIpcHandle(channel, async (_event, arrayBuffer) => {
             try {
                 await ensureFitParserStateIntegration();
-                const buffer = Buffer.from(arrayBuffer);
+                const buffer = toBuffer(arrayBuffer);
                 const fitParser = fitParserModule ?? require("../../fitParser");
                 return await fitParser.decodeFitFile(buffer);
             } catch (error) {

@@ -28,9 +28,16 @@ export function createShownFilesList() {
     container.setAttribute("role", "region");
     container.setAttribute("aria-label", "Map overlay files");
     container.setAttribute("aria-disabled", "true");
-    container.innerHTML =
-        '<b>Extra Files shown on map:</b><ul id="shown-files-ul" style="margin:0; padding-left:18px;"></ul>';
-    const listElement = container.querySelector("#shown-files-ul");
+
+    // Security: avoid innerHTML. The header/list markup is static, but using DOM APIs
+    // keeps the pattern consistent and prevents future accidental interpolation.
+    const heading = document.createElement("b");
+    heading.textContent = "Extra Files shown on map:";
+    const listElement = document.createElement("ul");
+    listElement.id = "shown-files-ul";
+    listElement.style.margin = "0";
+    listElement.style.paddingLeft = "18px";
+    container.append(heading, listElement);
     if (listElement) {
         listElement.setAttribute("role", "listbox");
     }

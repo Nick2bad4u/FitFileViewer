@@ -60,6 +60,45 @@ const detectCurrentTheme = /** @type {typeof __realDetectCurrentTheme} */ (
         : __realDetectCurrentTheme
 );
 
+/**
+ * Escape text for safe embedding into HTML element content or quoted attributes.
+ *
+ * This module is renderer-side and can consume values derived from FIT files
+ * (e.g., dataset labels). Those values must never be injected into HTML without
+ * escaping.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+/**
+ * Conservative CSS color token sanitizer.
+ *
+ * Used only when we must embed a color into a <style> block for print/export.
+ * The export theme colors are expected to be safe, but this prevents future
+ * regressions from turning a style token into HTML injection.
+ *
+ * @param {unknown} value
+ * @param {string} fallback
+ * @returns {string}
+ */
+function sanitizeCssColorToken(value, fallback) {
+    if (typeof value !== "string") return fallback;
+    const v = value.trim();
+    if (v === "transparent") return v;
+    if (/^#[\da-f]{3,8}$/iu.test(v)) return v;
+    if (/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/iu.test(v)) return v;
+    return fallback;
+}
+
 // Internal dependency container, overridable in tests
 /**
  * @type {{
@@ -1306,13 +1345,16 @@ export const exportUtils = {
             }
             const imgData = canvas.toDataURL("image/png", 1);
 
+            // Print window HTML should never include unescaped/unvalidated dynamic strings.
+            const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
+
             if (printWindow) {
                 printWindow.document.write(`
 				<html>
 					<head>
 						<title>Chart Print</title>
 						<style>
-							body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: ${bgSafe === "transparent" ? "#ffffff" : bgSafe}; }
 							img { max-width: 100%; max-height: 100%; }
 						</style>
 					</head>
@@ -1356,6 +1398,10 @@ export const exportUtils = {
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 printWindow = window.open("", "_blank");
+            const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
+            const bodyBg = bgSafe === "transparent" ? "#ffffff" : bgSafe;
+            const bodyText = bgSafe.toLowerCase() === "#1a1a1a" ? "#ffffff" : "#000000";
+
             let htmlContent = `
 				<html>
 					<head>
@@ -1364,8 +1410,8 @@ export const exportUtils = {
 							body {
 								margin: 20px;
 								font-family: Arial, sans-serif;
-								background: ${backgroundColor === "transparent" ? "#ffffff" : backgroundColor};
-								color: ${backgroundColor === "#1a1a1a" ? "#ffffff" : "#000000"};
+                            background: ${bodyBg};
+                            color: ${bodyText};
 							}
 							.chart {
 								page-break-inside: avoid;
@@ -1378,7 +1424,7 @@ export const exportUtils = {
 							}
 							.chart h3 {
 								margin: 0 0 10px 0;
-								color: ${backgroundColor === "#1a1a1a" ? "#ffffff" : "#333"};
+                            color: inherit;
 							}
 							@media print {
 								.chart { page-break-after: always; }
@@ -1413,10 +1459,12 @@ export const exportUtils = {
                 }
                 const imgData = canvas.toDataURL("image/png", 1);
 
+                const safeFieldName = escapeHtml(String(fieldName));
+
                 htmlContent += `
 					<div class="chart">
-						<h3>${fieldName}</h3>
-						<img src="${imgData}" alt="${fieldName} Chart" />
+						<h3>${safeFieldName}</h3>
+						<img src="${imgData}" alt="${safeFieldName} Chart" />
 					</div>
 				`;
             }
@@ -1858,7 +1906,7 @@ export const exportUtils = {
                 For advanced users who want to use their own Gyazo application:
                 </p>
                 <ol style="margin: 0 0 16px 0; padding-left: 20px; color: var(--color-fg); font-size: 12px; line-height: 1.4;">
-                <li>Create an app at <a href="https://gyazo.com/oauth/applications" target="_blank" style="color: var(--color-accent);">Gyazo Developer Applications</a></li>
+                <li>Create an app at <a href="https://gyazo.com/oauth/applications" data-external-link="true" style="color: var(--color-accent);">Gyazo Developer Applications</a></li>
                 <li>Use redirect URI: <code style="background: var(--color-glass); padding: 2px 4px; border-radius: 4px;">http://localhost:3000/gyazo/callback</code></li>
                 <li>Enter your credentials below</li>
                 </ol>
@@ -2123,7 +2171,7 @@ export const exportUtils = {
             <div style="color: var(--color-fg); line-height: 1.6;">
                 <p><strong>To enable Gyazo integration, you need to:</strong></p>
                 <ol style="margin: 16px 0; padding-left: 20px;">
-                    <li>Visit <a href="https://gyazo.com/oauth/applications" target="_blank" style="color: var(--color-accent);">Gyazo Developer Applications</a></li>
+                    <li>Visit <a href="https://gyazo.com/oauth/applications" data-external-link="true" style="color: var(--color-accent);">Gyazo Developer Applications</a></li>
                     <li>Create a new application with these settings:
                         <ul style="margin: 8px 0; padding-left: 20px;">
                             <li><strong>Application Name:</strong> FitFileViewer</li>

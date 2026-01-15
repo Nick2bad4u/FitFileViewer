@@ -10,17 +10,18 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
         return;
     }
 
-    /**
-     * Validate file path input for filesystem IPC calls.
-     * @param {unknown} filePath
-     * @returns {filePath is string}
-     */
-    const isValidFilePath = (filePath) => typeof filePath === "string" && filePath.trim().length > 0;
+    // Security: file reads must be validated and authorized in the main process.
+    // We keep this local (instead of trusting renderer-provided paths) to prevent
+    // arbitrary file disclosure if the renderer is compromised.
+    const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
 
     registerIpcHandle("file:read", async (_event, filePath) => {
         try {
-            if (!isValidFilePath(filePath)) {
-                const error = new Error("Invalid file path provided");
+            let authorizedPath;
+            try {
+                authorizedPath = assertFileReadAllowed(filePath);
+            } catch (policyError) {
+                const error = policyError instanceof Error ? policyError : new Error(String(policyError));
                 logWithContext?.("error", "Error in file:read:", {
                     error: error.message,
                     filePath,
@@ -34,11 +35,11 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                     return;
                 }
 
-                fs.readFile(filePath, (err, data) => {
+                fs.readFile(authorizedPath, (err, data) => {
                     if (err) {
                         logWithContext?.("error", "Error reading file:", {
                             error: /** @type {Error} */ (err)?.message,
-                            filePath,
+                            filePath: authorizedPath,
                         });
                         reject(err);
                         return;
