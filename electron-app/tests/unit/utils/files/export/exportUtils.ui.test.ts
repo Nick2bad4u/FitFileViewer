@@ -108,6 +108,25 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect(document.querySelector(".imgur-account-manager-modal")).toBeNull();
     });
 
+    it("Imgur account manager: does not inject stored clientId as HTML", async () => {
+        // Stored values are untrusted (localStorage can be manipulated).
+        localStorage.setItem("imgur_client_id", '"/><img src=x onerror=alert(1)>');
+
+        const { exportUtils } = await import(modPath);
+        exportUtils.showImgurAccountManager();
+
+        const overlay = document.querySelector(".imgur-account-manager-modal")?.parentElement as HTMLElement;
+        expect(overlay).toBeTruthy();
+
+        const input = overlay.querySelector("#imgur-client-id") as HTMLInputElement;
+        expect(input).toBeTruthy();
+        expect(input.value).toBe('"/><img src=x onerror=alert(1)>');
+
+        // Ensure no DOM element was injected.
+        expect(overlay.querySelector("img")).toBeNull();
+        expect(overlay.innerHTML).not.toMatch(/onerror/i);
+    });
+
     it("Imgur update status toggles UI", async () => {
         const { exportUtils } = await import(modPath);
         exportUtils.showImgurAccountManager();
@@ -191,6 +210,25 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         const overlay3 = document.querySelector(".gyazo-account-manager-modal")?.parentElement as HTMLElement;
         overlay3.click();
         expect(document.querySelector(".gyazo-account-manager-modal")).toBeNull();
+    });
+
+    it("Gyazo account manager: does not inject stored credentials as HTML", async () => {
+        localStorage.setItem("gyazo_client_id", '"/><img src=x onerror=alert(1)>');
+        localStorage.setItem("gyazo_client_secret", '"/><img src=y onerror=alert(2)>');
+
+        const { exportUtils } = await import(modPath);
+        exportUtils.showGyazoAccountManager();
+
+        const overlay = document.querySelector(".gyazo-account-manager-modal")?.parentElement as HTMLElement;
+        expect(overlay).toBeTruthy();
+
+        const idInput = overlay.querySelector("#gyazo-client-id") as HTMLInputElement;
+        const secretInput = overlay.querySelector("#gyazo-client-secret") as HTMLInputElement;
+        expect(idInput.value).toBe('"/><img src=x onerror=alert(1)>');
+        expect(secretInput.value).toBe('"/><img src=y onerror=alert(2)>');
+
+        expect(overlay.querySelectorAll("img").length).toBe(0);
+        expect(overlay.innerHTML).not.toMatch(/onerror/i);
     });
 
     it("createGyazoAuthModal: manual mode completes with code and can cancel/esc/click-outside", async () => {

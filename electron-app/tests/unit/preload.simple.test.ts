@@ -123,11 +123,8 @@ describe("Simple Electron Mock Test", () => {
 
         expect(exposedAPI).toBeDefined();
 
-        // Test parameter validation in invoke method with invalid value
-        mockIpcRenderer.invoke.mockRejectedValueOnce(new Error("Invalid channel"));
-
-        // Using invalid channel should throw
-        await expect(() => exposedAPI.invoke(null as unknown as string)).rejects.toThrow();
+        // Using an invalid channel should reject (validation occurs before ipcRenderer.invoke)
+        await expect(exposedAPI.invoke(null as any)).rejects.toThrow("Invalid channel for invoke");
 
         // Invoke with valid parameters should work
         mockIpcRenderer.invoke.mockResolvedValueOnce("test-response");

@@ -20,6 +20,19 @@ function createTableLike() {
     } as any;
 }
 
+function createMaliciousTableLike() {
+    return {
+        toHTML: ({ limit }: { limit: number }) => {
+            expect(limit).toBe(Infinity);
+            // Attempt DOM injection in a cell.
+            return (
+                "<thead><tr><th>A</th><th>B</th></tr></thead>" +
+                "<tbody><tr><td><img src=x onerror=alert(1)></td><td><a href=javascript:alert(2)>x</a></td></tr></tbody>"
+            );
+        },
+    } as any;
+}
+
 describe("renderTable", () => {
     beforeEach(() => {
         document.body.innerHTML = '<div id="root"></div>';
@@ -67,6 +80,20 @@ describe("renderTable", () => {
         vi.advanceTimersByTime(120);
         const table = root.querySelector("table#datatable_2") as HTMLTableElement;
         expect(table).toBeTruthy();
+    });
+
+    it("sanitizes injected markup from table HTML", async () => {
+        const { renderTable } = await loadModule();
+        const root = document.getElementById("root")!;
+
+        await renderTable(root, "XSS", createMaliciousTableLike(), 9);
+
+        const table = root.querySelector("table#datatable_9") as HTMLTableElement;
+        expect(table).toBeTruthy();
+
+        // Ensure potentially executable elements are not present.
+        expect(table.querySelector("img")).toBeNull();
+        expect(table.querySelector("a")).toBeNull();
     });
 
     it("initializes DataTable when jQuery+DataTables present, destroying prior instance", async () => {

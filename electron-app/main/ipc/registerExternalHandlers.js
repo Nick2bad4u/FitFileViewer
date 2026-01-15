@@ -1,3 +1,5 @@
+const { validateExternalUrl } = require("../security/externalUrlPolicy");
+
 /**
  * Registers IPC handlers for external integrations (shell and Gyazo server control).
  * @param {object} options
@@ -20,19 +22,14 @@ function registerExternalHandlers({
 
     registerIpcHandle("shell:openExternal", async (_event, url) => {
         try {
-            if (!url || typeof url !== "string") {
-                throw new Error("Invalid URL provided");
-            }
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                throw new Error("Only HTTP and HTTPS URLs are allowed");
-            }
+            const validatedUrl = validateExternalUrl(url);
 
             const shell = shellRef?.();
             if (!shell || typeof shell.openExternal !== "function") {
                 throw new Error("shell.openExternal unavailable");
             }
 
-            await shell.openExternal(url);
+            await shell.openExternal(validatedUrl);
             return true;
         } catch (error) {
             logWithContext?.("error", "Error in shell:openExternal:", {
@@ -44,7 +41,12 @@ function registerExternalHandlers({
 
     registerIpcHandle("gyazo:server:start", async (_event, port = 3000) => {
         try {
-            return await startGyazoOAuthServer(port);
+            const numericPort = typeof port === "number" ? port : Number(port);
+            if (!Number.isInteger(numericPort) || numericPort < 1 || numericPort > 65_535) {
+                throw new Error("Invalid port provided");
+            }
+
+            return await startGyazoOAuthServer(numericPort);
         } catch (error) {
             logWithContext?.("error", "Error in gyazo:server:start:", {
                 error: /** @type {Error} */ (error)?.message,

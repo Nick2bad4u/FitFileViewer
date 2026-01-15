@@ -206,7 +206,10 @@ function enableTabsAndNotify(filePath) {
         }
 
         // Notify main process via IPC
-        if (globalThis.electronAPI?.send) {
+        if (globalThis.electronAPI?.notifyFitFileLoaded) {
+            globalThis.electronAPI.notifyFitFileLoaded(filePath);
+        } else if (globalThis.electronAPI?.send) {
+            // Backward compatibility for older preload builds.
             globalThis.electronAPI.send(DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED_IPC, filePath);
         }
 

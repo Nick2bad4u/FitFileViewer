@@ -1,6 +1,7 @@
 // Enhanced Keyboard Shortcuts modal dialog utility with modern design and animations
 
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 
 /** @type {any} */
 let lastFocusedElement = null;
@@ -520,15 +521,7 @@ function setupKeyboardShortcutsModalHandlers(modal) {
     });
 
     // Handle links for external navigation
-    addEventListenerWithCleanup(modal, "click", (/** @type {any} */ e) => {
-        if (Object.hasOwn(e.target.dataset, "externalLink")) {
-            e.preventDefault();
-            const url = e.target.href || e.target.closest("a").href;
-            if (url && typeof globalThis.electronAPI?.openExternal === "function") {
-                globalThis.electronAPI.openExternal(url);
-            }
-        }
-    });
+    attachExternalLinkHandlers({ root: modal });
 }
 
 /**

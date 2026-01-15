@@ -1,27 +1,4 @@
 /**
- * @typedef {Object} RecordMesg
- * @property {number} [positionLat] - Position latitude
- * @property {number} [positionLong] - Position longitude
- * @property {number} [timestamp] - Timestamp
- * @property {number} [altitude] - Altitude
- * @property {number} [heartRate] - Heart rate
- * @property {number} [speed] - Speed
- */
-/**
- * @typedef {Object} LapMesg
- * @property {number} [start_index] - Start index in records
- * @property {number} [end_index] - End index in records
- * @property {number} [startPositionLat] - Start position latitude
- * @property {number} [startPositionLong] - Start position longitude
- * @property {number} [endPositionLat] - End position latitude
- * @property {number} [endPositionLong] - End position longitude
- */
-/**
- * @typedef {Object} FitFile
- * @property {Object} data - FIT file data
- * @property {string} [filePath] - File path
- */
-/**
  * @typedef {[number, number, number|null, number|null, number|null, number|null, number, any, number]} CoordTuple
  */
 export function drawOverlayForFitFile({
@@ -46,6 +23,29 @@ export function drawOverlayForFitFile({
     startIcon: any;
 }): any;
 /**
+ * @typedef {Object} RecordMesg
+ * @property {number} [positionLat] - Position latitude
+ * @property {number} [positionLong] - Position longitude
+ * @property {number} [timestamp] - Timestamp
+ * @property {number} [altitude] - Altitude
+ * @property {number} [heartRate] - Heart rate
+ * @property {number} [speed] - Speed
+ */
+/**
+ * @typedef {Object} LapMesg
+ * @property {number} [start_index] - Start index in records
+ * @property {number} [end_index] - End index in records
+ * @property {number} [startPositionLat] - Start position latitude
+ * @property {number} [startPositionLong] - Start position longitude
+ * @property {number} [endPositionLat] - End position latitude
+ * @property {number} [endPositionLong] - End position longitude
+ */
+/**
+ * @typedef {Object} FitFile
+ * @property {Object} data - FIT file data
+ * @property {string} [filePath] - File path
+ */
+/**
  * Draws the map for a given lap or laps
  * Dependencies must be passed as arguments: map, baseLayers, markerClusterGroup, startIcon, endIcon, mapContainer, getLapColor, formatTooltipData, getLapNumForIdx
  * @param {string|number|Array<string|number>} lapIdx - Lap index or array of indices or "all"
@@ -65,6 +65,17 @@ export function mapDrawLaps(
         startIcon,
     }: MapDrawOptions
 ): void;
+export type CoordTuple = [
+    number,
+    number,
+    number | null,
+    number | null,
+    number | null,
+    number | null,
+    number,
+    any,
+    number,
+];
 export type RecordMesg = {
     /**
      * - Position latitude
@@ -127,15 +138,4 @@ export type FitFile = {
      */
     filePath?: string;
 };
-export type CoordTuple = [
-    number,
-    number,
-    number | null,
-    number | null,
-    number | null,
-    number | null,
-    number,
-    any,
-    number,
-];
 //# sourceMappingURL=mapDrawLaps.d.ts.map

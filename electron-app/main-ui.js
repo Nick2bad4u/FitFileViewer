@@ -191,7 +191,9 @@ function unloadFitFile() {
         UIActions.showTab("tab-map");
 
         // Notify main process to update menu
-        if (globalThis.electronAPI && globalThis.electronAPI.send) {
+        if (globalThis.electronAPI?.notifyFitFileLoaded) {
+            globalThis.electronAPI.notifyFitFileLoaded(null);
+        } else if (globalThis.electronAPI?.send) {
             globalThis.electronAPI.send("fit-file-loaded", null);
         }
 

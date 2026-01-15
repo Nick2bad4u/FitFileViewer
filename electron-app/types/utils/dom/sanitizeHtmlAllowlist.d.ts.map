@@ -1,0 +1,1 @@
+{"version":3,"file":"sanitizeHtmlAllowlist.d.ts","sourceRoot":"","sources":["../../../utils/dom/sanitizeHtmlAllowlist.js"],"names":[],"mappings":"AAAA;;;;;;;;;GASG;AAEH;;;;;;GAMG;AAEH;;;;;;;;;;;;;;;GAeG;AACH,4CAJW,MAAM,WACN,wBAAwB,GACtB,gBAAgB,CAkE5B;uCAvFY;IACT,WAAW,EAAE,aAAa,CAAC,MAAM,CAAC,CAAC;IACnC,iBAAiB,EAAE,aAAa,CAAC,MAAM,CAAC,CAAC;IACzC,eAAe,CAAC,EAAE,OAAO,CAAC;CAC1B"}

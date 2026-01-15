@@ -133,7 +133,7 @@ describe("preload.js - Additional edge coverage", () => {
         consoleErrorSpy.mockRestore();
     });
 
-    it("onUpdateEvent registers only when callback is valid (null eventName allowed)", () => {
+    it("onUpdateEvent registers only when eventName and callback are valid", () => {
         const ipcRenderer = { invoke: vi.fn(), send: vi.fn(), on: vi.fn() };
         const contextBridge = {
             exposeInMainWorld: vi.fn().mockImplementation((name: string, api: any) => {
@@ -148,11 +148,17 @@ describe("preload.js - Additional edge coverage", () => {
 
         const api = (globalThis as any).electronAPI;
         const before = ipcRenderer.on.mock.calls.length;
-        // validateString allows null, so this should register
+        const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        // Invalid eventName should be ignored
         api.onUpdateEvent(null as any, () => {});
-        // invalid callback should be ignored
+        // Invalid callback should be ignored
         api.onUpdateEvent("evt", null as any);
+        // Valid pair should register
+        api.onUpdateEvent("evt", () => {});
         const after = ipcRenderer.on.mock.calls.length;
         expect(after - before).toBe(1);
+
+        consoleErrorSpy.mockRestore();
     });
 });

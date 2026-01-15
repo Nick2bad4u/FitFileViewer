@@ -108,6 +108,9 @@ function createWindow() {
                 webPreferences: {
                     preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
                     ...CONSTANTS.WEB_PREFERENCES,
+                    // Explicitly disable <webview> usage as a defense-in-depth measure.
+                    // The app does not rely on webviews.
+                    webviewTag: false,
                     // Keep web security enabled in production. Allow explicit dev opt-out.
                     webSecurity: resolveWebSecuritySetting(),
                 },

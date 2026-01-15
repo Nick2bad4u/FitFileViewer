@@ -400,9 +400,7 @@ describe("preload.js - Advanced Test Coverage", () => {
             // Try with invalid event name
             exposedAPI.onUpdateEvent(123, callback);
 
-            expect(mockConsole.error).toHaveBeenCalledWith(
-                "[preload.js] onUpdateEvent: eventName must be a string or null"
-            );
+            expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] onUpdateEvent: eventName must be a string");
         });
     });
 
@@ -437,7 +435,7 @@ describe("preload.js - Advanced Test Coverage", () => {
             // Try with invalid channel (should trigger validateString error)
             exposedAPI.send(123, "data");
 
-            expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] send: channel must be a string or null");
+            expect(mockConsole.error).toHaveBeenCalledWith("[preload.js] send: channel must be a string");
         });
 
         test("should handle invoke errors properly", async () => {

@@ -1,1 +1,1 @@
-{"version":3,"file":"aboutModal.d.ts","sourceRoot":"","sources":["../../../../utils/ui/modals/aboutModal.js"],"names":[],"mappings":"AA+BA;;;;GAIG;AACH,wCAFa,MAAM,CA+GlB;AAED;;;GAGG;AACH,mCAFW,GAAC,QAQX;AAED;;;GAGG;AACH,sCAFW,MAAM,QAiHhB;AAtPD,4CAAyE"}
+{"version":3,"file":"aboutModal.d.ts","sourceRoot":"","sources":["../../../../utils/ui/modals/aboutModal.js"],"names":[],"mappings":"AAgCA;;;;GAIG;AACH,wCAFa,MAAM,CA+GlB;AAED;;;GAGG;AACH,mCAFW,GAAC,QAQX;AAED;;;GAGG;AACH,sCAFW,MAAM,QA0FhB;AA/ND,4CAAyE"}

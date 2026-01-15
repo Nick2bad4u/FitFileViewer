@@ -441,7 +441,18 @@ export class UIStateManager {
 
         if (fileSpan) {
             if (hasRenderableFile) {
-                fileSpan.innerHTML = `<span class="active-label">Active:</span> <span class="filename-text">${displayName}</span>`;
+                // Security: avoid `innerHTML` here. `displayName` can originate from user-controlled
+                // file paths and must never be interpreted as markup.
+                const labelSpan = document.createElement("span");
+                labelSpan.className = "active-label";
+                labelSpan.textContent = "Active:";
+
+                const nameSpan = document.createElement("span");
+                nameSpan.className = "filename-text";
+                nameSpan.textContent = displayName;
+
+                // Keep the original spacing between label and filename.
+                fileSpan.replaceChildren(labelSpan, document.createTextNode(" "), nameSpan);
                 fileSpan.title = displayName;
                 fileSpan.classList.remove("marquee");
                 fileSpan.scrollLeft = 0;

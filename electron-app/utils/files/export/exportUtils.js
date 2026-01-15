@@ -688,7 +688,7 @@ export const exportUtils = {
             </h3>
             ${instructions}
             <div style="margin-bottom: 16px;">
-                <a href="${authUrl}"
+                <a
                    data-external-link="true"
                    role="link"
                    tabindex="0"
@@ -715,6 +715,16 @@ export const exportUtils = {
             ${codeInputSection}
             ${actionButtons}
         `;
+
+        // Security: assign the external URL via DOM API to avoid attribute injection.
+        const authLink = modal.querySelector("#gyazo-open-auth");
+        if (authLink) {
+            try {
+                /** @type {HTMLAnchorElement} */ (authLink).setAttribute("href", String(authUrl));
+            } catch {
+                /* ignore */
+            }
+        }
 
         // Event handlers
         const cancelBtn = modal.querySelector("#gyazo-cancel-auth"),
@@ -1857,8 +1867,7 @@ export const exportUtils = {
                 <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;">
                     Client ID:
                 </label>
-                <input type="text" id="gyazo-client-id" placeholder="Enter your Gyazo Client ID"
-                       value="${/** @type {any} */ (config).clientId}" style="
+                     <input type="text" id="gyazo-client-id" placeholder="Enter your Gyazo Client ID" style="
                     width: 100%;
                     padding: 8px 10px;
                     border-radius: 6px;
@@ -1874,8 +1883,7 @@ export const exportUtils = {
                 <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 12px;">
                     Client Secret:
                 </label>
-                <input type="password" id="gyazo-client-secret" placeholder="Enter your Gyazo Client Secret"
-                       value="${/** @type {any} */ (config).clientSecret}" style="
+                <input type="password" id="gyazo-client-secret" placeholder="Enter your Gyazo Client Secret" style="
                     width: 100%;
                     padding: 8px 10px;
                     border-radius: 6px;
@@ -1977,6 +1985,16 @@ export const exportUtils = {
             connectBtn = modal.querySelector("#gyazo-connect"),
             disconnectBtn = modal.querySelector("#gyazo-disconnect"),
             saveCredsBtn = modal.querySelector("#save-credentials");
+
+        // Security: assign potentially-untrusted stored values via DOM properties, not via innerHTML.
+        if (clientIdInput) {
+            /** @type {HTMLInputElement} */ (clientIdInput).value = String(/** @type {any} */ (config).clientId ?? "");
+        }
+        if (clientSecretInput) {
+            /** @type {HTMLInputElement} */ (clientSecretInput).value = String(
+                /** @type {any} */ (config).clientSecret ?? ""
+            );
+        }
 
         // Save credentials
         if (saveCredsBtn) {
@@ -2512,8 +2530,7 @@ export const exportUtils = {
                     <label style="display: block; margin-bottom: 6px; color: var(--color-fg); font-weight: 600; font-size: 14px;">
                         Imgur Client ID:
                     </label>
-                    <input type="text" id="imgur-client-id" placeholder="Enter your Imgur Client ID"
-                           value="${config.clientId}" style="
+                          <input type="text" id="imgur-client-id" placeholder="Enter your Imgur Client ID" style="
                         width: 100%;
                         padding: 10px 12px;
                         border-radius: 8px;
@@ -2595,6 +2612,11 @@ export const exportUtils = {
         const clearBtn = modal.querySelector("#clear-imgur-config");
         const closeBtn = modal.querySelector("#imgur-close");
         const clientIdInput = modal.querySelector("#imgur-client-id");
+
+        // Security: assign potentially-untrusted stored value via DOM property.
+        if (clientIdInput) {
+            clientIdInput.value = String(config.clientId ?? "");
+        }
 
         // Save configuration
         if (saveBtn && clientIdInput) {

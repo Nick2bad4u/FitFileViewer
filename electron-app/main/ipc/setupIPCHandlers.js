@@ -6,6 +6,7 @@ const { startGyazoOAuthServer, stopGyazoOAuthServer } = require("../oauth/gyazoO
 const { appRef, browserWindowRef, dialogRef, shellRef } = require("../runtime/electronAccess");
 const { ensureFitParserStateIntegration } = require("../runtime/fitParserIntegration");
 const { fs, path } = require("../runtime/nodeModules");
+const { validateExternalUrl } = require("../security/externalUrlPolicy");
 const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
 const { getAppState, setAppState } = require("../state/appState");
 const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
@@ -54,16 +55,22 @@ function setupIPCHandlers(mainWindow) {
     });
 
     registerIpcListener("fit-file-loaded", async (event, filePath) => {
-        try {
-            // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
-            const approvedPath = assertFileReadAllowed(filePath);
-            setAppState("loadedFitFilePath", approvedPath);
-        } catch (error) {
-            logWithContext("warn", "Rejected fit-file-loaded with unapproved path", {
-                error: /** @type {Error} */ (error)?.message,
-                filePath,
-            });
-            return;
+        // Support clearing the loaded file state.
+        // Renderer sends null when a file is unloaded.
+        if (filePath === null || filePath === undefined || (typeof filePath === "string" && filePath.trim() === "")) {
+            setAppState("loadedFitFilePath", null);
+        } else {
+            try {
+                // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
+                const approvedPath = assertFileReadAllowed(filePath);
+                setAppState("loadedFitFilePath", approvedPath);
+            } catch (error) {
+                logWithContext("warn", "Rejected fit-file-loaded with unapproved path", {
+                    error: /** @type {Error} */ (error)?.message,
+                    filePath,
+                });
+                return;
+            }
         }
         const win = browserWindowRef().fromWebContents(event.sender);
         if (win) {
@@ -212,33 +219,10 @@ function setupIPCHandlers(mainWindow) {
 
     registerIpcHandle("shell:openExternal", async (_event, url) => {
         try {
-            if (!url || typeof url !== "string") {
-                throw new Error("Invalid URL provided");
-            }
-
-            const trimmedUrl = url.trim();
-            if (!trimmedUrl) {
-                throw new Error("Invalid URL provided");
-            }
-
-            let parsed;
-            try {
-                parsed = new URL(trimmedUrl);
-            } catch {
-                throw new Error("Invalid URL provided");
-            }
-
-            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-                throw new Error("Only HTTP and HTTPS URLs are allowed");
-            }
-
-            if (parsed.username || parsed.password) {
-                throw new Error("Credentials in URLs are not allowed");
-            }
-
+            const validated = validateExternalUrl(url);
             // Preserve the original string (post-trim) to avoid surprising canonicalization
             // like adding a trailing slash.
-            await shellRef().openExternal(trimmedUrl);
+            await shellRef().openExternal(validated);
             return true;
         } catch (error) {
             logWithContext("error", "Error in shell:openExternal:", {

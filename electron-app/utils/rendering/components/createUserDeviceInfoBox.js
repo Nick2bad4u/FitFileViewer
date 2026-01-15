@@ -1,3 +1,4 @@
+import { sanitizeHtmlAllowlist } from "../../dom/index.js";
 import { formatCapitalize } from "../../formatting/display/formatCapitalize.js";
 import { formatHeight } from "../../formatting/formatters/formatHeight.js";
 import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
@@ -188,7 +189,7 @@ export function createUserDeviceInfoBox(container) {
         });
 
         // User Profile Section with enhanced styling and more fields
-        userSection.innerHTML = `
+        const rawUserSectionHtml = `
             <div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, ${colors.surfaceSecondary}, ${colors.surface}); border-radius: 12px; border: 2px solid ${colors.border}; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px ${colors.shadow}'; this.style.borderColor='${colors.primary}'" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='${colors.border}'">
             <div style="font-weight: 700; margin-bottom: 12px; color: ${colors.text}; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                 <span style="background: ${colors.primary}; color: ${colors.textPrimary}; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px;">👤</span>
@@ -225,6 +226,16 @@ export function createUserDeviceInfoBox(container) {
                 ${userProfile.diveCount ? `<div style="padding: 8px; border-radius: 8px; background: ${colors.surfaceSecondary}; border-left: 4px solid ${colors.primary}; transition: all 0.2s ease;" onmouseenter="this.style.transform='translateX(4px)'; this.style.backgroundColor='${colors.accent}'" onmouseleave="this.style.transform='translateX(0)'; this.style.backgroundColor='${colors.surfaceSecondary}'"><strong style="color: ${colors.primary};">Dive Count:</strong> ${userProfile.diveCount}</div>` : ""}
             </div>
         `;
+
+        // Security: sanitize HTML because FIT-derived strings can contain markup.
+        // Also strips inline onmouseenter/onmouseleave attributes used in the template string.
+        userSection.replaceChildren(
+            sanitizeHtmlAllowlist(rawUserSectionHtml, {
+                allowedAttributes: ["aria-label", "class", "id", "role", "style", "tabindex", "title"],
+                allowedTags: ["DIV", "H1", "H2", "H3", "H4", "H5", "H6", "SPAN", "STRONG"],
+                stripUrlInStyle: true,
+            })
+        );
         const deviceSection = document.createElement("div");
         deviceSection.style.cssText = `
             flex: 1;
@@ -358,7 +369,14 @@ export function createUserDeviceInfoBox(container) {
             `;
         }
 
-        deviceSection.innerHTML = deviceHtml;
+        // Security: sanitize HTML before inserting.
+        deviceSection.replaceChildren(
+            sanitizeHtmlAllowlist(deviceHtml, {
+                allowedAttributes: ["aria-label", "class", "id", "role", "style", "tabindex", "title"],
+                allowedTags: ["DIV", "H1", "H2", "H3", "H4", "H5", "H6", "SPAN", "STRONG"],
+                stripUrlInStyle: true,
+            })
+        );
 
         // Add sections to info box
         infoBox.append(userSection);

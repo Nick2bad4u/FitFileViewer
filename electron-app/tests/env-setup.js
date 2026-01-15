@@ -2,9 +2,15 @@
 // Suppress jsdom's --localstorage-file warning
 const originalEmitWarning = process.emitWarning;
 process.emitWarning = function (warning, ...args) {
-    if (typeof warning === "string" && warning.includes("--localstorage-file")) {
-        return;
-    }
+    const message = (() => {
+        if (typeof warning === "string") return warning;
+        if (warning && typeof warning === "object" && "message" in warning) {
+            return String(/** @type {{ message?: unknown }} */ (warning).message);
+        }
+        return "";
+    })();
+
+    if (message.includes("--localstorage-file")) return;
     // eslint-disable-next-line prefer-spread
     return originalEmitWarning.apply(process, [warning, ...args]);
 };

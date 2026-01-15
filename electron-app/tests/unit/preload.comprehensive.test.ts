@@ -596,26 +596,24 @@ describe("preload.js - Comprehensive Coverage Test Suite", () => {
         test("should validate eventName in onUpdateEvent", () => {
             exposedAPI.onUpdateEvent(123, vi.fn());
 
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] onUpdateEvent: eventName must be a string or null"
-            );
+            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] onUpdateEvent: eventName must be a string");
         });
 
         test("should validate channel in generic methods", async () => {
             await expect(exposedAPI.invoke(123)).rejects.toThrow("Invalid channel for invoke");
-            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] invoke: channel must be a string or null");
+            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] invoke: channel must be a string");
         });
 
         test("should validate channel in send method", () => {
             exposedAPI.send(123);
 
-            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] send: channel must be a string or null");
+            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] send: channel must be a string");
         });
 
         test("should validate channel in onIpc method", () => {
             exposedAPI.onIpc(123, vi.fn());
 
-            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] onIpc: channel must be a string or null");
+            expect(consoleSpy.error).toHaveBeenCalledWith("[preload.js] onIpc: channel must be a string");
         });
 
         test("should validate callback in onIpc method", () => {

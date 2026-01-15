@@ -49,6 +49,7 @@ export type ElectronAPI = {
     onIpc: (channel: string, callback: Function) => void;
     send: (channel: string, ...args: any[]) => void;
     invoke: (channel: string, ...args: any[]) => Promise<any>;
+    notifyFitFileLoaded: (filePath: string | null) => void;
     injectMenu: (theme?: string | null, fitFilePath?: string | null) => Promise<boolean>;
     getChannelInfo: () => ChannelInfo;
     validateAPI: () => boolean;

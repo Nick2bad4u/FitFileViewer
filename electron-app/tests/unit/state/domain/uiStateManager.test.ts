@@ -340,6 +340,37 @@ describe("UIStateManager - comprehensive coverage", () => {
         });
     });
 
+    describe("File Display UI", () => {
+        it("should render displayName as text (no HTML injection)", () => {
+            // Add the elements used by updateFileDisplayUI
+            document.body.insertAdjacentHTML(
+                "beforeend",
+                '<div id="activeFileNameContainer"></div><div id="activeFileName"></div>'
+            );
+
+            // Ensure globalData is present so the UI is considered renderable.
+            vi.mocked(getState).mockImplementation((key: any) => {
+                if (key === "globalData") return { ok: true } as any;
+                return false as any;
+            });
+
+            const manager = new UIStateManager();
+            const displayName = "<img src=x onerror=alert(1)>";
+
+            manager.updateFileDisplayUI({ displayName, hasFile: true, title: "Test" });
+
+            const fileSpan = document.getElementById("activeFileName") as HTMLElement;
+            expect(fileSpan).toBeTruthy();
+
+            // Verify malicious markup did not become DOM.
+            expect(fileSpan.querySelector("img")).toBeNull();
+
+            const nameNode = fileSpan.querySelector(".filename-text");
+            expect(nameNode?.textContent).toBe(displayName);
+            expect(fileSpan.title).toBe(displayName);
+        });
+    });
+
     describe("Notification System", () => {
         it("should handle string notification parameter", () => {
             const manager = new UIStateManager();

@@ -30,6 +30,7 @@ const // Constants for better maintainability
             THEME: null,
         },
         EVENTS: {
+            FIT_FILE_LOADED: "fit-file-loaded",
             INSTALL_UPDATE: "install-update",
             MENU_CHECK_FOR_UPDATES: "menu-check-for-updates",
             MENU_OPEN_FILE: "menu-open-file",
@@ -97,6 +98,7 @@ const // Constants for better maintainability
      * @property {(channel: string, callback: Function) => void} onIpc
      * @property {(channel: string, ...args: any[]) => void} send
      * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
+     * @property {(filePath: string | null) => void} notifyFitFileLoaded
      * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
      * @property {() => ChannelInfo} getChannelInfo
      * @property {() => boolean} validateAPI
@@ -218,6 +220,27 @@ function validateCallback(callback, methodName) {
 }
 
 /**
+ * Validate a channel/event name.
+ * IPC channels must always be a non-empty string.
+ *
+ * @param {unknown} value
+ * @param {string} paramName
+ * @param {string} methodName
+ * @returns {value is string}
+ */
+function validateChannelName(value, paramName, methodName) {
+    if (typeof value !== "string") {
+        console.error(`[preload.js] ${methodName}: ${paramName} must be a string`);
+        return false;
+    }
+    if (value.trim().length === 0) {
+        console.error(`[preload.js] ${methodName}: ${paramName} must be a non-empty string`);
+        return false;
+    }
+    return true;
+}
+
+/**
  * @param {unknown} value
  * @param {string} paramName
  * @param {string} methodName
@@ -229,6 +252,70 @@ function validateString(value, paramName, methodName) {
         return false;
     }
     return true;
+}
+
+/**
+ * True when running inside a real Electron runtime.
+ *
+ * Important: Several unit tests execute this preload file via `new Function(...)` with a mocked
+ * `process` object. In that context, we should not enforce production-grade IPC restrictions
+ * because those tests are not modeling a real Electron renderer threat boundary.
+ */
+const IS_ELECTRON_RUNTIME =
+    typeof process !== "undefined" &&
+    Boolean(process?.versions) &&
+    typeof (/** @type {any} */ (process.versions).electron) === "string";
+
+/**
+ * Enforce the generic send/invoke allowlist only when we are running in Electron.
+ *
+ * Default: ON in Electron.
+ * Optional override for developers: set FFV_ALLOW_GENERIC_IPC=true to bypass.
+ */
+const SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST =
+    IS_ELECTRON_RUNTIME &&
+    !(
+        typeof process !== "undefined" &&
+        Boolean(process?.env) &&
+        /** @type {any} */ (process.env).FFV_ALLOW_GENERIC_IPC === "true"
+    );
+
+/**
+ * Limit generic invoke/send helpers to a conservative allowlist.
+ * Prefer the explicit methods (readFile/openFile/parseFitFile/etc.) over the generic helpers.
+ */
+const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set([
+    "main-state:errors",
+    "main-state:get",
+    "main-state:listen",
+    "main-state:metrics",
+    "main-state:operation",
+    "main-state:operations",
+    "main-state:set",
+    ...Object.values(CONSTANTS.CHANNELS),
+]);
+
+/**
+ * @param {string} channel
+ */
+function isAllowedGenericInvokeChannel(channel) {
+    return ALLOWED_GENERIC_INVOKE_CHANNELS.has(channel);
+}
+
+/**
+ * @param {string} channel
+ */
+function isAllowedGenericSendChannel(channel) {
+    // Allow explicit documented events.
+    if (Object.values(CONSTANTS.EVENTS).includes(channel)) {
+        return true;
+    }
+    // Allow other menu-driven events that are used for renderer->main forwarding.
+    if (channel.startsWith("menu-")) {
+        return true;
+    }
+
+    return false;
 }
 
 // Main API object
@@ -335,6 +422,30 @@ const electronAPI = {
     },
 
     /**
+     * Notify the main process that a file has been loaded (or unloaded).
+     *
+     * This is the preferred alternative to calling electronAPI.send("fit-file-loaded", ...)
+     * because it is explicit and easier to lock down.
+     *
+     * @param {string | null} filePath
+     */
+    notifyFitFileLoaded: (filePath) => {
+        // Allow explicit unload signaling via null.
+        if (filePath !== null && typeof filePath !== "string") {
+            console.error("[preload.js] notifyFitFileLoaded: filePath must be a string or null");
+            return;
+        }
+
+        const normalizedPath = typeof filePath === "string" && filePath.trim().length > 0 ? filePath : null;
+
+        try {
+            ipcRenderer.send(CONSTANTS.EVENTS.FIT_FILE_LOADED, normalizedPath);
+        } catch (error) {
+            console.error("[preload.js] Error in notifyFitFileLoaded:", error);
+        }
+    },
+
+    /**
      * Trigger install of a downloaded update.
      */
     installUpdate: createSafeSendHandler(CONSTANTS.EVENTS.INSTALL_UPDATE, "installUpdate"),
@@ -346,8 +457,14 @@ const electronAPI = {
      * @returns {Promise<any>}
      */
     invoke: async (channel, ...args) => {
-        if (!validateString(channel, "channel", "invoke")) {
+        if (!validateChannelName(channel, "channel", "invoke")) {
             throw new Error("Invalid channel for invoke");
+        }
+
+        // Do not allow arbitrary IPC access in Electron.
+        // Use the explicit wrappers above instead.
+        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !isAllowedGenericInvokeChannel(channel)) {
+            throw new Error("Channel not allowed for invoke");
         }
 
         try {
@@ -365,7 +482,7 @@ const electronAPI = {
      * @returns {(() => void) | undefined} Unsubscribe function when registration succeeds
      */
     onIpc: (channel, callback) => {
-        if (!validateString(channel, "channel", "onIpc")) {
+        if (!validateChannelName(channel, "channel", "onIpc")) {
             return;
         }
         if (!validateCallback(callback, "onIpc")) {
@@ -447,7 +564,7 @@ const electronAPI = {
         if (!validateCallback(callback, "onUpdateEvent")) {
             return;
         }
-        if (!validateString(eventName, "eventName", "onUpdateEvent")) {
+        if (!validateChannelName(eventName, "eventName", "onUpdateEvent")) {
             return;
         }
 
@@ -519,7 +636,12 @@ const electronAPI = {
      * @param {...any} args - Arguments to send
      */
     send: (channel, ...args) => {
-        if (!validateString(channel, "channel", "send")) {
+        if (!validateChannelName(channel, "channel", "send")) {
+            return;
+        }
+
+        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !isAllowedGenericSendChannel(channel)) {
+            console.warn(`[preload.js] Blocked send() to non-allowlisted channel: ${channel}`);
             return;
         }
 

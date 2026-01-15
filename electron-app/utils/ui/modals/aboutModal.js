@@ -5,6 +5,7 @@
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 
@@ -214,34 +215,11 @@ export function showAboutModal(html = "") {
                 });
             }
 
-            // Handle external links to open in user's default browser
-            const externalLinks = modal.querySelectorAll("[data-external-link]");
-            for (const link of externalLinks) {
-                /** @type {HTMLElement} */ (link);
-                addEventListenerWithCleanup(/** @type {HTMLElement} */ (link), "click", (e) => {
-                    e.preventDefault();
-                    const url = link.getAttribute("href");
-                    if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
-                        globalThis.electronAPI.openExternal(url);
-                    } else if (url) {
-                        // Fallback for non-Electron environments
-                        window.open(url, "_blank", "noopener,noreferrer");
-                    }
-                });
-
-                addEventListenerWithCleanup(/** @type {HTMLElement} */ (link), "keydown", (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        const url = link.getAttribute("href");
-                        if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
-                            globalThis.electronAPI.openExternal(url);
-                        } else if (url) {
-                            // Fallback for non-Electron environments
-                            window.open(url, "_blank", "noopener,noreferrer");
-                        }
-                    }
-                });
-            }
+            // Handle external links to open in user's default browser.
+            // NOTE: The modal content container stops propagation to prevent backdrop-closing.
+            // Attach handlers to .modal-content so delegated link clicks are still observed.
+            const modalContentForLinks = modal.querySelector(".modal-content") ?? modal;
+            attachExternalLinkHandlers({ root: modalContentForLinks });
 
             // Close on backdrop click
             addEventListenerWithCleanup(modal, "click", (e) => {

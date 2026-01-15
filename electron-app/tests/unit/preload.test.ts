@@ -854,8 +854,8 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(() => electronAPI.onIpc(null, null)).not.toThrow();
             expect(() => electronAPI.onIpc(undefined, undefined)).not.toThrow();
 
-            // invoke allows null as per validateString function, but returns mock value
-            await expect(electronAPI.invoke(null, null)).resolves.toBe("default-mock");
+            // invoke now requires a non-empty string channel
+            await expect(electronAPI.invoke(null, null)).rejects.toThrow("Invalid channel for invoke");
             // undefined should still fail validation
             await expect(electronAPI.invoke(undefined, undefined)).rejects.toThrow("Invalid channel for invoke");
         });
@@ -878,8 +878,9 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(() => electronAPI.send("", "data")).not.toThrow();
             expect(() => electronAPI.send("   ", "data")).not.toThrow();
             expect(() => electronAPI.onIpc("", vi.fn())).not.toThrow();
-            // Empty string should be handled as valid (though it might not resolve)
-            await expect(electronAPI.invoke("", "data")).resolves.toBeDefined();
+            // invoke now requires a non-empty channel name
+            await expect(electronAPI.invoke("", "data")).rejects.toThrow("Invalid channel for invoke");
+            await expect(electronAPI.invoke("   ", "data")).rejects.toThrow("Invalid channel for invoke");
         });
 
         it("should handle process beforeExit event", () => {

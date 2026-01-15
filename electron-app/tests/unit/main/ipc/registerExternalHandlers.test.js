@@ -157,6 +157,13 @@ describe("registerExternalHandlers", () => {
             expect(mockShell.openExternal).not.toHaveBeenCalled();
         });
 
+        it("should throw error for credentialed URL (https://user:pass@)", async () => {
+            await expect(shellOpenExternalHandler({}, "https://user:pass@example.com")).rejects.toThrow(
+                "Credentials in URLs are not allowed"
+            );
+            expect(mockShell.openExternal).not.toHaveBeenCalled();
+        });
+
         it("should throw error when shellRef returns null", async () => {
             mockShellRef.mockReturnValue(null);
 
@@ -254,6 +261,11 @@ describe("registerExternalHandlers", () => {
 
             expect(mockStartGyazoOAuthServer).toHaveBeenCalledWith(5000);
             expect(result).toEqual({ port: 3000 });
+        });
+
+        it("should reject invalid port values", async () => {
+            await expect(gyazoStartHandler({}, "not-a-number")).rejects.toThrow("Invalid port provided");
+            expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
         });
 
         it("should handle errors from startGyazoOAuthServer", async () => {

@@ -1,4 +1,6 @@
+import { sanitizeHtmlAllowlist } from "../../dom/index.js";
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
+
 /**
  * Renders a collapsible table section with a header, copy-to-CSV button, and optional DataTables integration.
  *
@@ -51,7 +53,36 @@ export function renderTable(container, title, table, index) {
     const tableElement = document.createElement("table");
     tableElement.id = tableId;
     tableElement.classList.add("display");
-    tableElement.innerHTML = /** @type {any} */ (table).toHTML({ limit: Infinity });
+
+    // Security: do not inject Arquero's HTML directly.
+    // Sanitize to avoid markup/event handler injection from untrusted FIT data.
+    const rawTableHtml = String(/** @type {any} */ (table).toHTML({ limit: Infinity }));
+
+    // Arquero may return either:
+    // - <thead>...</thead><tbody>...</tbody>
+    // - <table>...</table>
+    // We create the outer table ourselves, so unwrap if a <table> wrapper exists.
+    const unwrapTemplate = document.createElement("template");
+    unwrapTemplate.innerHTML = rawTableHtml;
+    const wrapperTable = unwrapTemplate.content.querySelector("table");
+    const htmlToSanitize = wrapperTable ? wrapperTable.innerHTML : rawTableHtml;
+
+    const safeFragment = sanitizeHtmlAllowlist(htmlToSanitize, {
+        allowedAttributes: [
+            // Presentation
+            "class",
+            "id",
+            "style",
+
+            // Structural
+            "colspan",
+            "rowspan",
+            "scope",
+        ],
+        allowedTags: ["CAPTION", "COL", "COLGROUP", "TBODY", "TD", "TFOOT", "TH", "THEAD", "TR"],
+        stripUrlInStyle: true,
+    });
+    tableElement.replaceChildren(safeFragment);
     content.append(tableElement);
     section.append(header);
     section.append(content);

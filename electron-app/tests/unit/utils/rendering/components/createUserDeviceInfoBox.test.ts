@@ -217,6 +217,27 @@ describe("createUserDeviceInfoBox", () => {
         expect(html).toMatch(/(Garmin Foo|Garmin|Edge|Hrm)/);
     });
 
+    it("sanitizes FIT-derived strings (prevents HTML injection)", () => {
+        const container = makeContainer();
+
+        // @ts-ignore
+        window.globalData = {
+            userProfileMesgs: [{ friendlyName: "<img src=x onerror=alert(1)>bad" }],
+            deviceInfoMesgs: [],
+        };
+
+        createUserDeviceInfoBox(container);
+
+        // Ensure no image element was injected.
+        expect(container.querySelector("img")).toBeNull();
+
+        // Ensure the injected attribute text doesn't survive.
+        expect(container.innerHTML).not.toMatch(/onerror/i);
+
+        // Ensure the remaining text is still rendered.
+        expect(container.textContent).toMatch(/bad/);
+    });
+
     it("applies hover effects and logs theme on creation", () => {
         const container = makeContainer();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});

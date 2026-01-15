@@ -4,32 +4,6 @@ import { setState } from "../../state/core/stateManager.js";
 import { createMetricFilter, getMetricDefinition } from "../filters/mapMetricFilter.js";
 
 /**
- * @typedef {Object} RecordMesg
- * @property {number} [positionLat] - Position latitude
- * @property {number} [positionLong] - Position longitude
- * @property {number} [timestamp] - Timestamp
- * @property {number} [altitude] - Altitude
- * @property {number} [heartRate] - Heart rate
- * @property {number} [speed] - Speed
- */
-
-/**
- * @typedef {Object} LapMesg
- * @property {number} [start_index] - Start index in records
- * @property {number} [end_index] - End index in records
- * @property {number} [startPositionLat] - Start position latitude
- * @property {number} [startPositionLong] - Start position longitude
- * @property {number} [endPositionLat] - End position latitude
- * @property {number} [endPositionLong] - End position longitude
- */
-
-/**
- * @typedef {Object} FitFile
- * @property {Object} data - FIT file data
- * @property {string} [filePath] - File path
- */
-
-/**
  * @typedef {[number, number, number|null, number|null, number|null, number|null, number, any, number]} CoordTuple
  */
 export function drawOverlayForFitFile({
@@ -184,6 +158,32 @@ export function drawOverlayForFitFile({
     }
     return null;
 }
+
+/**
+ * @typedef {Object} RecordMesg
+ * @property {number} [positionLat] - Position latitude
+ * @property {number} [positionLong] - Position longitude
+ * @property {number} [timestamp] - Timestamp
+ * @property {number} [altitude] - Altitude
+ * @property {number} [heartRate] - Heart rate
+ * @property {number} [speed] - Speed
+ */
+
+/**
+ * @typedef {Object} LapMesg
+ * @property {number} [start_index] - Start index in records
+ * @property {number} [end_index] - End index in records
+ * @property {number} [startPositionLat] - Start position latitude
+ * @property {number} [startPositionLong] - Start position longitude
+ * @property {number} [endPositionLat] - End position latitude
+ * @property {number} [endPositionLong] - End position longitude
+ */
+
+/**
+ * @typedef {Object} FitFile
+ * @property {Object} data - FIT file data
+ * @property {string} [filePath] - File path
+ */
 
 /**
  * Draws the map for a given lap or laps
@@ -369,7 +369,11 @@ export function mapDrawLaps(
         coords = /** @type {Array<CoordTuple>} */ (coords.filter(Boolean));
 
         if (coords.length === 0) {
-            mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+            renderMapInfoMessage(mapContainer, "No location data available to display map.", [
+                ["Lap", String(lapIdx)],
+                ["recordMesgs", String(recordMesgs.length)],
+                ["lapMesgs", String(lapMesgs.length)],
+            ]);
             return;
         }
 
@@ -560,7 +564,11 @@ export function mapDrawLaps(
             coords = /** @type {Array<CoordTuple>} */ (coords.filter(Boolean));
 
             if (coords.length === 0) {
-                mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+                renderMapInfoMessage(mapContainer, "No location data available to display map.", [
+                    ["Lap", String(lapIdx)],
+                    ["recordMesgs", String(recordMesgs.length)],
+                    ["lapMesgs", String(lapMesgs.length)],
+                ]);
                 return;
             }
 
@@ -903,13 +911,23 @@ export function mapDrawLaps(
                     })
                     .filter((coord) => coord !== null);
             } else {
-                mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startIdx: ${startIdx}<br>endIdx: ${endIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+                renderMapInfoMessage(mapContainer, "Lap index out of bounds or invalid.", [
+                    ["Lap", String(lapIdx)],
+                    ["startIdx", String(startIdx)],
+                    ["endIdx", String(endIdx)],
+                    ["recordMesgs", String(recordMesgs.length)],
+                    ["lapMesgs", String(lapMesgs.length)],
+                ]);
                 return;
             }
         } else {
-            mapContainer.innerHTML = `<p>Lap index out of bounds or invalid.<br>Lap: ${lapIdx}<br>startPositionLat: ${
-                lap && lap.startPositionLat
-            }<br>endPositionLat: ${lap && lap.endPositionLat}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+            renderMapInfoMessage(mapContainer, "Lap index out of bounds or invalid.", [
+                ["Lap", String(lapIdx)],
+                ["startPositionLat", String(lap && lap.startPositionLat)],
+                ["endPositionLat", String(lap && lap.endPositionLat)],
+                ["recordMesgs", String(recordMesgs.length)],
+                ["lapMesgs", String(lapMesgs.length)],
+            ]);
             return;
         }
     } else {
@@ -936,7 +954,11 @@ export function mapDrawLaps(
     }
 
     if (coords.length === 0) {
-        mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+        renderMapInfoMessage(mapContainer, "No location data available to display map.", [
+            ["Lap", String(lapIdx)],
+            ["recordMesgs", String(recordMesgs.length)],
+            ["lapMesgs", String(lapMesgs.length)],
+        ]);
         return;
     }
 
@@ -1064,7 +1086,11 @@ export function mapDrawLaps(
             }
         }
     } else {
-        mapContainer.innerHTML = `<p>No location data available to display map.<br>Lap: ${lapIdx}<br>recordMesgs: ${recordMesgs.length}<br>lapMesgs: ${lapMesgs.length}</p>`;
+        renderMapInfoMessage(mapContainer, "No location data available to display map.", [
+            ["Lap", String(lapIdx)],
+            ["recordMesgs", String(recordMesgs.length)],
+            ["lapMesgs", String(lapMesgs.length)],
+        ]);
     }
 }
 
@@ -1150,6 +1176,26 @@ function patchLapIndices(lapMesgs, recordMesgs) {
             console.log(`[patchLapIndices] Lap ${i + 1}: start_index=${startIdx}, end_index=${endIdx}`);
         }
     }
+}
+
+/**
+ * Render a multi-line info/error message into the map container without using `innerHTML`.
+ *
+ * Even though most values are numeric, FIT files are untrusted input. Avoiding `innerHTML`
+ * prevents accidental injection if any derived field becomes string-based in the future.
+ *
+ * @param {HTMLElement} mapContainer
+ * @param {string} title
+ * @param {Array<[string, string]>} lines
+ */
+function renderMapInfoMessage(mapContainer, title, lines) {
+    const p = document.createElement("p");
+    p.append(document.createTextNode(title));
+    for (const [label, value] of lines) {
+        p.append(document.createElement("br"));
+        p.append(document.createTextNode(`${label}: ${value}`));
+    }
+    mapContainer.replaceChildren(p);
 }
 
 /**
