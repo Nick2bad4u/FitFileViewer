@@ -34,12 +34,14 @@ on:
 permissions: write-all
 jobs:
     bump-version:
+        if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
         runs-on: ubuntu-latest
         defaults:
             run:
                 working-directory: electron-app
         outputs:
             new_version: ${{ steps.bump.outputs.new_version }}
+            bump_sha: ${{ steps.commit_version.outputs.bump_sha }}
         steps:
             - name: Harden the runner (Audit all outbound calls)
               id: harden_runner
@@ -52,6 +54,13 @@ jobs:
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
               with:
                   ref: ${{ github.event.inputs.branch || github.ref }}
+                  fetch-depth: 0
+                  fetch-tags: true
+
+            - name: Setup Node.js environment (v24)
+              uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+              with:
+                  node-version: 24
 
             - name: Show git diff for electron-app (debug)
               id: git_diff
@@ -85,36 +94,45 @@ jobs:
                   else
                     NEW_VERSION="$((MAJOR + 1)).0.0"
                   fi
-                  jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+                  # Update both package.json and package-lock.json without running lifecycle scripts.
+                  npm version --no-git-tag-version --ignore-scripts "$NEW_VERSION"
                   echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
-            - name: Create new Tag for new version of app
+            - name: Commit and push version bump to repo
+              id: commit_version
+              if: steps.bump.outputs.new_version != ''
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  target_branch="${{ github.event.inputs.branch || github.ref_name }}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+                  git add package.json package-lock.json
+                  git commit -m "chore(release): v${{ steps.bump.outputs.new_version }} [skip ci]"
+                  git push origin "HEAD:${target_branch}"
+
+                  echo "bump_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Create and push tag for new version
               id: tag_version
               if: steps.bump.outputs.new_version != ''
+              shell: bash
               run: |
-                  git config user.name "github-actions"
-                  git config user.email "github-actions@github.com"
+                  set -euo pipefail
                   git tag -a "v${{ steps.bump.outputs.new_version }}" -m "Release v${{ steps.bump.outputs.new_version }}"
                   git push origin "v${{ steps.bump.outputs.new_version }}"
-              working-directory: electron-app
-            - name: Commit and push version bump to repo
-              uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
-              with:
-                  message: "Bump version to ${{ steps.bump.outputs.new_version }}"
-                  add: "package.json"
-                  cwd: electron-app
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Upload bumped package.json to repo
-              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-              with:
-                  name: bumped-package-json
-                  path: electron-app/package.json
 
     build:
         needs: bump-version
+        if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]') }}
         runs-on: ${{ matrix.os }}
+        env:
+            # Vite/electron-builder can be memory intensive across renderer/main/preload builds.
+            # Keep this aligned with the known-good workflow pattern.
+            NODE_OPTIONS: --max_old_space_size=8192
         strategy:
             matrix:
                 os:
@@ -172,18 +190,14 @@ jobs:
             - name: Checkout Repo code
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
               with:
-                  ref: ${{ github.event.inputs.branch || github.ref }}
+                  ref: ${{ needs.bump-version.outputs.bump_sha }}
+                  fetch-depth: 0
+                  fetch-tags: true
 
-            - name: Download bumped package.json from bump-version job
-              uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-              with:
-                  name: bumped-package-json
-                  path: ./electron-app
-
-            - name: Setup Node.js environment (v20)
+            - name: Setup Node.js environment (v24)
               uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
               with:
-                  node-version: 20
+                  node-version: 24
 
             - name: Install Linux build dependencies
               id: install_linux_deps
@@ -206,7 +220,7 @@ jobs:
             - name: Install dmg-license workaround for Mac Builder
               id: install_dmg_license
               if: runner.os == 'macOS'
-              run: npm install --save-dev dmg-license --force
+              run: npm install --force --no-save --no-audit --no-fund dmg-license
               working-directory: electron-app
 
             - name: Install Windows build dependencies (Chocolatey)
@@ -249,8 +263,7 @@ jobs:
 
             - name: Install NPM dependencies (electron-app package.json)
               id: install_dependencies
-              run: npm install
-              continue-on-error: true
+              run: npm install --force --no-audit --no-fund
 
             # - name: Install electron-builder
             #   run: npm install -D electron-builder
@@ -289,7 +302,6 @@ jobs:
                   DEBUG_DEMB: true
                   CI: true
                   DEBUG: "@malept/flatpak-bundler"
-              continue-on-error: true
 
             - name: Print Windows distributable hash (debug, Windows)
               id: print_hash_windows
@@ -342,7 +354,6 @@ jobs:
                       electron-app/dist/squirrel*/*
                       electron-app/dist/nsis-web/*
                   include-hidden-files: true
-              continue-on-error: true
 
             - name: Update Build Matrix Summary (per platform/arch)
               if: always()
@@ -359,7 +370,7 @@ jobs:
 
     release:
         needs: [build, bump-version]
-        if: ${{ needs.build.result == 'success' && needs.bump-version.result == 'success' }}
+        if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')) && needs.build.result == 'success' && needs.bump-version.result == 'success' }}
         runs-on: ubuntu-latest
         steps:
             - name: Harden the runner (Audit all outbound calls)
@@ -370,7 +381,9 @@ jobs:
             - name: Checkout Repo code
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
               with:
-                  ref: ${{ github.event.inputs.branch || github.ref }}
+                  ref: ${{ needs.bump-version.outputs.bump_sha }}
+                  fetch-depth: 0
+                  fetch-tags: true
 
             - name: Download all build artifacts from build job
               uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -414,30 +427,40 @@ jobs:
                     echo "$file: $b64"
                   done
 
-            - name: Get previous tag created
-              id: get_prev_tag
+            - name: Determine previous release tag
+              id: previous_tag
+              shell: bash
               run: |
-                  TAG_COUNT=$(git tag --sort=-creatordate | wc -l)
-                  if [ "$TAG_COUNT" -ge 2 ]; then
-                    PREV_TAG=$(git tag --sort=-creatordate | tail -2 | head -1)
-                  else
-                    PREV_TAG=""
-                  fi
-                  echo "prev_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
-                  echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+                  set -euo pipefail
+                  git fetch --tags --force
+                  current_tag="v${{ needs.bump-version.outputs.new_version }}"
+                  prev_tag=$(git describe --tags --match "v*" --abbrev=0 "${current_tag}^" 2>/dev/null || true)
+                  echo "previous_tag=${prev_tag}" >> "$GITHUB_OUTPUT"
 
-            - name: Generate release notes for the new version
+            - name: Generate release notes since previous tag
               id: release_notes
+              shell: bash
               run: |
-                  PREV_TAG="${{ steps.get_prev_tag.outputs.prev_tag }}"
-                  if [ -n "$PREV_TAG" ]; then
-                    NOTES=$(git log "$PREV_TAG"..HEAD --pretty=format:"- %s%n  - Author: %an <%ae>%n  - Commit: [$(%h)](https://github.com/${{ github.repository }}/commit/$(%H))%n  - Date: %ad%n" --date=short)
+                  set -euo pipefail
+                  git fetch --tags --force
+
+                  current_tag="v${{ needs.bump-version.outputs.new_version }}"
+                  prev_tag="${{ steps.previous_tag.outputs.previous_tag }}"
+
+                  if [ -n "$prev_tag" ]; then
+                    range_spec="${prev_tag}..${current_tag}"
                   else
-                    NOTES=$(git log --pretty=format:"- %s%n  - Author: %an <%ae>%n  - Commit: [$(%h)](https://github.com/${{ github.repository }}/commit/$(%H))%n  - Date: %ad%n" --date=short)
+                    range_spec="$current_tag"
                   fi
+
+                  NOTES=$(git log "$range_spec" --pretty=format:"- %s%n  - Author: %an <%ae>%n  - Commit: [%h](https://github.com/${{ github.repository }}/commit/%H)%n  - Date: %ad%n" --date=short)
+                  if [ -z "$NOTES" ]; then
+                    NOTES="No commits found for range ${range_spec}"
+                  fi
+
                   {
                     echo "notes<<EOF"
-                    echo -e "$NOTES"
+                    echo "$NOTES"
                     echo "EOF"
                   } >> "$GITHUB_OUTPUT"
 
@@ -652,13 +675,14 @@ jobs:
             - name: Create or update release with distributable builds
               id: release
               uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+              continue-on-error: true
               with:
                   tag_name: v${{ needs.bump-version.outputs.new_version }}
                   name: FitFileViewer v${{ needs.bump-version.outputs.new_version }}
                   body: |
                       ## 🚀 Release Notes
 
-                      ${{ github.event.head_commit.message }}
+                      ${{ steps.release_notes.outputs.notes }}
 
                       **[📄 View Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)**
 
@@ -672,7 +696,7 @@ jobs:
                       ${{ steps.release_notes.outputs.notes }}
                       ```
 
-                      **Commit SHA:** `${{ github.sha }}`
+                      **Commit SHA:** `${{ needs.bump-version.outputs.bump_sha }}`
                       </details>
 
                       ---
@@ -763,7 +787,6 @@ jobs:
                   make_latest: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              continue-on-error: true
             - name: Add Job Summary
               if: always()
               run: |
