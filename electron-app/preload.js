@@ -279,6 +279,52 @@ function validateChannelName(value, paramName, methodName) {
 }
 
 /**
+ * Validate an optional string input.
+ *
+ * Accepts: undefined | null | non-empty string.
+ * Rejects: empty/whitespace-only strings and non-strings.
+ *
+ * @param {unknown} value
+ * @param {string} paramName
+ * @param {string} methodName
+ * @returns {value is (string|null|undefined)}
+ */
+function validateOptionalNonEmptyString(value, paramName, methodName) {
+    if (value === undefined || value === null) {
+        return true;
+    }
+    if (typeof value !== "string") {
+        console.error(`[preload.js] ${methodName}: ${paramName} must be a string or null`);
+        return false;
+    }
+    if (value.trim().length === 0) {
+        console.error(`[preload.js] ${methodName}: ${paramName} must be a non-empty string or null`);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Validate a required non-empty string input.
+ *
+ * @param {unknown} value
+ * @param {string} paramName
+ * @param {string} methodName
+ * @returns {value is string}
+ */
+function validateRequiredNonEmptyString(value, paramName, methodName) {
+    if (typeof value !== "string") {
+        console.error(`[preload.js] ${methodName}: ${paramName} must be a string`);
+        return false;
+    }
+    if (value.trim().length === 0) {
+        console.error(`[preload.js] ${methodName}: ${paramName} must be a non-empty string`);
+        return false;
+    }
+    return true;
+}
+
+/**
  * @param {unknown} value
  * @param {string} paramName
  * @param {string} methodName
@@ -482,10 +528,10 @@ const electronAPI = {
         theme = CONSTANTS.DEFAULT_VALUES.THEME,
         fitFilePath = CONSTANTS.DEFAULT_VALUES.FIT_FILE_PATH
     ) => {
-        if (!validateString(theme, "theme", "injectMenu")) {
+        if (!validateOptionalNonEmptyString(theme, "theme", "injectMenu")) {
             return false;
         }
-        if (!validateString(fitFilePath, "fitFilePath", "injectMenu")) {
+        if (!validateOptionalNonEmptyString(fitFilePath, "fitFilePath", "injectMenu")) {
             return false;
         }
 
@@ -782,7 +828,7 @@ const electronAPI = {
      * @returns {Promise<boolean>} True if successful, false if path is restricted
      */
     setMainState: async (path, value, options = {}) => {
-        if (!validateString(path, "path", "setMainState")) {
+        if (!validateRequiredNonEmptyString(path, "path", "setMainState")) {
             return false;
         }
 
@@ -801,7 +847,7 @@ const electronAPI = {
      * @returns {Promise<boolean>} True if listener was registered successfully
      */
     listenToMainState: async (path, callback) => {
-        if (!validateString(path, "path", "listenToMainState")) {
+        if (!validateRequiredNonEmptyString(path, "path", "listenToMainState")) {
             return false;
         }
         if (!validateCallback(callback, "listenToMainState")) {
@@ -834,7 +880,7 @@ const electronAPI = {
      * @returns {Promise<boolean>}
      */
     unlistenFromMainState: async (path, callback) => {
-        if (!validateString(path, "path", "unlistenFromMainState")) {
+        if (!validateRequiredNonEmptyString(path, "path", "unlistenFromMainState")) {
             return false;
         }
         if (!validateCallback(callback, "unlistenFromMainState")) {
@@ -883,7 +929,7 @@ const electronAPI = {
      * @returns {Promise<any>} The operation status object
      */
     getOperation: async (operationId) => {
-        if (!validateString(operationId, "operationId", "getOperation")) {
+        if (!validateRequiredNonEmptyString(operationId, "operationId", "getOperation")) {
             return null;
         }
 

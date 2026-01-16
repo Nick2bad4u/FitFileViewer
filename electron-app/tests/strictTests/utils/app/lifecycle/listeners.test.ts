@@ -70,6 +70,7 @@ function createElectronAPIMock() {
 
         // FS operations (can be overridden per test)
         recentFiles: vi.fn<() => Promise<string[]>>(),
+        approveRecentFile: vi.fn<(fp: string) => Promise<boolean>>().mockResolvedValue(true),
         readFile: vi.fn<(fp: string) => Promise<ArrayBuffer>>(),
         parseFitFile: vi.fn<(buf: ArrayBuffer) => Promise<any>>(),
         addRecentFile: vi.fn<(fp: string) => Promise<void>>(),
@@ -684,10 +685,19 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Success case
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
+        expect(window.electronAPI.approveRecentFile).toHaveBeenCalledWith("C:/tmp/recent.fit");
         expect(window.electronAPI.readFile).toHaveBeenCalled();
         expect(window.electronAPI.addRecentFile).toHaveBeenCalled();
 
+        // Denial case: approval fails -> do not read
+        window.electronAPI.approveRecentFile = vi.fn().mockResolvedValue(false);
+        window.electronAPI.readFile = vi.fn().mockResolvedValue(arrayBuf);
+        await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
+        expect(window.electronAPI.readFile).not.toHaveBeenCalled();
+        expect(showNotification).toHaveBeenCalledWith("File access denied.", "error", 4000);
+
         // Error case
+        window.electronAPI.approveRecentFile = vi.fn().mockResolvedValue(true);
         window.electronAPI.parseFitFile = vi.fn().mockResolvedValue({ error: "bad" });
         await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(showNotification.mock.calls.some((c: any[]) => String(c[0]).includes("Error:"))).toBe(true);

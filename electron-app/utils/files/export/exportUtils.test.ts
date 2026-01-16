@@ -231,6 +231,91 @@ describe("exportUtils", () => {
             expect(globalThis.localStorage.setItem).toHaveBeenCalledWith("gyazo_oauth_state", expect.any(String));
         });
 
+        it("cleans up state and subscriptions when user cancels", async () => {
+            const unsubscribe = vi.fn();
+            let capturedHandler: ((event: any, data: any) => void) | null = null;
+            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation((_channel: string, handler: any) => {
+                capturedHandler = handler;
+                return unsubscribe;
+            });
+
+            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({ success: true, port: 3000 });
+            vi.mocked((globalThis as any).electronAPI.stopGyazoServer).mockResolvedValue(undefined);
+
+            // Ensure config has creds
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
+                if (key === "gyazo_client_id") return "test-client-id";
+                if (key === "gyazo_client_secret") return "test-client-secret";
+                return null;
+            });
+
+            const authPromise = exportUtils.authenticateWithGyazo();
+            await Promise.resolve();
+
+            // Cancel from modal
+            const cancelBtn = document.querySelector<HTMLButtonElement>("#gyazo-cancel-auth");
+            expect(cancelBtn).toBeTruthy();
+            cancelBtn!.click();
+
+            await expect(authPromise).rejects.toThrow("User cancelled authentication");
+            expect(unsubscribe).toHaveBeenCalled();
+            expect((globalThis as any).electronAPI.stopGyazoServer).toHaveBeenCalled();
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_oauth_state");
+            expect(document.querySelector(".gyazo-auth-modal-overlay")).toBeNull();
+            // capturedHandler is unused here but ensures our onIpc wiring happened
+            expect(capturedHandler).toBeTypeOf("function");
+        });
+
+        it("cleans up state and stops server on successful callback", async () => {
+            const unsubscribe = vi.fn();
+            let capturedHandler: ((event: any, data: any) => void) | null = null;
+
+            vi.mocked((globalThis as any).electronAPI.onIpc).mockImplementation((_channel: string, handler: any) => {
+                capturedHandler = handler;
+                return unsubscribe;
+            });
+
+            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({ success: true, port: 3000 });
+            vi.mocked((globalThis as any).electronAPI.stopGyazoServer).mockResolvedValue(undefined);
+
+            // Ensure config has creds
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation((key) => {
+                if (key === "gyazo_client_id") return "test-client-id";
+                if (key === "gyazo_client_secret") return "test-client-secret";
+                return null;
+            });
+
+            // Make token exchange succeed
+            vi.mocked(globalThis.fetch as any).mockImplementationOnce(() =>
+                Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () => Promise.resolve({ access_token: "test-token" }),
+                    text: () => Promise.resolve("ok"),
+                })
+            );
+
+            // Capture state set in localStorage
+            let storedState: string | null = null;
+            vi.mocked(globalThis.localStorage.setItem).mockImplementation((key, value) => {
+                if (key === "gyazo_oauth_state") storedState = String(value);
+            });
+
+            const authPromise = exportUtils.authenticateWithGyazo();
+            await Promise.resolve();
+
+            expect(capturedHandler).toBeTypeOf("function");
+            expect(typeof storedState).toBe("string");
+            expect((storedState as string).length).toBeGreaterThan(0);
+
+            await capturedHandler!({}, { code: "abc", state: storedState });
+            await expect(authPromise).resolves.toBe("test-token");
+
+            expect(unsubscribe).toHaveBeenCalled();
+            expect((globalThis as any).electronAPI.stopGyazoServer).toHaveBeenCalled();
+            expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith("gyazo_oauth_state");
+        });
+
         it("should throw error when credentials not configured", async () => {
             // Ensure getGyazoConfig returns missing creds
             const cfgSpy = vi

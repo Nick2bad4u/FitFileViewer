@@ -20,6 +20,36 @@ const JS_DOM_WARNING_PATTERNS = [
     /Not implemented: Window's alert\(\) method/i,
 ];
 
+// Some environments (and/or worker processes) print warnings directly to stderr
+// rather than going through console.warn/error or process.emitWarning. Filter only
+// the known noisy jsdom messages to keep test output readable.
+const originalStderrWrite = process.stderr.write.bind(process.stderr);
+// eslint-disable-next-line no-undef
+process.stderr.write = function (chunk, encoding, callback) {
+    try {
+        const text = (() => {
+            if (typeof chunk === "string") return chunk;
+            if (chunk && typeof chunk === "object" && typeof chunk.toString === "function") {
+                return chunk.toString(typeof encoding === "string" ? encoding : "utf8");
+            }
+            return "";
+        })();
+
+        if (text.includes("--localstorage-file")) {
+            return true;
+        }
+
+        if (JS_DOM_WARNING_PATTERNS.some((pattern) => pattern.test(text))) {
+            return true;
+        }
+    } catch {
+        // fall through
+    }
+
+    // eslint-disable-next-line prefer-spread
+    return originalStderrWrite.apply(process.stderr, [chunk, encoding, callback]);
+};
+
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 

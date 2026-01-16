@@ -40,6 +40,12 @@ describe("preload.js - Module Cache Injection Test", () => {
     });
 
     it("should execute preload.js with module cache injection", () => {
+        const debugEnabled =
+            typeof process !== "undefined" &&
+            Boolean(process.env) &&
+            // Only enable when explicitly requested.
+            process.env.FFV_DEBUG_PRELOAD_TEST === "1";
+
         // Create a mock electron module
         const mockElectron = {
             contextBridge: mockContextBridge,
@@ -71,9 +77,11 @@ describe("preload.js - Module Cache Injection Test", () => {
         // Clear preload.js from cache to ensure fresh require
         delete require.cache[require.resolve("../../preload.js")];
 
-        process.stdout.write(`About to require preload.js with module cache injection\n`);
-        process.stdout.write(`Electron mock in cache: ${!!require.cache["electron"]}\n`);
-        process.stdout.write(`mockContextBridge exists: ${!!mockContextBridge}\n`);
+        if (debugEnabled) {
+            process.stdout.write(`About to require preload.js with module cache injection\n`);
+            process.stdout.write(`Electron mock in cache: ${!!require.cache["electron"]}\n`);
+            process.stdout.write(`mockContextBridge exists: ${!!mockContextBridge}\n`);
+        }
 
         // Check mock calls before require
         const callsBefore = mockContextBridge.exposeInMainWorld.mock.calls.length;
@@ -84,10 +92,14 @@ describe("preload.js - Module Cache Injection Test", () => {
         // Check mock calls after require
         const callsAfter = mockContextBridge.exposeInMainWorld.mock.calls.length;
 
-        // Log results
-        process.stdout.write(`Mock calls before require: ${callsBefore}\n`);
-        process.stdout.write(`Mock calls after require: ${callsAfter}\n`);
-        process.stdout.write(`All calls: ${JSON.stringify(mockContextBridge.exposeInMainWorld.mock.calls, null, 2)}\n`);
+        if (debugEnabled) {
+            // Log results
+            process.stdout.write(`Mock calls before require: ${callsBefore}\n`);
+            process.stdout.write(`Mock calls after require: ${callsAfter}\n`);
+            process.stdout.write(
+                `All calls: ${JSON.stringify(mockContextBridge.exposeInMainWorld.mock.calls, null, 2)}\n`
+            );
+        }
 
         // Clean up the cache
         delete require.cache["electron"];

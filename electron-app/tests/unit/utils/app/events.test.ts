@@ -134,8 +134,13 @@ describe("setupListeners", () => {
         const item = menu?.querySelector<HTMLDivElement>("div");
         expect(item).toBeTruthy();
         const menuItem = item as HTMLDivElement;
-        const handler = menuItem.onclick!;
-        await handler.call(menuItem, new MouseEvent("click"));
+
+        // Canonical recent-file menu items are wired via addEventListener("click", async ...)
+        // rather than assigning onclick.
+        menuItem.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+        // Wait a tick for the async click handler to finish.
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(setLoading).toHaveBeenCalledWith(true);
         expect(setLoading).toHaveBeenCalledWith(false);
@@ -347,7 +352,8 @@ describe("setupListeners", () => {
         expect(createdScripts).toHaveLength(1);
         const [script] = createdScripts;
         globalAny.showKeyboardShortcutsModal = vi.fn();
-        script.onload?.(new Event("load"));
+        // The implementation wires `load` via addEventListener, not the onload property.
+        script.dispatchEvent(new Event("load"));
         expect(globalAny.showKeyboardShortcutsModal).toHaveBeenCalled();
     });
 

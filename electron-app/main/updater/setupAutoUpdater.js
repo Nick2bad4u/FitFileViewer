@@ -7,6 +7,27 @@ const { isWindowUsable } = require("../window/windowValidation");
 const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess");
 
 /**
+ * Redact credentials from a URL-like string for logging.
+ *
+ * This is intentionally best-effort and must never throw.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function redactUrlCredentials(value) {
+    try {
+        const parsed = new URL(value);
+        if (!parsed.username && !parsed.password) return value;
+        parsed.username = "";
+        parsed.password = "";
+        // This will canonicalize the URL. That's fine for logs.
+        return parsed.toString();
+    } catch {
+        return value;
+    }
+}
+
+/**
  * Configures electron-updater for the application, wiring all event handlers to relay progress to
  * the renderer. The logic matches the historic main.js implementation so behaviour and logging stay
  * consistent.
@@ -15,9 +36,21 @@ const { resolveAutoUpdaterSync } = require("./autoUpdaterAccess");
  * @param {any} [providedAutoUpdater] - Optional pre-resolved autoUpdater (used by tests).
  */
 function setupAutoUpdater(mainWindow, providedAutoUpdater) {
-    const autoUpdater = providedAutoUpdater || resolveAutoUpdaterSync();
+    // Allow tests to explicitly pass `null` to exercise the "no updater available" path.
+    const autoUpdater = providedAutoUpdater === undefined ? resolveAutoUpdaterSync() : providedAutoUpdater;
     if (!isWindowUsable(mainWindow)) {
         console.warn("Cannot setup auto-updater: main window is not usable");
+        return;
+    }
+
+    if (!autoUpdater || (typeof autoUpdater !== "object" && typeof autoUpdater !== "function")) {
+        console.warn("Cannot setup auto-updater: autoUpdater is unavailable");
+        return;
+    }
+
+    // Electron-updater instances are EventEmitters. If it can't register handlers, it's unusable.
+    if (typeof autoUpdater.on !== "function") {
+        console.warn("Cannot setup auto-updater: autoUpdater.on is not a function");
         return;
     }
 
@@ -36,11 +69,21 @@ function setupAutoUpdater(mainWindow, providedAutoUpdater) {
         autoUpdater.logger = console;
     }
 
-    /** @type {any} */ (autoUpdater.logger).transports.file.level = CONSTANTS.LOG_LEVELS.INFO;
+    try {
+        /** @type {any} */
+        const transportsFile = /** @type {any} */ (autoUpdater.logger)?.transports?.file;
+        if (transportsFile && "level" in transportsFile) {
+            transportsFile.level = CONSTANTS.LOG_LEVELS.INFO;
+        }
+    } catch {
+        // Non-fatal; logger implementations differ between environments.
+    }
 
-    if (/** @type {any} */ (autoUpdater).feedURL !== undefined && /** @type {any} */ (autoUpdater).feedURL !== null) {
-        const feedInfo = { feedURL: /** @type {any} */ (autoUpdater).feedURL };
-        autoUpdater.logger.info(`AutoUpdater feed URL: ${/** @type {any} */ (autoUpdater).feedURL}`);
+    const rawFeedUrl = /** @type {any} */ (autoUpdater).feedURL;
+    if (rawFeedUrl !== undefined && rawFeedUrl !== null) {
+        const safeFeedUrl = redactUrlCredentials(String(rawFeedUrl));
+        const feedInfo = { feedURL: safeFeedUrl };
+        autoUpdater.logger.info(`AutoUpdater feed URL: ${safeFeedUrl}`);
         logWithContext("info", "AutoUpdater feed URL configured", feedInfo);
     } else {
         autoUpdater.logger.info("AutoUpdater using default feed (likely GitHub releases)");

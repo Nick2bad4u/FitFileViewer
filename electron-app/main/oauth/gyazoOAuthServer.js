@@ -4,6 +4,35 @@ const { getAppState, setAppState } = require("../state/appState");
 const { validateWindow } = require("../window/windowValidation");
 
 /**
+ * Apply common security headers for all responses.
+ *
+ * The callback server is bound to localhost, but we still:
+ * - disable MIME sniffing
+ * - prevent caching (OAuth codes should not be stored)
+ * - prevent framing
+ * - restrict resource loading
+ *
+ * @param {any} res
+ */
+function applyStandardHeaders(res) {
+    try {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Referrer-Policy", "no-referrer");
+        res.setHeader("X-Frame-Options", "DENY");
+
+        // We serve only simple inline HTML. Disallow any remote loads.
+        res.setHeader(
+            "Content-Security-Policy",
+            "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'"
+        );
+    } catch {
+        /* ignore */
+    }
+}
+
+/**
  * Minimal HTML escaping for user-controlled strings rendered into OAuth callback pages.
  * This server is bound to localhost, but we still escape to prevent reflected injection.
  *
@@ -46,19 +75,20 @@ async function startGyazoOAuthServer(port = 3000) {
                     const raw = typeof req.url === "string" ? req.url : "";
                     parsedUrl = new URL(raw, `http://localhost:${port}`);
                 } catch {
-                    res.writeHead(400, { "Content-Type": "text/plain", "X-Content-Type-Options": "nosniff" });
+                    applyStandardHeaders(res);
+                    res.writeHead(400, { "Content-Type": "text/plain" });
                     res.end("Bad Request");
                     return;
                 }
 
-                res.setHeader("Access-Control-Allow-Origin", "*");
-                res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-                res.setHeader("X-Content-Type-Options", "nosniff");
+                applyStandardHeaders(res);
 
-                if (req.method === "OPTIONS") {
-                    res.writeHead(200);
-                    res.end();
+                // OAuth callback is a simple browser redirect; there is no need for CORS.
+                // Restrict methods to reduce attack surface.
+                const method = typeof req.method === "string" ? req.method.toUpperCase() : "";
+                if (method !== "GET" && method !== "HEAD") {
+                    res.writeHead(405, { "Content-Type": "text/plain" });
+                    res.end("Method Not Allowed");
                     return;
                 }
 
@@ -207,15 +237,27 @@ async function stopGyazoOAuthServer() {
     return new Promise((resolve) => {
         const gyazoServer = getAppState("gyazoServer");
         if (gyazoServer) {
-            gyazoServer.close(() => {
-                logWithContext("info", "Gyazo OAuth callback server stopped");
+            try {
+                gyazoServer.close(() => {
+                    logWithContext("info", "Gyazo OAuth callback server stopped");
+                    setAppState("gyazoServer", null);
+                    setAppState("gyazoServerPort", null);
+                    resolve({
+                        message: "OAuth callback server stopped",
+                        success: true,
+                    });
+                });
+            } catch (error) {
+                logWithContext("warn", "Failed to close Gyazo OAuth callback server", {
+                    error: /** @type {Error} */ (error)?.message,
+                });
                 setAppState("gyazoServer", null);
                 setAppState("gyazoServerPort", null);
                 resolve({
-                    message: "OAuth callback server stopped",
-                    success: true,
+                    message: "Failed to stop OAuth callback server",
+                    success: false,
                 });
-            });
+            }
         } else {
             resolve({
                 message: "No server was running",

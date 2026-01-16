@@ -126,4 +126,67 @@ describe("loadSingleOverlayFile - decode and validation", () => {
         const res = await loadSingleOverlayFile(fileWithData());
         expect(res.success).toBe(false);
     });
+
+    it("rejects non-.fit filenames before decoding", async () => {
+        const decodeFitFile = vi.fn(async () => ({ recordMesgs: [{ positionLat: 1, positionLong: 2 }] }));
+        (globalThis as any).window = Object.assign((globalThis as any).window || {}, {
+            electronAPI: { decodeFitFile },
+        });
+
+        const { loadSingleOverlayFile } =
+            await vi.importActual<typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")>(
+                SUT_SINGLE
+            );
+
+        const fake = {
+            name: "not-a-fit.txt",
+            size: 10,
+            arrayBuffer: async () => new ArrayBuffer(8),
+        } as unknown as File;
+        const res = await loadSingleOverlayFile(fake);
+        expect(res.success).toBe(false);
+        expect(decodeFitFile).not.toHaveBeenCalled();
+    });
+
+    it("rejects oversized files before decoding", async () => {
+        const decodeFitFile = vi.fn(async () => ({ recordMesgs: [{ positionLat: 1, positionLong: 2 }] }));
+        (globalThis as any).window = Object.assign((globalThis as any).window || {}, {
+            electronAPI: { decodeFitFile },
+        });
+
+        const { loadSingleOverlayFile } =
+            await vi.importActual<typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")>(
+                SUT_SINGLE
+            );
+
+        const fake = {
+            name: "big.fit",
+            size: 101 * 1024 * 1024,
+            arrayBuffer: async () => new ArrayBuffer(8),
+        } as unknown as File;
+        const res = await loadSingleOverlayFile(fake);
+        expect(res.success).toBe(false);
+        expect(decodeFitFile).not.toHaveBeenCalled();
+    });
+
+    it("rejects empty buffers before decoding", async () => {
+        const decodeFitFile = vi.fn(async () => ({ recordMesgs: [{ positionLat: 1, positionLong: 2 }] }));
+        (globalThis as any).window = Object.assign((globalThis as any).window || {}, {
+            electronAPI: { decodeFitFile },
+        });
+
+        const { loadSingleOverlayFile } =
+            await vi.importActual<typeof import("../../../../../utils/files/import/loadSingleOverlayFile.js")>(
+                SUT_SINGLE
+            );
+
+        const fake = {
+            name: "empty.fit",
+            size: 0,
+            arrayBuffer: async () => new ArrayBuffer(0),
+        } as unknown as File;
+        const res = await loadSingleOverlayFile(fake);
+        expect(res.success).toBe(false);
+        expect(decodeFitFile).not.toHaveBeenCalled();
+    });
 });

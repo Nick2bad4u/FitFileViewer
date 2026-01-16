@@ -13,6 +13,8 @@ interface TestElectronAPI {
     readFile: (filePath: string) => Promise<ArrayBuffer>;
     parseFitFile: (buffer: ArrayBuffer) => Promise<any>;
     invoke: (channel: string, ...args: any[]) => Promise<any>;
+    setMainState?: (path: string, value: any, options?: any) => Promise<boolean>;
+    getOperation?: (operationId: string) => Promise<any>;
     validateAPI: () => boolean;
     [key: string]: any;
 }
@@ -130,5 +132,27 @@ describe("Simple Electron Mock Test", () => {
         mockIpcRenderer.invoke.mockResolvedValueOnce("test-response");
         const result = await exposedAPI.invoke("valid-channel");
         expect(result).toBe("test-response");
+    });
+
+    it("should reject invalid main-state path locally (no IPC)", async () => {
+        const { exposedAPI } = createPreloadEnvironment();
+
+        expect(typeof exposedAPI.setMainState).toBe("function");
+        mockIpcRenderer.invoke.mockClear();
+
+        const ok = await exposedAPI.setMainState!(null as any, "value");
+        expect(ok).toBe(false);
+        expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
+    });
+
+    it("should reject invalid operationId locally (no IPC)", async () => {
+        const { exposedAPI } = createPreloadEnvironment();
+
+        expect(typeof exposedAPI.getOperation).toBe("function");
+        mockIpcRenderer.invoke.mockClear();
+
+        const op = await exposedAPI.getOperation!(null as any);
+        expect(op).toBeNull();
+        expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
     });
 });

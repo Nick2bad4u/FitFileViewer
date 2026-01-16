@@ -139,7 +139,22 @@ export function setupListeners({
                 openFileBtn.disabled = true;
                 setLoading(true);
                 try {
-                    const arrayBuffer = await globalThis.electronAPI.readFile(filePath),
+                    const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+
+                    // Security/robustness: approve the selected recent file path before reading.
+                    // - In the desktop build, readFile is gated by a main-process allowlist.
+                    // - Main process menu clicks *usually* approve paths already, but this keeps
+                    //   behavior consistent across entrypoints (menu vs. context menu) and
+                    //   prevents failures if menu approval is unavailable.
+                    if (typeof globalThis.electronAPI?.approveRecentFile === "function") {
+                        const ok = await globalThis.electronAPI.approveRecentFile(filePathString);
+                        if (!ok) {
+                            showNotification("File access denied.", "error", 4000);
+                            return;
+                        }
+                    }
+
+                    const arrayBuffer = await globalThis.electronAPI.readFile(filePathString),
                         result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
 
                     // Handle parsing errors
@@ -157,8 +172,6 @@ export function setupListeners({
 
                     // Display the data with proper error handling
                     try {
-                        const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
-
                         if (globalThis.showFitData) {
                             // Extract data using the same logic as handleOpenFile.js
                             const dataToShow = result.data || result;
@@ -174,7 +187,7 @@ export function setupListeners({
                     }
 
                     // Add to recent files only if successfully displayed
-                    await globalThis.electronAPI.addRecentFile(filePath);
+                    await globalThis.electronAPI.addRecentFile(filePathString);
                 } catch (error) {
                     showNotification(`Error opening recent file: ${error}`, "error");
                 } finally {
@@ -186,6 +199,20 @@ export function setupListeners({
     }
 
     if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
+        const debugMenuEnabled =
+            typeof process !== "undefined" &&
+            Boolean(process.env) &&
+            (process.env.FFV_DEBUG_MENU === "1" || process.env.NODE_ENV === "development");
+        /** @param {...any[]} args */
+        const debugMenuLog = (...args) => {
+            if (!debugMenuEnabled) return;
+            try {
+                console.log(...args);
+            } catch {
+                /* ignore */
+            }
+        };
+
         // Handles changes to decoder options and updates the UI or data accordingly
         /**
          * Decoder options changed handler
@@ -364,35 +391,35 @@ export function setupListeners({
         );
         trackUnsubscribe(
             globalThis.electronAPI.onIpc("open-accent-color-picker", () => {
-                console.log("Opening accent color picker");
+                debugMenuLog("Opening accent color picker");
                 if (typeof globalThis.showAccentColorPicker === "function") {
                     globalThis.showAccentColorPicker();
                 } else {
-                    console.error("showAccentColorPicker function not available");
+                    debugMenuLog("showAccentColorPicker function not available");
                 }
             })
         );
         trackUnsubscribe(
             globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
-                console.log("Keyboard shortcuts menu clicked - starting handler");
+                debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
                 // Check if the keyboard shortcuts modal script is already loaded
                 if (globalThis.showKeyboardShortcutsModal === undefined) {
-                    console.log("Modal script not loaded, loading dynamically...");
+                    debugMenuLog("Modal script not loaded, loading dynamically...");
                     // Load the keyboard shortcuts modal script dynamically
                     const script = document.createElement("script");
                     script.src = "./utils/keyboardShortcutsModal.js";
                     script.addEventListener("load", () => {
-                        console.log("Script loaded successfully");
+                        debugMenuLog("Script loaded successfully");
                         // Call the function after the script is loaded
                         if (typeof globalThis.showKeyboardShortcutsModal === "function") {
-                            console.log("Calling showKeyboardShortcutsModal function");
+                            debugMenuLog("Calling showKeyboardShortcutsModal function");
                             globalThis.showKeyboardShortcutsModal();
                         } else {
-                            console.error("showKeyboardShortcutsModal function not available after script load");
+                            debugMenuLog("showKeyboardShortcutsModal function not available after script load");
                         }
                     });
                     script.onerror = (error) => {
-                        console.error("Failed to load keyboard shortcuts modal script:", error);
+                        debugMenuLog("Failed to load keyboard shortcuts modal script:", error);
                         // Fallback to old implementation
                         const shortcuts = [
                             ["Open File", "Ctrl+O"],
@@ -414,7 +441,7 @@ export function setupListeners({
                     };
                     document.head.append(script);
                 } else {
-                    console.log("Modal script already loaded, calling function directly");
+                    debugMenuLog("Modal script already loaded, calling function directly");
                     // Function is already available, call it directly
                     globalThis.showKeyboardShortcutsModal();
                 }

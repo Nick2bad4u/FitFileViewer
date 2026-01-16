@@ -683,13 +683,19 @@ describe("exportUtils core flows", () => {
             };
             vi.stubGlobal("fetch", vi.fn().mockResolvedValue(mockResponse));
 
-            const result = await exportUtils.exchangeGyazoCodeForToken("auth-code", "http://localhost:3000/callback");
+            const result = await exportUtils.exchangeGyazoCodeForToken(
+                "auth-code",
+                "http://localhost:3000/gyazo/callback"
+            );
 
-            expect(fetch).toHaveBeenCalledWith("https://gyazo.com/oauth/token", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "client_id=test-client&client_secret=test-secret&code=auth-code&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback",
-            });
+            expect(fetch).toHaveBeenCalledWith(
+                "https://gyazo.com/oauth/token",
+                expect.objectContaining({
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "client_id=test-client&client_secret=test-secret&code=auth-code&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fgyazo%2Fcallback",
+                })
+            );
 
             expect(result).toEqual({ access_token: "new-token" });
         });

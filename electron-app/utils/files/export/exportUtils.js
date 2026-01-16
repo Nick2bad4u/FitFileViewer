@@ -89,6 +89,102 @@ function escapeHtml(value) {
         .replaceAll("'", "&#39;");
 }
 
+/**
+ * Generate a cryptographically-strong OAuth state token when possible.
+ * Falls back to Math.random in older or constrained environments.
+ *
+ * @returns {string}
+ */
+function generateOAuthState() {
+    try {
+        const cryptoObj = /** @type {any} */ (globalThis).crypto;
+        if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
+            const bytes = new Uint8Array(16);
+            cryptoObj.getRandomValues(bytes);
+            // Hex encoding keeps this simple and deterministic across environments.
+            return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+        }
+    } catch {
+        /* ignore */
+    }
+
+    return Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
+}
+
+/**
+ * Validate a Gyazo endpoint URL.
+ *
+ * @param {unknown} url
+ * @param {ReadonlySet<string>} allowedHosts
+ * @returns {string}
+ */
+function validateGyazoEndpointUrl(url, allowedHosts) {
+    if (typeof url !== "string") {
+        throw new TypeError("Invalid Gyazo endpoint URL");
+    }
+    const trimmed = url.trim();
+    if (!trimmed) {
+        throw new TypeError("Invalid Gyazo endpoint URL");
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(trimmed);
+    } catch {
+        throw new TypeError("Invalid Gyazo endpoint URL");
+    }
+
+    if (parsed.protocol !== "https:") {
+        throw new Error("Gyazo endpoints must use HTTPS");
+    }
+    if (parsed.username || parsed.password) {
+        throw new Error("Credentials in Gyazo endpoint URLs are not allowed");
+    }
+
+    if (!allowedHosts.has(parsed.hostname)) {
+        throw new Error("Unexpected Gyazo endpoint host");
+    }
+
+    return trimmed;
+}
+
+/**
+ * Validate the redirect URI used in the Gyazo OAuth desktop flow.
+ * We only allow http://localhost:<port>/gyazo/callback.
+ *
+ * @param {unknown} redirectUri
+ * @returns {string}
+ */
+function validateGyazoRedirectUri(redirectUri) {
+    if (typeof redirectUri !== "string") {
+        throw new TypeError("Invalid redirect URI");
+    }
+
+    const trimmed = redirectUri.trim();
+    if (!trimmed) {
+        throw new TypeError("Invalid redirect URI");
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(trimmed);
+    } catch {
+        throw new TypeError("Invalid redirect URI");
+    }
+
+    if (parsed.protocol !== "http:" || parsed.hostname !== "localhost" || parsed.pathname !== "/gyazo/callback") {
+        throw new Error("Invalid redirect URI");
+    }
+
+    // Ensure the port is a valid integer.
+    const port = Number(parsed.port);
+    if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+        throw new Error("Invalid redirect URI");
+    }
+
+    return trimmed;
+}
+
 // Internal dependency container, overridable in tests
 /**
  * @type {{
@@ -229,12 +325,48 @@ export const exportUtils = {
                 /** @type {{ current: (() => void) | undefined }} */
                 const unsubscribeRef = { current: undefined };
 
+                /**
+                 * Cleanup function used by both success and cancellation/error paths.
+                 *
+                 * @returns {Promise<void>}
+                 */
+                const cleanup = async () => {
+                    try {
+                        if (typeof unsubscribeRef.current === "function") {
+                            unsubscribeRef.current();
+                        }
+                    } catch {
+                        /* ignore */
+                    }
+
+                    try {
+                        localStorage.removeItem("gyazo_oauth_state");
+                    } catch {
+                        /* ignore */
+                    }
+
+                    try {
+                        await electronAPI.stopGyazoServer();
+                    } catch {
+                        /* ignore */
+                    }
+
+                    try {
+                        const existingModal = document.querySelector(".gyazo-auth-modal-overlay");
+                        if (existingModal) {
+                            existingModal.remove();
+                        }
+                    } catch {
+                        /* ignore */
+                    }
+                };
+
                 // Generate a random state for CSRF protection
-                const state = Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
+                const state = generateOAuthState();
                 localStorage.setItem("gyazo_oauth_state", state);
 
                 // Update redirect URI to use the actual server port
-                const redirectUri = `http://localhost:${serverResult.port}/gyazo/callback`,
+                const redirectUri = validateGyazoRedirectUri(`http://localhost:${serverResult.port}/gyazo/callback`),
                     // Construct the authorization URL
                     authParams = new URLSearchParams({
                         client_id: /** @type {any} */ (config).clientId,
@@ -242,21 +374,21 @@ export const exportUtils = {
                         response_type: "code",
                         state,
                     }),
-                    authUrl = `${/** @type {any} */ (config).authUrl}?${authParams.toString()}`,
+                    authUrl = `${validateGyazoEndpointUrl(
+                        /** @type {any} */ (config).authUrl,
+                        new Set(["gyazo.com"])
+                    )}?${authParams.toString()}`,
                     // Listen for the OAuth callback from the main process
                     callbackHandler = async (/** @type {any} */ _event, /** @type {any} */ data) => {
                         try {
-                            if (data.state !== state) {
-                                throw new Error("Invalid state parameter. Possible CSRF attack.");
-                            }
-
-                            // Remove the listener
+                            // Ensure we only handle the callback once.
                             if (typeof unsubscribeRef.current === "function") {
                                 unsubscribeRef.current();
                             }
 
-                            // Stop the server
-                            await electronAPI.stopGyazoServer();
+                            if (!data || typeof data !== "object" || data.state !== state) {
+                                throw new Error("Invalid state parameter. Possible CSRF attack.");
+                            }
 
                             // Exchange code for token
                             const tokenData = await exportUtils.exchangeGyazoCodeForToken(data.code, redirectUri);
@@ -270,28 +402,11 @@ export const exportUtils = {
                                 exportUtils.updateGyazoAuthStatus(/** @type {HTMLElement} */ (accountManagerModal));
                             }
 
-                            // Close any open auth modal
-                            const existingModal = document.querySelector(".gyazo-auth-modal-overlay");
-                            if (existingModal) {
-                                existingModal.remove();
-                            }
-
                             resolve(/** @type {any} */ (tokenData).access_token);
                         } catch (error) {
-                            // Stop the server on error
-                            try {
-                                await electronAPI.stopGyazoServer();
-                            } catch (stopError) {
-                                console.error("Failed to stop OAuth server:", stopError);
-                            }
-
-                            // Close any open modal
-                            const existingModal = document.querySelector(".gyazo-auth-modal-overlay");
-                            if (existingModal) {
-                                existingModal.remove();
-                            }
-
                             reject(error);
+                        } finally {
+                            await cleanup();
                         }
                     };
 
@@ -299,7 +414,15 @@ export const exportUtils = {
                 unsubscribeRef.current = electronAPI.onIpc("gyazo-oauth-callback", callbackHandler);
 
                 // Create a modal with OAuth instructions and link
-                const modal = exportUtils.createGyazoAuthModal(authUrl, state, resolve, reject, true);
+                const modal = exportUtils.createGyazoAuthModal(
+                    authUrl,
+                    state,
+                    resolve,
+                    reject,
+                    true,
+                    // Ensure cancel paths clean up subscriptions and state.
+                    cleanup
+                );
                 document.body.append(modal);
             });
         } catch (error) {
@@ -586,9 +709,11 @@ export const exportUtils = {
      * @param {Function} resolve - Promise resolve function
      * @param {Function} reject - Promise reject function
      * @param {boolean} useServer - Whether to use server
+     * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup hook invoked before rejecting
      * @returns {HTMLElement} Modal element
      */
-    createGyazoAuthModal(authUrl, /** @type {any} */ _state, resolve, reject, useServer = false) {
+    createGyazoAuthModal(authUrl, /** @type {any} */ _state, resolve, reject, useServer = false, onCancel) {
+
         // Create modal overlay
         const overlay = document.createElement("div");
         overlay.className = "gyazo-auth-modal-overlay";
@@ -792,12 +917,25 @@ export const exportUtils = {
 
         if (cancelBtn) {
             cancelBtn.addEventListener("click", async () => {
-                // Stop the server if using automatic mode
-                if (useServer) {
+                document.removeEventListener("keydown", handleEscape);
+
+                if (typeof onCancel === "function") {
+                    try {
+                        await onCancel();
+                    } catch {
+                        /* ignore */
+                    }
+                } else if (useServer) {
+                    // Fallback if no external cancel hook is provided.
                     try {
                         await globalThis.electronAPI.stopGyazoServer();
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
+                    }
+                    try {
+                        localStorage.removeItem("gyazo_oauth_state");
+                    } catch {
+                        /* ignore */
                     }
                 }
 
@@ -809,12 +947,22 @@ export const exportUtils = {
         // ESC key handler
         const handleEscape = async (/** @type {any} */ e) => {
             if (e.key === "Escape") {
-                // Stop the server if using automatic mode
-                if (useServer) {
+                if (typeof onCancel === "function") {
+                    try {
+                        await onCancel();
+                    } catch {
+                        /* ignore */
+                    }
+                } else if (useServer) {
                     try {
                         await globalThis.electronAPI.stopGyazoServer();
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
+                    }
+                    try {
+                        localStorage.removeItem("gyazo_oauth_state");
+                    } catch {
+                        /* ignore */
                     }
                 }
 
@@ -828,12 +976,24 @@ export const exportUtils = {
         // Click outside to close
         overlay.addEventListener("click", async (/** @type {any} */ e) => {
             if (e.target === overlay) {
-                // Stop the server if using automatic mode
-                if (useServer) {
+                document.removeEventListener("keydown", handleEscape);
+
+                if (typeof onCancel === "function") {
+                    try {
+                        await onCancel();
+                    } catch {
+                        /* ignore */
+                    }
+                } else if (useServer) {
                     try {
                         await globalThis.electronAPI.stopGyazoServer();
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
+                    }
+                    try {
+                        localStorage.removeItem("gyazo_oauth_state");
+                    } catch {
+                        /* ignore */
                     }
                 }
 
@@ -871,27 +1031,45 @@ export const exportUtils = {
      * @returns {Promise<Object>} Token data with access_token
      */
     async exchangeGyazoCodeForToken(code, redirectUri) {
-        const config = exportUtils.getGyazoConfig(),
-            tokenParams = new URLSearchParams({
+        if (typeof code !== "string" || code.trim().length === 0) {
+            throw new TypeError("Invalid authorization code");
+        }
+
+        const safeRedirectUri = validateGyazoRedirectUri(redirectUri);
+        const config = exportUtils.getGyazoConfig();
+        const tokenUrl = validateGyazoEndpointUrl(
+            /** @type {any} */ (config).tokenUrl,
+            new Set(["gyazo.com"])
+        );
+        const tokenParams = new URLSearchParams({
                 client_id: /** @type {any} */ (config).clientId,
                 client_secret: /** @type {any} */ (config).clientSecret,
-                code,
+                code: code.trim(),
                 grant_type: "authorization_code",
-                redirect_uri: redirectUri,
+                redirect_uri: safeRedirectUri,
             });
 
         try {
-            const response = await fetch(/** @type {any} */ (config).tokenUrl, {
+            const controller = typeof AbortController === "undefined" ? null : new AbortController();
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 15_000) : null;
+
+            const response = await fetch(tokenUrl, {
                 body: tokenParams.toString(),
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
                 method: "POST",
+                signal: controller ? controller.signal : undefined,
             });
+
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+                const snippet = typeof errorText === "string" ? errorText.slice(0, 500) : "";
+                throw new Error(`Token exchange failed: ${response.status} - ${snippet}`);
             }
 
             const data = await response.json();
@@ -900,6 +1078,9 @@ export const exportUtils = {
             }
             throw new Error("No access token returned from Gyazo");
         } catch (error) {
+            if (/** @type {any} */ (error)?.name === "AbortError") {
+                throw new Error("Token exchange timed out");
+            }
             console.error("Error exchanging code for token:", error);
             throw error;
         }

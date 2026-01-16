@@ -15,13 +15,31 @@
  * @param {(message: string, type?: string, durationMs?: number) => void} params.showNotification
  */
 export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNotification }) {
+    const debugEnabled =
+        typeof process !== "undefined" &&
+        Boolean(process.env) &&
+        // Keep default quiet even in tests; enable only when explicitly requested.
+        (process.env.FFV_DEBUG_RECENT_MENU === "1" || process.env.NODE_ENV === "development");
+
+    /**
+     * @param {...any[]} args
+     */
+    const debugLog = (...args) => {
+        if (!debugEnabled) return;
+        try {
+            console.log(...args);
+        } catch {
+            /* ignore */
+        }
+    };
+
     openFileBtn.addEventListener("contextmenu", async (event) => {
         /** @type {MouseEvent} */ (event).preventDefault();
         if (!globalThis.electronAPI?.recentFiles) {
             return;
         }
         const recentFiles = await globalThis.electronAPI.recentFiles();
-        console.log("DEBUG: recentFiles call completed. Result:", recentFiles, "Length:", recentFiles?.length);
+        debugLog("DEBUG: recentFiles call completed. Result:", recentFiles, "Length:", recentFiles?.length);
         if (!recentFiles || recentFiles.length === 0) {
             showNotification("No recent files found.", "info", 2000);
             return;
@@ -33,7 +51,7 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         /** @type {HTMLDivElement} */
         const menu = document.createElement("div");
         menu.id = "recent-files-menu";
-        menu.style.position = "fixed";
+                debugLog("DEBUG: About to append menu. Document:",
         // ZIndex must be a string
         menu.style.zIndex = "10010";
         menu.style.left = `${event.clientX}px`;
@@ -43,7 +61,7 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         menu.style.border = "2px solid var(--color-border-light)";
         menu.style.borderRadius = "var(--border-radius-small)";
         menu.style.boxShadow = "var(--color-box-shadow)";
-        menu.style.minWidth = "320px";
+                debugLog("DEBUG: Menu constructor:",
         menu.style.maxWidth = "480px";
         menu.style.fontSize = "1rem";
         menu.style.padding = "4px 0";
@@ -51,7 +69,7 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         menu.style.userSelect = "none";
         menu.style.backdropFilter = "var(--backdrop-blur)";
         menu.addEventListener("contextmenu", (e) => e.preventDefault());
-        menu.setAttribute("role", "menu");
+                debugLog("DEBUG: Document.body type:",
         menu.setAttribute("aria-label", "Recent files");
         let focusedIndex = 0;
         /** @type {HTMLDivElement[]} */
@@ -187,7 +205,7 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         });
         setTimeout(() => focusItem(0), 0);
 
-        console.log(
+        debugLog(
             "DEBUG: About to append menu. Document:",
             Boolean(document),
             "Body:",
@@ -197,7 +215,7 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             "Menu ID:",
             menu.id
         );
-        console.log(
+        debugLog(
             "DEBUG: Menu constructor:",
             menu.constructor.name,
             "Menu nodeName:",
@@ -205,15 +223,15 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             "Menu parentNode before append:",
             menu.parentNode
         );
-        console.log(
+        debugLog(
             "DEBUG: Document.body type:",
             typeof document.body,
             "Document.body constructor:",
             document.body.constructor.name
         );
         // Log a safe property instead of comparing an object to itself
-        console.log("DEBUG: Document.body present:", Boolean(document.body));
-        console.log("DEBUG: Document.body can append?", typeof document.body.append === "function");
+        debugLog("DEBUG: Document.body present:", Boolean(document.body));
+        debugLog("DEBUG: Document.body can append?", typeof document.body.append === "function");
 
         // Robust menu attachment with verification and retry
         let attachmentAttempts = 0;
@@ -221,18 +239,18 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
 
         while (attachmentAttempts < maxAttempts) {
             attachmentAttempts++;
-            console.log(`DEBUG: Attachment attempt ${attachmentAttempts}/${maxAttempts}`);
+            debugLog(`DEBUG: Attachment attempt ${attachmentAttempts}/${maxAttempts}`);
 
             try {
                 document.body.append(menu);
-                console.log("DEBUG: append call succeeded");
+                debugLog("DEBUG: append call succeeded");
 
                 // Immediately verify the menu is properly attached
                 const isAttached = document.body.contains(menu) && menu.parentNode === document.body;
                 const canBeFound = Boolean(document.querySelector("#recent-files-menu"));
 
-                console.log("DEBUG: Verification - isAttached:", isAttached, "canBeFound:", canBeFound);
-                console.log(
+                debugLog("DEBUG: Verification - isAttached:", isAttached, "canBeFound:", canBeFound);
+                debugLog(
                     "DEBUG: Menu parentNode:",
                     menu.parentNode,
                     "parentNode === body:",
@@ -240,10 +258,10 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 );
 
                 if (isAttached && canBeFound) {
-                    console.log("DEBUG: Menu successfully attached and verified");
+                    debugLog("DEBUG: Menu successfully attached and verified");
                     break;
                 } else {
-                    console.log("DEBUG: Menu attachment failed verification, retrying...");
+                    debugLog("DEBUG: Menu attachment failed verification, retrying...");
                     // Try to remove any existing menu before retry
                     if (menu.parentNode) {
                         menu.remove();
@@ -251,15 +269,15 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
 
                     // Try alternative attachment method
                     if (attachmentAttempts === 2) {
-                        console.log("DEBUG: Trying append with different approach");
+                        debugLog("DEBUG: Trying append with different approach");
                         document.body.append(menu);
                     } else if (attachmentAttempts === 3) {
-                        console.log("DEBUG: Trying insertBefore as last resort");
+                        debugLog("DEBUG: Trying insertBefore as last resort");
                         document.body.insertBefore(menu, document.body.firstChild);
                     }
                 }
             } catch (error) {
-                console.log("DEBUG: append failed with error:", error.message);
+                debugLog("DEBUG: append failed with error:", /** @type {any} */ (error)?.message);
                 if (attachmentAttempts === maxAttempts) {
                     throw error;
                 }
@@ -269,24 +287,24 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         // Final verification
         const finalCheck = document.body.contains(menu) && Boolean(document.querySelector("#recent-files-menu"));
         if (!finalCheck) {
-            console.error("DEBUG: CRITICAL - Menu attachment failed after all attempts");
+            debugLog("DEBUG: CRITICAL - Menu attachment failed after all attempts");
             throw new Error("Failed to attach context menu to DOM");
         }
 
-        console.log("DEBUG: Final verification - Menu successfully attached");
-        console.log(
+        debugLog("DEBUG: Final verification - Menu successfully attached");
+        debugLog(
             "DEBUG: Document body contains menu:",
             document.body.contains(menu),
             "Document contains menu:",
-            document.contains(menu)
+            Boolean(document.querySelector("#recent-files-menu"))
         );
-        console.log(
+        debugLog(
             "DEBUG: QuerySelector test:",
             Boolean(document.querySelector("#recent-files-menu")),
             "Body querySelector test:",
             Boolean(document.body.querySelector("#recent-files-menu"))
         );
-        console.log(
+        debugLog(
             "DEBUG: Document body children count:",
             document.body.children.length,
             "Body childNodes count:",
@@ -296,7 +314,7 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
 
         /** @param {MouseEvent} e */
         const removeMenu = (e) => {
-            console.log(
+            debugLog(
                 "DEBUG: removeMenu called - event:",
                 e.type,
                 "isTrusted:",
@@ -314,22 +332,22 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 // occur more than 2 seconds after menu creation (likely from earlier tests)
                 const timeSinceMenuCreated = Date.now() - menuCreatedAt;
                 const isLikelyTestPollution = !isTrusted && which === 0 && button === 0 && timeSinceMenuCreated > 2000;
-                console.log(
+                debugLog(
                     "DEBUG: timeSinceMenuCreated:",
                     timeSinceMenuCreated,
                     "isLikelyTestPollution:",
                     isLikelyTestPollution
                 );
                 if (isLikelyTestPollution) {
-                    console.log("DEBUG: Ignoring test pollution event");
+                    debugLog("DEBUG: Ignoring test pollution event");
                     return;
                 }
 
-                console.log("DEBUG: Removing menu due to mousedown outside");
+                debugLog("DEBUG: Removing menu due to mousedown outside");
                 menu.remove();
                 document.removeEventListener("mousedown", removeMenu);
             } else {
-                console.log("DEBUG: Not removing menu - target inside menu or is menu itself");
+                debugLog("DEBUG: Not removing menu - target inside menu or is menu itself");
             }
         };
         document.addEventListener("mousedown", removeMenu);
