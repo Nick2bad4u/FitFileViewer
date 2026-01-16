@@ -23,7 +23,18 @@ function registerIpcHandle(channel, handler) {
         return;
     }
 
-    if (typeof ipcMain.removeHandler === "function") {
+    const canRemove = typeof ipcMain.removeHandler === "function";
+    const hasExisting = existing !== undefined;
+
+    // In real Electron, removeHandler exists and we can safely replace handlers.
+    // In many tests, ipcMain is a lightweight mock (often an EventEmitter) without removeHandler.
+    // In that scenario, attempting to register a new handler for the same channel repeatedly
+    // will leak listeners and can trigger MaxListenersExceededWarning.
+    if (hasExisting && !canRemove) {
+        return;
+    }
+
+    if (canRemove) {
         try {
             ipcMain.removeHandler(channel);
         } catch {
@@ -31,8 +42,15 @@ function registerIpcHandle(channel, handler) {
         }
     }
 
-    ipcMain.handle(channel, handler);
-    IPC_HANDLE_REGISTRY.set(channel, handler);
+    try {
+        ipcMain.handle(channel, handler);
+        IPC_HANDLE_REGISTRY.set(channel, handler);
+    } catch {
+        // If a strict ipcMain mock throws on duplicates, keep the previously registered handler.
+        if (!hasExisting) {
+            throw;
+        }
+    }
 }
 
 /**
@@ -49,7 +67,19 @@ function registerIpcListener(channel, listener) {
     }
 
     const existing = IPC_EVENT_LISTENER_REGISTRY.get(channel);
-    if (existing && typeof ipcMain.removeListener === "function") {
+    if (existing === listener) {
+        return;
+    }
+
+    const canRemove = typeof ipcMain.removeListener === "function";
+    const hasExisting = existing !== undefined;
+
+    // Similar to registerIpcHandle: if we cannot remove old listeners, be idempotent.
+    if (hasExisting && !canRemove) {
+        return;
+    }
+
+    if (hasExisting && canRemove) {
         try {
             ipcMain.removeListener(channel, existing);
         } catch {
@@ -57,8 +87,14 @@ function registerIpcListener(channel, listener) {
         }
     }
 
-    ipcMain.on(channel, listener);
-    IPC_EVENT_LISTENER_REGISTRY.set(channel, listener);
+    try {
+        ipcMain.on(channel, listener);
+        IPC_EVENT_LISTENER_REGISTRY.set(channel, listener);
+    } catch {
+        if (!hasExisting) {
+            throw;
+        }
+    }
 }
 
 /**
@@ -66,6 +102,32 @@ function registerIpcListener(channel, listener) {
  * suites.
  */
 function resetIpcRegistries() {
+    const ipcMain = ipcMainRef();
+
+    // Best-effort cleanup of actual ipcMain registrations.
+    // This is primarily used by tests to avoid cross-suite pollution.
+    if (ipcMain) {
+        if (typeof ipcMain.removeHandler === "function") {
+            for (const channel of IPC_HANDLE_REGISTRY.keys()) {
+                try {
+                    ipcMain.removeHandler(channel);
+                } catch {
+                    /* ignore */
+                }
+            }
+        }
+
+        if (typeof ipcMain.removeListener === "function") {
+            for (const [channel, listener] of IPC_EVENT_LISTENER_REGISTRY.entries()) {
+                try {
+                    ipcMain.removeListener(channel, listener);
+                } catch {
+                    /* ignore */
+                }
+            }
+        }
+    }
+
     IPC_HANDLE_REGISTRY.clear();
     IPC_EVENT_LISTENER_REGISTRY.clear();
 }
