@@ -172,8 +172,25 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
         }
 
         const reason = `Setting change: ${settingName}`;
-        const actions = /** @type {any} */ (globalThis).chartActions;
+        // Prefer the shared render pipeline (no destructive teardown on every tweak).
+        const managerCandidate =
+            chartStateManager && typeof chartStateManager.debouncedRender === "function"
+                ? chartStateManager
+                : /** @type {any} */ (globalThis).chartStateManager;
+        if (managerCandidate && typeof managerCandidate.debouncedRender === "function") {
+            managerCandidate.debouncedRender(reason);
+            console.log(`${LOG_PREFIX} Delegated re-render to chartStateManager`);
+            return;
+        }
 
+        const actions = /** @type {any} */ (globalThis).chartActions;
+        if (actions && typeof actions.requestRerender === "function") {
+            actions.requestRerender(reason);
+            console.log(`${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`);
+            return;
+        }
+
+        // LAST RESORT fallback (legacy): full teardown/rebuild.
         if (actions && typeof actions.clearCharts === "function") {
             actions.clearCharts();
         } else if (globalThis._chartjsInstances && Array.isArray(globalThis._chartjsInstances)) {
@@ -191,30 +208,12 @@ export function reRenderChartsAfterSettingChange(settingName, newValue) {
             globalThis._chartjsInstances = [];
         }
 
-        // Clear existing chart instances first
-        // Also clear any existing chart canvases to ensure clean slate
         const existingCanvases = queryAll('canvas[id^="chart-"], canvas[id^="chartjs-canvas-"]');
         console.log(`${LOG_PREFIX} Removing ${existingCanvases.length} existing chart canvases`);
         for (const canvas of existingCanvases) {
             if (canvas.parentNode) {
                 canvas.remove();
             }
-        }
-
-        const managerCandidate =
-            chartStateManager && typeof chartStateManager.debouncedRender === "function"
-                ? chartStateManager
-                : /** @type {any} */ (globalThis).chartStateManager;
-        if (managerCandidate && typeof managerCandidate.debouncedRender === "function") {
-            managerCandidate.debouncedRender(reason);
-            console.log(`${LOG_PREFIX} Delegated re-render to chartStateManager`);
-            return;
-        }
-
-        if (actions && typeof actions.requestRerender === "function") {
-            actions.requestRerender(reason);
-            console.log(`${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`);
-            return;
         }
 
         // Force a complete re-render - try multiple container approaches

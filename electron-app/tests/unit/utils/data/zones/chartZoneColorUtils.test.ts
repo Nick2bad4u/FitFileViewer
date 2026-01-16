@@ -10,8 +10,8 @@ const loadModule = async () => {
 vi.mock("../../../../../utils/theming/core/theme.js", () => ({
     getThemeConfig: vi.fn(() => ({
         colors: {
-            heartRateZoneColors: ["#h1", "#h2", "#h3", "#h4", "#h5"],
-            powerZoneColors: ["#p1", "#p2", "#p3", "#p4", "#p5", "#p6", "#p7"],
+            heartRateZoneColors: ["#111111", "#222222", "#333333", "#444444", "#555555"],
+            powerZoneColors: ["#101010", "#202020", "#303030", "#404040", "#505050", "#606060", "#707070"],
         },
         name: "mock-theme",
     })),
@@ -65,42 +65,42 @@ describe("chartZoneColorUtils", () => {
     });
 
     it("saveZoneColor and persistence via getZoneColor", async () => {
-        const { saveZoneColor, getZoneColor } = await loadModule();
+        const { saveZoneColor, getZoneColor, DEFAULT_HR_ZONE_COLORS } = await loadModule();
 
-        saveZoneColor("hr", 2, "#custom");
-        expect(getZoneColor("hr", 2)).toBe("#custom");
+        saveZoneColor("hr", 2, "#abcdef");
+        expect(getZoneColor("hr", 2)).toBe("#abcdef");
 
         // Another index should still use defaults
-        expect(getZoneColor("hr", 3)).toBe("#h4");
+        expect(getZoneColor("hr", 3)).toBe(DEFAULT_HR_ZONE_COLORS[3]);
     });
 
     it("getChartSpecificZoneColor prefers chart-specific then zone default", async () => {
         const { getChartSpecificZoneColor, saveChartSpecificZoneColor, saveZoneColor } = await loadModule();
 
         // No saved -> falls back to generic zone color
-        expect(getChartSpecificZoneColor("hr_zone_doughnut", 0)).toBe("#h1");
+        expect(getChartSpecificZoneColor("hr_zone_doughnut", 0)).toBe("#111111");
 
         // Save generic zone color
-        saveZoneColor("hr", 0, "#g1");
-        expect(getChartSpecificZoneColor("hr_zone_doughnut", 0)).toBe("#g1");
+        saveZoneColor("hr", 0, "#00ff00");
+        expect(getChartSpecificZoneColor("hr_zone_doughnut", 0)).toBe("#00ff00");
 
         // Save chart-specific which takes precedence
-        saveChartSpecificZoneColor("hr_zone_doughnut", 0, "#c1");
-        expect(getChartSpecificZoneColor("hr_zone_doughnut", 0)).toBe("#c1");
+        saveChartSpecificZoneColor("hr_zone_doughnut", 0, "#ff00ff");
+        expect(getChartSpecificZoneColor("hr_zone_doughnut", 0)).toBe("#ff00ff");
     });
 
     it("getChartSpecificZoneColors returns array for count", async () => {
         const { getChartSpecificZoneColors, saveChartSpecificZoneColor } = await loadModule();
 
-        saveChartSpecificZoneColor("power_lap_zone_stacked", 0, "#pA");
+        saveChartSpecificZoneColor("power_lap_zone_stacked", 0, "#a0a0a0");
         const colors = getChartSpecificZoneColors("power_lap_zone_stacked", 3);
-        expect(colors).toEqual(["#pA", "#p2", "#p3"]);
+        expect(colors).toEqual(["#a0a0a0", "#202020", "#303030"]);
     });
 
     it("hasChartSpecificColors detects presence", async () => {
         const { hasChartSpecificColors, saveChartSpecificZoneColor } = await loadModule();
         expect(hasChartSpecificColors("foo", 3)).toBe(false);
-        saveChartSpecificZoneColor("foo", 1, "#X");
+        saveChartSpecificZoneColor("foo", 1, "#123456");
         expect(hasChartSpecificColors("foo", 3)).toBe(true);
     });
 
@@ -111,15 +111,15 @@ describe("chartZoneColorUtils", () => {
         // Scheme flag
         expect(localStorage.getItem("chartjs_hr_zone_doughnut_color_scheme")).toBe("custom");
         // Default colors written
-        expect(localStorage.getItem("chartjs_hr_zone_doughnut_zone_1_color")).toBe("#h1");
-        expect(localStorage.getItem("chartjs_hr_zone_doughnut_zone_2_color")).toBe("#h2");
-        expect(localStorage.getItem("chartjs_hr_zone_doughnut_zone_3_color")).toBe("#h3");
+        expect(localStorage.getItem("chartjs_hr_zone_doughnut_zone_1_color")).toBe("#111111");
+        expect(localStorage.getItem("chartjs_hr_zone_doughnut_zone_2_color")).toBe("#222222");
+        expect(localStorage.getItem("chartjs_hr_zone_doughnut_zone_3_color")).toBe("#333333");
     });
 
     it("getZoneColors builds array via getZoneColor", async () => {
         const { getZoneColors } = await loadModule();
         const hr = getZoneColors("hr", 4);
-        expect(hr).toEqual(["#h1", "#h2", "#h3", "#h4"]);
+        expect(hr).toEqual(["#111111", "#222222", "#333333", "#444444"]);
     });
 
     it("getChartZoneColors returns scheme colors for named schemes and custom uses saved/defaults", async () => {
@@ -131,11 +131,11 @@ describe("chartZoneColorUtils", () => {
         expect(vibrantPower).toEqual((schemes.vibrant.power as string[]).slice(0, 4));
 
         // Custom should use saved or default colors
-        saveZoneColor("power", 0, "#Z1");
+        saveZoneColor("power", 0, "#0f0f0f");
         const custom = getChartZoneColors("power", 3, "custom");
-        expect(custom[0]).toBe("#Z1");
-        expect(custom[1]).toBe("#p2");
-        expect(custom[2]).toBe("#p3");
+        expect(custom[0]).toBe("#0f0f0f");
+        expect(custom[1]).toBe("#202020");
+        expect(custom[2]).toBe("#303030");
     });
 
     it("applyZoneColors maps zone.color using zoneIndex or array index", async () => {
@@ -147,14 +147,14 @@ describe("chartZoneColorUtils", () => {
             ],
             "hr"
         );
-        expect(result[0].color).toBe("#h2");
-        expect(result[1].color).toBe("#h2");
+        expect(result[0].color).toBe("#222222");
+        expect(result[1].color).toBe("#222222");
     });
 
     it("resetZoneColors writes defaults for given count", async () => {
         const { resetZoneColors } = await loadModule();
         resetZoneColors("hr", 2);
-        expect(localStorage.getItem("chartjs_hr_zone_1_color")).toBe("#h1");
-        expect(localStorage.getItem("chartjs_hr_zone_2_color")).toBe("#h2");
+        expect(localStorage.getItem("chartjs_hr_zone_1_color")).toBe("#111111");
+        expect(localStorage.getItem("chartjs_hr_zone_2_color")).toBe("#222222");
     });
 });

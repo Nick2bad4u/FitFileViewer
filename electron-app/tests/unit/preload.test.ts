@@ -40,6 +40,8 @@ describe("preload.js - Comprehensive API Testing", () => {
                             return Promise.resolve("dark");
                         case "recentFiles:get":
                             return Promise.resolve(["file1.fit", "file2.fit"]);
+                        case "recentFiles:approve":
+                            return Promise.resolve(true);
                         case "fit:decode":
                             return Promise.resolve("decoded-data");
                         case "fit:parse":
@@ -159,6 +161,7 @@ describe("preload.js - Comprehensive API Testing", () => {
             expect(electronAPI).toHaveProperty("openFileDialog");
             expect(electronAPI).toHaveProperty("readFile");
             expect(electronAPI).toHaveProperty("recentFiles");
+            expect(electronAPI).toHaveProperty("approveRecentFile");
             expect(electronAPI).toHaveProperty("addRecentFile");
 
             // Test FIT file operations

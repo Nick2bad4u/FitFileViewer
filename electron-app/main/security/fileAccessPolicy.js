@@ -1,4 +1,8 @@
-const { path } = require("../runtime/nodeModules");
+const nodeModules = require("../runtime/nodeModules");
+const { path } = nodeModules;
+
+// Defensive cap: prevents unbounded growth if approval is triggered repeatedly.
+const MAX_APPROVED_FIT_FILES = 500;
 
 /**
  * In-memory allowlist for renderer-initiated file reads.
@@ -23,6 +27,10 @@ const { path } = require("../runtime/nodeModules");
  */
 
 /**
+ * @typedef {typeof globalThis & { __ffvFileAccessPolicyState?: FileAccessPolicyState }} FileAccessPolicyGlobal
+ */
+
+/**
  * TEST-ONLY: clears approvals to keep suites isolated.
  */
 function __resetForTests() {
@@ -43,7 +51,15 @@ function approveFilePath(filePath, options = {}) {
     }
 
     const key = normalizeKey(validated);
-    getState().approved.add(key);
+    const state = getState();
+    state.approved.add(key);
+
+    // Enforce cap (Set preserves insertion order).
+    while (state.approved.size > MAX_APPROVED_FIT_FILES) {
+        const first = state.approved.values().next().value;
+        if (typeof first !== "string") break;
+        state.approved.delete(first);
+    }
 
     // Optional debug breadcrumb (kept low-noise)
     if (options.source && process.env.NODE_ENV !== "production") {
@@ -99,7 +115,7 @@ function assertFileReadAllowed(filePath) {
  * @returns {FileAccessPolicyState}
  */
 function getState() {
-    /** @type {any} */
+    /** @type {FileAccessPolicyGlobal} */
     const g = globalThis;
     if (!g.__ffvFileAccessPolicyState || typeof g.__ffvFileAccessPolicyState !== "object") {
         Object.defineProperty(g, "__ffvFileAccessPolicyState", {
@@ -146,6 +162,25 @@ function isNonEmptyString(filePath) {
 }
 
 /**
+ * Validate that a value is a well-formed absolute filesystem path to a .fit file.
+ *
+ * This does NOT approve anything; it's intended for callers that need to filter
+ * user-provided or persisted lists (e.g., recent-files.json) without mutating
+ * allowlist state.
+ *
+ * @param {unknown} filePath
+ * @returns {filePath is string}
+ */
+function isValidFitFilePathCandidate(filePath) {
+    try {
+        const validated = validateFilePathInput(filePath);
+        return hasFitExtension(validated);
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Detect whether a path is Windows-style (drive letter or UNC).
  * This is important because Vitest may run on non-Windows platforms while
  * our fixtures/tests still use Windows-like paths (e.g., "C:/file.fit").
@@ -166,8 +201,28 @@ function isWindowsStylePath(filePath) {
 function normalizeKey(filePath) {
     const resolver = isWindowsStylePath(filePath) ? path.win32 : path.posix;
     const resolved = resolver.resolve(filePath);
+
+    // Canonicalize via realpath when possible.
+    // This mitigates symlink retargeting after a path has been approved.
+    let canonical = resolved;
+    try {
+        const { fs } = nodeModules;
+        if (fs && typeof fs.realpathSync === "function") {
+            const realpathFn =
+                fs.realpathSync && typeof fs.realpathSync.native === "function"
+                    ? fs.realpathSync.native
+                    : fs.realpathSync;
+            const rp = realpathFn(resolved);
+            if (typeof rp === "string" && rp.length > 0) {
+                canonical = rp;
+            }
+        }
+    } catch {
+        // Common in tests: the path doesn't exist. Fall back to resolved.
+    }
+
     // Windows paths are case-insensitive in practice.
-    return isWindowsStylePath(filePath) ? resolved.toLowerCase() : resolved;
+    return isWindowsStylePath(filePath) ? canonical.toLowerCase() : canonical;
 }
 
 /**
@@ -181,6 +236,11 @@ function validateFilePathInput(filePath) {
     }
 
     const trimmed = filePath.trim();
+
+    // Reject URI-like values (paths must be filesystem paths).
+    if (/^\w+:\/\//u.test(trimmed)) {
+        throw new Error("Invalid file path provided");
+    }
 
     // Reject NUL byte injection attempts.
     if (trimmed.includes("\0")) {
@@ -213,5 +273,6 @@ module.exports = {
     approveFilePaths,
     assertFileReadAllowed,
     isApprovedFilePath,
+    isValidFitFilePathCandidate,
     __resetForTests,
 };

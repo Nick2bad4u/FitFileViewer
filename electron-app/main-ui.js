@@ -43,30 +43,60 @@ import "./utils/ui/settingsModal.js";
 
 // Constants (add missing CONTENT_CHART used by clearContentAreas)
 const CONSTANTS = {
-        DOM_IDS: {
-            ACTIVE_FILE_NAME: "activeFileName",
-            ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
-            ALT_FIT_IFRAME: "altfit-iframe",
-            CONTENT_CHART: "content-chart",
-            CONTENT_DATA: "content-data",
-            CONTENT_MAP: "content-map",
-            CONTENT_SUMMARY: "content-summary",
-            DROP_OVERLAY: "drop-overlay",
-            TAB_CHART: "tab-chart",
-            TAB_SUMMARY: "tab-summary",
-            UNLOAD_FILE_BTN: "unloadFileBtn",
-            ZWIFT_IFRAME: "zwift-iframe",
-        },
-        IFRAME_PATHS: {
-            ALT_FIT: "ffv/index.html",
-        },
-        SELECTORS: {
-            SUMMARY_GEAR_BTN: ".summary-gear-btn",
-        },
-        SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+    DOM_IDS: {
+        ACTIVE_FILE_NAME: "activeFileName",
+        ACTIVE_FILE_NAME_CONTAINER: "activeFileNameContainer",
+        ALT_FIT_IFRAME: "altfit-iframe",
+        CONTENT_CHART: "content-chart",
+        CONTENT_DATA: "content-data",
+        CONTENT_MAP: "content-map",
+        CONTENT_SUMMARY: "content-summary",
+        DROP_OVERLAY: "drop-overlay",
+        TAB_CHART: "tab-chart",
+        TAB_SUMMARY: "tab-summary",
+        UNLOAD_FILE_BTN: "unloadFileBtn",
+        ZWIFT_IFRAME: "zwift-iframe",
     },
-    // Event listener management with state integration
-    eventListeners = new Map();
+    IFRAME_PATHS: {
+        ALT_FIT: "ffv/index.html",
+    },
+    SELECTORS: {
+        SUMMARY_GEAR_BTN: ".summary-gear-btn",
+    },
+    SUMMARY_COLUMN_SELECTOR_DELAY: 100,
+};
+
+/** @type {Array<{ element: EventTarget, type: string, handler: Function, options?: any }>} */
+const eventListeners = [];
+
+/**
+ * Register an event listener and track it for cleanup.
+ * @param {EventTarget & { addEventListener: Function, removeEventListener: Function }} element
+ * @param {string} type
+ * @param {Function} handler
+ * @param {AddEventListenerOptions | boolean} [options]
+ * @returns {void}
+ */
+function addEventListenerWithCleanup(element, type, handler, options) {
+    if (!element || typeof element.addEventListener !== "function") return;
+    element.addEventListener(type, handler, options);
+    eventListeners.push({ element, type, handler, options });
+}
+
+/**
+ * Remove all managed event listeners.
+ * @returns {void}
+ */
+function cleanupEventListeners() {
+    for (const entry of eventListeners) {
+        try {
+            entry.element.removeEventListener(entry.type, entry.handler, entry.options);
+        } catch {
+            /* ignore */
+        }
+    }
+    eventListeners.length = 0;
+}
 
 // Make globalData available on window for backwards compatibility
 try {
@@ -85,37 +115,6 @@ try {
     }
 } catch {
     /* Ignore redefinition issues */
-}
-
-// Event listener management with state integration
-/**
- * @param {EventTarget & { addEventListener: Function, removeEventListener: Function }} element
- * @param {string} event
- * @param {EventListenerOrEventListenerObject} handler
- * @param {AddEventListenerOptions|boolean} [options]
- */
-function addEventListenerWithCleanup(element, event, handler, options = {}) {
-    if (!element) {
-        return;
-    }
-
-    element.addEventListener(event, handler, options);
-    const key = `${element.constructor.name}-${event}`;
-    if (!eventListeners.has(key)) {
-        eventListeners.set(key, []);
-    }
-    eventListeners.get(key).push({ element, event, handler });
-}
-
-function cleanupEventListeners() {
-    for (const listeners of eventListeners) {
-        for (const { element, event, handler } of listeners) {
-            if (element && element.removeEventListener) {
-                element.removeEventListener(event, handler);
-            }
-        }
-    }
-    eventListeners.clear();
 }
 
 function clearContentAreas() {
@@ -691,15 +690,19 @@ function setupExternalLinkHandlers() {
     function handleExternalLink(e, link) {
         e.preventDefault();
         const url = link.getAttribute("href");
-        if (url && globalThis.electronAPI && globalThis.electronAPI.openExternal) {
-            globalThis.electronAPI.openExternal(url).catch((error) => {
+        const electronOpenExternal = url ? globalThis.electronAPI?.openExternal : null;
+
+        if (url && typeof electronOpenExternal === "function") {
+            electronOpenExternal(url).catch((error) => {
                 if (!isTestEnvironment) {
                     console.error("Failed to open external link:", error);
                 }
-                // Fallback to window.open if openExternal fails
-                window.open(url, "_blank", "noopener,noreferrer");
+                showNotification("Failed to open link in your browser.", "error");
             });
-        } else if (url) {
+            return;
+        }
+
+        if (url) {
             // Fallback for non-Electron environments
             window.open(url, "_blank", "noopener,noreferrer");
         }

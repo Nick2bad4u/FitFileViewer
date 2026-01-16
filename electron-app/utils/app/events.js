@@ -126,6 +126,14 @@ export function setupListeners({
                 openFileBtn.disabled = true;
                 setLoading(true);
                 try {
+                    if (typeof globalThis.electronAPI?.approveRecentFile === "function") {
+                        const ok = await globalThis.electronAPI.approveRecentFile(file);
+                        if (!ok) {
+                            showNotification("File access denied.", "error", 4000);
+                            return;
+                        }
+                    }
+
                     const arrayBuffer = await globalThis.electronAPI.readFile(file);
                     const result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
                     if (result && result.error) {
@@ -139,9 +147,10 @@ export function setupListeners({
                     await globalThis.electronAPI.addRecentFile(file);
                 } catch (error) {
                     showNotification(`Error opening recent file: ${error}`, "error");
+                } finally {
+                    openFileBtn.disabled = false;
+                    setLoading(false);
                 }
-                openFileBtn.disabled = false;
-                setLoading(false);
             };
             items.push(item);
             menu.append(item);

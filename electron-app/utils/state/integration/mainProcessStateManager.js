@@ -58,6 +58,15 @@ class MainProcessState {
         /** @type {boolean} */
         this._ipcHandlersRegistered = false;
 
+        /**
+         * IPC listener bookkeeping: "<webContentsId>:<path>" -> unsubscribe
+         * @type {Map<string, () => void>}
+         */
+        this.ipcSubscriptions = new Map();
+
+        /** @type {Set<number>} */
+        this.senderCleanupRegistered = new Set();
+
         this.setupIPCHandlers();
     }
 
@@ -251,6 +260,15 @@ class MainProcessState {
     }
 
     /**
+     * @param {any} sender
+     * @returns {number}
+     */
+    getSenderId(sender) {
+        const id = sender && typeof sender.id === "number" ? sender.id : 0;
+        return Number.isFinite(id) ? id : 0;
+    }
+
+    /**
      * Listen for state changes
      * @param {string} path - Path to listen to (or '*' for all)
      * @param {Function} callback - Change callback
@@ -327,6 +345,15 @@ class MainProcessState {
         }
 
         return serializable;
+    }
+
+    /**
+     * @param {any} sender
+     * @param {string} path
+     * @returns {string}
+     */
+    makeSubscriptionKey(sender, path) {
+        return `${this.getSenderId(sender)}:${path}`;
     }
 
     /**
@@ -464,6 +491,34 @@ class MainProcessState {
     }
 
     /**
+     * Ensure we clean up any subscriptions when a renderer/webContents is destroyed.
+     * @param {any} sender
+     * @returns {void}
+     */
+    registerSenderCleanup(sender) {
+        const senderId = this.getSenderId(sender);
+        if (this.senderCleanupRegistered.has(senderId)) return;
+        this.senderCleanupRegistered.add(senderId);
+
+        // Electron WebContents emits 'destroyed'. In tests/mocks this may not exist.
+        if (sender && typeof sender.once === "function") {
+            sender.once("destroyed", () => {
+                for (const [key, unsubscribe] of this.ipcSubscriptions.entries()) {
+                    if (key.startsWith(`${senderId}:`)) {
+                        try {
+                            unsubscribe();
+                        } catch {
+                            /* ignore */
+                        }
+                        this.ipcSubscriptions.delete(key);
+                    }
+                }
+                this.senderCleanupRegistered.delete(senderId);
+            });
+        }
+    }
+
+    /**
      * Remove an operation from tracking
      * @param {string} operationId - Operation identifier
      */
@@ -587,18 +642,48 @@ class MainProcessState {
 
         // Listen to main process state changes
         ipcMain.handle("main-state:listen", (/** @type {any} */ event, /** @type {string} */ path) => {
-            const { sender } = event;
-            this.listen(path, (change) => {
-                try {
-                    sender.send("main-state-change", change);
-                } catch (error) {
-                    const err = /** @type {any} */ (error);
-                    logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
-                }
-            });
-            // Attempt to cleanup on GC/destroy – Electron does not expose 'destroyed' as an IPC sender event; guard via weak ref
-            // NOTE: We intentionally avoid attaching to a non-existent 'destroyed' event on the sender to satisfy type checker.
+            const sender = event?.sender;
+            if (!sender) return false;
+            const safePath = typeof path === "string" ? path : "";
 
+            const subscriptionKey = this.makeSubscriptionKey(sender, safePath);
+            if (!this.ipcSubscriptions.has(subscriptionKey)) {
+                this.registerSenderCleanup(sender);
+
+                const unsubscribe = this.listen(safePath, (change) => {
+                    try {
+                        if (typeof sender.isDestroyed === "function" && sender.isDestroyed()) {
+                            return;
+                        }
+                        sender.send("main-state-change", change);
+                    } catch (error) {
+                        const err = /** @type {any} */ (error);
+                        logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
+                    }
+                });
+
+                if (typeof unsubscribe === "function") {
+                    this.ipcSubscriptions.set(subscriptionKey, unsubscribe);
+                }
+            }
+
+            return true;
+        });
+
+        ipcMain.handle("main-state:unlisten", (/** @type {any} */ event, /** @type {string} */ path) => {
+            const sender = event?.sender;
+            if (!sender) return false;
+            const safePath = typeof path === "string" ? path : "";
+            const subscriptionKey = this.makeSubscriptionKey(sender, safePath);
+            const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
+            if (!unsubscribe) return false;
+
+            try {
+                unsubscribe();
+            } catch {
+                /* ignore */
+            }
+            this.ipcSubscriptions.delete(subscriptionKey);
             return true;
         });
 

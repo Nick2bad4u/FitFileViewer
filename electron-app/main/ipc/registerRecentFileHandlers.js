@@ -30,7 +30,11 @@ function registerRecentFileHandlers({
      * Main-process file read policy (best-effort).
      * If unavailable, we fall back to legacy behavior.
      *
-     * @type {null | { approveFilePaths: (paths: unknown, options?: { source?: string }) => void, isApprovedFilePath: (path: unknown) => boolean }}
+     * @type {null | {
+     *  approveFilePath: (path: unknown, options?: { source?: string }) => string,
+     *  isApprovedFilePath: (path: unknown) => boolean,
+     *  isValidFitFilePathCandidate?: (path: unknown) => path is string,
+     * }}
      */
     let fileAccessPolicy = null;
     try {
@@ -39,20 +43,104 @@ function registerRecentFileHandlers({
         fileAccessPolicy = null;
     }
 
-    registerIpcHandle("recentFiles:get", async () => {
-        try {
-            const list = loadRecentFiles();
-            // Allow reading recent files (these are user-selected historically).
-            // NOTE: This does NOT allow adding arbitrary new paths; see recentFiles:add below.
-            try {
-                fileAccessPolicy?.approveFilePaths(list, { source: "recentFiles:get" });
-            } catch {
-                /* ignore policy seeding errors */
+    /**
+     * Sanitize a persisted recent-files list.
+     *
+     * The recent files JSON is a persistence layer, not a trust boundary. We therefore:
+     * - enforce strings only
+     * - trim whitespace
+     * - require well-formed absolute .fit paths when the policy module is available
+     *
+     * @param {unknown} list
+     * @returns {string[]}
+     */
+    function sanitizeRecentFilesList(list) {
+        if (!Array.isArray(list)) {
+            return [];
+        }
+
+        /** @type {string[]} */
+        const out = [];
+        for (const entry of list) {
+            if (typeof entry !== "string") {
+                continue;
+            }
+            const trimmed = entry.trim();
+            if (trimmed.length === 0) {
+                continue;
             }
 
+            // Prefer the policy module's validation, since it matches the read allowlist semantics.
+            if (fileAccessPolicy?.isValidFitFilePathCandidate) {
+                if (!fileAccessPolicy.isValidFitFilePathCandidate(trimmed)) {
+                    continue;
+                }
+            } else {
+                // Best-effort fallback if the policy module is missing.
+                if (!/\.fit$/iu.test(trimmed)) {
+                    continue;
+                }
+            }
+
+            out.push(trimmed);
+        }
+
+        return out;
+    }
+
+    registerIpcHandle("recentFiles:get", async () => {
+        try {
+            const list = sanitizeRecentFilesList(loadRecentFiles());
+
+            // Important: This handler is intentionally side-effect free.
+            // Do NOT seed file read approvals here, otherwise a compromised renderer can
+            // escalate immediately into reading *all* persisted recent paths.
             return list;
         } catch (error) {
             logWithContext?.("error", "Error in recentFiles:get:", {
+                error: /** @type {Error} */ (error)?.message,
+            });
+            throw error;
+        }
+    });
+
+    registerIpcHandle("recentFiles:approve", async (_event, filePath) => {
+        try {
+            if (!fileAccessPolicy) {
+                logWithContext?.("warn", "Rejected recentFiles:approve because file access policy is unavailable", {
+                    filePath,
+                });
+                return false;
+            }
+
+            if (typeof filePath !== "string" || filePath.trim().length === 0) {
+                logWithContext?.("warn", "Rejected recentFiles:approve for invalid path", {
+                    filePath,
+                });
+                return false;
+            }
+
+            const trimmed = filePath.trim();
+            const list = sanitizeRecentFilesList(loadRecentFiles());
+            if (!list.includes(trimmed)) {
+                logWithContext?.("warn", "Rejected recentFiles:approve for path not in recent list", {
+                    filePath: trimmed,
+                });
+                return false;
+            }
+
+            try {
+                fileAccessPolicy.approveFilePath(trimmed, { source: "recentFiles:approve" });
+                return true;
+            } catch (policyError) {
+                logWithContext?.("warn", "Rejected recentFiles:approve due to policy validation", {
+                    error: /** @type {Error} */ (policyError)?.message,
+                    filePath: trimmed,
+                });
+                return false;
+            }
+        } catch (error) {
+            logWithContext?.("error", "Error in recentFiles:approve:", {
                 error: /** @type {Error} */ (error)?.message,
             });
             throw error;
@@ -65,7 +153,7 @@ function registerRecentFileHandlers({
                 logWithContext?.("warn", "Rejected recentFiles:add for invalid path", {
                     filePath,
                 });
-                return loadRecentFiles();
+                return sanitizeRecentFilesList(loadRecentFiles());
             }
 
             // Security boundary:
@@ -76,7 +164,7 @@ function registerRecentFileHandlers({
                 logWithContext?.("warn", "Rejected recentFiles:add because file access policy is unavailable", {
                     filePath,
                 });
-                return loadRecentFiles();
+                return sanitizeRecentFilesList(loadRecentFiles());
             }
 
             // Security hardening: do not allow the renderer to arbitrarily add new file paths
@@ -85,13 +173,13 @@ function registerRecentFileHandlers({
                 logWithContext?.("warn", "Rejected recentFiles:add for unapproved path", {
                     filePath,
                 });
-                return loadRecentFiles();
+                return sanitizeRecentFilesList(loadRecentFiles());
             }
 
             addRecentFile(filePath);
             const win = resolveTargetWindow(browserWindowRef, mainWindow);
             if (!win) {
-                return loadRecentFiles();
+                return sanitizeRecentFilesList(loadRecentFiles());
             }
 
             try {
@@ -103,7 +191,7 @@ function registerRecentFileHandlers({
                 });
             }
 
-            return loadRecentFiles();
+            return sanitizeRecentFilesList(loadRecentFiles());
         } catch (error) {
             logWithContext?.("error", "Error in recentFiles:add:", {
                 error: /** @type {Error} */ (error)?.message,

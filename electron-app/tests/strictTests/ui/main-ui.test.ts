@@ -336,6 +336,26 @@ describe("main-ui.js core flows", () => {
         expect((window as any).electronAPI.openExternal).toHaveBeenCalledTimes(2);
     });
 
+    it("does not fall back to window.open when openExternal fails", async () => {
+        const api: any = installElectronAPI();
+        api.openExternal.mockRejectedValueOnce(new Error("blocked"));
+
+        const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+        await importMainUI();
+        document.dispatchEvent(new Event("DOMContentLoaded"));
+
+        const link = document.getElementById("ext") as HTMLAnchorElement;
+        link.click();
+
+        // Allow the rejection handler to run.
+        await Promise.resolve();
+
+        expect(api.openExternal).toHaveBeenCalled();
+        expect(openSpy).not.toHaveBeenCalled();
+        expect(showNotification).toHaveBeenCalledWith("Failed to open link in your browser.", "error");
+    });
+
     it("dev helpers injectMenu and devCleanup work", async () => {
         const api: any = installElectronAPI();
         await importMainUI();

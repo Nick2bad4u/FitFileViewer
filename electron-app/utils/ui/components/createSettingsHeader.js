@@ -1328,7 +1328,9 @@ function createSelectControl(/** @type {ChartOption} */ option) {
     });
 
     return select;
-} /**
+}
+
+/**
  * Applies modern styling to the settings panel
  */
 

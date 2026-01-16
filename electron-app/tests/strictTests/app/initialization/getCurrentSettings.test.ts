@@ -102,6 +102,9 @@ describe("getCurrentSettings module", () => {
 
     it("reRenderChartsAfterSettingChange clears caches and triggers render", async () => {
         const { reRenderChartsAfterSettingChange } = await import(modPath);
+        const { setState } = await import("../../../../utils/state/core/stateManager.js");
+        const { chartStateManager } = await import("../../../../utils/charts/core/chartStateManager.js");
+
         // Create some fake canvases to be purged
         const c1 = document.createElement("canvas");
         c1.id = "chart-1";
@@ -110,11 +113,18 @@ describe("getCurrentSettings module", () => {
         c2.id = "chartjs-canvas-2";
         document.body.appendChild(c2);
         // Add a dummy chart instance with destroy
-        (window as any)._chartjsInstances = [{ destroy: vi.fn() }];
+        const destroy = vi.fn();
+        (window as any)._chartjsInstances = [{ destroy }];
         reRenderChartsAfterSettingChange("showgrid", true);
-        // canvases should be removed by the time timers run
+
+        // Should clear cached chart settings and delegate to chartStateManager.
+        expect(setState).toHaveBeenCalledWith("settings.charts", null, { source: "reRenderChartsAfterSettingChange" });
+        expect(chartStateManager.debouncedRender).toHaveBeenCalledWith("Setting change: showgrid");
+
+        // No destructive teardown in the manager path.
         vi.runAllTimers();
-        expect(document.getElementById("chart-1")).toBeNull();
-        expect(document.getElementById("chartjs-canvas-2")).toBeNull();
+        expect(destroy).not.toHaveBeenCalled();
+        expect(document.getElementById("chart-1")).toBeTruthy();
+        expect(document.getElementById("chartjs-canvas-2")).toBeTruthy();
     });
 });

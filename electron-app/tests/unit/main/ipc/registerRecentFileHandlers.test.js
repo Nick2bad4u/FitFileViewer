@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { approveFilePath, __resetForTests } from "../../../../main/security/fileAccessPolicy.js";
+import { approveFilePath, isApprovedFilePath, __resetForTests } from "../../../../main/security/fileAccessPolicy.js";
 import { registerRecentFileHandlers } from "../../../../main/ipc/registerRecentFileHandlers.js";
 
 describe("registerRecentFileHandlers", () => {
@@ -120,5 +120,55 @@ describe("registerRecentFileHandlers", () => {
 
         expect(added).toEqual([approved]);
         expect(result).toEqual(["C:/a.fit"]);
+    });
+
+    it("recentFiles:get does not implicitly approve file reads", async () => {
+        registerRecentFileHandlers({
+            registerIpcHandle: (channel, handler) => {
+                handlers.set(channel, handler);
+            },
+            addRecentFile: () => void 0,
+            loadRecentFiles: () => ["C:/a.fit"],
+            browserWindowRef: () => null,
+            mainWindow: null,
+            getThemeFromRenderer: async () => "dark",
+            safeCreateAppMenu: () => void 0,
+            getAppState: () => null,
+            logWithContext: () => void 0,
+        });
+
+        const getHandler = handlers.get("recentFiles:get");
+        if (!getHandler) throw new Error("recentFiles:get handler not registered");
+
+        const list = await getHandler();
+        expect(list).toEqual(["C:/a.fit"]);
+
+        // No approval should have been seeded.
+        expect(isApprovedFilePath("C:/a.fit")).toBe(false);
+    });
+
+    it("recentFiles:approve approves only paths in the recent list", async () => {
+        registerRecentFileHandlers({
+            registerIpcHandle: (channel, handler) => {
+                handlers.set(channel, handler);
+            },
+            addRecentFile: () => void 0,
+            loadRecentFiles: () => ["C:/a.fit"],
+            browserWindowRef: () => null,
+            mainWindow: null,
+            getThemeFromRenderer: async () => "dark",
+            safeCreateAppMenu: () => void 0,
+            getAppState: () => null,
+            logWithContext: () => void 0,
+        });
+
+        const approveHandler = handlers.get("recentFiles:approve");
+        if (!approveHandler) throw new Error("recentFiles:approve handler not registered");
+
+        await expect(approveHandler({}, "C:/not-in-list.fit")).resolves.toBe(false);
+        expect(isApprovedFilePath("C:/not-in-list.fit")).toBe(false);
+
+        await expect(approveHandler({}, "C:/a.fit")).resolves.toBe(true);
+        expect(isApprovedFilePath("C:/a.fit")).toBe(true);
     });
 });

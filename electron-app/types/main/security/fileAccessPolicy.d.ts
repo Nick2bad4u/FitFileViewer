@@ -1,6 +1,9 @@
 export type FileAccessPolicyState = {
     approved: Set<string>;
 };
+export type FileAccessPolicyGlobal = typeof globalThis & {
+    __ffvFileAccessPolicyState?: FileAccessPolicyState;
+};
 /**
  * Approve a FIT file path for subsequent reads.
  * @param {unknown} filePath
@@ -36,6 +39,17 @@ export function assertFileReadAllowed(filePath: unknown): string;
  */
 export function isApprovedFilePath(filePath: unknown): boolean;
 /**
+ * Validate that a value is a well-formed absolute filesystem path to a .fit file.
+ *
+ * This does NOT approve anything; it's intended for callers that need to filter
+ * user-provided or persisted lists (e.g., recent-files.json) without mutating
+ * allowlist state.
+ *
+ * @param {unknown} filePath
+ * @returns {filePath is string}
+ */
+export function isValidFitFilePathCandidate(filePath: unknown): filePath is string;
+/**
  * In-memory allowlist for renderer-initiated file reads.
  *
  * Why this exists:
@@ -54,6 +68,9 @@ export function isApprovedFilePath(filePath: unknown): boolean;
  */
 /**
  * @typedef {{ approved: Set<string> }} FileAccessPolicyState
+ */
+/**
+ * @typedef {typeof globalThis & { __ffvFileAccessPolicyState?: FileAccessPolicyState }} FileAccessPolicyGlobal
  */
 /**
  * TEST-ONLY: clears approvals to keep suites isolated.

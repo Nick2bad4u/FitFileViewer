@@ -76,8 +76,6 @@ describe("renderTable", () => {
         const root = document.getElementById("root")!;
         await renderTable(root, "No jQ", createTableLike(), 2);
 
-        // A delayed check logs and looks up the table by id
-        vi.advanceTimersByTime(120);
         const table = root.querySelector("table#datatable_2") as HTMLTableElement;
         expect(table).toBeTruthy();
     });
@@ -145,15 +143,19 @@ describe("renderTable", () => {
 
         // First render/initialize
         await renderTable(root, "DT", createTableLike(), 3);
-        // Fast-forward async ready + init
-        vi.advanceTimersByTime(120);
+        // Init happens on expand.
+        (root.querySelector(".table-header") as HTMLElement).click();
+        vi.runOnlyPendingTimers();
         const selector = "#datatable_3";
         expect(calls.some((c) => c.selector === selector && c.opts)).toBe(true);
 
         // Simulate re-render that should destroy then init
         state[selector] = { initialized: true };
         await renderTable(root, "DT", createTableLike(), 3);
-        vi.advanceTimersByTime(120);
+        // Expand the second rendered section to trigger init/destroy logic.
+        const headers = Array.from(root.querySelectorAll(".table-header")) as HTMLElement[];
+        headers[headers.length - 1].click();
+        vi.runOnlyPendingTimers();
         const destroyed = calls.filter((c) => c.selector === selector && c.destroyed).length;
         expect(destroyed).toBeGreaterThanOrEqual(1);
     });

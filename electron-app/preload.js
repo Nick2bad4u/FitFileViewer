@@ -21,6 +21,7 @@ const // Constants for better maintainability
             NODE_VERSION: "getNodeVersion",
             PLATFORM_INFO: "getPlatformInfo",
             RECENT_FILES_ADD: "recentFiles:add",
+            RECENT_FILES_APPROVE: "recentFiles:approve",
             RECENT_FILES_GET: "recentFiles:get",
             SHELL_OPEN_EXTERNAL: "shell:openExternal",
             THEME_GET: "theme:get",
@@ -67,6 +68,7 @@ const // Constants for better maintainability
      */
     /**
      * @typedef {Object} ElectronAPI
+     * @property {(filePath: string) => Promise<boolean>} approveRecentFile
      * @property {() => Promise<string|null>} openFile
      * @property {() => Promise<string|null>} openFileDialog
      * @property {() => Promise<string[]>} openOverlayDialog
@@ -140,37 +142,52 @@ const // Constants for better maintainability
  * @param {string} channel
  * @param {string} methodName
  * @param {( ...args: any[]) => any | null} [transform]
- * @returns {(callback: Function) => void}
+ * @returns {(callback: Function) => () => void}
  */
 function createSafeEventHandler(channel, methodName, transform) {
     return (callback) => {
         if (!validateCallback(callback, methodName)) {
-            return;
+            return () => {};
         }
 
         try {
-            if (transform) {
-                ipcRenderer.on(channel, (_event, ...args) => {
-                    try {
+            const handler = (_event, ...args) => {
+                try {
+                    if (transform) {
                         callback(transform(...args));
-                    } catch (error) {
-                        console.error(`[preload.js] Error in ${methodName} callback:`, error);
-                    }
-                });
-            } else {
-                ipcRenderer.on(channel, (_event, ...args) => {
-                    try {
+                    } else {
                         callback(...args);
-                    } catch (error) {
-                        console.error(`[preload.js] Error in ${methodName} callback:`, error);
                     }
-                });
-            }
+                } catch (error) {
+                    console.error(`[preload.js] Error in ${methodName} callback:`, error);
+                }
+            };
+
+            ipcRenderer.on(channel, handler);
+
+            return () => {
+                try {
+                    ipcRenderer.removeListener(channel, handler);
+                } catch {
+                    /* ignore */
+                }
+            };
         } catch (error) {
             console.error(`[preload.js] Error setting up ${methodName} event handler:`, error);
+            return () => {};
         }
     };
 }
+
+/**
+ * Main-state subscription fanout.
+ * Keep a single ipcRenderer listener and dispatch by change.path.
+ * @type {Map<string, Set<Function>>}
+ */
+const mainStateCallbacksByPath = new Map();
+
+/** @type {((event: any, change: any) => void) | null} */
+let mainStateDispatcher = null;
 
 /**
  * Wrapper to create a safe invoke handler.
@@ -203,6 +220,27 @@ function createSafeSendHandler(channel, methodName) {
             console.error(`[preload.js] Error in ${methodName}:`, error);
         }
     };
+}
+
+/**
+ * @returns {void}
+ */
+function ensureMainStateDispatcher() {
+    if (mainStateDispatcher) return;
+    mainStateDispatcher = (_event, change) => {
+        const p = change && typeof change.path === "string" ? change.path : null;
+        if (!p) return;
+        const callbacks = mainStateCallbacksByPath.get(p);
+        if (!callbacks || callbacks.size === 0) return;
+        for (const cb of callbacks) {
+            try {
+                cb(change);
+            } catch (error) {
+                console.error("[preload.js] Error in main-state callback:", error);
+            }
+        }
+    };
+    ipcRenderer.on("main-state-change", mainStateDispatcher);
 }
 
 // Enhanced error handling and validation
@@ -292,6 +330,7 @@ const ALLOWED_GENERIC_INVOKE_CHANNELS = new Set([
     "main-state:operation",
     "main-state:operations",
     "main-state:set",
+    "main-state:unlisten",
     ...Object.values(CONSTANTS.CHANNELS),
 ]);
 
@@ -345,6 +384,19 @@ function isAllowedGenericSendChannel(channel) {
 // Main API object
 /** @type {ElectronAPI} */
 const electronAPI = {
+    /**
+     * Approve a recent file path for subsequent readFile() calls.
+     *
+     * Security model:
+     * - The main process will only approve paths that already exist in its persisted
+     *   recent-files list.
+     * - This avoids granting broad file read access as a side effect of recentFiles().
+     *
+     * @param {string} filePath
+     * @returns {Promise<boolean>}
+     */
+    approveRecentFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.RECENT_FILES_APPROVE, "approveRecentFile"),
+
     /**
      * Adds a file to the recent files list.
      * @param {string} filePath
@@ -757,23 +809,72 @@ const electronAPI = {
         }
 
         try {
-            // Set up listener for state change events
-            ipcRenderer.on("main-state-change", (_event, change) => {
-                try {
-                    if (change && change.path === path) {
-                        callback(change);
-                    }
-                } catch (error) {
-                    console.error(`[preload.js] Error in listenToMainState callback for ${path}:`, error);
-                }
-            });
+            ensureMainStateDispatcher();
 
-            // Register the listener with the main process
-            return await ipcRenderer.invoke("main-state:listen", path);
+            const existing = mainStateCallbacksByPath.get(path);
+            const callbacks = existing ?? new Set();
+            callbacks.add(callback);
+            if (!existing) {
+                mainStateCallbacksByPath.set(path, callbacks);
+                // Register the listener with the main process (idempotent in main)
+                return await ipcRenderer.invoke("main-state:listen", path);
+            }
+
+            return true;
         } catch (error) {
             console.error(`[preload.js] Error in listenToMainState(${path}):`, error);
             throw error;
         }
+    },
+
+    /**
+     * Removes a previously registered main state listener.
+     * @param {string} path
+     * @param {Function} callback
+     * @returns {Promise<boolean>}
+     */
+    unlistenFromMainState: async (path, callback) => {
+        if (!validateString(path, "path", "unlistenFromMainState")) {
+            return false;
+        }
+        if (!validateCallback(callback, "unlistenFromMainState")) {
+            return false;
+        }
+
+        try {
+            const callbacks = mainStateCallbacksByPath.get(path);
+            if (!callbacks) return false;
+
+            callbacks.delete(callback);
+            if (callbacks.size === 0) {
+                mainStateCallbacksByPath.delete(path);
+                await ipcRenderer.invoke("main-state:unlisten", path);
+            }
+
+            if (mainStateCallbacksByPath.size === 0 && mainStateDispatcher) {
+                ipcRenderer.removeListener("main-state-change", mainStateDispatcher);
+                mainStateDispatcher = null;
+            }
+
+            return true;
+        } catch (error) {
+            console.error(`[preload.js] Error in unlistenFromMainState(${path}):`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * Subscribe to main state changes and get an unsubscribe function.
+     * @param {string} path
+     * @param {Function} callback
+     * @returns {Promise<() => Promise<boolean>>}
+     */
+    subscribeToMainState: async (path, callback) => {
+        const ok = await electronAPI.listenToMainState(path, callback);
+        if (!ok) {
+            return () => Promise.resolve(false);
+        }
+        return () => electronAPI.unlistenFromMainState(path, callback);
     },
 
     /**

@@ -81,6 +81,16 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                 openFileBtn.disabled = true;
                 setLoading(true);
                 try {
+                    // Security: explicitly approve the selected recent file before reading.
+                    // This keeps recentFiles() side-effect free in main.
+                    if (typeof globalThis.electronAPI?.approveRecentFile === "function") {
+                        const ok = await globalThis.electronAPI.approveRecentFile(file);
+                        if (!ok) {
+                            showNotification("File access denied.", "error", 4000);
+                            return;
+                        }
+                    }
+
                     const arrayBuffer = await globalThis.electronAPI.readFile(file),
                         result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
 
@@ -105,9 +115,10 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
                     }
                 } catch (error) {
                     showNotification(`Error opening recent file: ${error}`, "error");
+                } finally {
+                    openFileBtn.disabled = false;
+                    setLoading(false);
                 }
-                openFileBtn.disabled = false;
-                setLoading(false);
             };
         }
 

@@ -656,10 +656,58 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:get", expect.any(Function));
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:set", expect.any(Function));
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:listen", expect.any(Function));
+            expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:unlisten", expect.any(Function));
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:operation", expect.any(Function));
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:operations", expect.any(Function));
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:errors", expect.any(Function));
             expect(mockIpcMain.handle).toHaveBeenCalledWith("main-state:metrics", expect.any(Function));
+        });
+
+        test("listen is idempotent per sender+path and unlisten stops notifications", () => {
+            const listenHandler = mockIpcMain.handle.mock.calls.find((c) => c[0] === "main-state:listen")?.[1] as any;
+            const unlistenHandler = mockIpcMain.handle.mock.calls.find(
+                (c) => c[0] === "main-state:unlisten"
+            )?.[1] as any;
+            expect(typeof listenHandler).toBe("function");
+            expect(typeof unlistenHandler).toBe("function");
+
+            const send = vi.fn();
+            const sender = {
+                id: 123,
+                send,
+                isDestroyed: vi.fn(() => false),
+                once: vi.fn(),
+            };
+
+            // Subscribe twice; should not create duplicate subscriptions.
+            expect(listenHandler({ sender }, "settings.charts")).toBe(true);
+            expect(listenHandler({ sender }, "settings.charts")).toBe(true);
+            expect((stateInstance as any).ipcSubscriptions.size).toBe(1);
+
+            // Trigger change notification
+            (stateInstance as any).notifyChange({
+                path: "settings.charts",
+                value: 1,
+                oldValue: 0,
+                timestamp: Date.now(),
+            });
+            expect(send).toHaveBeenCalledWith(
+                "main-state-change",
+                expect.objectContaining({ path: "settings.charts" })
+            );
+
+            send.mockClear();
+            expect(unlistenHandler({ sender }, "settings.charts")).toBe(true);
+            expect((stateInstance as any).ipcSubscriptions.size).toBe(0);
+
+            // Should no longer notify
+            (stateInstance as any).notifyChange({
+                path: "settings.charts",
+                value: 2,
+                oldValue: 1,
+                timestamp: Date.now(),
+            });
+            expect(send).not.toHaveBeenCalled();
         });
 
         test("should skip IPC handler setup when ipcMain is not available", () => {

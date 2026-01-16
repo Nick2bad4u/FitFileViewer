@@ -37,18 +37,68 @@ export function renderTable(container, title, table, index) {
     rightContainer.append(icon);
     header.append(leftSpan);
     header.append(rightContainer);
-    header.addEventListener("click", () => {
-        const content = document.getElementById(`${tableId}_content`),
-            currentDisplay = globalThis.getComputedStyle(/** @type {Element} */ (content)).display,
-            isVisible = currentDisplay === "block";
-        if (content) {
-            content.style.display = isVisible ? "none" : "block";
+
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let dataTableInitTimer = null;
+
+    /**
+     * Initialize DataTables for the table (if jQuery + DataTables is available).
+     *
+     * IMPORTANT: We only initialize when the section is expanded.
+     * DataTables can compute incorrect widths when initialized under display:none,
+     * and initializing every table up-front is expensive.
+     *
+     * @returns {void}
+     */
+    const initializeDataTableIfAvailable = () => {
+        const jQ = /** @type {any} */ (globalThis).jQuery;
+        if (!jQ || !jQ.fn || !jQ.fn.DataTable) return;
+
+        const tableSelector = `#${tableId}`;
+        try {
+            // Destroy existing DataTable instance if it exists (keeps legacy behavior).
+            if (jQ.fn.DataTable.isDataTable(tableSelector)) {
+                try {
+                    jQ(tableSelector).DataTable().destroy();
+                } catch {
+                    /* ignore */
+                }
+            }
+
+            jQ(tableSelector).DataTable({
+                autoWidth: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"],
+                ],
+                ordering: true,
+                pageLength: 25,
+                paging: true,
+                searching: true,
+            });
+        } catch (error) {
+            console.error(`[ERROR] DataTable init failed for #${tableId}`, error);
         }
-        icon.textContent = isVisible ? "➕" : "➖";
-    });
+    };
+
+    /**
+     * Schedule initialization on the next tick after the content becomes visible.
+     * @returns {void}
+     */
+    const scheduleDataTableInit = () => {
+        const jQ = /** @type {any} */ (globalThis).jQuery;
+        if (!jQ || !jQ.fn || !jQ.fn.DataTable) return;
+        if (dataTableInitTimer) return;
+
+        dataTableInitTimer = setTimeout(() => {
+            dataTableInitTimer = null;
+            initializeDataTableIfAvailable();
+        }, 0);
+    };
+
     const content = document.createElement("div");
     content.classList.add("table-content");
-    content.id = `${tableId}_content`;
+    content.id = `content_${tableId}`;
     content.style.display = "none";
     const tableElement = document.createElement("table");
     tableElement.id = tableId;
@@ -84,50 +134,17 @@ export function renderTable(container, title, table, index) {
     });
     tableElement.replaceChildren(safeFragment);
     content.append(tableElement);
+
+    header.addEventListener("click", () => {
+        const isHidden = globalThis.getComputedStyle(content).display === "none";
+        content.style.display = isHidden ? "block" : "none";
+        icon.textContent = isHidden ? "➖" : "➕";
+
+        if (isHidden) {
+            scheduleDataTableInit();
+        }
+    });
     section.append(header);
     section.append(content);
     container.append(section);
-    if (/** @type {any} */ (globalThis).jQuery) {
-        const jQ = /** @type {any} */ (globalThis).jQuery;
-        jQ(document).ready(() => {
-            setTimeout(() => {
-                try {
-                    if (jQ.fn.DataTable) {
-                        const tableSelector = `#${tableId}`;
-                        // Destroy existing DataTable instance if it exists
-                        if (jQ.fn.DataTable.isDataTable(tableSelector)) {
-                            console.log(`[DEBUG] Destroying existing DataTable for ${tableSelector}`);
-                            jQ(tableSelector).DataTable().destroy();
-                        }
-                        console.log(`[DEBUG] Initializing DataTable for #${tableId}`);
-                        jQ(tableSelector).DataTable({
-                            autoWidth: true,
-                            lengthMenu: [
-                                [10, 25, 50, 100, -1],
-                                [10, 25, 50, 100, "All"],
-                            ],
-                            ordering: true,
-                            pageLength: 25,
-                            paging: true,
-                            searching: true,
-                        });
-                    } else {
-                        console.error("[ERROR] DataTables.js is not loaded");
-                    }
-                } catch (error) {
-                    console.error(`[ERROR] DataTable init failed for #${tableId}`, error);
-                }
-            }, 100);
-        });
-    } else {
-        console.warn("[WARNING] jQuery is not available. Falling back to native DOM methods.");
-        setTimeout(() => {
-            const tblElem = document.getElementById(tableId);
-            if (tblElem) {
-                console.log(`[DEBUG] DataTable initialization skipped for #${tableId}`);
-            } else {
-                console.error(`[ERROR] Table element not found for #${tableId}`);
-            }
-        }, 100);
-    }
 }

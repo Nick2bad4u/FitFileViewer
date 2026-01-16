@@ -18,6 +18,7 @@ export type PlatformInfo = {
     arch: string;
 };
 export type ElectronAPI = {
+    approveRecentFile: (filePath: string) => Promise<boolean>;
     openFile: () => Promise<string | null>;
     openFileDialog: () => Promise<string | null>;
     openOverlayDialog: () => Promise<string[]>;

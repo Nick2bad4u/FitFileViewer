@@ -35,11 +35,11 @@ const LRef = getLeaflet();
 export const baseLayers = {
     CartoDB_DarkMatter: LRef.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         attribution:
-            '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
+            '&copy; <a href="https://carto.com/attributions" data-external-link="true" rel="noopener noreferrer">CARTO</a>',
     }),
     CartoDB_Positron: LRef.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         attribution:
-            '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
+            '&copy; <a href="https://carto.com/attributions" data-external-link="true" rel="noopener noreferrer">CARTO</a>',
     }),
     CyclOSM: LRef.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
         attribution:
@@ -163,7 +163,7 @@ export const baseLayers = {
     }),
     OpenStreetMap: LRef.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+            '&copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
     }),
     OSM_France: LRef.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
         attribution:
@@ -174,7 +174,7 @@ export const baseLayers = {
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         {
             attribution:
-                'Tiles &copy; <a href="https://www.esri.com" target="_blank" rel="noopener noreferrer">Esri</a>',
+                'Tiles &copy; <a href="https://www.esri.com" data-external-link="true" rel="noopener noreferrer">Esri</a>',
         }
     ),
     Thunderforest_Cycle: LRef.tileLayer("https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png", {
@@ -189,7 +189,7 @@ export const baseLayers = {
     }),
     Topo: LRef.tileLayer("https://tile.opentopomap.org/{z}/{x}/{y}.png", {
         attribution:
-            'Map data: &copy; <a href="https://opentopomap.org" target="_blank" rel="noopener noreferrer">OpenTopoMap</a> (CC-BY-SA)',
+            'Map data: &copy; <a href="https://opentopomap.org" data-external-link="true" rel="noopener noreferrer">OpenTopoMap</a> (CC-BY-SA)',
     }),
     WaymarkedTrails_Cycling: LRef.tileLayer("https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png", {
         attribution:
