@@ -67,4 +67,54 @@ describe("sanitizeHtmlAllowlist", () => {
         expect(div).toBeTruthy();
         expect(div?.hasAttribute("style")).toBe(false);
     });
+
+    it("removes style attributes containing url() even when url is CSS-escaped", () => {
+        // u\72l == url
+        const html = '<div style="background-image:u\\72l(https://evil.example/x)">x</div>';
+        const fragment = sanitizeHtmlAllowlist(html, {
+            allowedAttributes: ["style"],
+            allowedTags: ["DIV"],
+            stripUrlInStyle: true,
+        });
+
+        const container = document.createElement("div");
+        container.append(fragment);
+
+        const div = container.querySelector("div");
+        expect(div).toBeTruthy();
+        expect(div?.hasAttribute("style")).toBe(false);
+    });
+
+    it("removes style attributes containing @import even when escaped", () => {
+        // @\69mport == @import
+        const html = '<div style="@\\69mport url(https://evil.example/x)">x</div>';
+        const fragment = sanitizeHtmlAllowlist(html, {
+            allowedAttributes: ["style"],
+            allowedTags: ["DIV"],
+            stripUrlInStyle: true,
+        });
+
+        const container = document.createElement("div");
+        container.append(fragment);
+
+        const div = container.querySelector("div");
+        expect(div).toBeTruthy();
+        expect(div?.hasAttribute("style")).toBe(false);
+    });
+
+    it("strips srcset defensively even when allowedAttributes includes it", () => {
+        const html = '<img srcset="https://evil.example/x 1x" class="c">';
+        const fragment = sanitizeHtmlAllowlist(html, {
+            allowedAttributes: ["class", "srcset"],
+            allowedTags: ["IMG"],
+        });
+
+        const container = document.createElement("div");
+        container.append(fragment);
+
+        const img = container.querySelector("img");
+        expect(img).toBeTruthy();
+        expect(img?.getAttribute("srcset")).toBeNull();
+        expect(img?.className).toBe("c");
+    });
 });

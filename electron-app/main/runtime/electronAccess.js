@@ -13,6 +13,12 @@ let electronOverride =
  */
 function getElectron() {
     try {
+        // Vitest can load this module multiple times (CJS require vs ESM import).
+        // To keep tests reliable, always honor the hoisted global mock at runtime.
+
+        const hoisted = typeof globalThis === "undefined" ? /** @type {any} */ null : globalThis.__electronHoistedMock;
+        if (hoisted) return hoisted;
+
         if (electronOverride) return electronOverride;
 
         const mod = require("electron");

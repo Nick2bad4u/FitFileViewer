@@ -270,19 +270,45 @@ export function renderMap() {
         percentToZoom = (percent) => minZoom + ((maxZoom - minZoom) * percent) / 100,
         /** @param {number} zoom */
         zoomToPercent = (zoom) => ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
-    zoomSliderBar.innerHTML = `
-		<div class="custom-zoom-slider-label">Zoom</div>
-		<input type="range" min="0" max="100" value="${zoomToPercent(map.getZoom())}" step="1" id="zoom-slider-input">
-		<div class="custom-zoom-slider-values">
-			<span id="zoom-slider-min">0%</span>
-				<span class="margin-horizontal">|</span>
-			<span id="zoom-slider-current">${Math.round(zoomToPercent(map.getZoom()))}%</span>
-				<span class="margin-horizontal">|</span>
-			<span id="zoom-slider-max">100%</span>
-		</div>
-	`;
-    const zoomSlider = /** @type {HTMLInputElement} */ (zoomSliderBar.querySelector("#zoom-slider-input")),
-        zoomSliderCurrent = /** @type {HTMLElement} */ (zoomSliderBar.querySelector("#zoom-slider-current"));
+    const zoomLabel = document.createElement("div");
+    zoomLabel.className = "custom-zoom-slider-label";
+    zoomLabel.textContent = "Zoom";
+
+    const zoomSlider = document.createElement("input");
+    zoomSlider.id = "zoom-slider-input";
+    zoomSlider.type = "range";
+    zoomSlider.min = "0";
+    zoomSlider.max = "100";
+    zoomSlider.step = "1";
+    zoomSlider.value = String(Math.round(zoomToPercent(map.getZoom())));
+
+    const values = document.createElement("div");
+    values.className = "custom-zoom-slider-values";
+
+    const minSpan = document.createElement("span");
+    minSpan.id = "zoom-slider-min";
+    minSpan.textContent = "0%";
+
+    const maxSpan = document.createElement("span");
+    maxSpan.id = "zoom-slider-max";
+    maxSpan.textContent = "100%";
+
+    const currentSpan = document.createElement("span");
+    currentSpan.id = "zoom-slider-current";
+    currentSpan.textContent = `${Math.round(zoomToPercent(map.getZoom()))}%`;
+
+    const sep1 = document.createElement("span");
+    sep1.className = "margin-horizontal";
+    sep1.textContent = "|";
+
+    const sep2 = document.createElement("span");
+    sep2.className = "margin-horizontal";
+    sep2.textContent = "|";
+
+    values.append(minSpan, sep1, currentSpan, sep2, maxSpan);
+    zoomSliderBar.append(zoomLabel, zoomSlider, values);
+
+    const zoomSliderCurrent = /** @type {HTMLElement} */ (currentSpan);
     zoomSliderBar.style.pointerEvents = "auto";
     if (zoomSlider) {
         zoomSlider.style.pointerEvents = "auto";

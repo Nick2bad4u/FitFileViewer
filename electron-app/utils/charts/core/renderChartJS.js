@@ -93,6 +93,7 @@ import { loadSharedConfiguration } from "../../app/initialization/loadSharedConf
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { setupZoneData } from "../../data/processing/setupZoneData.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 import { convertValueToUserUnits } from "../../formatting/converters/convertValueToUserUnits.js";
 import { fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { createUserDeviceInfoBox } from "../../rendering/components/createUserDeviceInfoBox.js";
@@ -1908,21 +1909,40 @@ export async function renderChartJS(targetContainer) {
                         error: "#ef4444",
                     };
                 }
-                container.innerHTML = `
-					<div class="chart-placeholder" style="
-						text-align: center;
-						padding: 40px;
-						color: var(--color-fg, ${/** @type {any} */ (themeConfig).colors.text});
-						background: var(--color-bg-alt-solid, ${/** @type {any} */ (themeConfig).colors.backgroundAlt});
-						border-radius: 12px;
-						margin: 20px 0;
-						border: 1px solid var(--color-border, ${/** @type {any} */ (themeConfig).colors.border});
-					">
-						<h3 style="color: var(--color-fg-alt, ${/** @type {any} */ (themeConfig).colors.textPrimary}); margin-bottom: 16px;">No Chart Data Available</h3>
-						<p style="margin-bottom: 8px;">This FIT file does not contain time-series data that can be charted.</p>
-						<p style="margin-bottom: 0;">Try loading a FIT file from a fitness activity or workout.</p>
-					</div>
-				`;
+
+                const colors = /** @type {any} */ (themeConfig).colors;
+                const safeText = sanitizeCssColorToken(colors.text, "#1e293b");
+                const safeTextPrimary = sanitizeCssColorToken(colors.textPrimary, "#0f172a");
+                const safeBgAlt = sanitizeCssColorToken(colors.backgroundAlt, "#ffffff");
+                const safeBorder = sanitizeCssColorToken(colors.border, "#e5e7eb");
+
+                container.replaceChildren();
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "chart-placeholder";
+                wrapper.style.textAlign = "center";
+                wrapper.style.padding = "40px";
+                wrapper.style.color = `var(--color-fg, ${safeText})`;
+                wrapper.style.background = `var(--color-bg-alt-solid, ${safeBgAlt})`;
+                wrapper.style.borderRadius = "12px";
+                wrapper.style.margin = "20px 0";
+                wrapper.style.border = `1px solid var(--color-border, ${safeBorder})`;
+
+                const h3 = document.createElement("h3");
+                h3.textContent = "No Chart Data Available";
+                h3.style.color = `var(--color-fg-alt, ${safeTextPrimary})`;
+                h3.style.marginBottom = "16px";
+
+                const p1 = document.createElement("p");
+                p1.textContent = "This FIT file does not contain time-series data that can be charted.";
+                p1.style.marginBottom = "8px";
+
+                const p2 = document.createElement("p");
+                p2.textContent = "Try loading a FIT file from a fitness activity or workout.";
+                p2.style.marginBottom = "0";
+
+                wrapper.append(h3, p1, p2);
+                container.append(wrapper);
             }
             safeCompleteRendering(false);
             return false;
@@ -2070,32 +2090,61 @@ export async function renderChartJS(targetContainer) {
                     error: "#ef4444",
                 };
             }
-            container.innerHTML = `
-				<div class="chart-error" style="
-					text-align: center;
-					padding: 40px;
-					color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});
-					background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt});
-					border: 1px solid var(--color-border, ${/** @type {any} */ (themeConfig).colors.border});
-					border-radius: var(--border-radius, 12px);
-					margin: 20px 0;
-				">
-					<h3 style="margin-bottom: 16px; color: var(--color-error, ${/** @type {any} */ (themeConfig).colors.error});">Chart Rendering Error</h3>
-					<p style="margin-bottom: 8px; color: var(--color-fg, ${
-                        /** @type {any} */ (themeConfig).colors.text
-                    });">An error occurred while rendering the charts.</p>
-					<details style="text-align: left; margin-top: 16px;">
-						<summary style="cursor: pointer; font-weight: bold; color: var(--color-fg, ${
-                            /** @type {any} */ (themeConfig).colors.text
-                        });">Error Details</summary>
-						<pre style="background: var(--color-glass, ${/** @type {any} */ (themeConfig).colors.backgroundAlt}); color: var(--color-fg, ${
-                            /** @type {any} */ (themeConfig).colors.text
-                        }); padding: 8px; border-radius: var(--border-radius-small, 4px); margin-top: 8px; font-size: 12px; overflow-x: auto; border: 1px solid var(--color-border, ${
-                            /** @type {any} */ (themeConfig).colors.border
-                        });">${/** @type {any} */ (error).stack || /** @type {any} */ (error).message}</pre>
-					</details>
-				</div>
-			`;
+
+            const colors = /** @type {any} */ (themeConfig).colors;
+            const safeText = sanitizeCssColorToken(colors.text, "#1e293b");
+            const safeBgAlt = sanitizeCssColorToken(colors.backgroundAlt, "#ffffff");
+            const safeBorder = sanitizeCssColorToken(colors.border, "#e5e7eb");
+            const safeError = sanitizeCssColorToken(colors.error, "#ef4444");
+
+            container.replaceChildren();
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "chart-error";
+            wrapper.style.textAlign = "center";
+            wrapper.style.padding = "40px";
+            wrapper.style.color = `var(--color-error, ${safeError})`;
+            wrapper.style.background = `var(--color-glass, ${safeBgAlt})`;
+            wrapper.style.border = `1px solid var(--color-border, ${safeBorder})`;
+            wrapper.style.borderRadius = "var(--border-radius, 12px)";
+            wrapper.style.margin = "20px 0";
+
+            const h3 = document.createElement("h3");
+            h3.textContent = "Chart Rendering Error";
+            h3.style.marginBottom = "16px";
+            h3.style.color = `var(--color-error, ${safeError})`;
+
+            const msg = document.createElement("p");
+            msg.textContent = "An error occurred while rendering the charts.";
+            msg.style.marginBottom = "8px";
+            msg.style.color = `var(--color-fg, ${safeText})`;
+
+            const details = document.createElement("details");
+            details.style.textAlign = "left";
+            details.style.marginTop = "16px";
+
+            const summary = document.createElement("summary");
+            summary.textContent = "Error Details";
+            summary.style.cursor = "pointer";
+            summary.style.fontWeight = "bold";
+            summary.style.color = `var(--color-fg, ${safeText})`;
+
+            const pre = document.createElement("pre");
+            pre.style.background = `var(--color-glass, ${safeBgAlt})`;
+            pre.style.color = `var(--color-fg, ${safeText})`;
+            pre.style.padding = "8px";
+            pre.style.borderRadius = "var(--border-radius-small, 4px)";
+            pre.style.marginTop = "8px";
+            pre.style.fontSize = "12px";
+            pre.style.overflowX = "auto";
+            pre.style.border = `1px solid var(--color-border, ${safeBorder})`;
+
+            const errAny = /** @type {any} */ (error);
+            pre.textContent = String(errAny?.stack || errAny?.message || errAny);
+
+            details.append(summary, pre);
+            wrapper.append(h3, msg, details);
+            container.append(wrapper);
         }
         return false;
     }

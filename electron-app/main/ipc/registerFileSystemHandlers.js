@@ -15,6 +15,9 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
     // arbitrary file disclosure if the renderer is compromised.
     const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
 
+    // Keep aligned with main/ipc/setupIPCHandlers.js.
+    const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
+
     registerIpcHandle("file:read", async (_event, filePath) => {
         try {
             let authorizedPath;
@@ -35,18 +38,45 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                     return;
                 }
 
-                fs.readFile(authorizedPath, (err, data) => {
-                    if (err) {
-                        logWithContext?.("error", "Error reading file:", {
-                            error: /** @type {Error} */ (err)?.message,
-                            filePath: authorizedPath,
-                        });
-                        reject(err);
-                        return;
-                    }
+                // Best-effort preflight size check to avoid huge reads.
+                if (typeof fs.stat === "function") {
+                    fs.stat(authorizedPath, (statErr, stats) => {
+                        if (statErr) {
+                            // If we can't stat, fall back to readFile (will still error if missing).
+                            read();
+                            return;
+                        }
+                        const size = stats && typeof stats.size === "number" ? stats.size : 0;
+                        if (size > MAX_FIT_FILE_BYTES) {
+                            reject(new Error("File size exceeds 100MB limit"));
+                            return;
+                        }
+                        read();
+                    });
+                    return;
+                }
 
-                    resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
-                });
+                read();
+
+                function read() {
+                    fs.readFile(authorizedPath, (err, data) => {
+                        if (err) {
+                            logWithContext?.("error", "Error reading file:", {
+                                error: /** @type {Error} */ (err)?.message,
+                                filePath: authorizedPath,
+                            });
+                            reject(err);
+                            return;
+                        }
+
+                        if (data && typeof data.byteLength === "number" && data.byteLength > MAX_FIT_FILE_BYTES) {
+                            reject(new Error("File size exceeds 100MB limit"));
+                            return;
+                        }
+
+                        resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+                    });
+                }
             });
         } catch (error) {
             logWithContext?.("error", "Error in file:read:", {

@@ -1,4 +1,5 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * Create the Elevation Profile action button (Map toolbar) which opens a new
@@ -20,7 +21,7 @@ export function createElevationProfileButton() {
     btn.className = "map-action-btn";
     const themeColorsInit = getThemeColors(),
         // Use bracket notation because themeColorsInit comes from an index signature
-        p = themeColorsInit.primary || "#3b82f6";
+        p = sanitizeCssColorToken(themeColorsInit.primary, "#3b82f6");
     btn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><polyline points="2,16 6,10 10,14 14,6 18,12" fill="none" stroke="${p}" stroke-width="2"/><circle cx="2" cy="16" r="1.5" fill="${p}"/><circle cx="6" cy="10" r="1.5" fill="${p}"/><circle cx="10" cy="14" r="1.5" fill="${p}"/><circle cx="14" cy="6" r="1.5" fill="${p}"/><circle cx="18" cy="12" r="1.5" fill="${p}"/></svg> <span>Elevation</span>`;
     btn.title = "Show Elevation Profile";
 
@@ -60,10 +61,36 @@ export function createElevationProfileButton() {
                     : [],
             color:
                 globalThis.chartOverlayColorPalette && Array.isArray(globalThis.chartOverlayColorPalette)
-                    ? globalThis.chartOverlayColorPalette[idx % globalThis.chartOverlayColorPalette.length]
+                    ? sanitizeCssColorToken(
+                          globalThis.chartOverlayColorPalette[idx % globalThis.chartOverlayColorPalette.length],
+                          "#1976d2"
+                      )
                     : "#1976d2",
             filePath: f?.filePath || `File ${idx + 1}`,
         }));
+
+        // Sanitize the theme colors used in template-string CSS.
+        const safeThemeColors = {
+            background: sanitizeCssColorToken(themeColors.background, isDark ? "#0b1220" : "#ffffff"),
+            border: sanitizeCssColorToken(themeColors.border, isDark ? "#334155" : "#e5e7eb"),
+            borderLight: sanitizeCssColorToken(themeColors.borderLight, isDark ? "#475569" : "#f1f5f9"),
+            primary: sanitizeCssColorToken(themeColors.primary, "#3b82f6"),
+            primaryShadow: sanitizeCssColorToken(
+                themeColors.primaryShadow,
+                isDark ? "rgba(59,130,246,0.35)" : "rgba(59,130,246,0.25)"
+            ),
+            shadowLight: sanitizeCssColorToken(
+                themeColors.shadowLight,
+                isDark ? "rgba(0,0,0,0.35)" : "rgba(15,23,42,0.08)"
+            ),
+            shadowMedium: sanitizeCssColorToken(
+                themeColors.shadowMedium,
+                isDark ? "rgba(0,0,0,0.45)" : "rgba(15,23,42,0.12)"
+            ),
+            surface: sanitizeCssColorToken(themeColors.surface, isDark ? "#111827" : "#ffffff"),
+            text: sanitizeCssColorToken(themeColors.text, isDark ? "#e5e7eb" : "#0f172a"),
+            textSecondary: sanitizeCssColorToken(themeColors.textSecondary, isDark ? "#cbd5e1" : "#475569"),
+        };
 
         // Pass the model to the popup without embedding it into HTML.
         /** @type {any} */ (chartWin).__ffvElevationFitFiles = fitFilesModel;
@@ -80,16 +107,16 @@ export function createElevationProfileButton() {
 					margin: 0;
 					padding: 0;
 					font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-					background: ${themeColors.background};
-					color: ${themeColors.text};
+					background: ${safeThemeColors.background};
+					color: ${safeThemeColors.text};
 				}
 				header {
 					display: flex;
 					align-items: center;
 					justify-content: space-between;
 					padding: 24px 32px 0 32px;
-					background: ${themeColors.surface};
-					box-shadow: 0 2px 12px ${themeColors.shadowLight};
+					background: ${safeThemeColors.surface};
+					box-shadow: 0 2px 12px ${safeThemeColors.shadowLight};
 					border-radius: 0 0 18px 18px;
 				}
 				#elevChartsContainer {
@@ -101,19 +128,19 @@ export function createElevationProfileButton() {
 					padding: 32px 32px 32px 32px;
 				}
 				.elev-profile-block {
-					background: ${themeColors.surface};
+					background: ${safeThemeColors.surface};
 					border-radius: 14px;
-					box-shadow: 0 4px 24px ${themeColors.shadowMedium};
+					box-shadow: 0 4px 24px ${safeThemeColors.shadowMedium};
 					padding: 24px 24px 18px 24px;
 					display: flex;
 					flex-direction: column;
 					align-items: stretch;
 					transition: box-shadow 0.2s;
-					border: 1px solid ${themeColors.border};
+					border: 1px solid ${safeThemeColors.border};
 				}
 				.elev-profile-block:hover {
-					box-shadow: 0 8px 32px ${themeColors.primaryShadow};
-					border-color: ${themeColors.primary};
+					box-shadow: 0 8px 32px ${safeThemeColors.primaryShadow};
+					border-color: ${safeThemeColors.primary};
 				}
 				.elev-profile-label {
 					font-weight: 600;
@@ -132,8 +159,8 @@ export function createElevationProfileButton() {
 					height: 14px;
 					border-radius: 50%;
 					margin-right: 2px;
-					box-shadow: 0 0 0 2px ${themeColors.borderLight}, 0 1px 4px ${themeColors.shadowMedium};
-					border: 2px solid ${themeColors.surface};
+					box-shadow: 0 0 0 2px ${safeThemeColors.borderLight}, 0 1px 4px ${safeThemeColors.shadowMedium};
+					border: 2px solid ${safeThemeColors.surface};
 				}
 				.elev-profile-canvas {
 					width: 100%;
@@ -142,20 +169,20 @@ export function createElevationProfileButton() {
 					height: 200px;
 					background: inherit;
 					border-radius: 8px;
-					box-shadow: 0 2px 8px ${themeColors.shadowLight};
+					box-shadow: 0 2px 8px ${safeThemeColors.shadowLight};
 				}
 				.no-altitude-data {
-					color: ${themeColors.textSecondary};
+					color: ${safeThemeColors.textSecondary};
 					font-size: 1em;
 					margin-top: 12px;
 					text-align: center;
 				}
 				::-webkit-scrollbar {
 					width: 10px;
-					background: ${themeColors.surface};
+					background: ${safeThemeColors.surface};
 				}
 				::-webkit-scrollbar-thumb {
-					background: ${themeColors.border};
+					background: ${safeThemeColors.border};
 					border-radius: 6px;
 				}
 				@media (max-width: 700px) {

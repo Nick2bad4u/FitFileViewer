@@ -14,6 +14,23 @@ export function initFilenameAutoScroll() {
         return;
     }
 
+    /** @type {any} */
+    const elAny = filenameElement;
+    const stateKey = "__ffvFilenameAutoScrollState";
+    const existingState = elAny[stateKey];
+    if (existingState && typeof existingState === "object") {
+        try {
+            if (typeof existingState.disconnect === "function") {
+                existingState.disconnect();
+            }
+            if (typeof existingState.resizeHandler === "function") {
+                window.removeEventListener("resize", existingState.resizeHandler);
+            }
+        } catch {
+            /* ignore */
+        }
+    }
+
     // Function to check if filename needs scrolling
     const checkScroll = () => {
         const container = filenameElement.parentElement;
@@ -52,12 +69,21 @@ export function initFilenameAutoScroll() {
     });
 
     // Check on window resize
-    window.addEventListener("resize", checkScroll);
+    const resizeHandler = () => checkScroll();
+    window.addEventListener("resize", resizeHandler);
+
+    // Store idempotency + cleanup state on the element.
+    elAny[stateKey] = {
+        disconnect: () => observer.disconnect(),
+        resizeHandler,
+    };
 
     // Initial check with delay to ensure styles are applied
     setTimeout(checkScroll, 200);
     setTimeout(checkScroll, 500);
-} /**
+}
+
+/**
  * Creates the unified control bar and moves existing controls into it
  */
 export function initUnifiedControlBar() {

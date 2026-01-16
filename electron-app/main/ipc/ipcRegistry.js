@@ -1,8 +1,16 @@
 const { ipcMainRef } = require("../runtime/electronAccess");
 
-/** @type {Map<string, (...args: any[]) => any>} */
+/**
+ * @typedef {{ ipcMain: unknown, handler: (...args: any[]) => any }} IpcHandleRegistryEntry
+ */
+
+/**
+ * @typedef {{ ipcMain: unknown, listener: (...args: any[]) => any }} IpcListenerRegistryEntry
+ */
+
+/** @type {Map<string, IpcHandleRegistryEntry>} */
 const IPC_HANDLE_REGISTRY = new Map();
-/** @type {Map<string, (...args: any[]) => any>} */
+/** @type {Map<string, IpcListenerRegistryEntry>} */
 const IPC_EVENT_LISTENER_REGISTRY = new Map();
 
 /**
@@ -19,18 +27,22 @@ function registerIpcHandle(channel, handler) {
     }
 
     const existing = IPC_HANDLE_REGISTRY.get(channel);
-    if (existing === handler) {
+    const hasExistingForSameIpcMain = Boolean(existing && existing.ipcMain === ipcMain);
+
+    if (hasExistingForSameIpcMain && existing.handler === handler) {
         return;
     }
 
     const canRemove = typeof ipcMain.removeHandler === "function";
-    const hasExisting = existing !== undefined;
 
     // In real Electron, removeHandler exists and we can safely replace handlers.
     // In many tests, ipcMain is a lightweight mock (often an EventEmitter) without removeHandler.
     // In that scenario, attempting to register a new handler for the same channel repeatedly
     // will leak listeners and can trigger MaxListenersExceededWarning.
-    if (hasExisting && !canRemove) {
+    // If we're dealing with the *same* ipcMain instance and cannot remove handlers,
+    // re-registering would leak/listen multiple times. If ipcMain has changed
+    // (common in tests), we should allow registration.
+    if (hasExistingForSameIpcMain && !canRemove) {
         return;
     }
 
@@ -44,11 +56,11 @@ function registerIpcHandle(channel, handler) {
 
     try {
         ipcMain.handle(channel, handler);
-        IPC_HANDLE_REGISTRY.set(channel, handler);
-    } catch {
+        IPC_HANDLE_REGISTRY.set(channel, { handler, ipcMain });
+    } catch (error) {
         // If a strict ipcMain mock throws on duplicates, keep the previously registered handler.
-        if (!hasExisting) {
-            throw;
+        if (!hasExistingForSameIpcMain) {
+            throw error;
         }
     }
 }
@@ -67,21 +79,22 @@ function registerIpcListener(channel, listener) {
     }
 
     const existing = IPC_EVENT_LISTENER_REGISTRY.get(channel);
-    if (existing === listener) {
+    const hasExistingForSameIpcMain = Boolean(existing && existing.ipcMain === ipcMain);
+
+    if (hasExistingForSameIpcMain && existing.listener === listener) {
         return;
     }
 
     const canRemove = typeof ipcMain.removeListener === "function";
-    const hasExisting = existing !== undefined;
 
     // Similar to registerIpcHandle: if we cannot remove old listeners, be idempotent.
-    if (hasExisting && !canRemove) {
+    if (hasExistingForSameIpcMain && !canRemove) {
         return;
     }
 
-    if (hasExisting && canRemove) {
+    if (hasExistingForSameIpcMain && canRemove) {
         try {
-            ipcMain.removeListener(channel, existing);
+            ipcMain.removeListener(channel, existing.listener);
         } catch {
             /* Ignore listener removal errors */
         }
@@ -89,10 +102,10 @@ function registerIpcListener(channel, listener) {
 
     try {
         ipcMain.on(channel, listener);
-        IPC_EVENT_LISTENER_REGISTRY.set(channel, listener);
-    } catch {
-        if (!hasExisting) {
-            throw;
+        IPC_EVENT_LISTENER_REGISTRY.set(channel, { listener, ipcMain });
+    } catch (error) {
+        if (!hasExistingForSameIpcMain) {
+            throw error;
         }
     }
 }
@@ -118,9 +131,9 @@ function resetIpcRegistries() {
         }
 
         if (typeof ipcMain.removeListener === "function") {
-            for (const [channel, listener] of IPC_EVENT_LISTENER_REGISTRY.entries()) {
+            for (const [channel, entry] of IPC_EVENT_LISTENER_REGISTRY.entries()) {
                 try {
-                    ipcMain.removeListener(channel, listener);
+                    ipcMain.removeListener(channel, entry.listener);
                 } catch {
                     /* ignore */
                 }

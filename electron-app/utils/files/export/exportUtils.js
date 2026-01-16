@@ -1,4 +1,5 @@
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 
@@ -28,23 +29,32 @@ function __resolveManualMockBySuffix(p) {
 const __notifMod = __resolveManualMockBySuffix("/utils/ui/notifications/showNotification.js");
 const __chartThemeMod = __resolveManualMockBySuffix("/utils/charts/theming/chartThemeUtils.js");
 
-// Debug: log manual mock registry contents and resolution in test runs
+// Debug logging for mock resolution is useful when diagnosing tricky Vitest ESM mocking,
+// but it is extremely noisy in normal test runs. Gate it behind an explicit env flag.
 try {
-    // @ts-ignore
-    const __dbgReg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
-    if (__dbgReg && typeof __dbgReg.forEach === "function") {
-        /** @type {string[]} */
-        const keys = [];
-        for (const [k, _] of __dbgReg.entries()) keys.push(String(k));
-        console.log("[exportUtils][debug] manual-mock keys:", keys);
-        console.log(
-            "[exportUtils][debug] resolved showNotification mock?",
-            Boolean(__notifMod && __notifMod.showNotification)
-        );
-        console.log(
-            "[exportUtils][debug] resolved detectCurrentTheme mock?",
-            Boolean(__chartThemeMod && __chartThemeMod.detectCurrentTheme)
-        );
+    const debugEnabled =
+        typeof process !== "undefined" &&
+        Boolean(process.env) &&
+        // Only enable when explicitly requested.
+        process.env.FFV_DEBUG_TEST_MOCKS === "1";
+
+    if (debugEnabled) {
+        // @ts-ignore
+        const __dbgReg = /** @type {Map<string, any>|undefined} */ (globalThis.__vitest_manual_mocks__);
+        if (__dbgReg && typeof __dbgReg.forEach === "function") {
+            /** @type {string[]} */
+            const keys = [];
+            for (const [k] of __dbgReg.entries()) keys.push(String(k));
+            console.log("[exportUtils][debug] manual-mock keys:", keys);
+            console.log(
+                "[exportUtils][debug] resolved showNotification mock?",
+                Boolean(__notifMod && __notifMod.showNotification)
+            );
+            console.log(
+                "[exportUtils][debug] resolved detectCurrentTheme mock?",
+                Boolean(__chartThemeMod && __chartThemeMod.detectCurrentTheme)
+            );
+        }
     }
 } catch {
     /* Ignore errors */
@@ -77,26 +87,6 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
-}
-
-/**
- * Conservative CSS color token sanitizer.
- *
- * Used only when we must embed a color into a <style> block for print/export.
- * The export theme colors are expected to be safe, but this prevents future
- * regressions from turning a style token into HTML injection.
- *
- * @param {unknown} value
- * @param {string} fallback
- * @returns {string}
- */
-function sanitizeCssColorToken(value, fallback) {
-    if (typeof value !== "string") return fallback;
-    const v = value.trim();
-    if (v === "transparent") return v;
-    if (/^#[\da-f]{3,8}$/iu.test(v)) return v;
-    if (/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/iu.test(v)) return v;
-    return fallback;
 }
 
 // Internal dependency container, overridable in tests
@@ -1326,7 +1316,7 @@ export const exportUtils = {
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
                 canvas = document.createElement("canvas"),
-                printWindow = window.open("", "_blank");
+                printWindow = window.open("", "_blank", "noopener,noreferrer");
             canvas.width = chart.canvas.width;
             canvas.height = chart.canvas.height;
             const ctx = canvas.getContext("2d");
@@ -1345,10 +1335,21 @@ export const exportUtils = {
             }
             const imgData = canvas.toDataURL("image/png", 1);
 
+            // Defense-in-depth: data URLs should be safe, but keep HTML attribute context safe.
+            const safeImgData = escapeHtml(imgData);
+
             // Print window HTML should never include unescaped/unvalidated dynamic strings.
             const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
 
             if (printWindow) {
+                try {
+                    // Defense-in-depth: prevent the popup from getting a reference to the opener.
+                    // Some Electron/Chromium builds still keep opener even with noopener.
+                    // @ts-ignore
+                    printWindow.opener = null;
+                } catch {
+                    /* ignore */
+                }
                 printWindow.document.write(`
 				<html>
 					<head>
@@ -1359,7 +1360,7 @@ export const exportUtils = {
 						</style>
 					</head>
 					<body>
-						<img src="${imgData}" alt="Chart" />
+						<img src="${safeImgData}" alt="Chart" />
 					</body>
 				</html>
 			`);
@@ -1397,10 +1398,19 @@ export const exportUtils = {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                printWindow = window.open("", "_blank");
+                printWindow = window.open("", "_blank", "noopener,noreferrer");
             const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
             const bodyBg = bgSafe === "transparent" ? "#ffffff" : bgSafe;
             const bodyText = bgSafe.toLowerCase() === "#1a1a1a" ? "#ffffff" : "#000000";
+
+            if (printWindow) {
+                try {
+                    // @ts-ignore
+                    printWindow.opener = null;
+                } catch {
+                    /* ignore */
+                }
+            }
 
             let htmlContent = `
 				<html>
@@ -1460,11 +1470,12 @@ export const exportUtils = {
                 const imgData = canvas.toDataURL("image/png", 1);
 
                 const safeFieldName = escapeHtml(String(fieldName));
+                const safeImgData = escapeHtml(imgData);
 
                 htmlContent += `
 					<div class="chart">
 						<h3>${safeFieldName}</h3>
-						<img src="${imgData}" alt="${safeFieldName} Chart" />
+                        <img src="${safeImgData}" alt="${safeFieldName} Chart" />
 					</div>
 				`;
             }

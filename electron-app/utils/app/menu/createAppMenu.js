@@ -75,6 +75,30 @@ function getConf() {
 // See: https://github.com/electron/electron/issues/18397
 let mainMenu = null;
 
+/**
+ * Open a URL in the user's browser using the centralized allow/deny policy.
+ * This is defense-in-depth: menu URLs are hard-coded, but keeping validation
+ * consistent prevents future regressions from accidentally introducing unsafe
+ * schemes.
+ *
+ * @param {string} url
+ */
+function safeOpenExternal(url) {
+    try {
+        // Local module, no Electron dependency.
+        const { validateExternalUrl } = require("../../../main/security/externalUrlPolicy");
+        const validated = validateExternalUrl(url);
+        const { shell: sh } = /** @type {any} */ (getElectron());
+        if (sh && typeof sh.openExternal === "function") {
+            Promise.resolve(sh.openExternal(validated)).catch(() => {
+                /* ignore */
+            });
+        }
+    } catch {
+        /* ignore */
+    }
+}
+
 const decoderOptionDefaults = {
     applyScaleAndOffset: true,
     convertDateTimesToDates: true,
@@ -696,28 +720,19 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                 { type: "separator" },
                 {
                     click: () => {
-                        const { shell: sh } = /** @type {any} */ (getElectron());
-                        if (sh && typeof sh.openExternal === "function") {
-                            sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer#readme");
-                        }
+                        safeOpenExternal("https://github.com/Nick2bad4u/FitFileViewer#readme");
                     },
                     label: "📖 Documentation",
                 },
                 {
                     click: () => {
-                        const { shell: sh } = /** @type {any} */ (getElectron());
-                        if (sh && typeof sh.openExternal === "function") {
-                            sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer");
-                        }
+                        safeOpenExternal("https://github.com/Nick2bad4u/FitFileViewer");
                     },
                     label: "🌐 GitHub Repository",
                 },
                 {
                     click: () => {
-                        const { shell: sh } = /** @type {any} */ (getElectron());
-                        if (sh && typeof sh.openExternal === "function") {
-                            sh.openExternal("https://github.com/Nick2bad4u/FitFileViewer/issues");
-                        }
+                        safeOpenExternal("https://github.com/Nick2bad4u/FitFileViewer/issues");
                     },
                     label: "❗Report an Issue",
                 },

@@ -7,7 +7,8 @@
 /**
  * Adds auto-scroll animation to active filename
  */
-export function initFilenameAutoScroll(): void; /**
+export function initFilenameAutoScroll(): void;
+/**
  * Creates the unified control bar and moves existing controls into it
  */
 export function initUnifiedControlBar(): void;

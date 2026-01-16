@@ -67,13 +67,19 @@ export function createGlobalChartStatusIndicatorFromCounts(counts) {
             statusText.textContent = "No chart data available in this FIT file";
             statusText.style.color = "var(--color-fg-muted)";
         } else {
-            statusText.innerHTML = `
-                Showing
-                <span style="color: ${isAllVisible ? "var(--color-success)" : hasHiddenCharts ? "var(--color-warning)" : "var(--color-error)"};">
-                    ${counts.visible}
-                </span>
-                of ${counts.available} available charts
-            `;
+            statusText.textContent = "";
+            statusText.append(document.createTextNode("Showing "));
+
+            const countSpan = document.createElement("span");
+            countSpan.style.color = isAllVisible
+                ? "var(--color-success)"
+                : hasHiddenCharts
+                  ? "var(--color-warning)"
+                  : "var(--color-error)";
+            countSpan.textContent = String(counts.visible);
+            statusText.append(countSpan);
+
+            statusText.append(document.createTextNode(` of ${counts.available} available charts`));
             statusText.style.color = "var(--color-fg)";
         }
 

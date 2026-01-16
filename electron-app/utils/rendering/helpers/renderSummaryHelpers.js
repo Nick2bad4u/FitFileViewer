@@ -134,10 +134,25 @@ export function renderTable({ container, data, gearBtn, setVisibleColumns, visib
     const filterLabel = document.createElement("label");
     filterLabel.textContent = "Show: ";
     const filterSelect = document.createElement("select");
-    filterSelect.innerHTML = '<option value="All">All</option><option value="Summary">Summary</option>';
+
+    /**
+     * @param {string} value
+     * @param {string} label
+     */
+    const addOption = (value, label) => {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        filterSelect.append(opt);
+    };
+
+    addOption("All", "All");
+    addOption("Summary", "Summary");
+
     if (data.lapMesgs && data.lapMesgs.length > 0) {
         for (let i = 0; i < data.lapMesgs.length; ++i) {
-            filterSelect.innerHTML += `<option value="Lap ${i + 1}">Lap ${i + 1}</option>`;
+            const lapIndex = i + 1;
+            addOption(`Lap ${lapIndex}`, `Lap ${lapIndex}`);
         }
     }
     // --- Persist filter value on container ---

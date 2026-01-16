@@ -1,4 +1,5 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
 import { buildGpxFromRecords, resolveTrackNameFromLoadedFiles } from "./gpxExport.js";
@@ -12,7 +13,8 @@ export function createExportGPXButton() {
     const exportBtn = document.createElement("button");
     exportBtn.className = "map-action-btn";
     const themeColors = getThemeColors();
-    exportBtn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><path d="M10 2v12M10 14l-4-4m4 4l4-4" stroke="${themeColors.primary}" stroke-width="2" fill="none"/><rect x="4" y="16" width="12" height="2" rx="1" fill="${themeColors.primary}"/></svg> <span>Export GPX</span>`;
+    const primary = sanitizeCssColorToken(themeColors.primary, "#3b82f6");
+    exportBtn.innerHTML = `<svg class="icon" viewBox="0 0 20 20" width="18" height="18"><path d="M10 2v12M10 14l-4-4m4 4l4-4" stroke="${primary}" stroke-width="2" fill="none"/><rect x="4" y="16" width="12" height="2" rx="1" fill="${primary}"/></svg> <span>Export GPX</span>`;
     exportBtn.title = "Export the current track as a GPX file";
     exportBtn.addEventListener("click", () => {
         const windowCtx = /** @type {any} */ (globalThis);

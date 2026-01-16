@@ -31,28 +31,63 @@ export function setupListeners({
         return;
     }
 
+    /** @type {any} */
+    const btnAny = openFileBtn;
+    const cleanupKey = "__ffvLifecycleListenersCleanup";
+
+    const previousCleanup = btnAny[cleanupKey];
+    if (typeof previousCleanup === "function") {
+        try {
+            previousCleanup();
+        } catch {
+            /* ignore */
+        }
+    }
+
+    /** @type {Array<() => void>} */
+    const cleanupCallbacks = [];
+
+    /**
+     * Track an unsubscribe function returned by preload wrappers.
+     * @param {unknown} maybeUnsubscribe
+     */
+    const trackUnsubscribe = (maybeUnsubscribe) => {
+        if (typeof maybeUnsubscribe === "function") {
+            cleanupCallbacks.push(maybeUnsubscribe);
+        }
+    };
+
     const isTestEnvironment =
         globalThis.process !== undefined &&
         Boolean(globalThis.process?.env) &&
         /** @type {any} */ (globalThis.process.env).NODE_ENV === "test";
 
     // Open File button click
-    openFileBtn.addEventListener("click", () =>
+    const handleOpenFileClick = () => {
         handleOpenFile({
             isOpeningFileRef,
             openFileBtn,
             setLoading,
             showNotification,
-        })
-    );
+        });
+    };
+
+    openFileBtn.addEventListener("click", handleOpenFileClick);
+    cleanupCallbacks.push(() => {
+        try {
+            openFileBtn.removeEventListener("click", handleOpenFileClick);
+        } catch {
+            /* ignore */
+        }
+    });
 
     // Recent Files Context Menu (extracted for maintainability)
-    attachRecentFilesContextMenu({ openFileBtn, setLoading, showNotification });
+    trackUnsubscribe(attachRecentFilesContextMenu({ openFileBtn, setLoading, showNotification }));
 
     // Window resize for chart rendering - use modern state management
     /** @type {ReturnType<typeof setTimeout> | null} */
     let chartRenderTimeout = null;
-    window.addEventListener("resize", () => {
+    const handleWindowResize = () => {
         if (
             document.querySelector("#tab-chart")?.classList.contains("active") ||
             document.querySelector("#tab-chartjs")?.classList.contains("active")
@@ -72,60 +107,82 @@ export function setupListeners({
                 }
             }, 200);
         }
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+    cleanupCallbacks.push(() => {
+        try {
+            window.removeEventListener("resize", handleWindowResize);
+        } catch {
+            /* ignore */
+        }
+        if (chartRenderTimeout) {
+            try {
+                clearTimeout(chartRenderTimeout);
+            } catch {
+                /* ignore */
+            }
+            chartRenderTimeout = null;
+        }
     });
 
     // Electron IPC and menu listeners
     if (globalThis.electronAPI && globalThis.electronAPI.onMenuOpenFile && globalThis.electronAPI.onOpenRecentFile) {
-        globalThis.electronAPI.onMenuOpenFile(() => {
-            handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification });
-        });
-        globalThis.electronAPI.onOpenRecentFile(async (filePath) => {
-            openFileBtn.disabled = true;
-            setLoading(true);
-            try {
-                const arrayBuffer = await globalThis.electronAPI.readFile(filePath),
-                    result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
+        trackUnsubscribe(
+            globalThis.electronAPI.onMenuOpenFile(() => {
+                handleOpenFile({ isOpeningFileRef, openFileBtn, setLoading, showNotification });
+            })
+        );
 
-                // Handle parsing errors
-                if (result && result.error) {
-                    showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
-                    return;
-                }
-
-                // Debug logging for development
-                if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
-                    console.log("[DEBUG] Recent file parse result:", result);
-                    const sessionCount = result.data?.sessions?.length || 0;
-                    console.log(`[Listeners] Debug: Parsed recent FIT data contains ${sessionCount} sessions`);
-                }
-
-                // Display the data with proper error handling
+        trackUnsubscribe(
+            globalThis.electronAPI.onOpenRecentFile(async (filePath) => {
+                openFileBtn.disabled = true;
+                setLoading(true);
                 try {
-                    const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+                    const arrayBuffer = await globalThis.electronAPI.readFile(filePath),
+                        result = await globalThis.electronAPI.parseFitFile(arrayBuffer);
 
-                    if (globalThis.showFitData) {
-                        // Extract data using the same logic as handleOpenFile.js
-                        const dataToShow = result.data || result;
-                        globalThis.showFitData(dataToShow, filePathString);
+                    // Handle parsing errors
+                    if (result && result.error) {
+                        showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
+                        return;
                     }
 
-                    if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
-                        /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
+                    // Debug logging for development
+                    if (typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production") {
+                        console.log("[DEBUG] Recent file parse result:", result);
+                        const sessionCount = result.data?.sessions?.length || 0;
+                        console.log(`[Listeners] Debug: Parsed recent FIT data contains ${sessionCount} sessions`);
                     }
-                } catch (displayError) {
-                    showNotification(`Error displaying FIT data: ${displayError}`, "error");
-                    return;
+
+                    // Display the data with proper error handling
+                    try {
+                        const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
+
+                        if (globalThis.showFitData) {
+                            // Extract data using the same logic as handleOpenFile.js
+                            const dataToShow = result.data || result;
+                            globalThis.showFitData(dataToShow, filePathString);
+                        }
+
+                        if (/** @type {any} */ (globalThis).sendFitFileToAltFitReader) {
+                            /** @type {any} */ (globalThis).sendFitFileToAltFitReader(arrayBuffer);
+                        }
+                    } catch (displayError) {
+                        showNotification(`Error displaying FIT data: ${displayError}`, "error");
+                        return;
+                    }
+
+                    // Add to recent files only if successfully displayed
+                    await globalThis.electronAPI.addRecentFile(filePath);
+                } catch (error) {
+                    showNotification(`Error opening recent file: ${error}`, "error");
+                } finally {
+                    openFileBtn.disabled = false;
+                    setLoading(false);
                 }
-
-                // Add to recent files only if successfully displayed
-                await globalThis.electronAPI.addRecentFile(filePath);
-            } catch (error) {
-                showNotification(`Error opening recent file: ${error}`, "error");
-            } finally {
-                openFileBtn.disabled = false;
-                setLoading(false);
-            }
-        });
+            })
+        );
     }
 
     if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
@@ -134,54 +191,88 @@ export function setupListeners({
          * Decoder options changed handler
          * @param {any} newOptions
          */
-        globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ _newOptions) => {
-            showNotification("Decoder options updated.", "info", 2000);
-            if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
-                const filePath = globalThis.globalData.cachedFilePath;
-                setLoading(true);
-                globalThis.electronAPI
-                    .readFile(filePath)
-                    .then((arrayBuffer) => globalThis.electronAPI.parseFitFile(arrayBuffer))
-                    .then((result) => {
-                        if (result && result.error) {
-                            showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
-                        } else {
-                            globalThis.showFitData?.(result, filePath);
-                        }
-                    })
-                    .catch((error) => {
-                        showNotification(`Error reloading file: ${error}`, "error");
-                    })
-                    .finally(() => setLoading(false));
-            }
-        });
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("decoder-options-changed", (/** @type {any} */ _newOptions) => {
+                showNotification("Decoder options updated.", "info", 2000);
+                if (globalThis.globalData && globalThis.globalData.cachedFilePath) {
+                    const filePath = globalThis.globalData.cachedFilePath;
+                    setLoading(true);
+                    globalThis.electronAPI
+                        .readFile(filePath)
+                        .then((arrayBuffer) => globalThis.electronAPI.parseFitFile(arrayBuffer))
+                        .then((result) => {
+                            if (result && result.error) {
+                                showNotification(`Error: ${result.error}\n${result.details || ""}`, "error");
+                            } else {
+                                globalThis.showFitData?.(result, filePath);
+                            }
+                        })
+                        .catch((error) => {
+                            showNotification(`Error reloading file: ${error}`, "error");
+                        })
+                        .finally(() => setLoading(false));
+                }
+            })
+        );
         /**
          * Export file handler
          * @param {any} _event
          * @param {string} filePath
          */
-        globalThis.electronAPI.onIpc(
-            "export-file",
-            /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
-                if (!globalThis.globalData) {
-                    return;
-                }
-                const safePath = filePath || "";
-                const ext = sanitizeFileExtension(safePath.split(".").pop() ?? "");
-                if (ext === "csv") {
-                    const container = document.querySelector("#content-summary");
-                    if (/** @type {any} */ (globalThis).copyTableAsCSV && container) {
-                        const csv = /** @type {any} */ (globalThis).copyTableAsCSV({
-                            container,
-                            data: globalThis.globalData,
-                        });
-                        const blob = new Blob([csv], { type: "text/csv" });
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc(
+                "export-file",
+                /** @param {any} _event @param {string} filePath */ async (_event, /** @type {string} */ filePath) => {
+                    if (!globalThis.globalData) {
+                        return;
+                    }
+                    const safePath = filePath || "";
+                    const ext = sanitizeFileExtension(safePath.split(".").pop() ?? "");
+                    if (ext === "csv") {
+                        const container = document.querySelector("#content-summary");
+                        if (/** @type {any} */ (globalThis).copyTableAsCSV && container) {
+                            const csv = /** @type {any} */ (globalThis).copyTableAsCSV({
+                                container,
+                                data: globalThis.globalData,
+                            });
+                            const blob = new Blob([csv], { type: "text/csv" });
+                            const a = document.createElement("a");
+                            a.href = URL.createObjectURL(blob);
+                            a.download = buildDownloadFilename(safePath, {
+                                defaultExtension: "csv",
+                                fallbackBase: "export",
+                            });
+                            document.body.append(a);
+                            a.click();
+                            setTimeout(() => {
+                                URL.revokeObjectURL(a.href);
+                                a.remove();
+                            }, 100);
+                        }
+                    } else if (ext === "gpx") {
+                        const records = Array.isArray(globalThis.globalData?.recordMesgs)
+                            ? globalThis.globalData.recordMesgs
+                            : null;
+                        if (!records || records.length === 0) {
+                            showNotification("No data available for GPX export.", "info", 3000);
+                            return;
+                        }
+
+                        const trackName = resolveTrackNameFromLoadedFiles(globalThis.loadedFitFiles);
+                        const gpx = buildGpxFromRecords(records, { trackName });
+                        if (!gpx) {
+                            showNotification("No valid coordinates found for GPX export.", "info", 3000);
+                            return;
+                        }
+
                         const a = document.createElement("a");
-                        a.href = URL.createObjectURL(blob);
-                        a.download = buildDownloadFilename(safePath, {
-                            defaultExtension: "csv",
-                            fallbackBase: "export",
+                        const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
+                        const downloadName = buildDownloadFilename(safePath, {
+                            defaultExtension: "gpx",
+                            fallbackBase: trackName || "export",
                         });
+                        a.href = URL.createObjectURL(blob);
+                        a.download = downloadName;
                         document.body.append(a);
                         a.click();
                         setTimeout(() => {
@@ -189,76 +280,56 @@ export function setupListeners({
                             a.remove();
                         }, 100);
                     }
-                } else if (ext === "gpx") {
-                    const records = Array.isArray(globalThis.globalData?.recordMesgs)
-                        ? globalThis.globalData.recordMesgs
-                        : null;
-                    if (!records || records.length === 0) {
-                        showNotification("No data available for GPX export.", "info", 3000);
-                        return;
-                    }
-
-                    const trackName = resolveTrackNameFromLoadedFiles(globalThis.loadedFitFiles);
-                    const gpx = buildGpxFromRecords(records, { trackName });
-                    if (!gpx) {
-                        showNotification("No valid coordinates found for GPX export.", "info", 3000);
-                        return;
-                    }
-
-                    const a = document.createElement("a");
-                    const blob = new Blob([gpx], { type: "application/gpx+xml;charset=utf-8" });
-                    const downloadName = buildDownloadFilename(safePath, {
-                        defaultExtension: "gpx",
-                        fallbackBase: trackName || "export",
-                    });
-                    a.href = URL.createObjectURL(blob);
-                    a.download = downloadName;
-                    document.body.append(a);
-                    a.click();
-                    setTimeout(() => {
-                        URL.revokeObjectURL(a.href);
-                        a.remove();
-                    }, 100);
                 }
-            }
+            )
         );
-        globalThis.electronAPI.onIpc(
-            "show-notification",
-            (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
-                if (typeof showNotification === "function") {
-                    showNotification(msg, type || "info", 3000);
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc(
+                "show-notification",
+                (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
+                    if (typeof showNotification === "function") {
+                        showNotification(msg, type || "info", 3000);
+                    }
                 }
-            }
+            )
         );
-        globalThis.electronAPI.onIpc("menu-print", () => {
-            globalThis.print();
-        });
-        globalThis.electronAPI.onIpc("menu-check-for-updates", () => {
-            if (globalThis.electronAPI.send) {
-                globalThis.electronAPI.send("menu-check-for-updates");
-            }
-        });
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("menu-print", () => {
+                globalThis.print();
+            })
+        );
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("menu-check-for-updates", () => {
+                if (globalThis.electronAPI.send) {
+                    globalThis.electronAPI.send("menu-check-for-updates");
+                }
+            })
+        );
         // "Restart and Update" is a main-process action (quitAndInstall). The menu triggers
         // a renderer event; handle it here by calling the explicit preload wrapper.
-        globalThis.electronAPI.onIpc("menu-restart-update", () => {
-            try {
-                if (globalThis.electronAPI && typeof globalThis.electronAPI.installUpdate === "function") {
-                    globalThis.electronAPI.installUpdate();
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("menu-restart-update", () => {
+                try {
+                    if (globalThis.electronAPI && typeof globalThis.electronAPI.installUpdate === "function") {
+                        globalThis.electronAPI.installUpdate();
+                    }
+                } catch {
+                    /* ignore */
                 }
-            } catch {
-                /* ignore */
-            }
-        });
-        globalThis.electronAPI.onIpc("menu-open-overlay", async () => {
-            try {
-                await openFileSelector();
-            } catch (error) {
-                if (!isTestEnvironment) {
-                    console.error("[Listeners] Failed to open overlay selector:", error);
+            })
+        );
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("menu-open-overlay", async () => {
+                try {
+                    await openFileSelector();
+                } catch (error) {
+                    if (!isTestEnvironment) {
+                        console.error("[Listeners] Failed to open overlay selector:", error);
+                    }
+                    showNotification("Failed to open overlay selector.", "error", 3000);
                 }
-                showNotification("Failed to open overlay selector.", "error", 3000);
-            }
-        });
+            })
+        );
         const ensureMenuForwarder = (channel) => {
             if (!globalThis.electronAPI || typeof globalThis.electronAPI.onIpc !== "function") {
                 return;
@@ -274,73 +345,81 @@ export function setupListeners({
                 return;
             }
             registry.add(channel);
-            globalThis.electronAPI.onIpc(channel, () => {
-                if (globalThis.electronAPI && typeof globalThis.electronAPI.send === "function") {
-                    globalThis.electronAPI.send(channel);
-                }
-            });
+            trackUnsubscribe(
+                globalThis.electronAPI.onIpc(channel, () => {
+                    if (globalThis.electronAPI && typeof globalThis.electronAPI.send === "function") {
+                        globalThis.electronAPI.send(channel);
+                    }
+                })
+            );
         };
         ensureMenuForwarder("menu-save-as");
         ensureMenuForwarder("menu-export");
-        globalThis.electronAPI.onIpc("menu-about", async () => {
-            // Show the about modal without any content since the styled system info
-            // Section will automatically load and display all the version information
-            showAboutModal();
-        });
-        globalThis.electronAPI.onIpc("open-accent-color-picker", () => {
-            console.log("Opening accent color picker");
-            if (typeof globalThis.showAccentColorPicker === "function") {
-                globalThis.showAccentColorPicker();
-            } else {
-                console.error("showAccentColorPicker function not available");
-            }
-        });
-        globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
-            console.log("Keyboard shortcuts menu clicked - starting handler");
-            // Check if the keyboard shortcuts modal script is already loaded
-            if (globalThis.showKeyboardShortcutsModal === undefined) {
-                console.log("Modal script not loaded, loading dynamically...");
-                // Load the keyboard shortcuts modal script dynamically
-                const script = document.createElement("script");
-                script.src = "./utils/keyboardShortcutsModal.js";
-                script.addEventListener("load", () => {
-                    console.log("Script loaded successfully");
-                    // Call the function after the script is loaded
-                    if (typeof globalThis.showKeyboardShortcutsModal === "function") {
-                        console.log("Calling showKeyboardShortcutsModal function");
-                        globalThis.showKeyboardShortcutsModal();
-                    } else {
-                        console.error("showKeyboardShortcutsModal function not available after script load");
-                    }
-                });
-                script.onerror = (error) => {
-                    console.error("Failed to load keyboard shortcuts modal script:", error);
-                    // Fallback to old implementation
-                    const shortcuts = [
-                        ["Open File", "Ctrl+O"],
-                        ["Save As", "Ctrl+S"],
-                        ["Print", "Ctrl+P"],
-                        ["Close Window", "Ctrl+W"],
-                        ["Reload", "Ctrl+R"],
-                        ["Toggle DevTools", "Ctrl+Shift+I"],
-                        ["Toggle Fullscreen", "F11"],
-                        ["Export", "No default"],
-                        ["Theme: Dark/Light", "Settings > Theme"],
-                    ];
-                    let html = '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
-                    for (const [action, keys] of shortcuts) {
-                        html += `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`;
-                    }
-                    html += "</ul>";
-                    showAboutModal(html);
-                };
-                document.head.append(script);
-            } else {
-                console.log("Modal script already loaded, calling function directly");
-                // Function is already available, call it directly
-                globalThis.showKeyboardShortcutsModal();
-            }
-        });
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("menu-about", async () => {
+                // Show the about modal without any content since the styled system info
+                // Section will automatically load and display all the version information
+                showAboutModal();
+            })
+        );
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("open-accent-color-picker", () => {
+                console.log("Opening accent color picker");
+                if (typeof globalThis.showAccentColorPicker === "function") {
+                    globalThis.showAccentColorPicker();
+                } else {
+                    console.error("showAccentColorPicker function not available");
+                }
+            })
+        );
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("menu-keyboard-shortcuts", () => {
+                console.log("Keyboard shortcuts menu clicked - starting handler");
+                // Check if the keyboard shortcuts modal script is already loaded
+                if (globalThis.showKeyboardShortcutsModal === undefined) {
+                    console.log("Modal script not loaded, loading dynamically...");
+                    // Load the keyboard shortcuts modal script dynamically
+                    const script = document.createElement("script");
+                    script.src = "./utils/keyboardShortcutsModal.js";
+                    script.addEventListener("load", () => {
+                        console.log("Script loaded successfully");
+                        // Call the function after the script is loaded
+                        if (typeof globalThis.showKeyboardShortcutsModal === "function") {
+                            console.log("Calling showKeyboardShortcutsModal function");
+                            globalThis.showKeyboardShortcutsModal();
+                        } else {
+                            console.error("showKeyboardShortcutsModal function not available after script load");
+                        }
+                    });
+                    script.onerror = (error) => {
+                        console.error("Failed to load keyboard shortcuts modal script:", error);
+                        // Fallback to old implementation
+                        const shortcuts = [
+                            ["Open File", "Ctrl+O"],
+                            ["Save As", "Ctrl+S"],
+                            ["Print", "Ctrl+P"],
+                            ["Close Window", "Ctrl+W"],
+                            ["Reload", "Ctrl+R"],
+                            ["Toggle DevTools", "Ctrl+Shift+I"],
+                            ["Toggle Fullscreen", "F11"],
+                            ["Export", "No default"],
+                            ["Theme: Dark/Light", "Settings > Theme"],
+                        ];
+                        let html = '<h2>Keyboard Shortcuts</h2><ul class="shortcut-list">';
+                        for (const [action, keys] of shortcuts) {
+                            html += `<li class='shortcut-list-item'><strong>${action}:</strong> <span class='shortcut-key'>${keys}</span></li>`;
+                        }
+                        html += "</ul>";
+                        showAboutModal(html);
+                    };
+                    document.head.append(script);
+                } else {
+                    console.log("Modal script already loaded, calling function directly");
+                    // Function is already available, call it directly
+                    globalThis.showKeyboardShortcutsModal();
+                }
+            })
+        );
     }
 
     // Auto-Updater Event Listeners
@@ -376,30 +455,55 @@ export function setupListeners({
 
     // Accessibility Event Listeners
     if (globalThis.electronAPI && globalThis.electronAPI.onIpc) {
-        globalThis.electronAPI.onIpc("set-font-size", (/** @type {any} */ _event, /** @type {string} */ size) => {
-            document.body.classList.remove("font-xsmall", "font-small", "font-medium", "font-large", "font-xlarge");
-            document.body.classList.add(`font-${size}`);
-        });
-        globalThis.electronAPI.onIpc("set-high-contrast", (/** @type {any} */ _event, /** @type {string} */ mode) => {
-            document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
-            switch (mode) {
-                case "black": {
-                    document.body.classList.add("high-contrast");
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc("set-font-size", (/** @type {any} */ _event, /** @type {string} */ size) => {
+                document.body.classList.remove("font-xsmall", "font-small", "font-medium", "font-large", "font-xlarge");
+                document.body.classList.add(`font-${size}`);
+            })
+        );
+        trackUnsubscribe(
+            globalThis.electronAPI.onIpc(
+                "set-high-contrast",
+                (/** @type {any} */ _event, /** @type {string} */ mode) => {
+                    document.body.classList.remove("high-contrast", "high-contrast-white", "high-contrast-yellow");
+                    switch (mode) {
+                        case "black": {
+                            document.body.classList.add("high-contrast");
 
-                    break;
-                }
-                case "white": {
-                    document.body.classList.add("high-contrast-white");
+                            break;
+                        }
+                        case "white": {
+                            document.body.classList.add("high-contrast-white");
 
-                    break;
-                }
-                case "yellow": {
-                    document.body.classList.add("high-contrast-yellow");
+                            break;
+                        }
+                        case "yellow": {
+                            document.body.classList.add("high-contrast-yellow");
 
-                    break;
+                            break;
+                        }
+                        // No default
+                    }
                 }
-                // No default
-            }
-        });
+            )
+        );
     }
+
+    // Expose cleanup for idempotent initialization (tests/hot reload).
+    btnAny[cleanupKey] = () => {
+        for (const cleanup of cleanupCallbacks.splice(0)) {
+            try {
+                cleanup();
+            } catch {
+                /* ignore */
+            }
+        }
+        if (btnAny[cleanupKey]) {
+            try {
+                delete btnAny[cleanupKey];
+            } catch {
+                /* ignore */
+            }
+        }
+    };
 }

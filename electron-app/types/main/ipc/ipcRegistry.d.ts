@@ -1,3 +1,11 @@
+export type IpcHandleRegistryEntry = {
+    ipcMain: unknown;
+    handler: (...args: any[]) => any;
+};
+export type IpcListenerRegistryEntry = {
+    ipcMain: unknown;
+    listener: (...args: any[]) => any;
+};
 /**
  * Registers an IPC handler ensuring any previous handler is safely removed first.
  *

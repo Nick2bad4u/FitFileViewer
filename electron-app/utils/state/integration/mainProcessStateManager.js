@@ -13,6 +13,19 @@
 /**
  * Main process state manager providing a minimal reactive store & IPC bridge.
  */
+
+// ---- Security: dot-path hardening -----------------------------------------
+//
+// This module accepts dot-separated paths from the renderer via IPC.
+// Without explicit guards, paths like "operations.__proto__.polluted" can lead
+// to prototype pollution because our setByPath/getByPath helpers use bracket
+// access while walking objects.
+//
+// We treat the renderer as untrusted: validate any path before traversing.
+
+/** @type {ReadonlySet<string>} */
+const FORBIDDEN_DOT_PATH_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+
 class MainProcessState {
     constructor() {
         /** @type {MainProcessStateData} */
@@ -41,7 +54,10 @@ class MainProcessState {
             },
 
             // Progress tracking
-            operations: new Map(),
+            // NOTE: operations are stored as a plain object keyed by operationId.
+            // This matches getByPath/setByPath logic (Object.hasOwn / bracket access)
+            // and serializes cleanly over IPC.
+            operations: {},
 
             // OAuth state
             pendingOAuthResolvers: new Map(),
@@ -228,6 +244,13 @@ class MainProcessState {
         if (!path) {
             return obj;
         }
+
+        // Security: do not traverse unsafe dot paths.
+        // This prevents prototype leakage and makes set/get semantics deterministic.
+        if (!isSafeDotPath(path)) {
+            return null;
+        }
+
         return path.split(".").reduce((current, key) => {
             if (current && typeof current === "object" && Object.hasOwn(current, key)) {
                 // @ts-ignore index signature loosened at runtime
@@ -576,6 +599,16 @@ class MainProcessState {
         if (!path) {
             return;
         }
+
+        // Security: refuse to set unsafe dot paths.
+        if (!isSafeDotPath(path)) {
+            try {
+                logWithContext("warn", "Blocked unsafe state path", { path });
+            } catch {
+                /* ignore */
+            }
+            return;
+        }
         const keys = path.split("."),
             lastKey = keys.pop(),
             target = keys.reduce((current, key) => {
@@ -614,7 +647,8 @@ class MainProcessState {
 
         // Get main process state
         ipcMain.handle("main-state:get", (/** @type {any} */ _event, /** @type {string} */ path) => {
-            const data = path ? this.get(path) : this.data;
+            const safePath = typeof path === "string" ? path.trim() : "";
+            const data = safePath ? this.get(safePath) : this.data;
             return this.makeSerializable(data);
         });
 
@@ -627,15 +661,26 @@ class MainProcessState {
                 /** @type {any} */ value,
                 /** @type {any} */ options
             ) => {
+                const safePath = typeof path === "string" ? path.trim() : "";
+                if (!safePath) {
+                    return false;
+                }
+
+                // Security: deny unsafe dot paths (prototype pollution hardening)
+                if (!isSafeDotPath(safePath)) {
+                    logWithContext("warn", "Renderer attempted to set unsafe path", { path: safePath });
+                    return false;
+                }
+
                 // Only allow certain paths to be set from renderer
-                const allowedPaths = ["loadedFitFilePath", "operations"],
-                    rootPath = path.split(".")[0] || "";
-                if (allowedPaths.includes(rootPath)) {
-                    this.set(path, value, { ...options, source: "renderer" });
+                const allowedRoots = ["loadedFitFilePath", "operations"],
+                    rootPath = safePath.split(".")[0] || "";
+                if (allowedRoots.includes(rootPath)) {
+                    this.set(safePath, value, { ...options, source: "renderer" });
                     return true;
                 }
 
-                logWithContext("warn", "Renderer attempted to set restricted path", { path });
+                logWithContext("warn", "Renderer attempted to set restricted path", { path: safePath });
                 return false;
             }
         );
@@ -644,7 +689,13 @@ class MainProcessState {
         ipcMain.handle("main-state:listen", (/** @type {any} */ event, /** @type {string} */ path) => {
             const sender = event?.sender;
             if (!sender) return false;
-            const safePath = typeof path === "string" ? path : "";
+            const safePath = typeof path === "string" ? path.trim() : "";
+
+            // Security: refuse subscriptions to unsafe dot paths.
+            if (safePath && !isSafeDotPath(safePath)) {
+                logWithContext("warn", "Blocked main-state:listen for unsafe path", { path: safePath });
+                return false;
+            }
 
             const subscriptionKey = this.makeSubscriptionKey(sender, safePath);
             if (!this.ipcSubscriptions.has(subscriptionKey)) {
@@ -673,7 +724,11 @@ class MainProcessState {
         ipcMain.handle("main-state:unlisten", (/** @type {any} */ event, /** @type {string} */ path) => {
             const sender = event?.sender;
             if (!sender) return false;
-            const safePath = typeof path === "string" ? path : "";
+            const safePath = typeof path === "string" ? path.trim() : "";
+
+            if (safePath && !isSafeDotPath(safePath)) {
+                return false;
+            }
             const subscriptionKey = this.makeSubscriptionKey(sender, safePath);
             const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
             if (!unsubscribe) return false;
@@ -826,6 +881,29 @@ class MainProcessState {
 }
 
 /**
+ * Validate a dot-separated path for safe traversal.
+ *
+ * Rules:
+ * - must be a non-empty string after trimming
+ * - must not contain empty segments ("a..b")
+ * - must not contain prototype-pollution segments
+ *
+ * @param {unknown} path
+ * @returns {path is string}
+ */
+function isSafeDotPath(path) {
+    if (typeof path !== "string") return false;
+    const trimmed = path.trim();
+    if (!trimmed) return false;
+    const parts = trimmed.split(".");
+    for (const part of parts) {
+        if (!part) return false;
+        if (FORBIDDEN_DOT_PATH_SEGMENTS.has(part)) return false;
+    }
+    return true;
+}
+
+/**
  * @typedef {'log'|'info'|'warn'|'error'|'debug'} ConsoleLevel
  */
 
@@ -885,7 +963,7 @@ class MainProcessState {
  * @property {number|null} gyazoServerPort
  * @property {Map<string,Function>} pendingOAuthResolvers
  * @property {Map<string,HandlerInfo>} eventHandlers
- * @property {Map<string,Operation>} operations
+ * @property {Record<string,Operation>} operations
  * @property {ErrorEntry[]} errors
  * @property {Metrics} metrics
  */

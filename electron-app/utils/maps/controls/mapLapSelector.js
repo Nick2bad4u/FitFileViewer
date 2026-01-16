@@ -1,4 +1,5 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * @typedef {Object} LapMesg
@@ -56,93 +57,217 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     // Import theme colors for consistent theming
     const themeColors = /** @type {any} */ (getThemeColors());
 
-    lapControl.innerHTML = `
-        <div class="custom-lap-control leaflet-bar">
-            <button id="multi-lap-toggle" class="multi-lap-toggle" type="button" title="Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.">
-                <!-- Lap icon: stylized stopwatch/lap circle (matches single-lap icon above) -->
-                <svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-                    <circle cx="10" cy="11" r="6" fill="${themeColors.surface}" stroke="${
-                        themeColors.primary
-                    }" stroke-width="1.5"/>
-                    <rect x="8.5" y="3" width="3" height="2.5" rx="1" fill="${themeColors.primary}" />
-                    <line x1="10" y1="11" x2="10" y2="7.5" stroke="${
-                        themeColors.primary
-                    }" stroke-width="1.3" stroke-linecap="round"/>
-                    <line x1="10" y1="11" x2="13" y2="11" stroke="${
-                        themeColors.accent || themeColors.primary
-                    }" stroke-width="1.3" stroke-linecap="round"/>
-                    <circle cx="10" cy="11" r="1.2" fill="${themeColors.accent || themeColors.primary}" />
-                </svg>
-                <span style="color:${themeColors.text};margin-left:4px;">Laps:</span>
-            </button>
-            <button id="deselect-all-btn" class="deselect-all-btn" title="Deselect all laps (Esc)">
-                <svg class="icon" viewBox="0 0 16 16" width="16" height="16">
-                    <circle cx="8" cy="8" r="7" fill="none" stroke="${
-                        themeColors.textSecondary || "#888"
-                    }" stroke-width="2"/>
-                    <line x1="5" y1="5" x2="11" y2="11" stroke="${
-                        themeColors.textSecondary || "#888"
-                    }" stroke-width="2"/>
-                    <line x1="11" y1="5" x2="5" y2="11" stroke="${
-                        themeColors.textSecondary || "#888"
-                    }" stroke-width="2"/>
-                </svg>
-            </button>
-            <label for="lap-select" class="lap-label" style="color:${themeColors.text};">Lap:</label>
-            <select id="lap-select">
-                <option value="all">All</option>
-                ${windowWithData.globalData.lapMesgs.map((/** @type {any} */ _lap, /** @type {number} */ i) => `<option value="${i}">Lap ${i + 1}</option>`).join("")}
-            </select>
-        </div>
-    `;
+    // Idempotency: remove any prior lap selector control in this container.
+    const existing = container.querySelector(".custom-lap-control-container");
+    if (existing) {
+        existing.remove();
+    }
+
+    const safeColors = {
+        surface: sanitizeCssColorToken(themeColors.surface, "#ffffff"),
+        primary: sanitizeCssColorToken(themeColors.primary, "#3b82f6"),
+        accent: sanitizeCssColorToken(themeColors.accent || themeColors.primary, "#3b82f6"),
+        text: sanitizeCssColorToken(themeColors.text, "#0f172a"),
+        textSecondary: sanitizeCssColorToken(themeColors.textSecondary || "#888", "#888"),
+    };
+
+    /**
+     * @param {string} name
+     * @returns {SVGElement}
+     */
+    const svgEl = (name) => document.createElementNS("http://www.w3.org/2000/svg", name);
+
+    /**
+     * @returns {SVGElement}
+     */
+    const createStopwatchIcon = () => {
+        const svg = svgEl("svg");
+        svg.setAttribute("class", "icon");
+        svg.setAttribute("viewBox", "0 0 20 20");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "18");
+        svg.setAttribute("aria-hidden", "true");
+        svg.setAttribute("focusable", "false");
+
+        const circle = svgEl("circle");
+        circle.setAttribute("cx", "10");
+        circle.setAttribute("cy", "11");
+        circle.setAttribute("r", "6");
+        circle.setAttribute("fill", safeColors.surface);
+        circle.setAttribute("stroke", safeColors.primary);
+        circle.setAttribute("stroke-width", "1.5");
+
+        const rect = svgEl("rect");
+        rect.setAttribute("x", "8.5");
+        rect.setAttribute("y", "3");
+        rect.setAttribute("width", "3");
+        rect.setAttribute("height", "2.5");
+        rect.setAttribute("rx", "1");
+        rect.setAttribute("fill", safeColors.primary);
+
+        const hand1 = svgEl("line");
+        hand1.setAttribute("x1", "10");
+        hand1.setAttribute("y1", "11");
+        hand1.setAttribute("x2", "10");
+        hand1.setAttribute("y2", "7.5");
+        hand1.setAttribute("stroke", safeColors.primary);
+        hand1.setAttribute("stroke-width", "1.3");
+        hand1.setAttribute("stroke-linecap", "round");
+
+        const hand2 = svgEl("line");
+        hand2.setAttribute("x1", "10");
+        hand2.setAttribute("y1", "11");
+        hand2.setAttribute("x2", "13");
+        hand2.setAttribute("y2", "11");
+        hand2.setAttribute("stroke", safeColors.accent);
+        hand2.setAttribute("stroke-width", "1.3");
+        hand2.setAttribute("stroke-linecap", "round");
+
+        const dot = svgEl("circle");
+        dot.setAttribute("cx", "10");
+        dot.setAttribute("cy", "11");
+        dot.setAttribute("r", "1.2");
+        dot.setAttribute("fill", safeColors.accent);
+
+        svg.append(circle, rect, hand1, hand2, dot);
+        return svg;
+    };
+
+    /**
+     * @returns {SVGElement}
+     */
+    const createMultiLapIcon = () => {
+        const svg = svgEl("svg");
+        svg.setAttribute("class", "icon");
+        svg.setAttribute("viewBox", "0 0 20 20");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "18");
+        svg.setAttribute("aria-hidden", "true");
+        svg.setAttribute("focusable", "false");
+
+        /**
+         * @param {string} x
+         * @param {string} y
+         * @param {string} h
+         */
+        const addBar = (x, y, h) => {
+            const r = svgEl("rect");
+            r.setAttribute("x", x);
+            r.setAttribute("y", y);
+            r.setAttribute("width", "2.5");
+            r.setAttribute("height", h);
+            r.setAttribute("rx", "1");
+            r.setAttribute("fill", safeColors.accent);
+            r.setAttribute("stroke", safeColors.accent);
+            r.setAttribute("stroke-width", "1");
+            svg.append(r);
+        };
+
+        addBar("2", "11", "5");
+        addBar("6", "7", "9");
+        addBar("10", "4", "12");
+        addBar("14", "9", "7");
+        return svg;
+    };
+
+    /**
+     * @returns {SVGElement}
+     */
+    const createDeselectIcon = () => {
+        const svg = svgEl("svg");
+        svg.setAttribute("class", "icon");
+        svg.setAttribute("viewBox", "0 0 16 16");
+        svg.setAttribute("width", "16");
+        svg.setAttribute("height", "16");
+
+        const c = svgEl("circle");
+        c.setAttribute("cx", "8");
+        c.setAttribute("cy", "8");
+        c.setAttribute("r", "7");
+        c.setAttribute("fill", "none");
+        c.setAttribute("stroke", safeColors.textSecondary);
+        c.setAttribute("stroke-width", "2");
+
+        const l1 = svgEl("line");
+        l1.setAttribute("x1", "5");
+        l1.setAttribute("y1", "5");
+        l1.setAttribute("x2", "11");
+        l1.setAttribute("y2", "11");
+        l1.setAttribute("stroke", safeColors.textSecondary);
+        l1.setAttribute("stroke-width", "2");
+
+        const l2 = svgEl("line");
+        l2.setAttribute("x1", "11");
+        l2.setAttribute("y1", "5");
+        l2.setAttribute("x2", "5");
+        l2.setAttribute("y2", "11");
+        l2.setAttribute("stroke", safeColors.textSecondary);
+        l2.setAttribute("stroke-width", "2");
+
+        svg.append(c, l1, l2);
+        return svg;
+    };
+
+    const bar = document.createElement("div");
+    bar.className = "custom-lap-control leaflet-bar";
+
+    const multiLapToggle = document.createElement("button");
+    multiLapToggle.id = "multi-lap-toggle";
+    multiLapToggle.className = "multi-lap-toggle";
+    multiLapToggle.type = "button";
+    multiLapToggle.title =
+        "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
+    multiLapToggle.append(createStopwatchIcon());
+    const lapsText = document.createElement("span");
+    lapsText.textContent = "Laps:";
+    lapsText.style.color = safeColors.text;
+    lapsText.style.marginLeft = "4px";
+    multiLapToggle.append(lapsText);
+
+    const deselectAllBtn = document.createElement("button");
+    deselectAllBtn.id = "deselect-all-btn";
+    deselectAllBtn.className = "deselect-all-btn";
+    deselectAllBtn.title = "Deselect all laps (Esc)";
+    deselectAllBtn.append(createDeselectIcon());
+
+    const label = document.createElement("label");
+    label.className = "lap-label";
+    label.htmlFor = "lap-select";
+    label.textContent = "Lap:";
+    label.style.color = safeColors.text;
+
+    const lapSelect = document.createElement("select");
+    lapSelect.id = "lap-select";
+    const allOption = document.createElement("option");
+    allOption.value = "all";
+    allOption.textContent = "All";
+    lapSelect.append(allOption);
+    for (let i = 0; i < windowWithData.globalData.lapMesgs.length; i += 1) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = `Lap ${i + 1}`;
+        lapSelect.append(opt);
+    }
+
+    bar.append(multiLapToggle, deselectAllBtn, label, lapSelect);
+    lapControl.append(bar);
     lapControl.addEventListener("mousedown", (/** @type {Event} */ e) => e.stopPropagation());
     lapControl.addEventListener("touchstart", (/** @type {Event} */ e) => e.stopPropagation(), { passive: true });
     container.append(lapControl);
 
-    const deselectAllBtn = /** @type {HTMLButtonElement} */ (lapControl.querySelector("#deselect-all-btn")),
-        lapSelect = /** @type {HTMLSelectElement} */ (lapControl.querySelector("#lap-select")),
-        multiLapToggle = /** @type {HTMLButtonElement} */ (lapControl.querySelector("#multi-lap-toggle"));
+    const deselectAllBtnEl = /** @type {HTMLButtonElement} */ (deselectAllBtn);
+    const lapSelectEl = /** @type {HTMLSelectElement} */ (lapSelect);
+    const multiLapToggleEl = /** @type {HTMLButtonElement} */ (multiLapToggle);
     let multiSelectMode = false;
 
-    /**
-     * Get multi-lap icon based on state
-     * @param {boolean} on - Whether multi-lap mode is active
-     * @returns {string} HTML string for icon
-     */
-    function getMultiLapIcon(on) {
-        // Bar chart style icon for lap selectors, theme-aware
-        if (on) {
-            // Active: multi-lap mode icon (bar chart style, accent color)
-            return `<svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <rect x="2" y="11" width="2.5" height="5" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            <rect x="6" y="7" width="2.5" height="9" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            <rect x="10" y="4" width="2.5" height="12" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            <rect x="14" y="9" width="2.5" height="7" rx="1" fill="${
-                themeColors.accent || themeColors.primary
-            }" stroke="${themeColors.accent || themeColors.primary}" stroke-width="1"/>
-            </svg>`;
+    const renderToggleIcon = (on) => {
+        // Keep the label span, just swap the first child icon.
+        const existingSvg = multiLapToggleEl.querySelector("svg");
+        if (existingSvg) {
+            existingSvg.remove();
         }
-        // Inactive: single-lap mode icon (stopwatch/lap circle, primary color)
-        return `<svg class="icon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
-            <circle cx="10" cy="11" r="6" fill="${themeColors.surface}" stroke="${
-                themeColors.primary
-            }" stroke-width="1.5"/>
-            <rect x="8.5" y="3" width="3" height="2.5" rx="1" fill="${themeColors.primary}" />
-            <line x1="10" y1="11" x2="10" y2="7.5" stroke="${
-                themeColors.primary
-            }" stroke-width="1.3" stroke-linecap="round"/>
-            <line x1="10" y1="11" x2="13" y2="11" stroke="${
-                themeColors.accent || themeColors.primary
-            }" stroke-width="1.3" stroke-linecap="round"/>
-            <circle cx="10" cy="11" r="1.2" fill="${themeColors.accent || themeColors.primary}" />
-            </svg>`;
-    }
+        multiLapToggleEl.prepend(on ? createMultiLapIcon() : createStopwatchIcon());
+    };
 
     /**
      * Set multi-select mode state
@@ -152,60 +277,63 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     function setMultiSelectMode(on) {
         multiSelectMode = on;
         if (multiSelectMode) {
-            lapSelect.multiple = true;
-            lapSelect.size = Math.min(windowWithData.globalData.lapMesgs.length + 1, 6);
-            multiLapToggle?.classList.add("active");
+            lapSelectEl.multiple = true;
+            lapSelectEl.size = Math.min(windowWithData.globalData.lapMesgs.length + 1, 6);
+            multiLapToggleEl?.classList.add("active");
             lapControl.classList.add("multi-select-active");
-            if (deselectAllBtn) {
-                deselectAllBtn.style.display = "";
+            if (deselectAllBtnEl) {
+                deselectAllBtnEl.style.display = "";
             }
-            multiLapToggle.innerHTML = getMultiLapIcon(true);
-            multiLapToggle.title = "Return to single-lap mode";
+            renderToggleIcon(true);
+            multiLapToggleEl.title = "Return to single-lap mode";
         } else {
-            lapSelect.multiple = false;
-            lapSelect.size = 1;
-            multiLapToggle?.classList.remove("active");
+            lapSelectEl.multiple = false;
+            lapSelectEl.size = 1;
+            multiLapToggleEl?.classList.remove("active");
             lapControl.classList.remove("multi-select-active");
-            if (deselectAllBtn) {
-                deselectAllBtn.style.display = "none";
+            if (deselectAllBtnEl) {
+                deselectAllBtnEl.style.display = "none";
             }
-            multiLapToggle.innerHTML = getMultiLapIcon(false);
-            multiLapToggle.title =
+            renderToggleIcon(false);
+            multiLapToggleEl.title =
                 "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
             // If more than one selected, reset to 'all'
             if (
-                lapSelect.selectedOptions.length > 1 ||
-                (lapSelect.selectedOptions.length === 1 && lapSelect.selectedOptions[0]?.value !== "all")
+                lapSelectEl.selectedOptions.length > 1 ||
+                (lapSelectEl.selectedOptions.length === 1 && lapSelectEl.selectedOptions[0]?.value !== "all")
             ) {
-                lapSelect.selectedIndex = 0;
-                lapSelect.dispatchEvent(new Event("change"));
+                lapSelectEl.selectedIndex = 0;
+                lapSelectEl.dispatchEvent(new Event("change"));
             }
         }
     }
 
-    if (deselectAllBtn) {
-        deselectAllBtn.addEventListener("click", () => {
-            for (const opt of lapSelect.options) {
+    if (deselectAllBtnEl) {
+        deselectAllBtnEl.addEventListener("click", () => {
+            for (const opt of lapSelectEl.options) {
                 opt.selected = false;
             }
-            lapSelect.selectedIndex = 0;
-            lapSelect.dispatchEvent(new Event("change"));
+            lapSelectEl.selectedIndex = 0;
+            lapSelectEl.dispatchEvent(new Event("change"));
         });
     }
 
-    multiLapToggle.addEventListener("click", () => setMultiSelectMode(!multiSelectMode));
+    // Hide deselect button by default.
+    deselectAllBtnEl.style.display = "none";
 
-    lapSelect.addEventListener("change", () => {
-        let selected = [...lapSelect.selectedOptions].map((/** @type {HTMLOptionElement} */ opt) => opt.value);
+    multiLapToggleEl.addEventListener("click", () => setMultiSelectMode(!multiSelectMode));
+
+    lapSelectEl.addEventListener("change", () => {
+        let selected = [...lapSelectEl.selectedOptions].map((/** @type {HTMLOptionElement} */ opt) => opt.value);
         if (multiSelectMode) {
             if (selected.includes("all") && selected.length > 1) {
-                for (const opt of lapSelect.options) {
+                for (const opt of lapSelectEl.options) {
                     opt.selected = opt.value === "all";
                 }
                 selected = ["all"];
             }
             if (selected.length === 0) {
-                lapSelect.selectedIndex = 0;
+                lapSelectEl.selectedIndex = 0;
                 selected = ["all"];
             }
             if (selected.length === 1 && selected[0] === "all") {
@@ -224,7 +352,7 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     // Drag-to-select logic
     let dragSelecting = false,
         dragSelectValue = /** @type {boolean | null} */ (null);
-    lapSelect.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
+    lapSelectEl.addEventListener("mousedown", (/** @type {MouseEvent} */ e) => {
         const { target } = /** @type {{ target: HTMLElement }} */ (e);
         if (multiSelectMode && target && target.tagName === "OPTION") {
             e.preventDefault();
@@ -232,53 +360,62 @@ export function addLapSelector(_map, container, mapDrawLaps) {
             const opt = /** @type {HTMLOptionElement} */ (target);
             dragSelectValue = !opt.selected;
             if (opt.value === "all") {
-                for (const o of lapSelect.options) {
+                for (const o of lapSelectEl.options) {
                     o.selected = o.value === "all";
                 }
             } else {
                 opt.selected = dragSelectValue;
-                if (lapSelect.options[0]) {
-                    lapSelect.options[0].selected = false;
+                if (lapSelectEl.options[0]) {
+                    lapSelectEl.options[0].selected = false;
                 }
             }
-            lapSelect.dispatchEvent(new Event("change"));
+            lapSelectEl.dispatchEvent(new Event("change"));
         }
     });
-    lapSelect.addEventListener("mouseover", (/** @type {MouseEvent} */ e) => {
+    lapSelectEl.addEventListener("mouseover", (/** @type {MouseEvent} */ e) => {
         const { target } = /** @type {{ target: HTMLElement }} */ (e);
         if (multiSelectMode && dragSelecting && target && target.tagName === "OPTION") {
             const opt = /** @type {HTMLOptionElement} */ (target);
             if (opt.value !== "all") {
                 opt.selected = /** @type {boolean} */ (dragSelectValue);
-                if (lapSelect.options[0]) {
-                    lapSelect.options[0].selected = false;
+                if (lapSelectEl.options[0]) {
+                    lapSelectEl.options[0].selected = false;
                 }
-                lapSelect.dispatchEvent(new Event("change"));
+                lapSelectEl.dispatchEvent(new Event("change"));
             }
         }
     });
-    document.addEventListener("mouseup", () => {
+
+    // Avoid leaking document-level handlers if the map is re-rendered.
+    /** @type {any} */
+    const g = globalThis;
+    const mouseupKey = "__ffvLapSelectorMouseupHandler";
+    if (typeof g[mouseupKey] === "function") {
+        document.removeEventListener("mouseup", g[mouseupKey]);
+    }
+    g[mouseupKey] = () => {
         dragSelecting = false;
         dragSelectValue = null;
-    });
+    };
+    document.addEventListener("mouseup", g[mouseupKey]);
 
     // Add scroll wheel support for changing lap selection
-    lapSelect.addEventListener(
+    lapSelectEl.addEventListener(
         "wheel",
         (/** @type {WheelEvent} */ e) => {
             e.preventDefault();
             e.stopPropagation();
-            const options = [...lapSelect.options];
-            let idx = lapSelect.selectedIndex;
+            const options = [...lapSelectEl.options];
+            let idx = lapSelectEl.selectedIndex;
             if (idx === -1) {
                 idx = 0;
             }
             if (e.deltaY > 0 && idx < options.length - 1) {
-                lapSelect.selectedIndex = idx + 1;
+                lapSelectEl.selectedIndex = idx + 1;
             } else if (e.deltaY < 0 && idx > 0) {
-                lapSelect.selectedIndex = idx - 1;
+                lapSelectEl.selectedIndex = idx - 1;
             }
-            lapSelect.dispatchEvent(new Event("change"));
+            lapSelectEl.dispatchEvent(new Event("change"));
         },
         { passive: false }
     );

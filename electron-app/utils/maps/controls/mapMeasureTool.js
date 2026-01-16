@@ -1,6 +1,7 @@
 /* global L */
 // Simple point-to-point measurement tool for Leaflet
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { sanitizeCssColorToken } from "../../dom/index.js";
 
 /**
  * Add a simple point-to-point measurement tool (two clicks) to a Leaflet map.
@@ -32,12 +33,15 @@ export function addSimpleMeasureTool(map, controlsDiv) {
     const measureBtn = document.createElement("button"),
         themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
+
+    const safePrimary = sanitizeCssColorToken(/** @type {any} */ (themeColors).primary, "#3b82f6");
+    const safeSurface = sanitizeCssColorToken(/** @type {any} */ (themeColors).surface, "#ffffff");
     measureBtn.innerHTML = `
         <svg class="icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-            <line x1="5" y1="19" x2="19" y2="5" stroke="${themeColors.primary}" stroke-width="2"/>
-            <circle cx="5" cy="19" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-            <circle cx="19" cy="5" r="2.5" fill="${themeColors.surface}" stroke="${themeColors.primary}" stroke-width="2"/>
-            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${themeColors.primary}">↔</text>
+            <line x1="5" y1="19" x2="19" y2="5" stroke="${safePrimary}" stroke-width="2"/>
+            <circle cx="5" cy="19" r="2.5" fill="${safeSurface}" stroke="${safePrimary}" stroke-width="2"/>
+            <circle cx="19" cy="5" r="2.5" fill="${safeSurface}" stroke="${safePrimary}" stroke-width="2"/>
+            <text x="12" y="15" text-anchor="middle" font-size="7" fill="${safePrimary}">↔</text>
         </svg>
         <span>Measure</span>`;
     measureBtn.title = "Click, then click two points on the map to measure distance";
@@ -70,8 +74,15 @@ export function addSimpleMeasureTool(map, controlsDiv) {
         }
     }
 
-    // Add Escape key handler to clear measurement
-    document.addEventListener("keydown", (e) => {
+    // Add Escape key handler to clear measurement.
+    // Idempotent: avoid leaking duplicate handlers if the map is re-rendered.
+    /** @type {any} */
+    const g = globalThis;
+    const escapeKey = "__ffvMapMeasureEscapeHandler";
+    if (typeof g[escapeKey] === "function") {
+        document.removeEventListener("keydown", g[escapeKey]);
+    }
+    g[escapeKey] = (e) => {
         const { key } = e;
         if (key === "Escape") {
             clearMeasure();
@@ -80,7 +91,8 @@ export function addSimpleMeasureTool(map, controlsDiv) {
                 disableMeasure(measureBtn);
             }
         }
-    });
+    };
+    document.addEventListener("keydown", g[escapeKey]);
 
     function createExitButton() {
         return `<button class="measure-exit-btn" title="Remove measurement">&times;</button>`;

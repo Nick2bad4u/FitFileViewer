@@ -30,6 +30,25 @@ function validateExternalUrl(url) {
         throw new TypeError("Invalid URL provided");
     }
 
+    // Basic length guard to avoid pathological inputs.
+    // (Most browsers effectively cap URL length anyway; we enforce a conservative limit.)
+    if (trimmed.length > 4096) {
+        throw new TypeError("Invalid URL provided");
+    }
+
+    // Reject control characters outright.
+    for (const char of trimmed) {
+        const code = char.codePointAt(0);
+        if (code !== undefined && (code < 0x20 || code === 0x7f)) {
+            throw new TypeError("Invalid URL provided");
+        }
+    }
+
+    // Require any whitespace to be percent-encoded.
+    if (/\s/u.test(trimmed)) {
+        throw new TypeError("Invalid URL provided");
+    }
+
     let parsed;
     try {
         parsed = new URL(trimmed);

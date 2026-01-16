@@ -18,39 +18,75 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
  *
  * @param {Object} params
  * @param {ParentNode} params.root
+ * @returns {() => void} cleanup
  */
 export function attachExternalLinkHandlers({ root }) {
+    /** @type {EventTarget | null} */
+    const target =
+        root && typeof /** @type {any} */ (root).addEventListener === "function"
+            ? /** @type {any} */ (root)
+            : null;
+
+    if (!target) {
+        return () => {};
+    }
+
+    /** @type {Array<() => void>} */
+    const cleanupFns = [];
+
     // Delegate click handling to the root to avoid per-link loops.
-    addEventListenerWithCleanup(/** @type {HTMLElement} */ (root), "click", (e) => {
+    cleanupFns.push(
+        addEventListenerWithCleanup(target, "click", (e) => {
         const event = /** @type {MouseEvent} */ (e);
         const anchor = resolveExternalLinkAnchor(event.target);
         if (!anchor) return;
 
-        // Use the resolved href property for backward compatibility with previous implementations.
-        // In browsers this canonicalizes URLs (e.g., adds trailing slash for bare origins).
-        const { href } = anchor;
-        if (typeof href !== "string" || href.trim().length === 0) return;
+            // Prefer the raw attribute to avoid browser canonicalization (e.g., adding trailing slash).
+            const rawHref = anchor.getAttribute("href") ?? anchor.href;
+            const validated = validateExternalHttpUrl(rawHref);
 
-        event.preventDefault();
-        event.stopPropagation();
-        openExternal(href);
-    });
+            // Always prevent in-app navigation for marked external links.
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!validated) {
+                return;
+            }
+            openExternal(validated);
+        })
+    );
 
     // Support keyboard activation on the anchor itself.
-    addEventListenerWithCleanup(/** @type {HTMLElement} */ (root), "keydown", (e) => {
+    cleanupFns.push(
+        addEventListenerWithCleanup(target, "keydown", (e) => {
         const event = /** @type {KeyboardEvent} */ (e);
         if (event.key !== "Enter" && event.key !== " ") return;
 
         const anchor = resolveExternalLinkAnchor(event.target);
         if (!anchor) return;
 
-        const { href } = anchor;
-        if (typeof href !== "string" || href.trim().length === 0) return;
+            const rawHref = anchor.getAttribute("href") ?? anchor.href;
+            const validated = validateExternalHttpUrl(rawHref);
 
-        event.preventDefault();
-        event.stopPropagation();
-        openExternal(href);
-    });
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!validated) {
+                return;
+            }
+            openExternal(validated);
+        })
+    );
+
+    return () => {
+        for (const fn of cleanupFns.splice(0)) {
+            try {
+                fn();
+            } catch {
+                /* ignore */
+            }
+        }
+    };
 }
 
 /**
@@ -61,7 +97,7 @@ export function attachExternalLinkHandlers({ root }) {
 function openExternal(url) {
     const api =
         /** @type {any} */ (globalThis).electronAPI ??
-        /** @type {any} */ ((globalThis).window ? /** @type {any} */ (globalThis).window.electronAPI : null);
+        /** @type {any} */ (globalThis.window ? /** @type {any} */ (globalThis).window.electronAPI : null);
 
     if (typeof api?.openExternal === "function") {
         // Renderer-facing API returns a promise.
@@ -96,4 +132,60 @@ function resolveExternalLinkAnchor(target) {
     if (!(anchor instanceof HTMLAnchorElement)) return null;
 
     return anchor;
+}
+
+/**
+ * Validate an external URL coming from DOM markup.
+ *
+ * Security:
+ * - allow only http/https
+ * - reject embedded credentials
+ * - reject whitespace/control characters
+ * - reject non-string/empty inputs
+ *
+ * @param {unknown} url
+ * @returns {string | null}
+ */
+function validateExternalHttpUrl(url) {
+    if (typeof url !== "string") {
+        return null;
+    }
+
+    const trimmed = url.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    if (trimmed.length > 4096) {
+        return null;
+    }
+
+    // Reject any whitespace (must be percent-encoded).
+    if (/\s/u.test(trimmed)) {
+        return null;
+    }
+
+    // Reject control characters outright.
+    for (const ch of trimmed) {
+        const code = ch.codePointAt(0);
+        if (code !== undefined && (code < 0x20 || code === 0x7f)) {
+            return null;
+        }
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(trimmed);
+    } catch {
+        return null;
+    }
+
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return null;
+    }
+    if (parsed.username || parsed.password) {
+        return null;
+    }
+
+    return trimmed;
 }

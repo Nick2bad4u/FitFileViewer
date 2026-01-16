@@ -16,6 +16,22 @@ function registerFitFileHandlers({
         return;
     }
 
+    // Keep this in sync with setupIPCHandlers.js. This is a hard safety guard to
+    // prevent renderer-driven memory blowups.
+    const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
+
+    /**
+     * @param {number} byteLength
+     */
+    const assertWithinFitLimit = (byteLength) => {
+        if (!Number.isFinite(byteLength) || byteLength < 0) {
+            throw new TypeError("Invalid FIT data: expected a finite byte length");
+        }
+        if (byteLength > MAX_FIT_FILE_BYTES) {
+            throw new Error("File size exceeds 100MB limit");
+        }
+    };
+
     /**
      * Normalizes IPC payloads into a Node Buffer.
      *
@@ -28,10 +44,12 @@ function registerFitFileHandlers({
      */
     const toBuffer = (value) => {
         if (value instanceof ArrayBuffer) {
+            assertWithinFitLimit(value.byteLength);
             return Buffer.from(value);
         }
         if (value && typeof value === "object" && ArrayBuffer.isView(value) && value.buffer instanceof ArrayBuffer) {
             // @ts-ignore - ArrayBufferView typing
+            assertWithinFitLimit(value.byteLength);
             return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
         }
         throw new TypeError("Invalid FIT data: expected ArrayBuffer");

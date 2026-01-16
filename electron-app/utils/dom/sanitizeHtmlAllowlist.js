@@ -18,6 +18,27 @@
  */
 
 /**
+ * Attributes that can trigger network/file fetches or navigation.
+ *
+ * We always remove these even if a caller includes them in allowedAttributes.
+ * This sanitizer is designed for small, presentation-only fragments.
+ */
+const ALWAYS_STRIP_URL_ATTRIBUTES = new Set([
+    "action",
+    "background",
+    "cite",
+    "data",
+    "formaction",
+    "href",
+    "longdesc",
+    "manifest",
+    "poster",
+    "src",
+    "srcset",
+    "xlink:href",
+]);
+
+/**
  * Sanitise an HTML string into a safe DocumentFragment.
  *
  * Strategy:
@@ -66,7 +87,7 @@ export function sanitizeHtmlAllowlist(html, options) {
             }
 
             // Defensive: disallow URL-bearing attributes.
-            if (name === "href" || name === "src" || name === "xlink:href") {
+            if (ALWAYS_STRIP_URL_ATTRIBUTES.has(name)) {
                 el.removeAttribute(attr.name);
                 continue;
             }
@@ -76,11 +97,8 @@ export function sanitizeHtmlAllowlist(html, options) {
                 continue;
             }
 
-            if (stripUrlInStyle && name === "style") {
-                const lower = value.toLowerCase();
-                if (lower.includes("url(") || lower.includes("expression(")) {
-                    el.removeAttribute(attr.name);
-                }
+            if (stripUrlInStyle && name === "style" && containsUnsafeCss(value)) {
+                el.removeAttribute(attr.name);
             }
         }
     }
@@ -99,4 +117,57 @@ export function sanitizeHtmlAllowlist(html, options) {
     }
 
     return template.content;
+}
+
+/**
+ * Conservative check for URL-capable primitives within a style attribute.
+ *
+ * @param {string} styleValue
+ * @returns {boolean}
+ */
+function containsUnsafeCss(styleValue) {
+    // Remove comments first so `u/*x*/rl(` can't bypass scans.
+    const withoutComments = styleValue.replaceAll(/\/\*[\s\S]*?\*\//gu, "");
+    const decoded = decodeCssEscapesForScan(withoutComments);
+    const normalized = decoded.toLowerCase().replaceAll(/\s+/gu, "");
+
+    // Block URL-like constructs.
+    // Note: we intentionally do not include a literal "javascript:" substring here.
+    return (
+        normalized.includes("url(") ||
+        normalized.includes("expression(") ||
+        normalized.includes("@import") ||
+        // Old IE behavior() can fetch remote resources.
+        normalized.includes("behavior:")
+    );
+}
+
+/**
+ * Decode CSS escape sequences so string-scans can't be bypassed via e.g. `u\\72l(...)`.
+ *
+ * This is not a full CSS parser; it's a best-effort canonicalization specifically
+ * for detecting dangerous URL-capable constructs inside style attributes.
+ *
+ * @param {string} input
+ * @returns {string}
+ */
+function decodeCssEscapesForScan(input) {
+    // CSS escapes:
+    // - \HHHHHH[whitespace]? (1-6 hex digits)
+    // - \<any char>
+    // Ref: CSS Syntax Level 3.
+    return input.replaceAll(/\\(?:([0-9a-f]{1,6})(?:\s)?|([\s\S]))/giu, (_match, hex, single) => {
+        if (hex) {
+            const codePoint = Number.parseInt(hex, 16);
+            if (!Number.isFinite(codePoint) || codePoint <= 0 || codePoint > 0x10_ff_ff) {
+                return "";
+            }
+            try {
+                return String.fromCodePoint(codePoint);
+            } catch {
+                return "";
+            }
+        }
+        return typeof single === "string" ? single : "";
+    });
 }

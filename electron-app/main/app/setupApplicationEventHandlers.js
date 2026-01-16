@@ -11,6 +11,117 @@ const { getAppState, setAppState } = require("../state/appState");
 const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
 const { validateWindow } = require("../window/windowValidation");
 
+const SESSION_PERMISSIONS_MARKER = "__ffvSessionPermissionHandlersRegistered";
+const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
+
+/**
+ * Registry for app-level listeners so we can replace them safely.
+ *
+ * We intentionally do NOT short-circuit setupApplicationEventHandlers() on repeat calls,
+ * because some unit/coverage tests expect app.on(...) to be invoked for their mock app.
+ * Instead, we remove the previous listener (when supported) and re-add.
+ */
+const APP_LISTENER_REGISTRY = new Map();
+
+/**
+ * Configure a conservative download policy.
+ *
+ * Why: the renderer uses blob: downloads for export features (CSV/JSON/ZIP/GPX).
+ * However, a compromised renderer could also trigger arbitrary http(s) downloads.
+ *
+ * Policy:
+ * - Allow only blob: and data: URLs.
+ * - Cancel everything else.
+ *
+ * @param {any} session
+ */
+function configureSessionDownloadPolicy(session) {
+    if (!session || typeof session !== "object") return;
+    if (!markOnce(session, SESSION_DOWNLOAD_MARKER)) return;
+
+    if (typeof session.on !== "function") return;
+
+    try {
+        session.on("will-download", (event, item) => {
+            try {
+                const url = typeof item?.getURL === "function" ? item.getURL() : "";
+                const parsed = typeof url === "string" ? safeParseUrl(url) : null;
+                const protocol = parsed?.protocol;
+
+                // Allow in-app export downloads.
+                if (protocol === "blob:" || protocol === "data:") {
+                    return;
+                }
+
+                // Block everything else.
+                if (event && typeof event.preventDefault === "function") {
+                    event.preventDefault();
+                }
+                if (item && typeof item.cancel === "function") {
+                    item.cancel();
+                }
+
+                logWithContext("warn", "Blocked download", { url });
+
+                // UX: if this was an http(s) URL, prefer opening it externally.
+                if (typeof url === "string") {
+                    tryOpenExternal(url);
+                }
+            } catch {
+                // Fail closed
+                try {
+                    if (event && typeof event.preventDefault === "function") {
+                        event.preventDefault();
+                    }
+                    if (item && typeof item.cancel === "function") {
+                        item.cancel();
+                    }
+                } catch {
+                    /* ignore */
+                }
+            }
+        });
+    } catch {
+        /* ignore */
+    }
+}
+
+/**
+ * Deny-by-default permission hardening.
+ *
+ * FitFileViewer does not require runtime permissions like camera/microphone/geolocation.
+ * If a future feature requires a permission, add an explicit allowlist here.
+ *
+ * @param {any} session
+ */
+function configureSessionPermissionHandlers(session) {
+    if (!session || typeof session !== "object") return;
+    if (!markOnce(session, SESSION_PERMISSIONS_MARKER)) return;
+
+    try {
+        if (typeof session.setPermissionRequestHandler === "function") {
+            session.setPermissionRequestHandler((_webContents, _permission, callback) => {
+                try {
+                    // eslint-disable-next-line n/no-callback-literal
+                    callback(false);
+                } catch {
+                    /* ignore */
+                }
+            });
+        }
+    } catch {
+        /* ignore */
+    }
+
+    try {
+        if (typeof session.setPermissionCheckHandler === "function") {
+            session.setPermissionCheckHandler(() => false);
+        }
+    } catch {
+        /* ignore */
+    }
+}
+
 /**
  * Determines whether a file:// URL is safe to load inside the app.
  *
@@ -131,6 +242,62 @@ function isTestMode() {
 }
 
 /**
+ * Best-effort set a hidden marker property.
+ * @param {object} target
+ * @param {string} key
+ * @returns {boolean} true if this call set the marker, false if it was already set.
+ */
+function markOnce(target, key) {
+    if (!target || typeof target !== "object") return true;
+
+    if (Object.hasOwn(target, key) && Boolean(target[key])) {
+        return false;
+    }
+    try {
+        Object.defineProperty(target, key, {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: true,
+        });
+    } catch {
+        // Fall back to assignment if defineProperty fails.
+        try {
+            // @ts-ignore
+            target[key] = true;
+        } catch {
+            /* ignore */
+        }
+    }
+    return true;
+}
+
+/**
+ * (Re)register an Electron app event listener.
+ *
+ * @param {string} eventName
+ * @param {Function} listener
+ */
+function registerAppListener(eventName, listener) {
+    const app = appRef();
+    if (!app || typeof app.on !== "function") {
+        return;
+    }
+
+    const existing = APP_LISTENER_REGISTRY.get(eventName);
+    if (existing && typeof app.removeListener === "function") {
+        try {
+            app.removeListener(eventName, existing);
+        } catch {
+            /* ignore */
+        }
+    }
+
+    app.on(eventName, listener);
+    APP_LISTENER_REGISTRY.set(eventName, listener);
+}
+
+/**
  * Safely parse a URL string.
  * @param {string} url
  * @returns {URL | null}
@@ -147,7 +314,7 @@ function safeParseUrl(url) {
  * Registers core application-level Electron event handlers (activate, window-all-closed, etc.).
  */
 function setupApplicationEventHandlers() {
-    appRef().on("activate", () => {
+    registerAppListener("activate", () => {
         try {
             const BW = browserWindowRef();
             if (BW && typeof BW.getAllWindows === "function") {
@@ -178,7 +345,7 @@ function setupApplicationEventHandlers() {
         }
     });
 
-    appRef().on("browser-window-focus", async (_event, win) => {
+    registerAppListener("browser-window-focus", async (_event, win) => {
         if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
             try {
                 const theme = await getThemeFromRenderer(win);
@@ -191,7 +358,7 @@ function setupApplicationEventHandlers() {
         }
     });
 
-    appRef().on("window-all-closed", () => {
+    registerAppListener("window-all-closed", () => {
         setAppState("appIsQuitting", true);
         if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
             const app = appRef();
@@ -199,7 +366,7 @@ function setupApplicationEventHandlers() {
         }
     });
 
-    appRef().on("before-quit", async (event) => {
+    registerAppListener("before-quit", async (event) => {
         setAppState("appIsQuitting", true);
         const gyazoServer = getAppState("gyazoServer");
         if (gyazoServer) {
@@ -218,7 +385,15 @@ function setupApplicationEventHandlers() {
         }
     });
 
-    appRef().on("web-contents-created", (_event, contents) => {
+    registerAppListener("web-contents-created", (_event, contents) => {
+        // Configure deny-by-default permission handlers.
+        try {
+            configureSessionPermissionHandlers(contents?.session);
+            configureSessionDownloadPolicy(contents?.session);
+        } catch {
+            /* ignore */
+        }
+
         // Prevent <webview> usage (recommended Electron hardening). We do not use webviews.
         if (contents && typeof contents.on === "function") {
             contents.on("will-attach-webview", (event) => {

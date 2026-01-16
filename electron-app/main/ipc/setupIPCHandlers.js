@@ -106,17 +106,44 @@ function setupIPCHandlers(mainWindow) {
             }
 
             return new Promise((resolve, reject) => {
-                fs.readFile(authorizedPath, (err, data) => {
-                    if (err) {
-                        logWithContext("error", "Error reading file:", {
-                            error: /** @type {Error} */ (err).message,
-                            filePath: authorizedPath,
-                        });
-                        reject(err);
-                    } else {
+                const read = () => {
+                    fs.readFile(authorizedPath, (err, data) => {
+                        if (err) {
+                            logWithContext("error", "Error reading file:", {
+                                error: /** @type {Error} */ (err).message,
+                                filePath: authorizedPath,
+                            });
+                            reject(err);
+                            return;
+                        }
+
+                        if (data && typeof data.byteLength === "number" && data.byteLength > MAX_FIT_FILE_BYTES) {
+                            reject(new Error("File size exceeds 100MB limit"));
+                            return;
+                        }
+
                         resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
-                    }
-                });
+                    });
+                };
+
+                // Preflight size check if stat is available.
+                if (typeof fs.stat === "function") {
+                    fs.stat(authorizedPath, (statErr, stats) => {
+                        if (statErr) {
+                            read();
+                            return;
+                        }
+                        const size = stats && typeof stats.size === "number" ? stats.size : 0;
+                        if (size > MAX_FIT_FILE_BYTES) {
+                            reject(new Error("File size exceeds 100MB limit"));
+                            return;
+                        }
+                        read();
+                    });
+                    return;
+                }
+
+                read();
             });
         } catch (error) {
             logWithContext("error", "Error in file:read:", {
@@ -129,13 +156,7 @@ function setupIPCHandlers(mainWindow) {
     registerIpcHandle("fit:parse", async (_event, arrayBuffer) => {
         try {
             await ensureFitParserStateIntegration();
-            if (!(arrayBuffer instanceof ArrayBuffer)) {
-                throw new TypeError("Invalid FIT data: expected ArrayBuffer");
-            }
-            if (arrayBuffer.byteLength > MAX_FIT_FILE_BYTES) {
-                throw new Error(`FIT data too large (${arrayBuffer.byteLength} bytes)`);
-            }
-            const buffer = Buffer.from(arrayBuffer);
+            const buffer = toFitBuffer(arrayBuffer);
             const fitParser = require("../../fitParser");
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
@@ -149,13 +170,7 @@ function setupIPCHandlers(mainWindow) {
     registerIpcHandle("fit:decode", async (_event, arrayBuffer) => {
         try {
             await ensureFitParserStateIntegration();
-            if (!(arrayBuffer instanceof ArrayBuffer)) {
-                throw new TypeError("Invalid FIT data: expected ArrayBuffer");
-            }
-            if (arrayBuffer.byteLength > MAX_FIT_FILE_BYTES) {
-                throw new Error(`FIT data too large (${arrayBuffer.byteLength} bytes)`);
-            }
-            const buffer = Buffer.from(arrayBuffer);
+            const buffer = toFitBuffer(arrayBuffer);
             const fitParser = require("../../fitParser");
             return await fitParser.decodeFitFile(buffer);
         } catch (error) {
@@ -272,6 +287,29 @@ function setupIPCHandlers(mainWindow) {
             throw error;
         }
     });
+}
+
+/**
+ * @param {unknown} value
+ * @returns {Buffer}
+ */
+function toFitBuffer(value) {
+    if (value instanceof ArrayBuffer) {
+        if (value.byteLength > MAX_FIT_FILE_BYTES) {
+            throw new Error(`FIT data too large (${value.byteLength} bytes)`);
+        }
+        return Buffer.from(value);
+    }
+    if (value && typeof value === "object" && ArrayBuffer.isView(value) && value.buffer instanceof ArrayBuffer) {
+        // @ts-ignore - ArrayBufferView typing
+        if (value.byteLength > MAX_FIT_FILE_BYTES) {
+            // @ts-ignore - ArrayBufferView typing
+            throw new Error(`FIT data too large (${value.byteLength} bytes)`);
+        }
+        // @ts-ignore - ArrayBufferView typing
+        return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+    }
+    throw new TypeError("Invalid FIT data: expected ArrayBuffer");
 }
 
 module.exports = { setupIPCHandlers };

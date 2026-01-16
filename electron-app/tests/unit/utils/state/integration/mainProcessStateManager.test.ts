@@ -80,7 +80,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                 expect(stateInstance.data.gyazoServerPort).toBeNull();
                 expect(stateInstance.data.loadedFitFilePath).toBeNull();
                 expect(stateInstance.data.mainWindow).toBeNull();
-                expect(stateInstance.data.operations).toBeInstanceOf(Map);
+                expect(stateInstance.data.operations).toBeTypeOf("object");
                 expect(stateInstance.data.pendingOAuthResolvers).toBeInstanceOf(Map);
                 expect(stateInstance.data.metrics).toBeDefined();
                 expect(stateInstance.data.metrics.operationTimes).toBeInstanceOf(Map);
@@ -756,6 +756,40 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         // Test restricted path
         const result2 = setHandler({}, "restrictedPath", "value");
         expect(result2).toBe(false);
+    });
+
+    test("main-state:set should block prototype pollution paths", () => {
+        const testInstance = new MainProcessState();
+
+        const setHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:set")![1];
+
+        // Attempt to set a path that would normally pollute Object.prototype if not blocked
+        const result = setHandler({}, "operations.__proto__.polluted", "yes");
+        expect(result).toBe(false);
+
+        // Verify we did not pollute prototypes
+        // eslint-disable-next-line no-prototype-builtins
+        expect(Object.prototype.hasOwnProperty.call(Object.prototype, "polluted")).toBe(false);
+        expect(({} as any).polluted).toBeUndefined();
+
+        // Also ensure no operation was created
+        const op = testInstance.get("operations.polluted");
+        expect(op).toBeNull();
+    });
+
+    test("main-state:operations should return plain object entries", () => {
+        // Ensure the handler we call is the one registered by THIS instance.
+        mockIpcMain.handle.mockClear();
+        const testInstance = new MainProcessState();
+        const operationsHandler = mockIpcMain.handle.mock.calls.find((call) => call[0] === "main-state:operations")![1];
+
+        // Seed an operation using the main state setter (same mechanics as normal usage)
+        testInstance.set("operations.test-op", { id: "test-op", status: "running" });
+
+        const result = operationsHandler();
+        expect(result).toBeTypeOf("object");
+        expect(result).toHaveProperty("test-op");
+        expect((result as any)["test-op"]).toMatchObject({ id: "test-op", status: "running" });
     });
 
     test("should handle main-state:listen IPC calls", () => {

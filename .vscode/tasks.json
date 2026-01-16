@@ -17,11 +17,10 @@
             "label": "run vitest in electron-app",
             "type": "shell",
             "command": "npm",
-            "args": [
-                "--prefix",
-                "electron-app",
-                "test"
-            ],
+            "args": ["test"],
+            "options": {
+                "cwd": "${workspaceFolder}/electron-app"
+            },
             "isBackground": false,
             "problemMatcher": ["$eslint-stylish"],
             "group": "build"
