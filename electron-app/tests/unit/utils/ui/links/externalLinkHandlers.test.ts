@@ -2,6 +2,8 @@
  * @vitest-environment jsdom
  */
 
+import { screen } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { attachExternalLinkHandlers } from "../../../../../utils/ui/links/externalLinkHandlers.js";
@@ -13,10 +15,12 @@ describe("externalLinkHandlers", () => {
         document.body.innerHTML = "";
     });
 
-    it("opens http(s) href via electronAPI.openExternal and prevents default", () => {
+    it("opens http(s) href via electronAPI.openExternal and prevents default", async () => {
         const openExternal = vi.fn().mockResolvedValue(true);
         // @ts-expect-error test shim
         globalThis.electronAPI = { openExternal };
+
+        const user = userEvent.setup();
 
         const root = document.createElement("div");
         root.innerHTML = '<a data-external-link href="https://example.com">Example</a>';
@@ -24,20 +28,22 @@ describe("externalLinkHandlers", () => {
 
         const cleanup = attachExternalLinkHandlers({ root });
 
-        const a = root.querySelector("a") as HTMLAnchorElement;
-        const ev = new MouseEvent("click", { bubbles: true, cancelable: true });
-        a.dispatchEvent(ev);
+        const a = screen.getByRole("link", { name: "Example" });
 
-        expect(ev.defaultPrevented).toBe(true);
-        expect(openExternal).toHaveBeenCalledWith("https://example.com");
+        await user.click(a);
+
+        // jsdom may canonicalize bare origins to include a trailing slash.
+        expect(openExternal).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/example\.com\/?$/));
 
         cleanup();
     });
 
-    it("blocks non-http(s) schemes (e.g., javascript:) and still prevents in-app navigation", () => {
+    it("blocks non-http(s) schemes (e.g., javascript:) and still prevents in-app navigation", async () => {
         const openExternal = vi.fn().mockResolvedValue(true);
         // @ts-expect-error test shim
         globalThis.electronAPI = { openExternal };
+
+        const user = userEvent.setup();
 
         const root = document.createElement("div");
         root.innerHTML = '<a data-external-link href="javascript:alert(1)">Bad</a>';
@@ -45,18 +51,17 @@ describe("externalLinkHandlers", () => {
 
         attachExternalLinkHandlers({ root });
 
-        const a = root.querySelector("a") as HTMLAnchorElement;
-        const ev = new MouseEvent("click", { bubbles: true, cancelable: true });
-        a.dispatchEvent(ev);
-
-        expect(ev.defaultPrevented).toBe(true);
+        const a = screen.getByRole("link", { name: "Bad" });
+        await user.click(a);
         expect(openExternal).not.toHaveBeenCalled();
     });
 
-    it("supports keyboard activation (Enter) for external links", () => {
+    it("supports keyboard activation (Enter) for external links", async () => {
         const openExternal = vi.fn().mockResolvedValue(true);
         // @ts-expect-error test shim
         globalThis.electronAPI = { openExternal };
+
+        const user = userEvent.setup();
 
         const root = document.createElement("div");
         root.innerHTML = '<a data-external-link href="https://example.com/docs">Docs</a>';
@@ -64,18 +69,19 @@ describe("externalLinkHandlers", () => {
 
         attachExternalLinkHandlers({ root });
 
-        const a = root.querySelector("a") as HTMLAnchorElement;
-        const ev = new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key: "Enter" });
-        a.dispatchEvent(ev);
+        const a = screen.getByRole("link", { name: "Docs" });
+        a.focus();
+        await user.keyboard("{Enter}");
 
-        expect(ev.defaultPrevented).toBe(true);
         expect(openExternal).toHaveBeenCalledWith("https://example.com/docs");
     });
 
-    it("cleanup removes listeners", () => {
+    it("cleanup removes listeners", async () => {
         const openExternal = vi.fn().mockResolvedValue(true);
         // @ts-expect-error test shim
         globalThis.electronAPI = { openExternal };
+
+        const user = userEvent.setup();
 
         const root = document.createElement("div");
         root.innerHTML = '<a data-external-link href="https://example.com">Example</a>';
@@ -84,9 +90,8 @@ describe("externalLinkHandlers", () => {
         const cleanup = attachExternalLinkHandlers({ root });
         cleanup();
 
-        const a = root.querySelector("a") as HTMLAnchorElement;
-        const ev = new MouseEvent("click", { bubbles: true, cancelable: true });
-        a.dispatchEvent(ev);
+        const a = screen.getByRole("link", { name: "Example" });
+        await user.click(a);
 
         expect(openExternal).not.toHaveBeenCalled();
     });

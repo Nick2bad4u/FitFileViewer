@@ -51,7 +51,17 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         /** @type {HTMLDivElement} */
         const menu = document.createElement("div");
         menu.id = "recent-files-menu";
-                debugLog("DEBUG: About to append menu. Document:",
+
+        debugLog(
+            "DEBUG: About to append menu. Document:",
+            Boolean(document),
+            "Body:",
+            Boolean(document.body),
+            "Menu:",
+            Boolean(menu),
+            "Menu ID:",
+            menu.id
+        );
         // ZIndex must be a string
         menu.style.zIndex = "10010";
         menu.style.left = `${event.clientX}px`;
@@ -61,7 +71,15 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         menu.style.border = "2px solid var(--color-border-light)";
         menu.style.borderRadius = "var(--border-radius-small)";
         menu.style.boxShadow = "var(--color-box-shadow)";
-                debugLog("DEBUG: Menu constructor:",
+
+        debugLog(
+            "DEBUG: Menu constructor:",
+            menu.constructor.name,
+            "Menu nodeName:",
+            menu.nodeName,
+            "Menu parentNode before append:",
+            menu.parentNode
+        );
         menu.style.maxWidth = "480px";
         menu.style.fontSize = "1rem";
         menu.style.padding = "4px 0";
@@ -69,7 +87,13 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         menu.style.userSelect = "none";
         menu.style.backdropFilter = "var(--backdrop-blur)";
         menu.addEventListener("contextmenu", (e) => e.preventDefault());
-                debugLog("DEBUG: Document.body type:",
+
+        debugLog(
+            "DEBUG: Document.body type:",
+            typeof document.body,
+            "Document.body constructor:",
+            document.body.constructor.name
+        );
         menu.setAttribute("aria-label", "Recent files");
         let focusedIndex = 0;
         /** @type {HTMLDivElement[]} */

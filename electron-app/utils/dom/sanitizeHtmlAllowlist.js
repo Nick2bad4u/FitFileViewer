@@ -9,6 +9,8 @@
  * - It is intentionally conservative and should be used with very small, known-safe allowlists.
  */
 
+import DOMPurify from "dompurify";
+
 /**
  * @typedef {{
  *  allowedTags: ReadonlyArray<string>;
@@ -55,6 +57,61 @@ const ALWAYS_STRIP_URL_ATTRIBUTES = new Set([
  * @returns {DocumentFragment}
  */
 export function sanitizeHtmlAllowlist(html, options) {
+    // Prefer DOMPurify when available. It provides far more robust HTML parsing and
+    // sanitization edge-case handling than a hand-rolled tree walker.
+    //
+    // We still apply our conservative style-attribute filtering because `style` can be
+    // allowlisted for UI fragments (tables, badges, etc.), and we explicitly do not want
+    // any url()/expression() capable constructs.
+    /** @type {any} */
+    const purifier = (() => {
+        try {
+            // DOMPurify can be either:
+            // - an instance with `.sanitize` (browser bundles)
+            // - a factory function requiring a `window` (some ESM/node builds)
+            if (DOMPurify && typeof /** @type {any} */ (DOMPurify).sanitize === "function") {
+                return DOMPurify;
+            }
+            if (typeof DOMPurify === "function" && globalThis.window !== undefined) {
+                const created = /** @type {any} */ (DOMPurify)(globalThis);
+                if (created && typeof created.sanitize === "function") {
+                    return created;
+                }
+            }
+        } catch {
+            /* ignore */
+        }
+        return null;
+    })();
+
+    if (purifier) {
+        const allowedTags = options.allowedTags.map((t) => String(t).toLowerCase());
+        const allowedAttributes = options.allowedAttributes.map((a) => String(a).toLowerCase());
+        const stripUrlInStyle = options.stripUrlInStyle !== false;
+
+        /** @type {DocumentFragment} */
+        const fragment = /** @type {any} */ (purifier).sanitize(String(html), {
+            ALLOWED_TAGS: allowedTags,
+            ALLOWED_ATTR: allowedAttributes,
+            // Always strip URL-bearing attributes even if allowlisted by the caller.
+            FORBID_ATTR: Array.from(ALWAYS_STRIP_URL_ATTRIBUTES),
+            RETURN_DOM_FRAGMENT: true,
+        });
+
+        if (stripUrlInStyle) {
+            const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+            while (walker.nextNode()) {
+                const el = /** @type {Element} */ (walker.currentNode);
+                const styleValue = el.getAttribute("style");
+                if (typeof styleValue === "string" && containsUnsafeCss(styleValue)) {
+                    el.removeAttribute("style");
+                }
+            }
+        }
+
+        return fragment;
+    }
+
     const template = document.createElement("template");
     template.innerHTML = html;
 

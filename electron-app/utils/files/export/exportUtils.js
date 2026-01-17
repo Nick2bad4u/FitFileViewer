@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
@@ -110,6 +112,24 @@ function generateOAuthState() {
 
     return Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
 }
+
+/**
+ * Runtime schema for Gyazo configuration.
+ *
+ * Notes:
+ * - clientId/clientSecret are user-configurable via localStorage.
+ * - endpoint URLs should always be HTTPS.
+ */
+const GyazoConfigSchema = z
+    .object({
+        authUrl: z.string().url(),
+        clientId: z.string().min(1).nullable(),
+        clientSecret: z.string().min(1).nullable(),
+        redirectUri: z.string().url(),
+        tokenUrl: z.string().url(),
+        uploadUrl: z.string().url(),
+    })
+    .strict();
 
 /**
  * Validate a Gyazo endpoint URL.
@@ -1443,10 +1463,32 @@ export const exportUtils = {
             reverseTransform = (str) => str.split("").toReversed().join(""),
             defaultClientSecret = reverseTransform(transform(GyazoAppData2.toReversed()));
 
-        return {
+        const candidate = {
             authUrl: "https://gyazo.com/oauth/authorize",
             clientId: localStorage.getItem("gyazo_client_id") || defaultClientId,
             clientSecret: localStorage.getItem("gyazo_client_secret") || defaultClientSecret,
+            redirectUri: "http://localhost:3000/gyazo/callback",
+            tokenUrl: "https://gyazo.com/oauth/token",
+            uploadUrl: "https://upload.gyazo.com/api/upload",
+        };
+
+        const parsed = GyazoConfigSchema.safeParse(candidate);
+        if (parsed.success) {
+            return parsed.data;
+        }
+
+        // If localStorage contains an unexpected value, fall back to safe defaults.
+        // This should never throw because the defaults are static.
+        try {
+            console.warn("[Gyazo] Invalid Gyazo configuration detected; falling back to defaults", parsed.error);
+        } catch {
+            /* ignore */
+        }
+
+        return {
+            authUrl: "https://gyazo.com/oauth/authorize",
+            clientId: defaultClientId,
+            clientSecret: defaultClientSecret,
             redirectUri: "http://localhost:3000/gyazo/callback",
             tokenUrl: "https://gyazo.com/oauth/token",
             uploadUrl: "https://upload.gyazo.com/api/upload",

@@ -1,7 +1,13 @@
+import pLimitImport from "p-limit";
+
 import { setState } from "../../state/core/stateManager.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
+
+/** @type {(concurrency: number) => <T>(fn: () => Promise<T>) => Promise<T>} */
+
+const pLimit = /** @type {any} */ (typeof pLimitImport === "function" ? pLimitImport : pLimitImport.default);
 
 /**
  * Loads FIT files as overlays.
@@ -24,11 +30,31 @@ export async function loadOverlayFiles(files) {
     const invalidFiles = [];
     const duplicateFiles = [];
 
+    // Concurrency:
+    // - Overlay decoding can be CPU-heavy.
+    // - We still want to speed up loading when users select many files.
+    // Keep a conservative default and scale modestly with hardware.
+    const concurrency = (() => {
+        try {
+            const hc = /** @type {any} */ (globalThis).navigator?.hardwareConcurrency;
+            if (typeof hc === "number" && Number.isFinite(hc) && hc > 0) {
+                return Math.max(1, Math.min(3, Math.floor(hc / 2)));
+            }
+        } catch {
+            /* ignore */
+        }
+        return 2;
+    })();
+
+    const limit = pLimit(concurrency);
+    /** @type {Array<Promise<void>>} */
+    const tasks = [];
+    let started = 0;
+    let finished = 0;
+
     try {
         for (const [index, file] of files.entries()) {
             const displayName = getFileDisplayName(file);
-            LoadingOverlay.show(`Loading ${index + 1} / ${totalFiles} files...`, displayName);
-
             const uniqueKey = getFileUniqueKey(file);
             if (uniqueKey && existingKeys.has(uniqueKey)) {
                 duplicateFiles.push(displayName);
@@ -39,22 +65,44 @@ export async function loadOverlayFiles(files) {
                 existingKeys.add(uniqueKey);
             }
 
-            try {
-                // eslint-disable-next-line no-await-in-loop
-                const result = await loadSingleOverlayFile(file);
-                if (result.success && result.data) {
-                    const entry = createOverlayEntry(file, result.data, uniqueKey);
-                    globalThis.loadedFitFiles.push(entry);
-                    stateDirty = true;
-                } else {
-                    invalidFiles.push(displayName);
-                    showNotification(`Failed to load ${displayName}: ${result.error || "Unknown error"}`, "error");
-                }
-            } catch (error) {
-                console.error("[loadOverlayFiles] Error loading overlay file:", displayName, error);
-                invalidFiles.push(displayName);
-            }
+            tasks.push(
+                limit(async () => {
+                    started++;
+                    LoadingOverlay.show(
+                        `Loading ${Math.min(started, totalFiles)} / ${totalFiles} files... (x${concurrency})`,
+                        displayName
+                    );
+
+                    try {
+                        const result = await loadSingleOverlayFile(file);
+                        if (result.success && result.data) {
+                            const entry = createOverlayEntry(file, result.data, uniqueKey);
+                            globalThis.loadedFitFiles.push(entry);
+                            stateDirty = true;
+                        } else {
+                            invalidFiles.push(displayName);
+                            showNotification(
+                                `Failed to load ${displayName}: ${result.error || "Unknown error"}`,
+                                "error"
+                            );
+                        }
+                    } catch (error) {
+                        console.error("[loadOverlayFiles] Error loading overlay file:", displayName, error);
+                        invalidFiles.push(displayName);
+                    } finally {
+                        finished++;
+                        LoadingOverlay.show(
+                            `Processing ${Math.min(finished, totalFiles)} / ${totalFiles} files... (x${concurrency})`,
+                            displayName
+                        );
+                    }
+                })
+            );
         }
+
+        // Wait for all overlay loads to complete.
+        // Using allSettled ensures one failure doesn't abort the rest.
+        await Promise.allSettled(tasks);
     } finally {
         LoadingOverlay.hide();
     }
