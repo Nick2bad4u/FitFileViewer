@@ -42,4 +42,3 @@ export type ChartEventArgs = {
         native?: any;
     };
 };
-//# sourceMappingURL=chartZoomResetPlugin.d.ts.map

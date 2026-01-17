@@ -9,4 +9,3 @@ export { DISTANCE_UNITS } from "../../config/index.js";
  * const km = convertDistanceUnits(1000, DISTANCE_UNITS.KILOMETERS); // 1
  */
 export const convertDistanceUnits: Function;
-//# sourceMappingURL=convertDistanceUnits.d.ts.map

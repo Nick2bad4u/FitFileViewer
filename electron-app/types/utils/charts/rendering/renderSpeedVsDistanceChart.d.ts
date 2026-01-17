@@ -19,4 +19,3 @@ export function renderSpeedVsDistanceChart(
         distanceUnits?: string;
     }
 ): void;
-//# sourceMappingURL=renderSpeedVsDistanceChart.d.ts.map

@@ -232,4 +232,3 @@ export const dataAntManufacturerIDs: {
     335: string;
     5759: string;
 };
-//# sourceMappingURL=dataAntManufacturerIDs.d.ts.map

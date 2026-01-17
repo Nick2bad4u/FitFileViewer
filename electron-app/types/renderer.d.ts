@@ -94,4 +94,3 @@ export type RendererDependencies = {
      */
     listenForThemeChange: Function;
 };
-//# sourceMappingURL=renderer.d.ts.map

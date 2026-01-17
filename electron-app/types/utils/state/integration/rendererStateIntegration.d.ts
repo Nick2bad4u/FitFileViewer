@@ -17,4 +17,3 @@ export type StateMeta = {
     silent: boolean;
     source: string;
 };
-//# sourceMappingURL=rendererStateIntegration.d.ts.map

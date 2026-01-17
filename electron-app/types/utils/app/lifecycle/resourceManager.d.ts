@@ -384,4 +384,3 @@ declare class ResourceManager {
     shutdown(): Promise<void>;
 }
 export {};
-//# sourceMappingURL=resourceManager.d.ts.map

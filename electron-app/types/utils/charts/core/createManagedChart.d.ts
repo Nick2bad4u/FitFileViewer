@@ -9,4 +9,3 @@
  * @returns {any} The created Chart instance, or null if Chart is undefined.
  */
 export function createManagedChart(canvas: HTMLCanvasElement, config: any): any;
-//# sourceMappingURL=createManagedChart.d.ts.map

@@ -37,4 +37,3 @@ export type RenderZoneChartOptions = {
     chartType?: string;
     showLegend?: boolean;
 };
-//# sourceMappingURL=renderZoneChartNew.d.ts.map

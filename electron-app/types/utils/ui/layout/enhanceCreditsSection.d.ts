@@ -11,4 +11,3 @@ export function setupCreditsMarquee(): void;
  * @returns {void}
  */
 export function teardownCreditsMarquee(): void;
-//# sourceMappingURL=enhanceCreditsSection.d.ts.map

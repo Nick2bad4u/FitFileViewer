@@ -3,4 +3,3 @@
  * @returns {string} Current theme ('dark' or 'light')
  */
 export function detectCurrentTheme(): string;
-//# sourceMappingURL=chartThemeUtils.d.ts.map

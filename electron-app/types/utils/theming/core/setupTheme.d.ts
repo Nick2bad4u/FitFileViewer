@@ -32,4 +32,3 @@ export function setupTheme(
         useLocalStorage?: boolean | undefined;
     }
 ): Promise<string>;
-//# sourceMappingURL=setupTheme.d.ts.map

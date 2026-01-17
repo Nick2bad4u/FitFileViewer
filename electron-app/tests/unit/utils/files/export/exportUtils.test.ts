@@ -167,6 +167,7 @@ describe("exportUtils", () => {
         __setTestDeps({
             showNotification: mockShowNotification,
             detectCurrentTheme: mockDetectCurrentTheme,
+            getStorage: () => mockLocalStorage,
         });
     });
 
@@ -352,11 +353,19 @@ describe("exportUtils", () => {
 
     describe("getGyazoConfig", () => {
         it("should return complete Gyazo configuration with stored credentials", () => {
-            mockLocalStorage.getItem
-                .mockReturnValueOnce("stored-client-id")
-                .mockReturnValueOnce("stored-client-secret");
+            mockLocalStorage.getItem.mockImplementation((key: string) => {
+                if (key === "gyazo_client_id") return "stored-client-id";
+                if (key === "gyazo_client_secret") return "stored-client-secret";
+                return null;
+            });
+
+            expect(mockLocalStorage.getItem("gyazo_client_id")).toBe("stored-client-id");
+            expect(mockLocalStorage.getItem("gyazo_client_secret")).toBe("stored-client-secret");
 
             const config = exportUtils.getGyazoConfig();
+
+            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("gyazo_client_id");
+            expect(mockLocalStorage.getItem).toHaveBeenCalledWith("gyazo_client_secret");
 
             expect(config).toEqual({
                 authUrl: "https://gyazo.com/oauth/authorize",

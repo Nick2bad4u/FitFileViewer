@@ -2,6 +2,13 @@
     "$schema": "https://www.schemastore.org/tsconfig.json",
     "extends": "./tsconfig.json",
     "compilerOptions": {
+        // Vitest's typecheck runner uses `tsc` directly and can trigger emission if
+        // the base tsconfig enables declarations. Enforce noEmit here so running
+        // tests never dirties the git tree by regenerating ./types outputs.
+        "noEmit": true,
+        "declaration": false,
+        "declarationMap": false,
+        "emitDeclarationOnly": false,
         // Loosen rules for test files to ease migration to .ts
         "strict": false,
         "noImplicitAny": false,

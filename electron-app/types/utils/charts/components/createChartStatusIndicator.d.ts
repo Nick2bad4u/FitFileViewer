@@ -6,4 +6,3 @@
  * @returns {HTMLElement}
  */
 export function createChartStatusIndicator(): HTMLElement;
-//# sourceMappingURL=createChartStatusIndicator.d.ts.map

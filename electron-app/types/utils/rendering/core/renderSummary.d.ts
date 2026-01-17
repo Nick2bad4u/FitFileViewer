@@ -26,4 +26,3 @@ export function renderSummary(data: {
     lapMesgs?: Object[] | undefined;
 }): void;
 export type FitSummaryData = import("../helpers/renderSummaryHelpers.js").FitSummaryData;
-//# sourceMappingURL=renderSummary.d.ts.map

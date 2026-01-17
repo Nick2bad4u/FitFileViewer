@@ -129,4 +129,3 @@ export namespace UIActions {
      */
     function updateWindowState(): void;
 }
-//# sourceMappingURL=uiStateManager.d.ts.map

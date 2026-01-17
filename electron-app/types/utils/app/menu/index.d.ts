@@ -9,4 +9,3 @@ declare const resolvedCreateAppMenu: (
     currentTheme?: string,
     loadedFitFilePath?: string | null
 ) => void;
-//# sourceMappingURL=index.d.ts.map

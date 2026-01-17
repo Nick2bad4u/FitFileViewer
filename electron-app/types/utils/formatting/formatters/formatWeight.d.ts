@@ -7,4 +7,3 @@
  * const weight = formatWeight(70); // "70 kg (154 lbs)"
  */
 export function formatWeight(kg: number): string;
-//# sourceMappingURL=formatWeight.d.ts.map

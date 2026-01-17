@@ -12,4 +12,3 @@ export type LoadedFitFile = {
     data: any;
     filePath?: string;
 };
-//# sourceMappingURL=createShownFilesList.d.ts.map

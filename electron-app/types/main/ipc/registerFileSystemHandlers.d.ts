@@ -16,4 +16,3 @@ export function registerFileSystemHandlers({
     };
     logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
 }): void;
-//# sourceMappingURL=registerFileSystemHandlers.d.ts.map

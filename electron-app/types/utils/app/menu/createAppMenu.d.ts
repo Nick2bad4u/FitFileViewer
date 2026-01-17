@@ -12,4 +12,3 @@ export function createAppMenu(
     currentTheme?: string,
     loadedFitFilePath?: string | null
 ): void;
-//# sourceMappingURL=createAppMenu.d.ts.map

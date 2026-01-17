@@ -57,4 +57,3 @@ export type LapZoneEntry = {
 export type LapZoneChartOptions = {
     title?: string;
 };
-//# sourceMappingURL=renderLapZoneChart.d.ts.map

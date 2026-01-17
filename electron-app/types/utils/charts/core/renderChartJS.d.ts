@@ -255,4 +255,3 @@ export type PerformanceRecord = {
      */
     chartCount: number;
 };
-//# sourceMappingURL=renderChartJS.d.ts.map

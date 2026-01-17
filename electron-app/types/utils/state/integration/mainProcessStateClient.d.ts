@@ -137,4 +137,3 @@ export class MainProcessStateClient {
     setLoadedFilePath(filePath: string | null): Promise<boolean>;
 }
 export const mainProcessStateClient: MainProcessStateClient;
-//# sourceMappingURL=mainProcessStateClient.d.ts.map

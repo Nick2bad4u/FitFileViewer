@@ -14,4 +14,3 @@ export function renderGPSTrackChart(
         showGrid?: boolean;
     }
 ): void;
-//# sourceMappingURL=renderGPSTrackChart.d.ts.map

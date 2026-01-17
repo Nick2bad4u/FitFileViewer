@@ -353,4 +353,3 @@ export type ThemeConfig = {
      */
     name?: string;
 };
-//# sourceMappingURL=createUserDeviceInfoBox.d.ts.map

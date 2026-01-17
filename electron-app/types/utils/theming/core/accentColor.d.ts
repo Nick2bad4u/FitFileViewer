@@ -64,4 +64,3 @@ export function saveAccentColor(color: string): boolean;
  * @returns {boolean} True if set successfully
  */
 export function setAccentColor(color: string, theme: string): boolean;
-//# sourceMappingURL=accentColor.d.ts.map

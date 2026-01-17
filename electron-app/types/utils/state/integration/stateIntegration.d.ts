@@ -86,4 +86,3 @@ export type AppStateMigration = {
      */
     migrations: Function[];
 };
-//# sourceMappingURL=stateIntegration.d.ts.map

@@ -10,4 +10,3 @@ export default _default;
 import * as appInitialization from "./initialization/index.js";
 import * as appLifecycle from "./lifecycle/index.js";
 import * as appMenu from "./menu/index.js";
-//# sourceMappingURL=index.d.ts.map

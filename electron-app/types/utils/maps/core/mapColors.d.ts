@@ -4,4 +4,3 @@
  * @returns {string}
  */
 export function getLapColor(lapIdx: number | string): string;
-//# sourceMappingURL=mapColors.d.ts.map

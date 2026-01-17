@@ -9,4 +9,3 @@
  * @returns {Object|null} Modified chart instance or null if invalid input
  */
 export function updateChartAnimations(chart: any, type: string): Object | null;
-//# sourceMappingURL=updateChartAnimations.d.ts.map

@@ -1,4 +1,15 @@
+const { z } = require("zod");
+
 const { validateExternalUrl } = require("../security/externalUrlPolicy");
+
+// Security: restrict the callback server to non-privileged ports.
+// Allow 0 so the OS can choose an ephemeral port.
+const gyazoPortSchema = z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(65_535)
+    .refine((p) => p === 0 || p >= 1024, { message: "Invalid port provided" });
 
 /**
  * Registers IPC handlers for external integrations (shell and Gyazo server control).
@@ -41,12 +52,16 @@ function registerExternalHandlers({
 
     registerIpcHandle("gyazo:server:start", async (_event, port = 3000) => {
         try {
-            const numericPort = typeof port === "number" ? port : Number(port);
-            if (!Number.isInteger(numericPort) || numericPort < 1 || numericPort > 65_535) {
+            if (typeof startGyazoOAuthServer !== "function") {
+                throw new TypeError("Gyazo OAuth server start unavailable");
+            }
+
+            const parsed = gyazoPortSchema.safeParse(port);
+            if (!parsed.success) {
                 throw new Error("Invalid port provided");
             }
 
-            return await startGyazoOAuthServer(numericPort);
+            return await startGyazoOAuthServer(parsed.data);
         } catch (error) {
             logWithContext?.("error", "Error in gyazo:server:start:", {
                 error: /** @type {Error} */ (error)?.message,
@@ -57,6 +72,10 @@ function registerExternalHandlers({
 
     registerIpcHandle("gyazo:server:stop", async () => {
         try {
+            if (typeof stopGyazoOAuthServer !== "function") {
+                throw new TypeError("Gyazo OAuth server stop unavailable");
+            }
+
             return await stopGyazoOAuthServer();
         } catch (error) {
             logWithContext?.("error", "Error in gyazo:server:stop:", {

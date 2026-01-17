@@ -7,4 +7,3 @@ declare namespace _default {
 export default _default;
 import * as renderingComponents from "./components/index.js";
 import * as renderingCore from "./core/index.js";
-//# sourceMappingURL=index.d.ts.map

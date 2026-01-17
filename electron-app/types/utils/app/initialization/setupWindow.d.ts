@@ -7,4 +7,3 @@ export function cleanup(): void;
  * @returns {Promise<void>}
  */
 export function setupWindow(): Promise<void>;
-//# sourceMappingURL=setupWindow.d.ts.map

@@ -46,4 +46,3 @@ export function createFitParserStateAdapters(): {
  * @returns {Promise<void>} Initialization guard promise.
  */
 export function ensureFitParserStateIntegration(): Promise<void>;
-//# sourceMappingURL=fitParserIntegration.d.ts.map

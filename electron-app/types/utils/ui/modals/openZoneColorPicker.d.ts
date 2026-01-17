@@ -9,4 +9,3 @@ export function openZoneColorPicker(field: any): void;
  * @param {*} newColor - New color value
  */
 export function updateZoneColorPreview(field: any, zoneIndex: any, newColor: any): void;
-//# sourceMappingURL=openZoneColorPicker.d.ts.map

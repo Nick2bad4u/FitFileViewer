@@ -34,4 +34,3 @@ export function addHoverEffectsToExistingCharts(): void; /**
  * @param {HTMLElement} chartContainer - Container with chart canvases
  */
 export function removeChartHoverEffects(chartContainer: HTMLElement): void;
-//# sourceMappingURL=addChartHoverEffects.d.ts.map

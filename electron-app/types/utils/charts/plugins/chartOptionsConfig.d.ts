@@ -115,4 +115,3 @@ export type ChartOption = {
      */
     step?: number;
 };
-//# sourceMappingURL=chartOptionsConfig.d.ts.map

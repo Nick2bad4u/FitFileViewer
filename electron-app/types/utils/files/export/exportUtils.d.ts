@@ -48,6 +48,7 @@ export namespace exportUtils {
      * @param {Function} resolve - Promise resolve function
      * @param {Function} reject - Promise reject function
      * @param {boolean} useServer - Whether to use server
+     * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup hook invoked before rejecting
      * @returns {HTMLElement} Modal element
      */
     function createGyazoAuthModal(
@@ -55,7 +56,8 @@ export namespace exportUtils {
         _state: any,
         resolve: Function,
         reject: Function,
-        useServer?: boolean
+        useServer?: boolean,
+        onCancel?: undefined | (() => Promise<void>)
     ): HTMLElement;
     function downloadChartAsPNG(chart: any, filename?: string): Promise<void>;
     /**
@@ -290,14 +292,15 @@ export type ExportResult = {
 /**
  * @type {{
  *  showNotification: typeof __realShowNotification,
- *  detectCurrentTheme: typeof __realDetectCurrentTheme
+ *  detectCurrentTheme: typeof __realDetectCurrentTheme,
+ *  getStorage: () => any
  * }}
  */
 declare let __deps: {
     showNotification: typeof __realShowNotification;
     detectCurrentTheme: typeof __realDetectCurrentTheme;
+    getStorage: () => any;
 };
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 export {};
-//# sourceMappingURL=exportUtils.d.ts.map

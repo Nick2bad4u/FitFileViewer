@@ -26,4 +26,3 @@ export function resolveFitParserSettingsConf(): any;
  */
 export function setAppState(statePath: string, value: any, options?: Record<string, any>): void;
 export { mainProcessState };
-//# sourceMappingURL=appState.d.ts.map

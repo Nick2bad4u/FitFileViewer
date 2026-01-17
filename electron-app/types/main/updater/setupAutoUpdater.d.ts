@@ -7,4 +7,3 @@
  * @param {any} [providedAutoUpdater] - Optional pre-resolved autoUpdater (used by tests).
  */
 export function setupAutoUpdater(mainWindow: any, providedAutoUpdater?: any): void;
-//# sourceMappingURL=setupAutoUpdater.d.ts.map

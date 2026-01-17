@@ -5,4 +5,3 @@
  * @returns {boolean} Whether to show notification
  */
 export function showRenderNotification(currentChartCount: number, currentVisibleFields: number): boolean;
-//# sourceMappingURL=showRenderNotification.d.ts.map

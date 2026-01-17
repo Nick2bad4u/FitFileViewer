@@ -10,4 +10,3 @@
  * const base64String = convertArrayBufferToBase64(fitFileBuffer);
  */
 export function convertArrayBufferToBase64(buffer: ArrayBuffer): string;
-//# sourceMappingURL=convertArrayBufferToBase64.d.ts.map

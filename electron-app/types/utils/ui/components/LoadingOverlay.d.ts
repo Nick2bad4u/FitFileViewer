@@ -10,4 +10,3 @@ export namespace LoadingOverlay {
      */
     function show(progressText: string, fileName?: string): void;
 }
-//# sourceMappingURL=LoadingOverlay.d.ts.map

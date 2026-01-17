@@ -21,4 +21,3 @@ export type LeafletMinimal = {
     tileLayer: Function;
     maplibreGL?: Function;
 };
-//# sourceMappingURL=mapBaseLayers.d.ts.map

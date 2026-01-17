@@ -46,4 +46,3 @@ export type ZoneDataItem = {
     value?: number;
     color?: string;
 };
-//# sourceMappingURL=createInlineZoneColorSelector.d.ts.map

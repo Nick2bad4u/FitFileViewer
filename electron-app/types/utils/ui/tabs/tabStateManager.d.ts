@@ -164,4 +164,3 @@ declare class TabStateManager {
  * @typedef {{id:string; contentId:string; label:string; requiresData:boolean; handler:string|null}} TabDef
  */
 export const TAB_CONFIG: Record<string, TabDef>;
-//# sourceMappingURL=tabStateManager.d.ts.map

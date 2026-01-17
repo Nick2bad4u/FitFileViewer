@@ -40,4 +40,3 @@ export function updateSystemInfo(info: {
     author?: string | undefined;
     license?: string | undefined;
 }): boolean;
-//# sourceMappingURL=updateSystemInfo.d.ts.map

@@ -12,4 +12,3 @@ export function initFilenameAutoScroll(): void;
  * Creates the unified control bar and moves existing controls into it
  */
 export function initUnifiedControlBar(): void;
-//# sourceMappingURL=unifiedControlBar.d.ts.map

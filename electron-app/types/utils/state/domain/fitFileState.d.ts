@@ -413,4 +413,3 @@ export type FileMetrics = {
     hasDevice: boolean;
     dataQualityScore: number;
 };
-//# sourceMappingURL=fitFileState.d.ts.map

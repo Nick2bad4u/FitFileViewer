@@ -106,4 +106,3 @@ export namespace chartColorSchemes {
         export { power_17 as power };
     }
 }
-//# sourceMappingURL=chartColorSchemes.d.ts.map

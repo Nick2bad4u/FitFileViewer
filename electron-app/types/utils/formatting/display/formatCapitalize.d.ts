@@ -20,4 +20,3 @@ export function formatCapitalize(
         lowercaseRest?: boolean | undefined;
     }
 ): string;
-//# sourceMappingURL=formatCapitalize.d.ts.map

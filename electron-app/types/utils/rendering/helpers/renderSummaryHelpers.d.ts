@@ -150,4 +150,3 @@ export type AugmentedWindow = Window & {
     activeFitFileName?: string;
     aq?: any;
 };
-//# sourceMappingURL=renderSummaryHelpers.d.ts.map

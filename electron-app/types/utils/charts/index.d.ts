@@ -47,4 +47,3 @@ declare namespace _default {
     function renderLapZoneChart(): Promise<typeof import("./rendering/renderLapZoneChart.js")>;
 }
 export default _default;
-//# sourceMappingURL=index.d.ts.map

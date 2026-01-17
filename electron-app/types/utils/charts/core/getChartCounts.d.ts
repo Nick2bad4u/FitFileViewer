@@ -34,4 +34,3 @@ export type ChartCounts = {
         gps: ChartCategoryCounts;
     };
 };
-//# sourceMappingURL=getChartCounts.d.ts.map

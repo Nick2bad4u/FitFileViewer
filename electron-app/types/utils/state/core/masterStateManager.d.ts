@@ -150,4 +150,3 @@ export type ExtendedWindow = Window & {
     };
 };
 export { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
-//# sourceMappingURL=masterStateManager.d.ts.map

@@ -12,4 +12,3 @@ export function createStartIcon(): any;
  * A fixed two-number tuple used for icon size/anchor specification.
  */
 export type PointTuple = readonly [number, number];
-//# sourceMappingURL=mapIcons.d.ts.map

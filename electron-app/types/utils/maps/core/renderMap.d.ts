@@ -127,4 +127,3 @@ export type LatLng = {
      */
     lng: number;
 };
-//# sourceMappingURL=renderMap.d.ts.map

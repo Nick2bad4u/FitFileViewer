@@ -6,4 +6,3 @@
  * @returns {*|null} Chart.js instance or null on error
  */
 export function renderSingleHRZoneBar(canvas: HTMLCanvasElement, zoneData: Object[], options?: Object): any | null;
-//# sourceMappingURL=renderSingleHRZoneBar.d.ts.map

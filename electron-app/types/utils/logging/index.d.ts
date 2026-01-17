@@ -7,4 +7,3 @@ declare namespace _default {
 export default _default;
 import { getErrorInfo } from "./getErrorInfo.js";
 import { logWithLevel } from "./logWithLevel.js";
-//# sourceMappingURL=index.d.ts.map

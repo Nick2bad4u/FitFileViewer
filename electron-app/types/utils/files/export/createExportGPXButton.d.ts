@@ -4,4 +4,3 @@
  * @returns {HTMLButtonElement} The configured Export GPX button element
  */
 export function createExportGPXButton(): HTMLButtonElement;
-//# sourceMappingURL=createExportGPXButton.d.ts.map

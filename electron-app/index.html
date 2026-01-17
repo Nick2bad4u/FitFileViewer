@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self' file: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file: data: blob:; style-src 'self' 'unsafe-inline' file: data: blob: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: blob: https://fonts.gstatic.com; connect-src 'self' file: data: blob: https: wss:; frame-src 'self' file: data: blob: https:; worker-src 'self' file: data: blob:; child-src 'self' file: data: blob:; object-src 'none'; base-uri 'self';"
+            content="default-src 'self' file:; script-src 'self' file:; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';"
         />
         <meta
             name="description"
@@ -61,28 +61,8 @@
         <!-- Load screenfull before main-ui.js -->
         <script type="module" src="vendor/screenfull-global.js"></script>
         <script src="ui/modals/accentColorPicker.js" type="module" defer></script>
-        <script type="module">
-            // Initialize Quick Color Switcher and Unified Control Bar
-            import { initQuickColorSwitcher } from "./utils/ui/quickColorSwitcher.js";
-            import { initUnifiedControlBar, initFilenameAutoScroll } from "./utils/ui/unifiedControlBar.js";
-
-            document.addEventListener("DOMContentLoaded", () => {
-                initQuickColorSwitcher();
-                initUnifiedControlBar();
-                initFilenameAutoScroll();
-            });
-        </script>
+        <script type="module" src="./utils/ui/initStartup.js" defer></script>
         <script src="main-ui.js" type="module" defer></script>
-        <style>
-            /* Move inline styles to CSS */
-            #unloadFileBtn {
-                display: none;
-            }
-
-            #drop-overlay {
-                display: none;
-            }
-        </style>
     </head>
 
     <body>

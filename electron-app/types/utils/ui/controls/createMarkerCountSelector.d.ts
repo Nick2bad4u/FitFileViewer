@@ -21,4 +21,3 @@
 export function createMarkerCountSelector(onChange?: (count: number) => void): HTMLDivElement;
 export type ThemeColors = ReturnType<typeof getThemeColors>;
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-//# sourceMappingURL=createMarkerCountSelector.d.ts.map

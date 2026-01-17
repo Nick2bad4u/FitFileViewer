@@ -42,4 +42,3 @@ export function setupDOMContentLoaded(): void;
  * @since 1.0.0
  */
 export function setupFullscreenListeners(): void;
-//# sourceMappingURL=addFullScreenButton.d.ts.map

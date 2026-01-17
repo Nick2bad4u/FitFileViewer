@@ -44,7 +44,7 @@
         "alwaysStrict": true,
         "declaration": true,
         "declarationDir": "./types",
-        "declarationMap": true,
+        "declarationMap": false,
         "disableSizeLimit": true,
         "downlevelIteration": true,
         "esModuleInterop": true,

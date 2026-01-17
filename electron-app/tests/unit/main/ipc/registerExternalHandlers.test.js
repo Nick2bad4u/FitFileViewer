@@ -268,6 +268,31 @@ describe("registerExternalHandlers", () => {
             expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
         });
 
+        it("should reject privileged ports (<1024)", async () => {
+            await expect(gyazoStartHandler({}, 80)).rejects.toThrow("Invalid port provided");
+            expect(mockStartGyazoOAuthServer).not.toHaveBeenCalled();
+        });
+
+        it("should reject when startGyazoOAuthServer is unavailable", async () => {
+            mockRegisterIpcHandle.mockClear();
+            registerExternalHandlers({
+                registerIpcHandle: mockRegisterIpcHandle,
+                shellRef: mockShellRef,
+                startGyazoOAuthServer: null,
+                stopGyazoOAuthServer: mockStopGyazoOAuthServer,
+                logWithContext: mockLogWithContext,
+            });
+
+            const calls = mockRegisterIpcHandle.mock.calls;
+            const gyazoCall = calls
+                .slice()
+                .reverse()
+                .find((call) => call[0] === "gyazo:server:start");
+            const handler = gyazoCall[1];
+
+            await expect(handler({}, 3000)).rejects.toThrow("Gyazo OAuth server start unavailable");
+        });
+
         it("should handle errors from startGyazoOAuthServer", async () => {
             const testError = new Error("Failed to start server");
             mockStartGyazoOAuthServer.mockRejectedValue(testError);
@@ -350,6 +375,26 @@ describe("registerExternalHandlers", () => {
 
             const result = await handler({});
             expect(result).toEqual({ stopped: true });
+        });
+
+        it("should reject when stopGyazoOAuthServer is unavailable", async () => {
+            mockRegisterIpcHandle.mockClear();
+            registerExternalHandlers({
+                registerIpcHandle: mockRegisterIpcHandle,
+                shellRef: mockShellRef,
+                startGyazoOAuthServer: mockStartGyazoOAuthServer,
+                stopGyazoOAuthServer: null,
+                logWithContext: mockLogWithContext,
+            });
+
+            const calls = mockRegisterIpcHandle.mock.calls;
+            const gyazoCall = calls
+                .slice()
+                .reverse()
+                .find((call) => call[0] === "gyazo:server:stop");
+            const handler = gyazoCall[1];
+
+            await expect(handler({})).rejects.toThrow("Gyazo OAuth server stop unavailable");
         });
     });
 

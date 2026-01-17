@@ -22,4 +22,3 @@ export function attachRecentFilesContextMenu({
     setLoading: (isLoading: boolean) => void;
     showNotification: (message: string, type?: string, durationMs?: number) => void;
 }): void;
-//# sourceMappingURL=recentFilesContextMenu.d.ts.map

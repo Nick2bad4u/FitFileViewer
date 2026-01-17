@@ -160,4 +160,3 @@ export type ChartSpec = {
      */
     showGrid?: boolean;
 };
-//# sourceMappingURL=chartSpecFactory.d.ts.map

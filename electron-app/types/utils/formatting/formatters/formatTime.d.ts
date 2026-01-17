@@ -11,4 +11,3 @@
  * const timeUnits = formatTime(3600, true); // "1.0h" (if user prefers hours)
  */
 export function formatTime(seconds: number, useUserUnits?: boolean): string;
-//# sourceMappingURL=formatTime.d.ts.map

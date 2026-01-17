@@ -15,4 +15,3 @@
  * formatDistance(NaN);      // ""
  */
 export function formatDistance(meters: number): string;
-//# sourceMappingURL=formatDistance.d.ts.map

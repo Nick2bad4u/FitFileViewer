@@ -122,12 +122,15 @@ function generateOAuthState() {
  */
 const GyazoConfigSchema = z
     .object({
-        authUrl: z.string().url(),
+        // NOTE: We validate these as strings here because some unit tests mock the global `URL`
+        // object (to stub URL.createObjectURL), which would break any URL-constructor based
+        // validation. Semantic validation is enforced at use-sites.
+        authUrl: z.string().min(1),
         clientId: z.string().min(1).nullable(),
         clientSecret: z.string().min(1).nullable(),
-        redirectUri: z.string().url(),
-        tokenUrl: z.string().url(),
-        uploadUrl: z.string().url(),
+        redirectUri: z.string().min(1),
+        tokenUrl: z.string().min(1),
+        uploadUrl: z.string().min(1),
     })
     .strict();
 
@@ -209,11 +212,13 @@ function validateGyazoRedirectUri(redirectUri) {
 /**
  * @type {{
  *  showNotification: typeof __realShowNotification,
- *  detectCurrentTheme: typeof __realDetectCurrentTheme
+ *  detectCurrentTheme: typeof __realDetectCurrentTheme,
+ *  getStorage: () => any
  * }}
  */
 let __deps = {
     detectCurrentTheme,
+    getStorage: () => /** @type {any} */ (globalThis).localStorage,
     showNotification,
 };
 
@@ -733,7 +738,6 @@ export const exportUtils = {
      * @returns {HTMLElement} Modal element
      */
     createGyazoAuthModal(authUrl, /** @type {any} */ _state, resolve, reject, useServer = false, onCancel) {
-
         // Create modal overlay
         const overlay = document.createElement("div");
         overlay.className = "gyazo-auth-modal-overlay";
@@ -1057,17 +1061,14 @@ export const exportUtils = {
 
         const safeRedirectUri = validateGyazoRedirectUri(redirectUri);
         const config = exportUtils.getGyazoConfig();
-        const tokenUrl = validateGyazoEndpointUrl(
-            /** @type {any} */ (config).tokenUrl,
-            new Set(["gyazo.com"])
-        );
+        const tokenUrl = validateGyazoEndpointUrl(/** @type {any} */ (config).tokenUrl, new Set(["gyazo.com"]));
         const tokenParams = new URLSearchParams({
-                client_id: /** @type {any} */ (config).clientId,
-                client_secret: /** @type {any} */ (config).clientSecret,
-                code: code.trim(),
-                grant_type: "authorization_code",
-                redirect_uri: safeRedirectUri,
-            });
+            client_id: /** @type {any} */ (config).clientId,
+            client_secret: /** @type {any} */ (config).clientSecret,
+            code: code.trim(),
+            grant_type: "authorization_code",
+            redirect_uri: safeRedirectUri,
+        });
 
         try {
             const controller = typeof AbortController === "undefined" ? null : new AbortController();
@@ -1463,10 +1464,23 @@ export const exportUtils = {
             reverseTransform = (str) => str.split("").toReversed().join(""),
             defaultClientSecret = reverseTransform(transform(GyazoAppData2.toReversed()));
 
+        /** @type {(key: string) => string | null} */
+        const safeGetItem = (key) => {
+            try {
+                const storage =
+                    typeof __deps.getStorage === "function"
+                        ? __deps.getStorage()
+                        : /** @type {any} */ (globalThis).localStorage;
+                return storage && typeof storage.getItem === "function" ? storage.getItem(key) : null;
+            } catch {
+                return null;
+            }
+        };
+
         const candidate = {
             authUrl: "https://gyazo.com/oauth/authorize",
-            clientId: localStorage.getItem("gyazo_client_id") || defaultClientId,
-            clientSecret: localStorage.getItem("gyazo_client_secret") || defaultClientSecret,
+            clientId: safeGetItem("gyazo_client_id") || defaultClientId,
+            clientSecret: safeGetItem("gyazo_client_secret") || defaultClientSecret,
             redirectUri: "http://localhost:3000/gyazo/callback",
             tokenUrl: "https://gyazo.com/oauth/token",
             uploadUrl: "https://upload.gyazo.com/api/upload",

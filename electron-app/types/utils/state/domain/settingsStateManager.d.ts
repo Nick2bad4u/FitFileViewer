@@ -183,4 +183,3 @@ declare class SettingsStateManager {
     syncFromLocalStorage(): void;
 }
 export {};
-//# sourceMappingURL=settingsStateManager.d.ts.map

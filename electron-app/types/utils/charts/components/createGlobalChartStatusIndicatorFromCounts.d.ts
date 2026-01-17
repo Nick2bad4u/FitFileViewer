@@ -5,4 +5,3 @@
 export function createGlobalChartStatusIndicatorFromCounts(
     counts: import("../core/getChartCounts.js").ChartCounts
 ): HTMLDivElement | null;
-//# sourceMappingURL=createGlobalChartStatusIndicatorFromCounts.d.ts.map

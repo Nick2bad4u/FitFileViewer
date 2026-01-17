@@ -15,4 +15,3 @@
  * const filename = getOverlayFileName(999); // Returns ""
  */
 export function getOverlayFileName(idx: number): string;
-//# sourceMappingURL=getOverlayFileName.d.ts.map

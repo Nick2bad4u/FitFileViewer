@@ -32,4 +32,3 @@ export function registerRecentFileHandlers({
     getAppState: (key: string) => any;
     logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
 }): void;
-//# sourceMappingURL=registerRecentFileHandlers.d.ts.map

@@ -148,4 +148,3 @@ export default _default;
 export type AnyElement<T extends Element> = T & {
     [key: string]: any;
 };
-//# sourceMappingURL=domHelpers.d.ts.map

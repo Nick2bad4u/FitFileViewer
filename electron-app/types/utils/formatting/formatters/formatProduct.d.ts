@@ -19,4 +19,3 @@
  * const product3 = formatProduct(999, 999); // "999"
  */
 export function formatProduct(manufacturer: number | string, productId: number | string): string;
-//# sourceMappingURL=formatProduct.d.ts.map

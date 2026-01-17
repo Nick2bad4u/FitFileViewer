@@ -5,4 +5,3 @@
  * @returns {HTMLCanvasElement} The configured canvas element for the chart.
  */
 export function createChartCanvas(field: string, index: number): HTMLCanvasElement;
-//# sourceMappingURL=createChartCanvas.d.ts.map

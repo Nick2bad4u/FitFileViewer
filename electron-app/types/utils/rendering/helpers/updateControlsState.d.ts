@@ -10,4 +10,3 @@ export function toggleChartControls(): void;
  * Synchronizes the controls state with DOM - useful for fixing state inconsistencies
  */
 export function updateControlsState(): void;
-//# sourceMappingURL=updateControlsState.d.ts.map

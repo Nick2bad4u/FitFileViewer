@@ -25,4 +25,3 @@ export type DataTable = {
      */
     objects: () => TableRow[];
 };
-//# sourceMappingURL=copyTableAsCSV.d.ts.map

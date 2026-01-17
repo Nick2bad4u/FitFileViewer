@@ -35,4 +35,3 @@ export function getAllManufacturerMappings(): Object;
  * const hasMapping = hasManufacturerMapping("garmin"); // true
  */
 export function hasManufacturerMapping(manufacturer: string): boolean;
-//# sourceMappingURL=formatManufacturer.d.ts.map

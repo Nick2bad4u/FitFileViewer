@@ -57,4 +57,3 @@ export function deferUntilIdle(
  * @returns {boolean} True if visible
  */
 export function isElementVisible(element: HTMLElement, threshold?: number): boolean;
-//# sourceMappingURL=lazyRenderingUtils.d.ts.map

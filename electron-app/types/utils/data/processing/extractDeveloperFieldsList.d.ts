@@ -17,4 +17,3 @@ export type RecordMessage = {
      */
     developerFields?: string;
 };
-//# sourceMappingURL=extractDeveloperFieldsList.d.ts.map

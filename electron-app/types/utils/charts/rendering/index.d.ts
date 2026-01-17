@@ -10,4 +10,3 @@ export * from "./renderTimeInZoneCharts.js";
 export * from "./renderZoneChart.js";
 export { renderLapZoneCharts } from "./renderLapZoneCharts.js";
 export { renderZoneChart as renderZoneChartNew } from "./renderZoneChartNew.js";
-//# sourceMappingURL=index.d.ts.map

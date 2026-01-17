@@ -56,4 +56,3 @@ export function resolveInitialConfig(
 };
 export function toSliderString(value: any, decimals: any): any;
 export function updateGlobalFilter(config: any): void;
-//# sourceMappingURL=stateHelpers.d.ts.map

@@ -39,4 +39,3 @@ export function registerInfoHandlers({
           }
         | undefined;
 }): void;
-//# sourceMappingURL=registerInfoHandlers.d.ts.map

@@ -7,4 +7,3 @@
  * const height = formatHeight(1.75); // "1.75 m (5'9\")"
  */
 export function formatHeight(meters: number): string;
-//# sourceMappingURL=formatHeight.d.ts.map

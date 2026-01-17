@@ -72,4 +72,3 @@ export type IntegrationResult = {
     success: boolean;
     error?: string;
 };
-//# sourceMappingURL=fitParserIntegration.d.ts.map

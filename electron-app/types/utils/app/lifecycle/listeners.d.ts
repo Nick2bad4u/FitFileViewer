@@ -27,4 +27,3 @@ export function setupListeners({
     showUpdateNotification: Function;
     showAboutModal: Function;
 }): void;
-//# sourceMappingURL=listeners.d.ts.map

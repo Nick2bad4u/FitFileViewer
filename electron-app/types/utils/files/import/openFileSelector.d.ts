@@ -11,4 +11,3 @@
  * openFileSelector();
  */
 export function openFileSelector(): void;
-//# sourceMappingURL=openFileSelector.d.ts.map

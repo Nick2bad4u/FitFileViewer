@@ -40,4 +40,3 @@ export function buildDataPointFilterControlElements(instanceId: number): {
     topPercentRadio: HTMLInputElement;
     metricSelect: HTMLSelectElement;
 };
-//# sourceMappingURL=dataPointFilterControlElements.d.ts.map

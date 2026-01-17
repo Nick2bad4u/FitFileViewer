@@ -72,4 +72,3 @@ declare class TabRenderingManager {
     setCurrentTab(tabName: string): void;
 }
 import { CancellationTokenSource } from "../../app/async/cancellationToken.js";
-//# sourceMappingURL=tabRenderingManager.d.ts.map

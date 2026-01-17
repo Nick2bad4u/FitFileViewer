@@ -144,4 +144,3 @@ export type MetricDefinition = {
     label: string;
     resolver: (row: MetricRecord) => number | null;
 };
-//# sourceMappingURL=mapMetricFilter.d.ts.map

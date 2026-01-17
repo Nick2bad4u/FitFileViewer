@@ -53,4 +53,3 @@ export namespace fieldColors {
     let speed_vs_distance: string;
     let temperature: string;
 }
-//# sourceMappingURL=formatChartFields.d.ts.map

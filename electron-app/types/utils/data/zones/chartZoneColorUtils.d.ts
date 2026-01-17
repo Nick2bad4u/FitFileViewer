@@ -129,4 +129,3 @@ export type ZoneData = {
 };
 export type ThemeConfig = Record<string, any>;
 export type ColorSchemes = Record<string, Record<string, string[]>>;
-//# sourceMappingURL=chartZoneColorUtils.d.ts.map

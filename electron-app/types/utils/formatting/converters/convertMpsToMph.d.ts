@@ -8,4 +8,3 @@
  * const speedMph = convertMpsToMph(10); // ~22.37
  */
 export function convertMpsToMph(mps: number): number;
-//# sourceMappingURL=convertMpsToMph.d.ts.map

@@ -5,4 +5,3 @@ export * from "./convertMpsToMph.js";
 export * from "./convertTemperatureUnits.js";
 export * from "./convertTimeUnits.js";
 export * from "./convertValueToUserUnits.js";
-//# sourceMappingURL=index.d.ts.map

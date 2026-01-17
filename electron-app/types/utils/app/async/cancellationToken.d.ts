@@ -66,4 +66,3 @@ export class CancellationTokenSource {
      */
     dispose(): void;
 }
-//# sourceMappingURL=cancellationToken.d.ts.map

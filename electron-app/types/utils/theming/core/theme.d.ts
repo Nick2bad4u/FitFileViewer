@@ -79,4 +79,3 @@ export type ThemeConfig = {
      */
     colors: Object;
 };
-//# sourceMappingURL=theme.d.ts.map

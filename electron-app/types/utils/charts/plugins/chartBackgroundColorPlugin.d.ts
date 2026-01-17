@@ -53,4 +53,3 @@ export type MinimalChartLike = {
 export type BackgroundColorPluginOptions = {
     backgroundColor?: string;
 };
-//# sourceMappingURL=chartBackgroundColorPlugin.d.ts.map

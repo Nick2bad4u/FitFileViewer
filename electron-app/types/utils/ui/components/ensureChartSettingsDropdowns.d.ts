@@ -4,4 +4,3 @@
  * @returns {Object} Current settings object
  */
 export function ensureChartSettingsDropdowns(targetContainer: Element | string): Object;
-//# sourceMappingURL=ensureChartSettingsDropdowns.d.ts.map

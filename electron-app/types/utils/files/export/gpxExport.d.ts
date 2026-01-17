@@ -112,4 +112,3 @@ declare function semicirclesToDegrees(raw: unknown): number | null;
  */
 declare function toIsoTimestamp(value: unknown): string | null;
 export {};
-//# sourceMappingURL=gpxExport.d.ts.map

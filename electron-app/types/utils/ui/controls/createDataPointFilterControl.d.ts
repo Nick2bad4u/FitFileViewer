@@ -13,4 +13,3 @@ export function createDataPointFilterControl(
     }) => void
 ): HTMLDivElement;
 export type MapDataPointFilterConfig = import("../../maps/filters/mapMetricFilter.js").MapDataPointFilterConfig;
-//# sourceMappingURL=createDataPointFilterControl.d.ts.map

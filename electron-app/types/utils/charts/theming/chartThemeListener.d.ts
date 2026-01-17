@@ -19,4 +19,3 @@ export type ThemeChangeEvent = CustomEvent & {
         theme?: string;
     };
 };
-//# sourceMappingURL=chartThemeListener.d.ts.map

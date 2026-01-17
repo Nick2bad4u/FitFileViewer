@@ -7,4 +7,3 @@ export function initQuickColorSwitcher(): void;
  * @param {string} color - The new active color
  */
 export function updateSwitcherActiveColor(color: string): void;
-//# sourceMappingURL=quickColorSwitcher.d.ts.map

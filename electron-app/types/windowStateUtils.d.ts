@@ -158,4 +158,3 @@ declare function validateWindow(win: unknown): win is BrowserWindow;
  */
 declare function validateWindowState(state: unknown): state is WindowState;
 import { BrowserWindow } from "electron";
-//# sourceMappingURL=windowStateUtils.d.ts.map

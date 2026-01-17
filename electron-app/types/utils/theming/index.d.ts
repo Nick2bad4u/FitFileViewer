@@ -7,4 +7,3 @@ declare namespace _default {
 export default _default;
 import * as themingCore from "./core/index.js";
 import * as themingSpecific from "./specific/index.js";
-//# sourceMappingURL=index.d.ts.map

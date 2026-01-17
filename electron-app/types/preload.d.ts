@@ -55,4 +55,3 @@ export type ElectronAPI = {
     getChannelInfo: () => ChannelInfo;
     validateAPI: () => boolean;
 };
-//# sourceMappingURL=preload.d.ts.map

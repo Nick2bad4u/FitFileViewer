@@ -23,4 +23,3 @@ export function movePowerZoneControlsToSection(): void;
  * @param {boolean} hasData - Whether power zone data is available
  */
 export function updatePowerZoneControlsVisibility(hasData: boolean): void;
-//# sourceMappingURL=createPowerZoneControlsSimple.d.ts.map

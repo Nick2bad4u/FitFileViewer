@@ -7,4 +7,3 @@
  * @param {string | undefined | null} loadedFitFilePath - Path of the currently loaded FIT file.
  */
 export function safeCreateAppMenu(mainWindow: any, theme: string, loadedFitFilePath: string | undefined | null): void;
-//# sourceMappingURL=safeCreateAppMenu.d.ts.map

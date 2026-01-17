@@ -75,8 +75,7 @@ export type MainProcessStateData = {
     gyazoServerPort: number | null;
     pendingOAuthResolvers: Map<string, Function>;
     eventHandlers: Map<string, HandlerInfo>;
-    operations: Map<string, Operation>;
+    operations: Record<string, Operation>;
     errors: ErrorEntry[];
     metrics: Metrics;
 };
-//# sourceMappingURL=mainProcessStateManager.d.ts.map

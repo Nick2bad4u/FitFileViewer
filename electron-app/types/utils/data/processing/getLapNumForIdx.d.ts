@@ -42,4 +42,3 @@ export type LapMessage = {
     total_timer_time?: number;
     total_distance?: number;
 };
-//# sourceMappingURL=getLapNumForIdx.d.ts.map

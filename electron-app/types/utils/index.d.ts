@@ -33,4 +33,3 @@ export { theme } from "./theming/core/theme.js";
 export { default as theming } from "./theming/index.js";
 export { default as ui } from "./ui/index.js";
 export { showNotification } from "./ui/notifications/showNotification.js";
-//# sourceMappingURL=index.d.ts.map

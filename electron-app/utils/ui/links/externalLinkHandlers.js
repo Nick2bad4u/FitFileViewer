@@ -23,23 +23,19 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 export function attachExternalLinkHandlers({ root }) {
     /** @type {EventTarget | null} */
     const target =
-        root && typeof /** @type {any} */ (root).addEventListener === "function"
-            ? /** @type {any} */ (root)
-            : null;
+        root && typeof (/** @type {any} */ (root).addEventListener) === "function" ? /** @type {any} */ (root) : null;
 
     if (!target) {
         return () => {};
     }
 
     /** @type {Array<() => void>} */
-    const cleanupFns = [];
-
-    // Delegate click handling to the root to avoid per-link loops.
-    cleanupFns.push(
+    let cleanupFns = [
+        // Delegate click handling to the root to avoid per-link loops.
         addEventListenerWithCleanup(target, "click", (e) => {
-        const event = /** @type {MouseEvent} */ (e);
-        const anchor = resolveExternalLinkAnchor(event.target);
-        if (!anchor) return;
+            const event = /** @type {MouseEvent} */ (e);
+            const anchor = resolveExternalLinkAnchor(event.target);
+            if (!anchor) return;
 
             // Prefer the raw attribute to avoid browser canonicalization (e.g., adding trailing slash).
             const rawHref = anchor.getAttribute("href") ?? anchor.href;
@@ -53,17 +49,14 @@ export function attachExternalLinkHandlers({ root }) {
                 return;
             }
             openExternal(validated);
-        })
-    );
-
-    // Support keyboard activation on the anchor itself.
-    cleanupFns.push(
+        }),
+        // Support keyboard activation on the anchor itself.
         addEventListenerWithCleanup(target, "keydown", (e) => {
-        const event = /** @type {KeyboardEvent} */ (e);
-        if (event.key !== "Enter" && event.key !== " ") return;
+            const event = /** @type {KeyboardEvent} */ (e);
+            if (event.key !== "Enter" && event.key !== " ") return;
 
-        const anchor = resolveExternalLinkAnchor(event.target);
-        if (!anchor) return;
+            const anchor = resolveExternalLinkAnchor(event.target);
+            if (!anchor) return;
 
             const rawHref = anchor.getAttribute("href") ?? anchor.href;
             const validated = validateExternalHttpUrl(rawHref);
@@ -75,11 +68,13 @@ export function attachExternalLinkHandlers({ root }) {
                 return;
             }
             openExternal(validated);
-        })
-    );
+        }),
+    ];
 
     return () => {
-        for (const fn of cleanupFns.splice(0)) {
+        const fns = cleanupFns;
+        cleanupFns = [];
+        for (const fn of fns) {
             try {
                 fn();
             } catch {

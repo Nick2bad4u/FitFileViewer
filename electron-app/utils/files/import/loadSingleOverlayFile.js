@@ -28,7 +28,7 @@ export async function loadSingleOverlayFile(file) {
             }
         }
 
-    // Prefer modern File.arrayBuffer when available for better testability
+        // Prefer modern File.arrayBuffer when available for better testability
         let arrayBuffer;
         if (typeof file.arrayBuffer === "function") {
             arrayBuffer = await file.arrayBuffer();

@@ -9,4 +9,3 @@
  * await loadVersionInfo();
  */
 export function loadVersionInfo(): Promise<void>;
-//# sourceMappingURL=loadVersionInfo.d.ts.map

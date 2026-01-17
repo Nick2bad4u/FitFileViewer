@@ -20,4 +20,3 @@
  * @returns {string}
  */
 export function validateExternalUrl(url: unknown): string;
-//# sourceMappingURL=externalUrlPolicy.d.ts.map

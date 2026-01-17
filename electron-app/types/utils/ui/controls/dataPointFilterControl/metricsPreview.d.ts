@@ -22,4 +22,3 @@ export function buildSummaryText(
 export function previewFilterResult(
     config: import("../../../maps/filters/mapMetricFilter.js").MapDataPointFilterConfig
 ): import("../../../maps/filters/mapMetricFilter.js").MetricFilterResult | null;
-//# sourceMappingURL=metricsPreview.d.ts.map

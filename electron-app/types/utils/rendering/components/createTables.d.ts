@@ -11,4 +11,3 @@
  * Note: The `renderTable` function receives an additional `index` parameter, which represents the order of the table being rendered.
  */
 export function createTables(dataFrames: Object, containerOverride?: HTMLElement): void;
-//# sourceMappingURL=createTables.d.ts.map

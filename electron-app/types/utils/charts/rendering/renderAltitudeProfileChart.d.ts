@@ -22,4 +22,3 @@ export function renderAltitudeProfileChart(
         timeUnits?: string;
     }
 ): void;
-//# sourceMappingURL=renderAltitudeProfileChart.d.ts.map

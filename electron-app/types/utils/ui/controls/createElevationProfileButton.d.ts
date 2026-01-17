@@ -14,4 +14,3 @@
  * @returns {HTMLButtonElement}
  */
 export function createElevationProfileButton(): HTMLButtonElement;
-//# sourceMappingURL=createElevationProfileButton.d.ts.map

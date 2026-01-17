@@ -54,9 +54,15 @@ describe("registerFileSystemHandlers", () => {
 
         await expect(handler({}, approvedPath)).rejects.toThrow("Filesystem module unavailable");
 
-        expect(logWithContext).toHaveBeenCalledWith("error", "Error in file:read:", {
-            error: "Filesystem module unavailable",
-        });
+        expect(logWithContext).toHaveBeenCalledWith(
+            "error",
+            "Error in file:read:",
+            expect.objectContaining({
+                error: "Filesystem module unavailable",
+                filePath: approvedPath,
+                authorizedPath: approvedPath,
+            })
+        );
     });
 
     it("rejects and logs when readFile errors", async () => {
@@ -70,10 +76,15 @@ describe("registerFileSystemHandlers", () => {
 
         await expect(handler({}, approvedPath)).rejects.toThrow("boom");
 
-        expect(logWithContext).toHaveBeenCalledWith("error", "Error reading file:", {
-            error: "boom",
-            filePath: approvedPath,
-        });
+        expect(logWithContext).toHaveBeenCalledWith(
+            "error",
+            "Error in file:read:",
+            expect.objectContaining({
+                error: "boom",
+                filePath: approvedPath,
+                authorizedPath: approvedPath,
+            })
+        );
     });
 
     it("rejects unapproved paths", async () => {
@@ -81,5 +92,33 @@ describe("registerFileSystemHandlers", () => {
         const handler = registerIpcHandle.mock.calls[0][1];
 
         await expect(handler({}, "C:/unapproved.fit")).rejects.toThrow("File access denied");
+    });
+
+    it("rejects invalid filePath inputs early", async () => {
+        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
+        const handler = registerIpcHandle.mock.calls[0][1];
+
+        await expect(handler({}, "   ")).rejects.toThrow("Invalid file path provided");
+        await expect(handler({}, null)).rejects.toThrow("Invalid file path provided");
+
+        expect(fs.readFile).not.toHaveBeenCalled();
+        expect(logWithContext).toHaveBeenCalledWith(
+            "error",
+            "Error in file:read:",
+            expect.objectContaining({
+                error: "Invalid file path provided",
+            })
+        );
+    });
+
+    it("rejects unexpected fs.readFile result types", async () => {
+        registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
+        const handler = registerIpcHandle.mock.calls[0][1];
+
+        // Simulate readFile returning a string (e.g., if encoding is accidentally provided)
+        fs.readFile.mockImplementation((_path, cb) => cb(null, "hello"));
+
+        const approvedPath = approveFilePath("C:/weird.fit", { source: "test" });
+        await expect(handler({}, approvedPath)).rejects.toThrow("Unexpected file read result");
     });
 });

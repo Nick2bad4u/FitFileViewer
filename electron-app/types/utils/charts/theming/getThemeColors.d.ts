@@ -26,4 +26,3 @@ export function getThemeColor(colorKey: string, fallback?: string): string;
 export function getThemeColors(): {
     [x: string]: string;
 };
-//# sourceMappingURL=getThemeColors.d.ts.map

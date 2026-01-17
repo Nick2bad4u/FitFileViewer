@@ -45,4 +45,3 @@ export type LapZoneVisibility = {
 export type LapZoneChartsOptions = {
     visibilitySettings?: LapZoneVisibility;
 };
-//# sourceMappingURL=renderLapZoneCharts.d.ts.map

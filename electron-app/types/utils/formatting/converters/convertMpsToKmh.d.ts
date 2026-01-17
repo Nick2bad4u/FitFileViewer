@@ -8,4 +8,3 @@
  * const speedKmh = convertMpsToKmh(5); // 18
  */
 export function convertMpsToKmh(mps: number): number;
-//# sourceMappingURL=convertMpsToKmh.d.ts.map

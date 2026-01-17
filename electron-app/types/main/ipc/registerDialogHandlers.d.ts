@@ -39,4 +39,3 @@ export function registerDialogHandlers({
     logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
     mainWindow: any;
 }): void;
-//# sourceMappingURL=registerDialogHandlers.d.ts.map

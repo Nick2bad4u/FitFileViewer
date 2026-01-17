@@ -239,7 +239,10 @@ describe("exportUtils", () => {
                 return unsubscribe;
             });
 
-            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({ success: true, port: 3000 });
+            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({
+                success: true,
+                port: 3000,
+            });
             vi.mocked((globalThis as any).electronAPI.stopGyazoServer).mockResolvedValue(undefined);
 
             // Ensure config has creds
@@ -275,7 +278,10 @@ describe("exportUtils", () => {
                 return unsubscribe;
             });
 
-            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({ success: true, port: 3000 });
+            vi.mocked((globalThis as any).electronAPI.startGyazoServer).mockResolvedValue({
+                success: true,
+                port: 3000,
+            });
             vi.mocked((globalThis as any).electronAPI.stopGyazoServer).mockResolvedValue(undefined);
 
             // Ensure config has creds

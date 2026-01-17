@@ -66,4 +66,3 @@ export type GlobalData = {
     sessionMesgs?: SessionMesg[] | undefined;
     lapMesgs?: LapMesg[] | undefined;
 };
-//# sourceMappingURL=setupZoneData.d.ts.map

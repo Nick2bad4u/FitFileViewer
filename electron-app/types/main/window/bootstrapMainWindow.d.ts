@@ -38,4 +38,3 @@ export function bootstrapMainWindow({
     setupAutoUpdater: (mainWindow: any, autoUpdater: any) => void;
     logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
 }): Promise<any>;
-//# sourceMappingURL=bootstrapMainWindow.d.ts.map

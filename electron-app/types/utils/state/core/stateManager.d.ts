@@ -214,4 +214,3 @@ export function subscribeSingleton(path: string, id: string, callback: Function)
  * @param {StateUpdateOptions} [options] - Optional update options
  */
 export function updateState(path: string, updates: Object, options?: StateUpdateOptions): void;
-//# sourceMappingURL=stateManager.d.ts.map

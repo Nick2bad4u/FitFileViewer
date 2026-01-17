@@ -12,4 +12,3 @@ export function setupTabButton(id: string, handler: Function): Function | void;
  * Useful for cleanup during page navigation or testing
  */
 export function clearTabButtonCache(): void;
-//# sourceMappingURL=setupTabButton.d.ts.map

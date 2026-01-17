@@ -73,4 +73,3 @@ export type ChartSettings = {
         [x: string]: any;
     };
 };
-//# sourceMappingURL=getCurrentSettings.d.ts.map

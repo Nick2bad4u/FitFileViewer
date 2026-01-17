@@ -13,4 +13,3 @@
  * // "5.50 m/s (19.80 km/h, 12.30 mph)"
  */
 export function formatSpeedTooltip(mps: number): string;
-//# sourceMappingURL=formatSpeedTooltip.d.ts.map

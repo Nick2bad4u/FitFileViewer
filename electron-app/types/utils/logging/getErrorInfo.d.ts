@@ -7,4 +7,3 @@ export function getErrorInfo(err: unknown): {
     message: string;
     stack?: string;
 };
-//# sourceMappingURL=getErrorInfo.d.ts.map

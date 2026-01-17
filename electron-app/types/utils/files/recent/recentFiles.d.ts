@@ -29,4 +29,3 @@ export function loadRecentFiles(): Array<string>;
  * @returns {void}
  */
 export function saveRecentFiles(list: Array<string>): void;
-//# sourceMappingURL=recentFiles.d.ts.map

@@ -19,4 +19,3 @@ export function stopGyazoOAuthServer(): Promise<{
     success: boolean;
     message: string;
 }>;
-//# sourceMappingURL=gyazoOAuthServer.d.ts.map

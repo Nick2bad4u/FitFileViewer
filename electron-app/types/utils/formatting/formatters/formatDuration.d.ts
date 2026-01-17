@@ -21,4 +21,3 @@
  * formatDuration(-10);       // throws Error
  */
 export function formatDuration(seconds: number | string | null | undefined): string;
-//# sourceMappingURL=formatDuration.d.ts.map

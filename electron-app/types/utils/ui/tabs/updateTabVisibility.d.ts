@@ -25,4 +25,3 @@ export function showTabContent(tabName: string): void;
  * If `null` or `undefined` is passed, no tab content will be displayed.
  */
 export function updateTabVisibility(visibleTabId: string | null | undefined): void;
-//# sourceMappingURL=updateTabVisibility.d.ts.map

@@ -38,4 +38,3 @@ export function setTabButtonsEnabled(enabled: boolean): void;
  * Test function to manually check if tab buttons can receive click events
  */
 export function testTabButtonClicks(): void;
-//# sourceMappingURL=enableTabButtons.d.ts.map

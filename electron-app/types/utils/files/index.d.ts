@@ -10,4 +10,3 @@ export default _default;
 import * as fileExport from "./export/index.js";
 import * as fileImport from "./import/index.js";
 import * as fileRecent from "./recent/index.js";
-//# sourceMappingURL=index.d.ts.map

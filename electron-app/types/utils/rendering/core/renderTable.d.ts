@@ -10,4 +10,3 @@
  * renderTable(document.body, 'My Table', myTableObject, 0);
  */
 export function renderTable(container: HTMLElement, title: string, table: Object, index: number): void;
-//# sourceMappingURL=renderTable.d.ts.map

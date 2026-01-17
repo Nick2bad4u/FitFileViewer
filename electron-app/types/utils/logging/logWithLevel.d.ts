@@ -13,4 +13,3 @@ export function logWithLevel(level: LogLevel, message: string, context?: Record<
  * Provides consistent formatting and optional context object.
  */
 export type LogLevel = "log" | "info" | "warn" | "error";
-//# sourceMappingURL=logWithLevel.d.ts.map

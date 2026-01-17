@@ -15,4 +15,3 @@ export type ZoneInfo = import("../../../global").ZoneInfo;
 export type ZoneVisibilitySettings = {
     doughnutVisible?: boolean;
 };
-//# sourceMappingURL=renderTimeInZoneCharts.d.ts.map

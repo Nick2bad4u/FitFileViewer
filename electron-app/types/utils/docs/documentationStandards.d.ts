@@ -29,4 +29,3 @@ export namespace DOCUMENTATION_STANDARDS {
         let best_practices: string[];
     }
 }
-//# sourceMappingURL=documentationStandards.d.ts.map

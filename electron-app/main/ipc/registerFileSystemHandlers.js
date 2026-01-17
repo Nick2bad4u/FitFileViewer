@@ -10,26 +10,58 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
         return;
     }
 
+    const { z } = require("zod");
+
     // Security: file reads must be validated and authorized in the main process.
     // We keep this local (instead of trusting renderer-provided paths) to prevent
     // arbitrary file disclosure if the renderer is compromised.
     const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
 
+    // Keep this validation minimal; fileAccessPolicy performs the authoritative
+    // security checks (approved paths + .fit extension). This is primarily:
+    // - to fail fast on obviously invalid inputs
+    // - to avoid logging huge objects or extremely long strings
+    const filePathSchema = z
+        .string()
+        .transform((s) => s.trim())
+        .refine((s) => s.length > 0, { message: "Invalid file path provided" })
+        .refine((s) => s.length <= 4096, { message: "Invalid file path provided" });
+
+    /**
+     * @param {unknown} value
+     * @returns {string}
+     */
+    const safeLogValue = (value) => {
+        try {
+            const text = typeof value === "string" ? value : JSON.stringify(value);
+            return text.length > 300 ? `${text.slice(0, 300)}…` : text;
+        } catch {
+            try {
+                const text = String(value);
+                return text.length > 300 ? `${text.slice(0, 300)}…` : text;
+            } catch {
+                return "<unserializable>";
+            }
+        }
+    };
+
     // Keep aligned with main/ipc/setupIPCHandlers.js.
     const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
 
     registerIpcHandle("file:read", async (_event, filePath) => {
+        /** @type {string | undefined} */
+        let authorizedPath;
+
         try {
-            let authorizedPath;
+            const parsedPath = filePathSchema.safeParse(filePath);
+            if (!parsedPath.success) {
+                throw new Error("Invalid file path provided");
+            }
+
             try {
-                authorizedPath = assertFileReadAllowed(filePath);
+                authorizedPath = assertFileReadAllowed(parsedPath.data);
             } catch (policyError) {
-                const error = policyError instanceof Error ? policyError : new Error(String(policyError));
-                logWithContext?.("error", "Error in file:read:", {
-                    error: error.message,
-                    filePath,
-                });
-                throw error;
+                throw policyError instanceof Error ? policyError : new Error(String(policyError));
             }
 
             return await new Promise((resolve, reject) => {
@@ -61,11 +93,13 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                 function read() {
                     fs.readFile(authorizedPath, (err, data) => {
                         if (err) {
-                            logWithContext?.("error", "Error reading file:", {
-                                error: /** @type {Error} */ (err)?.message,
-                                filePath: authorizedPath,
-                            });
                             reject(err);
+                            return;
+                        }
+
+                        // Node can return strings when an encoding is provided. We expect binary.
+                        if (!data || typeof data !== "object" || typeof data.byteLength !== "number") {
+                            reject(new Error("Unexpected file read result"));
                             return;
                         }
 
@@ -74,6 +108,8 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
                             return;
                         }
 
+                        // Buffer/Uint8Array share an ArrayBuffer. Slice to avoid returning the entire backing buffer.
+                        // @ts-ignore byteOffset exists on Buffer/Uint8Array
                         resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
                     });
                 }
@@ -81,6 +117,8 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
         } catch (error) {
             logWithContext?.("error", "Error in file:read:", {
                 error: /** @type {Error} */ (error)?.message,
+                filePath: safeLogValue(filePath),
+                authorizedPath,
             });
             throw error;
         }

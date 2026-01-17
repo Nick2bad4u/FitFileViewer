@@ -64,4 +64,3 @@ declare class ChartTabIntegration {
      */
     switchToChartTab(): boolean;
 }
-//# sourceMappingURL=chartTabIntegration.d.ts.map

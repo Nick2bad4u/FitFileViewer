@@ -6,4 +6,3 @@
  * @param {...any} args - Payload forwarded to webContents.send.
  */
 export function sendToRenderer(win: any, channel: string, ...args: any[]): void;
-//# sourceMappingURL=sendToRenderer.d.ts.map

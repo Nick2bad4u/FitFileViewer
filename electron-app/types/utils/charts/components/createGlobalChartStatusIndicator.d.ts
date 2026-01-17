@@ -26,4 +26,3 @@ export type ChartStatus = {
     hasNoCharts: boolean;
     counts: ChartCounts;
 };
-//# sourceMappingURL=createGlobalChartStatusIndicator.d.ts.map

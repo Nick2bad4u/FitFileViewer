@@ -5,4 +5,3 @@
  * @returns {string} Formatted tooltip text
  */
 export function formatTooltipWithUnits(value: number, field: string): string;
-//# sourceMappingURL=formatTooltipWithUnits.d.ts.map

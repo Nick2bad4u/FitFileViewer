@@ -8,4 +8,3 @@
  * @returns {boolean} True if update was successful, false otherwise
  */
 export function updateGlobalChartStatusIndicator(): boolean;
-//# sourceMappingURL=updateGlobalChartStatusIndicator.d.ts.map

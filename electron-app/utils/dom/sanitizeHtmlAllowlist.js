@@ -69,7 +69,7 @@ export function sanitizeHtmlAllowlist(html, options) {
             // DOMPurify can be either:
             // - an instance with `.sanitize` (browser bundles)
             // - a factory function requiring a `window` (some ESM/node builds)
-            if (DOMPurify && typeof /** @type {any} */ (DOMPurify).sanitize === "function") {
+            if (DOMPurify && typeof (/** @type {any} */ (DOMPurify).sanitize) === "function") {
                 return DOMPurify;
             }
             if (typeof DOMPurify === "function" && globalThis.window !== undefined) {

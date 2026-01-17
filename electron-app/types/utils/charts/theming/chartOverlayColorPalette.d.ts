@@ -20,4 +20,3 @@ export const baseChartOverlayColors: string[];
  * @type {string[]}
  */
 export const chartOverlayColorPalette: string[];
-//# sourceMappingURL=chartOverlayColorPalette.d.ts.map

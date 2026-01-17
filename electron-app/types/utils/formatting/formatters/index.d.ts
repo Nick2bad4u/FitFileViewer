@@ -7,4 +7,3 @@ export * from "./formatSensorName.js";
 export * from "./formatTime.js";
 export * from "./formatUtils.js";
 export * from "./formatWeight.js";
-//# sourceMappingURL=index.d.ts.map

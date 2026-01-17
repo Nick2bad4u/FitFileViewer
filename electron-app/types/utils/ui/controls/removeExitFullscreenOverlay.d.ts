@@ -11,4 +11,3 @@
  * removeExitFullscreenOverlay(document.getElementById('chart-container'));
  */
 export function removeExitFullscreenOverlay(container: HTMLElement): void;
-//# sourceMappingURL=removeExitFullscreenOverlay.d.ts.map

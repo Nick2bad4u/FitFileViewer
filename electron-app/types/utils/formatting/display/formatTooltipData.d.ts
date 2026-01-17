@@ -62,4 +62,3 @@ export type RecordMessage = {
      */
     positionLong?: number;
 };
-//# sourceMappingURL=formatTooltipData.d.ts.map

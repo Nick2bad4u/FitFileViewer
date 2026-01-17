@@ -17,4 +17,3 @@ export {
     movePowerZoneControlsToSection as movePowerZoneControlsToSectionSimple,
     updatePowerZoneControlsVisibility as updatePowerZoneControlsVisibilitySimple,
 } from "./createPowerZoneControlsSimple.js";
-//# sourceMappingURL=index.d.ts.map

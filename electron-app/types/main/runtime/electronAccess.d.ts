@@ -40,4 +40,3 @@ export function setElectronOverride(override: any): void;
  * @returns {any} Electron shell reference.
  */
 export function shellRef(): any;
-//# sourceMappingURL=electronAccess.d.ts.map

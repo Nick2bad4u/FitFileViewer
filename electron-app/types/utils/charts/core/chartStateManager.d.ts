@@ -96,4 +96,3 @@ declare class ChartStateManager {
      */
     updateControlsVisibility(visible: boolean): void;
 }
-//# sourceMappingURL=chartStateManager.d.ts.map

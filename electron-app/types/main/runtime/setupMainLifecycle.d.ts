@@ -34,4 +34,3 @@ export type LifecycleDependencies = {
  * @returns {void}
  */
 export function setupMainLifecycle(deps: LifecycleDependencies): void;
-//# sourceMappingURL=setupMainLifecycle.d.ts.map

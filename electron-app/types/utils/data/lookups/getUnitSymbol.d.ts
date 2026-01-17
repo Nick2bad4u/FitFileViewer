@@ -18,4 +18,3 @@
  * getUnitSymbol("heartRate");          // "bpm" (fixed for heart rate)
  */
 export function getUnitSymbol(field: string, unitType?: string): string;
-//# sourceMappingURL=getUnitSymbol.d.ts.map

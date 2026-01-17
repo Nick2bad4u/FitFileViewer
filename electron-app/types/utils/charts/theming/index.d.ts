@@ -4,4 +4,3 @@ export * from "./chartThemeListener.js";
 export * from "./chartThemeUtils.js";
 export * from "./getFieldColor.js";
 export * from "./getThemeColors.js";
-//# sourceMappingURL=index.d.ts.map

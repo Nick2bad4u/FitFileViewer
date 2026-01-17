@@ -17,4 +17,3 @@ export namespace MAP_THEME_EVENTS {
     let CHANGED: string;
 }
 export const MAP_THEME_STORAGE_KEY: "ffv-map-theme-inverted";
-//# sourceMappingURL=createMapThemeToggle.d.ts.map

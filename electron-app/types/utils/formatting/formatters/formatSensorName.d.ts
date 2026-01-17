@@ -35,4 +35,3 @@ export function formatSensorName(sensor: {
     product?: string | number | undefined;
     garminProduct?: string | undefined;
 }): string;
-//# sourceMappingURL=formatSensorName.d.ts.map

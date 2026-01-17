@@ -9,4 +9,3 @@ export function loadSingleOverlayFile(file: File): Promise<{
     data?: Object;
     error?: string;
 }>;
-//# sourceMappingURL=loadSingleOverlayFile.d.ts.map

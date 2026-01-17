@@ -18,4 +18,3 @@ export type LeafletMap = {
      */
     _container?: HTMLElement;
 };
-//# sourceMappingURL=mapFullscreenControl.d.ts.map

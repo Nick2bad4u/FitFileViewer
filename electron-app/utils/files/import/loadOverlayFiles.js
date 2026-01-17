@@ -52,8 +52,49 @@ export async function loadOverlayFiles(files) {
     let started = 0;
     let finished = 0;
 
+    /**
+     * Schedule a single overlay load using the shared concurrency limiter.
+     *
+     * Keeping the async function creation out of the loop avoids eslint's
+     * no-loop-func warning while still capturing shared progress counters.
+     *
+     * @param {File} file
+     * @param {string} displayName
+     * @param {string | null} uniqueKey
+     * @returns {Promise<void>}
+     */
+    const scheduleOverlayLoad = (file, displayName, uniqueKey) =>
+        limit(async () => {
+            started++;
+            LoadingOverlay.show(
+                `Loading ${Math.min(started, totalFiles)} / ${totalFiles} files... (x${concurrency})`,
+                displayName
+            );
+
+            try {
+                const result = await loadSingleOverlayFile(file);
+                if (result.success && result.data) {
+                    const entry = createOverlayEntry(file, result.data, uniqueKey);
+                    globalThis.loadedFitFiles.push(entry);
+                    stateDirty = true;
+                } else {
+                    invalidFiles.push(displayName);
+                    showNotification(`Failed to load ${displayName}: ${result.error || "Unknown error"}`, "error");
+                }
+            } catch (error) {
+                console.error("[loadOverlayFiles] Error loading overlay file:", displayName, error);
+                invalidFiles.push(displayName);
+            } finally {
+                finished++;
+                LoadingOverlay.show(
+                    `Processing ${Math.min(finished, totalFiles)} / ${totalFiles} files... (x${concurrency})`,
+                    displayName
+                );
+            }
+        });
+
     try {
-        for (const [index, file] of files.entries()) {
+        for (const file of files) {
             const displayName = getFileDisplayName(file);
             const uniqueKey = getFileUniqueKey(file);
             if (uniqueKey && existingKeys.has(uniqueKey)) {
@@ -65,39 +106,7 @@ export async function loadOverlayFiles(files) {
                 existingKeys.add(uniqueKey);
             }
 
-            tasks.push(
-                limit(async () => {
-                    started++;
-                    LoadingOverlay.show(
-                        `Loading ${Math.min(started, totalFiles)} / ${totalFiles} files... (x${concurrency})`,
-                        displayName
-                    );
-
-                    try {
-                        const result = await loadSingleOverlayFile(file);
-                        if (result.success && result.data) {
-                            const entry = createOverlayEntry(file, result.data, uniqueKey);
-                            globalThis.loadedFitFiles.push(entry);
-                            stateDirty = true;
-                        } else {
-                            invalidFiles.push(displayName);
-                            showNotification(
-                                `Failed to load ${displayName}: ${result.error || "Unknown error"}`,
-                                "error"
-                            );
-                        }
-                    } catch (error) {
-                        console.error("[loadOverlayFiles] Error loading overlay file:", displayName, error);
-                        invalidFiles.push(displayName);
-                    } finally {
-                        finished++;
-                        LoadingOverlay.show(
-                            `Processing ${Math.min(finished, totalFiles)} / ${totalFiles} files... (x${concurrency})`,
-                            displayName
-                        );
-                    }
-                })
-            );
+            tasks.push(scheduleOverlayLoad(file, displayName, uniqueKey));
         }
 
         // Wait for all overlay loads to complete.

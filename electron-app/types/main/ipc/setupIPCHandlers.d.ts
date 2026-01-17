@@ -5,4 +5,3 @@
  * @param {any} mainWindow - Primary BrowserWindow instance (may be undefined in some test scenarios).
  */
 export function setupIPCHandlers(mainWindow: any): void;
-//# sourceMappingURL=setupIPCHandlers.d.ts.map

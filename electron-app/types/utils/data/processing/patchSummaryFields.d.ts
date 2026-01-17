@@ -38,4 +38,3 @@ export type PatchSummaryFieldsOptions = {
  * the numerous TS7053 (implicit any on string index) diagnostics under checkJs.
  */
 export type SummaryRecord = Record<string, any>;
-//# sourceMappingURL=patchSummaryFields.d.ts.map

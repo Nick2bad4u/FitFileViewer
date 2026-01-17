@@ -2892,7 +2892,7 @@ body[data-has-fit-file="true"] #activeFileName {
     padding: 0 4px;
     margin-left: 4px;
     cursor: pointer;
-    display: flex;
+    display: none;
     align-items: center;
     transition:
         color 0.2s,
@@ -5587,7 +5587,7 @@ body.theme-dark .map-action-btn.disabled {
     background: linear-gradient(135deg, var(--c_rgb303454_85p) 0%, var(--c_rgb202444_90p) 100%);
     backdrop-filter: blur(12px);
     z-index: 10050;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     pointer-events: none;

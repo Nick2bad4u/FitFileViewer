@@ -44,4 +44,3 @@ declare class PerformanceMonitor {
     startTimer(operationId: string): void;
 }
 export {};
-//# sourceMappingURL=performanceMonitor.d.ts.map

@@ -25,4 +25,3 @@ export function showUpdateNotification(
     duration?: number,
     withAction?: boolean | string
 ): void;
-//# sourceMappingURL=showUpdateNotification.d.ts.map

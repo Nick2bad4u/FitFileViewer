@@ -32,4 +32,3 @@ export function getFieldColor(field: string): string;
  * const hasColor = hasFieldColor("heartRate"); // true
  */
 export function hasFieldColor(field: string): boolean;
-//# sourceMappingURL=getFieldColor.d.ts.map

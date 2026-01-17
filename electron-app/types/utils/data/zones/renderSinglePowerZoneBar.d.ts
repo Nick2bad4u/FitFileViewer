@@ -16,4 +16,3 @@ export function renderSinglePowerZoneBar(
         title?: string;
     }
 ): any | null;
-//# sourceMappingURL=renderSinglePowerZoneBar.d.ts.map

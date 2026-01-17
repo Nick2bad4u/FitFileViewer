@@ -16,4 +16,3 @@ export function renderPowerVsHeartRateChart(
         theme?: string;
     }
 ): void;
-//# sourceMappingURL=renderPowerVsHeartRateChart.d.ts.map

@@ -46,4 +46,3 @@ export function cleanupEventListeners(): void;
  * @returns {number} The number of currently tracked event listeners
  */
 export function getListenerCount(): number;
-//# sourceMappingURL=eventListenerManager.d.ts.map

@@ -55,4 +55,3 @@ export function updateUIState(uiElements: Object, isLoading: boolean, isOpening:
  */
 export function validateElectronAPI(): boolean;
 import * as stateManager from "../../state/core/stateManager.js";
-//# sourceMappingURL=handleOpenFile.d.ts.map

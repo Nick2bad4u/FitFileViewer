@@ -15,4 +15,3 @@ export function handleEscapeKey(e: any): void;
  */
 export function showAboutModal(html?: string): void;
 export const modalAnimationDuration: number;
-//# sourceMappingURL=aboutModal.d.ts.map

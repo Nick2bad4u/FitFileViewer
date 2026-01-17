@@ -28,4 +28,3 @@ export type RendererLogLevel = "log" | "info" | "warn" | "error" | "debug";
  * Renderer logger function signature.
  */
 export type RendererLogger = (level: RendererLogLevel, message: string, context?: Record<string, unknown>) => void;
-//# sourceMappingURL=rendererLogger.d.ts.map

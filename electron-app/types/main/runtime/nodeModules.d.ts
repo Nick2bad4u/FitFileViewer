@@ -11,4 +11,3 @@ export const fs: any;
 export function httpRef(): any;
 import path = require("path");
 export { path };
-//# sourceMappingURL=nodeModules.d.ts.map

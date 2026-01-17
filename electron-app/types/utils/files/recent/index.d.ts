@@ -9,4 +9,3 @@ declare namespace recentAPI {
     export { loadRecentFiles };
     export { saveRecentFiles };
 }
-//# sourceMappingURL=index.d.ts.map

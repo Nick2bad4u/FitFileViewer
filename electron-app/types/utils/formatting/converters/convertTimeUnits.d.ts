@@ -14,4 +14,3 @@ export namespace TIME_UNITS {
     let MINUTES: string;
     let SECONDS: string;
 }
-//# sourceMappingURL=convertTimeUnits.d.ts.map

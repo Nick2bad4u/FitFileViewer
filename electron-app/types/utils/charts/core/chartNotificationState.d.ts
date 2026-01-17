@@ -15,4 +15,3 @@ export namespace previousChartState {
     let fieldsRendered: never[];
     let lastRenderTimestamp: number;
 }
-//# sourceMappingURL=chartNotificationState.d.ts.map

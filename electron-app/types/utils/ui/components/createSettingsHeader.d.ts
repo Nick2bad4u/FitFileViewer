@@ -96,4 +96,3 @@ export type HTMLInputElementExtended = HTMLInputElement & {
 export type HTMLDivElementExtended = HTMLDivElement & {
     _updateFromReset?: Function;
 };
-//# sourceMappingURL=createSettingsHeader.d.ts.map

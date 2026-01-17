@@ -3,4 +3,3 @@
  * Applies dark theme (inversion filter) when user prefers dark maps, regardless of UI theme
  */
 export function updateMapTheme(): void;
-//# sourceMappingURL=updateMapTheme.d.ts.map

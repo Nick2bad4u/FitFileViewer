@@ -13,4 +13,3 @@ export function initializeActiveTabState(): void;
  * @returns {boolean}
  */
 export function updateActiveTab(tabId: string): boolean;
-//# sourceMappingURL=updateActiveTab.d.ts.map

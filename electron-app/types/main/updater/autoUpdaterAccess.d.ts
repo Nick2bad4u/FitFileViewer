@@ -5,4 +5,3 @@ export function resolveAutoUpdaterAsync(): Promise<any>;
  * @returns {any} autoUpdater instance or null when unavailable.
  */
 export function resolveAutoUpdaterSync(): any;
-//# sourceMappingURL=autoUpdaterAccess.d.ts.map

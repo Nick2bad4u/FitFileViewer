@@ -15,4 +15,3 @@ export function updateAllChartStatusIndicators(): void;
  */
 export function updateChartStatusIndicator(indicator?: HTMLElement | null): void;
 export type ChartCounts = import("../core/getChartCounts.js").ChartCounts;
-//# sourceMappingURL=chartStatusIndicator.d.ts.map

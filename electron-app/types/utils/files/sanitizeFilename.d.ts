@@ -45,4 +45,3 @@ declare const RESERVED_DEVICE_NAMES: Set<string>;
  */
 declare const RESERVED_FILENAME_CHARACTERS: Set<string>;
 export {};
-//# sourceMappingURL=sanitizeFilename.d.ts.map

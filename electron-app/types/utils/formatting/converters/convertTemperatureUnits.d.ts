@@ -13,4 +13,3 @@ export namespace TEMPERATURE_UNITS {
     let CELSIUS: string;
     let FAHRENHEIT: string;
 }
-//# sourceMappingURL=convertTemperatureUnits.d.ts.map

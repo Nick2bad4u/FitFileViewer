@@ -6,4 +6,3 @@
  * @returns {Promise<string>} Resolved theme name falling back to the default theme.
  */
 export function getThemeFromRenderer(win: any): Promise<string>;
-//# sourceMappingURL=getThemeFromRenderer.d.ts.map

@@ -11,4 +11,3 @@ import * as stateCore from "./core/index.js";
 import * as stateDomain from "./domain/index.js";
 import * as stateIntegration from "./integration/index.js";
 export { getState, setState, subscribe, updateState } from "./core/index.js";
-//# sourceMappingURL=index.d.ts.map

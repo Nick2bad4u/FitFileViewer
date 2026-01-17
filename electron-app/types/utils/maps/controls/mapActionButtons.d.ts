@@ -6,4 +6,3 @@ export function hideLoadingOverlay(): void;
  */
 export function showLoadingOverlay(progressText: string, fileName?: string): void;
 export { createMapThemeToggle } from "../../theming/specific/createMapThemeToggle.js";
-//# sourceMappingURL=mapActionButtons.d.ts.map

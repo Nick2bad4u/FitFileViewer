@@ -39,4 +39,3 @@ export function testProductId(
     productId: number;
     resolvedProduct: string;
 };
-//# sourceMappingURL=debugSensorInfo.d.ts.map

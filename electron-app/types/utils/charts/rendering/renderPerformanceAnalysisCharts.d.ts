@@ -11,4 +11,3 @@ export function renderPerformanceAnalysisCharts(
     labels: Array<string | number>,
     options: any
 ): void;
-//# sourceMappingURL=renderPerformanceAnalysisCharts.d.ts.map

@@ -20,4 +20,3 @@ export type SanitizeAllowlistOptions = {
     allowedAttributes: ReadonlyArray<string>;
     stripUrlInStyle?: boolean;
 };
-//# sourceMappingURL=sanitizeHtmlAllowlist.d.ts.map

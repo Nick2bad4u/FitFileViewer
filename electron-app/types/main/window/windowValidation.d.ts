@@ -13,4 +13,3 @@ export function isWindowUsable(win: any): boolean;
  * @returns {boolean} True when the window can be used.
  */
 export function validateWindow(win: any, context?: string): boolean;
-//# sourceMappingURL=windowValidation.d.ts.map

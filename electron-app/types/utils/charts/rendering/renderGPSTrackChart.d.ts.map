@@ -1,1 +1,0 @@
-{"version":3,"file":"renderGPSTrackChart.d.ts","sourceRoot":"","sources":["../../../../utils/charts/rendering/renderGPSTrackChart.js"],"names":[],"mappings":"AAOA;;;;GAIG;AACH,+CAJW,WAAW,QACX,GAAG,EAAE,WACL;IAAE,SAAS,EAAE,MAAM,GAAC,KAAK,CAAC;IAAC,UAAU,CAAC,EAAE,OAAO,CAAC;IAAC,UAAU,CAAC,EAAE,OAAO,CAAC;IAAC,SAAS,CAAC,EAAE,OAAO,CAAC;IAAC,QAAQ,CAAC,EAAE,OAAO,CAAA;CAAE,QAsN1H"}

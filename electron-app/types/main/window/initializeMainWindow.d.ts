@@ -36,4 +36,3 @@ export function initializeMainWindow({
     setupAutoUpdater: Function;
     logWithContext: Function;
 }): Promise<any>;
-//# sourceMappingURL=initializeMainWindow.d.ts.map

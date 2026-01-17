@@ -6,6 +6,6 @@
  *
  * @param {Object} params
  * @param {ParentNode} params.root
+ * @returns {() => void} cleanup
  */
-export function attachExternalLinkHandlers({ root }: { root: ParentNode }): void;
-//# sourceMappingURL=externalLinkHandlers.d.ts.map
+export function attachExternalLinkHandlers({ root }: { root: ParentNode }): () => void;

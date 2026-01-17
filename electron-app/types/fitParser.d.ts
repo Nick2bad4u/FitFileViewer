@@ -227,4 +227,3 @@ export function validateDecoderOptions(
     options: Partial<DecoderOptions> | null | undefined
 ): DecoderOptionsValidationResult;
 import { Buffer } from "buffer";
-//# sourceMappingURL=fitParser.d.ts.map

@@ -10,4 +10,3 @@ export default _default;
 import * as formattingConverters from "./converters/index.js";
 import * as formattingDisplay from "./display/index.js";
 import * as formattingFormatters from "./formatters/index.js";
-//# sourceMappingURL=index.d.ts.map

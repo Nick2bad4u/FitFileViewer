@@ -27,4 +27,3 @@ export function registerIpcListener<T extends (...args: any[]) => any>(channel: 
  * suites.
  */
 export function resetIpcRegistries(): void;
-//# sourceMappingURL=ipcRegistry.d.ts.map

@@ -86,4 +86,3 @@ export type MapDrawLapsFunction = {
      */
     call: Function;
 };
-//# sourceMappingURL=mapLapSelector.d.ts.map

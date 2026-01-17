@@ -46,4 +46,3 @@ export type DisplayOptions = {
      */
     updateUI?: boolean;
 };
-//# sourceMappingURL=showFitData.d.ts.map

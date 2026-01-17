@@ -14,4 +14,3 @@
  * }
  */
 export function getActiveTabContent(): Element | null;
-//# sourceMappingURL=getActiveTabContent.d.ts.map

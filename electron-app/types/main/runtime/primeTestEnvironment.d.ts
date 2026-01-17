@@ -6,4 +6,3 @@
  * window already exists in tests.
  */
 export function primeTestEnvironment(initializeApplication: () => Promise<any>): void;
-//# sourceMappingURL=primeTestEnvironment.d.ts.map

@@ -20,4 +20,3 @@ export function registerExternalHandlers({
     stopGyazoOAuthServer: () => Promise<any>;
     logWithContext: (level: "error" | "warn" | "info", message: string, context?: Record<string, any>) => void;
 }): void;
-//# sourceMappingURL=registerExternalHandlers.d.ts.map

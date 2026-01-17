@@ -12,4 +12,3 @@
  * const convertedTemp = convertValueToUserUnits(25, "temperature");
  */
 export function convertValueToUserUnits(value: number, field: string): number;
-//# sourceMappingURL=convertValueToUserUnits.d.ts.map

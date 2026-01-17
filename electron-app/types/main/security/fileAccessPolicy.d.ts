@@ -76,4 +76,3 @@ export function isValidFitFilePathCandidate(filePath: unknown): filePath is stri
  * TEST-ONLY: clears approvals to keep suites isolated.
  */
 export function __resetForTests(): void;
-//# sourceMappingURL=fileAccessPolicy.d.ts.map

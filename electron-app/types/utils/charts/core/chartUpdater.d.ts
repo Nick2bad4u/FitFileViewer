@@ -54,4 +54,3 @@ export namespace ChartUpdater {
     export { updateCharts as update };
 }
 export default ChartUpdater;
-//# sourceMappingURL=chartUpdater.d.ts.map

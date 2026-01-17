@@ -256,4 +256,3 @@ declare class AppStateManager {
      */
     update(updates: Object): void;
 }
-//# sourceMappingURL=appState.d.ts.map

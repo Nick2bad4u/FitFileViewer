@@ -22,4 +22,3 @@
  * @returns {string}
  */
 export function sanitizeCssColorToken(value: unknown, fallback?: string): string;
-//# sourceMappingURL=sanitizeCssColorToken.d.ts.map

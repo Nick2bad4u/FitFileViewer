@@ -19,4 +19,3 @@ export function moveHRZoneControlsToSection(): void;
  * @param {boolean} hasData - Whether HR zone data is available
  */
 export function updateHRZoneControlsVisibility(hasData: boolean): void;
-//# sourceMappingURL=createHRZoneControls.d.ts.map

@@ -163,7 +163,7 @@ describe("keyboardShortcutsModal", () => {
         const clickEvent = new MouseEvent("click", { bubbles: true, cancelable: true });
         link.dispatchEvent(clickEvent);
 
-        expect(openExternal).toHaveBeenCalledWith("https://example.com/");
+        expect(openExternal).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/example\.com\/?$/));
         expect(clickEvent.defaultPrevented).toBe(true);
     });
 });

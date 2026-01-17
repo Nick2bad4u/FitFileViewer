@@ -18,4 +18,3 @@ export function renderGPSTimeChart(
         showGrid?: boolean;
     }
 ): void;
-//# sourceMappingURL=renderGPSTimeChart.d.ts.map

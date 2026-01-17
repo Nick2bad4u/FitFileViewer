@@ -127,4 +127,3 @@ export const notificationQueue: any[];
  */
 export function processNotificationQueue(): Promise<void>;
 export {};
-//# sourceMappingURL=showNotification.d.ts.map

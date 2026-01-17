@@ -138,4 +138,3 @@ export type FitFile = {
      */
     filePath?: string;
 };
-//# sourceMappingURL=mapDrawLaps.d.ts.map

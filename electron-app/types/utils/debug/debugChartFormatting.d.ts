@@ -37,4 +37,3 @@ export function testNewFormatting(): (
           };
       }
 )[];
-//# sourceMappingURL=debugChartFormatting.d.ts.map

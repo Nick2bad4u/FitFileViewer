@@ -24,4 +24,3 @@ export function getManufacturerName(manufacturerId: number | string): string;
  * @returns {string} Product name or original product ID if not found
  */
 export function getProductName(manufacturerId: number | string, productId: number | string): string;
-//# sourceMappingURL=formatAntNames.d.ts.map

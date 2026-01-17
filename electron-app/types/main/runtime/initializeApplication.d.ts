@@ -5,4 +5,3 @@
  * @returns {Promise<any>} Resolves with the created BrowserWindow instance.
  */
 export function initializeApplication(): Promise<any>;
-//# sourceMappingURL=initializeApplication.d.ts.map
