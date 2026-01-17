@@ -92,6 +92,29 @@ function escapeHtml(value) {
 }
 
 /**
+ * Best-effort fetch with a timeout.
+ *
+ * @param {string} url
+ * @param {RequestInit} init
+ * @param {number} timeoutMs
+ * @returns {Promise<Response>}
+ */
+async function fetchWithTimeout(url, init, timeoutMs) {
+    const controller = typeof AbortController === "undefined" ? null : new AbortController();
+    const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+    try {
+        return await fetch(url, {
+            ...init,
+            signal: controller ? controller.signal : init.signal,
+        });
+    } finally {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+    }
+}
+
+/**
  * Generate a cryptographically-strong OAuth state token when possible.
  * Falls back to Math.random in older or constrained environments.
  *
@@ -111,6 +134,23 @@ function generateOAuthState() {
     }
 
     return Math.random().toString(36).slice(2, 15) + Math.random().toString(36).slice(2, 15);
+}
+
+/**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isAbortError(error) {
+    return Boolean(error && typeof error === "object" && /** @type {any} */ (error).name === "AbortError");
+}
+
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function truncateErrorText(value) {
+    if (typeof value !== "string") return "";
+    return value.length > 500 ? `${value.slice(0, 500)}…` : value;
 }
 
 /**
@@ -203,6 +243,43 @@ function validateGyazoRedirectUri(redirectUri) {
     const port = Number(parsed.port);
     if (!Number.isInteger(port) || port < 1 || port > 65_535) {
         throw new Error("Invalid redirect URI");
+    }
+
+    return trimmed;
+}
+
+/**
+ * Validate an Imgur endpoint URL.
+ *
+ * @param {unknown} url
+ * @param {ReadonlySet<string>} allowedHosts
+ * @returns {string}
+ */
+function validateImgurEndpointUrl(url, allowedHosts) {
+    if (typeof url !== "string") {
+        throw new TypeError("Invalid Imgur endpoint URL");
+    }
+    const trimmed = url.trim();
+    if (!trimmed) {
+        throw new TypeError("Invalid Imgur endpoint URL");
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(trimmed);
+    } catch {
+        throw new TypeError("Invalid Imgur endpoint URL");
+    }
+
+    if (parsed.protocol !== "https:") {
+        throw new Error("Imgur endpoints must use HTTPS");
+    }
+    if (parsed.username || parsed.password) {
+        throw new Error("Credentials in Imgur endpoint URLs are not allowed");
+    }
+
+    if (!allowedHosts.has(parsed.hostname)) {
+        throw new Error("Unexpected Imgur endpoint host");
     }
 
     return trimmed;
@@ -1071,26 +1148,21 @@ export const exportUtils = {
         });
 
         try {
-            const controller = typeof AbortController === "undefined" ? null : new AbortController();
-            const timeoutId = controller ? setTimeout(() => controller.abort(), 15_000) : null;
-
-            const response = await fetch(tokenUrl, {
-                body: tokenParams.toString(),
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
+            const response = await fetchWithTimeout(
+                tokenUrl,
+                {
+                    body: tokenParams.toString(),
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    method: "POST",
                 },
-                method: "POST",
-                signal: controller ? controller.signal : undefined,
-            });
-
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
+                15_000
+            );
 
             if (!response.ok) {
                 const errorText = await response.text();
-                const snippet = typeof errorText === "string" ? errorText.slice(0, 500) : "";
-                throw new Error(`Token exchange failed: ${response.status} - ${snippet}`);
+                throw new Error(`Token exchange failed: ${response.status} - ${truncateErrorText(errorText)}`);
             }
 
             const data = await response.json();
@@ -1099,7 +1171,7 @@ export const exportUtils = {
             }
             throw new Error("No access token returned from Gyazo");
         } catch (error) {
-            if (/** @type {any} */ (error)?.name === "AbortError") {
+            if (isAbortError(error)) {
                 throw new Error("Token exchange timed out");
             }
             console.error("Error exchanging code for token:", error);
@@ -2561,17 +2633,26 @@ export const exportUtils = {
 
         try {
             // Convert base64 to blob for FormData
-            const response = await fetch(base64Image),
+            const response = await fetchWithTimeout(base64Image, {}, 5000),
                 blob = await response.blob(),
                 // Create FormData for multipart/form-data upload
                 formData = new FormData();
             formData.append("access_token", accessToken);
             formData.append("imagedata", blob, "chart.png");
 
-            const uploadResponse = await fetch(/** @type {any} */ (exportUtils.getGyazoConfig()).uploadUrl, {
-                body: formData,
-                method: "POST",
-            });
+            const uploadUrl = validateGyazoEndpointUrl(
+                /** @type {any} */ (exportUtils.getGyazoConfig()).uploadUrl,
+                new Set(["upload.gyazo.com"])
+            );
+
+            const uploadResponse = await fetchWithTimeout(
+                uploadUrl,
+                {
+                    body: formData,
+                    method: "POST",
+                },
+                15_000
+            );
 
             if (!uploadResponse.ok) {
                 // If unauthorized, clear the token and try to re-authenticate
@@ -2581,7 +2662,7 @@ export const exportUtils = {
                 }
 
                 const errorText = await uploadResponse.text();
-                throw new Error(`Gyazo upload failed: ${uploadResponse.status} - ${errorText}`);
+                throw new Error(`Gyazo upload failed: ${uploadResponse.status} - ${truncateErrorText(errorText)}`);
             }
 
             const data = await uploadResponse.json();
@@ -2592,6 +2673,9 @@ export const exportUtils = {
             }
             throw new Error("No URL returned from Gyazo upload");
         } catch (error) {
+            if (isAbortError(error)) {
+                throw new Error("Gyazo upload timed out");
+            }
             console.error("Error uploading to Gyazo:", error);
 
             // If it's an authentication error, clear the stored token
@@ -2613,8 +2697,21 @@ export const exportUtils = {
     getImgurConfig() {
         const defaultClientId = "0046ee9e30ac578"; // Placeholder for demo
 
+        /** @type {(key: string) => string | null} */
+        const safeGetItem = (key) => {
+            try {
+                const storage =
+                    typeof __deps.getStorage === "function"
+                        ? __deps.getStorage()
+                        : /** @type {any} */ (globalThis).localStorage;
+                return storage && typeof storage.getItem === "function" ? storage.getItem(key) : null;
+            } catch {
+                return null;
+            }
+        };
+
         return {
-            clientId: localStorage.getItem("imgur_client_id") || defaultClientId,
+            clientId: safeGetItem("imgur_client_id") || defaultClientId,
             uploadUrl: "https://api.imgur.com/3/image",
         };
     },
@@ -2625,7 +2722,11 @@ export const exportUtils = {
      */
     setImgurConfig(clientId) {
         try {
-            localStorage.setItem("imgur_client_id", clientId);
+            const storage =
+                typeof __deps.getStorage === "function"
+                    ? __deps.getStorage()
+                    : /** @type {any} */ (globalThis).localStorage;
+            storage?.setItem?.("imgur_client_id", clientId);
         } catch (error) {
             console.error("Error saving Imgur configuration:", error);
         }
@@ -2636,7 +2737,11 @@ export const exportUtils = {
      */
     clearImgurConfig() {
         try {
-            localStorage.removeItem("imgur_client_id");
+            const storage =
+                typeof __deps.getStorage === "function"
+                    ? __deps.getStorage()
+                    : /** @type {any} */ (globalThis).localStorage;
+            storage?.removeItem?.("imgur_client_id");
         } catch (error) {
             console.error("Error clearing Imgur configuration:", error);
         }
@@ -2659,40 +2764,32 @@ export const exportUtils = {
      * @returns {Promise<string>} Imgur URL
      */
     async uploadToImgur(base64Image) {
-        console.log("[Imgur Upload] Starting upload process...");
+        const debugUploads =
+            typeof process !== "undefined" && Boolean(process.env) && process.env.FFV_DEBUG_UPLOADS === "1";
 
         const config = exportUtils.getImgurConfig();
-        const defaultClientIds = new Set(["0046ee9e30ac578", "YOUR_IMGUR_CLIENT_ID"]);
-
-        // Debug: Log configuration details
-        console.log("[Imgur Upload] Config:", {
-            clientId: config.clientId ? `${config.clientId.slice(0, 8)}...` : "undefined",
-            uploadUrl: config.uploadUrl,
-            isDefault: defaultClientIds.has(config.clientId),
-        });
 
         // Only reject if completely unconfigured (YOUR_IMGUR_CLIENT_ID)
         if (config.clientId === "YOUR_IMGUR_CLIENT_ID") {
-            const error = new Error("Imgur client ID not configured. Please add your Imgur client ID in the settings.");
-            console.error("[Imgur Upload] Client ID validation failed:", error.message);
-            throw error;
+            throw new Error("Imgur client ID not configured. Please add your Imgur client ID in the settings.");
         }
 
         // Warn about shared usage but proceed
         if (config.clientId === "0046ee9e30ac578") {
-            console.warn(
-                "[Imgur Upload] Using shared client ID. This may have rate limits. Consider configuring your own Client ID in settings for better reliability."
-            );
             __deps.showNotification(
                 "Using shared Imgur service - uploads may be rate limited. Configure your own Client ID in settings for better reliability.",
                 "warning"
             );
         }
 
+        const uploadUrl = validateImgurEndpointUrl(config.uploadUrl, new Set(["api.imgur.com"]));
+
         try {
-            // Prepare the image data
-            const [, imageData] = base64Image.split(","); // Remove data:image/png;base64, prefix
-            console.log("[Imgur Upload] Image data length:", imageData ? imageData.length : 0);
+            const parts = typeof base64Image === "string" ? base64Image.split(",") : [];
+            const imageData = parts.length >= 2 ? parts[1] : "";
+            if (!imageData) {
+                throw new Error("Invalid image data provided");
+            }
 
             const requestBody = {
                 description: "Chart exported from FitFileViewer",
@@ -2701,54 +2798,41 @@ export const exportUtils = {
                 type: "base64",
             };
 
-            console.log("[Imgur Upload] Making API request to:", config.uploadUrl);
-            console.log("[Imgur Upload] Request headers:", {
-                Authorization: `Client-ID ${config.clientId.slice(0, 8)}...`,
-                "Content-Type": "application/json",
-            });
+            if (debugUploads) {
+                console.log("[Imgur Upload] POST", uploadUrl);
+            }
 
-            const response = await fetch(config.uploadUrl, {
-                body: JSON.stringify(requestBody),
-                headers: {
-                    Authorization: `Client-ID ${config.clientId}`,
-                    "Content-Type": "application/json",
+            const response = await fetchWithTimeout(
+                uploadUrl,
+                {
+                    body: JSON.stringify(requestBody),
+                    headers: {
+                        Authorization: `Client-ID ${config.clientId}`,
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
                 },
-                method: "POST",
-            });
-
-            console.log("[Imgur Upload] Response status:", response.status, response.statusText);
-            console.log("[Imgur Upload] Response headers:", Object.fromEntries(response.headers.entries()));
+                15_000
+            );
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error("[Imgur Upload] API error response:", errorText);
-                throw new Error(`Imgur upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+                throw new Error(
+                    `Imgur upload failed: ${response.status} ${response.statusText} - ${truncateErrorText(errorText)}`
+                );
             }
 
             const data = await response.json();
-            console.log("[Imgur Upload] API response:", JSON.stringify(data, null, 2));
-
-            if (data.success && data.data && data.data.link) {
-                console.log("[Imgur Upload] Success! URL:", data.data.link);
-                return data.data.link;
+            const link = data?.data?.link;
+            if (typeof link === "string" && link.length > 0) {
+                return link;
             }
 
-            console.error("[Imgur Upload] Unexpected response structure:", {
-                hasSuccess: "success" in data,
-                successValue: data.success,
-                hasData: "data" in data,
-                hasLink: data.data && "link" in data.data,
-                linkValue: data.data?.link,
-            });
-            throw new Error(
-                `Imgur upload failed: Unexpected response structure. Success: ${data.success}, Data: ${JSON.stringify(data.data)}`
-            );
+            throw new Error("Invalid response from Imgur");
         } catch (error) {
-            console.error("[Imgur Upload] Error details:", {
-                name: error.name,
-                message: error.message,
-                stack: error.stack,
-            });
+            if (isAbortError(error)) {
+                throw new Error("Imgur upload timed out");
+            }
             throw error;
         }
     } /**

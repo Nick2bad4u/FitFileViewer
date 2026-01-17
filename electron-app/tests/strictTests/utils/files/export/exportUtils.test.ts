@@ -484,19 +484,22 @@ describe("exportUtils core flows", () => {
 
             const result = await exportUtils.uploadToImgur("data:image/png;base64,ABC123");
 
-            expect(fetch).toHaveBeenCalledWith("https://api.imgur.com/3/image", {
-                method: "POST",
-                headers: {
-                    Authorization: "Client-ID test-client-id",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    description: "Chart exported from FitFileViewer",
-                    image: "ABC123",
-                    title: "FitFileViewer Chart",
-                    type: "base64",
-                }),
-            });
+            expect(fetch).toHaveBeenCalledWith(
+                "https://api.imgur.com/3/image",
+                expect.objectContaining({
+                    method: "POST",
+                    headers: {
+                        Authorization: "Client-ID test-client-id",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        description: "Chart exported from FitFileViewer",
+                        image: "ABC123",
+                        title: "FitFileViewer Chart",
+                        type: "base64",
+                    }),
+                })
+            );
 
             expect(result).toBe("https://imgur.com/test.png");
         });
@@ -647,11 +650,15 @@ describe("exportUtils core flows", () => {
 
             // Check both fetch calls
             expect(fetch).toHaveBeenCalledTimes(2);
-            expect(fetch).toHaveBeenNthCalledWith(1, "data:image/png;base64,ABC123");
-            expect(fetch).toHaveBeenNthCalledWith(2, "https://upload.gyazo.com/api/upload", {
-                method: "POST",
-                body: expect.any(FormData),
-            });
+            expect(fetch).toHaveBeenNthCalledWith(1, "data:image/png;base64,ABC123", expect.any(Object));
+            expect(fetch).toHaveBeenNthCalledWith(
+                2,
+                "https://upload.gyazo.com/api/upload",
+                expect.objectContaining({
+                    method: "POST",
+                    body: expect.any(FormData),
+                })
+            );
 
             expect(result).toBe("https://gyazo.com/test.png");
         });

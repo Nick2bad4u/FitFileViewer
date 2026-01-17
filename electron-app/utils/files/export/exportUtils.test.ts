@@ -127,13 +127,22 @@ vi.spyOn(document.body, "removeChild").mockImplementation(vi.fn());
 // Also stub append which is used by export flows
 vi.spyOn(document.body, "append").mockImplementation(vi.fn());
 
-Object.defineProperty(globalThis, "URL", {
-    value: {
-        createObjectURL: vi.fn(() => "blob:mock-url"),
-        revokeObjectURL: vi.fn(),
-    },
-    writable: true,
-});
+// Preserve the URL constructor (used by production code). Only stub the static
+// blob helpers needed by export flows.
+if (typeof globalThis.URL === "function") {
+    // @ts-expect-error test-only stubbing
+    globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url");
+    // @ts-expect-error test-only stubbing
+    globalThis.URL.revokeObjectURL = vi.fn();
+} else {
+    Object.defineProperty(globalThis, "URL", {
+        value: {
+            createObjectURL: vi.fn(() => "blob:mock-url"),
+            revokeObjectURL: vi.fn(),
+        },
+        writable: true,
+    });
+}
 
 Object.defineProperty(globalThis, "navigator", {
     value: {
@@ -642,13 +651,120 @@ describe("exportUtils", () => {
                 uploadUrl: "https://upload.gyazo.com/api/upload",
             } as any);
 
-            vi.mocked(globalThis.fetch).mockResolvedValueOnce({
-                ok: false,
-                status: 400,
-                json: () => Promise.resolve({ error: "Bad request" }),
-            } as Response);
+            // First call: data URL -> blob
+            vi.mocked(globalThis.fetch)
+                .mockImplementationOnce((input: any) =>
+                    Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                    } as any)
+                )
+                // Second call: upload -> error
+                .mockImplementationOnce((input: any, init: any) =>
+                    Promise.resolve({
+                        ok: false,
+                        status: 400,
+                        text: () => Promise.resolve("Bad request"),
+                        json: () => Promise.resolve({ error: "Bad request" }),
+                    } as any)
+                );
 
-            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow();
+            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow("Gyazo upload failed: 400");
+        });
+
+        it("should treat AbortError as a timeout", async () => {
+            const base64Image = "data:image/png;base64,test";
+
+            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
+            vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
+                uploadUrl: "https://upload.gyazo.com/api/upload",
+            } as any);
+
+            vi.mocked(globalThis.fetch)
+                .mockImplementationOnce((input: any) =>
+                    Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                    } as any)
+                )
+                .mockImplementationOnce(() => Promise.reject({ name: "AbortError" }));
+
+            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow("Gyazo upload timed out");
+        });
+
+        it("should reject unexpected upload host before uploading", async () => {
+            const base64Image = "data:image/png;base64,test";
+
+            vi.spyOn(exportUtils, "getGyazoAccessToken").mockReturnValue("token123" as any);
+            vi.spyOn(exportUtils, "getGyazoConfig").mockReturnValue({
+                uploadUrl: "https://evil.example.com/api/upload",
+            } as any);
+
+            vi.mocked(globalThis.fetch).mockImplementationOnce((input: any) =>
+                Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    blob: () => Promise.resolve(new Blob(["img"], { type: "image/png" })),
+                } as any)
+            );
+
+            await expect(exportUtils.uploadToGyazo(base64Image)).rejects.toThrow("Unexpected Gyazo endpoint host");
+            expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("uploadToImgur", () => {
+        it("should upload image to Imgur successfully", async () => {
+            const base64Image = "data:image/png;base64,abcd";
+            vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+                clientId: "client123",
+                uploadUrl: "https://api.imgur.com/3/image",
+            } as any);
+
+            vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: "OK",
+                json: () => Promise.resolve({ data: { link: "https://i.imgur.com/test.png" } }),
+                text: () => Promise.resolve("ok"),
+            } as any);
+
+            const url = await exportUtils.uploadToImgur(base64Image);
+            expect(url).toBe("https://i.imgur.com/test.png");
+
+            expect(globalThis.fetch).toHaveBeenCalledWith(
+                "https://api.imgur.com/3/image",
+                expect.objectContaining({
+                    method: "POST",
+                    headers: expect.objectContaining({
+                        Authorization: "Client-ID client123",
+                    }),
+                })
+            );
+        });
+
+        it("should treat AbortError as a timeout", async () => {
+            const base64Image = "data:image/png;base64,abcd";
+            vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+                clientId: "client123",
+                uploadUrl: "https://api.imgur.com/3/image",
+            } as any);
+
+            vi.mocked(globalThis.fetch).mockRejectedValueOnce({ name: "AbortError" });
+            await expect(exportUtils.uploadToImgur(base64Image)).rejects.toThrow("Imgur upload timed out");
+        });
+
+        it("should reject non-https Imgur endpoints", async () => {
+            const base64Image = "data:image/png;base64,abcd";
+            vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+                clientId: "client123",
+                uploadUrl: "http://api.imgur.com/3/image",
+            } as any);
+
+            await expect(exportUtils.uploadToImgur(base64Image)).rejects.toThrow("Imgur endpoints must use HTTPS");
+            expect(globalThis.fetch).not.toHaveBeenCalled();
         });
     });
 });

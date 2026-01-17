@@ -158,10 +158,19 @@ describe("exportUtils", () => {
             writable: true,
         });
 
-        Object.defineProperty(globalThis, "URL", {
-            value: mockURL,
-            writable: true,
-        });
+        // Preserve the URL constructor for production code paths that parse URLs.
+        // Only stub blob helpers used by export flows.
+        if (typeof globalThis.URL === "function") {
+            // @ts-expect-error test-only stubbing
+            globalThis.URL.createObjectURL = mockURL.createObjectURL;
+            // @ts-expect-error test-only stubbing
+            globalThis.URL.revokeObjectURL = mockURL.revokeObjectURL;
+        } else {
+            Object.defineProperty(globalThis, "URL", {
+                value: mockURL,
+                writable: true,
+            });
+        }
 
         // Set test dependencies
         __setTestDeps({
