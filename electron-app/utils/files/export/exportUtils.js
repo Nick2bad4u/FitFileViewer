@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { detectCurrentTheme as __realDetectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+import { fetchWithTimeout, isAbortError, truncateErrorText } from "../../net/networkUtils.js";
+import { safeStorageGetItem, safeStorageRemoveItem, safeStorageSetItem } from "../../storage/storageUtils.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 
@@ -92,29 +94,6 @@ function escapeHtml(value) {
 }
 
 /**
- * Best-effort fetch with a timeout.
- *
- * @param {string} url
- * @param {RequestInit} init
- * @param {number} timeoutMs
- * @returns {Promise<Response>}
- */
-async function fetchWithTimeout(url, init, timeoutMs) {
-    const controller = typeof AbortController === "undefined" ? null : new AbortController();
-    const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
-    try {
-        return await fetch(url, {
-            ...init,
-            signal: controller ? controller.signal : init.signal,
-        });
-    } finally {
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-        }
-    }
-}
-
-/**
  * Generate a cryptographically-strong OAuth state token when possible.
  * Falls back to Math.random in older or constrained environments.
  *
@@ -140,24 +119,13 @@ function generateOAuthState() {
  * @param {unknown} error
  * @returns {boolean}
  */
-function isAbortError(error) {
-    return Boolean(error && typeof error === "object" && /** @type {any} */ (error).name === "AbortError");
-}
-
-/**
- * @param {unknown} value
- * @returns {string}
- */
-function truncateErrorText(value) {
-    if (typeof value !== "string") return "";
-    return value.length > 500 ? `${value.slice(0, 500)}…` : value;
-}
+// fetchWithTimeout/isAbortError/truncateErrorText are imported.
 
 /**
  * Runtime schema for Gyazo configuration.
  *
  * Notes:
- * - clientId/clientSecret are user-configurable via localStorage.
+ * - clientId/clientSecret are user-configurable via storage.
  * - endpoint URLs should always be HTTPS.
  */
 const GyazoConfigSchema = z
@@ -441,11 +409,7 @@ export const exportUtils = {
                         /* ignore */
                     }
 
-                    try {
-                        localStorage.removeItem("gyazo_oauth_state");
-                    } catch {
-                        /* ignore */
-                    }
+                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
 
                     try {
                         await electronAPI.stopGyazoServer();
@@ -465,7 +429,7 @@ export const exportUtils = {
 
                 // Generate a random state for CSRF protection
                 const state = generateOAuthState();
-                localStorage.setItem("gyazo_oauth_state", state);
+                safeStorageSetItem("gyazo_oauth_state", state, __deps.getStorage);
 
                 // Update redirect URI to use the actual server port
                 const redirectUri = validateGyazoRedirectUri(`http://localhost:${serverResult.port}/gyazo/callback`),
@@ -539,36 +503,20 @@ export const exportUtils = {
     },
 
     /**
-     * Downloads chart as PNG image with theme-aware background
-     * @param {ChartJSInstance} chart - Chart.js instance
-     * @param {string} filename - Download filename
-     */ /**
      * Clears the stored Gyazo access token
      */
     clearGyazoAccessToken() {
-        try {
-            localStorage.removeItem("gyazo_access_token");
-        } catch (error) {
-            console.error("Error clearing Gyazo access token:", error);
-        }
+        safeStorageRemoveItem("gyazo_access_token", __deps.getStorage);
     },
 
     /**
-     * Creates a combined image of all charts
-     * @param {ChartJSInstance[]} charts - Array of Chart.js instances
-     * @param {string} filename - Download filename
-     */ /**
      * Clears all Gyazo configuration and tokens
      */
     clearGyazoConfig() {
-        try {
-            localStorage.removeItem("gyazo_client_id");
-            localStorage.removeItem("gyazo_client_secret");
-            localStorage.removeItem("gyazo_access_token");
-            localStorage.removeItem("gyazo_oauth_state");
-        } catch (error) {
-            console.error("Error clearing Gyazo configuration:", error);
-        }
+        safeStorageRemoveItem("gyazo_client_id", __deps.getStorage);
+        safeStorageRemoveItem("gyazo_client_secret", __deps.getStorage);
+        safeStorageRemoveItem("gyazo_access_token", __deps.getStorage);
+        safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
     },
 
     /**
@@ -1033,11 +981,7 @@ export const exportUtils = {
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
                     }
-                    try {
-                        localStorage.removeItem("gyazo_oauth_state");
-                    } catch {
-                        /* ignore */
-                    }
+                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
                 }
 
                 overlay.remove();
@@ -1060,11 +1004,7 @@ export const exportUtils = {
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
                     }
-                    try {
-                        localStorage.removeItem("gyazo_oauth_state");
-                    } catch {
-                        /* ignore */
-                    }
+                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
                 }
 
                 overlay.remove();
@@ -1091,11 +1031,7 @@ export const exportUtils = {
                     } catch (error) {
                         console.error("Failed to stop OAuth server:", error);
                     }
-                    try {
-                        localStorage.removeItem("gyazo_oauth_state");
-                    } catch {
-                        /* ignore */
-                    }
+                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
                 }
 
                 overlay.remove();
@@ -1148,17 +1084,13 @@ export const exportUtils = {
         });
 
         try {
-            const response = await fetchWithTimeout(
-                tokenUrl,
-                {
-                    body: tokenParams.toString(),
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    method: "POST",
+            const response = await fetchWithTimeout(tokenUrl, 15_000, {
+                body: tokenParams.toString(),
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
-                15_000
-            );
+                method: "POST",
+            });
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -1449,10 +1381,21 @@ export const exportUtils = {
      * @returns {string} Background color based on export theme setting
      */
     getExportThemeBackground() {
-        const exportTheme = localStorage.getItem("chartjs_exportTheme");
+        const exportTheme = safeStorageGetItem("chartjs_exportTheme", __deps.getStorage);
 
-        // Debug logging
-        console.log("[exportUtils] exportTheme from localStorage:", exportTheme);
+        const debugEnabled =
+            typeof process !== "undefined" && Boolean(process.env) && process.env.FFV_DEBUG_EXPORT_THEME === "1";
+        /** @param {...any[]} args */
+        const debugLog = (...args) => {
+            if (!debugEnabled) return;
+            try {
+                console.log(...args);
+            } catch {
+                /* ignore */
+            }
+        };
+
+        debugLog("[exportUtils] exportTheme from storage:", exportTheme);
 
         // If no export theme is set, fall back to the current app theme
         let theme;
@@ -1460,18 +1403,18 @@ export const exportUtils = {
             // Handle "auto" theme by detecting current theme
             if (exportTheme === "auto") {
                 const currentTheme = __deps.detectCurrentTheme();
-                console.log("[exportUtils] Auto theme detected as:", currentTheme);
+                debugLog("[exportUtils] Auto theme detected as:", currentTheme);
                 theme = currentTheme || "light";
             } else {
                 theme = exportTheme;
-                console.log("[exportUtils] Using explicit export theme:", theme);
+                debugLog("[exportUtils] Using explicit export theme:", theme);
             }
         } else {
             // Use current app theme as fallback, or default to "light"
             const currentTheme = __deps.detectCurrentTheme();
-            console.log("[exportUtils] detectCurrentTheme() returned:", currentTheme);
+            debugLog("[exportUtils] detectCurrentTheme() returned:", currentTheme);
             theme = currentTheme || "light";
-            console.log("[exportUtils] Final fallback theme:", theme);
+            debugLog("[exportUtils] Final fallback theme:", theme);
         }
 
         let backgroundColor;
@@ -1490,7 +1433,7 @@ export const exportUtils = {
             }
         }
 
-        console.log("[exportUtils] Final background color:", backgroundColor);
+        debugLog("[exportUtils] Final background color:", backgroundColor);
         return backgroundColor;
     },
 
@@ -1499,12 +1442,7 @@ export const exportUtils = {
      * @returns {string|null} Access token or null if not found
      */
     getGyazoAccessToken() {
-        try {
-            return localStorage.getItem("gyazo_access_token");
-        } catch (error) {
-            console.error("Error getting Gyazo access token:", error);
-            return null;
-        }
+        return safeStorageGetItem("gyazo_access_token", __deps.getStorage);
     },
 
     /* C8 ignore start */
@@ -1536,23 +1474,10 @@ export const exportUtils = {
             reverseTransform = (str) => str.split("").toReversed().join(""),
             defaultClientSecret = reverseTransform(transform(GyazoAppData2.toReversed()));
 
-        /** @type {(key: string) => string | null} */
-        const safeGetItem = (key) => {
-            try {
-                const storage =
-                    typeof __deps.getStorage === "function"
-                        ? __deps.getStorage()
-                        : /** @type {any} */ (globalThis).localStorage;
-                return storage && typeof storage.getItem === "function" ? storage.getItem(key) : null;
-            } catch {
-                return null;
-            }
-        };
-
         const candidate = {
             authUrl: "https://gyazo.com/oauth/authorize",
-            clientId: safeGetItem("gyazo_client_id") || defaultClientId,
-            clientSecret: safeGetItem("gyazo_client_secret") || defaultClientSecret,
+            clientId: safeStorageGetItem("gyazo_client_id", __deps.getStorage) || defaultClientId,
+            clientSecret: safeStorageGetItem("gyazo_client_secret", __deps.getStorage) || defaultClientSecret,
             redirectUri: "http://localhost:3000/gyazo/callback",
             tokenUrl: "https://gyazo.com/oauth/token",
             uploadUrl: "https://upload.gyazo.com/api/upload",
@@ -1563,7 +1488,7 @@ export const exportUtils = {
             return parsed.data;
         }
 
-        // If localStorage contains an unexpected value, fall back to safe defaults.
+        // If storage contains an unexpected value, fall back to safe defaults.
         // This should never throw because the defaults are static.
         try {
             console.warn("[Gyazo] Invalid Gyazo configuration detected; falling back to defaults", parsed.error);
@@ -1819,28 +1744,17 @@ export const exportUtils = {
      * @param {string} token - Access token to store
      */
     setGyazoAccessToken(token) {
-        try {
-            localStorage.setItem("gyazo_access_token", token);
-        } catch (error) {
-            console.error("Error storing Gyazo access token:", error);
-        }
+        safeStorageSetItem("gyazo_access_token", token, __deps.getStorage);
     },
 
     /**
-     * Prints the chart with theme background
-     * @param {ChartJSInstance} chart - Chart.js instance
-     */ /**
      * Saves Gyazo configuration to user settings
      * @param {string} clientId - Gyazo client ID
      * @param {string} clientSecret - Gyazo client secret
      */
     setGyazoConfig(clientId, clientSecret) {
-        try {
-            localStorage.setItem("gyazo_client_id", clientId);
-            localStorage.setItem("gyazo_client_secret", clientSecret);
-        } catch (error) {
-            console.error("Error saving Gyazo configuration:", error);
-        }
+        safeStorageSetItem("gyazo_client_id", clientId, __deps.getStorage);
+        safeStorageSetItem("gyazo_client_secret", clientSecret, __deps.getStorage);
     },
 
     /**
@@ -2633,7 +2547,7 @@ export const exportUtils = {
 
         try {
             // Convert base64 to blob for FormData
-            const response = await fetchWithTimeout(base64Image, {}, 5000),
+            const response = await fetchWithTimeout(base64Image, 5000, {}),
                 blob = await response.blob(),
                 // Create FormData for multipart/form-data upload
                 formData = new FormData();
@@ -2645,14 +2559,10 @@ export const exportUtils = {
                 new Set(["upload.gyazo.com"])
             );
 
-            const uploadResponse = await fetchWithTimeout(
-                uploadUrl,
-                {
-                    body: formData,
-                    method: "POST",
-                },
-                15_000
-            );
+            const uploadResponse = await fetchWithTimeout(uploadUrl, 15_000, {
+                body: formData,
+                method: "POST",
+            });
 
             if (!uploadResponse.ok) {
                 // If unauthorized, clear the token and try to re-authenticate
@@ -2691,60 +2601,31 @@ export const exportUtils = {
     },
 
     /**
-     * Gets Imgur configuration from localStorage with fallback
+     * Gets Imgur configuration from storage with fallback
      * @returns {Object} Imgur configuration object
      */
     getImgurConfig() {
         const defaultClientId = "0046ee9e30ac578"; // Placeholder for demo
 
-        /** @type {(key: string) => string | null} */
-        const safeGetItem = (key) => {
-            try {
-                const storage =
-                    typeof __deps.getStorage === "function"
-                        ? __deps.getStorage()
-                        : /** @type {any} */ (globalThis).localStorage;
-                return storage && typeof storage.getItem === "function" ? storage.getItem(key) : null;
-            } catch {
-                return null;
-            }
-        };
-
         return {
-            clientId: safeGetItem("imgur_client_id") || defaultClientId,
+            clientId: safeStorageGetItem("imgur_client_id", __deps.getStorage) || defaultClientId,
             uploadUrl: "https://api.imgur.com/3/image",
         };
     },
 
     /**
-     * Saves Imgur configuration to localStorage
+     * Saves Imgur configuration to storage
      * @param {string} clientId - Imgur client ID
      */
     setImgurConfig(clientId) {
-        try {
-            const storage =
-                typeof __deps.getStorage === "function"
-                    ? __deps.getStorage()
-                    : /** @type {any} */ (globalThis).localStorage;
-            storage?.setItem?.("imgur_client_id", clientId);
-        } catch (error) {
-            console.error("Error saving Imgur configuration:", error);
-        }
+        safeStorageSetItem("imgur_client_id", clientId, __deps.getStorage);
     },
 
     /**
      * Clears Imgur configuration
      */
     clearImgurConfig() {
-        try {
-            const storage =
-                typeof __deps.getStorage === "function"
-                    ? __deps.getStorage()
-                    : /** @type {any} */ (globalThis).localStorage;
-            storage?.removeItem?.("imgur_client_id");
-        } catch (error) {
-            console.error("Error clearing Imgur configuration:", error);
-        }
+        safeStorageRemoveItem("imgur_client_id", __deps.getStorage);
     },
 
     /**
@@ -2802,18 +2683,14 @@ export const exportUtils = {
                 console.log("[Imgur Upload] POST", uploadUrl);
             }
 
-            const response = await fetchWithTimeout(
-                uploadUrl,
-                {
-                    body: JSON.stringify(requestBody),
-                    headers: {
-                        Authorization: `Client-ID ${config.clientId}`,
-                        "Content-Type": "application/json",
-                    },
-                    method: "POST",
+            const response = await fetchWithTimeout(uploadUrl, 15_000, {
+                body: JSON.stringify(requestBody),
+                headers: {
+                    Authorization: `Client-ID ${config.clientId}`,
+                    "Content-Type": "application/json",
                 },
-                15_000
-            );
+                method: "POST",
+            });
 
             if (!response.ok) {
                 const errorText = await response.text();

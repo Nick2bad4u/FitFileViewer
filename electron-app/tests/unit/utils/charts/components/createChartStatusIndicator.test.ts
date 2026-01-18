@@ -190,4 +190,16 @@ describe("createChartStatusIndicator", () => {
         expect(indicator.className).toBe("chart-status-indicator");
         expect(indicator.textContent).toBe("Chart status unavailable");
     });
+
+    it("does not leak duplicate breakdown tooltips across re-renders", () => {
+        const first = createChartStatusIndicator();
+        document.body.append(first);
+        expect(document.querySelectorAll("#chart-status-indicator-breakdown").length).toBe(1);
+
+        const second = createChartStatusIndicator();
+        document.body.append(second);
+
+        // A stable breakdown id is used to prevent orphaned tooltip buildup.
+        expect(document.querySelectorAll("#chart-status-indicator-breakdown").length).toBe(1);
+    });
 });

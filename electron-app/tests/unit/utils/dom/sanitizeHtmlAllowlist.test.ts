@@ -117,4 +117,25 @@ describe("sanitizeHtmlAllowlist", () => {
         expect(img?.getAttribute("srcset")).toBeNull();
         expect(img?.className).toBe("c");
     });
+
+    it("removes forbidden tags (script/style/svg) even when the caller allowlists them", () => {
+        const html = "<div>ok<script>alert(1)</script><style>body{color:red}</style><svg><circle /></svg>done</div>";
+        const fragment = sanitizeHtmlAllowlist(html, {
+            allowedAttributes: ["class", "id", "style"],
+            allowedTags: ["DIV", "SCRIPT", "STYLE", "SVG"],
+            stripUrlInStyle: true,
+        });
+
+        const container = document.createElement("div");
+        container.append(fragment);
+
+        expect(container.querySelector("script")).toBeNull();
+        expect(container.querySelector("style")).toBeNull();
+        expect(container.querySelector("svg")).toBeNull();
+
+        // Ensure forbidden tag contents do not surface as visible text.
+        expect(container.textContent).toBe("okdone");
+        expect(container.textContent).not.toContain("alert(1)");
+        expect(container.textContent).not.toContain("body{color:red}");
+    });
 });

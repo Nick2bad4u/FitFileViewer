@@ -6,6 +6,13 @@
  *
  * @param {Object} params
  * @param {ParentNode} params.root
+ * @param {(url: string, error: Error) => void} [params.onOpenExternalError]
  * @returns {() => void} cleanup
  */
-export function attachExternalLinkHandlers({ root }: { root: ParentNode }): () => void;
+export function attachExternalLinkHandlers({
+    root,
+    onOpenExternalError,
+}: {
+    root: ParentNode;
+    onOpenExternalError?: (url: string, error: Error) => void;
+}): () => void;

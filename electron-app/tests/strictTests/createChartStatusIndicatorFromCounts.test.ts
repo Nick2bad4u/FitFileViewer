@@ -568,29 +568,17 @@ describe("createChartStatusIndicatorFromCounts", () => {
             const indicator = createChartStatusIndicatorFromCounts(counts);
             const breakdown = document.querySelector(".status-breakdown") as HTMLElement;
 
-            // Mock getBoundingClientRect
-            indicator.getBoundingClientRect = vi.fn().mockReturnValue({
-                left: 100,
-                top: 200,
-                width: 150,
-                height: 30,
-            });
-
-            Object.defineProperty(breakdown, "offsetHeight", {
-                value: 100,
-                configurable: true,
-            });
-
             // First show tooltip
-            const mouseEnterEvent = new dom.window.MouseEvent("mouseenter");
+            const mouseEnterEvent = new dom.window.MouseEvent("mouseenter", { clientX: 100, clientY: 200 });
             indicator.dispatchEvent(mouseEnterEvent);
 
             // Then move mouse
-            const mouseMoveEvent = new dom.window.MouseEvent("mousemove");
+            const mouseMoveEvent = new dom.window.MouseEvent("mousemove", { clientX: 100, clientY: 200 });
             indicator.dispatchEvent(mouseMoveEvent);
 
-            expect(breakdown.style.left).toBe("100px");
-            expect(breakdown.style.top).toBe("92px"); // 200 - 100 - 8
+            // Tooltip is positioned under cursor with a small offset.
+            expect(breakdown.style.left).toBe("112px");
+            expect(breakdown.style.top).toBe("216px");
         });
     });
 

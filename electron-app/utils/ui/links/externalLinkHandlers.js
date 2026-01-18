@@ -18,9 +18,10 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
  *
  * @param {Object} params
  * @param {ParentNode} params.root
+ * @param {(url: string, error: Error) => void} [params.onOpenExternalError]
  * @returns {() => void} cleanup
  */
-export function attachExternalLinkHandlers({ root }) {
+export function attachExternalLinkHandlers({ root, onOpenExternalError }) {
     /** @type {EventTarget | null} */
     const target =
         root && typeof (/** @type {any} */ (root).addEventListener) === "function" ? /** @type {any} */ (root) : null;
@@ -48,7 +49,7 @@ export function attachExternalLinkHandlers({ root }) {
             if (!validated) {
                 return;
             }
-            openExternal(validated);
+            openExternal(validated, onOpenExternalError);
         }),
         // Support keyboard activation on the anchor itself.
         addEventListenerWithCleanup(target, "keydown", (e) => {
@@ -67,7 +68,7 @@ export function attachExternalLinkHandlers({ root }) {
             if (!validated) {
                 return;
             }
-            openExternal(validated);
+            openExternal(validated, onOpenExternalError);
         }),
     ];
 
@@ -88,16 +89,24 @@ export function attachExternalLinkHandlers({ root }) {
  * Attempt to open a URL externally.
  *
  * @param {string} url
+ * @param {(url: string, error: Error) => void} [onOpenExternalError]
  */
-function openExternal(url) {
+function openExternal(url, onOpenExternalError) {
     const api =
         /** @type {any} */ (globalThis).electronAPI ??
         /** @type {any} */ (globalThis.window ? /** @type {any} */ (globalThis).window.electronAPI : null);
 
     if (typeof api?.openExternal === "function") {
         // Renderer-facing API returns a promise.
-        Promise.resolve(api.openExternal(url)).catch(() => {
-            /* ignore */
+        Promise.resolve(api.openExternal(url)).catch((error) => {
+            if (typeof onOpenExternalError === "function") {
+                try {
+                    const err = error instanceof Error ? error : new Error(String(error));
+                    onOpenExternalError(url, err);
+                } catch {
+                    /* ignore */
+                }
+            }
         });
         return;
     }

@@ -238,7 +238,6 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                           }
                       },
                       label: recentUtils.getShortRecentName(file),
-                      tooltip: file,
                   }))
                 : [{ enabled: false, label: "No Recent Files" }];
     const clearRecentMenuItem = {

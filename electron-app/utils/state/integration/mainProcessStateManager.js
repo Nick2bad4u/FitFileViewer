@@ -26,6 +26,13 @@
 /** @type {ReadonlySet<string>} */
 const FORBIDDEN_DOT_PATH_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
 
+// Defensive limits to avoid renderer-driven memory/perf abuse.
+// Paths are dot-separated and should be short.
+const MAX_DOT_PATH_LENGTH = 512;
+const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
+// Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
+const DOT_PATH_SEGMENT_PATTERN = /^[0-9A-Za-z_:-]+$/u;
+
 class MainProcessState {
     constructor() {
         /** @type {MainProcessStateData} */
@@ -83,6 +90,14 @@ class MainProcessState {
         /** @type {Set<number>} */
         this.senderCleanupRegistered = new Set();
 
+        /**
+         * Fallback sender id assignment for test/mocked senders lacking numeric id.
+         * @type {WeakMap<object, number>}
+         */
+        this._senderFallbackIds = new WeakMap();
+        /** @type {number} */
+        this._nextSenderFallbackId = 1;
+
         this.setupIPCHandlers();
     }
 
@@ -97,22 +112,19 @@ class MainProcessState {
      */
     addError(error, context = {}) {
         const errorObj = {
-                context,
-                id: Date.now().toString(),
-                message: error instanceof Error ? error.message : String(error),
-                source: "mainProcess",
-                stack: error instanceof Error ? error.stack : null,
-                timestamp: Date.now(),
-            },
-            errors = this.get("errors") || [];
-        errors.unshift(errorObj); // Add to beginning
+            context,
+            id: Date.now().toString(),
+            message: error instanceof Error ? error.message : String(error),
+            source: "mainProcess",
+            stack: error instanceof Error ? error.stack : null,
+            timestamp: Date.now(),
+        };
 
-        // Keep only last 100 errors
-        if (errors.length > 100) {
-            errors.splice(100);
-        }
+        const currentErrors = this.get("errors");
+        const normalizedCurrent = Array.isArray(currentErrors) ? currentErrors : [];
+        const nextErrors = [errorObj, ...normalizedCurrent].slice(0, 100);
 
-        this.set("errors", errors);
+        this.set("errors", nextErrors);
         this.notifyRenderers("error-logged", errorObj);
     }
 
@@ -288,7 +300,47 @@ class MainProcessState {
      */
     getSenderId(sender) {
         const id = sender && typeof sender.id === "number" ? sender.id : 0;
-        return Number.isFinite(id) ? id : 0;
+        if (Number.isFinite(id) && id > 0) {
+            return id;
+        }
+
+        // Fallback for tests/mocks that omit sender.id
+        if (sender && typeof sender === "object") {
+            const existing = this._senderFallbackIds.get(sender);
+            if (existing) return existing;
+            const next = this._nextSenderFallbackId++;
+            this._senderFallbackIds.set(sender, next);
+            return next;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Convert metrics to a safe, IPC-serializable shape.
+     *
+     * @returns {Record<string, any>}
+     */
+    getSerializableMetrics() {
+        const metrics = this.get("metrics") || {};
+        const operationTimes = metrics && typeof metrics === "object" ? metrics.operationTimes : null;
+        const operationTimesObj =
+            operationTimes instanceof Map
+                ? Object.fromEntries(
+                      [...operationTimes.entries()].filter(
+                          (entry) =>
+                              Array.isArray(entry) &&
+                              typeof entry[0] === "string" &&
+                              entry[0].length > 0 &&
+                              entry[0].length <= 128
+                      )
+                  )
+                : {};
+
+        return {
+            ...(metrics && typeof metrics === "object" ? metrics : {}),
+            operationTimes: operationTimesObj,
+        };
     }
 
     /**
@@ -471,7 +523,9 @@ class MainProcessState {
         const metrics = this.get("metrics") || {},
             operationTimes = metrics.operationTimes || new Map();
 
-        operationTimes.set(metric, {
+        // Avoid in-place mutation so oldValue/newValue snapshots are meaningful.
+        const nextOperationTimes = new Map(operationTimes);
+        nextOperationTimes.set(metric, {
             metadata,
             timestamp: Date.now(),
             value,
@@ -479,7 +533,7 @@ class MainProcessState {
 
         this.set("metrics", {
             ...metrics,
-            operationTimes,
+            operationTimes: nextOperationTimes,
         });
     }
 
@@ -550,9 +604,10 @@ class MainProcessState {
      */
     removeOperation(operationId) {
         const operations = this.get("operations") || {};
-        if (operations[operationId]) {
-            delete operations[operationId];
-            this.set("operations", operations);
+        if (operations && typeof operations === "object" && operations[operationId]) {
+            const next = { ...operations };
+            delete next[operationId];
+            this.set("operations", next);
         }
     }
 
@@ -648,6 +703,21 @@ class MainProcessState {
         // Get main process state
         ipcMain.handle("main-state:get", (/** @type {any} */ _event, /** @type {string} */ path) => {
             const safePath = typeof path === "string" ? path.trim() : "";
+
+            // Special-case metrics so operationTimes (Map) can be accessed safely.
+            if (safePath === "metrics" || safePath.startsWith("metrics.")) {
+                const metrics = this.getSerializableMetrics();
+                if (safePath === "metrics") {
+                    return this.makeSerializable(metrics);
+                }
+                if (safePath === "metrics.operationTimes") {
+                    return this.makeSerializable(metrics.operationTimes);
+                }
+                // Anything else under metrics is not currently addressable by dot path without
+                // exposing Map internals. Fall back to the full metrics object.
+                return this.makeSerializable(metrics);
+            }
+
             const data = safePath ? this.get(safePath) : this.data;
             return this.makeSerializable(data);
         });
@@ -690,23 +760,24 @@ class MainProcessState {
             const sender = event?.sender;
             if (!sender) return false;
             const safePath = typeof path === "string" ? path.trim() : "";
+            const normalizedPath = safePath.length === 0 ? "*" : safePath;
 
             // Security: refuse subscriptions to unsafe dot paths.
-            if (safePath && !isSafeDotPath(safePath)) {
-                logWithContext("warn", "Blocked main-state:listen for unsafe path", { path: safePath });
+            if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
+                logWithContext("warn", "Blocked main-state:listen for unsafe path", { path: normalizedPath });
                 return false;
             }
 
-            const subscriptionKey = this.makeSubscriptionKey(sender, safePath);
+            const subscriptionKey = this.makeSubscriptionKey(sender, normalizedPath);
             if (!this.ipcSubscriptions.has(subscriptionKey)) {
                 this.registerSenderCleanup(sender);
 
-                const unsubscribe = this.listen(safePath, (change) => {
+                const unsubscribe = this.listen(normalizedPath, (change) => {
                     try {
                         if (typeof sender.isDestroyed === "function" && sender.isDestroyed()) {
                             return;
                         }
-                        sender.send("main-state-change", change);
+                        sender.send("main-state-change", this.makeSerializable(change));
                     } catch (error) {
                         const err = /** @type {any} */ (error);
                         logWithContext("warn", "Failed to emit state change to renderer", { error: err?.message });
@@ -726,10 +797,12 @@ class MainProcessState {
             if (!sender) return false;
             const safePath = typeof path === "string" ? path.trim() : "";
 
-            if (safePath && !isSafeDotPath(safePath)) {
+            const normalizedPath = safePath.length === 0 ? "*" : safePath;
+
+            if (normalizedPath !== "*" && !isSafeDotPath(normalizedPath)) {
                 return false;
             }
-            const subscriptionKey = this.makeSubscriptionKey(sender, safePath);
+            const subscriptionKey = this.makeSubscriptionKey(sender, normalizedPath);
             const unsubscribe = this.ipcSubscriptions.get(subscriptionKey);
             if (!unsubscribe) return false;
 
@@ -744,7 +817,15 @@ class MainProcessState {
 
         // Get operation status
         ipcMain.handle("main-state:operation", (/** @type {any} */ _event, /** @type {string} */ operationId) => {
-            const val = this.get(`operations.${operationId}`);
+            const safeOperationId = typeof operationId === "string" ? operationId.trim() : "";
+            if (!safeOperationId || safeOperationId.length > MAX_DOT_PATH_SEGMENT_LENGTH) {
+                return;
+            }
+            if (!DOT_PATH_SEGMENT_PATTERN.test(safeOperationId) || FORBIDDEN_DOT_PATH_SEGMENTS.has(safeOperationId)) {
+                return;
+            }
+
+            const val = this.get(`operations.${safeOperationId}`);
             return val === null ? undefined : val;
         });
 
@@ -762,11 +843,14 @@ class MainProcessState {
         // Get errors
         ipcMain.handle("main-state:errors", (/** @type {any} */ _event, /** @type {number} */ limit = 50) => {
             const errors = this.get("errors") || [];
-            return errors.slice(0, limit);
+            const max = 100;
+            const n = typeof limit === "number" && Number.isFinite(limit) ? Math.floor(limit) : 50;
+            const clamped = Math.max(0, Math.min(max, n));
+            return errors.slice(0, clamped);
         });
 
         // Get metrics
-        ipcMain.handle("main-state:metrics", () => this.get("metrics") || {});
+        ipcMain.handle("main-state:metrics", () => this.makeSerializable(this.getSerializableMetrics()));
 
         this._ipcHandlersRegistered = true;
     }
@@ -895,10 +979,14 @@ function isSafeDotPath(path) {
     if (typeof path !== "string") return false;
     const trimmed = path.trim();
     if (!trimmed) return false;
+
+    if (trimmed.length > MAX_DOT_PATH_LENGTH) return false;
     const parts = trimmed.split(".");
     for (const part of parts) {
         if (!part) return false;
+        if (part.length > MAX_DOT_PATH_SEGMENT_LENGTH) return false;
         if (FORBIDDEN_DOT_PATH_SEGMENTS.has(part)) return false;
+        if (!DOT_PATH_SEGMENT_PATTERN.test(part)) return false;
     }
     return true;
 }

@@ -45,7 +45,7 @@ function registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext }) {
         }
     };
 
-    // Keep aligned with main/ipc/setupIPCHandlers.js.
+    // Keep aligned with other IPC size caps (e.g., registerFitFileHandlers).
     const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
 
     registerIpcHandle("file:read", async (_event, filePath) => {

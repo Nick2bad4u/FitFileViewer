@@ -29,6 +29,8 @@ interface ChannelInfo {
 
 interface ElectronAPI {
     // File operations
+    /** Approve a persisted recent file path for subsequent readFile() calls. */
+    approveRecentFile(filePath: string): Promise<boolean>;
     /** Opens the native single-file FIT dialog; returns selected path or null when cancelled. */
     openFile(): Promise<string | null>;
     /** Alias for openFile; returns selected path or null when cancelled. */
@@ -60,13 +62,13 @@ interface ElectronAPI {
     startGyazoServer(port: number): Promise<GyazoServerStartResult>;
     stopGyazoServer(): Promise<GyazoServerStopResult>;
 
-    // Events (registration functions return void)
-    onMenuOpenFile(callback: Function): void;
-    onMenuOpenOverlay(callback: Function): void;
-    onOpenRecentFile(callback: (filePath: string) => void): void;
-    onSetTheme(callback: (theme: string) => void): void;
-    onOpenSummaryColumnSelector(callback: Function): void;
-    onUpdateEvent(eventName: string, callback: Function): void;
+    // Events (registration functions return an unsubscribe function)
+    onMenuOpenFile(callback: () => void): () => void;
+    onMenuOpenOverlay(callback: () => void): () => void;
+    onOpenRecentFile(callback: (filePath: string) => void): () => void;
+    onSetTheme(callback: (theme: string) => void): () => void;
+    onOpenSummaryColumnSelector(callback: () => void): () => void;
+    onUpdateEvent(eventName: string, callback: (...args: any[]) => void): () => void;
     /** Fired when a file is opened and parsed in main process */
     onFileOpened?(callback: (fileData: any, filePath: string) => void): void;
 
@@ -76,11 +78,24 @@ interface ElectronAPI {
     setFullScreen(flag: boolean): void;
 
     // Generic IPC
-    onIpc(channel: string, callback: Function): void;
+    onIpc(channel: string, callback: (event: object, ...args: any[]) => void): (() => void) | undefined;
     send(channel: string, ...args: any[]): void;
     invoke(channel: string, ...args: any[]): Promise<any>;
 
+    // Main process state bridge
+    getMainState(path?: string): Promise<any>;
+    setMainState(path: string, value: any, options?: any): Promise<boolean>;
+    listenToMainState(path: string, callback: (change: any) => void): Promise<boolean>;
+    unlistenFromMainState(path: string, callback: (change: any) => void): Promise<boolean>;
+    subscribeToMainState(path: string, callback: (change: any) => void): Promise<() => Promise<boolean>>;
+    getOperation(operationId: string): Promise<any>;
+    getOperations(): Promise<any>;
+    getErrors(limit?: number): Promise<any>;
+    getMetrics(): Promise<any>;
+
     // Dev / debug
+    /** Notify main process of the currently loaded file (or null when cleared). */
+    notifyFitFileLoaded(filePath: string | null): void;
     injectMenu(theme?: string | null, fitFilePath?: string | null): Promise<boolean>;
     getChannelInfo(): ChannelInfo;
     validateAPI(): boolean;

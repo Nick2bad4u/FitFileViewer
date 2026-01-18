@@ -72,9 +72,24 @@ export function createChartStatusIndicator() {
             <span style="color: var(--color-fg);">${counts.available}</span>
             <span style="color: var(--color-fg-muted);"> charts visible</span>
         `;
-        } // Detailed breakdown (tooltip)
+        }
+        // Detailed breakdown (tooltip)
+        // NOTE: This indicator is frequently replaced (see chartStatusIndicator.updateChartStatusIndicator).
+        // The tooltip is appended to document.body for positioning, so we must ensure we don't leak
+        // orphaned tooltip elements on each refresh.
+        const BREAKDOWN_ID = "chart-status-indicator-breakdown";
+        const existing = document.getElementById(BREAKDOWN_ID);
+        if (existing) {
+            try {
+                existing.remove();
+            } catch {
+                /* ignore */
+            }
+        }
+
         const breakdown = document.createElement("div");
         breakdown.className = "status-breakdown";
+        breakdown.id = BREAKDOWN_ID;
         breakdown.style.cssText = `
         position: fixed;
         background: var(--color-modal-bg);
@@ -124,9 +139,43 @@ export function createChartStatusIndicator() {
         // Make indicator interactive
         indicator.style.position = "relative";
         indicator.style.cursor = "pointer";
-        indicator.addEventListener("mouseenter", () => {
+
+        /**
+         * @param {MouseEvent} evt
+         */
+        const positionBreakdown = (evt) => {
+            try {
+                const padding = 12;
+                const offsetX = 12;
+                const offsetY = 16;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+
+                let x = evt.clientX + offsetX;
+                let y = evt.clientY + offsetY;
+
+                const width = breakdown.offsetWidth;
+                const height = breakdown.offsetHeight;
+
+                if (x + width + padding > vw) {
+                    x = Math.max(padding, vw - width - padding);
+                }
+                if (y + height + padding > vh) {
+                    y = Math.max(padding, evt.clientY - height - offsetY);
+                }
+
+                breakdown.style.left = `${x}px`;
+                breakdown.style.top = `${y}px`;
+            } catch {
+                /* ignore */
+            }
+        };
+
+        indicator.addEventListener("mouseenter", (event) => {
             indicator.style.background = "var(--color-glass-border)";
             indicator.style.transform = "translateY(-1px)";
+
+            positionBreakdown(/** @type {MouseEvent} */ (event));
             breakdown.style.opacity = "1";
             breakdown.style.visibility = "visible";
         });
@@ -135,6 +184,12 @@ export function createChartStatusIndicator() {
             indicator.style.transform = "translateY(0)";
             breakdown.style.opacity = "0";
             breakdown.style.visibility = "hidden";
+        });
+
+        indicator.addEventListener("mousemove", (event) => {
+            if (breakdown.style.visibility === "visible") {
+                positionBreakdown(/** @type {MouseEvent} */ (event));
+            }
         });
 
         // Click to scroll to field toggles

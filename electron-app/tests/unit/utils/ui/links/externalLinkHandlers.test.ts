@@ -95,4 +95,38 @@ describe("externalLinkHandlers", () => {
 
         expect(openExternal).not.toHaveBeenCalled();
     });
+
+    it("invokes onOpenExternalError when electronAPI.openExternal rejects", async () => {
+        const openExternal = vi.fn().mockRejectedValueOnce(new Error("blocked"));
+        const onOpenExternalError = vi.fn();
+
+        const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+
+        // @ts-expect-error test shim
+        globalThis.electronAPI = { openExternal };
+
+        const user = userEvent.setup();
+
+        const root = document.createElement("div");
+        root.innerHTML = '<a data-external-link href="https://example.com">Example</a>';
+        document.body.append(root);
+
+        attachExternalLinkHandlers({ onOpenExternalError, root });
+
+        const a = screen.getByRole("link", { name: "Example" });
+        await user.click(a);
+
+        // Allow the rejection handler to run.
+        await Promise.resolve();
+
+        expect(openExternal).toHaveBeenCalled();
+        expect(openSpy).not.toHaveBeenCalled();
+        expect(onOpenExternalError).toHaveBeenCalledTimes(1);
+        expect(onOpenExternalError).toHaveBeenCalledWith(
+            expect.stringMatching(/^https:\/\/example\.com\/?$/),
+            expect.any(Error)
+        );
+
+        openSpy.mockRestore();
+    });
 });

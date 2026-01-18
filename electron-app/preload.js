@@ -67,14 +67,23 @@ const // Constants for better maintainability
      * @property {string} arch
      */
     /**
+     * Primitive/structured payload types that can safely traverse Electron IPC.
+     *
+     * Note: ArrayBuffer is intentionally excluded here because it is handled via explicit
+     * wrappers (readFile/parseFitFile/decodeFitFile). Generic IPC helpers should prefer
+     * JSON-like payloads.
+     *
+     * @typedef {null | boolean | number | string | IpcSerializable[] | { [key: string]: IpcSerializable }} IpcSerializable
+     */
+    /**
      * @typedef {Object} ElectronAPI
      * @property {(filePath: string) => Promise<boolean>} approveRecentFile
      * @property {() => Promise<string|null>} openFile
      * @property {() => Promise<string|null>} openFileDialog
      * @property {() => Promise<string[]>} openOverlayDialog
      * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
-     * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} parseFitFile
-     * @property {(arrayBuffer: ArrayBuffer) => Promise<any>} decodeFitFile
+     * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} parseFitFile
+     * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} decodeFitFile
      * @property {() => Promise<string[]>} recentFiles
      * @property {(filePath: string) => Promise<string[]>} addRecentFile
      * @property {() => Promise<string>} getTheme
@@ -88,20 +97,29 @@ const // Constants for better maintainability
      * @property {(url: string) => Promise<boolean>} openExternal
      * @property {(port: number) => Promise<GyazoServerStartResult>} startGyazoServer
      * @property {() => Promise<GyazoServerStopResult>} stopGyazoServer
-     * @property {(callback: Function) => void} onMenuOpenFile
-     * @property {(callback: Function) => void} onMenuOpenOverlay
-     * @property {(callback: (filePath: string) => void) => void} onOpenRecentFile
-     * @property {(callback: (theme: string) => void) => void} onSetTheme
-     * @property {(callback: Function) => void} onOpenSummaryColumnSelector
-     * @property {(eventName: string, callback: Function) => void} onUpdateEvent
+     * @property {(callback: () => void) => () => void} onMenuOpenFile
+     * @property {(callback: () => void) => () => void} onMenuOpenOverlay
+     * @property {(callback: (filePath: string) => void) => () => void} onOpenRecentFile
+     * @property {(callback: (theme: string) => void) => () => void} onSetTheme
+     * @property {(callback: () => void) => () => void} onOpenSummaryColumnSelector
+     * @property {(eventName: string, callback: (...args: IpcSerializable[]) => void) => () => void} onUpdateEvent
      * @property {() => void} checkForUpdates
      * @property {() => void} installUpdate
      * @property {(flag: boolean) => void} setFullScreen
-     * @property {(channel: string, callback: Function) => void} onIpc
-     * @property {(channel: string, ...args: any[]) => void} send
-     * @property {(channel: string, ...args: any[]) => Promise<any>} invoke
+     * @property {(channel: string, callback: (event: object, ...args: IpcSerializable[]) => void) => (() => void) | void} onIpc
+     * @property {(channel: string, ...args: IpcSerializable[]) => void} send
+     * @property {(channel: string, ...args: IpcSerializable[]) => Promise<IpcSerializable | ArrayBuffer>} invoke
      * @property {(filePath: string | null) => void} notifyFitFileLoaded
      * @property {(theme?: string|null, fitFilePath?: string|null) => Promise<boolean>} injectMenu
+     * @property {(path?: string) => Promise<IpcSerializable>} getMainState
+     * @property {(path: string, value: IpcSerializable, options?: IpcSerializable) => Promise<boolean>} setMainState
+     * @property {(path: string, callback: (change: IpcSerializable) => void) => Promise<boolean>} listenToMainState
+     * @property {(path: string, callback: (change: IpcSerializable) => void) => Promise<boolean>} unlistenFromMainState
+     * @property {(path: string, callback: (change: IpcSerializable) => void) => Promise<() => Promise<boolean>>} subscribeToMainState
+     * @property {(operationId: string) => Promise<IpcSerializable | null>} getOperation
+     * @property {() => Promise<IpcSerializable>} getOperations
+     * @property {(limit?: number) => Promise<IpcSerializable>} getErrors
+     * @property {() => Promise<IpcSerializable>} getMetrics
      * @property {() => ChannelInfo} getChannelInfo
      * @property {() => boolean} validateAPI
      */
@@ -325,20 +343,6 @@ function validateRequiredNonEmptyString(value, paramName, methodName) {
 }
 
 /**
- * @param {unknown} value
- * @param {string} paramName
- * @param {string} methodName
- * @returns {value is string|null}
- */
-function validateString(value, paramName, methodName) {
-    if (value !== null && typeof value !== "string") {
-        console.error(`[preload.js] ${methodName}: ${paramName} must be a string or null`);
-        return false;
-    }
-    return true;
-}
-
-/**
  * True when running inside a real Electron runtime.
  *
  * Important: Several unit tests execute this preload file via `new Function(...)` with a mocked
@@ -404,13 +408,29 @@ const ALLOWED_GENERIC_SEND_CHANNELS = new Set([
  * main-process channels that were never meant to be exposed.
  */
 const EXTRA_RENDERER_ON_IPC_CHANNELS =
-    "decoder-options-changed|export-file|gyazo-oauth-callback|menu-about|menu-export|menu-keyboard-shortcuts|menu-print|menu-restart-update|menu-save-as|open-accent-color-picker|set-font-size|set-high-contrast|show-notification".split(
+    "decoder-options-changed|export-file|gyazo-oauth-callback|menu-about|menu-export|menu-keyboard-shortcuts|menu-print|menu-restart-update|menu-save-as|open-accent-color-picker|set-font-size|set-high-contrast|show-notification|unload-fit-file".split(
         "|"
     );
 
 const ALLOWED_GENERIC_ON_IPC_CHANNELS = new Set([
     ...EXTRA_RENDERER_ON_IPC_CHANNELS,
     ...Object.values(CONSTANTS.EVENTS),
+]);
+
+/**
+ * Restrict update-event subscriptions to the concrete set emitted by main/updater/setupAutoUpdater.
+ *
+ * Why:
+ * - A compromised renderer should not be able to subscribe to arbitrary main-process channels.
+ * - Update events are a known, finite surface; we can cheaply defend-in-depth here.
+ */
+const ALLOWED_UPDATE_EVENT_NAMES = new Set([
+    "update-available",
+    "update-checking",
+    "update-download-progress",
+    "update-downloaded",
+    "update-error",
+    "update-not-available",
 ]);
 
 /**
@@ -425,6 +445,14 @@ function isAllowedGenericInvokeChannel(channel) {
  */
 function isAllowedGenericSendChannel(channel) {
     return ALLOWED_GENERIC_SEND_CHANNELS.has(channel);
+}
+
+/**
+ * @param {string} eventName
+ * @returns {boolean}
+ */
+function isAllowedUpdateEventName(eventName) {
+    return ALLOWED_UPDATE_EVENT_NAMES.has(eventName);
 }
 
 // Main API object
@@ -458,7 +486,7 @@ const electronAPI = {
     /**
      * Decodes a FIT file from an ArrayBuffer and returns the parsed data.
      * @param {ArrayBuffer} arrayBuffer
-     * @returns {Promise<any>}
+     * @returns {Promise<IpcSerializable>}
      */
     decodeFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_DECODE, "decodeFitFile"),
 
@@ -695,14 +723,29 @@ const electronAPI = {
             return;
         }
 
+        if (SHOULD_ENFORCE_GENERIC_IPC_ALLOWLIST && !isAllowedUpdateEventName(eventName)) {
+            console.warn(`[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventName}`);
+            return;
+        }
+
         try {
-            ipcRenderer.on(eventName, (_event, ...args) => {
+            const handler = (_event, ...args) => {
                 try {
                     callback(...args);
                 } catch (error) {
                     console.error(`[preload.js] Error in onUpdateEvent(${eventName}) callback:`, error);
                 }
-            });
+            };
+
+            ipcRenderer.on(eventName, handler);
+
+            return () => {
+                try {
+                    ipcRenderer.removeListener(eventName, handler);
+                } catch {
+                    /* ignore */
+                }
+            };
         } catch (error) {
             console.error(`[preload.js] Error setting up onUpdateEvent(${eventName}):`, error);
         }
@@ -717,15 +760,16 @@ const electronAPI = {
 
     // File Operations
     /**
-     * Opens a file dialog and returns the selected file path(s).
-     * @returns {Promise<string[]>}
+     * Opens a file dialog and returns the selected file path.
+     * Returns null when the user cancels.
+     * @returns {Promise<string|null>}
      */
     openFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, "openFile"),
 
     /**
-     * Opens a file dialog and returns the selected file path(s).
-     * Alias for openFile for compatibility.
-     * @returns {Promise<string[]>}
+     * Alias for openFile.
+     * Returns null when the user cancels.
+     * @returns {Promise<string|null>}
      */
     openFileDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, "openFileDialog"),
 
@@ -739,7 +783,7 @@ const electronAPI = {
     /**
      * Parses a FIT file from an ArrayBuffer and returns the decoded data.
      * @param {ArrayBuffer} arrayBuffer
-     * @returns {Promise<any>}
+     * @returns {Promise<IpcSerializable>}
      */
     parseFitFile: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_PARSE, "parseFitFile"),
 

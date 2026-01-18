@@ -9,7 +9,10 @@
  * - It is intentionally conservative and should be used with very small, known-safe allowlists.
  */
 
-import DOMPurify from "dompurify";
+// NOTE:
+// This project loads DOMPurify as a classic script (global DOMPurify) in index.html.
+// Using a bare ESM import (e.g. `import ... from "dompurify"`) breaks under file://
+// because the browser cannot resolve Node-style module specifiers without a bundler.
 
 /**
  * @typedef {{
@@ -36,9 +39,19 @@ const ALWAYS_STRIP_URL_ATTRIBUTES = new Set([
     "manifest",
     "poster",
     "src",
+    "srcdoc",
     "srcset",
     "xlink:href",
 ]);
+
+/**
+ * Tags that are never allowed regardless of the caller allowlist.
+ *
+ * Rationale:
+ * - This sanitizer is used for UI fragments; we do not want it to be a general HTML renderer.
+ * - Some tags (script/style/svg/iframe/...) significantly expand the attack surface.
+ */
+const ALWAYS_FORBID_TAGS = new Set(["embed", "iframe", "link", "math", "meta", "object", "script", "style", "svg"]);
 
 /**
  * Sanitise an HTML string into a safe DocumentFragment.
@@ -57,6 +70,9 @@ const ALWAYS_STRIP_URL_ATTRIBUTES = new Set([
  * @returns {DocumentFragment}
  */
 export function sanitizeHtmlAllowlist(html, options) {
+    const allowedTagsInput = Array.isArray(options?.allowedTags) ? options.allowedTags : [];
+    const allowedAttributesInput = Array.isArray(options?.allowedAttributes) ? options.allowedAttributes : [];
+
     // Prefer DOMPurify when available. It provides far more robust HTML parsing and
     // sanitization edge-case handling than a hand-rolled tree walker.
     //
@@ -66,17 +82,9 @@ export function sanitizeHtmlAllowlist(html, options) {
     /** @type {any} */
     const purifier = (() => {
         try {
-            // DOMPurify can be either:
-            // - an instance with `.sanitize` (browser bundles)
-            // - a factory function requiring a `window` (some ESM/node builds)
-            if (DOMPurify && typeof (/** @type {any} */ (DOMPurify).sanitize) === "function") {
-                return DOMPurify;
-            }
-            if (typeof DOMPurify === "function" && globalThis.window !== undefined) {
-                const created = /** @type {any} */ (DOMPurify)(globalThis);
-                if (created && typeof created.sanitize === "function") {
-                    return created;
-                }
+            const globalPurifier = /** @type {any} */ (globalThis).DOMPurify;
+            if (globalPurifier && typeof globalPurifier.sanitize === "function") {
+                return globalPurifier;
             }
         } catch {
             /* ignore */
@@ -85,9 +93,10 @@ export function sanitizeHtmlAllowlist(html, options) {
     })();
 
     if (purifier) {
-        const allowedTags = options.allowedTags.map((t) => String(t).toLowerCase());
-        const allowedAttributes = options.allowedAttributes.map((a) => String(a).toLowerCase());
+        const allowedTags = allowedTagsInput.map((t) => String(t).toLowerCase());
+        const allowedAttributes = allowedAttributesInput.map((a) => String(a).toLowerCase());
         const stripUrlInStyle = options.stripUrlInStyle !== false;
+        const forbidTags = Array.from(ALWAYS_FORBID_TAGS);
 
         /** @type {DocumentFragment} */
         const fragment = /** @type {any} */ (purifier).sanitize(String(html), {
@@ -95,6 +104,10 @@ export function sanitizeHtmlAllowlist(html, options) {
             ALLOWED_ATTR: allowedAttributes,
             // Always strip URL-bearing attributes even if allowlisted by the caller.
             FORBID_ATTR: Array.from(ALWAYS_STRIP_URL_ATTRIBUTES),
+            // Always forbid high-risk tags even if allowlisted by the caller.
+            FORBID_TAGS: forbidTags,
+            // For these tags, also remove their text/children.
+            FORBID_CONTENTS: forbidTags,
             RETURN_DOM_FRAGMENT: true,
         });
 
@@ -117,16 +130,24 @@ export function sanitizeHtmlAllowlist(html, options) {
 
     // DOM Element.tagName is always uppercase in HTML documents.
     // Normalizing here makes the sanitizer resilient to caller-provided casing.
-    const allowedTags = new Set(options.allowedTags.map((t) => String(t).toUpperCase()));
-    const allowedAttributes = new Set(options.allowedAttributes.map((a) => a.toLowerCase()));
+    const forbiddenTagsUpper = new Set(Array.from(ALWAYS_FORBID_TAGS, (t) => t.toUpperCase()));
+    const allowedTags = new Set(allowedTagsInput.map((t) => String(t).toUpperCase()));
+    const allowedAttributes = new Set(allowedAttributesInput.map((a) => String(a).toLowerCase()));
     const stripUrlInStyle = options.stripUrlInStyle !== false;
 
     const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
     /** @type {Element[]} */
     const nodesToReplace = [];
+    /** @type {Element[]} */
+    const nodesToRemove = [];
 
     while (walker.nextNode()) {
         const el = /** @type {Element} */ (walker.currentNode);
+
+        if (forbiddenTagsUpper.has(el.tagName)) {
+            nodesToRemove.push(el);
+            continue;
+        }
 
         if (!allowedTags.has(el.tagName)) {
             nodesToReplace.push(el);
@@ -157,6 +178,14 @@ export function sanitizeHtmlAllowlist(html, options) {
             if (stripUrlInStyle && name === "style" && containsUnsafeCss(value)) {
                 el.removeAttribute(attr.name);
             }
+        }
+    }
+
+    for (const el of nodesToRemove) {
+        try {
+            el.remove();
+        } catch {
+            /* ignore */
         }
     }
 

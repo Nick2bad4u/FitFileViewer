@@ -20,6 +20,7 @@ import { UIActions } from "./utils/state/domain/uiStateManager.js";
 // This file is part of the Electron app that interacts with the main process and the UI.
 import { applyTheme, listenForThemeChange, loadTheme } from "./utils/theming/core/theme.js";
 import { setupDOMContentLoaded, setupFullscreenListeners } from "./utils/ui/controls/addFullScreenButton.js";
+import { attachExternalLinkHandlers } from "./utils/ui/links/externalLinkHandlers.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import "./utils/ui/settingsModal.js";
 
@@ -646,8 +647,20 @@ setupDOMContentLoaded();
 setupWindow();
 
 // Register cleanup hooks with resource manager
+/** @type {null | (() => void)} */
+let cleanupExternalLinkHandlers = null;
+
 resourceManager.addShutdownHook(() => {
     console.log("[ResourceManager] Executing main-ui cleanup...");
+    try {
+        if (typeof cleanupExternalLinkHandlers === "function") {
+            cleanupExternalLinkHandlers();
+        }
+    } catch {
+        /* ignore */
+    } finally {
+        cleanupExternalLinkHandlers = null;
+    }
     cleanupEventListeners();
     if (AppActions.clearData) {
         AppActions.clearData();
@@ -656,57 +669,23 @@ resourceManager.addShutdownHook(() => {
 
 // External link handler for opening links in default browser
 function setupExternalLinkHandlers() {
-    const isTestEnvironment =
-        globalThis.process !== undefined &&
-        Boolean(globalThis.process?.env) &&
-        /** @type {any} */ (globalThis.process.env).NODE_ENV === "test";
-
-    // Use event delegation to handle both existing and dynamically added external links
-    document.addEventListener("click", (/** @type {MouseEvent} */ e) => {
-        const target = e.target instanceof HTMLElement ? e.target : null,
-            link = target?.closest('[data-external-link="true"]');
-        if (link) {
-            handleExternalLink(e, /** @type {HTMLElement} */ (link));
+    // Idempotent: remove prior handlers if re-initialized.
+    try {
+        if (typeof cleanupExternalLinkHandlers === "function") {
+            cleanupExternalLinkHandlers();
         }
-    });
-
-    document.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
-        if (e.key === "Enter" || e.key === " ") {
-            const target = e.target instanceof HTMLElement ? e.target : null,
-                link = target?.closest('[data-external-link="true"]');
-            if (link) {
-                handleExternalLink(
-                    /** @type {MouseEvent} */ (/** @type {any} */ (e)),
-                    /** @type {HTMLElement} */ (link)
-                );
-            }
-        }
-    });
-
-    /**
-     * @param {MouseEvent} e
-     * @param {HTMLElement} link
-     */
-    function handleExternalLink(e, link) {
-        e.preventDefault();
-        const url = link.getAttribute("href");
-        const electronOpenExternal = url ? globalThis.electronAPI?.openExternal : null;
-
-        if (url && typeof electronOpenExternal === "function") {
-            electronOpenExternal(url).catch((error) => {
-                if (!isTestEnvironment) {
-                    console.error("Failed to open external link:", error);
-                }
-                showNotification("Failed to open link in your browser.", "error");
-            });
-            return;
-        }
-
-        if (url) {
-            // Fallback for non-Electron environments
-            window.open(url, "_blank", "noopener,noreferrer");
-        }
+    } catch {
+        /* ignore */
     }
+
+    // Attach to the document to cover content inserted dynamically (modals, map attributions, etc.).
+    cleanupExternalLinkHandlers = attachExternalLinkHandlers({
+        onOpenExternalError: () => {
+            // Match legacy behavior + strict test expectation.
+            showNotification("Failed to open link in your browser.", "error");
+        },
+        root: document,
+    });
 }
 
 // Initialize external link handlers after DOM is loaded

@@ -16,8 +16,8 @@ function registerFitFileHandlers({
         return;
     }
 
-    // Keep this in sync with setupIPCHandlers.js. This is a hard safety guard to
-    // prevent renderer-driven memory blowups.
+    // Hard safety guard to prevent renderer-driven memory blowups.
+    // Keep aligned with the file read size cap enforced by the main process.
     const MAX_FIT_FILE_BYTES = 100 * 1024 * 1024;
 
     /**

@@ -64,9 +64,23 @@ export function createChartStatusIndicatorFromCounts(counts) {
                 <span style="color: var(--color-fg);">${counts.available}</span>
                 <span style="color: var(--color-fg-muted);"> charts visible</span>
             `;
-        } // Detailed breakdown (tooltip)
+        }
+        // Detailed breakdown (tooltip)
+        // This indicator is frequently re-rendered; the tooltip is appended to document.body.
+        // Ensure we don't leak orphaned tooltips.
+        const BREAKDOWN_ID = "chart-status-indicator-breakdown";
+        const existing = document.getElementById(BREAKDOWN_ID);
+        if (existing) {
+            try {
+                existing.remove();
+            } catch {
+                /* ignore */
+            }
+        }
+
         const breakdown = document.createElement("div");
         breakdown.className = "status-breakdown";
+        breakdown.id = BREAKDOWN_ID;
         breakdown.style.cssText = `
             position: fixed;
             background: var(--color-modal-bg);
@@ -115,14 +129,46 @@ export function createChartStatusIndicatorFromCounts(counts) {
         // Make indicator interactive
         indicator.style.position = "relative";
         indicator.style.cursor = "pointer";
-        indicator.addEventListener("mouseenter", () => {
+
+        /**
+         * @param {MouseEvent} evt
+         */
+        const positionBreakdown = (evt) => {
+            try {
+                const padding = 12;
+                const offsetX = 12;
+                const offsetY = 16;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+
+                // Default: under the cursor.
+                let x = evt.clientX + offsetX;
+                let y = evt.clientY + offsetY;
+
+                // Clamp after measuring.
+                const width = breakdown.offsetWidth;
+                const height = breakdown.offsetHeight;
+
+                if (x + width + padding > vw) {
+                    x = Math.max(padding, vw - width - padding);
+                }
+                if (y + height + padding > vh) {
+                    // If it would go off-screen, place above the cursor.
+                    y = Math.max(padding, evt.clientY - height - offsetY);
+                }
+
+                breakdown.style.left = `${x}px`;
+                breakdown.style.top = `${y}px`;
+            } catch {
+                /* ignore */
+            }
+        };
+        indicator.addEventListener("mouseenter", (event) => {
             indicator.style.background = "var(--color-glass-border)";
             indicator.style.transform = "translateY(-1px)";
 
-            // Position tooltip above the indicator
-            const rect = indicator.getBoundingClientRect();
-            breakdown.style.left = `${rect.left}px`;
-            breakdown.style.top = `${rect.top - breakdown.offsetHeight - 8}px`;
+            // Position tooltip under cursor.
+            positionBreakdown(/** @type {MouseEvent} */ (event));
 
             // Show tooltip
             breakdown.style.opacity = "1";
@@ -136,12 +182,10 @@ export function createChartStatusIndicatorFromCounts(counts) {
             breakdown.style.visibility = "hidden";
         });
 
-        indicator.addEventListener("mousemove", () => {
-            // Update position on mouse move to handle scrolling
+        indicator.addEventListener("mousemove", (event) => {
+            // Keep tooltip anchored under cursor.
             if (breakdown.style.visibility === "visible") {
-                const rect = indicator.getBoundingClientRect();
-                breakdown.style.left = `${rect.left}px`;
-                breakdown.style.top = `${rect.top - breakdown.offsetHeight - 8}px`;
+                positionBreakdown(/** @type {MouseEvent} */ (event));
             }
         });
 

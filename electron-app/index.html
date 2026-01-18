@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self' file:; script-src 'self' file:; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';"
+            content="default-src 'self' file:; script-src 'self' file: 'sha256-fyEbl4z8A8NrqclX4EdPuvYcPROiNH57w7vDbZ3nSMg='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' file: https://fonts.googleapis.com; img-src 'self' file: data: blob: https:; font-src 'self' file: data: https://fonts.gstatic.com; connect-src 'self' file: https: wss:; media-src 'self' file: data: blob:; frame-src 'self' file: https:; worker-src 'self' file: blob:; child-src 'self' file:; object-src 'none'; base-uri 'none'; form-action 'none';"
         />
         <meta
             name="description"
@@ -30,10 +30,27 @@
         <link rel="stylesheet" href="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
         <link rel="stylesheet" href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css" />
         <link rel="stylesheet" href="node_modules/maplibre-gl/dist/maplibre-gl.css" />
-        <link rel="stylesheet" href="node_modules/leaflet.fullscreen/Control.FullScreen.css" />
+        <link rel="stylesheet" href="node_modules/leaflet.fullscreen/dist/Control.FullScreen.css" />
         <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.css" />
         <link rel="stylesheet" href="node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" />
         <link rel="stylesheet" href="node_modules/leaflet-measure/dist/leaflet-measure.css" />
+        <!-- DOMPurify is loaded as a classic script (global DOMPurify) to avoid bare-module specifier issues under file:// in Electron. -->
+        <script src="node_modules/dompurify/dist/purify.min.js" defer></script>
+
+        <!--
+            Browser-run modules (loaded via <script type="module"> under file://) cannot resolve
+            Node-style bare specifiers. Provide an import map for the few packages used directly
+            by renderer-side modules.
+        -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "p-limit": "./node_modules/p-limit/index.js",
+                    "yocto-queue": "./node_modules/yocto-queue/index.js",
+                    "zod": "./node_modules/zod/index.js"
+                }
+            }
+        </script>
         <script src="node_modules/jquery/dist/jquery.min.js" defer></script>
         <script src="node_modules/datatables.net/js/dataTables.min.js" defer></script>
         <script src="node_modules/datatables.net-dt/js/dataTables.dataTables.min.js" defer></script>
@@ -50,9 +67,11 @@
         <script src="node_modules/leaflet-draw/dist/leaflet.draw.js" defer></script>
         <script src="node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js" defer></script>
         <script src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js" defer></script>
-        <script src="node_modules/leaflet.fullscreen/Control.FullScreen.js" defer></script>
+        <!-- Use the UMD build to avoid ESM imports (works under file:// without a bundler). -->
+        <script src="node_modules/leaflet.fullscreen/dist/Control.FullScreen.umd.js" defer></script>
         <script src="node_modules/leaflet.markercluster/dist/leaflet.markercluster.js" defer></script>
-        <script src="node_modules/leaflet-measure/dist/leaflet-measure.js" defer></script>
+        <!-- CSP-safe Leaflet measurement control (replaces leaflet-measure which requires unsafe-eval) -->
+        <script src="vendor/leaflet-measure-lite.js" defer></script>
         <script src="node_modules/maplibre-gl/dist/maplibre-gl.js" defer></script>
         <script src="node_modules/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js" defer></script>
         <link rel="stylesheet" href="style.css" />
@@ -219,11 +238,10 @@
                     title="Alternative FIT Data View"
                     allowfullscreen
                     allow
-                    sandbox="allow-same-origin allow-top-navigation allow-presentation allow-pointer-lock allow-scripts allow-modals allow-forms allow-popups allow-storage-access-by-user-activation allow-popups-to-escape-sandbox allow-downloads allow-downloads-without-user-activation"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-downloads"
                     referrerpolicy="no-referrer"
                     loading="eager"
                     name="altfit-iframe"
-                    class="fullsize-container no-border"
                     frameborder="0"
                     aria-label="Alternative FIT Data View"
                 ></iframe>
@@ -234,7 +252,7 @@
                     title="ZwiftMap"
                     allowfullscreen
                     allow
-                    sandbox="allow-same-origin allow-top-navigation allow-presentation allow-pointer-lock allow-scripts allow-modals allow-forms allow-popups allow-storage-access-by-user-activation allow-popups-to-escape-sandbox"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-storage-access-by-user-activation"
                     referrerpolicy="no-referrer"
                     loading="lazy"
                     src="https://zwiftmap.com/"

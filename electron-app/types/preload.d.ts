@@ -38,20 +38,38 @@ export type ElectronAPI = {
     openExternal: (url: string) => Promise<boolean>;
     startGyazoServer: (port: number) => Promise<GyazoServerStartResult>;
     stopGyazoServer: () => Promise<GyazoServerStopResult>;
-    onMenuOpenFile: (callback: Function) => void;
-    onMenuOpenOverlay: (callback: Function) => void;
-    onOpenRecentFile: (callback: (filePath: string) => void) => void;
-    onSetTheme: (callback: (theme: string) => void) => void;
-    onOpenSummaryColumnSelector: (callback: Function) => void;
-    onUpdateEvent: (eventName: string, callback: Function) => void;
+    onMenuOpenFile: (callback: () => void) => () => void;
+    onMenuOpenOverlay: (callback: () => void) => () => void;
+    onOpenRecentFile: (callback: (filePath: string) => void) => () => void;
+    onSetTheme: (callback: (theme: string) => void) => () => void;
+    onOpenSummaryColumnSelector: (callback: () => void) => () => void;
+    onUpdateEvent: (eventName: string, callback: (...args: any[]) => void) => () => void;
     checkForUpdates: () => void;
     installUpdate: () => void;
     setFullScreen: (flag: boolean) => void;
-    onIpc: (channel: string, callback: Function) => void;
+    onIpc: (channel: string, callback: (event: object, ...args: any[]) => void) => (() => void) | undefined;
     send: (channel: string, ...args: any[]) => void;
     invoke: (channel: string, ...args: any[]) => Promise<any>;
     notifyFitFileLoaded: (filePath: string | null) => void;
     injectMenu: (theme?: string | null, fitFilePath?: string | null) => Promise<boolean>;
+    /** Main-process state: get a value or the entire state when path is omitted. */
+    getMainState: (path?: string) => Promise<any>;
+    /** Main-process state: set a value at a specific path. */
+    setMainState: (path: string, value: any, options?: any) => Promise<boolean>;
+    /** Main-process state: register a listener for changes at a path. */
+    listenToMainState: (path: string, callback: (change: any) => void) => Promise<boolean>;
+    /** Main-process state: remove a previously registered listener. */
+    unlistenFromMainState: (path: string, callback: (change: any) => void) => Promise<boolean>;
+    /** Convenience: listenToMainState + returns unsubscribe function. */
+    subscribeToMainState: (path: string, callback: (change: any) => void) => Promise<() => Promise<boolean>>;
+    /** Main-process operations: get one operation by id. */
+    getOperation: (operationId: string) => Promise<any>;
+    /** Main-process operations: get all operations. */
+    getOperations: () => Promise<any>;
+    /** Main-process errors: get recent errors. */
+    getErrors: (limit?: number) => Promise<any>;
+    /** Main-process metrics: get performance metrics. */
+    getMetrics: () => Promise<any>;
     getChannelInfo: () => ChannelInfo;
     validateAPI: () => boolean;
 };
