@@ -17,12 +17,11 @@ export async function loadSingleOverlayFile(file) {
     try {
         // Fast preflight checks (avoid reading/decoding obviously-invalid inputs)
         if (file && typeof file === "object") {
-            const name = /** @type {any} */ (file).name;
+            const fileInfo = /** @type {{ name?: unknown, size?: unknown }} */ (file);
+            const { name, size } = fileInfo;
             if (!isFitName(name)) {
                 return { error: "Only .fit files can be loaded as overlays", success: false };
             }
-
-            const size = /** @type {any} */ (file).size;
             if (typeof size === "number" && Number.isFinite(size) && size > MAX_FIT_FILE_BYTES) {
                 return { error: "File size exceeds 100MB limit", success: false };
             }

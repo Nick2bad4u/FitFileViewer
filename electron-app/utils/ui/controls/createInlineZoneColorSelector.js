@@ -747,15 +747,11 @@ function createZoneColorItem(field, zone, zoneIndex, getCurrentScheme) {
         if (/^#[\da-f]{6}$/iu.test(v)) return v;
         if (/^#[\da-f]{8}$/iu.test(v)) return v.slice(0, 7);
         if (/^#[\da-f]{3}$/iu.test(v)) {
-            const r = v[1],
-                g = v[2],
-                b = v[3];
+            const [, r, g, b] = v;
             return `#${r}${r}${g}${g}${b}${b}`;
         }
         if (/^#[\da-f]{4}$/iu.test(v)) {
-            const r = v[1],
-                g = v[2],
-                b = v[3];
+            const [, r, g, b] = v;
             return `#${r}${r}${g}${g}${b}${b}`;
         }
         return "#000000";

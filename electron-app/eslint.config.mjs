@@ -215,12 +215,15 @@ export default defineConfig([
     {
         // Legacy modules pending modularisation; silence max-lines noise until refactors land.
         files: [
+            "preload.js",
             "renderer.js",
             "utils/app/menu/createAppMenu.js",
             "utils/charts/core/renderChartJS.js",
             "utils/files/export/exportUtils.js",
             "utils/maps/layers/mapDrawLaps.js",
+            "utils/maps/core/renderMap.js",
             "utils/state/core/masterStateManager.js",
+            "utils/state/integration/mainProcessStateManager.js",
             "utils/ui/components/createSettingsHeader.js",
             "utils/ui/controls/createInlineZoneColorSelector.js",
             "utils/ui/modals/injectModalStyles.js",

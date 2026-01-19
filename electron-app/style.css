@@ -3434,13 +3434,26 @@ body .leaflet-control-layers-expanded {
     background-color: var(--c_hexf5f5f5);
     color: var(--c_hex222);
     border: 1px solid var(--c_hex888);
-    /* Must stay above minimap and other Leaflet controls. */
-    z-index: 10020;
+    /*
+        Must stay above minimap and other Leaflet controls.
+
+        Note: leaflet-minimap sets the toggle anchor to z-index: 99999, which can cause the
+        basemap selector UI to render *behind* the minimap toggle even when the control is expanded.
+        We enforce a sane stacking order here.
+    */
+    position: relative;
+    z-index: 10020 !important;
 }
 
 /* Keep minimap below the layer picker when expanded. */
 body .leaflet-control-minimap {
-    z-index: 900;
+    z-index: 900 !important;
+}
+
+/* leaflet-minimap ships with an extremely high z-index on its toggle button (99999). Override it. */
+body .leaflet-control-minimap a,
+body .leaflet-control-minimap .leaflet-control-minimap-toggle-display {
+    z-index: 850 !important;
 }
 
 body .leaflet-control-layers-base label {

@@ -1910,11 +1910,17 @@ export async function renderChartJS(targetContainer) {
                     };
                 }
 
-                const colors = /** @type {any} */ (themeConfig).colors;
-                const safeText = sanitizeCssColorToken(colors.text, "#1e293b");
-                const safeTextPrimary = sanitizeCssColorToken(colors.textPrimary, "#0f172a");
-                const safeBgAlt = sanitizeCssColorToken(colors.backgroundAlt, "#ffffff");
-                const safeBorder = sanitizeCssColorToken(colors.border, "#e5e7eb");
+                const { colors } = /** @type {{ colors: Record<string, string> }} */ (themeConfig);
+                const {
+                    backgroundAlt: colorsBackgroundAlt,
+                    border: colorsBorder,
+                    text: colorsText,
+                    textPrimary: colorsTextPrimary,
+                } = colors;
+                const safeText = sanitizeCssColorToken(colorsText, "#1e293b");
+                const safeTextPrimary = sanitizeCssColorToken(colorsTextPrimary, "#0f172a");
+                const safeBgAlt = sanitizeCssColorToken(colorsBackgroundAlt, "#ffffff");
+                const safeBorder = sanitizeCssColorToken(colorsBorder, "#e5e7eb");
 
                 container.replaceChildren();
 
@@ -2091,11 +2097,17 @@ export async function renderChartJS(targetContainer) {
                 };
             }
 
-            const colors = /** @type {any} */ (themeConfig).colors;
-            const safeText = sanitizeCssColorToken(colors.text, "#1e293b");
-            const safeBgAlt = sanitizeCssColorToken(colors.backgroundAlt, "#ffffff");
-            const safeBorder = sanitizeCssColorToken(colors.border, "#e5e7eb");
-            const safeError = sanitizeCssColorToken(colors.error, "#ef4444");
+            const { colors } = /** @type {{ colors: Record<string, string> }} */ (themeConfig);
+            const {
+                backgroundAlt: colorsBackgroundAlt,
+                border: colorsBorder,
+                error: colorsError,
+                text: colorsText,
+            } = colors;
+            const safeText = sanitizeCssColorToken(colorsText, "#1e293b");
+            const safeBgAlt = sanitizeCssColorToken(colorsBackgroundAlt, "#ffffff");
+            const safeBorder = sanitizeCssColorToken(colorsBorder, "#e5e7eb");
+            const safeError = sanitizeCssColorToken(colorsError, "#ef4444");
 
             container.replaceChildren();
 

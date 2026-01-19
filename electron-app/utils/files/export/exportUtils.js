@@ -762,7 +762,8 @@ export const exportUtils = {
      * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup hook invoked before rejecting
      * @returns {HTMLElement} Modal element
      */
-    createGyazoAuthModal(authUrl, /** @type {any} */ _state, resolve, reject, useServer = false, onCancel) {
+    createGyazoAuthModal(authUrl, /** @type {any} */ _state, resolve, reject, useServer, onCancel) {
+        const useServerFlag = useServer === true;
         // Create modal overlay
         const overlay = document.createElement("div");
         overlay.className = "gyazo-auth-modal-overlay";
@@ -794,7 +795,7 @@ export const exportUtils = {
             box-shadow: var(--color-box-shadow);
         `;
 
-        const actionButtons = useServer
+        const actionButtons = useServerFlag
                 ? `
             <div style="display: flex; gap: 8px;">
                 <button id="gyazo-cancel-auth" style="
@@ -964,6 +965,33 @@ export const exportUtils = {
             });
         }
 
+        /**
+         * ESC key handler (hoisted for add/removeEventListener and eslint no-use-before-define).
+         * @param {KeyboardEvent} e
+         */
+        async function handleEscape(e) {
+            if (e.key === "Escape") {
+                if (typeof onCancel === "function") {
+                    try {
+                        await onCancel();
+                    } catch {
+                        /* ignore */
+                    }
+                } else if (useServerFlag) {
+                    try {
+                        await globalThis.electronAPI.stopGyazoServer();
+                    } catch (error) {
+                        console.error("Failed to stop OAuth server:", error);
+                    }
+                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
+                }
+
+                overlay.remove();
+                document.removeEventListener("keydown", handleEscape);
+                reject(new Error("User cancelled authentication"));
+            }
+        }
+
         if (cancelBtn) {
             cancelBtn.addEventListener("click", async () => {
                 document.removeEventListener("keydown", handleEscape);
@@ -974,7 +1002,7 @@ export const exportUtils = {
                     } catch {
                         /* ignore */
                     }
-                } else if (useServer) {
+                } else if (useServerFlag) {
                     // Fallback if no external cancel hook is provided.
                     try {
                         await globalThis.electronAPI.stopGyazoServer();
@@ -988,30 +1016,6 @@ export const exportUtils = {
                 reject(new Error("User cancelled authentication"));
             });
         }
-
-        // ESC key handler
-        const handleEscape = async (/** @type {any} */ e) => {
-            if (e.key === "Escape") {
-                if (typeof onCancel === "function") {
-                    try {
-                        await onCancel();
-                    } catch {
-                        /* ignore */
-                    }
-                } else if (useServer) {
-                    try {
-                        await globalThis.electronAPI.stopGyazoServer();
-                    } catch (error) {
-                        console.error("Failed to stop OAuth server:", error);
-                    }
-                    safeStorageRemoveItem("gyazo_oauth_state", __deps.getStorage);
-                }
-
-                overlay.remove();
-                document.removeEventListener("keydown", handleEscape);
-                reject(new Error("User cancelled authentication"));
-            }
-        };
         document.addEventListener("keydown", handleEscape);
 
         // Click outside to close
