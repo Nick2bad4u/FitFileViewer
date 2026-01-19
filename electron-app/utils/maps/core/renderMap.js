@@ -53,6 +53,7 @@ import { createPrintButton } from "../../files/export/createPrintButton.js";
 import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
+import { getState, setState } from "../../state/core/stateManager.js";
 import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
 import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
@@ -209,15 +210,65 @@ export function renderMap() {
     mapControlsDiv.append(primaryControlsContainer);
     mapContainer.append(mapControlsDiv);
 
+    /**
+     * Persisted value: we store the Leaflet baselayer *label* (e.g. "CartoDB_DarkMatter").
+     * Older builds may have stored provider ids like "openstreetmap"; translate them.
+     *
+     * @param {string} value
+     * @returns {keyof typeof baseLayers}
+     */
+    const resolveBaseLayerKey = (value) => {
+        const trimmed = typeof value === "string" ? value.trim() : "";
+        if (!trimmed) return "OpenStreetMap";
+        if (Object.hasOwn(baseLayers, trimmed)) {
+            return /** @type {keyof typeof baseLayers} */ (trimmed);
+        }
+
+        const lower = trimmed.toLowerCase();
+        if (lower === "openstreetmap" || lower === "osm" || lower === "mapnik") return "OpenStreetMap";
+        if (lower === "topo" || lower === "opentopo" || lower === "opentopomap") return "OpenTopoMap";
+        if (lower === "satellite" || lower === "worldimagery") return "Esri_WorldImagery";
+
+        const found = Object.keys(baseLayers).find((k) => k.toLowerCase() === lower);
+        return /** @type {keyof typeof baseLayers} */ (found ?? "OpenStreetMap");
+    };
+
+    // Put the commonly requested layers at the top so users don't need to scroll.
+    const baseLayersForControl = {
+        OpenStreetMap: baseLayers.OpenStreetMap,
+        OpenTopoMap: baseLayers.OpenTopoMap,
+        Esri_WorldImagery: baseLayers.Esri_WorldImagery,
+        ...Object.fromEntries(
+            Object.entries(baseLayers).filter(
+                ([k]) => k !== "OpenStreetMap" && k !== "OpenTopoMap" && k !== "Esri_WorldImagery"
+            )
+        ),
+    };
+
+    const persistedBaseLayerKey = resolveBaseLayerKey(getState("map.baseLayer"));
+    const initialBaseLayer = baseLayers[persistedBaseLayerKey] ?? baseLayers.OpenStreetMap;
+
     const map = LeafletLib.map("leaflet-map", {
         center: [0, 0],
         fullscreenControl: true,
-        layers: [baseLayers.OpenStreetMap],
+        layers: [initialBaseLayer],
         zoom: 2,
     });
     windowExt._leafletMapInstance = map;
 
-    LeafletLib.control.layers(baseLayers, null, { collapsed: true, position: "topright" }).addTo(map);
+    LeafletLib.control.layers(baseLayersForControl, null, { collapsed: true, position: "topright" }).addTo(map);
+
+    // Persist basemap selection so it is restored next launch.
+    map.on("baselayerchange", (event) => {
+        try {
+            const name = event && typeof event === "object" && typeof event.name === "string" ? event.name.trim() : "";
+            if (!name) return;
+            if (!Object.hasOwn(baseLayers, name)) return;
+            setState("map.baseLayer", name, { source: "renderMap.baselayerchange" });
+        } catch {
+            /* ignore */
+        }
+    });
 
     // Add a custom floating label/button to indicate map type selection
     const mapTypeBtn = document.createElement("div");
@@ -225,7 +276,7 @@ export function renderMap() {
     mapTypeBtn.style.position = "absolute";
     mapTypeBtn.style.top = "16px";
     mapTypeBtn.style.right = "60px";
-    mapTypeBtn.style.zIndex = "900"; // Ensure above layers control
+    mapTypeBtn.style.zIndex = "10030"; // Ensure above minimap + layer picker
     mapTypeBtn.textContent = "🗺️ Change Map Type";
     mapTypeBtn.title = "Click to change the map type";
     mapTypeBtn.addEventListener("click", handleMapTypeButtonClick);
@@ -249,7 +300,7 @@ export function renderMap() {
         if (layersControlEl) {
             layersControlEl.classList.add("leaflet-control-layers-expanded");
             const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
-            layersControlElStyled.style.zIndex = "1201"; // Just below the button
+            layersControlElStyled.style.zIndex = "10025"; // Just below the button
             // Focus the first input for accessibility
             const firstInput = layersControlEl.querySelector('input[type="radio"]');
             if (firstInput) {

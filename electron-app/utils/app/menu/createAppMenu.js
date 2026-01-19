@@ -298,6 +298,11 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
         label: "💿 Decoder Options",
         submenu: createDecoderOptionMenuItems(decoderOptions, decoderOptionEmojis, mainWindow),
     };
+
+    // Experimental: folder-based FIT browser tab.
+    // This is disabled by default and must be explicitly enabled by the user.
+    const FIT_BROWSER_ENABLED_KEY = "fitBrowser.enabled";
+    const isFitBrowserEnabled = getConf().get(FIT_BROWSER_ENABLED_KEY, false) === true;
     const isMac = process.platform === "darwin";
     const fileMenuItems = [
         {
@@ -686,6 +691,32 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
                     label: "📊 Summary Columns...",
                 },
                 decoderOptionsMenu,
+
+                {
+                    checked: isFitBrowserEnabled,
+                    click: (menuItem) => {
+                        const nextEnabled = Boolean(menuItem && menuItem.checked);
+                        getConf().set(FIT_BROWSER_ENABLED_KEY, nextEnabled);
+
+                        const win = resolveTargetWindow() || mainWindow;
+                        if (win && win.webContents) {
+                            win.webContents.send("fit-browser-enabled-changed", nextEnabled);
+                            win.webContents.send(
+                                "show-notification",
+                                nextEnabled
+                                    ? "Browser tab enabled (experimental)."
+                                    : "Browser tab disabled (experimental).",
+                                "info"
+                            );
+                        }
+
+                        // Refresh the menu so the checked state is consistent everywhere.
+                        createAppMenu(win, /** @type {string} */ (getTheme()), loadedFitFilePath);
+                    },
+                    label: "🗂️ Show Browser Tab (Experimental)",
+                    type: "checkbox",
+                },
+
                 {
                     click: () => {
                         const win =

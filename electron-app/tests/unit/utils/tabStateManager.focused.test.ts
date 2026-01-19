@@ -35,6 +35,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
         document.body.innerHTML = `
             <button id="tab-summary" class="tab-button">Summary</button>
             <button id="tab-map" class="tab-button">Map</button>
+            <button id="tab-browser" class="tab-button">Browser</button>
             <button id="tab-chartjs" class="tab-button">ChartJS</button>
             <button id="tab-chart" class="tab-button">Chart</button>
             <button id="tab-data" class="tab-button">Data</button>
@@ -42,6 +43,7 @@ describe("tabStateManager - Critical Bug Detection", () => {
             <button id="tab-zwift" class="tab-button">Zwift</button>
             <div id="content-summary">Summary</div>
             <div id="content-map">Map</div>
+            <div id="content-browser">Browser</div>
             <div id="content-chartjs">ChartJS</div>
             <div id="content-chart">Chart</div>
             <div id="content-data">Data</div>

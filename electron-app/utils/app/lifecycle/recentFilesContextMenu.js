@@ -63,7 +63,9 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             menu.id
         );
         // ZIndex must be a string
-        menu.style.zIndex = "10010";
+        // Note: z-index only applies to positioned elements.
+        menu.style.position = "fixed";
+        menu.style.zIndex = "10050";
         menu.style.left = `${event.clientX}px`;
         menu.style.top = `${event.clientY}px`;
         menu.style.background = "var(--color-bg-alt-solid)";
@@ -86,7 +88,40 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
         menu.style.cursor = "pointer";
         menu.style.userSelect = "none";
         menu.style.backdropFilter = "var(--backdrop-blur)";
+        menu.style.pointerEvents = "auto";
+        menu.tabIndex = -1;
+        menu.setAttribute("role", "menu");
         menu.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        /**
+         * Keep the menu fully visible in the viewport.
+         *
+         * @param {number} x
+         * @param {number} y
+         */
+        const clampMenuToViewport = (x, y) => {
+            try {
+                const margin = 8;
+                const rect = menu.getBoundingClientRect();
+                const vw = globalThis.window === undefined ? 0 : window.innerWidth;
+                const vh = globalThis.window === undefined ? 0 : window.innerHeight;
+
+                let left = x;
+                let top = y;
+
+                if (vw > 0 && rect.width > 0 && left + rect.width + margin > vw) {
+                    left = Math.max(margin, vw - rect.width - margin);
+                }
+                if (vh > 0 && rect.height > 0 && top + rect.height + margin > vh) {
+                    top = Math.max(margin, vh - rect.height - margin);
+                }
+
+                menu.style.left = `${left}px`;
+                menu.style.top = `${top}px`;
+            } catch {
+                /* ignore */
+            }
+        };
 
         debugLog(
             "DEBUG: Document.body type:",
@@ -283,6 +318,9 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
 
                 if (isAttached && canBeFound) {
                     debugLog("DEBUG: Menu successfully attached and verified");
+
+                    // Now that it's in the DOM, clamp it so it doesn't render off-screen.
+                    clampMenuToViewport(event.clientX, event.clientY);
                     break;
                 } else {
                     debugLog("DEBUG: Menu attachment failed verification, retrying...");
@@ -314,6 +352,9 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             debugLog("DEBUG: CRITICAL - Menu attachment failed after all attempts");
             throw new Error("Failed to attach context menu to DOM");
         }
+
+        // Ensure final position is clamped.
+        clampMenuToViewport(event.clientX, event.clientY);
 
         debugLog("DEBUG: Final verification - Menu successfully attached");
         debugLog(
@@ -403,7 +444,6 @@ export function attachRecentFilesContextMenu({ openFileBtn, setLoading, showNoti
             });
         }
 
-        document.body.append(menu);
         menu.focus();
     });
 }

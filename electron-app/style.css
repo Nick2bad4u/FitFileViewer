@@ -410,6 +410,77 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* ================================
+     * FIT Browser Tab
+     * ================================ */
+
+.file-browser {
+    padding: 16px;
+}
+
+.file-browser__header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.file-browser__path {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-fg-muted);
+    font-size: 12px;
+    text-align: right;
+}
+
+.file-browser__btn {
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border-radius: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.file-browser__btn:hover {
+    background: var(--color-glass-hover);
+}
+
+.file-browser__list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: calc(100vh - 220px);
+    overflow: auto;
+}
+
+.file-browser__item {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.file-browser__item:hover {
+    background: var(--color-glass-hover);
+}
+
+.file-browser__item--dir {
+    font-weight: 600;
+}
+
+.file-browser__empty {
+    padding: 12px;
+    color: var(--color-fg-muted);
+}
+
 /* Add a subtle overlay pattern for depth */
 body::before {
     content: "";
@@ -3363,6 +3434,13 @@ body .leaflet-control-layers-expanded {
     background-color: var(--c_hexf5f5f5);
     color: var(--c_hex222);
     border: 1px solid var(--c_hex888);
+    /* Must stay above minimap and other Leaflet controls. */
+    z-index: 10020;
+}
+
+/* Keep minimap below the layer picker when expanded. */
+body .leaflet-control-minimap {
+    z-index: 900;
 }
 
 body .leaflet-control-layers-base label {

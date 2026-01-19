@@ -45,6 +45,7 @@ describe("updateTabVisibility.js - Comprehensive Bug Detection", () => {
         testContainer.innerHTML = `
             <div id="content-data" style="display: none;">Data Content</div>
             <div id="content-chartjs" style="display: none;">Chart Content</div>
+            <div id="content-browser" style="display: none;">Browser Content</div>
             <div id="content-map" style="display: none;">Map Content</div>
             <div id="content-summary" style="display: none;">Summary Content</div>
             <div id="content-altfit" style="display: none;">AltFit Content</div>

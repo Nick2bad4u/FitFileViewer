@@ -9,8 +9,14 @@ const // Constants for better maintainability
             CHROME_VERSION: "getChromeVersion",
             DEVTOOLS_INJECT_MENU: "devtools-inject-menu",
             DIALOG_OPEN_FILE: "dialog:openFile",
+            DIALOG_OPEN_FOLDER: "dialog:openFolder",
             DIALOG_OPEN_OVERLAY_FILES: "dialog:openOverlayFiles",
             ELECTRON_VERSION: "getElectronVersion",
+            FIT_BROWSER_GET_FOLDER: "browser:getFolder",
+            FIT_BROWSER_IS_ENABLED: "browser:isEnabled",
+            FIT_BROWSER_LIST_FOLDER: "browser:listFolder",
+            FIT_BROWSER_SET_ENABLED: "browser:setEnabled",
+            FIT_BROWSER_SET_FOLDER: "browser:setFolder",
             FILE_READ: "file:read",
             FIT_DECODE: "fit:decode",
             FIT_PARSE: "fit:parse",
@@ -80,10 +86,16 @@ const // Constants for better maintainability
      * @property {(filePath: string) => Promise<boolean>} approveRecentFile
      * @property {() => Promise<string|null>} openFile
      * @property {() => Promise<string|null>} openFileDialog
+     * @property {() => Promise<string|null>} openFolderDialog
      * @property {() => Promise<string[]>} openOverlayDialog
      * @property {(filePath: string) => Promise<ArrayBuffer>} readFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} parseFitFile
      * @property {(arrayBuffer: ArrayBuffer) => Promise<IpcSerializable>} decodeFitFile
+     * @property {() => Promise<string|null>} getFitBrowserFolder
+     * @property {(relPath?: string) => Promise<IpcSerializable>} listFitBrowserFolder
+     * @property {() => Promise<boolean>} isFitBrowserEnabled
+     * @property {(enabled: boolean) => Promise<boolean>} setFitBrowserEnabled
+     * @property {(folderPath: string) => Promise<boolean>} setFitBrowserFolder
      * @property {() => Promise<string[]>} recentFiles
      * @property {(filePath: string) => Promise<string[]>} addRecentFile
      * @property {() => Promise<string>} getTheme
@@ -408,7 +420,7 @@ const ALLOWED_GENERIC_SEND_CHANNELS = new Set([
  * main-process channels that were never meant to be exposed.
  */
 const EXTRA_RENDERER_ON_IPC_CHANNELS =
-    "decoder-options-changed|export-file|gyazo-oauth-callback|menu-about|menu-export|menu-keyboard-shortcuts|menu-print|menu-restart-update|menu-save-as|open-accent-color-picker|set-font-size|set-high-contrast|show-notification|unload-fit-file".split(
+    "decoder-options-changed|export-file|fit-browser-enabled-changed|gyazo-oauth-callback|menu-about|menu-export|menu-keyboard-shortcuts|menu-print|menu-restart-update|menu-save-as|open-accent-color-picker|set-font-size|set-high-contrast|show-notification|unload-fit-file".split(
         "|"
     );
 
@@ -774,10 +786,50 @@ const electronAPI = {
     openFileDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FILE, "openFileDialog"),
 
     /**
+     * Opens a folder picker dialog and returns the selected folder path.
+     * Returns null when the user cancels.
+     * @returns {Promise<string|null>}
+     */
+    openFolderDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_FOLDER, "openFolderDialog"),
+
+    /**
      * Opens the overlay file dialog with multi-selection support.
      * @returns {Promise<string[]>}
      */
     openOverlayDialog: createSafeInvokeHandler(CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES, "openOverlayDialog"),
+
+    /**
+     * Gets the persisted FIT browser folder (main process setting).
+     * @returns {Promise<string|null>}
+     */
+    getFitBrowserFolder: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER, "getFitBrowserFolder"),
+
+    /**
+     * Lists the current directory under the persisted FIT browser folder.
+     * @param {string} [relPath]
+     * @returns {Promise<IpcSerializable>}
+     */
+    listFitBrowserFolder: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER, "listFitBrowserFolder"),
+
+    /**
+     * Whether the experimental Browser tab is enabled.
+     * @returns {Promise<boolean>}
+     */
+    isFitBrowserEnabled: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED, "isFitBrowserEnabled"),
+
+    /**
+     * Enable/disable the experimental Browser tab.
+     * @param {boolean} enabled
+     * @returns {Promise<boolean>}
+     */
+    setFitBrowserEnabled: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED, "setFitBrowserEnabled"),
+
+    /**
+     * Persist the Browser root folder.
+     * @param {string} folderPath
+     * @returns {Promise<boolean>}
+     */
+    setFitBrowserFolder: createSafeInvokeHandler(CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER, "setFitBrowserFolder"),
 
     // FIT File Operations
     /**

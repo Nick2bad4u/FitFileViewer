@@ -182,6 +182,7 @@ export function updateTabVisibility(visibleTabId) {
         tabContentIds = [
             "content-data",
             "content-chartjs",
+            "content-browser",
             "content-map",
             "content-summary",
             "content-altfit",

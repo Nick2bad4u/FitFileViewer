@@ -1158,6 +1158,14 @@ const mainProcessState = new MainProcessState();
     const state = /** @type {any} */ (ensureIpcHandlersReadyOnce);
     if (state.done) return;
 
+    // In the renderer, this file can be loaded as a browser module/script where CommonJS globals
+    // (module/require) do not exist. In that environment, IPC handler registration is impossible
+    // and should not spam the console with retry warnings.
+    if (typeof module === "undefined") {
+        state.done = true;
+        return;
+    }
+
     const isRendererProcess = typeof process !== "undefined" && process.type === "renderer";
     if (isRendererProcess) {
         state.done = true;

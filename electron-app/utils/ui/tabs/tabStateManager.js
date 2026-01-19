@@ -132,6 +132,13 @@ const TAB_CONFIG = /** @type {Record<string, TabDef>} */ ({
         label: "Alternative View",
         requiresData: false,
     },
+    browser: {
+        contentId: "content-browser",
+        handler: null,
+        id: "tab-browser",
+        label: "Browser",
+        requiresData: false,
+    },
     chart: {
         contentId: "content-chart",
         handler: "renderChartJS",
@@ -314,6 +321,20 @@ class TabStateManager {
             if (typeof iframe.src === "string" && !iframe.src.includes("ffv/index.html")) {
                 iframe.src = "ffv/index.html";
             }
+        }
+    }
+
+    /**
+     * Handle Browser tab activation (folder-based activity browser).
+     */
+    async handleBrowserTab() {
+        try {
+            const mod = await import("../browser/fileBrowserTab.js");
+            if (mod && typeof mod.renderFileBrowserTab === "function") {
+                await mod.renderFileBrowserTab();
+            }
+        } catch (error) {
+            console.error("[TabStateManager] Failed to render Browser tab", error);
         }
     }
 
@@ -564,6 +585,10 @@ class TabStateManager {
             switch (tabName) {
                 case "altfit": {
                     this.handleAltFitTab();
+                    break;
+                }
+                case "browser": {
+                    await this.handleBrowserTab();
                     break;
                 }
                 case "chart":

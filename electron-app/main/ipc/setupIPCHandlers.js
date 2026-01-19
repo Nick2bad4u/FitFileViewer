@@ -10,6 +10,7 @@ const { assertFileReadAllowed } = require("../security/fileAccessPolicy");
 const { getAppState, setAppState } = require("../state/appState");
 const { getThemeFromRenderer } = require("../theme/getThemeFromRenderer");
 const { registerIpcHandle, registerIpcListener } = require("./ipcRegistry");
+const { registerBrowserHandlers } = require("./registerBrowserHandlers");
 const { registerDialogHandlers } = require("./registerDialogHandlers");
 const { registerExternalHandlers } = require("./registerExternalHandlers");
 const { registerFileSystemHandlers } = require("./registerFileSystemHandlers");
@@ -55,6 +56,15 @@ function setupIPCHandlers(mainWindow) {
         logWithContext,
     });
 
+    registerBrowserHandlers({
+        registerIpcHandle,
+        dialogRef,
+        fs,
+        path,
+        CONSTANTS,
+        logWithContext,
+    });
+
     // Consolidated IPC registrations.
     // These helpers are unit-tested individually and avoid handler duplication.
     registerFileSystemHandlers({ registerIpcHandle, fs, logWithContext });
@@ -78,6 +88,29 @@ function setupIPCHandlers(mainWindow) {
                 // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
                 const approvedPath = assertFileReadAllowed(filePath);
                 setAppState("loadedFitFilePath", approvedPath);
+
+                // Default the Browser tab folder to the currently loaded file's directory.
+                // We only do this when the user has not explicitly chosen a browser folder.
+                try {
+                    const confMod = require("electron-conf");
+                    const ConfCtor = confMod && confMod.Conf;
+                    if (typeof ConfCtor === "function") {
+                        const conf = new ConfCtor({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+                        const modeRaw = conf.get("fitBrowser.rootFolderMode", "auto");
+                        const mode = typeof modeRaw === "string" ? modeRaw.trim().toLowerCase() : "auto";
+                        if (mode !== "manual") {
+                            const dir = typeof path.dirname === "function" ? path.dirname(approvedPath) : "";
+                            if (typeof dir === "string" && dir.trim().length > 0) {
+                                conf.set("fitBrowser.rootFolder", dir);
+                                conf.set("fitBrowser.rootFolderMode", "auto");
+                            }
+                        }
+                    }
+                } catch (error) {
+                    logWithContext("warn", "Failed to auto-default fitBrowser folder", {
+                        error: /** @type {Error} */ (error)?.message,
+                    });
+                }
             } catch (error) {
                 logWithContext("warn", "Rejected fit-file-loaded with unapproved path", {
                     error: /** @type {Error} */ (error)?.message,

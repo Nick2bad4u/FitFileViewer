@@ -35,11 +35,17 @@ interface ElectronAPI {
     openFile(): Promise<string | null>;
     /** Alias for openFile; returns selected path or null when cancelled. */
     openFileDialog(): Promise<string | null>;
+    /** Opens a folder picker dialog; returns selected folder path or null when cancelled. */
+    openFolderDialog(): Promise<string | null>;
     /** Opens the native multi-select overlay dialog; returns selected paths (possibly empty). */
     openOverlayDialog(): Promise<string[]>;
     readFile(filePath: string): Promise<ArrayBuffer>;
     parseFitFile(arrayBuffer: ArrayBuffer): Promise<any>;
     decodeFitFile(arrayBuffer: ArrayBuffer): Promise<any>;
+    /** Get the persisted FIT browser folder (main process setting). */
+    getFitBrowserFolder(): Promise<string | null>;
+    /** List entries under the persisted FIT browser folder. */
+    listFitBrowserFolder(relPath?: string): Promise<any>;
     recentFiles(): Promise<string[]>;
     addRecentFile(filePath: string): Promise<string[]>;
 

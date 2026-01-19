@@ -7,6 +7,7 @@ describe("updateTabVisibility - additional branches", () => {
         document.body.innerHTML = `
             <div id="content-data"></div>
             <div id="content-chartjs"></div>
+            <div id="content-browser"></div>
             <div id="content-map"></div>
             <div id="content-summary"></div>
             <div id="content-altfit"></div>

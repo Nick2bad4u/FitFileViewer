@@ -88,6 +88,8 @@ function setupMainLifecycle(deps) {
     let initScheduled = false;
     /** @type {boolean} */
     let initCompleted = false;
+    /** @type {boolean} */
+    let blockedRequestsInstalled = false;
 
     const isTestEnv = () => typeof process !== "undefined" && process.env?.NODE_ENV === "test";
     const isDevMode = () =>
@@ -111,6 +113,13 @@ function setupMainLifecycle(deps) {
      * @returns {void}
      */
     const wireHandlers = (windowCandidate) => {
+        if (!blockedRequestsInstalled) {
+            blockedRequestsInstalled = true;
+            safeCall(() => {
+                const { setupBlockedRequests } = require("../security/setupBlockedRequests");
+                setupBlockedRequests();
+            });
+        }
         safeCall(() => setupIPCHandlers(windowCandidate));
         safeCall(() => setupMenuAndEventHandlers());
         safeCall(() => setupApplicationEventHandlers());

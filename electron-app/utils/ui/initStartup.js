@@ -5,6 +5,7 @@
  * Removing inline scripts allows a stricter Content Security Policy.
  */
 
+import { initFitBrowserFeatureGate } from "./browser/initFitBrowserFeatureGate.js";
 import { initQuickColorSwitcher } from "./quickColorSwitcher.js";
 import { initFilenameAutoScroll, initUnifiedControlBar } from "./unifiedControlBar.js";
 
@@ -12,4 +13,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initQuickColorSwitcher();
     initUnifiedControlBar();
     initFilenameAutoScroll();
+    initFitBrowserFeatureGate();
 });

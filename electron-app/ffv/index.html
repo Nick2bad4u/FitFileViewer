@@ -20,6 +20,108 @@
         <meta name="application-name" content="FIT File Viewer" />
         <meta name="msapplication-TileColor" content="#b91d47" />
         <meta name="theme-color" content="#ffffff" />
+
+        <!--
+            Electron embeds this page in an iframe as the "Alternative View".
+            The upstream bundle includes analytics posting to ua.harryonline.net.
+            In Electron we do not need analytics; intercept the request to avoid noisy console errors
+            (and avoid the main-process request blocker producing net::ERR_BLOCKED_BY_CLIENT).
+        -->
+        <script>
+            (function disableFfvAnalytics() {
+                const BLOCKED_HOSTNAMES = new Set(["ua.harryonline.net"]);
+
+                /**
+                 * @param {string} url
+                 * @returns {boolean}
+                 */
+                const isBlockedUrl = (url) => {
+                    try {
+                        const parsed = new URL(url, window.location.href);
+                        return BLOCKED_HOSTNAMES.has(parsed.hostname);
+                    } catch {
+                        return false;
+                    }
+                };
+
+                // Patch fetch
+                try {
+                    const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
+                    if (originalFetch && typeof Response === "function") {
+                        window.fetch = async (input, init) => {
+                            const url =
+                                typeof input === "string"
+                                    ? input
+                                    : input && typeof input === "object" && "url" in input
+                                      ? String(input.url)
+                                      : "";
+                            if (url && isBlockedUrl(url)) {
+                                return new Response("", { status: 204 });
+                            }
+                            return originalFetch(input, init);
+                        };
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                // Patch sendBeacon
+                try {
+                    const originalBeacon =
+                        typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function"
+                            ? navigator.sendBeacon.bind(navigator)
+                            : null;
+                    if (originalBeacon) {
+                        // eslint-disable-next-line no-param-reassign
+                        navigator.sendBeacon = (url, data) => {
+                            const urlStr = typeof url === "string" ? url : String(url);
+                            if (urlStr && isBlockedUrl(urlStr)) {
+                                return true;
+                            }
+                            return originalBeacon(url, data);
+                        };
+                    }
+                } catch {
+                    /* ignore */
+                }
+
+                // Patch XHR
+                try {
+                    if (typeof XMLHttpRequest !== "undefined" && XMLHttpRequest && XMLHttpRequest.prototype) {
+                        const origOpen = XMLHttpRequest.prototype.open;
+                        const origSend = XMLHttpRequest.prototype.send;
+                        if (typeof origOpen === "function" && typeof origSend === "function") {
+                            XMLHttpRequest.prototype.open = function open(method, url, ...rest) {
+                                try {
+                                    const urlStr = typeof url === "string" ? url : String(url);
+                                    // @ts-expect-error - internal flag
+                                    this.__ffvBlocked = urlStr && isBlockedUrl(urlStr);
+                                } catch {
+                                    // @ts-expect-error - internal flag
+                                    this.__ffvBlocked = false;
+                                }
+                                return origOpen.call(this, method, url, ...rest);
+                            };
+                            XMLHttpRequest.prototype.send = function send(body) {
+                                // @ts-expect-error - internal flag
+                                if (this.__ffvBlocked) {
+                                    try {
+                                        this.abort();
+                                    } catch {
+                                        /* ignore */
+                                    }
+                                    return;
+                                }
+                                return origSend.call(this, body);
+                            };
+                        }
+                    }
+                } catch {
+                    /* ignore */
+                }
+            })();
+        </script>
+
         <script type="module" crossorigin src="./assets/index-LvWRIhnC.js"></script>
         <link rel="stylesheet" crossorigin href="./assets/index-mfP-sHfH.css" />
     </head>

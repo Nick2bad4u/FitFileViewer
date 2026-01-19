@@ -179,6 +179,12 @@
                 </svg>
                 Map
             </button>
+            <button class="tab-button" id="tab-browser" role="tab" aria-selected="false" tabindex="0">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                </svg>
+                Browser
+            </button>
             <button class="tab-button" id="tab-altfit" role="tab" aria-selected="false" tabindex="0">
                 <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <ellipse cx="12" cy="5" rx="9" ry="3" />
@@ -226,6 +232,7 @@
         <!-- Card-like Container for Tab Content -->
         <div class="tab-card">
             <div id="content-map" class="tab-content"></div>
+            <div id="content-browser" class="tab-content"></div>
             <div id="content-data" class="tab-content"></div>
             <div id="content-chartjs" class="tab-content">
                 <div id="chartjs-chart-container"></div>
