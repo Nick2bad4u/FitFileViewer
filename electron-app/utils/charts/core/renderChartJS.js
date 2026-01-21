@@ -101,7 +101,7 @@ import { computedStateManager } from "../../state/core/computedStateManager.js";
 // State management imports
 import { getState, setState, subscribe, updateState } from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
-import { settingsStateManager } from "../../state/domain/settingsStateManager.js";
+import { getChartSetting, setChartSetting, settingsStateManager } from "../../state/domain/settingsStateManager.js";
 // Avoid importing uiStateManager directly to prevent side effects during module evaluation in tests
 // We'll access a global instance if the app exposes one.
 import { ensureChartSettingsDropdowns } from "../../ui/components/ensureChartSettingsDropdowns.js";
@@ -582,10 +582,7 @@ export const chartSettingsManager = {
      * @returns {string} Visibility setting ("visible", "hidden")
      */
     getFieldVisibility(field) {
-        // Use window.localStorage to satisfy test spies
-        const ls =
-            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
-        const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+        const visibility = getChartSetting(`field_${field}`) || "visible";
 
         // Update field visibility state for reactive access
         callSetState(`settings.charts.fieldVisibility.${field}`, visibility, {
@@ -636,10 +633,7 @@ export const chartSettingsManager = {
      * @param {string} visibility - Visibility setting
      */
     setFieldVisibility(field, visibility) {
-        // Use window.localStorage to satisfy test spies
-        const ls =
-            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
-        ls?.setItem?.(`chartjs_field_${field}`, visibility);
+        setChartSetting(`field_${field}`, visibility);
 
         // Update state for reactive access
         callSetState(`settings.charts.fieldVisibility.${field}`, visibility, {
@@ -1403,12 +1397,9 @@ export const chartState = {
         }
 
         const fields = getFormatChartFieldsSafe();
-        // Prefer window.localStorage to satisfy test spies
-        const ls =
-            /** @type {any} */ (globalThis)?.window?.localStorage || /** @type {any} */ (globalThis)?.localStorage;
         return Array.isArray(fields)
             ? fields.filter((field) => {
-                  const visibility = ls?.getItem?.(`chartjs_field_${field}`) || "visible";
+                  const visibility = getChartSetting(`field_${field}`) || "visible";
                   return visibility !== "hidden";
               })
             : [];

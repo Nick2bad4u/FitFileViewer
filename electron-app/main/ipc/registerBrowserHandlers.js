@@ -76,8 +76,8 @@ function registerBrowserHandlers({ registerIpcHandle, dialogRef, fs, path, CONST
      */
     const readEnabled = () => {
         const conf = tryGetConf();
-        if (!conf) return false;
-        const value = conf.get(CONF_KEY_ENABLED, false);
+        if (!conf) return true;
+        const value = conf.get(CONF_KEY_ENABLED, true);
         return value === true;
     };
 

@@ -3,8 +3,8 @@
  * @fileoverview Dedicated power zone chart controls section
  */
 
-import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 
 /**
  * Creates the power zone controls section by extracting existing controls

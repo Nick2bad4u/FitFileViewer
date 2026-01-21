@@ -531,6 +531,7 @@ body {
     font-weight: 800;
     font-size: 0.95rem;
     margin-bottom: 6px;
+    color: var(--color-fg);
 }
 
 .file-calendar__dayMeta {
@@ -687,6 +688,16 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
+}
+
+.file-browser__notice {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgb(var(--color-accent-rgb) / 25%);
+    background: rgb(var(--color-accent-rgb) / 10%);
+    color: var(--color-fg);
+    font-size: 0.9rem;
 }
 
 .file-browser__header {

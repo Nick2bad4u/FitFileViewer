@@ -56,6 +56,9 @@ export async function renderFileBrowserTab() {
         container.innerHTML = `
             <div class="tab-card">
                 <div class="file-browser">
+                    <div class="file-browser__notice" role="note">
+                        Experimental feature — folder scanning and calendar may change.
+                    </div>
                     <div class="file-browser__header">
                         <div class="file-browser__controls">
                             <button type="button" class="file-browser__btn" id="fit-browser-pick-folder">Choose Folder</button>

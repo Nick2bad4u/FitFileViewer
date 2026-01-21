@@ -3,8 +3,8 @@
  * @fileoverview Dedicated heart rate zone chart controls section
  */
 
-import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
 
 /**
  * Creates the heart rate zone controls section by extracting existing controls

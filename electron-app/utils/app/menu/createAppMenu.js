@@ -302,7 +302,8 @@ function createAppMenu(mainWindow, currentTheme, loadedFitFilePath) {
     // Experimental: folder-based FIT browser tab.
     // This is disabled by default and must be explicitly enabled by the user.
     const FIT_BROWSER_ENABLED_KEY = "fitBrowser.enabled";
-    const isFitBrowserEnabled = getConf().get(FIT_BROWSER_ENABLED_KEY, false) === true;
+    // Default ON (user can disable). This feature is still marked experimental in the UI.
+    const isFitBrowserEnabled = getConf().get(FIT_BROWSER_ENABLED_KEY, true) === true;
     const isMac = process.platform === "darwin";
     const fileMenuItems = [
         {
