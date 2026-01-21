@@ -8,6 +8,8 @@
  * @param {HTMLElement} parentContainer - Parent container to append controls to
  * @returns {HTMLElement} The created power zone controls section
  */
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
+
 export function createPowerZoneControls(parentContainer) {
     // Check if power zone controls already exist
     const existingControls = document.querySelector("#power-zone-controls");
@@ -133,7 +135,7 @@ export function createPowerZoneControls(parentContainer) {
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible: localStorage.getItem("chartjs_field_power_zone_doughnut") !== "hidden",
+        doughnutVisible: getChartSetting("field_power_zone_doughnut") !== "hidden",
     };
 }
 

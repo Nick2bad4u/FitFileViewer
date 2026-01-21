@@ -50,9 +50,11 @@ describe("showColModal interactions", () => {
         expect(reRender).toHaveBeenCalledTimes(1);
 
         // Click OK persists to localStorage
-        const okBtn = overlay.querySelector(".modal-actions .themed-btn:last-of-type") as HTMLButtonElement;
+        const okBtn = Array.from(overlay.querySelectorAll<HTMLButtonElement>("button")).find(
+            (b) => (b.textContent || "").trim().toLowerCase() === "ok"
+        );
         expect(okBtn).toBeTruthy();
-        okBtn.click();
+        okBtn?.click();
         // Overlay removed
         expect(document.querySelector(".summary-col-modal-overlay")).toBeNull();
 
@@ -63,8 +65,10 @@ describe("showColModal interactions", () => {
         // Open again and then Cancel should not change stored value
         showColModal({ allKeys, visibleColumns: ["Speed"], setVisibleColumns, renderTable: reRender });
         const overlay2 = document.querySelector(".summary-col-modal-overlay") as HTMLElement;
-        const cancelBtn = overlay2.querySelector(".modal-actions .themed-btn") as HTMLButtonElement; // first is Cancel
-        cancelBtn.click();
+        const cancelBtn = Array.from(overlay2.querySelectorAll<HTMLButtonElement>("button")).find(
+            (b) => (b.textContent || "").trim().toLowerCase() === "cancel"
+        );
+        cancelBtn?.click();
         const storedAfterCancel = loadColPrefs(key, allKeys);
         expect(storedAfterCancel).toEqual(allKeys); // unchanged
     });

@@ -418,12 +418,290 @@ body {
     padding: 16px;
 }
 
+.file-browser__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.file-browser__segmented {
+    display: inline-flex;
+    border: 1px solid var(--c_hex888);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgb(0 0 0 / 12%);
+}
+
+.file-browser__seg-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.file-browser__seg-btn--active {
+    background: var(--color-accent);
+    color: #fff;
+}
+
+.file-browser__body {
+    display: block;
+}
+
+.file-browser__library {
+    padding-top: 10px;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.file-browser__calendar {
+    padding-top: 10px;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.file-calendar {
+    display: block;
+}
+
+.file-calendar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.file-calendar__title {
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+.file-calendar__nav {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.file-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.file-calendar__weekday {
+    font-size: 0.8rem;
+    color: var(--color-fg-muted);
+    text-align: center;
+    padding: 6px 0;
+}
+
+.file-calendar__day {
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    border-radius: 10px;
+    padding: 8px;
+    min-height: 74px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.file-calendar__day--outside {
+    opacity: 0.45;
+}
+
+.file-calendar__day--today {
+    border-color: rgb(var(--color-accent-rgb) / 55%);
+}
+
+.file-calendar__day--selected {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgb(var(--color-accent-rgb) / 18%);
+}
+
+.file-calendar__dayNumber {
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+}
+
+.file-calendar__dayMeta {
+    font-size: 0.8rem;
+    color: var(--color-fg-muted);
+    line-height: 1.35;
+}
+
+.file-calendar__panel {
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.file-calendar__panelTitle {
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.file-calendar__panelEmpty {
+    color: var(--color-fg-muted);
+}
+
+@media (width <= 760px) {
+    .file-calendar__grid {
+        gap: 6px;
+    }
+    .file-calendar__day {
+        min-height: 66px;
+        padding: 7px;
+    }
+}
+
+.file-library__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.file-library__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.file-library__control {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-library__controlLabel {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.file-library__daysInput {
+    width: 80px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    color: inherit;
+}
+
+.file-library__unitSelect {
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    color: inherit;
+}
+
+.file-library__title {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.file-library__status {
+    color: var(--color-fg-muted);
+    margin-bottom: 12px;
+    word-break: break-word;
+}
+
+.file-library__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.file-library__card {
+    border: 1px solid var(--color-glass-border);
+    border-radius: 10px;
+    padding: 10px;
+    background: var(--color-glass);
+}
+
+.file-library__cardLabel {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.file-library__cardValue {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-top: 4px;
+}
+
+.file-library__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.file-library__row {
+    text-align: left;
+    border: 1px solid var(--color-glass-border);
+    border-radius: 10px;
+    padding: 10px;
+    background: var(--color-glass);
+    color: inherit;
+    cursor: pointer;
+}
+
+.file-library__row:hover {
+    border-color: var(--color-accent);
+}
+
+.file-library__rowMain {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.file-library__rowMeta {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+@media (width <= 760px) {
+    .file-library__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.file-browser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .file-browser__header {
     display: flex;
     gap: 12px;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 12px;
+}
+
+.file-browser__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .file-browser__path {
@@ -453,7 +731,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    max-height: calc(100vh - 220px);
+    flex: 1;
+    min-height: 0;
     overflow: auto;
 }
 
@@ -4840,6 +5119,19 @@ body.theme-light .data-point-filter-control__range-values {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+.summary-col-default-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    background: rgb(var(--color-accent-rgb) / 14%);
+    color: rgb(var(--color-accent-rgb));
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1;
 }
 
 .summary-col-modal .themed-btn {

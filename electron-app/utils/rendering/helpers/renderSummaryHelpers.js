@@ -46,6 +46,21 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
 export const LABEL_COL = "__row_label__";
 
 /**
+ * Global default key for summary column preferences.
+ *
+ * If a per-file key has no saved preferences, we fall back to this key.
+ * This enables a "remember my columns" experience across all files.
+ */
+export const SUMMARY_COL_GLOBAL_DEFAULT_KEY = "summaryColSel_global_default";
+
+/**
+ * @returns {string}
+ */
+export function getGlobalStorageKey() {
+    return SUMMARY_COL_GLOBAL_DEFAULT_KEY;
+}
+
+/**
  * Return the label for a given row index.
  * @param {number} rowIdx
  * @param {boolean} isLap
@@ -321,6 +336,7 @@ export function saveColPrefs(key, visibleColumns, _allKeys) {
  * Show modal dialog to pick visible summary columns.
  * @param {{
  *  allKeys: string[],
+ *  data?: FitSummaryData,
  *  visibleColumns: string[],
  *  setVisibleColumns: (cols: string[]) => void,
  *  renderTable: () => void
@@ -329,6 +345,7 @@ export function saveColPrefs(key, visibleColumns, _allKeys) {
  */
 export function showColModal({
     allKeys,
+    data,
     renderTable: reRenderTable,
     setVisibleColumns,
     visibleColumns: initialVisibleColumns,
@@ -345,6 +362,58 @@ export function showColModal({
     const title = document.createElement("h2");
     title.textContent = "Select Summary Columns";
     modal.append(title);
+
+    const prefsKeyForFile = getStorageKey(globalThis.globalData || {}, allKeys);
+    const prefsKeyGlobal = getGlobalStorageKey();
+
+    // Determine display order: show named/non-numeric keys first, numeric keys last.
+    /**
+     * @param {string} key
+     * @returns {boolean}
+     */
+    const isNumericKey = (key) => {
+        if (!data || typeof data !== "object") {
+            return false;
+        }
+
+        /** @type {GenericRecord[]} */
+        const sampleRows = [];
+        if (Array.isArray(data.sessionMesgs)) {
+            sampleRows.push(...data.sessionMesgs.slice(0, 5));
+        }
+        if (Array.isArray(data.lapMesgs)) {
+            sampleRows.push(...data.lapMesgs.slice(0, 10));
+        }
+        if (Array.isArray(data.recordMesgs)) {
+            // recordMesgs can be huge; only sample a few.
+            sampleRows.push(...data.recordMesgs.slice(0, 25));
+        }
+
+        for (const row of sampleRows) {
+            if (!row || typeof row !== "object") {
+                continue;
+            }
+            const v = /** @type {any} */ (row)[key];
+            if (v === null || v === undefined) {
+                continue;
+            }
+            return typeof v === "number" && Number.isFinite(v);
+        }
+
+        return false;
+    };
+
+    /** @type {string[]} */
+    const displayKeys = (() => {
+        /** @type {string[]} */
+        const named = [];
+        /** @type {string[]} */
+        const numeric = [];
+        for (const k of allKeys) {
+            (isNumericKey(k) ? numeric : named).push(k);
+        }
+        return [...named, ...numeric];
+    })();
     // Local visibleColumns state
     let visibleColumns = [...initialVisibleColumns];
     /**
@@ -359,6 +428,57 @@ export function showColModal({
             }
         };
     selectAllBtn.className = "select-all-btn themed-btn";
+
+    // Default preset actions (apply across files)
+    const presetsBar = document.createElement("div");
+    presetsBar.className = "modal-actions";
+
+    const defaultBadge = document.createElement("span");
+    defaultBadge.className = "summary-col-default-badge";
+    defaultBadge.textContent = "Default set";
+
+    /**
+     * @returns {boolean}
+     */
+    const hasGlobalDefault = () => Boolean(loadColPrefs(prefsKeyGlobal));
+
+    /**
+     * @param {boolean} visible
+     */
+    const setDefaultBadgeVisible = (visible) => {
+        defaultBadge.style.display = visible ? "inline-flex" : "none";
+    };
+
+    setDefaultBadgeVisible(hasGlobalDefault());
+
+    const setDefaultBtn = document.createElement("button");
+    setDefaultBtn.className = "themed-btn";
+    setDefaultBtn.textContent = "Set as Default";
+    setDefaultBtn.title = "Use this column selection as the default for all future files";
+    setDefaultBtn.addEventListener("click", () => {
+        saveColPrefs(prefsKeyGlobal, visibleColumns);
+        // Also refresh current file prefs so the current file behaves consistently.
+        saveColPrefs(prefsKeyForFile, visibleColumns);
+        setDefaultBadgeVisible(true);
+        reRenderTable();
+    });
+
+    const clearDefaultBtn = document.createElement("button");
+    clearDefaultBtn.className = "themed-btn";
+    clearDefaultBtn.textContent = "Clear Default";
+    clearDefaultBtn.title = "Remove the global default column selection";
+    clearDefaultBtn.addEventListener("click", () => {
+        try {
+            localStorage.removeItem(prefsKeyGlobal);
+        } catch {
+            /* ignore */
+        }
+        setDefaultBadgeVisible(false);
+        reRenderTable();
+    });
+
+    presetsBar.append(setDefaultBtn, clearDefaultBtn, defaultBadge);
+    modal.append(presetsBar);
     // Column list (declare before updateColList to avoid no-use-before-define)
     const colList = document.createElement("div");
     colList.className = "col-list";
@@ -382,7 +502,7 @@ export function showColModal({
                 const shouldCheck = !visibleColumns.includes(key);
                 let newCols = [...visibleColumns];
                 for (let i = start; i <= end; ++i) {
-                    const k = allKeys[i];
+                    const k = displayKeys[i];
                     if (typeof k !== "string") {
                         continue;
                     }
@@ -397,7 +517,7 @@ export function showColModal({
                 updateVisibleColumns(newCols);
                 updateColList();
                 reRenderTable();
-                saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+                saveColPrefs(prefsKeyForFile, newCols);
             }
         };
     }
@@ -428,7 +548,7 @@ export function showColModal({
             selectAllBtn.textContent = newCols.length === allKeys.length ? "Deselect All" : "Select All";
             updateColList();
             reRenderTable();
-            saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+            saveColPrefs(prefsKeyForFile, newCols);
         };
     }
     /**
@@ -446,7 +566,7 @@ export function showColModal({
         label.append(checkbox);
         label.append(document.createTextNode("Type"));
         colList.append(label);
-        for (const [idx, key] of allKeys.entries()) {
+        for (const [idx, key] of displayKeys.entries()) {
             const loopCheckbox = document.createElement("input"),
                 loopLabel = document.createElement("label");
             loopCheckbox.type = "checkbox";
@@ -468,7 +588,7 @@ export function showColModal({
         updateVisibleColumns(newCols);
         updateColList();
         reRenderTable();
-        saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), newCols);
+        saveColPrefs(prefsKeyForFile, newCols);
     });
     modal.append(selectAllBtn);
     updateColList();
@@ -485,7 +605,7 @@ export function showColModal({
     okBtn.addEventListener("click", () => {
         overlay.remove();
         reRenderTable();
-        saveColPrefs(getStorageKey(globalThis.globalData || {}, allKeys), visibleColumns);
+        saveColPrefs(prefsKeyForFile, visibleColumns);
     });
     actions.append(cancelBtn);
     actions.append(okBtn);

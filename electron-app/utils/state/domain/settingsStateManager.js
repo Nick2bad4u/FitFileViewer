@@ -462,7 +462,10 @@ class SettingsStateManager {
             if (schema.type === "object" && key) {
                 // Set specific object property
                 const storageKey = schema.key + key;
-                localStorage.setItem(storageKey, JSON.stringify(value));
+                // Preserve legacy behavior for string settings:
+                // historically these were stored as raw strings (e.g. "hidden"/"visible").
+                // Writing JSON strings would add quotes and break direct localStorage comparisons.
+                localStorage.setItem(storageKey, typeof value === "string" ? value : JSON.stringify(value));
 
                 // Update state
                 const rootState = /** @type {any} */ (getState("settings")),

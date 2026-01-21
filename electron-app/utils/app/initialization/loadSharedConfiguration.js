@@ -1,5 +1,6 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
+import { setChartSetting } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 // Function to load shared configuration from URL
@@ -15,7 +16,7 @@ export function loadSharedConfiguration() {
             for (const key of Object.keys(settings)) {
                 if (key === "visibleFields") {
                     for (const field of Object.keys(settings.visibleFields)) {
-                        localStorage.setItem(`chartjs_field_${field}`, settings.visibleFields[field]);
+                        setChartSetting(`field_${field}`, settings.visibleFields[field]);
                     }
                 } else if (typeof settings[key] === "boolean") {
                     localStorage.setItem(`chartjs_${key}`, settings[key].toString());

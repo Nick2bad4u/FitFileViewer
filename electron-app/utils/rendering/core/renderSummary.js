@@ -1,4 +1,10 @@
-import { getStorageKey, loadColPrefs, renderTable, showColModal } from "../helpers/renderSummaryHelpers.js";
+import {
+    getGlobalStorageKey,
+    getStorageKey,
+    loadColPrefs,
+    renderTable,
+    showColModal,
+} from "../helpers/renderSummaryHelpers.js";
 
 /**
  * @typedef {import("../helpers/renderSummaryHelpers.js").FitSummaryData} FitSummaryData
@@ -43,7 +49,10 @@ export function renderSummary(data) {
         for (const row of data.recordMesgs) for (const k of Object.keys(row || {})) keySet.add(k);
     }
     const allKeys = [...keySet];
-    let visibleColumns = loadColPrefs(getStorageKey(data, allKeys), allKeys) || [...allKeys];
+    const fileKey = getStorageKey(data, allKeys);
+    const perFilePrefs = loadColPrefs(fileKey, allKeys);
+    const globalPrefs = loadColPrefs(getGlobalStorageKey(), allKeys);
+    let visibleColumns = perFilePrefs || globalPrefs || [...allKeys];
 
     const gearBtn = document.createElement("button");
     gearBtn.className = "summary-gear-btn";
@@ -53,6 +62,7 @@ export function renderSummary(data) {
         e.stopPropagation();
         showColModal({
             allKeys,
+            data: /** @type {FitSummaryData} */ (data),
             renderTable: () =>
                 renderTable({
                     container,

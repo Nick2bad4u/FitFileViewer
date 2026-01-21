@@ -224,6 +224,7 @@ export default defineConfig([
             "utils/maps/core/renderMap.js",
             "utils/state/core/masterStateManager.js",
             "utils/state/integration/mainProcessStateManager.js",
+            "utils/ui/browser/fileBrowserTab.js",
             "utils/ui/components/createSettingsHeader.js",
             "utils/ui/controls/createInlineZoneColorSelector.js",
             "utils/ui/modals/injectModalStyles.js",

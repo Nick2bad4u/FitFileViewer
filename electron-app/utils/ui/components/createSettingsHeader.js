@@ -7,6 +7,7 @@ import { extractDeveloperFieldsList } from "../../data/processing/extractDevelop
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
 import { fieldColors, fieldLabels, formatChartFields } from "../../formatting/display/formatChartFields.js";
+import { getChartSetting, setChartSetting } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../notifications/showNotification.js";
 
@@ -1003,7 +1004,7 @@ function createFieldToggle(/** @type {string} */ field) {
     const toggle = document.createElement("input");
     toggle.type = "checkbox";
     toggle.id = `field-toggle-${field}`;
-    toggle.checked = localStorage.getItem(`chartjs_field_${field}`) !== "hidden";
+    toggle.checked = getChartSetting(`field_${field}`) !== "hidden";
     toggle.style.cssText = `
 		width: 18px;
 		height: 18px;
@@ -1061,7 +1062,7 @@ function createFieldToggle(/** @type {string} */ field) {
             return null;
         };
 
-        const storedColor = localStorage.getItem(`chartjs_color_${field}`);
+        const storedColor = getChartSetting(`color_${field}`);
         const candidate =
             storedColor || /** @type {any} */ (fieldColors)[field] || /** @type {any} */ (themeConfig).colors?.accent;
         colorPicker.value = normalizeColorInputHex(candidate) || "#3b82f6";
@@ -1074,7 +1075,7 @@ function createFieldToggle(/** @type {string} */ field) {
 			background: none;
 		`; // Event listeners for color picker
         colorPicker.addEventListener("change", () => {
-            localStorage.setItem(`chartjs_color_${field}`, colorPicker.value);
+            setChartSetting(`color_${field}`, colorPicker.value);
 
             // Dispatch custom event for color change
             globalThis.dispatchEvent(
@@ -1092,7 +1093,7 @@ function createFieldToggle(/** @type {string} */ field) {
     } // Event listeners for toggle
     toggle.addEventListener("change", () => {
         const visibility = toggle.checked ? "visible" : "hidden";
-        localStorage.setItem(`chartjs_field_${field}`, visibility);
+        setChartSetting(`field_${field}`, visibility);
 
         // Dispatch custom event for field toggle change (for real-time updates)
         globalThis.dispatchEvent(
@@ -1467,7 +1468,7 @@ function toggleAllFields(enable) {
             allFields.push(...devFields);
         } // Update localStorage for all fields
         for (const field of allFields) {
-            localStorage.setItem(`chartjs_field_${field}`, visibility);
+            setChartSetting(`field_${field}`, visibility);
         }
 
         // Dispatch custom event for bulk field toggle change

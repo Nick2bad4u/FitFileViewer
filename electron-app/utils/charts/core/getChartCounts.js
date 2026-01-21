@@ -1,4 +1,5 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 
 /**
  * @typedef {{ total:number, visible:number, available:number }} ChartCategoryCounts
@@ -73,7 +74,7 @@ export function getChartCounts() {
                 counts.categories.metrics.available++;
 
                 // Check visibility
-                const visibility = localStorage.getItem(`chartjs_field_${field}`);
+                const visibility = getChartSetting(`field_${field}`);
                 if (visibility !== "hidden") {
                     counts.visible++;
                     counts.categories.metrics.visible++;
@@ -99,7 +100,7 @@ export function getChartCounts() {
             counts.categories.gps.total++;
             counts.categories.gps.available++;
 
-            const gpsVisibility = localStorage.getItem("chartjs_field_gps_track");
+            const gpsVisibility = getChartSetting("field_gps_track");
             if (gpsVisibility !== "hidden") {
                 counts.visible++;
                 counts.categories.gps.visible++;
@@ -148,7 +149,7 @@ export function getChartCounts() {
                 counts.available++;
                 counts.categories.analysis.available++;
 
-                const visibility = localStorage.getItem(`chartjs_field_${chartType}`);
+                const visibility = getChartSetting(`field_${chartType}`);
                 if (visibility !== "hidden") {
                     counts.visible++;
                     counts.categories.analysis.visible++;
@@ -178,7 +179,7 @@ export function getChartCounts() {
                 counts.available++;
                 counts.categories.zones.available++;
 
-                const visibility = localStorage.getItem(`chartjs_field_${chartType}`);
+                const visibility = getChartSetting(`field_${chartType}`);
                 if (visibility !== "hidden") {
                     counts.visible++;
                     counts.categories.zones.visible++;
@@ -196,7 +197,7 @@ export function getChartCounts() {
             counts.categories.analysis.available++;
 
             // Event messages charts should respect visibility settings
-            const visibility = localStorage.getItem("chartjs_field_event_messages");
+            const visibility = getChartSetting("field_event_messages");
             if (visibility !== "hidden") {
                 counts.visible++;
                 counts.categories.analysis.visible++;
@@ -218,8 +219,8 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for HR lap zone charts
-                    const hrIndividualVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_individual"),
-                        hrStackedVisibility = localStorage.getItem("chartjs_field_hr_lap_zone_stacked");
+                    const hrIndividualVisibility = getChartSetting("field_hr_lap_zone_individual"),
+                        hrStackedVisibility = getChartSetting("field_hr_lap_zone_stacked");
 
                     if (hrStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -240,8 +241,8 @@ export function getChartCounts() {
                     counts.categories.zones.available += 2;
 
                     // Check visibility for Power lap zone charts
-                    const powerIndividualVisibility = localStorage.getItem("chartjs_field_power_lap_zone_individual"),
-                        powerStackedVisibility = localStorage.getItem("chartjs_field_power_lap_zone_stacked");
+                    const powerIndividualVisibility = getChartSetting("field_power_lap_zone_individual"),
+                        powerStackedVisibility = getChartSetting("field_power_lap_zone_stacked");
 
                     if (powerStackedVisibility !== "hidden") {
                         counts.visible += 1;
@@ -288,7 +289,7 @@ export function getChartCounts() {
                     counts.categories.metrics.total++;
                     counts.categories.metrics.available++;
 
-                    const visibility = localStorage.getItem(`chartjs_field_${field}`);
+                    const visibility = getChartSetting(`field_${field}`);
                     if (visibility !== "hidden") {
                         counts.visible++;
                         counts.categories.metrics.visible++;

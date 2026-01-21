@@ -42,7 +42,8 @@ export function initFitBrowserFeatureGate() {
 
     // React to main-process toggles.
     if (typeof api.onIpc === "function") {
-        api.onIpc("fit-browser-enabled-changed", (enabled) => {
+        api.onIpc("fit-browser-enabled-changed", (eventOrEnabled, enabledMaybe) => {
+            const enabled = typeof eventOrEnabled === "boolean" ? eventOrEnabled : enabledMaybe;
             applyBrowserTabVisibility(enabled === true);
         });
     }

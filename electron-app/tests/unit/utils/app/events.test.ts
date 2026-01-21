@@ -331,7 +331,7 @@ describe("setupListeners", () => {
 
     it("routes show-notification IPC messages through the notifier", () => {
         const handler = ipcHandlers.get("show-notification");
-        handler?.("Hello from IPC");
+        handler?.(undefined, "Hello from IPC");
         expect(showNotification).toHaveBeenCalledWith("Hello from IPC", "info", 3000);
     });
 

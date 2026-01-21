@@ -4,6 +4,7 @@
  */
 
 import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 
 /**
  * Creates the heart rate zone controls section by extracting existing controls
@@ -134,9 +135,9 @@ export function createHRZoneControls(parentContainer) {
  */
 export function getHRZoneVisibilitySettings() {
     return {
-        doughnutVisible: localStorage.getItem("chartjs_field_hr_zone_doughnut") !== "hidden",
-        lapIndividualVisible: localStorage.getItem("chartjs_field_hr_lap_zone_individual") !== "hidden",
-        lapStackedVisible: localStorage.getItem("chartjs_field_hr_lap_zone_stacked") !== "hidden",
+        doughnutVisible: getChartSetting("field_hr_zone_doughnut") !== "hidden",
+        lapIndividualVisible: getChartSetting("field_hr_lap_zone_individual") !== "hidden",
+        lapStackedVisible: getChartSetting("field_hr_lap_zone_stacked") !== "hidden",
     };
 }
 

@@ -313,9 +313,19 @@ export function setupListeners({
         trackUnsubscribe(
             globalThis.electronAPI.onIpc(
                 "show-notification",
-                (/** @type {unknown} */ _event, /** @type {string} */ msg, /** @type {string | undefined} */ type) => {
-                    if (typeof showNotification === "function") {
-                        showNotification(msg, type || "info", 3000);
+                (
+                    /** @type {unknown} */ eventOrMsg,
+                    /** @type {unknown} */ msgOrType,
+                    /** @type {unknown} */ typeMaybe
+                ) => {
+                    // Support both signatures:
+                    // - Real ipcRenderer: (event, msg, type)
+                    // - Unit-test mocks: (msg, type)
+                    const msg = typeof eventOrMsg === "string" ? eventOrMsg : msgOrType;
+                    const type = typeof eventOrMsg === "string" ? msgOrType : typeMaybe;
+
+                    if (typeof showNotification === "function" && typeof msg === "string" && msg.trim().length > 0) {
+                        showNotification(msg, typeof type === "string" && type ? type : "info", 3000);
                     }
                 }
             )

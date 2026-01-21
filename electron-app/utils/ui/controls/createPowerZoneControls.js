@@ -4,6 +4,7 @@
  */
 
 import { createInlineZoneColorSelector } from "./createInlineZoneColorSelector.js";
+import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 
 /**
  * Creates the power zone controls section by extracting existing controls
@@ -134,9 +135,9 @@ export function createPowerZoneControls(parentContainer) {
  */
 export function getPowerZoneVisibilitySettings() {
     return {
-        doughnutVisible: localStorage.getItem("chartjs_field_power_zone_doughnut") !== "hidden",
-        lapIndividualVisible: localStorage.getItem("chartjs_field_power_lap_zone_individual") !== "hidden",
-        lapStackedVisible: localStorage.getItem("chartjs_field_power_lap_zone_stacked") !== "hidden",
+        doughnutVisible: getChartSetting("field_power_zone_doughnut") !== "hidden",
+        lapIndividualVisible: getChartSetting("field_power_lap_zone_individual") !== "hidden",
+        lapStackedVisible: getChartSetting("field_power_lap_zone_stacked") !== "hidden",
     };
 }
 

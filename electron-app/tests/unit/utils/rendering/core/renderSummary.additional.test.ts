@@ -17,6 +17,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
         const renderTable = vi.fn();
         const loadColPrefs = vi.fn((_key: string, all: string[]) => all);
         const getStorageKey = vi.fn(() => "summaryColSel_testkey");
+        const getGlobalStorageKey = vi.fn(() => "summaryColSel_global_default");
 
         // Intercept showColModal to immediately call the provided renderTable closure and setVisibleColumns
         const showColModal = vi.fn((opts: any) => {
@@ -29,6 +30,7 @@ describe("renderSummary - modal and renderTable wiring", () => {
         vi.doMock(HELPERS, () => ({
             renderTable,
             loadColPrefs,
+            getGlobalStorageKey,
             getStorageKey,
             showColModal,
         }));
