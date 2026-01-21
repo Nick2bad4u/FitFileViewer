@@ -10,6 +10,7 @@ import clsx from "clsx";
 import styles from "./index.module.css";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import GitHubStatsComponent from "@site/src/components/GitHubStats";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 
 /**
  * Copies code to clipboard with fallback support.
@@ -390,6 +391,103 @@ const TechStack = (): JSX.Element => (
 );
 
 /**
+ * Screenshot gallery section for the homepage.
+ *
+ * Uses the same three screenshots showcased in the GitHub README.
+ */
+const ScreenshotGallery = (): JSX.Element => {
+    const screenshots = [
+        {
+            title: "🗺️ Interactive Map",
+            description: "Explore GPS routes, laps, overlays, and map tools.",
+            docHref: "/docs/visualization/maps",
+            imageAlt: "FitFileViewer map view screenshot",
+            imagePath: "img/screenshots/MapsV2.png",
+        },
+        {
+            title: "📋 Data Table",
+            description: "Search, sort, and export detailed activity metrics.",
+            docHref: "/docs/visualization/tables",
+            imageAlt: "FitFileViewer data table screenshot",
+            imagePath: "img/screenshots/DataV2.png",
+        },
+        {
+            title: "📈 Charts",
+            description: "Analyze trends with interactive, customizable charts.",
+            docHref: "/docs/visualization/charts",
+            imageAlt: "FitFileViewer charts screenshot",
+            imagePath: "img/screenshots/ChartsV3.png",
+        },
+    ] as const;
+
+    return (
+        <section className={styles["screenshotsSection"]}>
+            <div className="container">
+                <Heading as="h2" className={styles["sectionTitle"]}>
+                    🖼️ Screenshots
+                </Heading>
+                <p className={styles["screenshotsSubtitle"]}>
+                    A quick look at the Map, Tables, and Charts tabs.
+                </p>
+                <div className={styles["screenshotGrid"]}>
+                    {screenshots.map((shot) => {
+                        const imgSrc = useBaseUrl(shot.imagePath);
+                        return (
+                            <article key={shot.imagePath} className={styles["screenshotCard"]}>
+                                <Link
+                                    className={styles["screenshotImageLink"]}
+                                    href={imgSrc}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Open full-size image"
+                                >
+                                    <img
+                                        alt={shot.imageAlt}
+                                        className={styles["screenshotImage"]}
+                                        loading="lazy"
+                                        src={imgSrc}
+                                    />
+                                </Link>
+                                <div className={styles["screenshotBody"]}>
+                                    <Heading as="h3" className={styles["screenshotTitle"]}>
+                                        {shot.title}
+                                    </Heading>
+                                    <p className={styles["screenshotDescription"]}>
+                                        {shot.description}
+                                    </p>
+                                    <div className={styles["screenshotActions"]}>
+                                        <Link
+                                            className={clsx(
+                                                "button button--primary button--sm",
+                                                styles["screenshotAction"]
+                                            )}
+                                            to={shot.docHref}
+                                        >
+                                            Learn more
+                                        </Link>
+                                        <Link
+                                            className={clsx(
+                                                "button button--secondary button--sm",
+                                                styles["screenshotAction"]
+                                            )}
+                                            href={imgSrc}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            View full size
+                                        </Link>
+                                    </div>
+                                </div>
+                            </article>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+/**
  * Renders the main homepage layout.
  */
 export default function Home(): JSX.Element {
@@ -404,6 +502,7 @@ export default function Home(): JSX.Element {
             <main>
                 <HomepageFeatures />
                 <RealTimeStatus />
+                <ScreenshotGallery />
                 <TechStack />
             </main>
         </Layout>

@@ -261,6 +261,109 @@
   background: var(--ifm-background-surface-color);
 }
 
+/* ============================================
+   Screenshot Gallery
+   ============================================ */
+
+.screenshotsSection {
+  padding: 4rem 0;
+  background: linear-gradient(
+    180deg,
+    var(--ifm-background-surface-color) 0%,
+    var(--ifm-background-color) 100%
+  );
+}
+
+.screenshotsSubtitle {
+  margin: 0 auto 2rem;
+  max-width: 56rem;
+  text-align: center;
+  color: var(--ifm-font-color-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.screenshotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.screenshotCard {
+  overflow: hidden;
+  border-radius: 0.85rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 12%);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.screenshotCard:hover {
+  transform: translateY(-3px);
+  border-color: rgb(74 222 128 / 55%);
+  box-shadow: 0 28px 60px rgb(0 0 0 / 16%);
+}
+
+.screenshotImageLink {
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.screenshotImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  transform: scale(1);
+  transition: transform 0.25s ease;
+}
+
+.screenshotCard:hover .screenshotImage {
+  transform: scale(1.02);
+}
+
+.screenshotBody {
+  padding: 1.15rem 1.15rem 1.25rem;
+}
+
+.screenshotTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.screenshotDescription {
+  margin: 0 0 1rem;
+  color: var(--ifm-font-color-secondary);
+  line-height: 1.55;
+}
+
+.screenshotActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.screenshotAction {
+  border-radius: 999px;
+}
+
+@media (width <= 996px) {
+  .screenshotGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 640px) {
+  .screenshotGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .sectionTitle {
   text-align: center;
   margin-bottom: 3rem;

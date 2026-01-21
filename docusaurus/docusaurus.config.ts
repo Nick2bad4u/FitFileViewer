@@ -61,7 +61,9 @@ const config: Config = {
 
     deploymentBranch: "gh-pages",
 
-    favicon: "img/favicon.ico",
+    // Use a root-level favicon.ico because many browsers and crawlers will request /favicon.ico
+    // even if a <link rel="icon"> points elsewhere.
+    favicon: "favicon.ico",
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: futureConfig,
     i18n: {
