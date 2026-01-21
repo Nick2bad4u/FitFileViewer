@@ -3479,12 +3479,72 @@ body.theme-light .leaflet-control-layers-toggle {
     filter: invert(1) !important;
 }
 
+/*
+    Hide the default Leaflet layers toggle button.
+    We provide our own "Map style" button and expand/collapse the panel programmatically.
+    This avoids the double-button look (toggle icon + text button).
+*/
+body .leaflet-control-layers-toggle {
+    display: none !important;
+}
+
+/* Hide the control entirely when collapsed so there's no blank square. */
+body .leaflet-control-layers:not(.leaflet-control-layers-expanded) {
+    display: none !important;
+}
+
+body .leaflet-control-layers.leaflet-control-layers-expanded {
+    display: block !important;
+}
+
+/* Make the layers selector scrollbar clearly visible (Chromium + Firefox).
+   Apply styling to the inner list so we don't get nested/double scrollbars. */
+body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-accent) rgb(0 0 0 / 18%);
+}
+
+body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-track {
+    background: rgb(0 0 0 / 15%);
+    border-radius: 999px;
+}
+
+body .leaflet-control-layers.leaflet-control-layers-expanded .leaflet-control-layers-list::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
+    border-radius: 999px;
+    border: 2px solid rgb(0 0 0 / 18%);
+}
+
+body
+    .leaflet-control-layers.leaflet-control-layers-expanded
+    .leaflet-control-layers-list::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-accent-rgb) / 85%);
+}
+
 body .custom-maptype-btn {
     background-color: var(--c_hexf5f5f5);
     color: var(--c_hex222);
     border: 1px solid var(--c_hex888);
-    padding: 2px 5px !important;
-    border-radius: 4px !important;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+body .custom-maptype-btn:hover,
+body .custom-maptype-btn:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 1px 5px var(--c_rgb000_40p);
 }
 
 #vega-container {

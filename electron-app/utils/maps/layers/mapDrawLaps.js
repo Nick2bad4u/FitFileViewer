@@ -212,6 +212,44 @@ export function mapDrawLaps(
     /** @type {any} */ (getWin())._overlayPolylines = {};
     /** @type {any} */ (getWin())._mainPolylineOriginalBounds = undefined;
     /** @type {any} */ (getWin())._mainPolyline = undefined;
+    /**
+     * Track vector data-point markers so we can keep them above polylines.
+     *
+     * Leaflet's bringToFront() is used in a few places for highlighting polylines,
+     * which can accidentally place the line above the point dots.
+     *
+     * @type {Array<{ bringToFront?: () => void }>}
+     */
+    /** @type {any} */ (getWin())._ffvDataPointMarkers = [];
+
+    const registerDataPointMarker = (marker) => {
+        try {
+            const reg = /** @type {any} */ (getWin())._ffvDataPointMarkers;
+            if (Array.isArray(reg)) {
+                reg.push(marker);
+            }
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const bringDataPointMarkersToFront = () => {
+        try {
+            const reg = /** @type {any} */ (getWin())._ffvDataPointMarkers;
+            if (!Array.isArray(reg)) {
+                return;
+            }
+            for (const m of reg) {
+                try {
+                    m?.bringToFront?.();
+                } catch {
+                    /* ignore */
+                }
+            }
+        } catch {
+            /* ignore */
+        }
+    };
 
     // Remove all layers except base layers and controls
     // @ts-expect-error - Leaflet map method with dynamic layer checking
@@ -456,6 +494,13 @@ export function mapDrawLaps(
                     zIndexOffset: 1500,
                 });
                 markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+                // Always keep points above the track.
+                try {
+                    marker.bringToFront?.();
+                } catch {
+                    /* ignore */
+                }
+                registerDataPointMarker(marker);
                 marker.bindTooltip(formatTooltipData(idx, row, lapDisplay, recordMesgs), {
                     direction: "top",
                     sticky: true,
@@ -463,6 +508,9 @@ export function mapDrawLaps(
                 markersCreated++;
             }
             console.log(`[mapDrawLaps] Created ${markersCreated} markers total`);
+
+            // If any later code brings the polyline forward (e.g. highlights), re-assert marker z-order.
+            bringDataPointMarkersToFront();
         }
 
         // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
@@ -643,6 +691,12 @@ export function mapDrawLaps(
                         zIndexOffset: 1500,
                     });
                     markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+                    try {
+                        marker.bringToFront?.();
+                    } catch {
+                        /* ignore */
+                    }
+                    registerDataPointMarker(marker);
                     marker.bindTooltip(formatTooltipData(idx2, row2, lapDisplay, recordMesgs), {
                         direction: "top",
                         sticky: true,
@@ -803,6 +857,12 @@ export function mapDrawLaps(
                                 zIndexOffset: 1500,
                             });
                             markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+                            try {
+                                marker.bringToFront?.();
+                            } catch {
+                                /* ignore */
+                            }
+                            registerDataPointMarker(marker);
                             marker.bindTooltip(formatTooltipData(idx3, row3, lapDisplay, recordMesgs), {
                                 direction: "top",
                                 sticky: true,
@@ -1030,6 +1090,12 @@ export function mapDrawLaps(
                 zIndexOffset: 1500,
             });
             markerClusterGroup ? markerClusterGroup.addLayer(marker) : marker.addTo(map);
+            try {
+                marker.bringToFront?.();
+            } catch {
+                /* ignore */
+            }
+            registerDataPointMarker(marker);
             marker.bindTooltip(formatTooltipData(idx4, row4, lapDisplay, recordMesgs), {
                 direction: "top",
                 sticky: true,
@@ -1361,6 +1427,22 @@ function selectMarkerCoordinatesForDataset(coordsArray, shouldUpdateSummary = tr
                 } catch {
                     /* ignore */
                 }
+
+                // Ensure data-point dots remain above the main line.
+                try {
+                    const reg = /** @type {any} */ (getWin())._ffvDataPointMarkers;
+                    if (Array.isArray(reg)) {
+                        for (const m of reg) {
+                            try {
+                                m?.bringToFront?.();
+                            } catch {
+                                /* ignore */
+                            }
+                        }
+                    }
+                } catch {
+                    /* ignore */
+                }
             }
             const elem = main.getElement && main.getElement();
             if (elem) {
@@ -1455,6 +1537,22 @@ function selectMarkerCoordinatesForDataset(coordsArray, shouldUpdateSummary = tr
                                 if (isMainHighlighted && typeof main.bringToFront === "function") {
                                     try {
                                         main.bringToFront();
+                                    } catch {
+                                        /* ignore */
+                                    }
+
+                                    // Ensure data-point dots remain above the main line.
+                                    try {
+                                        const reg = /** @type {any} */ (getWin())._ffvDataPointMarkers;
+                                        if (Array.isArray(reg)) {
+                                            for (const m of reg) {
+                                                try {
+                                                    m?.bringToFront?.();
+                                                } catch {
+                                                    /* ignore */
+                                                }
+                                            }
+                                        }
                                     } catch {
                                         /* ignore */
                                     }

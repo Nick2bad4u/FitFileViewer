@@ -313,7 +313,7 @@ export function setupListeners({
         trackUnsubscribe(
             globalThis.electronAPI.onIpc(
                 "show-notification",
-                (/** @type {string} */ msg, /** @type {string | undefined} */ type) => {
+                (/** @type {unknown} */ _event, /** @type {string} */ msg, /** @type {string | undefined} */ type) => {
                     if (typeof showNotification === "function") {
                         showNotification(msg, type || "info", 3000);
                     }

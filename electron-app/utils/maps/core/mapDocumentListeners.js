@@ -46,12 +46,43 @@ export function ensureMapDocumentListenersInstalled() {
             if (!layersControlEl.contains(node) && !mapTypeBtn.contains(node)) {
                 layersControlEl.classList.remove("leaflet-control-layers-expanded");
                 const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
+                const layersListEl = /** @type {HTMLElement | null} */ (
+                    layersControlElStyled.querySelector(".leaflet-control-layers-list")
+                );
                 layersControlElStyled.style.zIndex = "";
+                layersControlElStyled.style.maxHeight = "";
+                layersControlElStyled.style.marginTop = "";
+                layersControlElStyled.style.overflowY = "";
+                layersControlElStyled.style.overflowX = "";
+                if (layersListEl) {
+                    layersListEl.style.maxHeight = "";
+                    layersListEl.style.overflowY = "";
+                }
             }
         } catch {
             /* ignore */
         }
     });
+
+    // Keep the expanded layers panel within the viewport/minimap bounds on resize.
+    const w = globalThis.window;
+    if (w && typeof w.addEventListener === "function") {
+        w.addEventListener("resize", () => {
+            try {
+                const layersControlEl = document.querySelector(".leaflet-control-layers");
+                if (!layersControlEl || !layersControlEl.classList.contains("leaflet-control-layers-expanded")) {
+                    return;
+                }
+
+                const layoutFn = g.__ffvLayoutLayersControl;
+                if (typeof layoutFn === "function") {
+                    layoutFn();
+                }
+            } catch {
+                /* ignore */
+            }
+        });
+    }
 
     // Reset the zoom-slider dragging flag when the interaction ends.
     const resetDragging = () => {

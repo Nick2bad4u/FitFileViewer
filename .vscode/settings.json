@@ -50,6 +50,10 @@
     "search.exclude": {
         "out": true
     },
+    "stylelint.configFile": "C:\\Users\\Nick\\Dropbox\\PC (2)\\Documents\\GitHub\\FitFileViewer\\stylelint.config.js",
+    "stylelint.reportDescriptionlessDisables": true,
+    "stylelint.reportInvalidScopeDisables": true,
+    "stylelint.reportNeedlessDisables": true,
     "typescript.preferences.includePackageJsonAutoImports": "on",
     "typescript.suggest.autoImports": true,
     "typescript.tsc.autoDetect": "off",

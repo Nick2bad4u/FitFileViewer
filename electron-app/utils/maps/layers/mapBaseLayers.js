@@ -41,6 +41,10 @@ export const baseLayers = {
         attribution:
             '&copy; <a href="https://carto.com/attributions" data-external-link="true" rel="noopener noreferrer">CARTO</a>',
     }),
+    CartoDB_Voyager: LRef.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution:
+            '&copy; <a href="https://carto.com/attributions" data-external-link="true" rel="noopener noreferrer">CARTO</a>',
+    }),
     CyclOSM: LRef.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
         attribution:
             'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://www.cyclosm.org/">CyclOSM</a>',
@@ -164,6 +168,11 @@ export const baseLayers = {
     OpenStreetMap: LRef.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    }),
+    OSM_DE: LRef.tileLayer("https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png", {
+        attribution:
+            'Tiles &copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        subdomains: ["a", "b", "c"],
     }),
     OSM_France: LRef.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
         attribution:

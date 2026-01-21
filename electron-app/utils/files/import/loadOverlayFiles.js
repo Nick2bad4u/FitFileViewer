@@ -1,13 +1,8 @@
-import pLimitImport from "p-limit";
-
+import pLimitCompat from "../../async/pLimitCompat.js";
 import { setState } from "../../state/core/stateManager.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { loadSingleOverlayFile } from "./loadSingleOverlayFile.js";
-
-/** @type {(concurrency: number) => <T>(fn: () => Promise<T>) => Promise<T>} */
-
-const pLimit = /** @type {any} */ (typeof pLimitImport === "function" ? pLimitImport : pLimitImport.default);
 
 /**
  * Loads FIT files as overlays.
@@ -46,7 +41,7 @@ export async function loadOverlayFiles(files) {
         return 2;
     })();
 
-    const limit = pLimit(concurrency);
+    const limit = pLimitCompat(concurrency);
     /** @type {Array<Promise<void>>} */
     const tasks = [];
     let started = 0;

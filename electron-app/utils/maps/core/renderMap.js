@@ -211,8 +211,111 @@ export function renderMap() {
     mapContainer.append(mapControlsDiv);
 
     /**
-     * Persisted value: we store the Leaflet baselayer *label* (e.g. "CartoDB_DarkMatter").
-     * Older builds may have stored provider ids like "openstreetmap"; translate them.
+     * Full basemap catalogue with friendly display labels.
+     *
+     * We keep persistence values as internal baseLayers keys, but display better labels.
+     *
+     * @param {string} key
+     * @returns {string}
+     */
+    const formatBaseLayerLabel = (key) => {
+        /** @type {Record<string, string>} */
+        const overrides = {
+            CartoDB_DarkMatter: "CARTO Dark Matter (Dark)",
+            CartoDB_Positron: "CARTO Positron (Light)",
+            CartoDB_Voyager: "CARTO Voyager",
+            CyclOSM: "CyclOSM (Bicycle)",
+            Esri_NatGeo: "Esri National Geographic",
+            Esri_Topo: "Esri Topographic",
+            Esri_WorldGrayCanvas: "Esri Light Gray",
+            Esri_WorldImagery: "Satellite (Esri World Imagery)",
+            Esri_WorldImagery_Labels: "Satellite + Labels (Esri)",
+            Esri_WorldPhysical: "Esri World Physical",
+            Esri_WorldShadedRelief: "Esri Shaded Relief",
+            Esri_WorldStreetMap: "Esri Street Map",
+            Esri_WorldStreetMap_Labels: "Esri Street Map + Labels",
+            Esri_WorldTerrain: "Esri World Terrain",
+            Esri_WorldTopo_Labels: "Esri Topographic + Labels",
+            Humanitarian: "OpenStreetMap (Humanitarian / HOT)",
+            OpenRailwayMap: "OpenRailwayMap",
+            OpenSeaMap: "OpenSeaMap (Nautical)",
+            OpenStreetMap: "OpenStreetMap (Standard)",
+            OpenTopoMap: "OpenTopoMap (Terrain)",
+            OSM_DE: "OpenStreetMap.de (Germany mirror)",
+            OSM_France: "OpenStreetMap France",
+            Satellite: "Satellite (Esri)",
+            Thunderforest_Cycle: "Thunderforest Cycle (Key required)",
+            Thunderforest_Transport: "Thunderforest Transport (Key required)",
+            WaymarkedTrails_Cycling: "Waymarked Trails (Cycling)",
+            WaymarkedTrails_Hiking: "Waymarked Trails (Hiking)",
+            WaymarkedTrails_Slopes: "Waymarked Trails (Slopes)",
+        };
+        const overridden = overrides[key];
+        if (overridden) return overridden;
+
+        // Fallback: split on underscores, and insert spaces in CamelCase.
+        const parts = key
+            .split("_")
+            .filter(Boolean)
+            .map((p) => p.replaceAll(/([a-z])([A-Z])/gu, "$1 $2"));
+        return parts.join(" ");
+    };
+
+    // Prefer common layers at the top, then show the rest alphabetically by label.
+    /** @type {Array<keyof typeof baseLayers>} */
+    const preferredOrder = [
+        "OpenStreetMap",
+        "OpenTopoMap",
+        "CyclOSM",
+        "Humanitarian",
+        "OSM_France",
+        "OSM_DE",
+        "CartoDB_Positron",
+        "CartoDB_Voyager",
+        "CartoDB_DarkMatter",
+        "Esri_WorldImagery",
+        "Esri_Topo",
+        "Esri_WorldStreetMap",
+    ];
+
+    /** @type {Array<{ key: keyof typeof baseLayers, label: string }>} */
+    const layerEntries = Object.keys(baseLayers)
+        .filter((k) => Object.hasOwn(baseLayers, k))
+        .map((k) => ({ key: /** @type {keyof typeof baseLayers} */ (k), label: formatBaseLayerLabel(k) }));
+
+    // Ensure labels are unique for the Leaflet layers control.
+    /** @type {Set<string>} */
+    const usedLabels = new Set();
+    for (const entry of layerEntries) {
+        const { key } = entry;
+        let { label } = entry;
+        if (usedLabels.has(label)) {
+            label = `${label} (${key})`;
+        }
+        usedLabels.add(label);
+        entry.label = label;
+    }
+
+    layerEntries.sort((a, b) => {
+        const ai = preferredOrder.indexOf(a.key);
+        const bi = preferredOrder.indexOf(b.key);
+        const aPinned = ai !== -1;
+        const bPinned = bi !== -1;
+        if (aPinned && bPinned) return ai - bi;
+        if (aPinned) return -1;
+        if (bPinned) return 1;
+        return a.label.localeCompare(b.label, undefined, { numeric: true, sensitivity: "base" });
+    });
+
+    /** @type {Map<string, keyof typeof baseLayers>} */
+    const labelToKey = new Map(layerEntries.map((e) => [e.label, e.key]));
+
+    /**
+     * Resolve persisted values to a valid baseLayers key.
+     * Supports:
+     * - new persistence values (internal keys)
+     * - old values (lower-cased ids)
+     * - UI labels (if the user upgraded from a build that stored display names)
      *
      * @param {string} value
      * @returns {keyof typeof baseLayers}
@@ -220,6 +323,10 @@ export function renderMap() {
     const resolveBaseLayerKey = (value) => {
         const trimmed = typeof value === "string" ? value.trim() : "";
         if (!trimmed) return "OpenStreetMap";
+
+        const byLabel = labelToKey.get(trimmed);
+        if (byLabel) return byLabel;
+
         if (Object.hasOwn(baseLayers, trimmed)) {
             return /** @type {keyof typeof baseLayers} */ (trimmed);
         }
@@ -228,22 +335,15 @@ export function renderMap() {
         if (lower === "openstreetmap" || lower === "osm" || lower === "mapnik") return "OpenStreetMap";
         if (lower === "topo" || lower === "opentopo" || lower === "opentopomap") return "OpenTopoMap";
         if (lower === "satellite" || lower === "worldimagery") return "Esri_WorldImagery";
+        if (lower === "osm_de" || lower === "osmde" || lower === "openstreetmap.de") return "OSM_DE";
 
         const found = Object.keys(baseLayers).find((k) => k.toLowerCase() === lower);
         return /** @type {keyof typeof baseLayers} */ (found ?? "OpenStreetMap");
     };
 
-    // Put the commonly requested layers at the top so users don't need to scroll.
-    const baseLayersForControl = {
-        OpenStreetMap: baseLayers.OpenStreetMap,
-        OpenTopoMap: baseLayers.OpenTopoMap,
-        Esri_WorldImagery: baseLayers.Esri_WorldImagery,
-        ...Object.fromEntries(
-            Object.entries(baseLayers).filter(
-                ([k]) => k !== "OpenStreetMap" && k !== "OpenTopoMap" && k !== "Esri_WorldImagery"
-            )
-        ),
-    };
+    // Build the final list for the Leaflet layers control.
+    // This intentionally includes the full catalogue; layoutLayersControl() will constrain it.
+    const baseLayersForControl = Object.fromEntries(layerEntries.map((entry) => [entry.label, baseLayers[entry.key]]));
 
     const persistedBaseLayerKey = resolveBaseLayerKey(getState("map.baseLayer"));
     const initialBaseLayer = baseLayers[persistedBaseLayerKey] ?? baseLayers.OpenStreetMap;
@@ -263,8 +363,12 @@ export function renderMap() {
         try {
             const name = event && typeof event === "object" && typeof event.name === "string" ? event.name.trim() : "";
             if (!name) return;
-            if (!Object.hasOwn(baseLayers, name)) return;
-            setState("map.baseLayer", name, { source: "renderMap.baselayerchange" });
+
+            const resolvedKey = labelToKey.get(name);
+            if (!resolvedKey) {
+                return;
+            }
+            setState("map.baseLayer", resolvedKey, { source: "renderMap.baselayerchange" });
         } catch {
             /* ignore */
         }
@@ -275,10 +379,10 @@ export function renderMap() {
     mapTypeBtn.className = "custom-maptype-btn leaflet-bar";
     mapTypeBtn.style.position = "absolute";
     mapTypeBtn.style.top = "16px";
-    mapTypeBtn.style.right = "60px";
+    mapTypeBtn.style.right = "16px";
     mapTypeBtn.style.zIndex = "10030"; // Ensure above minimap + layer picker
-    mapTypeBtn.textContent = "🗺️ Change Map Type";
-    mapTypeBtn.title = "Click to change the map type";
+    mapTypeBtn.textContent = "🗺️ Map style";
+    mapTypeBtn.title = "Choose a basemap style";
     mapTypeBtn.addEventListener("click", handleMapTypeButtonClick);
     const leafletMapDiv2 = document.querySelector("#leaflet-map");
     if (leafletMapDiv2) {
@@ -287,6 +391,7 @@ export function renderMap() {
 
     // Update global reference for the map type button used by the shared document listener.
     /** @type {any} */ (globalThis).__ffvMapTypeButton = mapTypeBtn;
+    /** @type {any} */ (globalThis).__ffvLayoutLayersControl = () => layoutLayersControl({ layersControlEl: null });
     ensureMapDocumentListenersInstalled();
 
     /**
@@ -294,20 +399,210 @@ export function renderMap() {
      * @param {Event} e - Click event
      * @returns {void}
      */
-    function handleMapTypeButtonClick(e) {
-        e.stopPropagation();
-        const layersControlEl = document.querySelector(".leaflet-control-layers");
-        if (layersControlEl) {
-            layersControlEl.classList.add("leaflet-control-layers-expanded");
-            const layersControlElStyled = /** @type {HTMLElement} */ (layersControlEl);
-            layersControlElStyled.style.zIndex = "10025"; // Just below the button
-            // Focus the first input for accessibility
+    /**
+     * @returns {HTMLElement | null}
+     */
+    function getLayersControlEl() {
+        const el = document.querySelector(".leaflet-control-layers");
+        return el instanceof HTMLElement ? el : null;
+    }
+
+    /**
+     * @param {{ focusFirst?: boolean }} [options]
+     */
+    function openLayersControl(options = {}) {
+        const layersControlEl = getLayersControlEl();
+        if (!layersControlEl) return;
+        layersControlEl.classList.add("leaflet-control-layers-expanded");
+        layersControlEl.style.zIndex = "10025"; // Just below the button
+        layoutLayersControl({ layersControlEl });
+
+        if (options.focusFirst) {
             const firstInput = layersControlEl.querySelector('input[type="radio"]');
             if (firstInput) {
                 const inputElement = /** @type {HTMLInputElement} */ (firstInput);
                 inputElement.focus();
             }
         }
+    }
+
+    function closeLayersControl() {
+        const layersControlEl = getLayersControlEl();
+        if (!layersControlEl) return;
+        const layersListEl = /** @type {HTMLElement | null} */ (
+            layersControlEl.querySelector(".leaflet-control-layers-list")
+        );
+        layersControlEl.classList.remove("leaflet-control-layers-expanded");
+        layersControlEl.style.zIndex = "";
+        layersControlEl.style.maxHeight = "";
+        layersControlEl.style.marginTop = "";
+        layersControlEl.style.overflowY = "";
+        layersControlEl.style.overflowX = "";
+        if (layersListEl) {
+            layersListEl.style.maxHeight = "";
+            layersListEl.style.overflowY = "";
+        }
+    }
+
+    function handleMapTypeButtonClick(e) {
+        e.stopPropagation();
+        const layersControlEl = getLayersControlEl();
+        if (!layersControlEl) return;
+        const isExpanded = layersControlEl.classList.contains("leaflet-control-layers-expanded");
+        if (isExpanded) {
+            closeLayersControl();
+        } else {
+            openLayersControl({ focusFirst: true });
+        }
+    }
+
+    // Hover-open behavior (requested): open when hovering the Map style button,
+    // keep open while hovering the panel, and close shortly after leaving.
+    {
+        const HOVER_OPEN_DELAY_MS = 90;
+        const HOVER_CLOSE_DELAY_MS = 220;
+        /** @type {ReturnType<typeof setTimeout> | null} */
+        let openTimer = null;
+        /** @type {ReturnType<typeof setTimeout> | null} */
+        let closeTimer = null;
+
+        const clearOpenTimer = () => {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+        };
+        const clearCloseTimer = () => {
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+        };
+
+        const scheduleOpen = () => {
+            clearCloseTimer();
+            clearOpenTimer();
+            openTimer = setTimeout(() => {
+                openLayersControl();
+                openTimer = null;
+            }, HOVER_OPEN_DELAY_MS);
+        };
+        const scheduleClose = () => {
+            clearOpenTimer();
+            clearCloseTimer();
+            closeTimer = setTimeout(() => {
+                closeLayersControl();
+                closeTimer = null;
+            }, HOVER_CLOSE_DELAY_MS);
+        };
+        const cancelClose = () => {
+            clearCloseTimer();
+        };
+
+        mapTypeBtn.addEventListener("mouseenter", scheduleOpen);
+        mapTypeBtn.addEventListener("mouseleave", scheduleClose);
+        mapTypeBtn.addEventListener("focus", () => openLayersControl({ focusFirst: true }));
+        mapTypeBtn.addEventListener("blur", scheduleClose);
+
+        // Keep open while hovering the expanded panel.
+        const layersControlEl = getLayersControlEl();
+        if (layersControlEl) {
+            layersControlEl.addEventListener("mouseenter", cancelClose);
+            layersControlEl.addEventListener("mouseleave", scheduleClose);
+        }
+    }
+
+    /**
+     * Constrain the expanded basemap selector so it never overlaps critical UI.
+     *
+     * We avoid relying on z-index battles (Leaflet plugins may set extreme values) by:
+     * - pushing the control down so it starts below the Map style button
+     * - limiting maxHeight so it ends above the minimap (when present)
+     * - enabling scrolling within the panel
+     *
+     * @param {{ layersControlEl: HTMLElement | null }} params
+     */
+    function layoutLayersControl({ layersControlEl }) {
+        const layersEl =
+            layersControlEl || /** @type {HTMLElement | null} */ (document.querySelector(".leaflet-control-layers"));
+        const mapEl = document.getElementById("leaflet-map");
+        if (!layersEl || !(layersEl instanceof HTMLElement) || !mapEl) {
+            return;
+        }
+
+        const layersListEl = /** @type {HTMLElement | null} */ (layersEl.querySelector(".leaflet-control-layers-list"));
+
+        // Keep a global ref so the shared document listeners can re-run layout on resize.
+        /** @type {any} */ (globalThis).__ffvLayoutLayersControl = () =>
+            layoutLayersControl({ layersControlEl: layersEl });
+
+        // Only apply layout rules when the panel is expanded.
+        if (!layersEl.classList.contains("leaflet-control-layers-expanded")) {
+            return;
+        }
+
+        const mapTypeRect = mapTypeBtn.getBoundingClientRect();
+        const mapRect = mapEl.getBoundingClientRect();
+        const minimapEl = document.querySelector(".leaflet-control-minimap");
+        const minimapRect = minimapEl instanceof HTMLElement ? minimapEl.getBoundingClientRect() : null;
+
+        // Reset styles before measurement.
+        layersEl.style.maxHeight = "";
+        layersEl.style.overflowY = "hidden";
+        layersEl.style.marginTop = "";
+
+        if (layersListEl) {
+            layersListEl.style.maxHeight = "";
+            layersListEl.style.overflowY = "";
+        }
+
+        const raf =
+            typeof requestAnimationFrame === "function"
+                ? requestAnimationFrame
+                : /** @param {FrameRequestCallback} cb */ (cb) => setTimeout(cb, 0);
+
+        // Use RAF so we measure after Leaflet expanded class applies.
+        raf(() => {
+            const layersRect = layersEl.getBoundingClientRect();
+
+            // Compute a conservative bottom bound (extra padding prevents scrollbar being clipped
+            // by the Leaflet container's overflow + border radius).
+            const EDGE_PADDING_PX = 28;
+            const mapBottomLimit = mapRect.bottom - EDGE_PADDING_PX;
+            const minimapTopLimit = minimapRect ? minimapRect.top - EDGE_PADDING_PX : mapBottomLimit;
+            const bottomLimit = Math.min(mapBottomLimit, minimapTopLimit);
+
+            // Push down to avoid overlapping the map-type button, but never push so far down
+            // that the panel cannot fit within the available space.
+            const desiredPushDown = Math.max(0, Math.round(mapTypeRect.bottom - layersRect.top + EDGE_PADDING_PX));
+            const minUsableHeight = 160;
+            const maxAllowedPushDown = Math.max(0, Math.floor(bottomLimit - layersRect.top - minUsableHeight));
+            const pushDownPx = Math.min(desiredPushDown, maxAllowedPushDown);
+
+            if (pushDownPx > 0) {
+                layersEl.style.marginTop = `${pushDownPx}px`;
+            }
+
+            raf(() => {
+                const updatedRect = layersEl.getBoundingClientRect();
+                const available = Math.floor(bottomLimit - updatedRect.top);
+                const maxHeight = Math.max(0, available);
+
+                // Avoid nested scrollbars: constrain and scroll the inner list, not the outer control.
+                if (layersListEl) {
+                    const listRect = layersListEl.getBoundingClientRect();
+                    const chromeHeight = Math.max(0, Math.floor(updatedRect.height - listRect.height));
+                    const listMax = Math.max(0, maxHeight - chromeHeight);
+                    layersListEl.style.maxHeight = `${listMax}px`;
+                    layersListEl.style.overflowY = "auto";
+                    layersEl.style.maxHeight = "";
+                } else {
+                    // Fallback: if Leaflet markup changes, keep the old behavior.
+                    layersEl.style.maxHeight = `${maxHeight}px`;
+                    layersEl.style.overflowY = "auto";
+                }
+            });
+        });
     }
 
     // (Outside-click collapse is handled by a shared document listener)
