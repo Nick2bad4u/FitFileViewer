@@ -6,6 +6,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### ✨ Features
+
+- ⚡ Estimated ("virtual") cycling power for FIT files without power meter data (Map tooltip + configurable settings)
+
+### 🎨 UI
+
+- Fix dark-mode readability issues (calendar day numbers + activity list)
+- Improve map control theming (Leaflet layer selector + map style button)
+
+### 🧰 Developer Experience
+
+- Add `lint:css`, `lint:css:fix`, `lint:all`, and `lint:all:fix` scripts in `electron-app`
+
 
 [[482ed73](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)...
 [482ed73](https://github.com/Nick2bad4u/FitFileViewer/commit/482ed734601d19030b1dbd3da60d32c278b274eb)]
@@ -8025,7 +8038,7 @@ Updates `netlify-cli` from 20.1.1 to 21.5.0
 ---
 updated-dependencies:
 - dependency-name: fastify
-  dependency-version: 
+  dependency-version:
   dependency-type: indirect
   dependency-group: npm_and_yarn
 - dependency-name: netlify-cli

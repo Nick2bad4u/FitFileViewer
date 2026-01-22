@@ -77,8 +77,19 @@ Mouse over the route to see:
 - Elapsed time
 - Current speed
 - Elevation
+- Estimated power (when enabled and no real power exists)
 
 ## Tools
+
+### Estimated Power (⚡ Est Power)
+
+For cycling activities that **do not** contain real power meter data, FitFileViewer can estimate ("virtual") power from speed + elevation/grade.
+
+1. Open the Map tab
+2. Click **⚡ Est Power**
+3. Adjust rider/bike weight, CdA, Crr, drivetrain efficiency, wind, and smoothing
+
+When enabled, map tooltips will show **Est. Power**.
 
 ### Measurement Tool
 

@@ -437,7 +437,7 @@ body {
     appearance: none;
     border: none;
     background: transparent;
-    color: inherit;
+    color: var(--color-fg);
     padding: 6px 10px;
     cursor: pointer;
     font-size: 0.95rem;
@@ -512,6 +512,7 @@ body {
     min-height: 74px;
     text-align: left;
     cursor: pointer;
+    color: var(--color-fg);
 }
 
 .file-calendar__day--outside {
@@ -658,8 +659,12 @@ body {
     border-radius: 10px;
     padding: 10px;
     background: var(--color-glass);
-    color: inherit;
+    color: var(--color-fg);
     cursor: pointer;
+}
+
+.file-library__rowMeta {
+    color: var(--color-fg-muted);
 }
 
 .file-library__row:hover {
@@ -3721,9 +3726,11 @@ body.theme-light #leaflet-map {
 
 body .leaflet-control-layers,
 body .leaflet-control-layers-expanded {
-    background-color: var(--c_hexf5f5f5);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
     /*
         Must stay above minimap and other Leaflet controls.
 
@@ -3747,13 +3754,13 @@ body .leaflet-control-minimap .leaflet-control-minimap-toggle-display {
 }
 
 body .leaflet-control-layers-base label {
-    color: rgb(var(--color-accent-rgb) / 20%) !important;
+    color: var(--color-fg) !important;
     font-weight: 600 !important;
 }
 
 body .leaflet-control-layers-expanded label:hover {
-    color: var(--color-accent);
-    background-color: var(--c_hexe0e0e0);
+    color: var(--color-fg);
+    background-color: var(--color-accent-hover);
     border-radius: 4px;
 }
 
@@ -3816,9 +3823,11 @@ body
 }
 
 body .custom-maptype-btn {
-    background-color: var(--c_hexf5f5f5);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
     padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
@@ -3833,7 +3842,8 @@ body .custom-maptype-btn {
 
 body .custom-maptype-btn:hover,
 body .custom-maptype-btn:focus {
-    border-color: var(--color-accent);
+    border-color: rgb(var(--color-accent-rgb) / 55%);
+    background: var(--color-accent-hover);
     box-shadow: 0 1px 5px var(--c_rgb000_40p);
 }
 
@@ -5856,7 +5866,7 @@ body.theme-light .multi-lap-toggle:hover {
     margin-left: 0;
     margin-right: 6px;
     background: none;
-    color: var(--c_hex222);
+    color: var(--color-fg);
 }
 
 .multi-lap-toggle .icon,
@@ -5877,9 +5887,9 @@ body.theme-light .multi-lap-toggle:hover {
    Map Action Buttons
    ===================================================== */
 .map-action-btn {
-    background: var(--leaflet-control-bg, var(--c_hexfff));
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
     border-radius: 4px;
     padding: 6px 14px 6px 10px;
     font-size: 15px;

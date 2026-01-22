@@ -7,7 +7,7 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getState, setState, subscribe } from "../core/stateManager.js";
 
 /**
- * @typedef {"theme"|"mapTheme"|"chart"|"ui"|"export"|"units"} SettingCategory
+ * @typedef {"theme"|"mapTheme"|"chart"|"ui"|"export"|"units"|"powerEstimation"} SettingCategory
  * @typedef {Object} SettingSchema
  * @property {string} key
  * @property {any} default
@@ -31,7 +31,10 @@ const SETTINGS_SCHEMA = {
         default: {},
         key: "chartjs_",
         type: "object",
-        validate: (value) => typeof value === "object",
+        // Chart settings are stored as individual primitive values under object-keys
+        // (e.g. chartjs_field_speed = "hidden", chartjs_color_speed = "#ff00ff").
+        // Validation of the *whole object* is not meaningful in that model.
+        validate: () => true,
     },
     export: {
         default: {
@@ -75,6 +78,14 @@ const SETTINGS_SCHEMA = {
         key: "units_",
         type: "object",
         validate: (value) => typeof value === "object",
+    },
+    powerEstimation: {
+        default: {},
+        key: "powerEst_",
+        type: "object",
+        // Power estimation settings are stored as individual primitive values (numbers/booleans)
+        // under object-keys (e.g. powerEst_riderWeightKg = 75).
+        validate: () => true,
     },
 };
 
@@ -580,6 +591,15 @@ export function getMapThemeSetting() {
 }
 
 /**
+ * Get power estimation setting.
+ *
+ * @param {string} key
+ */
+export function getPowerEstimationSetting(key) {
+    return settingsStateManager.getSetting("powerEstimation", key);
+}
+
+/**
  * Get theme setting
  * @returns {string} Current theme
  */
@@ -621,6 +641,16 @@ export function setChartSetting(key, value) {
 /** @param {boolean} inverted */
 export function setMapThemeSetting(inverted) {
     return settingsStateManager.setSetting("mapTheme", inverted);
+}
+
+/**
+ * Set power estimation setting.
+ *
+ * @param {string} key
+ * @param {unknown} value
+ */
+export function setPowerEstimationSetting(key, value) {
+    return settingsStateManager.setSetting("powerEstimation", value, key);
 }
 
 /**

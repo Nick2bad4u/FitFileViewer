@@ -60,6 +60,10 @@ npm run test:coverage       # Run tests with coverage
 # Code Quality
 npm run lint               # Run ESLint
 npm run lint:fix          # Fix ESLint issues
+npm run lint:css           # Run Stylelint on CSS
+npm run lint:css:fix       # Fix Stylelint issues
+npm run lint:all           # Run all checks (CSS + ESLint + typecheck + prettier)
+npm run lint:all:fix       # Fix all auto-fixable issues (CSS + ESLint + prettier)
 npm run prettier          # Check code formatting
 npm run prettier:fix      # Fix code formatting
 npm run typecheck         # TypeScript type checking

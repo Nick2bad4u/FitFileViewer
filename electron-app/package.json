@@ -1,7 +1,7 @@
 {
     "name": "fitfileviewer",
     "displayName": "Fit File Viewer",
-    "version": "29.4.0",
+    "version": "29.6.0",
     "private": false,
     "description": "Fit File Viewer is a cross-platform application for parsing, visualizing, and analyzing .fit files using charts, maps, tables, and other data visualization tools for Garmin and fitness activities.",
     "categories": [
@@ -224,13 +224,16 @@
         "cliff-all": "powershell -ExecutionPolicy Bypass -File ../.github/Update-ChangeLogs.ps1",
         "format": "npx prettier \"*.{js,md,css,html}\" -c ..\\.prettierrc --write && npx prettier \"utils\\*.{js,md,css,html}\" -c ..\\.prettierrc --write",
         "format:check": "npx prettier \"*.{js,md,css,html}\" -c ..\\.prettierrc --check && npx prettier \"utils\\*.{js,md,css,html}\" -c ..\\.prettierrc --check",
-        "format:lint": "npx eslint --ext .js,.jsx,.ts,.tsx --fix --ignore-path .gitignore .",
-        "format:lint:check": "npx eslint --ext .js,.jsx,.ts,.tsx --ignore-path .gitignore .",
-        "format:lint:check:fix": "npx eslint --ext .js,.jsx,.ts,.tsx --ignore-path .gitignore . --fix",
-        "format:lint:check:fix:all": "npx eslint --ext .js,.jsx,.ts,.tsx --ignore-path .gitignore . --fix --max-warnings 0",
-        "format:lint:fix": "npx eslint --ext .js,.jsx,.ts,.tsx --fix --ignore-path .gitignore .",
+        "format:lint": "npx eslint --ext .js,.jsx,.ts,.tsx --fix .",
+        "format:lint:check": "npx eslint --ext .js,.jsx,.ts,.tsx .",
+        "format:lint:check:fix": "npx eslint --ext .js,.jsx,.ts,.tsx --fix .",
+        "format:lint:check:fix:all": "npx eslint --ext .js,.jsx,.ts,.tsx --fix --max-warnings 0 .",
+        "format:lint:fix": "npx eslint --ext .js,.jsx,.ts,.tsx --fix .",
         "lint": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache --fix && npm run typecheck && npm run prettier:fix",
-        "lint:all": "npm run lint:fix && npm run typecheck && npm run prettier:fix",
+        "lint:all": "npm run lint:css && npx eslint --ext .js,.jsx,.ts,.tsx --max-warnings 0 . && npm run typecheck && npm run prettier",
+        "lint:all:fix": "npm run lint:css:fix && npm run format:lint:check:fix:all && npm run typecheck && npm run prettier:fix",
+        "lint:css": "npx stylelint \"**/*.css\" --config stylelint.config.js",
+        "lint:css:fix": "npx stylelint \"**/*.css\" --config stylelint.config.js --fix",
         "lint:fix": "npm run lint",
         "package": "electron-builder --dir",
         "prettier": "prettier . --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
@@ -263,7 +266,7 @@
     "dependencies": {
         "@garmin/fitsdk": "^21.188.0",
         "@maplibre/maplibre-gl-leaflet": "^0.1.3",
-        "@vitest/ui": "^4.0.17",
+        "@vitest/ui": "^4.0.18",
         "arquero": "^8.0.3",
         "chart.js": "^4.5.1",
         "chartjs-adapter-date-fns": "^3.0.0",
@@ -287,7 +290,7 @@
         "leaflet.markercluster": "^1.5.3",
         "maplibre-gl": "^5.16.0",
         "screenfull": "^6.0.2",
-        "zod": "^4.3.5"
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@actions/artifact": "^5.0.2",
@@ -312,8 +315,8 @@
         "@types/jsdom": "^27.0.0",
         "@types/mocha": "^10.0.10",
         "@typescript-eslint/eslint-plugin": "^8.53.1",
-        "@vitest/coverage-v8": "^4.0.17",
-        "baseline-browser-mapping": "^2.9.16",
+        "@vitest/coverage-v8": "^4.0.18",
+        "baseline-browser-mapping": "^2.9.17",
         "color": "^5.0.3",
         "cross-env": "^10.1.0",
         "electron": "^40.0.0",
@@ -322,7 +325,7 @@
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-n": "^17.23.2",
-        "eslint-plugin-perfectionist": "^5.3.1",
+        "eslint-plugin-perfectionist": "^5.4.0",
         "eslint-plugin-unicorn": "^62.0.0",
         "fast-check": "^4.5.3",
         "git-cliff": "^2.12.0",
@@ -331,7 +334,7 @@
         "makensis": "^3.0.3",
         "postcss": "^8.5.6",
         "postcss-value-parser": "^4.2.0",
-        "prettier": "^3.8.0",
+        "prettier": "^3.8.1",
         "prettier-eslint": "^16.4.2",
         "prettier-plugin-ini": "^1.3.0",
         "prettier-plugin-interpolated-html-tags": "^2.0.1",
@@ -346,9 +349,9 @@
         "stylelint-config-standard": "^40.0.0",
         "ts-migrate": "^0.1.35",
         "ts-migrate-plugins": "^0.1.35",
-        "vitest": "^4.0.17"
+        "vitest": "^4.0.18"
     },
-    "packageManager": "npm@11.7.0",
+    "packageManager": "npm@11.8.0",
     "engines": {
         "node": ">=16.0.0",
         "npm": ">=7.0.0"

@@ -344,6 +344,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                             temperature: "celsius",
                             time: "24h",
                         },
+                        powerEstimation: {},
                     },
                 });
 

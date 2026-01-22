@@ -26,12 +26,12 @@ visibility and personal preference.
 
 **Key Functions**:
 
-- `getMapThemeInverted()`: Gets current map theme preference  
+- `getMapThemeInverted()`: Gets current map theme preference
   (true = dark map, false = light map)
 - `setMapThemeInverted(inverted)`: Sets map theme preference and triggers updates
 - `createMapThemeToggle()`: Creates the interactive toggle button
 
-**Storage**: Uses `ffv-map-theme-inverted` localStorage key  
+**Storage**: Uses `ffv-map-theme-inverted` localStorage key
 (true = dark map, false = light map)
 
 ### 2. `updateMapTheme.js` (Enhanced)
@@ -85,6 +85,7 @@ The toggle button appears as the first control in the map controls area alongsid
 
 - Export GPX button
 - Elevation Profile button
+- ⚡ Est Power button
 - Marker Count selector
 
 ## User Workflow

@@ -47,7 +47,9 @@
  */
 
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
+import { applyEstimatedPowerToRecords, hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { getLapNumForIdx } from "../../data/processing/getLapNumForIdx.js";
+import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createExportGPXButton } from "../../files/export/createExportGPXButton.js";
 import { createPrintButton } from "../../files/export/createPrintButton.js";
 import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
@@ -59,6 +61,7 @@ import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileT
 import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
 import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
+import { createPowerEstimationButton } from "../../ui/controls/createPowerEstimationButton.js";
 import { createMapThemeToggle } from "../controls/mapActionButtons.js";
 import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
@@ -774,6 +777,40 @@ export function renderMap() {
             }
         });
         primaryControls.append(filterControl);
+
+        // Estimated power (virtual power) settings
+        const estPowerBtn = createPowerEstimationButton({
+            getData: () => {
+                const g = /** @type {any} */ (globalThis);
+                const data = g.globalData && typeof g.globalData === "object" ? g.globalData : null;
+                return {
+                    loadedFitFiles: Array.isArray(g.loadedFitFiles) ? g.loadedFitFiles : [],
+                    recordMesgs: Array.isArray(data?.recordMesgs) ? data.recordMesgs : [],
+                    sessionMesgs: Array.isArray(data?.sessionMesgs) ? data.sessionMesgs : undefined,
+                };
+            },
+            onAfterApply: () => {
+                // Redraw map so tooltips/points pick up the updated estimated power values.
+                mapDrawLapsWrapper("all");
+                if (typeof windowExt.updateShownFilesList === "function") {
+                    windowExt.updateShownFilesList();
+                }
+            },
+        });
+
+        try {
+            const recs =
+                windowExt.globalData && Array.isArray(windowExt.globalData.recordMesgs)
+                    ? windowExt.globalData.recordMesgs
+                    : [];
+            if (hasPowerData(recs)) {
+                estPowerBtn.title = "This file has real power data. Configure estimation defaults for other files.";
+            }
+        } catch {
+            /* ignore */
+        }
+
+        primaryControls.append(estPowerBtn);
         primaryControls.append(
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
@@ -1016,6 +1053,40 @@ export function renderMap() {
     }
 
     // --- Overlay logic ---
+    // Apply estimated power before drawing any tracks/markers so tooltips have access.
+    // Only applies to files without real power.
+    try {
+        if (windowExt.globalData && Array.isArray(windowExt.globalData.recordMesgs)) {
+            applyEstimatedPowerToRecords({
+                recordMesgs: /** @type {Array<Record<string, unknown>>} */ (windowExt.globalData.recordMesgs),
+                sessionMesgs: Array.isArray(windowExt.globalData.sessionMesgs)
+                    ? /** @type {Array<Record<string, unknown>>} */ (windowExt.globalData.sessionMesgs)
+                    : undefined,
+                settings: getPowerEstimationSettings(),
+            });
+        }
+        if (Array.isArray(windowExt.loadedFitFiles)) {
+            for (const fitFile of windowExt.loadedFitFiles) {
+                const recs =
+                    fitFile && fitFile.data && Array.isArray(fitFile.data.recordMesgs)
+                        ? fitFile.data.recordMesgs
+                        : null;
+                if (recs) {
+                    applyEstimatedPowerToRecords({
+                        recordMesgs: /** @type {Array<Record<string, unknown>>} */ (recs),
+                        sessionMesgs:
+                            fitFile && fitFile.data && Array.isArray(fitFile.data.sessionMesgs)
+                                ? /** @type {Array<Record<string, unknown>>} */ (fitFile.data.sessionMesgs)
+                                : undefined,
+                        settings: getPowerEstimationSettings(),
+                    });
+                }
+            }
+        }
+    } catch {
+        /* ignore */
+    }
+
     if (windowExt.loadedFitFiles && Array.isArray(windowExt.loadedFitFiles) && windowExt.loadedFitFiles.length > 0) {
         console.log("[renderMap] Overlay logic: loadedFitFiles.length =", windowExt.loadedFitFiles.length);
         // Clear overlay polylines tracking before drawing

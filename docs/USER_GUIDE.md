@@ -127,6 +127,7 @@ The application uses a tabbed interface with four main sections:
 | **Fullscreen**   | 📱 button for fullscreen map view |
 | **Layers**       | 🗂️ button to change map style     |
 | **Measure Tool** | 📏 button to measure distances    |
+| **⚡ Est Power**  | Configure estimated cycling power for files without power data (adds “Est. Power” to map tooltips) |
 
 #### Available Map Styles
 

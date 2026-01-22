@@ -1,0 +1,6 @@
+# Generated/bundled output
+ffv/assets/**
+html/assets/**
+coverage/**
+dist/**
+temp-win7/**

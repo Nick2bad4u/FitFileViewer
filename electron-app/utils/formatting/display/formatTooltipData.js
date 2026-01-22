@@ -107,8 +107,10 @@ export function formatTooltipData(idx, row, lapNum, recordMesgsOverride) {
         if (speed) {
             tooltipParts.push(`<b>Speed:</b> ${speed}`);
         }
-        if (power) {
+        if (isFiniteNumber(row.power)) {
             tooltipParts.push(`<b>Power:</b> ${power}`);
+        } else if (isFiniteNumber(row.estimatedPower)) {
+            tooltipParts.push(`<b>Est. Power:</b> ${row.estimatedPower.toFixed(0)} W`);
         }
         if (cadence) {
             tooltipParts.push(`<b>Cadence:</b> ${cadence}`);
@@ -273,6 +275,14 @@ function formatSpeed(speed) {
         speedMph = speedMps * MPS_TO_MPH;
 
     return `${speedKmh.toFixed(SPEED)} km/h / ${speedMph.toFixed(SPEED)} mph`;
+}
+
+/**
+ * @param {unknown} v
+ * @returns {v is number}
+ */
+function isFiniteNumber(v) {
+    return typeof v === "number" && Number.isFinite(v);
 }
 
 /**
