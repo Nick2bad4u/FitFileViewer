@@ -29,27 +29,46 @@ const ACCENT_COLOR_STORAGE_KEY = "ffv-accent-color";
  * @param {string} theme - Current theme ('dark' or 'light')
  */
 export function applyAccentColor(color, theme) {
+    if (typeof document === "undefined") {
+        return;
+    }
+
     if (!isValidHexColor(color)) {
         console.warn("[AccentColor] Invalid color, using default");
         color = getDefaultAccentColor(theme);
     }
 
     const variations = generateAccentColorVariations(color, theme);
-    const root = document.documentElement;
 
-    // Apply all color variations to CSS variables
-    root.style.setProperty("--color-accent", variations.accent);
-    root.style.setProperty("--color-accent-rgb", variations.accentRgb);
-    root.style.setProperty("--color-accent-secondary", variations.accentSecondary);
-    root.style.setProperty("--color-accent-hover", variations.accentHover);
-    root.style.setProperty("--color-btn-bg", variations.btnBg);
-    root.style.setProperty("--color-btn-bg-solid", variations.btnBgSolid);
-    root.style.setProperty("--color-btn-hover", variations.btnHover);
-    root.style.setProperty("--color-hero-glow", variations.heroGlow);
-    root.style.setProperty("--color-hero-glow-strong", variations.heroGlowStrong);
-    root.style.setProperty("--color-info", variations.info);
-    root.style.setProperty("--color-modal-bg", variations.modalBg);
-    root.style.setProperty("--color-svg-icon-stroke", variations.svgIconStroke);
+    // IMPORTANT:
+    // - The stylesheet defines dark theme variables on :root, but light theme overrides many of the
+    //   same variables on body.theme-light.
+    // - CSS variables on a closer ancestor win. So applying overrides only on :root would NOT
+    //   affect the light theme because body.theme-light redefines those variables.
+    // - Therefore, we apply the accent overrides on BOTH :root and <body> (when available).
+    /** @type {Array<HTMLElement>} */
+    const targets = [];
+    if (document.documentElement instanceof HTMLElement) {
+        targets.push(document.documentElement);
+    }
+    if (document.body instanceof HTMLElement) {
+        targets.push(document.body);
+    }
+
+    for (const target of targets) {
+        target.style.setProperty("--color-accent", variations.accent);
+        target.style.setProperty("--color-accent-rgb", variations.accentRgb);
+        target.style.setProperty("--color-accent-secondary", variations.accentSecondary);
+        target.style.setProperty("--color-accent-hover", variations.accentHover);
+        target.style.setProperty("--color-btn-bg", variations.btnBg);
+        target.style.setProperty("--color-btn-bg-solid", variations.btnBgSolid);
+        target.style.setProperty("--color-btn-hover", variations.btnHover);
+        target.style.setProperty("--color-hero-glow", variations.heroGlow);
+        target.style.setProperty("--color-hero-glow-strong", variations.heroGlowStrong);
+        target.style.setProperty("--color-info", variations.info);
+        target.style.setProperty("--color-modal-bg", variations.modalBg);
+        target.style.setProperty("--color-svg-icon-stroke", variations.svgIconStroke);
+    }
 
     console.log(`[AccentColor] Applied accent color: ${color} for ${theme} theme`);
 }

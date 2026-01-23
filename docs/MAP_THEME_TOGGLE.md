@@ -102,8 +102,8 @@ The toggle button appears as the first control in the map controls area alongsid
 ### Event Flow
 
 ```text
-User clicks toggle → setMapThemeInverted() → localStorage update →
-mapThemeChanged event → updateMapTheme() → CSS filter applied
+User clicks toggle → setMapThemeInverted() → settingsStateManager persists →
+mapThemeChanged event → updateMapTheme() → tile filter applied
 ```
 
 Custom event dispatch → updateMapTheme() → CSS filter applied/removed
@@ -115,6 +115,11 @@ Custom event dispatch → updateMapTheme() → CSS filter applied/removed
 - **Theme System**: Integrates with existing theme change events
 
 ### CSS Filter Applied
+
+The dark-map effect is achieved by applying a filter to Leaflet **tile panes only**:
+
+- ✅ Filtered: `.leaflet-tile-pane` (basemap tiles)
+- ❌ Not filtered: `#leaflet-map` container (controls/tooltips/popups must remain readable)
 
 ```css
 filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);

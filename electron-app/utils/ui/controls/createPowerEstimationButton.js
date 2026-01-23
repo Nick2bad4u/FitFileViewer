@@ -36,7 +36,7 @@ export function createPowerEstimationButton({ getData, onAfterApply }) {
                  * @param {Array<Record<string, unknown>> | undefined} sessionMesgs
                  */
                 const applyTo = (recs, sessionMesgs) => {
-                    if (!Array.isArray(recs) || recs.length === 0) return;
+                    if (recs.length === 0) return;
                     if (seen.has(recs)) return;
                     seen.add(recs);
                     applyEstimatedPowerToRecords({ recordMesgs: recs, sessionMesgs, settings });

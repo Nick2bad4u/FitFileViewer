@@ -66,8 +66,9 @@ export default defineConfig({
                 "utils/state/domain/settingsStateManager.js",
                 // UI tab utilities are currently exercised mainly via integration flows; exclude until dedicated tests exist
                 "utils/ui/tabs/**",
-                // UI utilities are primarily integration-tested; exclude them from the strict unit coverage gate.
-                "utils/ui/**",
+                // Most UI utilities are integration-heavy. We keep them out of the strict unit coverage gate
+                // by default via the curated `include` list, but we do NOT exclude `utils/ui/**` globally
+                // so specific UI modules can be explicitly included and tested at high coverage.
                 // Constants-only modules
                 "utils/charts/theming/chartOverlayColorPalette.js",
                 "utils/maps/core/mapColors.js",
@@ -93,6 +94,13 @@ export default defineConfig({
                 "utils/charts/**/*.ts",
                 "utils/files/**/*.js",
                 "utils/files/**/*.ts",
+                // Estimated Power (Virtual Power)
+                "utils/data/processing/estimateCyclingPower.js",
+                "utils/data/processing/powerEstimationSettings.js",
+                "utils/ui/modals/openPowerEstimationSettingsModal.js",
+                "utils/ui/controls/createPowerEstimationButton.js",
+                // Tooltip display (shows estimated power when real power missing)
+                "utils/formatting/display/formatTooltipData.js",
             ],
             reporter: ["text", "html", "json", ["lcov", { projectRoot: path.resolve(__dirname, "..") }]],
             reportOnFailure: true,

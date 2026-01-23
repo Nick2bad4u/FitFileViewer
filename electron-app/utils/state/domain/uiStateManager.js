@@ -451,8 +451,15 @@ export class UIStateManager {
                 nameSpan.className = "filename-text";
                 nameSpan.textContent = displayName;
 
-                // Keep the original spacing between label and filename.
-                fileSpan.replaceChildren(labelSpan, document.createTextNode(" "), nameSpan);
+                // Prevent long filenames (with auto-scroll animation) from rendering underneath the
+                // fixed "Active:" label. The viewport clips the scrolling text region.
+                const nameViewport = document.createElement("span");
+                nameViewport.className = "filename-viewport";
+                nameViewport.append(nameSpan);
+
+                // Keep spacing via CSS (margin-right on `.active-label`) so the filename viewport
+                // reliably clips the scrolling text and never renders underneath the fixed label.
+                fileSpan.replaceChildren(labelSpan, nameViewport);
                 fileSpan.title = displayName;
                 fileSpan.classList.remove("marquee");
                 fileSpan.scrollLeft = 0;

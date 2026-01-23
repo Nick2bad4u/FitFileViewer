@@ -65,8 +65,13 @@ export function renderTable(container, title, table, index) {
                 }
             }
 
-            jQ(tableSelector).DataTable({
-                autoWidth: true,
+            const dt = jQ(tableSelector).DataTable({
+                // Raw tables can have dozens/hundreds of columns. Disable auto width calculation and
+                // enable horizontal scrolling for reliable layout in Electron.
+                autoWidth: false,
+                scrollX: true,
+                scrollCollapse: true,
+                deferRender: true,
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"],
@@ -76,6 +81,26 @@ export function renderTable(container, title, table, index) {
                 paging: true,
                 searching: true,
             });
+
+            // DataTables can still miscompute widths if initialization occurs close to a visibility
+            // toggle. Force a post-layout adjust to avoid collapsed columns that visually look like
+            // "everything in one cell".
+            const raf = /** @type {typeof requestAnimationFrame | undefined} */ (globalThis.requestAnimationFrame);
+            if (typeof raf === "function") {
+                raf(() => {
+                    try {
+                        dt.columns.adjust();
+                    } catch {
+                        /* ignore */
+                    }
+                });
+            } else {
+                try {
+                    dt.columns.adjust();
+                } catch {
+                    /* ignore */
+                }
+            }
         } catch (error) {
             console.error(`[ERROR] DataTable init failed for #${tableId}`, error);
         }
@@ -90,10 +115,24 @@ export function renderTable(container, title, table, index) {
         if (!jQ || !jQ.fn || !jQ.fn.DataTable) return;
         if (dataTableInitTimer) return;
 
+        // Delay long enough for the layout engine to apply `display:block` and compute widths.
+        // setTimeout(0) is sometimes too early in Electron/Chromium when toggling a large DOM subtree.
         dataTableInitTimer = setTimeout(() => {
             dataTableInitTimer = null;
+
+            // If the table is still effectively hidden, retry once.
+            const host = document.getElementById(`content_${tableId}`);
+            const hostWidth = host instanceof HTMLElement ? host.getBoundingClientRect().width : 0;
+            if (hostWidth <= 1) {
+                dataTableInitTimer = setTimeout(() => {
+                    dataTableInitTimer = null;
+                    initializeDataTableIfAvailable();
+                }, 50);
+                return;
+            }
+
             initializeDataTableIfAvailable();
-        }, 0);
+        }, 25);
     };
 
     const content = document.createElement("div");

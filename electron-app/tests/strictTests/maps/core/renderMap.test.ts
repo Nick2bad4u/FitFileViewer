@@ -7,7 +7,10 @@ vi.mock("../../../../utils/maps/layers/mapDrawLaps.js", () => ({
     mapDrawLaps: vi.fn(),
     drawOverlayForFitFile: vi.fn(),
 }));
-vi.mock("../../../../utils/theming/specific/updateMapTheme.js", () => ({ updateMapTheme: vi.fn() }));
+vi.mock("../../../../utils/theming/specific/updateMapTheme.js", () => ({
+    installUpdateMapThemeListeners: vi.fn(),
+    updateMapTheme: vi.fn(),
+}));
 vi.mock("../../../../utils/maps/layers/mapIcons.js", () => ({ createEndIcon: vi.fn(), createStartIcon: vi.fn() }));
 vi.mock("../../../../utils/maps/controls/mapActionButtons.js", () => ({
     createMapThemeToggle: vi.fn(() => {

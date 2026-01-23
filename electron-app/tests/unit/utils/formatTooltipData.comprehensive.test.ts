@@ -91,6 +91,48 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
                 expect(result).not.toContain("<b>Alt:</b>");
                 expect(result).not.toContain("<b>HR:</b>");
             });
+
+            it("should omit fields when values are non-numeric", () => {
+                const row = {
+                    timestamp: new Date("2023-01-01T10:00:00Z"),
+                    cadence: "bad",
+                    heart_rate: "bad",
+                    power: "bad",
+                    distance: "bad",
+                };
+
+                const result = formatTooltipData(3, row, 1);
+
+                expect(result).not.toContain("<b>Cadence:</b>");
+                expect(result).not.toContain("<b>HR:</b>");
+                expect(result).not.toContain("<b>Power:</b>");
+                expect(result).not.toContain("<b>Distance:</b>");
+            });
+
+            it("should show estimated power when power is missing", () => {
+                const row = {
+                    timestamp: new Date("2023-01-01T10:00:00Z"),
+                    estimatedPower: 199.9,
+                };
+
+                const result = formatTooltipData(1, row, 1);
+
+                expect(result).toContain("<b>Est. Power:</b> 200 W");
+                expect(result).not.toContain("<b>Power:</b>");
+            });
+
+            it("should prefer real power over estimated power when both exist", () => {
+                const row = {
+                    timestamp: new Date("2023-01-01T10:00:00Z"),
+                    power: 250,
+                    estimatedPower: 999,
+                };
+
+                const result = formatTooltipData(2, row, 1);
+
+                expect(result).toContain("<b>Power:</b> 250.0 W");
+                expect(result).not.toContain("Est. Power");
+            });
         });
 
         describe("Edge Case Values", () => {
@@ -429,6 +471,80 @@ describe("formatTooltipData.js - Tooltip Data HTML Formatting", () => {
 
                 expect(result).toContain("<b>Elapsed Time:</b>");
                 expect(result).toContain("1 minute, 30 seconds");
+            });
+
+            it("should include hours when elapsed time exceeds 1 hour", () => {
+                const recordMesgsOverride = [{ timestamp: new Date("2023-01-01T10:00:00Z") }];
+
+                const row = {
+                    timestamp: new Date("2023-01-01T11:02:03Z"),
+                    altitude: 100,
+                };
+
+                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+
+                expect(result).toContain("<b>Elapsed Time:</b>");
+                expect(result).toContain("1 hour");
+                expect(result).toContain("2 minutes");
+                expect(result).toContain("3 seconds");
+            });
+
+            it("should omit elapsed time when no valid first timestamp exists", () => {
+                const recordMesgsOverride = [{ timestamp: null }, { timestamp: undefined }];
+
+                const row = {
+                    timestamp: new Date("2023-01-01T10:00:00Z"),
+                    altitude: 100,
+                };
+
+                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+
+                expect(result).not.toContain("<b>Elapsed Time:</b>");
+            });
+
+            it("should omit elapsed time when current timestamp is invalid", () => {
+                const recordMesgsOverride = [{ timestamp: new Date("2023-01-01T10:00:00Z") }];
+
+                const row = {
+                    timestamp: "not-a-date",
+                    altitude: 100,
+                };
+
+                const result = formatTooltipData(1, row, 1, recordMesgsOverride);
+
+                expect(result).not.toContain("<b>Elapsed Time:</b>");
+            });
+
+            it("should not throw if record timestamp getter throws during elapsed time lookup", () => {
+                /** @type {Record<string, number>} */
+                const badRecord = {};
+                Object.defineProperty(badRecord, "timestamp", {
+                    get: () => {
+                        throw new Error("boom");
+                    },
+                });
+
+                const recordMesgsOverride = [badRecord];
+                const row = {
+                    timestamp: new Date("2023-01-01T10:00:00Z"),
+                    altitude: 100,
+                };
+
+                expect(() => formatTooltipData(1, row, 1, recordMesgsOverride)).not.toThrow();
+            });
+        });
+
+        describe("Tooltip Formatting Resilience", () => {
+            it("should return an error message if tooltip formatting throws", () => {
+                const row = { altitude: 100 };
+                Object.defineProperty(row, "timestamp", {
+                    get: () => {
+                        throw new Error("timestamp getter failure");
+                    },
+                });
+
+                const result = formatTooltipData(1, row, 1);
+                expect(result).toContain("Error loading data");
             });
         });
     });

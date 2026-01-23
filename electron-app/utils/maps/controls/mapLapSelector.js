@@ -231,13 +231,15 @@ export function addLapSelector(_map, container, mapDrawLaps) {
     deselectAllBtn.append(createDeselectIcon());
 
     const label = document.createElement("label");
-    label.className = "lap-label";
+    // Avoid redundant "Laps: Lap:" UI (multiLapToggle already indicates purpose).
+    // Keep a label for accessibility but hide it visually.
+    label.className = "lap-label visually-hidden";
     label.htmlFor = "lap-select";
-    label.textContent = "Lap:";
-    label.style.color = safeColors.text;
+    label.textContent = "Lap selection";
 
     const lapSelect = document.createElement("select");
     lapSelect.id = "lap-select";
+    lapSelect.setAttribute("aria-label", "Lap selection");
     const allOption = document.createElement("option");
     allOption.value = "all";
     allOption.textContent = "All";
@@ -249,7 +251,24 @@ export function addLapSelector(_map, container, mapDrawLaps) {
         lapSelect.append(opt);
     }
 
-    bar.append(multiLapToggle, deselectAllBtn, label, lapSelect);
+    // Help tooltip (themed) for lap selector usage
+    const helpBtn = document.createElement("button");
+    helpBtn.type = "button";
+    helpBtn.className = "lap-help-btn";
+    helpBtn.setAttribute("aria-label", "Lap selection help");
+    helpBtn.textContent = "?";
+
+    const helpTooltip = document.createElement("div");
+    helpTooltip.className = "ffv-map-tooltip";
+    helpTooltip.setAttribute("role", "tooltip");
+    helpTooltip.textContent =
+        "Select a lap (or All). Toggle multi-lap mode to select multiple laps via click/drag. Press Esc to clear.";
+
+    helpBtn.addEventListener("click", () => {
+        helpTooltip.classList.toggle("is-visible");
+    });
+
+    bar.append(multiLapToggle, deselectAllBtn, label, lapSelect, helpBtn, helpTooltip);
     lapControl.append(bar);
     lapControl.addEventListener("mousedown", (/** @type {Event} */ e) => e.stopPropagation());
     lapControl.addEventListener("touchstart", (/** @type {Event} */ e) => e.stopPropagation(), { passive: true });

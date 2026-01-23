@@ -1359,7 +1359,9 @@ body.theme-light .header-hint strong {
     color: inherit;
 }
 
-body.theme-light .tab-bar {
+body.theme-light .tab-bar,
+body[data-theme="light"] .tab-bar,
+html[data-theme="light"] body .tab-bar {
     background: linear-gradient(
         135deg,
         rgb(var(--color-fg-rgb) / 8%) 0%,
@@ -1373,7 +1375,9 @@ body.theme-light .tab-bar {
         inset 0 1px 0 rgb(255 255 255 / 45%);
 }
 
-body.theme-light .tab-button {
+body.theme-light .tab-button,
+body[data-theme="light"] .tab-button,
+html[data-theme="light"] body .tab-button {
     color: var(--color-fg);
     background: linear-gradient(135deg, rgb(var(--color-accent-rgb) / 12%) 0%, rgb(var(--color-fg-rgb) / 5%) 100%);
     border-color: rgb(var(--color-accent-rgb) / 18%);
@@ -1383,7 +1387,11 @@ body.theme-light .tab-button {
 }
 
 body.theme-light .tab-button:hover,
-body.theme-light .tab-button.active {
+body.theme-light .tab-button.active,
+body[data-theme="light"] .tab-button:hover,
+body[data-theme="light"] .tab-button.active,
+html[data-theme="light"] body .tab-button:hover,
+html[data-theme="light"] body .tab-button.active {
     color: var(--color-fg);
     border-color: rgb(var(--color-accent-rgb) / 32%);
     background: linear-gradient(
@@ -1399,12 +1407,20 @@ body.theme-light .tab-button.active {
 }
 
 body.theme-light .tab-button:hover::before,
-body.theme-light .tab-button.active::before {
+body.theme-light .tab-button.active::before,
+body[data-theme="light"] .tab-button:hover::before,
+body[data-theme="light"] .tab-button.active::before,
+html[data-theme="light"] body .tab-button:hover::before,
+html[data-theme="light"] body .tab-button.active::before {
     opacity: 0.75;
 }
 
 body.theme-light .tab-button:hover::after,
-body.theme-light .tab-button.active::after {
+body.theme-light .tab-button.active::after,
+body[data-theme="light"] .tab-button:hover::after,
+body[data-theme="light"] .tab-button.active::after,
+html[data-theme="light"] body .tab-button:hover::after,
+html[data-theme="light"] body .tab-button.active::after {
     opacity: 0.95;
 }
 
@@ -3214,6 +3230,32 @@ body[data-has-fit-file="true"] .header-brand {
     min-width: 0;
 }
 
+/*
+    Prevent the scrolling filename text from rendering underneath the fixed "Active:" label.
+    The JS wraps `.filename-text` with `.filename-viewport`; this viewport clips the animation.
+*/
+.filename-viewport {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    /* Defensive: ensure overflow clipping works even if the parent isn't a flex container. */
+    display: block;
+    max-width: 100%;
+}
+
+/* Utility: visually hide content but keep it accessible to screen readers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* Auto-scroll animation for long filenames - scrolls LEFT to reveal more */
 @keyframes filename-scroll {
     0%,
@@ -3342,6 +3384,7 @@ table.dataTable.display > tbody > tr:nth-child(odd) > th {
     vertical-align: middle !important;
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
+    overflow: hidden !important;
 }
 
 table.dataTable.stripe > tbody > tr:nth-child(even) > td,
@@ -3353,6 +3396,7 @@ table.dataTable.display > tbody > tr:nth-child(even) > th {
     vertical-align: middle !important;
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
+    overflow: hidden !important;
 }
 
 table.dataTable.stripe > tbody > tr:hover td,
@@ -3361,6 +3405,33 @@ table.dataTable.display > tbody > tr:hover td {
     transition: background 0.2s;
     font-weight: 600 !important;
     font-style: italic;
+}
+
+/* Raw Data (DataTables) readability: give header/cells spacing and separators */
+table.dataTable {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+table.dataTable thead th,
+table.dataTable tbody td {
+    padding: 10px 12px;
+    border-right: 1px solid rgb(var(--color-accent-rgb) / 25%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table.dataTable thead th:last-child,
+table.dataTable tbody td:last-child {
+    border-right: none;
+}
+
+table.dataTable thead th {
+    background: rgb(var(--color-bg-rgb) / 35%);
+    border-bottom: 1px solid rgb(var(--color-accent-rgb) / 25%);
 }
 
 /* =====================================================
@@ -3624,8 +3695,12 @@ body.theme-light .zone-color-preview:hover {
 }
 
 #leaflet-map {
-    /* Adjusts map colors for dark mode using inversion, hue rotation, brightness, and contrast. */
-    filter: invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1);
+    /*
+        Map dark/light theming is handled by JS (updateMapTheme) by applying a filter
+        to Leaflet tile panes ONLY. Do not filter the full container here, otherwise
+        Leaflet controls + tooltips are also inverted.
+    */
+    filter: none;
     background: var(--color-bg-alt);
     border-radius: 4px;
     width: 100%;
@@ -3728,7 +3803,7 @@ body .leaflet-control-layers,
 body .leaflet-control-layers-expanded {
     background: var(--color-glass);
     color: var(--color-fg);
-    border: 1px solid var(--color-glass-border);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
     box-shadow: var(--color-box-shadow-light);
     backdrop-filter: var(--backdrop-blur);
     /*
@@ -3758,6 +3833,128 @@ body .leaflet-control-layers-base label {
     font-weight: 600 !important;
 }
 
+body .leaflet-control-layers label {
+    color: var(--color-fg) !important;
+}
+
+body .leaflet-control-layers input[type="checkbox"],
+body .leaflet-control-layers input[type="radio"] {
+    accent-color: var(--color-accent);
+}
+
+body .leaflet-control-layers-separator {
+    border-top: 1px solid rgb(var(--color-accent-rgb) / 35%);
+}
+
+/* =====================================================
+   Leaflet Locate (location arrow should be visible)
+   ===================================================== */
+
+/*
+    leaflet.locatecontrol uses CSS variables to define icon colors.
+    Setting the variable is more reliable than using `filter`, because the icon itself is a CSS mask.
+*/
+body.theme-dark .leaflet-control-locate,
+#leaflet-map.ffv-map-inverted .leaflet-control-locate {
+    --locate-control-icon-color: white;
+}
+
+body.theme-light #leaflet-map:not(.ffv-map-inverted) .leaflet-control-locate {
+    --locate-control-icon-color: black;
+}
+
+/* =====================================================
+   Leaflet Draw (icons + dividers)
+   ===================================================== */
+
+body .leaflet-draw-toolbar a {
+    border-bottom: 1px solid rgb(var(--color-accent-rgb) / 35%);
+}
+
+body .leaflet-draw-toolbar a:last-child {
+    border-bottom: none;
+}
+
+/* Leaflet-draw uses a dark sprite sheet; invert in dark UI so icons are visible */
+body.theme-dark .leaflet-draw-toolbar a,
+#leaflet-map.ffv-map-inverted .leaflet-draw-toolbar a {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* =====================================================
+   Minimap theming (remove white border/flash)
+   ===================================================== */
+
+body .leaflet-control-minimap {
+    background: var(--color-glass);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/*
+    leaflet-minimap renders the minimap map container itself as:
+      <div class="leaflet-control-minimap leaflet-container ...">
+    (i.e. not as a wrapper containing a nested `.leaflet-container`).
+    Theme that element directly to avoid the "white box" border.
+*/
+body .leaflet-control-minimap.leaflet-container {
+    background: var(--color-glass);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+body .leaflet-control-minimap .leaflet-container {
+    /* Prevent white flash when tiles are re-rendered/zoomed */
+    background: rgb(0 0 0 / 60%);
+    border: none;
+}
+
+/* Same "no white flash" background, but for the minimap container when it also has `.leaflet-container`. */
+body .leaflet-control-minimap.leaflet-container {
+    background: rgb(0 0 0 / 60%);
+}
+
+/* Dark UI can use the theme's solid alt background (already dark). */
+body.theme-dark .leaflet-control-minimap .leaflet-container,
+body.theme-dark .leaflet-control-minimap.leaflet-container {
+    background: var(--color-bg-alt-solid);
+}
+
+/* When the map tiles are inverted, ensure the minimap background never flashes white. */
+#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container,
+#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container .leaflet-map-pane,
+#leaflet-map.ffv-map-inverted .leaflet-control-minimap.leaflet-container .leaflet-tile-pane {
+    background: rgb(0 0 0 / 75%);
+}
+
+body .leaflet-control-minimap .leaflet-pane,
+body .leaflet-control-minimap .leaflet-tile-pane {
+    background: var(--color-glass);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    color: var(--color-fg);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+/* =====================================================
+   Map style button focus outline
+   ===================================================== */
+
+body .custom-maptype-btn {
+    outline: none;
+}
+
+body .custom-maptype-btn:focus-visible {
+    outline: 2px solid rgb(var(--color-accent-rgb) / 70%);
+    outline-offset: 2px;
+}
+
 body .leaflet-control-layers-expanded label:hover {
     color: var(--color-fg);
     background-color: var(--color-accent-hover);
@@ -3776,10 +3973,162 @@ body.theme-light .leaflet-control-layers-toggle {
     filter: invert(1) !important;
 }
 
+/* =====================================================
+   Leaflet Control Buttons (Zoom / Draw / Minimap)
+   ===================================================== */
+
+/* Theme the control container itself */
+body .leaflet-bar {
+    background: var(--color-glass);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+/* Theme individual control buttons (Leaflet uses anchors as buttons) */
+body .leaflet-bar a {
+    /* IMPORTANT: don't use `background:` shorthand here or it will wipe Leaflet's sprite background-image */
+    background-color: transparent !important;
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    border-bottom: 1px solid rgb(var(--color-accent-rgb) / 35%) !important;
+    /* Zoom +/- are text nodes inside anchors; ensure readable on dark glass backgrounds. */
+    color: var(--color-fg) !important;
+}
+
+/* Scale + attribution should look like the other map controls (not default white boxes) */
+body .leaflet-control-scale-line,
+body .leaflet-control-attribution {
+    /* Match the rest of the Leaflet control glass theme. */
+    background: var(--color-glass) !important;
+    color: var(--color-fg) !important;
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%) !important;
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: 8px;
+    padding: 4px 8px;
+    line-height: 1.2;
+}
+
+/* Make the scale text crisp (avoid double-border artifacts from Leaflet defaults). */
+body .leaflet-control-scale-line {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-rendering: geometricPrecision;
+    text-shadow: none;
+    border-top: 1px solid rgb(var(--color-accent-rgb) / 35%) !important;
+}
+
+body.theme-dark .leaflet-control-scale-line {
+    color: rgb(255 255 255 / 95%);
+}
+
+/* Attribution should be compact and readable in both themes. */
+body .leaflet-control-attribution {
+    font-size: 11px;
+    font-weight: 600;
+    max-width: min(520px, 82vw);
+}
+
+body .leaflet-control-attribution a {
+    text-decoration: none;
+    font-weight: 700;
+}
+
+body .leaflet-control-attribution a:hover {
+    text-decoration: underline;
+}
+
 /*
-    Hide the default Leaflet layers toggle button.
-    We provide our own "Map style" button and expand/collapse the panel programmatically.
-    This avoids the double-button look (toggle icon + text button).
+    If the user enables "dark map" (ffv-map-inverted) while keeping a light UI theme,
+    the bottom-left scale + bottom-right attribution otherwise look visually "inverted".
+    Force them to match the rest of the map controls row.
+*/
+body.theme-light #leaflet-map.ffv-map-inverted .leaflet-control-scale-line,
+body.theme-light #leaflet-map.ffv-map-inverted .leaflet-control-attribution {
+    background: rgb(0 0 0 / 55%);
+    color: rgb(255 255 255 / 92%);
+    border-color: rgb(255 255 255 / 18%);
+}
+
+body.theme-light #leaflet-map.ffv-map-inverted .leaflet-control-attribution a {
+    color: rgb(var(--color-accent-rgb) / 90%);
+}
+
+body .leaflet-control-attribution a {
+    color: var(--color-accent) !important;
+}
+
+body .leaflet-bar a:hover,
+body .leaflet-bar a:focus {
+    /* Keep icons visible: only change background-color */
+    background-color: var(--color-accent-hover) !important;
+    color: var(--color-fg) !important;
+}
+
+body .leaflet-bar a.leaflet-disabled {
+    color: var(--color-fg-muted) !important;
+    background-color: transparent !important;
+}
+
+body .leaflet-bar a:last-child {
+    border-bottom: none !important;
+}
+
+/* Leaflet-draw uses a sprite background image; invert it in dark theme for legibility. */
+body.theme-dark .leaflet-draw-toolbar a {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+body.theme-dark .leaflet-draw-toolbar a:hover,
+body.theme-dark .leaflet-draw-toolbar a:focus {
+    /* Keep background transparent so the inverted sprite stays readable without inverting a hover fill. */
+    background-color: transparent !important;
+}
+
+/* Minimap toggle is also an anchor button */
+body .leaflet-control-minimap-toggle-display {
+    /* IMPORTANT: do not use `background:` shorthand here or it will wipe the toggle icon background-image */
+    background-color: var(--color-glass) !important;
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    border-radius: 4px;
+
+    /* We'll render the icon ourselves so it can be themed without inverting the background. */
+    background-image: none !important;
+}
+
+/* Ensure minimap toggle background matches other buttons (leaflet-minimap defaults to white). */
+body .leaflet-control-minimap a {
+    background-color: var(--color-glass) !important;
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+/* Themed minimap toggle icon (solves "white icon on white background"). */
+body .leaflet-control-minimap-toggle-display::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    background-color: var(--color-fg);
+    -webkit-mask-image: url("node_modules/leaflet-minimap/dist/images/toggle.svg");
+    mask-image: url("node_modules/leaflet-minimap/dist/images/toggle.svg");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: cover;
+    mask-size: cover;
+    pointer-events: none;
+}
+
+/*
+    Leaflet Layers "map selector" toggle.
+
+    We provide our own "Map style" button and open/close the Leaflet panel programmatically.
+    Hide Leaflet's default toggle button so we don't end up with two map-style buttons.
 */
 body .leaflet-control-layers-toggle {
     display: none !important;
@@ -3825,7 +4174,7 @@ body
 body .custom-maptype-btn {
     background: var(--color-glass);
     color: var(--color-fg);
-    border: 1px solid var(--color-glass-border);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
     box-shadow: var(--color-box-shadow-light);
     backdrop-filter: var(--backdrop-blur);
     padding: 6px 10px;
@@ -3845,6 +4194,54 @@ body .custom-maptype-btn:focus {
     border-color: rgb(var(--color-accent-rgb) / 55%);
     background: var(--color-accent-hover);
     box-shadow: 0 1px 5px var(--c_rgb000_40p);
+}
+
+/* =====================================================
+   Leaflet Tooltips & Popups (Map)
+   ===================================================== */
+
+/* Leaflet tooltips (used for markers/hover labels) */
+body .leaflet-tooltip {
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+/* Tooltip arrow color */
+body .leaflet-tooltip-top::before {
+    border-top-color: var(--color-glass) !important;
+}
+
+body .leaflet-tooltip-bottom::before {
+    border-bottom-color: var(--color-glass) !important;
+}
+
+body .leaflet-tooltip-left::before {
+    border-left-color: var(--color-glass) !important;
+}
+
+body .leaflet-tooltip-right::before {
+    border-right-color: var(--color-glass) !important;
+}
+
+/* Leaflet popups */
+body .leaflet-popup-content-wrapper,
+body .leaflet-popup-tip {
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+body .leaflet-popup-content {
+    color: var(--color-fg);
+}
+
+body .leaflet-popup-close-button {
+    color: var(--color-fg) !important;
 }
 
 #vega-container {
@@ -4105,13 +4502,15 @@ body.theme-light .vega-embed .vega-actions::after {
 }
 
 body .custom-zoom-slider-bar {
-    background: var(--c_hexf1f1f1);
-    color: var(--c_hex000);
-    border: 1px solid var(--c_hex888);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
 }
 
 body .custom-zoom-slider-bar input[type="range"] {
-    accent-color: var(--c_hex4fc3f7);
+    accent-color: var(--color-accent);
 }
 
 /* =====================================================
@@ -4130,9 +4529,12 @@ body .custom-zoom-slider-bar input[type="range"] {
 }
 
 .custom-lap-control.leaflet-bar {
-    background: var(--leaflet-control-bg, var(--c_hexfff));
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
     border-radius: 4px;
     box-shadow: 0 1px 5px var(--c_rgb000_40p);
+    backdrop-filter: var(--backdrop-blur);
     padding: 6px 10px;
     display: flex;
     align-items: center;
@@ -4143,37 +4545,79 @@ body .custom-zoom-slider-bar input[type="range"] {
 .custom-lap-control label {
     margin: 0;
     font-size: 14px;
-    filter: invert(1) hue-rotate(180deg);
+    color: var(--color-fg);
+    font-weight: 600;
 }
 
-body.theme-light .custom-lap-control label {
-    margin: 0;
-    font-size: 14px;
-    filter: none;
+/* Ensure the accessible-only label never renders visually (prevents "Laps: Lap:" duplication). */
+.custom-lap-control label.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
 }
 
 .custom-lap-control select {
     font-size: 14px;
     pointer-events: auto;
-    background: var(--color-bg-alt);
+    background: var(--color-bg-alt-solid);
     color: var(--color-fg);
     border: 1px solid var(--color-border);
     border-radius: 4px;
     padding: 4px 10px;
-    filter: invert(1) hue-rotate(180deg);
-}
-
-body.theme-light .custom-lap-control.leaflet-bar {
-    background: var(--c_hexf5f5f5);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
-}
-
-body.theme-light .custom-lap-control select {
-    background: var(--c_hexfff);
-    color: var(--c_hex222);
-    border: 1px solid var(--c_hex888);
     filter: none;
+}
+
+/* Lap selector help tooltip (themed) */
+.custom-lap-control.leaflet-bar {
+    position: relative;
+}
+
+.lap-help-btn {
+    margin-left: 6px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    cursor: pointer;
+}
+
+.lap-help-btn:hover,
+.lap-help-btn:focus-visible {
+    background: var(--color-accent-hover);
+    border-color: rgb(var(--color-accent-rgb) / 65%);
+}
+
+.ffv-map-tooltip {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    width: min(320px, 70vw);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--color-glass-border);
+    background: var(--color-glass);
+    color: var(--color-fg);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    display: none;
+    z-index: 9999;
+}
+
+.lap-help-btn:hover + .ffv-map-tooltip,
+.lap-help-btn:focus-visible + .ffv-map-tooltip,
+.ffv-map-tooltip.is-visible {
+    display: block;
 }
 
 /* =====================================================
@@ -4188,9 +4632,12 @@ body.theme-light .custom-lap-control select {
 }
 
 .custom-fullscreen-bar.leaflet-bar {
-    background: var(--leaflet-control-bg, var(--c_hexfff));
+    background: var(--color-glass);
+    color: var(--color-fg);
+    border: 1px solid var(--color-glass-border);
     border-radius: 4px;
     box-shadow: 0 1px 5px var(--c_rgb000_40p);
+    backdrop-filter: var(--backdrop-blur);
     padding: 6px 10px;
     display: flex;
     align-items: center;
@@ -4204,7 +4651,7 @@ body.theme-light .custom-lap-control select {
 .custom-fullscreen-bar button {
     background: none;
     border: none;
-    color: var(--c_hex222);
+    color: var(--color-fg);
     font-size: 1.5em;
     padding: 2px 8px;
     border-radius: 4px;
@@ -4219,32 +4666,6 @@ body.theme-light .custom-lap-control select {
 
 .custom-fullscreen-bar button:hover,
 .custom-fullscreen-bar button:focus {
-    background: var(--color-accent);
-    color: var(--c_hexfff);
-}
-
-body.theme-dark .custom-fullscreen-bar.leaflet-bar {
-    background: var(--c_hexf1f1f1);
-    color: var(--c_hex000);
-    border: 1px solid var(--c_hex888);
-    position: absolute;
-    top: 60px;
-    left: -6px;
-}
-
-body.theme-dark .custom-fullscreen-bar button {
-    font-size: 14px;
-    pointer-events: auto;
-    background: var(--color-bg-alt);
-    color: var(--color-fg);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 4px 10px;
-    filter: invert(1) hue-rotate(180deg);
-}
-
-body.theme-dark .custom-fullscreen-bar button:hover,
-body.theme-dark .custom-fullscreen-bar button:focus {
     background: var(--color-accent);
     color: var(--c_hexfff);
 }
@@ -4597,10 +5018,6 @@ body.theme-dark .custom-fullscreen-bar button:focus {
 }
 
 .custom-fullscreen-control.leaflet-top.leaflet-left {
-    display: none;
-}
-
-.leaflet-touch .leaflet-bar a:last-child {
     display: none;
 }
 
@@ -5797,16 +6214,17 @@ footer {
    Measurement Label
    ===================================================== */
 .measure-label-content {
-    background: var(--c_hexfff);
-    color: black;
+    background: var(--color-glass);
+    color: var(--color-fg);
     padding: 2px 8px;
     border-radius: 4px;
-    border: 1px solid var(--c_hex888);
+    border: 1px solid var(--color-glass-border);
     font-size: 14px;
     min-width: 60px;
     min-height: 20px;
     z-index: 9999;
-    box-shadow: 0 2px 6px var(--c_hex0002);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
     display: inline-block;
     text-align: center;
     position: relative;
@@ -6655,7 +7073,7 @@ a:focus-visible {
 
 #lap-select > option:nth-child(n):checked {
     background-color: var(--color-accent) !important;
-    color: var(--color-title) !important;
+    color: var(--c_hexfff) !important;
     font-weight: 800 !important;
     border-radius: 5px;
 }
@@ -6663,7 +7081,7 @@ a:focus-visible {
 #lap-select > option {
     filter: none !important;
     background-color: var(--color-bg-alt-solid) !important;
-    color: var(--color-fg-alt) !important;
+    color: var(--color-fg) !important;
     border-radius: 5px;
 }
 

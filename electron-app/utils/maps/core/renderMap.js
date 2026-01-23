@@ -56,7 +56,7 @@ import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
 import { getState, setState } from "../../state/core/stateManager.js";
-import { updateMapTheme } from "../../theming/specific/updateMapTheme.js";
+import { installUpdateMapThemeListeners, updateMapTheme } from "../../theming/specific/updateMapTheme.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
 import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
@@ -1182,6 +1182,7 @@ export function renderMap() {
 
     // --- Theme support (dark/light) ---
     if (document.querySelector("#leaflet-map")) {
+        installUpdateMapThemeListeners();
         updateMapTheme();
     }
 }
