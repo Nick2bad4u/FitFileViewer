@@ -98,13 +98,28 @@ export function drawOverlayForFitFile({
         const markerCoords = selectMarkerCoordinatesForDataset(coords, false);
         for (const c of markerCoords) {
             const marker = L.circleMarker([c[0], c[1]], {
-                color: paletteColor || "#1976d2",
-                fillColor: "#fff",
-                fillOpacity: 0.85,
-                radius: 4,
+                // High-contrast breadcrumb style: white ring + colored fill.
+                color: "#ffffff",
+                opacity: 0.95,
+                fillColor: paletteColor || "#1976d2",
+                fillOpacity: 0.9,
+                radius: 3.5,
                 weight: 2,
                 zIndexOffset: 1500,
             });
+            // Improve visual quality of the breadcrumb points: subtle outer glow.
+            if (marker && typeof marker.on === "function") {
+                marker.on("add", () => {
+                    try {
+                        const el = marker.getElement && marker.getElement();
+                        if (el instanceof SVGElement) {
+                            el.style.filter = `drop-shadow(0 0 4px ${paletteColor || "#1976d2"})`;
+                        }
+                    } catch {
+                        /* ignore */
+                    }
+                });
+            }
             if (markerClusterGroup) {
                 markerClusterGroup.addLayer(marker);
             } else {

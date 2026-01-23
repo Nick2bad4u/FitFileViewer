@@ -96,9 +96,13 @@ When enabled, map tooltips will show **Est. Power**.
 Measure distances on the map:
 
 1. Click the measure button (📏)
-2. Click points on the map
-3. See distance between points
-4. Double-click to finish
+2. Click points on the map to build a measurement path
+3. See **per-segment** distances and the **total** distance as you add points
+4. Finish the measurement using any of these gestures:
+	- **Double-click**
+	- **Right-click**
+	- **Click an existing point** on the measurement path
+5. Results are shown in **both metric and imperial units**
 
 ### Fullscreen
 

@@ -7,6 +7,7 @@
  */
 
 import pLimitCompat from "../../async/pLimitCompat.js";
+import { escapeHtml } from "../../dom/index.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
@@ -678,6 +679,43 @@ function renderCalendarResults(root, payload) {
     const unitLabel = prefs.unit;
     const fmt = (meters) => (meters * unitFactor).toFixed(1);
 
+    /**
+     * @param {number} count
+     * @returns {string}
+     */
+    const formatActivityLabel = (count) => `${count} ${count === 1 ? "activity" : "activities"}`;
+
+    /**
+     * @param {string|undefined} sport
+     * @returns {{ key: string, label: string, emoji: string }}
+     */
+    const getSportBadge = (sport) => {
+        const raw = typeof sport === "string" ? sport.trim() : "";
+        const s = raw.toLowerCase();
+
+        if (s.includes("cycling") || s.includes("bike") || s.includes("biking")) {
+            return { key: "cycling", label: "Cycling", emoji: "🚴" };
+        }
+        if (s.includes("run")) {
+            return { key: "running", label: "Running", emoji: "🏃" };
+        }
+        if (s.includes("walk")) {
+            return { key: "walking", label: "Walking", emoji: "🚶" };
+        }
+        if (s.includes("swim")) {
+            return { key: "swimming", label: "Swimming", emoji: "🏊" };
+        }
+        if (s.includes("hike")) {
+            return { key: "hiking", label: "Hiking", emoji: "🥾" };
+        }
+        if (s.includes("row")) {
+            return { key: "rowing", label: "Rowing", emoji: "🚣" };
+        }
+
+        // Unknown/other.
+        return { key: "other", label: raw || "Activity", emoji: "🏁" };
+    };
+
     const state = getCalendarState();
     const { monthStart, selectedDayKey } = state;
     const monthLabel = monthStart.toLocaleString(undefined, { month: "long", year: "numeric" });
@@ -718,11 +756,49 @@ function renderCalendarResults(root, payload) {
         if (!inMonth) classes.push("file-calendar__day--outside");
         if (isToday) classes.push("file-calendar__day--today");
         if (isSelected) classes.push("file-calendar__day--selected");
+        if (dayItems.length > 0) classes.push("file-calendar__day--hasActivities");
+        if (dayItems.length > 1) classes.push("file-calendar__day--multi");
 
-        const meta =
-            dayItems.length > 0
-                ? `${fmt(dayDistance)} ${unitLabel}<br/>${dayItems.length} activity${dayItems.length === 1 ? "" : "ies"}`
-                : "";
+        let meta = "";
+        if (dayItems.length > 0) {
+            /** @type {Map<string, { key: string, label: string, emoji: string, count: number }>} */
+            const bySport = new Map();
+            for (const it of dayItems) {
+                const badge = getSportBadge(it.sport);
+                const existing = bySport.get(badge.key);
+                if (existing) {
+                    existing.count += 1;
+                } else {
+                    bySport.set(badge.key, { ...badge, count: 1 });
+                }
+            }
+
+            const badges = [...bySport.values()].sort((a, b) => b.count - a.count);
+            const badgeMax = 3;
+            const shown = badges.slice(0, badgeMax);
+            const remainder = Math.max(0, badges.length - shown.length);
+
+            const iconRow =
+                shown.length > 0
+                    ? `
+                        <div class="file-calendar__dayIcons" aria-hidden="true">
+                            ${shown
+                                .map(
+                                    (b) =>
+                                        `<span class="file-calendar__dayIcon" data-sport="${b.key}" data-count="${b.count}">${b.emoji}</span>`
+                                )
+                                .join("")}
+                            ${remainder > 0 ? `<span class="file-calendar__dayIconMore">+${remainder}</span>` : ""}
+                        </div>
+                    `
+                    : "";
+
+            meta = `
+                <div class="file-calendar__dayDistance">${fmt(dayDistance)} ${unitLabel}</div>
+                <div class="file-calendar__dayCount">${formatActivityLabel(dayItems.length)}</div>
+                ${iconRow}
+            `;
+        }
 
         parts.push(`
             <button type="button" class="${classes.join(" ")}" data-day="${dayKey}">
@@ -745,6 +821,31 @@ function renderCalendarResults(root, payload) {
         });
     }
 
+    // Tooltips for calendar days and sport icons.
+    for (const btn of gridEl.querySelectorAll(".file-calendar__day")) {
+        if (!(btn instanceof HTMLElement)) continue;
+        const dayKey = btn.dataset.day || "";
+        if (!dayKey) continue;
+
+        const dayItems = itemsByDay.get(dayKey) ?? [];
+        if (dayItems.length === 0) {
+            btn.dataset.tooltip = dayKey;
+            continue;
+        }
+
+        const dayDistance = dayItems.reduce((acc, it) => acc + it.totalDistanceM, 0);
+        btn.dataset.tooltip = `${dayKey} • ${fmt(dayDistance)} ${unitLabel} • ${formatActivityLabel(dayItems.length)}`;
+    }
+
+    for (const icon of gridEl.querySelectorAll(".file-calendar__dayIcon")) {
+        if (!(icon instanceof HTMLElement)) continue;
+        const { sport: sportKey = "", count: countRaw = "0" } = icon.dataset;
+        const count = Number(countRaw);
+        const label = escapeHtml(getSportBadge(sportKey).label);
+        const countLabel = count > 0 ? ` (${count})` : "";
+        icon.dataset.tooltip = `${label}${countLabel}`;
+    }
+
     // Selected-day panel
     const selectedItems = itemsByDay.get(selectedDayKey) ?? [];
     if (selectedItems.length === 0) {
@@ -758,10 +859,16 @@ function renderCalendarResults(root, payload) {
         .map((it) => {
             const when = it.startTime.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
             const dist = fmt(it.totalDistanceM);
-            const sport = it.sport ? ` — ${it.sport}` : "";
+            const sport = it.sport ? ` — ${escapeHtml(it.sport)}` : "";
+            const badge = getSportBadge(it.sport);
+            const safeBadgeLabel = escapeHtml(badge.label);
+            const safeFileName = escapeHtml(it.fileName);
             return `
                 <button type="button" class="file-library__row" data-fullpath="${encodeURIComponent(it.fullPath)}">
-                    <span class="file-library__rowMain">${it.fileName}</span>
+                    <span class="file-library__rowMain">
+                        <span class="file-calendar__rowIcon" data-tooltip="${safeBadgeLabel}" aria-hidden="true">${badge.emoji}</span>
+                        ${safeFileName}
+                    </span>
                     <span class="file-library__rowMeta">${when} • ${dist} ${unitLabel}${sport}</span>
                 </button>
             `;
@@ -818,10 +925,10 @@ async function renderCalendarView() {
                 <div class="file-calendar__header">
                     <div class="file-calendar__title" id="fit-calendar-title"></div>
                     <div class="file-calendar__nav">
-                        <button type="button" class="file-browser__btn" id="fit-calendar-prev">◀</button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-today">Today</button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-next">▶</button>
-                        <button type="button" class="file-browser__btn" id="fit-calendar-scan">Scan folder</button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-prev" data-tooltip="Previous month">◀</button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-today" data-tooltip="Jump to today">Today</button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-next" data-tooltip="Next month">▶</button>
+                        <button type="button" class="file-browser__btn" id="fit-calendar-scan" data-tooltip="Scan folder for activities">Scan folder</button>
                     </div>
                 </div>
                 <div class="file-calendar__grid" id="fit-calendar-grid"></div>

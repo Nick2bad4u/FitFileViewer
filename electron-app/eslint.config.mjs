@@ -15,6 +15,8 @@ import globals from "globals";
 export default defineConfig([
     {
         ignores: [
+            // Third-party vendored code (not maintained by this repo)
+            "vendor/**",
             "vendor/leafletMeasure/**/*",
             "scripts/extractLeafletTemplates.cjs",
             "./temp**",

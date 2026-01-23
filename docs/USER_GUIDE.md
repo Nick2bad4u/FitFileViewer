@@ -254,9 +254,13 @@ The summary tab provides key statistics about your activity:
 
 1. Open the Map tab
 2. Click the Measure tool (📏)
-3. Click points on the map to measure distances
-4. Double-click to finish measurement
-5. Measurements show in both metric and imperial units
+3. Click points on the map to add a measurement path
+4. Segment and total distances are shown as you add points
+5. Finish the measurement using any of these gestures:
+   - **Double-click**
+   - **Right-click**
+   - **Click an existing point** on the measurement path
+6. Measurements are shown in **both metric and imperial units**
 
 #### Elevation Analysis
 

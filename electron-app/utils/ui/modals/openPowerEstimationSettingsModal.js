@@ -168,10 +168,41 @@ export function openPowerEstimationSettingsModal({ hasRealPower, onApply }) {
             maxPowerW: Number(maxPower.value),
         };
 
-        if (!Number.isFinite(parsed.riderWeightKg) || parsed.riderWeightKg <= 0) {
-            showNotification("Rider weight must be a positive number.", "error");
-            return;
+        /**
+         * @param {string} label
+         * @param {number} value
+         * @param {{ min?: number, max?: number, allowNegative?: boolean }} [opts]
+         * @returns {boolean}
+         */
+        function validateNumber(label, value, opts) {
+            if (!Number.isFinite(value)) {
+                showNotification(`${label} must be a valid number.`, "error");
+                return false;
+            }
+            if (!opts?.allowNegative && value < 0) {
+                showNotification(`${label} must be a positive number.`, "error");
+                return false;
+            }
+            if (typeof opts?.min === "number" && value < opts.min) {
+                showNotification(`${label} must be at least ${opts.min}.`, "error");
+                return false;
+            }
+            if (typeof opts?.max === "number" && value > opts.max) {
+                showNotification(`${label} must be at most ${opts.max}.`, "error");
+                return false;
+            }
+            return true;
         }
+
+        if (!validateNumber("Rider weight", parsed.riderWeightKg, { min: 30, max: 200 })) return;
+        if (!validateNumber("Bike + gear weight", parsed.bikeWeightKg, { min: 1, max: 40 })) return;
+        // Keep the label text containing "Rolling Resistance" to satisfy tests and user clarity.
+        if (!validateNumber("Rolling Resistance", parsed.crr, { min: 0.001, max: 0.03 })) return;
+        if (!validateNumber("Aerodynamic CdA", parsed.cda, { min: 0.15, max: 0.8 })) return;
+        if (!validateNumber("Drivetrain efficiency", parsed.drivetrainEfficiency, { min: 0.85, max: 1 })) return;
+        if (!validateNumber("Wind", parsed.windSpeedMps, { allowNegative: true, min: -20, max: 20 })) return;
+        if (!validateNumber("Grade smoothing window", parsed.gradeWindowMeters, { min: 5, max: 200 })) return;
+        if (!validateNumber("Max power clamp", parsed.maxPowerW, { min: 500, max: 4000 })) return;
 
         setPowerEstimationSettings(parsed);
         try {

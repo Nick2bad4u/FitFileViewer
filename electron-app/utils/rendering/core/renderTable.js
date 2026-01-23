@@ -120,10 +120,14 @@ export function renderTable(container, title, table, index) {
         dataTableInitTimer = setTimeout(() => {
             dataTableInitTimer = null;
 
-            // If the table is still effectively hidden, retry once.
             const host = document.getElementById(`content_${tableId}`);
-            const hostWidth = host instanceof HTMLElement ? host.getBoundingClientRect().width : 0;
-            if (hostWidth <= 1) {
+            const isDisplayed =
+                host instanceof HTMLElement &&
+                typeof globalThis.getComputedStyle === "function" &&
+                globalThis.getComputedStyle(host).display !== "none";
+
+            // If still hidden, retry once; otherwise initialize now.
+            if (!isDisplayed) {
                 dataTableInitTimer = setTimeout(() => {
                     dataTableInitTimer = null;
                     initializeDataTableIfAvailable();

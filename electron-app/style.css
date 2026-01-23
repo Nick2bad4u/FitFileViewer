@@ -515,6 +515,55 @@ body {
     color: var(--color-fg);
 }
 
+/* Days containing activities should pop visually, without overpowering the selected/today states. */
+.file-calendar__day--hasActivities {
+    border-color: rgb(var(--color-accent-rgb) / 48%);
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-accent-rgb) / 18%) 0%,
+        rgb(var(--color-fg-rgb) / 6%) 55%,
+        rgb(var(--color-accent-rgb) / 10%) 100%
+    );
+    box-shadow:
+        0 0 0 1px rgb(var(--color-accent-rgb) / 10%),
+        0 14px 28px rgb(0 0 0 / 18%);
+}
+
+.file-calendar__day--hasActivities::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(
+        90deg,
+        rgb(var(--color-accent-rgb) / 75%),
+        rgb(var(--color-secondary-accent-rgb) / 55%)
+    );
+    opacity: 0.85;
+}
+
+.file-calendar__day--hasActivities .file-calendar__dayMeta {
+    color: rgb(var(--color-fg-rgb) / 88%);
+}
+
+.file-calendar__day--hasActivities .file-calendar__dayNumber {
+    color: var(--color-fg);
+}
+
+.file-calendar__day--hasActivities:hover {
+    border-color: rgb(var(--color-accent-rgb) / 70%);
+    box-shadow:
+        0 0 0 2px rgb(var(--color-accent-rgb) / 14%),
+        0 18px 38px rgb(0 0 0 / 22%);
+}
+
+.file-calendar__day--multi .file-calendar__dayCount {
+    font-weight: 800;
+}
+
 .file-calendar__day--outside {
     opacity: 0.45;
 }
@@ -1268,6 +1317,7 @@ body.theme-light .header-bar {
     border-color: var(--c_rgb214222245_78p);
     box-shadow: 0 18px 42px var(--c_rgb177198236_28p);
     color: var(--color-fg);
+    position: relative;
 }
 
 body.theme-light .app-pill {
@@ -1802,9 +1852,10 @@ body[data-has-fit-file="true"] .header-bar::after {
     animation-duration: 18s;
 }
 
+/* Ensure the measure tool can always be opened (was hidden on some devices due to `leaflet-touch`). */
 .leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle,
 .leaflet-touch .leaflet-control-measure .leaflet-control-measure-toggle:hover {
-    display: none;
+    display: block;
 }
 body.app-has-file .header-bar #activeFileNameContainer,
 body[data-has-fit-file="true"] .header-bar #activeFileNameContainer {
@@ -2562,6 +2613,14 @@ body[data-has-fit-file="true"] .tab-bar {
 .tab-button.active {
     animation: tab-button-activate 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
     will-change: transform, box-shadow;
+
+    /*
+        Make the active tab clearly reflect the current accent color.
+        This keeps Quick Color / Accent Color changes obvious and immediate.
+    */
+    background: var(--color-btn-bg);
+    border-color: rgb(var(--color-accent-rgb) / 65%);
+    color: var(--c_hexfff);
 }
 
 .tab-button.tab-disabled {
@@ -3875,6 +3934,85 @@ body .leaflet-draw-toolbar a:last-child {
     border-bottom: none;
 }
 
+/* =====================================================
+   Trail markers (Start/End) + measurement labels
+   ===================================================== */
+
+/* Remove Leaflet's default white box around div icons. */
+body .leaflet-div-icon.ffv-map-marker {
+    background: transparent;
+    border: none;
+}
+
+.ffv-map-marker__pin {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    box-shadow:
+        0 10px 22px rgb(0 0 0 / 35%),
+        0 0 0 1px rgb(255 255 255 / 12%),
+        inset 0 1px 0 rgb(255 255 255 / 18%);
+}
+
+.ffv-map-marker__pin::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border: 9px solid transparent;
+}
+
+.ffv-map-marker__glyph {
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: rgb(255 255 255 / 96%);
+    text-shadow: 0 1px 1px rgb(0 0 0 / 40%);
+}
+
+.ffv-map-marker--start .ffv-map-marker__pin {
+    background: linear-gradient(135deg, rgb(var(--color-success-rgb) / 95%), rgb(var(--color-success-rgb) / 70%));
+    border: 1px solid rgb(var(--color-success-rgb) / 80%);
+}
+
+.ffv-map-marker--start .ffv-map-marker__pin::after {
+    border-top-color: rgb(var(--color-success-rgb) / 85%);
+}
+
+.ffv-map-marker--end .ffv-map-marker__pin {
+    background: linear-gradient(135deg, rgb(var(--color-error-rgb) / 95%), rgb(var(--color-error-rgb) / 70%));
+    border: 1px solid rgb(var(--color-error-rgb) / 80%);
+}
+
+.ffv-map-marker--end .ffv-map-marker__pin::after {
+    border-top-color: rgb(var(--color-error-rgb) / 85%);
+}
+
+/* Measurement segment labels (dual units) */
+body .leaflet-measure-segment-label {
+    background: transparent;
+    border: none;
+}
+
+.leaflet-measure-segment-label__pill {
+    background: var(--color-glass);
+    border: 1px solid rgb(var(--color-accent-rgb) / 35%);
+    box-shadow: var(--color-box-shadow-light);
+    backdrop-filter: var(--backdrop-blur);
+    color: var(--color-fg);
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
 /* Leaflet-draw uses a dark sprite sheet; invert in dark UI so icons are visible */
 body.theme-dark .leaflet-draw-toolbar a,
 #leaflet-map.ffv-map-inverted .leaflet-draw-toolbar a {
@@ -4836,14 +4974,16 @@ body .custom-zoom-slider-bar input[type="range"] {
 /* Tooltips for control bar buttons - positioned below */
 .app-control-bar [data-tooltip],
 .fullscreen-btn-wrapper [data-tooltip],
-.fullscreen-btn.improved[data-tooltip] {
+.fullscreen-btn.improved[data-tooltip],
+.file-calendar [data-tooltip] {
     position: relative;
 }
 
 .app-control-bar [data-tooltip]::after,
 .fullscreen-btn-wrapper [data-tooltip]::after,
 .fullscreen-btn.improved[data-tooltip]::after,
-.fullscreen-btn.improved.themed-btn[data-tooltip]::after {
+.fullscreen-btn.improved.themed-btn[data-tooltip]::after,
+.file-calendar [data-tooltip]::after {
     content: attr(data-tooltip) !important;
     position: absolute !important;
     top: calc(100% + 8px) !important;
@@ -4893,7 +5033,8 @@ body .custom-zoom-slider-bar input[type="range"] {
 .app-control-bar [data-tooltip]::before,
 .fullscreen-btn-wrapper [data-tooltip]::before,
 .fullscreen-btn.improved[data-tooltip]::before,
-.fullscreen-btn.improved.themed-btn[data-tooltip]::before {
+.fullscreen-btn.improved.themed-btn[data-tooltip]::before,
+.file-calendar [data-tooltip]::before {
     content: "" !important;
     position: absolute !important;
     top: calc(100% + 2px) !important;
@@ -4916,7 +5057,11 @@ body .custom-zoom-slider-bar input[type="range"] {
 .fullscreen-btn.improved[data-tooltip]:hover::after,
 .fullscreen-btn.improved[data-tooltip]:hover::before,
 .fullscreen-btn.improved.themed-btn[data-tooltip]:hover::after,
-.fullscreen-btn.improved.themed-btn[data-tooltip]:hover::before {
+.fullscreen-btn.improved.themed-btn[data-tooltip]:hover::before,
+.file-calendar [data-tooltip]:hover::after,
+.file-calendar [data-tooltip]:hover::before,
+.file-calendar [data-tooltip]:focus-visible::after,
+.file-calendar [data-tooltip]:focus-visible::before {
     opacity: 1 !important;
     visibility: visible !important;
 }
@@ -4939,6 +5084,64 @@ body .custom-zoom-slider-bar input[type="range"] {
     position: fixed;
     top: 0;
     left: 0;
+}
+
+/* =====================================================
+   Calendar: tooltips + activity icons
+   ===================================================== */
+
+/* Calendar grid tooltips should appear above the cell (prevents clipping at bottom of the grid). */
+.file-calendar__grid [data-tooltip]::after {
+    top: auto !important;
+    bottom: calc(100% + 8px) !important;
+}
+
+.file-calendar__grid [data-tooltip]::before {
+    top: auto !important;
+    bottom: calc(100% + 2px) !important;
+    border-bottom-color: transparent !important;
+    border-top-color: var(--color-border) !important;
+}
+
+.file-calendar__dayIcons {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.file-calendar__dayIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgb(var(--color-accent-rgb) / 18%);
+    border: 1px solid rgb(var(--color-accent-rgb) / 25%);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.file-calendar__dayIconMore {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--color-fg-muted);
+}
+
+.file-calendar__rowIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border-radius: 6px;
+    background: rgb(var(--color-accent-rgb) / 18%);
+    border: 1px solid rgb(var(--color-accent-rgb) / 25%);
+    font-size: 13px;
+    line-height: 1;
+    flex: 0 0 auto;
 }
 
 .tab-content:fullscreen #vega-container > div > canvas,

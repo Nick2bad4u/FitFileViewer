@@ -90,6 +90,21 @@
     }
 
     /**
+     * @param {number} meters
+     * @param {'meters'|'miles'} primary
+     * @param {'meters'|'miles'|null|undefined} secondary
+     * @param {string} decPoint
+     * @param {string} thousandsSep
+     * @returns {string}
+     */
+    function formatDistanceDual(meters, primary, secondary, decPoint, thousandsSep) {
+        const primaryStr = formatDistance(meters, primary, decPoint, thousandsSep);
+        if (!secondary || secondary === primary) return primaryStr;
+        const secondaryStr = formatDistance(meters, secondary, decPoint, thousandsSep);
+        return `${primaryStr} (${secondaryStr})`;
+    }
+
+    /**
      * @param {number} sqMeters
      * @param {'sqmeters'|'acres'} unit
      * @param {string} decPoint
@@ -274,6 +289,10 @@
             this._locked = true;
             this._latlngs = [];
             this._measurementRunningTotal = 0;
+            /** @type {number[]} */
+            this._segmentMeters = [];
+            /** @type {any[]} */
+            this._segmentLabelMarkers = [];
 
             // Keep separate layer groups so in-progress clears don't wipe prior results.
             this._resultLayer ||= L.layerGroup().addTo(this._map);
@@ -324,6 +343,34 @@
                         : L.polyline(latlngs, { color: this.options.completedColor, weight: 3, opacity: 0.9 });
                 shape.addTo(this._resultLayer);
 
+                // Add permanent per-segment labels to the completed measurement.
+                try {
+                    const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
+                    const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+                    for (let i = 1; i < latlngs.length; i += 1) {
+                        const a = latlngs[i - 1];
+                        const b = latlngs[i];
+                        const segMeters = this._map.distance(a, b);
+                        const mid = L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2);
+                        const label = formatDistanceDual(
+                            segMeters,
+                            primaryUnit,
+                            secondaryUnit,
+                            this.options.decPoint,
+                            this.options.thousandsSep
+                        );
+                        L.marker(mid, {
+                            interactive: false,
+                            icon: L.divIcon({
+                                className: "leaflet-measure-segment-label",
+                                html: `<div class="leaflet-measure-segment-label__pill">${label}</div>`,
+                            }),
+                        }).addTo(this._resultLayer);
+                    }
+                } catch {
+                    /* ignore */
+                }
+
                 const popupHtml = this._buildPopupHtml(lengthMeters, areaSqMeters);
                 const popup = L.popup(this.options.popupOptions).setContent(popupHtml);
                 shape.bindPopup(popup);
@@ -355,10 +402,12 @@
             this._onClick ||= this._handleMapClick.bind(this);
             this._onMove ||= this._handleMapMove.bind(this);
             this._onDblClick ||= this._handleMapDblClick.bind(this);
+            this._onContextMenu ||= this._handleMapContextMenu.bind(this);
 
             this._map.on("click", this._onClick);
             this._map.on("mousemove", this._onMove);
             this._map.on("dblclick", this._onDblClick);
+            this._map.on("contextmenu", this._onContextMenu);
         },
 
         _detachMapHandlers: function _detachMapHandlers() {
@@ -366,10 +415,53 @@
             if (this._onClick) this._map.off("click", this._onClick);
             if (this._onMove) this._map.off("mousemove", this._onMove);
             if (this._onDblClick) this._map.off("dblclick", this._onDblClick);
+            if (this._onContextMenu) this._map.off("contextmenu", this._onContextMenu);
+        },
+
+        _handleMapContextMenu: function _handleMapContextMenu(evt) {
+            // Right-click: finish measurement (helps when double-click is awkward on trackpads).
+            if (this._locked) {
+                this._finishMeasure();
+            }
+            if (evt && evt.originalEvent) {
+                try {
+                    evt.originalEvent.preventDefault();
+                } catch {
+                    /* ignore */
+                }
+            }
         },
 
         _handleMapClick: function _handleMapClick(evt) {
             if (!evt || !evt.latlng) return;
+
+            // Allow finishing by clicking near the first point (common UX expectation).
+            if (this._latlngs.length >= 3 && this._map && typeof this._map.distance === "function") {
+                try {
+                    const first = this._latlngs[0];
+                    const distToFirst = this._map.distance(first, evt.latlng);
+                    if (typeof distToFirst === "number" && distToFirst > 0 && distToFirst <= 8) {
+                        this._finishMeasure();
+                        return;
+                    }
+                } catch {
+                    /* ignore */
+                }
+            }
+
+            // Track per-segment distance (between consecutive points).
+            if (this._latlngs.length >= 1 && this._map && typeof this._map.distance === "function") {
+                try {
+                    const prev = this._latlngs.at(-1);
+                    const seg = this._map.distance(prev, evt.latlng);
+                    if (typeof seg === "number" && Number.isFinite(seg) && seg > 0) {
+                        this._segmentMeters ||= [];
+                        this._segmentMeters.push(seg);
+                    }
+                } catch {
+                    /* ignore */
+                }
+            }
             this._latlngs.push(evt.latlng);
 
             // Add point marker
@@ -383,6 +475,51 @@
                     fillOpacity: 0.8,
                 });
                 marker.addTo(this._tempLayer);
+
+                // Clicking any point should finish (users expect this).
+                marker.on("click", (e) => {
+                    if (this._locked) {
+                        this._finishMeasure();
+                    }
+                    if (e && e.originalEvent) {
+                        try {
+                            e.originalEvent.preventDefault();
+                            e.originalEvent.stopPropagation();
+                        } catch {
+                            /* ignore */
+                        }
+                    }
+                });
+
+                // Add a segment label for the most recent segment.
+                if (this._latlngs.length >= 2 && Array.isArray(this._segmentMeters) && this._segmentMeters.length > 0) {
+                    try {
+                        const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
+                        const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+                        const segMeters = this._segmentMeters.at(-1) || 0;
+                        const prev = this._latlngs.at(-2);
+                        const curr = this._latlngs.at(-1);
+                        const mid = L.latLng((prev.lat + curr.lat) / 2, (prev.lng + curr.lng) / 2);
+                        const label = formatDistanceDual(
+                            segMeters,
+                            primaryUnit,
+                            secondaryUnit,
+                            this.options.decPoint,
+                            this.options.thousandsSep
+                        );
+                        const labelMarker = L.marker(mid, {
+                            interactive: false,
+                            icon: L.divIcon({
+                                className: "leaflet-measure-segment-label",
+                                html: `<div class="leaflet-measure-segment-label__pill">${label}</div>`,
+                            }),
+                        }).addTo(this._tempLayer);
+                        this._segmentLabelMarkers ||= [];
+                        this._segmentLabelMarkers.push(labelMarker);
+                    } catch {
+                        /* ignore */
+                    }
+                }
             }
 
             this._renderResults();
@@ -435,6 +572,7 @@
 
             this._previewLine = null;
             this._previewPolygon = null;
+            this._segmentLabelMarkers = [];
         },
 
         _renderResults: function _renderResults() {
@@ -446,9 +584,13 @@
 
             this._measurementRunningTotal = lengthMeters;
 
-            const primaryLength = formatDistance(
+            const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
+            const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+
+            const primaryLength = formatDistanceDual(
                 lengthMeters,
-                /** @type {any} */ (this.options.primaryLengthUnit) || "meters",
+                primaryUnit,
+                secondaryUnit,
                 this.options.decPoint,
                 this.options.thousandsSep
             );
@@ -462,6 +604,29 @@
 
             const hasArea = latlngs.length >= 3;
 
+            const segmentsHtml =
+                Array.isArray(this._segmentMeters) && this._segmentMeters.length > 0
+                    ? `
+                    <div class="group">
+                        <p><span class="heading">Segments</span></p>
+                        <ol class="segments">
+                            ${this._segmentMeters
+                                .map(
+                                    (m, idx) =>
+                                        `<li>Segment ${idx + 1}: ${formatDistanceDual(
+                                            m,
+                                            primaryUnit,
+                                            secondaryUnit,
+                                            this.options.decPoint,
+                                            this.options.thousandsSep
+                                        )}</li>`
+                                )
+                                .join("")}
+                        </ol>
+                    </div>
+                `
+                    : "";
+
             this.$results.innerHTML = `
                 <div class="group">
                     <p><span class="heading">Points</span> ${latlngs.length}</p>
@@ -469,6 +634,7 @@
                 <div class="group">
                     <p><span class="heading">Path distance</span> ${primaryLength}</p>
                 </div>
+                ${segmentsHtml}
                 ${hasArea ? `<div class="group"><p><span class="heading">Area</span> ${primaryArea}</p></div>` : ""}
             `;
 
@@ -476,7 +642,7 @@
                 if (latlngs.length === 0) {
                     this.$startHelp.textContent = "Start creating a measurement by adding points to the map";
                 } else {
-                    this.$startHelp.textContent = "Double-click to finish measurement";
+                    this.$startHelp.textContent = "Double-click, right-click, or click the first point to finish";
                 }
             }
         },
@@ -490,9 +656,12 @@
             const wrap = document.createElement("div");
             wrap.className = "leaflet-measure-resultpopup";
 
-            const length = formatDistance(
+            const primaryUnit = /** @type {any} */ (this.options.primaryLengthUnit) || "meters";
+            const secondaryUnit = /** @type {any} */ (this.options.secondaryLengthUnit);
+            const length = formatDistanceDual(
                 lengthMeters,
-                /** @type {any} */ (this.options.primaryLengthUnit) || "meters",
+                primaryUnit,
+                secondaryUnit,
                 this.options.decPoint,
                 this.options.thousandsSep
             );

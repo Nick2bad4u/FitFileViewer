@@ -822,7 +822,13 @@ export function renderMap() {
                 }
             })
         );
-        addSimpleMeasureTool(map, primaryControls);
+
+        // Avoid duplicate measurement controls.
+        // Prefer the Leaflet control (leaflet-measure-lite) when present; fall back to the simple
+        // 2-click measure button only when the control plugin is unavailable.
+        if (!(windowExt.L && L.control && L.control.measure)) {
+            addSimpleMeasureTool(map, primaryControls);
+        }
         primaryControls.append(createAddFitFileToMapButton());
         if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
             const shownFilesList = createShownFilesList();
